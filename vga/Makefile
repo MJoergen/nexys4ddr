@@ -1,4 +1,4 @@
-TOP = vga_ctrl
+TOP = vga
 
 SRC  = src/clk_wiz_0_clk_wiz.vhd
 SRC += src/clk_wiz_0.vhd
@@ -6,7 +6,7 @@ SRC += src/MouseCtl.vhd
 SRC += src/MouseDisplay.vhd
 SRC += src/Ps2Interface.vhd
 SRC += src/vga_ctrl.vhd
-XDC  = src/Nexys4DDR_Master.xdc
+XDC  = src/$(TOP).xdc
 
 TCL = vivado.tcl
 DCP = $(TOP).dcp
