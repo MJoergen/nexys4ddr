@@ -9,7 +9,9 @@ SRC += src/MouseCtl.vhd
 SRC += src/MouseDisplay.vhd
 SRC += src/Ps2Interface.vhd
 
-TCL = vivado.tcl
+OUTDIR = build
+
+TCL = $(TOP).tcl
 DCP = $(TOP).dcp
 
 PART = xc7a100tcsg324-1
@@ -21,8 +23,9 @@ junk += vivado.log
 junk += fsm_encoding.os
 junk += $(DCP)
 
-$(TCL) : $(SRC)
-	echo "create_project -in_memory -part $(PART)" > $(TCL)
+$(TCL) : $(SRC) Makefile
+	echo "set outputDir $(OUTDIR)" > $(TCL)
+	echo "file mkdir \$$outputDir" >> $(TCL)
 	echo "read_vhdl -library xil_defaultlib {" >> $(TCL)
 	for file in $(SRC); do          \
 			echo "  $$file" >> $(TCL); \
