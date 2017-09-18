@@ -6,7 +6,6 @@ SRC += src/Ps2Interface.vhd
 SRC += src/vga_ctrl.vhd
 
 SYNTH: $(SRC)
-	source /opt/Xilinx/Vivado/2017.2/settings64.sh
 	echo "create_project -in_memory -part xc7a100tcsg324-1" > vivado.tcl
 	echo "read_vhdl -library xil_defaultlib {" >> vivado.tcl
 	for file in $(SRC); do          \
@@ -15,4 +14,4 @@ SYNTH: $(SRC)
 	echo "}" >> vivado.tcl
 	echo "synth_design -top vga_ctrl -part xc7a100tcsg324-1" >> vivado.tcl
 	echo "exit" >> vivado.tcl
-	vivado -mode tcl -source vivado.tcl
+	. /opt/Xilinx/Vivado/2017.2/settings64.sh; vivado -mode tcl -source vivado.tcl
