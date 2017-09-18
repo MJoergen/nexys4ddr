@@ -15,3 +15,10 @@ SYNTH: $(SRC)
 	echo "synth_design -top vga_ctrl -part xc7a100tcsg324-1" >> vivado.tcl
 	echo "exit" >> vivado.tcl
 	. /opt/Xilinx/Vivado/2017.2/settings64.sh; vivado -mode tcl -source vivado.tcl
+junk += vivado.tcl
+junk += vivado.jou
+junk += vivado.log
+junk += fsm_encoding.os
+
+clean::
+	rm -r -f $(junk)
