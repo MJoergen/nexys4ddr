@@ -35,7 +35,7 @@ use ieee.math_real.all;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity vga_ctrl is
+entity vga is
     Port ( CLK_I : in STD_LOGIC;
            VGA_HS_O : out STD_LOGIC;
            VGA_VS_O : out STD_LOGIC;
@@ -45,9 +45,9 @@ entity vga_ctrl is
            PS2_CLK      : inout STD_LOGIC;
            PS2_DATA     : inout STD_LOGIC
            );
-end vga_ctrl;
+end vga;
 
-architecture Behavioral of vga_ctrl is
+architecture Behavioral of vga is
 
   COMPONENT MouseCtl
   GENERIC
