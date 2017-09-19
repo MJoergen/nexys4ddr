@@ -65,6 +65,8 @@ junk += fsm_encoding.os
 junk += .Xil
 junk += build
 junk += $(DCP)
+junk += usage_statistics_webtalk.xml
+junk += usage_statistics_webtalk.html
 
 .PHONY: clean
 clean::
