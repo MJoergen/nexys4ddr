@@ -1,5 +1,9 @@
 # This Makefile is built based on the documentation at 
 # https://www.xilinx.com/support/documentation/sw_manuals/xilinx2013_4/ug894-vivado-tcl-scripting.pdf
+#
+# In order to use it, you must set the following variables:
+# TOP : Name of top level instance
+# SRC : List of HDL source files.
 
 OUTDIR ?= build
 XDC    ?= src/$(TOP).xdc
