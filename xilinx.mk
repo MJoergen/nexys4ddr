@@ -5,11 +5,22 @@
 # TOP : Name of top level instance
 # SRC : List of HDL source files.
 
+# Synthesis
 OUTDIR ?= build
 XDC    ?= src/$(TOP).xdc
 TCL    ?= $(TOP).tcl
 PART   ?= xc7a100tcsg324-1 # For the Nexys4DDR board.
 ENV    ?= /opt/Xilinx/Vivado/2017.2/settings64.sh
+
+# Simulation
+testbench  ?= $(TOP)_tb
+TB_SRC     ?= src/$(testbench).vhd
+wave       ?= src/$(TOP).ghw
+wavesave   ?= src/$(TOP).gtkw
+unisim_lib ?= unisim-obj93.cf
+stoptime   ?= --stop-time=100ns
+
+UNISIMS_DIR = /opt/Xilinx/Vivado/2017.2/data/vhdl/src/unisims
 
 all: synth
 
@@ -71,6 +82,25 @@ junk += build
 junk += $(DCP)
 junk += usage_statistics_webtalk.xml
 junk += usage_statistics_webtalk.html
+
+.PHONY: sim
+sim: $(wave)
+	gtkwave $(wave) $(wavesave)
+
+$(wave): $(testbench)
+	ghdl -r $(testbench) --assert-level=error --wave=$(wave) $(stoptime)
+
+$(testbench): $(testbench).o $(unisim_lib) $(vfiles) $(tb_sources)
+	ghdl -m --ieee=synopsys -fexplicit $(testbench)
+
+$(testbench).o: $(SRC) $(TB_SRC)
+	ghdl -i --work=work $(SRC) $(TB_SRC)
+
+$(unisim_lib):
+	ghdl -i --work=unisim $(UNISIMS_DIR)/*vhd
+	ghdl -i --work=unisim $(UNISIMS_DIR)/primitive/*vhd
+junk += *.o $(testbench)
+
 
 .PHONY: clean
 clean::
