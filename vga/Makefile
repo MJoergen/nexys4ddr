@@ -1,5 +1,7 @@
+# Name of top level module
 TOP = vga
 
+# List of sources files
 SRC  = src/$(TOP).vhd
 SRC += src/clk_wiz_0_clk_wiz.vhd
 SRC += src/clk_wiz_0.vhd

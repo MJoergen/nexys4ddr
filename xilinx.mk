@@ -3,14 +3,11 @@ XDC    ?= src/$(TOP).xdc
 TCL    ?= $(TOP).tcl
 DCP    ?= $(TOP).dcp
 PART   ?= xc7a100tcsg324-1 # For the Nexys4DDR board.
+ENV    ?= /opt/Xilinx/Vivado/2017.2/settings64.sh
 
-SYNTH: $(TCL)
-	. /opt/Xilinx/Vivado/2017.2/settings64.sh; vivado -mode tcl -source $(TCL)
-junk += vivado.jou
-junk += vivado.log
-junk += fsm_encoding.os
-junk += $(DCP)
+all: synth
 
+# Generate tcl-file for vivado batch mode
 $(TCL) : $(SRC) Makefile
 	echo "set outputDir $(OUTDIR)" > $(TCL)
 	echo "file mkdir \$$outputDir" >> $(TCL)
@@ -25,5 +22,16 @@ $(TCL) : $(SRC) Makefile
 	echo "exit" >> $(TCL)
 junk += $(TCL)
 
+.PHONY: synth
+synth: $(TCL)
+	. $(ENV); vivado -mode tcl -source $(TCL)
+junk += vivado.jou
+junk += vivado.log
+junk += fsm_encoding.os
+junk += .Xil
+junk += build
+junk += $(DCP)
+
+.PHONY: clean
 clean::
 	rm -r -f $(junk)
