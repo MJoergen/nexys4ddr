@@ -1,0 +1,34 @@
+[*]
+[*] GTKWave Analyzer v3.3.35 (w)1999-2012 BSI
+[*] Sat Jan 12 11:12:37 2013
+[*]
+[dumpfile] "/home/mike/src/vhdl/cards/cards.ghw"
+[dumpfile_mtime] "Sat Jan 12 11:11:59 2013"
+[dumpfile_size] 5490
+[savefile] "/home/mike/src/vhdl/cards/cards.gtkw"
+[timestart] 0
+[size] 1715 600
+[pos] -1 -1
+*-28.150120 0 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.cards_tb.
+[treeopen] top.cards_tb.inst_cards.
+[sst_width] 191
+[signals_width] 108
+[sst_expanded] 1
+[sst_vpaned_height] 157
+@28
+top.cards_tb.rst
+top.cards_tb.clk
+#{top.cards_tb.cards1[7:0]} top.cards_tb.cards1[7] top.cards_tb.cards1[6] top.cards_tb.cards1[5] top.cards_tb.cards1[4] top.cards_tb.cards1[3] top.cards_tb.cards1[2] top.cards_tb.cards1[1] top.cards_tb.cards1[0]
+#{top.cards_tb.cards2[7:0]} top.cards_tb.cards2[7] top.cards_tb.cards2[6] top.cards_tb.cards2[5] top.cards_tb.cards2[4] top.cards_tb.cards2[3] top.cards_tb.cards2[2] top.cards_tb.cards2[1] top.cards_tb.cards2[0]
+#{top.cards_tb.cards3[7:0]} top.cards_tb.cards3[7] top.cards_tb.cards3[6] top.cards_tb.cards3[5] top.cards_tb.cards3[4] top.cards_tb.cards3[3] top.cards_tb.cards3[2] top.cards_tb.cards3[1] top.cards_tb.cards3[0]
+#{top.cards_tb.cards4[7:0]} top.cards_tb.cards4[7] top.cards_tb.cards4[6] top.cards_tb.cards4[5] top.cards_tb.cards4[4] top.cards_tb.cards4[3] top.cards_tb.cards4[2] top.cards_tb.cards4[1] top.cards_tb.cards4[0]
+@200
+-
+@28
+top.cards_tb.inst_cards.valid_o
+@29
+top.cards_tb.inst_cards.done_o
+[pattern_trace] 1
+[pattern_trace] 0

@@ -18,7 +18,7 @@ TB_SRC     ?= src/$(testbench).vhd
 wave       ?= src/$(TOP).ghw
 wavesave   ?= src/$(TOP).gtkw
 unisim_lib ?= unisim-obj93.cf
-stoptime   ?= --stop-time=100ns
+stoptime   ?= --stop-time=10us
 
 UNISIMS_DIR = /opt/Xilinx/Vivado/2017.2/data/vhdl/src/unisims
 
@@ -97,9 +97,10 @@ $(testbench).o: $(SRC) $(TB_SRC)
 	ghdl -i --work=work $(SRC) $(TB_SRC)
 
 $(unisim_lib):
-	ghdl -i --work=unisim $(UNISIMS_DIR)/*vhd
+	ghdl -i --work=unisim $(UNISIMS_DIR)/unisim_VCOMP.vhd
+	ghdl -i --work=unisim $(UNISIMS_DIR)/unisim_VPKG.vhd
 	ghdl -i --work=unisim $(UNISIMS_DIR)/primitive/*vhd
-junk += *.o $(testbench)
+junk += *.o $(testbench) work-obj93.cf
 
 
 .PHONY: clean
