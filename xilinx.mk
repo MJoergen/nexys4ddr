@@ -88,7 +88,7 @@ sim: $(wave)
 	gtkwave $(wave) $(wavesave)
 
 $(wave): $(testbench)
-	ghdl -r $(testbench) --assert-level=error --wave=$(wave) $(stoptime)
+	-ghdl -r $(testbench) --assert-level=error --wave=$(wave) $(stoptime)
 junk += $(wave)
 
 $(testbench): $(testbench).o $(unisim_lib) $(vfiles) $(tb_sources)

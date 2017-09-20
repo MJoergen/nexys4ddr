@@ -68,8 +68,6 @@ architecture Behavioral of vga_ctrl is
     -- VGA Controller specific signals: Counters, Sync, R, G, B
 
     -------------------------------------------------------------------------
-    -- Pixel clock, in this case 108 MHz
-    signal vga_clk : std_logic;
     -- The active signal is used to signal the active region of the screen (when not blank)
     signal active  : std_logic;
     signal active_dly  : std_logic;
@@ -104,9 +102,9 @@ begin
 
     ---------------------------------------------------------------
     -- Horizontal counter
-    process (vga_clk)
+    process (vga_clk_i)
     begin
-        if (rising_edge(vga_clk)) then
+        if (rising_edge(vga_clk_i)) then
             if (h_cntr_reg = (H_MAX - 1)) then
                 h_cntr_reg <= (others =>'0');
             else
@@ -116,9 +114,9 @@ begin
     end process;
 
     -- Vertical counter
-    process (vga_clk)
+    process (vga_clk_i)
     begin
-        if (rising_edge(vga_clk)) then
+        if (rising_edge(vga_clk_i)) then
             if ((h_cntr_reg = (H_MAX - 1)) and (v_cntr_reg = (V_MAX - 1))) then
                 v_cntr_reg <= (others =>'0');
             elsif (h_cntr_reg = (H_MAX - 1)) then
@@ -128,9 +126,9 @@ begin
     end process;
 
     -- Horizontal sync
-    process (vga_clk)
+    process (vga_clk_i)
     begin
-        if (rising_edge(vga_clk)) then
+        if (rising_edge(vga_clk_i)) then
             if (h_cntr_reg >= (H_FP + FRAME_WIDTH - 1)) and (h_cntr_reg < (H_FP + FRAME_WIDTH + H_PW - 1)) then
                 h_sync_reg <= H_POL;
             else
@@ -140,9 +138,9 @@ begin
     end process;
 
     -- Vertical sync
-    process (vga_clk)
+    process (vga_clk_i)
     begin
-        if (rising_edge(vga_clk)) then
+        if (rising_edge(vga_clk_i)) then
             if (v_cntr_reg >= (V_FP + FRAME_HEIGHT - 1)) and (v_cntr_reg < (V_FP + FRAME_HEIGHT + V_PW - 1)) then
                 v_sync_reg <= V_POL;
             else
@@ -162,9 +160,9 @@ begin
 
 
     -- Register Outputs
-    process (vga_clk)
+    process (vga_clk_i)
     begin
-        if (rising_edge(vga_clk)) then
+        if (rising_edge(vga_clk_i)) then
             h_sync_reg_dly <= h_sync_reg;
             v_sync_reg_dly <= v_sync_reg;
             h_cntr_reg_dly <= h_cntr_reg;
