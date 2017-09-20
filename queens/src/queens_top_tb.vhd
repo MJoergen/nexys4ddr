@@ -43,11 +43,17 @@ architecture Structural of queens_top_tb is
 
     signal count     : integer;
  
+    signal test_running : boolean := true;
+
 begin
 
     -- Generate clock and reset
     vga_clk_gen : process
     begin
+      if not test_running then
+        wait;
+      end if;
+
       vga_clk <= '1', '0' after 20 ns;
       wait for 40 ns;
     end process vga_clk_gen;
@@ -101,7 +107,8 @@ begin
             assert (valid = '0' or (rows_or = ROW_ONES));
             assert (done = '0' or (count = 2));
             if done = '1' then
-                assert false report "End of simulation.";
+              report "End of simulation.";
+              test_running <= false;
             end if;
         end if;
     end process valid_count;

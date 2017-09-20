@@ -15,8 +15,8 @@ ENV    ?= /opt/Xilinx/Vivado/2017.2/settings64.sh
 # Simulation
 testbench  ?= $(TOP)_tb
 TB_SRC     ?= src/$(testbench).vhd
-wave       ?= src/$(TOP).ghw
-wavesave   ?= src/$(TOP).gtkw
+wave       ?= $(TOP).ghw
+wavesave   ?= src/$(testbench).gtkw
 unisim_lib ?= unisim-obj93.cf
 stoptime   ?= --stop-time=10us
 
