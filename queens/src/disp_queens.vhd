@@ -24,8 +24,8 @@ entity disp_queens is
     port (
         vga_clk_i : in  std_logic; -- Currently not used
 
-        hcount_i  : in  std_logic_vector(10 downto 0);
-        vcount_i  : in  std_logic_vector(10 downto 0);
+        hcount_i  : in  std_logic_vector(11 downto 0);
+        vcount_i  : in  std_logic_vector(11 downto 0);
         blank_i   : in  std_logic;
 
         board_i   : in  std_logic_vector(NUM_QUEENS*NUM_QUEENS-1 downto 0);

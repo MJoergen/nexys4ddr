@@ -47,8 +47,8 @@ architecture Structural of queens_top is
 
     signal rst      : std_logic;
 
-    signal hcount   : std_logic_vector(10 downto 0);
-    signal vcount   : std_logic_vector(10 downto 0);
+    signal hcount   : std_logic_vector(11 downto 0);
+    signal vcount   : std_logic_vector(11 downto 0);
     signal blank    : std_logic;
 
     signal vga      : std_logic_vector (7 downto 0);
@@ -124,7 +124,7 @@ begin
         );
    
 -- This generates the VGA timing signals
-    inst_vga_controller_640_60 : entity work.vga_controller_640_60
+    inst_vga_ctrl : entity work.vga_ctrl
     port map (
        rst_i     => rst         ,
        vga_clk_i => vga_clk_i   ,
