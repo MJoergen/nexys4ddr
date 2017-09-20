@@ -12,6 +12,8 @@ SRC += src/clk.vhd
 SRC += src/seg.vhd
 SRC += src/int2seg.vhd
 SRC += src/digit.vhd
+SRC += src/clk_wiz_0.vhd
+SRC += src/clk_wiz_0_clk_wiz.vhd
 
 stoptime = --stop-time=1000us
 

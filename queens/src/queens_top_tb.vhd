@@ -17,7 +17,7 @@ architecture Structural of queens_top_tb is
     constant FREQ       : integer := 5;
 
     -- Clock
-    signal vga_clk   : std_logic;  -- 25 MHz
+    signal clk   : std_logic;  -- 100 MHz
 
     -- LED, buttom, and switches
     signal led       : std_logic_vector (7 downto 0); 
@@ -48,15 +48,15 @@ architecture Structural of queens_top_tb is
 begin
 
     -- Generate clock and reset
-    vga_clk_gen : process
+    clk_gen : process
     begin
       if not test_running then
         wait;
       end if;
 
-      vga_clk <= '1', '0' after 20 ns;
-      wait for 40 ns;
-    end process vga_clk_gen;
+      clk <= '1', '0' after 5 ns; -- 100 MHz
+      wait for 10 ns;
+    end process clk_gen;
 
     rst_gen : process
     begin
@@ -73,14 +73,14 @@ begin
         NUM_QUEENS => NUM_QUEENS
         )
     port map (
-        vga_clk_i   => vga_clk   ,
+        clk_i       => clk       ,
         sw_i        => sw        ,
         led_o       => led       ,
         board_o         => board         ,
         num_solutions_o => num_solutions ,
         valid_o         => valid         ,
         done_o          => done          ,
-        enable_o        => enable         ,
+        enable_o        => enable        ,
         vga_hs_o    => vga_hs    ,
         vga_vs_o    => vga_vs    ,
         vga_red_o   => vga_red   ,
@@ -88,13 +88,13 @@ begin
         vga_blue_o  => vga_blue  
         );
 
-    valid_count : process (vga_clk, sw(0))
+    valid_count : process (clk, sw(0))
         variable rows_or  : std_logic_vector(NUM_QUEENS-1 downto 0);
         constant ROW_ONES : std_logic_vector(NUM_QUEENS-1 downto 0) := (others => '1');
     begin
         if sw(0) = '1' then
             count <= 0;
-        elsif rising_edge(vga_clk) then
+        elsif rising_edge(clk) then
             if valid = '1' and enable = '1' then
                 count <= count + 1;
             end if;

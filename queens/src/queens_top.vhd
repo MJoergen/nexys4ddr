@@ -10,7 +10,7 @@ entity queens_top is
        );
    port (
       -- Clock
-      vga_clk_i   : in  std_logic;  -- 25 MHz for VGA 640x480
+      clk_i   : in  std_logic;  -- 100 MHz
 
       -- Input switches
       sw_i        : in  std_logic_vector (7 downto 0);
@@ -46,6 +46,7 @@ architecture Structural of queens_top is
     signal queens_en : std_logic;
 
     signal rst      : std_logic;
+    signal vga_clk  : std_logic;
 
     signal hcount   : std_logic_vector(11 downto 0);
     signal vcount   : std_logic_vector(11 downto 0);
@@ -83,14 +84,22 @@ begin
     enable_o        <= queens_en     ;
 -- pragma synthesis_on
 
+-- Generate VGA clock
+    inst_clk_wiz_0 : entity work.clk_wiz_0
+    port map
+    (
+        clk_in1 => clk_i,
+        clk_out1 => vga_clk
+    );
+
 -- Generate a single pulse for every time the board should be updated.
     inst_counter : entity work.counter
     generic map (
        FREQ    => FREQ       
        )
     port map (
-       rst_i   => rst         ,
-       clk_i   => vga_clk_i   ,
+       rst_i   => rst       ,
+       clk_i   => vga_clk   ,
        speed_i => sw_i(7 downto 1),
        en_o    => queens_en
     );
@@ -101,8 +110,8 @@ begin
         NUM_QUEENS => NUM_QUEENS
         )
     port map ( 
-		rst_i    => rst        ,
-		clk_i    => vga_clk_i  ,
+		rst_i    => rst      ,
+		clk_i    => vga_clk  ,
         en_i     => queens_en  ,
         board_o  => board      ,
         valid_o  => valid      ,
@@ -115,31 +124,31 @@ begin
         NUM_QUEENS => NUM_QUEENS
         )
     port map (
-        vga_clk_i  => vga_clk_i  ,
-        hcount_i   => hcount     ,
-        vcount_i   => vcount     ,
-        blank_i    => blank      ,
-        board_i    => board      ,
+        vga_clk_i  => vga_clk  ,
+        hcount_i   => hcount   ,
+        vcount_i   => vcount   ,
+        blank_i    => blank    ,
+        board_i    => board    ,
         vga_o      => vga
         );
    
 -- This generates the VGA timing signals
     inst_vga_ctrl : entity work.vga_ctrl
     port map (
-       rst_i     => rst         ,
-       vga_clk_i => vga_clk_i   ,
-       HS_o      => vga_hs_o    ,
-       VS_o      => vga_vs_o    ,
-       hcount_o  => hcount      ,
-       vcount_o  => vcount      ,
+       rst_i     => rst       ,
+       vga_clk_i => vga_clk   ,
+       HS_o      => vga_hs_o  ,
+       VS_o      => vga_vs_o  ,
+       hcount_o  => hcount    ,
+       vcount_o  => vcount    ,
        blank_o   => blank       
     );
 
-    process (rst, vga_clk_i) is
+    process (rst, vga_clk) is
     begin
         if rst = '1' then
             num_solutions <= (others => '0');
-        elsif rising_edge(vga_clk_i) then
+        elsif rising_edge(vga_clk) then
             if valid = '1' and queens_en = '1' then
                 num_solutions <= num_solutions + "00000000000001";
             end if;
@@ -169,14 +178,14 @@ begin
         dp_o   => dp
     );
 
-	inst_clk : entity work.clk
-		generic map (
-			SCALER => 25000000/1000
-			)
-	   port map (
-			clk_i => vga_clk_i,
-			clk_o => clk_1kHz
-			);
+    inst_clk : entity work.clk
+    generic map (
+                    SCALER => 100000000/1000
+                )
+    port map (
+                 clk_i => vga_clk,
+                 clk_o => clk_1kHz
+             );
 
 end Structural;
 
