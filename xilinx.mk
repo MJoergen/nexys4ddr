@@ -89,18 +89,21 @@ sim: $(wave)
 
 $(wave): $(testbench)
 	ghdl -r $(testbench) --assert-level=error --wave=$(wave) $(stoptime)
+junk += $(wave)
 
 $(testbench): $(testbench).o $(unisim_lib) $(vfiles) $(tb_sources)
 	ghdl -m --ieee=synopsys -fexplicit $(testbench)
+junk += $(testbench)
 
 $(testbench).o: $(SRC) $(TB_SRC)
 	ghdl -i --work=work $(SRC) $(TB_SRC)
+junk += *.o work-obj93.cf 
 
 $(unisim_lib):
 	ghdl -i --work=unisim $(UNISIMS_DIR)/unisim_VCOMP.vhd
 	ghdl -i --work=unisim $(UNISIMS_DIR)/unisim_VPKG.vhd
 	ghdl -i --work=unisim $(UNISIMS_DIR)/primitive/*vhd
-junk += *.o $(testbench) work-obj93.cf
+junk += unisim-obj93.cf 
 
 
 .PHONY: clean
