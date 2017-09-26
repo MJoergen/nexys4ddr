@@ -26,9 +26,9 @@ architecture Structural of queens_top_tb is
     -- VGA port
     signal vga_hs    : std_logic; 
     signal vga_vs    : std_logic;
-    signal vga_red   : std_logic_vector (2 downto 0); 
-    signal vga_green : std_logic_vector (2 downto 0); 
-    signal vga_blue  : std_logic_vector (2 downto 1); 
+    signal vga_red   : std_logic_vector (3 downto 0); 
+    signal vga_green : std_logic_vector (3 downto 0); 
+    signal vga_blue  : std_logic_vector (3 downto 0); 
 
     -- Output segment display
     signal seg_ca    : std_logic_vector (6 downto 0);

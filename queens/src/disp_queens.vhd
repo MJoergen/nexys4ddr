@@ -29,7 +29,7 @@ entity disp_queens is
         blank_i   : in  std_logic;
 
         board_i   : in  std_logic_vector(NUM_QUEENS*NUM_QUEENS-1 downto 0);
-        vga_o     : out std_logic_vector(7 downto 0)
+        vga_o     : out std_logic_vector(11 downto 0)
 		);
 end disp_queens;
 
@@ -71,14 +71,14 @@ begin
                 xdiff := (hcount - OFFSET_X) rem 16;
                 ydiff := (vcount - OFFSET_Y) rem 16;
                 if (row rem 2) = (col rem 2) then
-                    vga_o <= "10110110";  -- light grey
+                    vga_o <= "101010101010";  -- light grey
                 else
-                    vga_o <= "01001001";  -- dark grey
+                    vga_o <= "010101010101";  -- dark grey
                 end if;
                 if board_i(row*NUM_QUEENS + col) = '1' then
                     case bitmap_queen(ydiff*16 + xdiff) is
-                        when "01"   => vga_o <= "11011010";
-                        when "00"   => vga_o <= "00100101";
+                        when "01"   => vga_o <= "110011001100";
+                        when "00"   => vga_o <= "001000100010";
                         when others => null;
                     end case;
                 end if;
@@ -87,11 +87,11 @@ begin
             if hcount >= offset_x and hcount <= offset_x + 16 * NUM_QUEENS
             and vcount >= offset_y and vcount <= offset_y + 16 * NUM_QUEENS then
                 if (vcount - offset_y) rem 16 = 0 then
-                    vga_o <= "11111111"; -- white
+                    vga_o <= "111111111111"; -- white
                 end if;   
 
                 if (hcount - offset_x) rem 16 = 0 then
-                    vga_o <= "11111111"; -- white
+                    vga_o <= "111111111111"; -- white
                 end if;   
             end if;   
         end if;   
