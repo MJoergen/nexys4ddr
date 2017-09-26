@@ -83,6 +83,17 @@ junk += $(DCP)
 junk += usage_statistics_webtalk.xml
 junk += usage_statistics_webtalk.html
 
+.PHONY: program
+program: $(OUTDIR)/$(TOP).bit
+	echo "open_hw" > $(TCL)
+	echo "connect_hw_server" >> $(TCL)
+	echo "open_hw_target" >> $(TCL)
+	echo "set_property PROGRAM.FILE {$(OUTDIR)/$(TOP).bit} [lindex [get_hw_devices] 0]" >> $(TCL)
+	echo "program_hw_devices [lindex [get_hw_devices] 0]" >> $(TCL)
+	echo "disconnect_hw_server" >> $(TCL)
+	echo "exit" >> $(TCL)
+	. $(ENV); vivado -mode tcl -source $(TCL)
+
 .PHONY: sim
 sim: $(wave)
 	gtkwave $(wave) $(wavesave)
