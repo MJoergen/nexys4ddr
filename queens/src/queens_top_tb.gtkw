@@ -1,32 +1,40 @@
 [*]
-[*] GTKWave Analyzer v3.3.41 (w)1999-2012 BSI
-[*] Sun Jan 27 11:33:26 2013
+[*] GTKWave Analyzer v3.3.81 (w)1999-2017 BSI
+[*] Wed Sep 27 07:40:45 2017
 [*]
-[dumpfile] "/home/mike/src/vhdl/queens/queens_top_tb.ghw"
-[dumpfile_mtime] "Sun Jan 27 11:32:35 2013"
-[dumpfile_size] 8227
-[savefile] "/home/mike/src/vhdl/queens/queens_top_tb.gtkw"
+[dumpfile] "/home/mike/git/nexys4ddr/queens/queens_top.ghw"
+[dumpfile_mtime] "Wed Sep 27 07:38:58 2017"
+[dumpfile_size] 3679783
+[savefile] "/home/mike/git/nexys4ddr/queens/src/queens_top_tb.gtkw"
 [timestart] 0
-[size] 1000 600
-[pos] -1 -1
-*-30.187069 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[size] 1920 1152
+[pos] -917 -1
+*-30.446321 9901112295 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.queens_top_tb.
 [treeopen] top.queens_top_tb.inst_queens_top.
+[treeopen] top.queens_top_tb.inst_queens_top.inst_disp_queens.
 [treeopen] top.queens_top_tb.inst_queens_top.inst_queens.
-[sst_width] 226
-[signals_width] 182
+[sst_width] 229
+[signals_width] 269
 [sst_expanded] 1
-[sst_vpaned_height] 143
+[sst_vpaned_height] 331
 @28
 top.queens_top_tb.inst_queens_top.rst
-top.queens_top_tb.inst_queens_top.vga_clk_i
 top.queens_top_tb.inst_queens_top.inst_queens.valid_o
 top.queens_top_tb.inst_queens_top.inst_queens.done_o
 top.queens_top_tb.count
-@23
-#{top.queens_top_tb.inst_queens_top.board[15:0]} top.queens_top_tb.inst_queens_top.board[15] top.queens_top_tb.inst_queens_top.board[14] top.queens_top_tb.inst_queens_top.board[13] top.queens_top_tb.inst_queens_top.board[12] top.queens_top_tb.inst_queens_top.board[11] top.queens_top_tb.inst_queens_top.board[10] top.queens_top_tb.inst_queens_top.board[9] top.queens_top_tb.inst_queens_top.board[8] top.queens_top_tb.inst_queens_top.board[7] top.queens_top_tb.inst_queens_top.board[6] top.queens_top_tb.inst_queens_top.board[5] top.queens_top_tb.inst_queens_top.board[4] top.queens_top_tb.inst_queens_top.board[3] top.queens_top_tb.inst_queens_top.board[2] top.queens_top_tb.inst_queens_top.board[1] top.queens_top_tb.inst_queens_top.board[0]
 @22
+#{top.queens_top_tb.inst_queens_top.board[15:0]} top.queens_top_tb.inst_queens_top.board[15] top.queens_top_tb.inst_queens_top.board[14] top.queens_top_tb.inst_queens_top.board[13] top.queens_top_tb.inst_queens_top.board[12] top.queens_top_tb.inst_queens_top.board[11] top.queens_top_tb.inst_queens_top.board[10] top.queens_top_tb.inst_queens_top.board[9] top.queens_top_tb.inst_queens_top.board[8] top.queens_top_tb.inst_queens_top.board[7] top.queens_top_tb.inst_queens_top.board[6] top.queens_top_tb.inst_queens_top.board[5] top.queens_top_tb.inst_queens_top.board[4] top.queens_top_tb.inst_queens_top.board[3] top.queens_top_tb.inst_queens_top.board[2] top.queens_top_tb.inst_queens_top.board[1] top.queens_top_tb.inst_queens_top.board[0]
 #{top.queens_top_tb.inst_queens_top.num_solutions[13:0]} top.queens_top_tb.inst_queens_top.num_solutions[13] top.queens_top_tb.inst_queens_top.num_solutions[12] top.queens_top_tb.inst_queens_top.num_solutions[11] top.queens_top_tb.inst_queens_top.num_solutions[10] top.queens_top_tb.inst_queens_top.num_solutions[9] top.queens_top_tb.inst_queens_top.num_solutions[8] top.queens_top_tb.inst_queens_top.num_solutions[7] top.queens_top_tb.inst_queens_top.num_solutions[6] top.queens_top_tb.inst_queens_top.num_solutions[5] top.queens_top_tb.inst_queens_top.num_solutions[4] top.queens_top_tb.inst_queens_top.num_solutions[3] top.queens_top_tb.inst_queens_top.num_solutions[2] top.queens_top_tb.inst_queens_top.num_solutions[1] top.queens_top_tb.inst_queens_top.num_solutions[0]
+@800201
+-VGA
+@25
+#{top.queens_top_tb.inst_queens_top.inst_disp_queens.vcount_i[11:0]} top.queens_top_tb.inst_queens_top.inst_disp_queens.vcount_i[11] top.queens_top_tb.inst_queens_top.inst_disp_queens.vcount_i[10] top.queens_top_tb.inst_queens_top.inst_disp_queens.vcount_i[9] top.queens_top_tb.inst_queens_top.inst_disp_queens.vcount_i[8] top.queens_top_tb.inst_queens_top.inst_disp_queens.vcount_i[7] top.queens_top_tb.inst_queens_top.inst_disp_queens.vcount_i[6] top.queens_top_tb.inst_queens_top.inst_disp_queens.vcount_i[5] top.queens_top_tb.inst_queens_top.inst_disp_queens.vcount_i[4] top.queens_top_tb.inst_queens_top.inst_disp_queens.vcount_i[3] top.queens_top_tb.inst_queens_top.inst_disp_queens.vcount_i[2] top.queens_top_tb.inst_queens_top.inst_disp_queens.vcount_i[1] top.queens_top_tb.inst_queens_top.inst_disp_queens.vcount_i[0]
+#{top.queens_top_tb.inst_queens_top.inst_disp_queens.hcount_i[11:0]} top.queens_top_tb.inst_queens_top.inst_disp_queens.hcount_i[11] top.queens_top_tb.inst_queens_top.inst_disp_queens.hcount_i[10] top.queens_top_tb.inst_queens_top.inst_disp_queens.hcount_i[9] top.queens_top_tb.inst_queens_top.inst_disp_queens.hcount_i[8] top.queens_top_tb.inst_queens_top.inst_disp_queens.hcount_i[7] top.queens_top_tb.inst_queens_top.inst_disp_queens.hcount_i[6] top.queens_top_tb.inst_queens_top.inst_disp_queens.hcount_i[5] top.queens_top_tb.inst_queens_top.inst_disp_queens.hcount_i[4] top.queens_top_tb.inst_queens_top.inst_disp_queens.hcount_i[3] top.queens_top_tb.inst_queens_top.inst_disp_queens.hcount_i[2] top.queens_top_tb.inst_queens_top.inst_disp_queens.hcount_i[1] top.queens_top_tb.inst_queens_top.inst_disp_queens.hcount_i[0]
+@23
+#{top.queens_top_tb.inst_queens_top.inst_disp_queens.vga_o[11:0]} top.queens_top_tb.inst_queens_top.inst_disp_queens.vga_o[11] top.queens_top_tb.inst_queens_top.inst_disp_queens.vga_o[10] top.queens_top_tb.inst_queens_top.inst_disp_queens.vga_o[9] top.queens_top_tb.inst_queens_top.inst_disp_queens.vga_o[8] top.queens_top_tb.inst_queens_top.inst_disp_queens.vga_o[7] top.queens_top_tb.inst_queens_top.inst_disp_queens.vga_o[6] top.queens_top_tb.inst_queens_top.inst_disp_queens.vga_o[5] top.queens_top_tb.inst_queens_top.inst_disp_queens.vga_o[4] top.queens_top_tb.inst_queens_top.inst_disp_queens.vga_o[3] top.queens_top_tb.inst_queens_top.inst_disp_queens.vga_o[2] top.queens_top_tb.inst_queens_top.inst_disp_queens.vga_o[1] top.queens_top_tb.inst_queens_top.inst_disp_queens.vga_o[0]
+@1000201
+-VGA
 [pattern_trace] 1
 [pattern_trace] 0
