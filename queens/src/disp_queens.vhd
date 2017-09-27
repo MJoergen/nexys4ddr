@@ -48,8 +48,8 @@ begin
     gen_vga : process (hcount_i, vcount_i, blank_i, board_i) is
         variable hcount : integer;
         variable vcount : integer;
-        variable col    : integer;
-        variable row    : integer;
+        variable col    : integer range 0 to NUM_QUEENS - 1;
+        variable row    : integer range 0 to NUM_QUEENS - 1;
         variable xdiff  : integer range 0 to 15;
         variable ydiff  : integer range 0 to 15;
         variable bitmap : bitmap_t;
@@ -66,10 +66,10 @@ begin
         if blank_i = '0' then -- in the active screen
             if hcount >= offset_x and hcount < offset_x + 16 * NUM_QUEENS
             and vcount >= offset_y and vcount < offset_y + 16 * NUM_QUEENS then
-                row := NUM_QUEENS-1 - (vcount-offset_y) / 16;
-                col := NUM_QUEENS-1 - (hcount-offset_x) / 16;
-                xdiff := (hcount - OFFSET_X) rem 16;
-                ydiff := (vcount - OFFSET_Y) rem 16;
+                col   := (hcount - OFFSET_X) / 16;
+                row   := (vcount - OFFSET_Y) / 16;
+                xdiff := (hcount - OFFSET_X) - col*16;
+                ydiff := (vcount - OFFSET_Y) - row*16;
                 if (row rem 2) = (col rem 2) then
                     vga_o <= "101010101010";  -- light grey
                 else
