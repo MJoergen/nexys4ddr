@@ -97,13 +97,19 @@ program: $(OUTDIR)/$(TOP).bit
 	echo "exit" >> $(TCL)
 	. $(ENV); vivado -mode tcl -source $(TCL)
 
+.PHONY: show
+show: $(wave)
+	gtkwave $(wave) $(wavesave)
+
 .PHONY: sim
 sim: $(wave)
-	gtkwave $(wave) $(wavesave)
 
 $(wave): $(testbench)
 	-ghdl -r $(testbench) --assert-level=error --wave=$(wave) $(stoptime)
 junk += $(wave)
+
+.PHONY: elaborate
+elaborate: $(testbench)
 
 $(testbench): $(testbench).o $(unisim_lib) $(vfiles) $(tb_sources)
 	ghdl -m --ieee=synopsys -fexplicit $(testbench)
