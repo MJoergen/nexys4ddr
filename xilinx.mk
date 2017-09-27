@@ -72,16 +72,19 @@ $(TCL) : $(SRC) Makefile
 junk += $(TCL)
 
 .PHONY: synth
-synth: $(TCL)
+synth: $(OUTDIR)/$(TOP).bit
+
+$(OUTDIR)/$(TOP).bit: $(TCL)
 	. $(ENV); vivado -mode tcl -source $(TCL)
-junk += vivado.jou
-junk += vivado.log
+junk += vivado*.jou
+junk += vivado*.log
 junk += fsm_encoding.os
 junk += .Xil
 junk += build
 junk += $(DCP)
 junk += usage_statistics_webtalk.xml
 junk += usage_statistics_webtalk.html
+
 
 .PHONY: program
 program: $(OUTDIR)/$(TOP).bit
