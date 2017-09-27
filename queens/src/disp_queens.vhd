@@ -51,8 +51,8 @@ begin
 
         variable hcount : integer range 0 to 1688;
         variable vcount : integer range 0 to 1066;
-        variable col    : integer range 0 to NUM_QUEENS - 1;
-        variable row    : integer range 0 to NUM_QUEENS - 1;
+        variable col    : integer range 0 to NUM_QUEENS;
+        variable row    : integer range 0 to NUM_QUEENS;
         variable xdiff  : integer range 0 to SIZE-1;
         variable ydiff  : integer range 0 to SIZE-1;
         variable bitmap : bitmap_t;
@@ -89,11 +89,16 @@ begin
 
             if hcount >= offset_x and hcount <= offset_x + SIZE * NUM_QUEENS + 1
             and vcount >= offset_y and vcount <= offset_y + SIZE * NUM_QUEENS + 1 then
-                if ((vcount - offset_y) rem SIZE) / 2 = 0 then
+                col   := (hcount - OFFSET_X) / SIZE;
+                row   := (vcount - OFFSET_Y) / SIZE;
+                xdiff := (hcount - OFFSET_X) - col*SIZE;
+                ydiff := (vcount - OFFSET_Y) - row*SIZE;
+
+                if xdiff = 0 or xdiff = 1 then
                     vga_o <= "111111111111"; -- white
                 end if;   
 
-                if ((hcount - offset_x) rem SIZE) / 2 = 0 then
+                if ydiff = 0 or ydiff = 1 then
                     vga_o <= "111111111111"; -- white
                 end if;   
             end if;   
