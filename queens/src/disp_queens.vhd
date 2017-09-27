@@ -35,7 +35,7 @@ end disp_queens;
 
 architecture Behavioral of disp_queens is
 
-    constant OFFSET_X : integer := 50;
+    constant OFFSET_X : integer := 450;
     constant OFFSET_Y : integer := 150;
 
     type bitmaps_vector is array(natural range <>) of bitmap_t;
@@ -46,12 +46,15 @@ architecture Behavioral of disp_queens is
 begin
 
     gen_vga : process (hcount_i, vcount_i, blank_i, board_i) is
-        variable hcount : integer;
-        variable vcount : integer;
+
+        constant SIZE   : integer := 32;
+
+        variable hcount : integer range 0 to 1688;
+        variable vcount : integer range 0 to 1066;
         variable col    : integer range 0 to NUM_QUEENS - 1;
         variable row    : integer range 0 to NUM_QUEENS - 1;
-        variable xdiff  : integer range 0 to 15;
-        variable ydiff  : integer range 0 to 15;
+        variable xdiff  : integer range 0 to SIZE-1;
+        variable ydiff  : integer range 0 to SIZE-1;
         variable bitmap : bitmap_t;
 
     begin
@@ -64,19 +67,19 @@ begin
         vga_o  <= (others => '0');
 
         if blank_i = '0' then -- in the active screen
-            if hcount >= offset_x and hcount < offset_x + 16 * NUM_QUEENS
-            and vcount >= offset_y and vcount < offset_y + 16 * NUM_QUEENS then
-                col   := (hcount - OFFSET_X) / 16;
-                row   := (vcount - OFFSET_Y) / 16;
-                xdiff := (hcount - OFFSET_X) - col*16;
-                ydiff := (vcount - OFFSET_Y) - row*16;
+            if hcount >= offset_x and hcount < offset_x + SIZE * NUM_QUEENS
+            and vcount >= offset_y and vcount < offset_y + SIZE * NUM_QUEENS then
+                col   := (hcount - OFFSET_X) / SIZE;
+                row   := (vcount - OFFSET_Y) / SIZE;
+                xdiff := (hcount - OFFSET_X) - col*SIZE;
+                ydiff := (vcount - OFFSET_Y) - row*SIZE;
                 if (row rem 2) = (col rem 2) then
                     vga_o <= "101010101010";  -- light grey
                 else
                     vga_o <= "010101010101";  -- dark grey
                 end if;
                 if board_i(row*NUM_QUEENS + col) = '1' then
-                    case bitmap_queen(ydiff*16 + xdiff) is
+                    case bitmap_queen((ydiff/2)*16 + (xdiff/2)) is
                         when "01"   => vga_o <= "110011001100";
                         when "00"   => vga_o <= "001000100010";
                         when others => null;
@@ -84,13 +87,13 @@ begin
                 end if;
             end if;
 
-            if hcount >= offset_x and hcount <= offset_x + 16 * NUM_QUEENS
-            and vcount >= offset_y and vcount <= offset_y + 16 * NUM_QUEENS then
-                if (vcount - offset_y) rem 16 = 0 then
+            if hcount >= offset_x and hcount <= offset_x + SIZE * NUM_QUEENS + 1
+            and vcount >= offset_y and vcount <= offset_y + SIZE * NUM_QUEENS + 1 then
+                if ((vcount - offset_y) rem SIZE) / 2 = 0 then
                     vga_o <= "111111111111"; -- white
                 end if;   
 
-                if (hcount - offset_x) rem 16 = 0 then
+                if ((hcount - offset_x) rem SIZE) / 2 = 0 then
                     vga_o <= "111111111111"; -- white
                 end if;   
             end if;   
