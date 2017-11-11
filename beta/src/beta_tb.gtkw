@@ -1,0 +1,31 @@
+[*]
+[*] GTKWave Analyzer v3.3.81 (w)1999-2017 BSI
+[*] Sat Nov 11 17:03:55 2017
+[*]
+[dumpfile] "/home/mike/git/nexys4ddr/beta/beta.ghw"
+[dumpfile_mtime] "Sat Nov 11 17:01:39 2017"
+[dumpfile_size] 19561971
+[savefile] "/home/mike/git/nexys4ddr/beta/src/beta_tb.gtkw"
+[timestart] 0
+[size] 1916 1149
+[pos] -1 -1
+*-32.716438 9401111813 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.beta_tb.
+[treeopen] top.beta_tb.inst_beta.
+[sst_width] 229
+[signals_width] 215
+[sst_expanded] 1
+[sst_vpaned_height] 338
+@28
+top.beta_tb.vga_vs
+top.beta_tb.vga_hs
+@22
+#{top.beta_tb.vga_red[3:0]} top.beta_tb.vga_red[3] top.beta_tb.vga_red[2] top.beta_tb.vga_red[1] top.beta_tb.vga_red[0]
+#{top.beta_tb.vga_green[3:0]} top.beta_tb.vga_green[3] top.beta_tb.vga_green[2] top.beta_tb.vga_green[1] top.beta_tb.vga_green[0]
+#{top.beta_tb.vga_blue[3:0]} top.beta_tb.vga_blue[3] top.beta_tb.vga_blue[2] top.beta_tb.vga_blue[1] top.beta_tb.vga_blue[0]
+#{top.beta_tb.inst_beta.vcount[11:0]} top.beta_tb.inst_beta.vcount[11] top.beta_tb.inst_beta.vcount[10] top.beta_tb.inst_beta.vcount[9] top.beta_tb.inst_beta.vcount[8] top.beta_tb.inst_beta.vcount[7] top.beta_tb.inst_beta.vcount[6] top.beta_tb.inst_beta.vcount[5] top.beta_tb.inst_beta.vcount[4] top.beta_tb.inst_beta.vcount[3] top.beta_tb.inst_beta.vcount[2] top.beta_tb.inst_beta.vcount[1] top.beta_tb.inst_beta.vcount[0]
+@23
+#{top.beta_tb.inst_beta.hcount[11:0]} top.beta_tb.inst_beta.hcount[11] top.beta_tb.inst_beta.hcount[10] top.beta_tb.inst_beta.hcount[9] top.beta_tb.inst_beta.hcount[8] top.beta_tb.inst_beta.hcount[7] top.beta_tb.inst_beta.hcount[6] top.beta_tb.inst_beta.hcount[5] top.beta_tb.inst_beta.hcount[4] top.beta_tb.inst_beta.hcount[3] top.beta_tb.inst_beta.hcount[2] top.beta_tb.inst_beta.hcount[1] top.beta_tb.inst_beta.hcount[0]
+[pattern_trace] 1
+[pattern_trace] 0
