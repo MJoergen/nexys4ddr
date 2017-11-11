@@ -111,12 +111,10 @@ junk += $(wave)
 .PHONY: elaborate
 elaborate: $(testbench)
 
-$(testbench): $(testbench).o $(unisim_lib) $(vfiles) $(tb_sources)
+$(testbench): $(unisim_lib) $(SRC) $(TB_SRC)
+	ghdl -i --work=work $(SRC) $(TB_SRC)
 	ghdl -m --ieee=synopsys -fexplicit $(testbench)
 junk += $(testbench)
-
-$(testbench).o: $(SRC) $(TB_SRC)
-	ghdl -i --work=work $(SRC) $(TB_SRC)
 junk += *.o work-obj93.cf 
 
 $(unisim_lib):
