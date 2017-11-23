@@ -1,18 +1,52 @@
+###############################################################################
+#
 # This Makefile is built based on the documentation at 
 # https://www.xilinx.com/support/documentation/sw_manuals/xilinx2013_4/ug894-vivado-tcl-scripting.pdf
 #
-# In order to use it, you must set the following variables:
-# TOP : Name of top level instance
-# SRC : List of HDL source files.
+###############################################################################
+#
+# Usage:
+#
+# In order to use it, you must include this file from a separate Makefile with
+# the following contents:
+#
+#     # Name of top level module
+#     TOP = toplevel
+#
+#     # List of sources files
+#     SRC  = src/$(TOP).vhd
+#     SRC += src/clk.vhd
+#     SRC += ### etc.
+#
+#     include ../xilinx.mk
+#
+#
+# Assumptions made by this Makefile system:
+# * The testbench is located in src/$(TOP)_tb.vhd. Can be overridden by the variable TB_SRC.
+# * The constraint file is located in src/$(TOP).xdc. Can be overridden by the variable XDC.
+#
+# 
+# Supported make targets are:
+# * sim     : Run simulation (default target).
+# * bit     : Create a bit-file.
+# * program : Program the FPGA board with the bit-file.
+# * clean   : Delete all compiled files.
+#
+###############################################################################
+#
+# DON'T CHANGE ANYTHING BELOW THIS LINE !!!!!
+#
+###############################################################################
 
-# Synthesis
+# Variables used for synthesis
+VIVADO ?= /opt/Xilinx/Vivado/2017.3
 OUTDIR ?= build
 XDC    ?= src/$(TOP).xdc
 TCL    ?= $(TOP).tcl
 PART   ?= xc7a100tcsg324-1 # For the Nexys4DDR board.
-ENV    ?= /opt/Xilinx/Vivado/2017.2/settings64.sh
+ENV    ?= $(VIVADO)/settings64.sh
 
-# Simulation
+# Variables used for simulation
 testbench  ?= $(TOP)_tb
 TB_SRC     ?= src/$(testbench).vhd
 wave       ?= $(TOP).ghw
@@ -20,9 +54,37 @@ wavesave   ?= src/$(testbench).gtkw
 unisim_lib ?= unisim-obj93.cf
 stoptime   ?= --stop-time=10us
 
-UNISIMS_DIR = /opt/Xilinx/Vivado/2017.2/data/vhdl/src/unisims
+UNISIMS_DIR = $(VIVADO)/data/vhdl/src/unisims
 
-all: synth
+# Default target is simulation.
+all: sim
+
+###############################################################################
+
+.PHONY: sim
+sim: $(wave)
+	gtkwave $(wave) $(wavesave)
+
+$(wave): $(testbench)
+	-ghdl -r $(testbench) --assert-level=error --wave=$(wave) $(stoptime)
+junk += $(wave)
+
+.PHONY: elaborate
+elaborate: $(testbench)
+
+$(testbench): $(unisim_lib) $(SRC) $(TB_SRC)
+	ghdl -i --work=work $(SRC) $(TB_SRC)
+	ghdl -m --ieee=synopsys -fexplicit $(testbench)
+junk += $(testbench)
+junk += *.o work-obj93.cf 
+
+$(unisim_lib):
+	ghdl -i --work=unisim $(UNISIMS_DIR)/unisim_VCOMP.vhd
+	ghdl -i --work=unisim $(UNISIMS_DIR)/unisim_VPKG.vhd
+	ghdl -i --work=unisim $(UNISIMS_DIR)/primitive/*vhd
+junk += unisim-obj93.cf 
+
+###############################################################################
 
 # Generate tcl-file for vivado batch mode
 $(TCL) : $(SRC) Makefile
@@ -71,11 +133,11 @@ $(TCL) : $(SRC) Makefile
 	echo "exit" >> $(TCL)
 junk += $(TCL)
 
-.PHONY: synth
-synth: $(OUTDIR)/$(TOP).bit
+.PHONY: bit
+bit: $(OUTDIR)/$(TOP).bit
 
 $(OUTDIR)/$(TOP).bit: $(TCL)
-	. $(ENV); vivado -mode tcl -source $(TCL)
+	source $(ENV); vivado -mode tcl -source $(TCL)
 junk += vivado*.jou
 junk += vivado*.log
 junk += fsm_encoding.os
@@ -97,32 +159,7 @@ program: $(OUTDIR)/$(TOP).bit
 	echo "exit" >> $(TCL)
 	. $(ENV); vivado -mode tcl -source $(TCL)
 
-.PHONY: show
-show: $(wave)
-	gtkwave $(wave) $(wavesave)
-
-.PHONY: sim
-sim: $(wave)
-
-$(wave): $(testbench)
-	-ghdl -r $(testbench) --assert-level=error --wave=$(wave) $(stoptime)
-junk += $(wave)
-
-.PHONY: elaborate
-elaborate: $(testbench)
-
-$(testbench): $(unisim_lib) $(SRC) $(TB_SRC)
-	ghdl -i --work=work $(SRC) $(TB_SRC)
-	ghdl -m --ieee=synopsys -fexplicit $(testbench)
-junk += $(testbench)
-junk += *.o work-obj93.cf 
-
-$(unisim_lib):
-	ghdl -i --work=unisim $(UNISIMS_DIR)/unisim_VCOMP.vhd
-	ghdl -i --work=unisim $(UNISIMS_DIR)/unisim_VPKG.vhd
-	ghdl -i --work=unisim $(UNISIMS_DIR)/primitive/*vhd
-junk += unisim-obj93.cf 
-
+###############################################################################
 
 .PHONY: clean
 clean::
