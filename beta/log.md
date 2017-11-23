@@ -20,6 +20,7 @@ write a compiler for the Beta CPU.
 * The MIT lecture series is [here](https://www.youtube.com/watch?v=CvfifZsmpQ4&list=PLEyT25pFrWyP_xmCoUTHG74wllpGPX5BC).
 * The description of the Beta [design](https://www.youtube.com/watch?v=FQs7LuHb0cA&list=PLEyT25pFrWyP_xmCoUTHG74wllpGPX5BC&index=14).
 * Course [website](https://6004.mit.edu/).
+* Lab [material](https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-004-computation-structures-spring-2009/).
 
 # Log
 ## 2017-11-11 
