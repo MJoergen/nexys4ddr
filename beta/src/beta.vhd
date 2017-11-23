@@ -3,67 +3,67 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity beta is
-    port (
-         -- Clock
-         clk_i       : in  std_logic;  -- 100 MHz
+   port (
+      -- Clock
+      clk_i       : in  std_logic;                    -- 100 MHz
 
-         -- VGA port
-         vga_hs_o    : out std_logic; 
-         vga_vs_o    : out std_logic;
-         vga_red_o   : out std_logic_vector(3 downto 0); 
-         vga_green_o : out std_logic_vector(3 downto 0); 
-         vga_blue_o  : out std_logic_vector(3 downto 0)
-     );
+      -- VGA port
+      vga_hs_o    : out std_logic; 
+      vga_vs_o    : out std_logic;
+      vga_red_o   : out std_logic_vector(3 downto 0); 
+      vga_green_o : out std_logic_vector(3 downto 0); 
+      vga_blue_o  : out std_logic_vector(3 downto 0)
+   );
 end beta;
 
 architecture Structural of beta is
 
-    -- VGA signals
-    signal vga_clk : std_logic; -- 108 MHz
-    signal hcount  : std_logic_vector(10 downto 0);
-    signal vcount  : std_logic_vector(10 downto 0);
-    signal blank   : std_logic;
+   -- VGA signals
+   signal vga_clk : std_logic;                        -- 108 MHz
+   signal hcount  : std_logic_vector(10 downto 0);
+   signal vcount  : std_logic_vector(10 downto 0);
+   signal blank   : std_logic;
 
 begin
 
-    -- Input / output signals
-    process (hcount, vcount, blank)
-    begin
-        vga_red_o   <= "0000";
-        vga_green_o <= "0000";
-        vga_blue_o  <= "0000";
+   -- Generate VGA clock
+   inst_clk_wiz_0 : entity work.clk_wiz_0
+   port map
+   (
+      clk_in1  => clk_i,
+      clk_out1 => vga_clk
+   );
 
-        if blank = '0' then
-            vga_red_o   <= hcount(10 downto 7);
-            vga_green_o <= vcount(7 downto 4);
-            vga_blue_o  <= hcount(3 downto 0);
+   -- This generates the VGA timing signals
+   inst_vga_ctrl : entity work.vga_ctrl
+   port map (
+      vga_clk_i => vga_clk,
+      HS_o      => vga_hs_o,
+      VS_o      => vga_vs_o,
+      hcount_o  => hcount,
+      vcount_o  => vcount,
+      blank_o   => blank       
+   );
 
-            if hcount = 0 or hcount = 1279 or vcount = 0 or vcount = 1023 then
-                vga_red_o   <= "1111";
-                vga_green_o <= "1111";
-                vga_blue_o  <= "1111";
-            end if;
-        end if;
-    end process;
+   -- Input / output signals
+   process (hcount, vcount, blank)
+   begin
+      vga_red_o   <= "0000";
+      vga_green_o <= "0000";
+      vga_blue_o  <= "0000";
 
-    -- Generate VGA clock
-    inst_clk_wiz_0 : entity work.clk_wiz_0
-    port map
-    (
-        clk_in1 => clk_i,
-        clk_out1 => vga_clk
-    );
+      if blank = '0' then
+         vga_red_o   <= hcount(10 downto 7);
+         vga_green_o <= vcount(7 downto 4);
+         vga_blue_o  <= hcount(3 downto 0);
 
-    -- This generates the VGA timing signals
-    inst_vga_ctrl : entity work.vga_ctrl
-    port map (
-                 vga_clk_i => vga_clk,
-                 HS_o      => vga_hs_o,
-                 VS_o      => vga_vs_o,
-                 hcount_o  => hcount,
-                 vcount_o  => vcount,
-                 blank_o   => blank       
-             );
+         if hcount = 0 or hcount = 1279 or vcount = 0 or vcount = 1023 then
+            vga_red_o   <= "1111";
+            vga_green_o <= "1111";
+            vga_blue_o  <= "1111";
+         end if;
+      end if;
+   end process;
 
 end Structural;
 
