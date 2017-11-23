@@ -12,17 +12,21 @@ entity beta is
       vga_vs_o    : out std_logic;
       vga_red_o   : out std_logic_vector(3 downto 0); 
       vga_green_o : out std_logic_vector(3 downto 0); 
-      vga_blue_o  : out std_logic_vector(3 downto 0)
+      vga_blue_o  : out std_logic_vector(3 downto 0);
+
+      -- Switches
+      sw_i        : in  std_logic_vector(15 downto 0)
    );
 end beta;
 
 architecture Structural of beta is
 
    -- VGA signals
-   signal vga_clk : std_logic;                        -- 108 MHz
-   signal hcount  : std_logic_vector(10 downto 0);
-   signal vcount  : std_logic_vector(10 downto 0);
-   signal blank   : std_logic;
+   signal vga_clk   : std_logic;                        -- 108 MHz
+   signal hcount    : std_logic_vector(10 downto 0);
+   signal vcount    : std_logic_vector(10 downto 0);
+   signal blank     : std_logic;
+   signal vga_color : std_logic_vector(11 downto 0);
 
 begin
 
@@ -45,25 +49,19 @@ begin
       blank_o   => blank       
    );
 
-   -- Input / output signals
-   process (hcount, vcount, blank)
-   begin
-      vga_red_o   <= "0000";
-      vga_green_o <= "0000";
-      vga_blue_o  <= "0000";
+   inst_vga_disp : entity work.vga_disp
+   port map (
+      vga_clk_i => vga_clk,
+      hcount_i  => hcount,
+      vcount_i  => vcount,
+      blank_i   => blank,
+      val_i     => sw_i(0),
+      vga_o     => vga_color
+   );
 
-      if blank = '0' then
-         vga_red_o   <= hcount(10 downto 7);
-         vga_green_o <= vcount(7 downto 4);
-         vga_blue_o  <= hcount(3 downto 0);
-
-         if hcount = 0 or hcount = 1279 or vcount = 0 or vcount = 1023 then
-            vga_red_o   <= "1111";
-            vga_green_o <= "1111";
-            vga_blue_o  <= "1111";
-         end if;
-      end if;
-   end process;
+   vga_red_o   <= vga_color(11 downto 8);
+   vga_green_o <= vga_color( 7 downto 4);
+   vga_blue_o  <= vga_color( 3 downto 0);
 
 end Structural;
 

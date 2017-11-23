@@ -23,6 +23,9 @@ architecture Structural of beta_tb is
     signal vga_green : std_logic_vector (3 downto 0); 
     signal vga_blue  : std_logic_vector (3 downto 0); 
 
+    -- Switches
+    signal sw        : std_logic_vector (15 downto 0);
+
     signal test_running : boolean := true;
 
 begin
@@ -46,7 +49,8 @@ begin
         vga_vs_o    => vga_vs,
         vga_red_o   => vga_red,
         vga_green_o => vga_green,
-        vga_blue_o  => vga_blue  
+        vga_blue_o  => vga_blue,
+        sw_i        => sw
         );
 
     test_running <= true, false after 1000 us;

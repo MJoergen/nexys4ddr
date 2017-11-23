@@ -4,6 +4,7 @@ TOP = beta
 # List of sources files
 SRC  = src/$(TOP).vhd
 SRC += src/vga_ctrl.vhd
+SRC += src/vga_disp.vhd
 SRC += src/clk_wiz_0.vhd
 SRC += src/clk_wiz_0_clk_wiz.vhd
 
