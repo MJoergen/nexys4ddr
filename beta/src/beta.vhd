@@ -55,7 +55,7 @@ begin
       hcount_i  => hcount,
       vcount_i  => vcount,
       blank_i   => blank,
-      val_i     => sw_i(0),
+      val_i     => sw_i(3 downto 0),
       vga_o     => vga_color
    );
 
