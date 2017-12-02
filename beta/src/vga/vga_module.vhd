@@ -30,10 +30,6 @@ architecture Structural of vga_module is
    signal vcount    : std_logic_vector(10 downto 0);
    signal blank     : std_logic;
 
-   signal vga_red   : std_logic_vector(3 downto 0); 
-   signal vga_green : std_logic_vector(3 downto 0); 
-   signal vga_blue  : std_logic_vector(3 downto 0);
-
 begin
 
    -- Everything in this module is controlled by the clock
