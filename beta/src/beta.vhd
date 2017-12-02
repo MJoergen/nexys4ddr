@@ -21,47 +21,34 @@ end beta;
 
 architecture Structural of beta is
 
-   -- VGA signals
-   signal vga_clk   : std_logic;                        -- 108 MHz
-   signal hcount    : std_logic_vector(10 downto 0);
-   signal vcount    : std_logic_vector(10 downto 0);
-   signal blank     : std_logic;
-   signal vga_color : std_logic_vector(11 downto 0);
+   signal val : std_logic_vector(31 downto 0);
 
 begin
 
-   -- Generate VGA clock
-   inst_clk_wiz_0 : entity work.clk_wiz_0
+   -- Everything in this module is drived by the system clock clk_i
+   -- The only place where another clock (vga_clk) is used, is within
+   -- the vga_module.
+
+   -- Instantiate the VGA module controlling the VGA display port.
+   i_vga_module : entity work.vga_module
    port map
    (
-      clk_in1  => clk_i,
-      clk_out1 => vga_clk
+      clk_i       => clk_i,
+      vga_hs_o    => vga_hs_o,
+      vga_vs_o    => vga_vs_o,
+      vga_red_o   => vga_red_o,
+      vga_green_o => vga_green_o,
+      vga_blue_o  => vga_blue_o,
+      val_i       => val
    );
 
-   -- This generates the VGA timing signals
-   inst_vga_ctrl : entity work.vga_ctrl
-   port map (
-      vga_clk_i => vga_clk,
-      HS_o      => vga_hs_o,
-      VS_o      => vga_vs_o,
-      hcount_o  => hcount,
-      vcount_o  => vcount,
-      blank_o   => blank       
+   -- Instantiate the CPU module
+   i_cpu_module : entity work.cpu_module
+   port map
+   (
+      clk_i   => clk_i,
+      val_o   => val          -- Debug output to be displayed on the screen
    );
-
-   inst_vga_disp : entity work.vga_disp
-   port map (
-      vga_clk_i => vga_clk,
-      hcount_i  => hcount,
-      vcount_i  => vcount,
-      blank_i   => blank,
-      val_i     => sw_i(3 downto 0),
-      vga_o     => vga_color
-   );
-
-   vga_red_o   <= vga_color(11 downto 8);
-   vga_green_o <= vga_color( 7 downto 4);
-   vga_blue_o  <= vga_color( 3 downto 0);
 
 end Structural;
 

@@ -9,3 +9,10 @@ easily done by using the MMCM clock wizard.
 # 2017-11-23
 Reorganized the code, and added a small amount of graphics: Now it can display
 a single binary digit, reflecting the input of the rightmost switch.
+
+# 2017-11-25
+Focused on the VGA display so far.
+
+# 2017-12-02
+I completely reworked the VGA part, making it into a proper 5-stage pipeline. The image
+is much clearer, at the code is simpler too, I believe.
