@@ -54,7 +54,7 @@ architecture Behavioral of vga_disp is
       vsync     => '0',
       hcount    => (others => '0'),
       vcount    => (others => '0'),
-      blank     => '0',
+      blank     => '1',
       val       => (others => '0'),
       hex       => (others => '0'),
       pix       => '0',

@@ -4,16 +4,21 @@ TOP = beta
 # List of sources files
 SRC  = src/$(TOP).vhd
 
+# Clocks
+SRC += src/clock/clk_wiz_vga.vhd
+SRC += src/clock/clk_wiz_vga_clk_wiz.vhd
+SRC += src/clock/clk_wiz_cpu.vhd
+SRC += src/clock/clk_wiz_cpu_clk_wiz.vhd
+
 # VGA driver
 SRC += src/vga/vga_module.vhd
-SRC += src/vga/clk_wiz_0.vhd
-SRC += src/vga/clk_wiz_0_clk_wiz.vhd
 SRC += src/vga/vga_ctrl.vhd
 SRC += src/vga/vga_bitmap_pkg.vhd
 SRC += src/vga/vga_disp.vhd
 
 # CPU module
 SRC += src/cpu/cpu_module.vhd
+SRC += src/cpu/pc.vhd
 SRC += src/cpu/alu/alu_module.vhd
 SRC += src/cpu/alu/add.vhd
 SRC += src/cpu/alu/cmp.vhd

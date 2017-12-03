@@ -1,0 +1,26 @@
+[*]
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Sun Dec  3 17:41:07 2017
+[*]
+[dumpfile] "/home/mike/git/nexys4ddr/beta/src/cpu/cpu_module.ghw"
+[dumpfile_mtime] "Sun Dec  3 17:40:59 2017"
+[dumpfile_size] 6359
+[savefile] "/home/mike/git/nexys4ddr/beta/src/cpu/cpu_module_tb.gtkw"
+[timestart] 0
+[size] 1000 600
+[pos] -1 -1
+*-28.397942 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.cpu_module_tb.
+[treeopen] top.cpu_module_tb.i_dut.
+[sst_width] 229
+[signals_width] 94
+[sst_expanded] 1
+[sst_vpaned_height] 139
+@28
+top.cpu_module_tb.i_dut.rstn_i
+top.cpu_module_tb.i_dut.clk_i
+@23
+#{top.cpu_module_tb.i_dut.ia[31:0]} top.cpu_module_tb.i_dut.ia[31] top.cpu_module_tb.i_dut.ia[30] top.cpu_module_tb.i_dut.ia[29] top.cpu_module_tb.i_dut.ia[28] top.cpu_module_tb.i_dut.ia[27] top.cpu_module_tb.i_dut.ia[26] top.cpu_module_tb.i_dut.ia[25] top.cpu_module_tb.i_dut.ia[24] top.cpu_module_tb.i_dut.ia[23] top.cpu_module_tb.i_dut.ia[22] top.cpu_module_tb.i_dut.ia[21] top.cpu_module_tb.i_dut.ia[20] top.cpu_module_tb.i_dut.ia[19] top.cpu_module_tb.i_dut.ia[18] top.cpu_module_tb.i_dut.ia[17] top.cpu_module_tb.i_dut.ia[16] top.cpu_module_tb.i_dut.ia[15] top.cpu_module_tb.i_dut.ia[14] top.cpu_module_tb.i_dut.ia[13] top.cpu_module_tb.i_dut.ia[12] top.cpu_module_tb.i_dut.ia[11] top.cpu_module_tb.i_dut.ia[10] top.cpu_module_tb.i_dut.ia[9] top.cpu_module_tb.i_dut.ia[8] top.cpu_module_tb.i_dut.ia[7] top.cpu_module_tb.i_dut.ia[6] top.cpu_module_tb.i_dut.ia[5] top.cpu_module_tb.i_dut.ia[4] top.cpu_module_tb.i_dut.ia[3] top.cpu_module_tb.i_dut.ia[2] top.cpu_module_tb.i_dut.ia[1] top.cpu_module_tb.i_dut.ia[0]
+[pattern_trace] 1
+[pattern_trace] 0

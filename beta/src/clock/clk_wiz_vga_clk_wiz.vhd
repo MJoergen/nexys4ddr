@@ -1,4 +1,4 @@
--- file: clk_wiz_0_clk_wiz.vhd
+-- file: clk_wiz_vga_clk_wiz.vhd
 -- 
 -- (c) Copyright 2008 - 2013 Xilinx, Inc. All rights reserved.
 -- 
@@ -71,16 +71,16 @@ use ieee.numeric_std.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity clk_wiz_0_clk_wiz is
+entity clk_wiz_vga_clk_wiz is
 port
  (-- Clock in ports
   clk_in1           : in     std_logic;
   -- Clock out ports
   clk_out1          : out    std_logic
  );
-end clk_wiz_0_clk_wiz;
+end clk_wiz_vga_clk_wiz;
 
-architecture xilinx of clk_wiz_0_clk_wiz is
+architecture xilinx of clk_wiz_vga_clk_wiz is
   -- Input clock buffering / unused connectors
   signal clk_in1_clk_wiz_0      : std_logic;
   -- Output clock buffering / unused connectors

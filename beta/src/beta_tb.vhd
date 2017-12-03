@@ -13,8 +13,9 @@ end beta_tb;
 
 architecture Structural of beta_tb is
 
-    -- Clock
+    -- Clock and reset
     signal clk   : std_logic;  -- 100 MHz
+    signal rstn  : std_logic := '0';
 
     -- VGA port
     signal vga_hs    : std_logic; 
@@ -41,10 +42,19 @@ begin
       wait for 10 ns;
     end process clk_gen;
 
+    -- Generate reset
+    rstn <= '0', '1' after 20 ns;
+
+
+    -- Generate input switches
+    sw <= (others => '0');
+
+
     -- Instantiate DUT
     inst_beta : entity work.beta
     port map (
         clk_i       => clk,
+        rstn_i      => rstn,         -- Active low
         vga_hs_o    => vga_hs,
         vga_vs_o    => vga_vs,
         vga_red_o   => vga_red,

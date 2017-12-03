@@ -5,16 +5,17 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 entity cpu_module is
    port (
       -- Clock
-      clk_i : in  std_logic;                    -- 100 MHz
-      sw_i  : in  std_logic_vector(15 downto 0);
-      val_o : out std_logic_vector(31 downto 0)
+      clk_i  : in  std_logic;                      -- 10 MHz
+      rstn_i : in  std_logic;                      -- Active low
+      sw_i   : in  std_logic_vector(15 downto 0);
+      val_o  : out std_logic_vector(31 downto 0)
    );
 end cpu_module;
 
 architecture Structural of cpu_module is
 
-   -- Program counter
-   signal pc : std_logic_vector(31 downto 0) := (others => '0');
+   -- Program Counter aka Instruction Address
+   signal ia : std_logic_vector(31 downto 0) := (others => '0');
 
    signal alu_a   : std_logic_vector(31 downto 0);
    signal alu_b   : std_logic_vector(31 downto 0);
@@ -24,13 +25,12 @@ architecture Structural of cpu_module is
 begin
 
    -- Program counter
-   p_pc : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         pc <= pc + 1;
-      end if;
-   end process p_pc;
-
+   i_pc : entity work.pc
+   port map (
+      cpu_clk_i => clk_i,
+      rstn_i    => rstn_i,
+      ia_o      => ia
+   );
 
    -- Arithmetic & Logic Unit
    i_alu : entity work.alu_module
@@ -46,8 +46,8 @@ begin
 
    -- Connect things up
    alu_fn <= sw_i(5 downto 0);
-   alu_a  <= pc;
-   alu_b  <= pc;
+   alu_a  <= ia;
+   alu_b  <= ia;
    val_o  <= alu_out;
  
 end Structural;
