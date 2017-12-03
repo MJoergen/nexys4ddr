@@ -24,3 +24,8 @@ testing.
 Added a multiplier unit in the ALU and instantiated the CPU. Currently, it doesn't meet 
 timing, but with a WNS of arund -9 ns, it should be able to clock at 50 MHz. So I need
 to set up a clock divider.
+
+# 2017-12-03
+I've disabled timing checks to and from the VGA module, because they are not relevant.
+Now the design meets timing, but this doesn't prove much so far. I still need to implement
+the entire CPU, in order for timing checks to become meaningfull.
