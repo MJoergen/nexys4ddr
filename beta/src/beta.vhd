@@ -47,6 +47,7 @@ begin
    port map
    (
       clk_i   => clk_i,
+      sw_i    => sw_i,
       val_o   => val          -- Debug output to be displayed on the screen
    );
 

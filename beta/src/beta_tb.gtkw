@@ -1,22 +1,25 @@
 [*]
-[*] GTKWave Analyzer v3.3.81 (w)1999-2017 BSI
-[*] Sat Nov 11 17:03:55 2017
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Sun Dec  3 11:33:00 2017
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/beta/beta.ghw"
-[dumpfile_mtime] "Sat Nov 11 17:01:39 2017"
-[dumpfile_size] 19561971
+[dumpfile_mtime] "Sun Dec  3 11:30:55 2017"
+[dumpfile_size] 1734896
 [savefile] "/home/mike/git/nexys4ddr/beta/src/beta_tb.gtkw"
 [timestart] 0
-[size] 1916 1149
+[size] 1920 1136
 [pos] -1 -1
-*-32.716438 9401111813 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-24.716438 30000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.beta_tb.
 [treeopen] top.beta_tb.inst_beta.
+[treeopen] top.beta_tb.inst_beta.i_cpu_module.
 [sst_width] 229
 [signals_width] 215
 [sst_expanded] 1
 [sst_vpaned_height] 338
+@200
+-VGA
 @28
 top.beta_tb.vga_vs
 top.beta_tb.vga_hs
@@ -24,8 +27,11 @@ top.beta_tb.vga_hs
 #{top.beta_tb.vga_red[3:0]} top.beta_tb.vga_red[3] top.beta_tb.vga_red[2] top.beta_tb.vga_red[1] top.beta_tb.vga_red[0]
 #{top.beta_tb.vga_green[3:0]} top.beta_tb.vga_green[3] top.beta_tb.vga_green[2] top.beta_tb.vga_green[1] top.beta_tb.vga_green[0]
 #{top.beta_tb.vga_blue[3:0]} top.beta_tb.vga_blue[3] top.beta_tb.vga_blue[2] top.beta_tb.vga_blue[1] top.beta_tb.vga_blue[0]
-#{top.beta_tb.inst_beta.vcount[11:0]} top.beta_tb.inst_beta.vcount[11] top.beta_tb.inst_beta.vcount[10] top.beta_tb.inst_beta.vcount[9] top.beta_tb.inst_beta.vcount[8] top.beta_tb.inst_beta.vcount[7] top.beta_tb.inst_beta.vcount[6] top.beta_tb.inst_beta.vcount[5] top.beta_tb.inst_beta.vcount[4] top.beta_tb.inst_beta.vcount[3] top.beta_tb.inst_beta.vcount[2] top.beta_tb.inst_beta.vcount[1] top.beta_tb.inst_beta.vcount[0]
+@200
+-CPU
+@28
+top.beta_tb.inst_beta.clk_i
 @23
-#{top.beta_tb.inst_beta.hcount[11:0]} top.beta_tb.inst_beta.hcount[11] top.beta_tb.inst_beta.hcount[10] top.beta_tb.inst_beta.hcount[9] top.beta_tb.inst_beta.hcount[8] top.beta_tb.inst_beta.hcount[7] top.beta_tb.inst_beta.hcount[6] top.beta_tb.inst_beta.hcount[5] top.beta_tb.inst_beta.hcount[4] top.beta_tb.inst_beta.hcount[3] top.beta_tb.inst_beta.hcount[2] top.beta_tb.inst_beta.hcount[1] top.beta_tb.inst_beta.hcount[0]
+#{top.beta_tb.inst_beta.val[31:0]} top.beta_tb.inst_beta.val[31] top.beta_tb.inst_beta.val[30] top.beta_tb.inst_beta.val[29] top.beta_tb.inst_beta.val[28] top.beta_tb.inst_beta.val[27] top.beta_tb.inst_beta.val[26] top.beta_tb.inst_beta.val[25] top.beta_tb.inst_beta.val[24] top.beta_tb.inst_beta.val[23] top.beta_tb.inst_beta.val[22] top.beta_tb.inst_beta.val[21] top.beta_tb.inst_beta.val[20] top.beta_tb.inst_beta.val[19] top.beta_tb.inst_beta.val[18] top.beta_tb.inst_beta.val[17] top.beta_tb.inst_beta.val[16] top.beta_tb.inst_beta.val[15] top.beta_tb.inst_beta.val[14] top.beta_tb.inst_beta.val[13] top.beta_tb.inst_beta.val[12] top.beta_tb.inst_beta.val[11] top.beta_tb.inst_beta.val[10] top.beta_tb.inst_beta.val[9] top.beta_tb.inst_beta.val[8] top.beta_tb.inst_beta.val[7] top.beta_tb.inst_beta.val[6] top.beta_tb.inst_beta.val[5] top.beta_tb.inst_beta.val[4] top.beta_tb.inst_beta.val[3] top.beta_tb.inst_beta.val[2] top.beta_tb.inst_beta.val[1] top.beta_tb.inst_beta.val[0]
 [pattern_trace] 1
 [pattern_trace] 0

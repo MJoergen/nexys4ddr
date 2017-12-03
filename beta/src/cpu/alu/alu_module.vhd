@@ -75,7 +75,7 @@ begin
    );
 
 
-   p_mux : process (add, boole, shift, cmp, alufn_i) is
+   p_mux : process (add, boole, shift, cmp, mult, alufn_i) is
    begin
       case alufn_i(5 downto 4) is
          when "00"   => alu_o <= add;

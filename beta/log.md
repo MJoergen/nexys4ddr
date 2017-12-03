@@ -21,3 +21,6 @@ is much clearer, at the code is simpler too, I believe.
 I've implemented the ALU, and written a separate test bench for this module. I will
 be writing test benches for most of the modules individually, in order to speed up
 testing.
+Added a multiplier unit in the ALU and instantiated the CPU. Currently, it doesn't meet 
+timing, but with a WNS of arund -9 ns, it should be able to clock at 50 MHz. So I need
+to set up a clock divider.
