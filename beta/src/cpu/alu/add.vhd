@@ -40,7 +40,7 @@ begin
    z <= '1' when s = 0
         else '0';
 
-   v <= (xa(31) and xb(31)) xor s(31);
+   v <= (xa(31) and xb(31) and (not s(31))) or ((not xa(31)) and (not xb(31)) and s(31));
 
    n <= s(31);
 

@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Sun Dec  3 07:39:37 2017
+[*] Sun Dec  3 08:01:16 2017
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/beta/src/cpu/alu/alu_module.ghw"
-[dumpfile_mtime] "Sun Dec  3 07:37:50 2017"
-[dumpfile_size] 3742
+[dumpfile_mtime] "Sun Dec  3 08:00:59 2017"
+[dumpfile_size] 4026
 [savefile] "/home/mike/git/nexys4ddr/beta/src/cpu/alu/alu_module_tb.gtkw"
 [timestart] 0
 [size] 1000 600
 [pos] -1 -1
-*-21.654179 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-23.239141 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.alu_module_tb.
 [sst_width] 229

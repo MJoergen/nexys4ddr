@@ -24,8 +24,8 @@ begin
    begin
       case alufn_i(2 downto 1) is
          when "01"   => cmp0 <= z_i;
-         when "10"   => cmp0 <= n_i xor z_i;
-         when "11"   => cmp0 <= z_i or (n_i xor z_i);
+         when "10"   => cmp0 <= n_i xor v_i;
+         when "11"   => cmp0 <= z_i or (n_i xor v_i);
          when others => cmp0 <= '0';
       end case;
    end process p_cmp;
