@@ -16,3 +16,8 @@ Focused on the VGA display so far.
 # 2017-12-02
 I completely reworked the VGA part, making it into a proper 5-stage pipeline. The image
 is much clearer, at the code is simpler too, I believe.
+
+# 2017-12-03
+I've implemented the ALU, and written a separate test bench for this module. I will
+be writing test benches for most of the modules individually, in order to speed up
+testing.
