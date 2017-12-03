@@ -1,0 +1,30 @@
+[*]
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Sun Dec  3 07:39:37 2017
+[*]
+[dumpfile] "/home/mike/git/nexys4ddr/beta/src/cpu/alu/alu_module.ghw"
+[dumpfile_mtime] "Sun Dec  3 07:37:50 2017"
+[dumpfile_size] 3742
+[savefile] "/home/mike/git/nexys4ddr/beta/src/cpu/alu/alu_module_tb.gtkw"
+[timestart] 0
+[size] 1000 600
+[pos] -1 -1
+*-21.654179 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.alu_module_tb.
+[sst_width] 229
+[signals_width] 110
+[sst_expanded] 1
+[sst_vpaned_height] 139
+@22
+#{top.alu_module_tb.alufn[5:0]} top.alu_module_tb.alufn[5] top.alu_module_tb.alufn[4] top.alu_module_tb.alufn[3] top.alu_module_tb.alufn[2] top.alu_module_tb.alufn[1] top.alu_module_tb.alufn[0]
+#{top.alu_module_tb.a[31:0]} top.alu_module_tb.a[31] top.alu_module_tb.a[30] top.alu_module_tb.a[29] top.alu_module_tb.a[28] top.alu_module_tb.a[27] top.alu_module_tb.a[26] top.alu_module_tb.a[25] top.alu_module_tb.a[24] top.alu_module_tb.a[23] top.alu_module_tb.a[22] top.alu_module_tb.a[21] top.alu_module_tb.a[20] top.alu_module_tb.a[19] top.alu_module_tb.a[18] top.alu_module_tb.a[17] top.alu_module_tb.a[16] top.alu_module_tb.a[15] top.alu_module_tb.a[14] top.alu_module_tb.a[13] top.alu_module_tb.a[12] top.alu_module_tb.a[11] top.alu_module_tb.a[10] top.alu_module_tb.a[9] top.alu_module_tb.a[8] top.alu_module_tb.a[7] top.alu_module_tb.a[6] top.alu_module_tb.a[5] top.alu_module_tb.a[4] top.alu_module_tb.a[3] top.alu_module_tb.a[2] top.alu_module_tb.a[1] top.alu_module_tb.a[0]
+#{top.alu_module_tb.b[31:0]} top.alu_module_tb.b[31] top.alu_module_tb.b[30] top.alu_module_tb.b[29] top.alu_module_tb.b[28] top.alu_module_tb.b[27] top.alu_module_tb.b[26] top.alu_module_tb.b[25] top.alu_module_tb.b[24] top.alu_module_tb.b[23] top.alu_module_tb.b[22] top.alu_module_tb.b[21] top.alu_module_tb.b[20] top.alu_module_tb.b[19] top.alu_module_tb.b[18] top.alu_module_tb.b[17] top.alu_module_tb.b[16] top.alu_module_tb.b[15] top.alu_module_tb.b[14] top.alu_module_tb.b[13] top.alu_module_tb.b[12] top.alu_module_tb.b[11] top.alu_module_tb.b[10] top.alu_module_tb.b[9] top.alu_module_tb.b[8] top.alu_module_tb.b[7] top.alu_module_tb.b[6] top.alu_module_tb.b[5] top.alu_module_tb.b[4] top.alu_module_tb.b[3] top.alu_module_tb.b[2] top.alu_module_tb.b[1] top.alu_module_tb.b[0]
+#{top.alu_module_tb.alu[31:0]} top.alu_module_tb.alu[31] top.alu_module_tb.alu[30] top.alu_module_tb.alu[29] top.alu_module_tb.alu[28] top.alu_module_tb.alu[27] top.alu_module_tb.alu[26] top.alu_module_tb.alu[25] top.alu_module_tb.alu[24] top.alu_module_tb.alu[23] top.alu_module_tb.alu[22] top.alu_module_tb.alu[21] top.alu_module_tb.alu[20] top.alu_module_tb.alu[19] top.alu_module_tb.alu[18] top.alu_module_tb.alu[17] top.alu_module_tb.alu[16] top.alu_module_tb.alu[15] top.alu_module_tb.alu[14] top.alu_module_tb.alu[13] top.alu_module_tb.alu[12] top.alu_module_tb.alu[11] top.alu_module_tb.alu[10] top.alu_module_tb.alu[9] top.alu_module_tb.alu[8] top.alu_module_tb.alu[7] top.alu_module_tb.alu[6] top.alu_module_tb.alu[5] top.alu_module_tb.alu[4] top.alu_module_tb.alu[3] top.alu_module_tb.alu[2] top.alu_module_tb.alu[1] top.alu_module_tb.alu[0]
+@28
+top.alu_module_tb.z
+top.alu_module_tb.v
+@29
+top.alu_module_tb.n
+[pattern_trace] 1
+[pattern_trace] 0
