@@ -7,6 +7,7 @@ SRC += add.vhd
 SRC += cmp.vhd
 SRC += boole.vhd
 SRC += shift.vhd
+SRC += mult.vhd
 TB_SRC = alu_module_tb.vhd
 wavesave = alu_module_tb.gtkw
 

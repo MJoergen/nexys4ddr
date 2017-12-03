@@ -180,6 +180,17 @@ begin
       verify ("100011",  X"FA50FA50", X"00000008",  X"FFFA50FA"); -- Shift right extend
       verify ("100011",  X"FA50FA50", X"0000000C",  X"FFFFA50F"); -- Shift right extend
 
+      report "Testing multiplication";
+      verify ("000010",  1,  1,  1);
+      verify ("000010",  1,  0,  0);
+      verify ("000010",  1, -1, -1);
+      verify ("000010",  0,  1,  0);
+      verify ("000010",  0,  0,  0);
+      verify ("000010",  0, -1,  0);
+      verify ("000010", -1,  1, -1);
+      verify ("000010", -1,  0,  0);
+      verify ("000010", -1, -1,  1);
+
       wait;
    end process p_main;
 

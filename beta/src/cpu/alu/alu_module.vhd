@@ -23,6 +23,7 @@ architecture Structural of alu_module is
    signal boole : std_logic_vector(31 downto 0);
    signal shift : std_logic_vector(31 downto 0);
    signal cmp   : std_logic_vector(31 downto 0);
+   signal mult  : std_logic_vector(31 downto 0);
 
    signal z : std_logic;
    signal v : std_logic;
@@ -66,6 +67,13 @@ begin
       shift_o => shift
    );
 
+   i_mult : entity work.mult
+   port map (
+      a_i     => a_i,
+      b_i     => b_i,
+      mult_o  => mult
+   );
+
 
    p_mux : process (add, boole, shift, cmp, alufn_i) is
    begin
@@ -76,6 +84,10 @@ begin
          when "11"   => alu_o <= cmp;
          when others => alu_o <= (others => '0');
       end case;
+
+      if alufn_i = "000010" then
+         alu_o <= mult;
+      end if;
    end process p_mux;
 
    z_o <= z;
