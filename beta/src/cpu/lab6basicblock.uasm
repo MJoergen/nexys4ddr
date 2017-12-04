@@ -24,16 +24,19 @@
 | First load each register with its
 | number using only OP instructions
 |
-	AND (r31, r31, r0)
-	CMPEQ (r31, r31, r1)
-	ADD (r1, r1, r2)
-	OR (r2, r1, r3)
+	AND (r31, r31, r0)      | 10100000 00011111 11111000 00000000 -> A01FF800
+	CMPEQ (r31, r31, r1)    | 10010000 00111111 11111000 00000000 -> 903FF800
+	ADD (r1, r1, r2)        | 10000000 01000001 00001000 00000000 -> 80410800
+	OR (r2, r1, r3)         | 10100100 01100010 00001000 00000000 -> A4620800
 	SHL (r1, r2, r4)
-
-	SHL (r0, r1, r0)	XOR (r0, r1, r0)
-	SHL (r0, r1, r0)	XOR (r0, r2, r0)
-	SHL (r0, r1, r0)	XOR (r0, r3, r0)
-	SHL (r0, r1, r0)	XOR (r0, r4, r0)
+	SHL (r0, r1, r0)
+   XOR (r0, r1, r0)
+	SHL (r0, r1, r0)
+   XOR (r0, r2, r0)
+	SHL (r0, r1, r0)
+   XOR (r0, r3, r0)
+	SHL (r0, r1, r0)
+   XOR (r0, r4, r0)
 	ST (r0,0x3FC,r31)	| cycle 14: should write 0x2
 
 	XOR (r4, r1, r5)

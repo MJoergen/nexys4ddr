@@ -10,7 +10,14 @@ architecture Structural of cpu_module_tb is
 
    signal clk  : std_logic;                      -- 10 MHz
    signal rstn : std_logic;                      -- Active low
-   signal sw   : std_logic_vector(15 downto 0);
+
+   signal ia   : std_logic_vector(31 downto 0);  -- Instruction Address
+   signal id   : std_logic_vector(31 downto 0);  -- Instruction Data
+   signal ma   : std_logic_vector(31 downto 0);  -- Memory Address
+   signal moe  : std_logic;                      -- Memory Output Enable
+   signal mrd  : std_logic_vector(31 downto 0);  -- Memory Read Data
+   signal wr   : std_logic;                      -- Write
+   signal mwd  : std_logic_vector(31 downto 0);  -- Memory Write Data
    signal val  : std_logic_vector(31 downto 0);
 
    signal test_running : boolean := true;
@@ -31,17 +38,19 @@ begin
    -- Generate reset
    rstn <= '0', '1' after 450 ns;
 
-   -- Generate input switches
-   sw <= (others => '0');
-
-
    -- Instantiate the DUT
    i_dut : entity work.cpu_module
    port map (
-      clk_i   => clk,
-      rstn_i  => rstn,
-      sw_i    => sw,
-      val_o   => val
+      clk_i  => clk,
+      rstn_i => rstn,
+      ia_o   => ia,
+      id_i   => id,
+      ma_o   => ma,
+      moe_o  => moe,
+      mrd_i  => mrd,
+      wr_o   => wr,
+      mwd_o  => mwd,
+      val_o  => val
    );
 
 

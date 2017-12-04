@@ -17,14 +17,16 @@ SRC += src/vga/vga_bitmap_pkg.vhd
 SRC += src/vga/vga_disp.vhd
 
 # CPU module
-SRC += src/cpu/cpu_module.vhd
 SRC += src/cpu/pc.vhd
-SRC += src/cpu/alu/alu_module.vhd
+SRC += src/cpu/regfile.vhd
+SRC += src/cpu/ctl.vhd
 SRC += src/cpu/alu/add.vhd
 SRC += src/cpu/alu/cmp.vhd
 SRC += src/cpu/alu/boole.vhd
 SRC += src/cpu/alu/shift.vhd
 SRC += src/cpu/alu/mult.vhd
+SRC += src/cpu/alu/alu_module.vhd
+SRC += src/cpu/cpu_module.vhd
 
 stoptime = --stop-time=5us
 

@@ -22,10 +22,21 @@ end beta;
 
 architecture Structural of beta is
 
-   signal cpu_clk : std_logic;
-   signal vga_clk : std_logic;
+   -- Signals driven by the Clock modules
+   signal clk_cpu : std_logic;
+   signal clk_vga : std_logic;
 
-   signal val : std_logic_vector(31 downto 0);
+   -- Signals driven by the CPU module
+   signal cpu_ia  : std_logic_vector(31 downto 0);
+   signal cpu_ma  : std_logic_vector(31 downto 0);
+   signal cpu_moe : std_logic;
+   signal cpu_wr  : std_logic;
+   signal cpu_mwd : std_logic_vector(31 downto 0);
+   signal cpu_val : std_logic_vector(31 downto 0);
+
+   -- Signals driven by the memory modules
+   signal imem_id : std_logic_vector(31 downto 0);
+   signal dmem_mrd : std_logic_vector(31 downto 0);
 
 begin
 
@@ -38,7 +49,7 @@ begin
    port map
    (
       clk_in1  => clk_i,   -- 100 MHz
-      clk_out1 => vga_clk  -- 108 MHz
+      clk_out1 => clk_vga  -- 108 MHz
    );
 
    -- Generate CPU clock
@@ -46,7 +57,7 @@ begin
    port map
    (
       clk_in1  => clk_i,   -- 100 MHz
-      clk_out1 => cpu_clk  --  10 MHz
+      clk_out1 => clk_cpu  --  10 MHz
    );
 
 
@@ -54,23 +65,29 @@ begin
    i_vga_module : entity work.vga_module
    port map
    (
-      clk_i   => vga_clk,
+      clk_i   => clk_vga,
       hs_o    => vga_hs_o,
       vs_o    => vga_vs_o,
       red_o   => vga_red_o,
       green_o => vga_green_o,
       blue_o  => vga_blue_o,
-      val_i   => val
+      val_i   => cpu_val
    );
 
    -- Instantiate the CPU module
    i_cpu_module : entity work.cpu_module
    port map
    (
-      clk_i   => cpu_clk,
-      rstn_i  => rstn_i,
-      sw_i    => sw_i,
-      val_o   => val          -- Debug output to be displayed on the screen
+      clk_i  => clk_cpu,
+      rstn_i => rstn_i,
+      ia_o   => cpu_ia,
+      id_i   => imem_id,
+      ma_o   => cpu_ma,
+      moe_o  => cpu_moe,
+      mrd_i  => dmem_mrd,
+      wr_o   => cpu_wr,
+      mwd_o  => cpu_mwd,
+      val_o  => cpu_val
    );
 
 end Structural;

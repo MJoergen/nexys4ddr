@@ -5,6 +5,7 @@ TOP = cpu_module
 SRC  = $(TOP).vhd
 SRC += pc.vhd
 SRC += regfile.vhd
+SRC += ctl.vhd
 SRC += alu/alu_module.vhd
 SRC += alu/add.vhd
 SRC += alu/cmp.vhd
