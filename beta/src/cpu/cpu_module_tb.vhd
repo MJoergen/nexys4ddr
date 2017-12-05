@@ -53,6 +53,24 @@ begin
       val_o  => val
    );
 
+   -- Instantiate Instruction Memory
+   i_imem : entity work.imem
+   port map (
+      ia_i => ia,
+      id_o => id
+   );
+
+   -- Instantiate Data Memory
+   i_dmem : entity work.dmem
+   port map (
+      clk_i => clk,
+      ma_i  => ma,
+      moe_i => moe,
+      mrd_o => mrd,
+      wr_i  => wr,
+      mwd_i => mwd
+   );
+
 
    -- This is the main test
    p_main : process

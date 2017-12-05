@@ -29,3 +29,7 @@ to set up a clock divider.
 I've disabled timing checks to and from the VGA module, because they are not relevant.
 Now the design meets timing, but this doesn't prove much so far. I still need to implement
 the entire CPU, in order for timing checks to become meaningfull.
+
+# 2017-12-05
+I've implemented the data path of the CPU, but it needs testing. I need to implement an
+assembler at some point.

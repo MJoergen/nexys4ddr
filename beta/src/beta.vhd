@@ -90,5 +90,24 @@ begin
       val_o  => cpu_val
    );
 
+   -- Instantiate Instruction Memory
+   i_imem : entity work.imem
+   port map (
+      ia_i => cpu_ia,
+      id_o => imem_id
+   );
+
+   -- Instantiate Data Memory
+   i_dmem : entity work.dmem
+   port map (
+      clk_i => clk_cpu,
+      ma_i  => cpu_ma,
+      moe_i => cpu_moe,
+      mrd_o => dmem_mrd,
+      wr_i  => cpu_wr,
+      mwd_i => cpu_mwd
+   );
+   
+
 end Structural;
 

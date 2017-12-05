@@ -23,17 +23,19 @@ architecture Structural of regfile is
 
 begin
 
+   -- 1 clocked write port
    p_regs : process (cpu_clk_i)
    begin
       if rising_edge(cpu_clk_i) then
          if werf_i = '1' then
-            if rc_i /= "11111" then
+            if rc_i /= "11111" then -- Don't change R31.
                regs(conv_integer(rc_i)) <= wdata_i;
             end if;
          end if;
       end if;
    end process p_regs;
 
+   -- 2 combinational read ports.
    radata_o <= regs(conv_integer(ra_i));
    rbdata_o <= regs(conv_integer(rb_i)) when ra2sel_i = '0'
                else regs(conv_integer(rc_i));

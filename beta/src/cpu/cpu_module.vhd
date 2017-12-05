@@ -43,6 +43,26 @@ architecture Structural of cpu_module is
    signal ctl_moe    : std_logic;
    signal ctl_wr     : std_logic;
 
+   -- Instruction decoding.
+   alias id_opcode  : std_logic_vector( 5 downto 0) is id_i(31 downto 26);
+   alias id_rc      : std_logic_vector( 4 downto 0) is id_i(25 downto 21);
+   alias id_ra      : std_logic_vector( 4 downto 0) is id_i(20 downto 16);
+   alias id_rb      : std_logic_vector( 4 downto 0) is id_i(15 downto 11);
+   alias id_literal : std_logic_vector(15 downto 0) is id_i(15 downto  0);
+
+   signal mux_b   : std_logic_vector(31 downto 0);
+   signal mux_c   : std_logic_vector(31 downto 0);
+   signal mux_ra2 : std_logic_vector( 4 downto 0);
+
+   function sign_extend(arg : std_logic_vector(15 downto 0))
+      return std_logic_vector is
+      variable res : std_logic_vector(31 downto 0);
+   begin
+      res := (others => arg(15)); -- Copy sign bit to all bits.
+      res(15 downto 0) := arg;
+      return res;
+   end function sign_extend;
+
 begin
 
    -- Program counter
@@ -53,25 +73,54 @@ begin
       ia_o      => pc_ia
    );
 
+   -- Instruction Address
+   ia_o <= pc_ia;
+
    -- Register File
    i_regfile : entity work.regfile
    port map (
       cpu_clk_i => clk_i,
       werf_i    => ctl_werf,
       ra2sel_i  => ctl_ra2sel,
-      ra_i      => id_i(20 downto 16),
-      rb_i      => id_i(15 downto 11),
-      rc_i      => id_i(25 downto 21),
+      ra_i      => id_ra,
+      rb_i      => id_rb,
+      rc_i      => id_rc,
       wdata_i   => alu_out,
       radata_o  => regfile_radata,
       rbdata_o  => regfile_rbdata
    );
 
+   -- Arithmetic & Logic Unit
+   i_alu : entity work.alu_module
+   port map (
+      alufn_i => ctl_alufn,
+      a_i     => regfile_radata,
+      b_i     => mux_b,
+      alu_o   => alu_out,
+      z_o     => open,   -- Not used
+      v_o     => open,   -- Not used
+      n_o     => open    -- Not used
+   );
+
+   mux_b <= regfile_rbdata when ctl_bsel = '0' 
+            else sign_extend(id_literal);
+
+   ma_o  <= alu_out; -- Data Address
+   wr_o  <= ctl_wr;
+   mwd_o <= regfile_rbdata;
+
+   mux_c <= alu_out when ctl_wdsel = "01"
+            else mrd_i when ctl_wdsel = "10"
+            else (others => '0');
+
+   mux_ra2 <= id_rb when ctl_ra2sel = '0'
+              else id_rc;
+
    -- Control Logic
    i_ctl : entity work.ctl
    port map (
       rstn_i   => rstn_i,
-      id_i     => id_i(31 downto 26),
+      id_i     => id_opcode,
       pcsel_o  => ctl_pcsel,
       wasel_o  => ctl_wasel,
       asel_o   => ctl_asel,
@@ -82,18 +131,6 @@ begin
       werf_o   => ctl_werf,
       moe_o    => ctl_moe,
       wr_o     => ctl_wr
-   );
-
-   -- Arithmetic & Logic Unit
-   i_alu : entity work.alu_module
-   port map (
-      alufn_i => ctl_alufn,
-      a_i     => regfile_radata,
-      b_i     => regfile_rbdata,
-      alu_o   => alu_out,
-      z_o     => open,   -- Not used
-      v_o     => open,   -- Not used
-      n_o     => open    -- Not used
    );
 
    -- Debug output
