@@ -140,6 +140,11 @@ def translate(a):
             rb = getreg(cmd[2])
             rc = getreg(cmd[3])
             opc = to_b((i<<26) + (rc<<21) + (ra<<16) + (rb<<11))
+        elif i==25:
+            rc = getreg(cmd[1])
+            vb = getval(cmd[2])
+            ra = getreg(cmd[3])
+            opc = to_b((i<<26) + (rc<<21) + (ra<<16) + vb)
         else:
             ra = getreg(cmd[1])
             vb = getval(cmd[2])
