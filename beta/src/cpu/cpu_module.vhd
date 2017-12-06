@@ -5,17 +5,17 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 entity cpu_module is
    port (
       -- Clock
-      clk_i  : in  std_logic;                      -- 10 MHz
-      rstn_i : in  std_logic;                      -- Active low
-      ia_o   : out std_logic_vector(31 downto 0);  -- Instruction Address
-      id_i   : in  std_logic_vector(31 downto 0);  -- Instruction Data
-      ma_o   : out std_logic_vector(31 downto 0);  -- Memory Address
-      moe_o  : out std_logic;                      -- Memory Output Enable
-      mrd_i  : in  std_logic_vector(31 downto 0);  -- Memory Read Data
-      wr_o   : out std_logic;                      -- Write
-      mwd_o  : out std_logic_vector(31 downto 0);  -- Memory Write Data
+      clk_i  : in  std_logic;                        -- 10 MHz
+      rstn_i : in  std_logic;                        -- Active low
+      ia_o   : out std_logic_vector(  31 downto 0);  -- Instruction Address
+      id_i   : in  std_logic_vector(  31 downto 0);  -- Instruction Data
+      ma_o   : out std_logic_vector(  31 downto 0);  -- Memory Address
+      moe_o  : out std_logic;                        -- Memory Output Enable
+      mrd_i  : in  std_logic_vector(  31 downto 0);  -- Memory Read Data
+      wr_o   : out std_logic;                        -- Write
+      mwd_o  : out std_logic_vector(  31 downto 0);  -- Memory Write Data
 
-      val_o  : out std_logic_vector(31 downto 0)   -- Debiug output (to VGA)
+      val_o  : out std_logic_vector(1023 downto 0)   -- Debug output (to VGA)
    );
 end cpu_module;
 
@@ -85,9 +85,10 @@ begin
       ra_i      => id_ra,
       rb_i      => id_rb,
       rc_i      => id_rc,
-      wdata_i   => alu_out,
+      wdata_i   => mux_c,
       radata_o  => regfile_radata,
-      rbdata_o  => regfile_rbdata
+      rbdata_o  => regfile_rbdata,
+      regs_o    => val_o            -- Debug output
    );
 
    -- Arithmetic & Logic Unit
@@ -107,6 +108,7 @@ begin
 
    ma_o  <= alu_out; -- Data Address
    wr_o  <= ctl_wr;
+   moe_o <= ctl_moe;
    mwd_o <= regfile_rbdata;
 
    mux_c <= alu_out when ctl_wdsel = "01"
@@ -132,9 +134,6 @@ begin
       moe_o    => ctl_moe,
       wr_o     => ctl_wr
    );
-
-   -- Debug output
-   val_o  <= pc_ia;
  
 end Structural;
 
