@@ -11,14 +11,14 @@ architecture Structural of cpu_module_tb is
    signal clk  : std_logic;                      -- 10 MHz
    signal rstn : std_logic;                      -- Active low
 
-   signal ia   : std_logic_vector(31 downto 0);  -- Instruction Address
-   signal id   : std_logic_vector(31 downto 0);  -- Instruction Data
-   signal ma   : std_logic_vector(31 downto 0);  -- Memory Address
-   signal moe  : std_logic;                      -- Memory Output Enable
-   signal mrd  : std_logic_vector(31 downto 0);  -- Memory Read Data
-   signal wr   : std_logic;                      -- Write
-   signal mwd  : std_logic_vector(31 downto 0);  -- Memory Write Data
-   signal val  : std_logic_vector(31 downto 0);
+   signal ia   : std_logic_vector(  31 downto 0);  -- Instruction Address
+   signal id   : std_logic_vector(  31 downto 0);  -- Instruction Data
+   signal ma   : std_logic_vector(  31 downto 0);  -- Memory Address
+   signal moe  : std_logic;                        -- Memory Output Enable
+   signal mrd  : std_logic_vector(  31 downto 0);  -- Memory Read Data
+   signal wr   : std_logic;                        -- Write
+   signal mwd  : std_logic_vector(  31 downto 0);  -- Memory Write Data
+   signal val  : std_logic_vector(1023 downto 0);
 
    signal test_running : boolean := true;
 
