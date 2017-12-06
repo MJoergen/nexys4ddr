@@ -75,7 +75,7 @@ begin
    -- This is the main test
    p_main : process
    begin
-      wait for 1 us;
+      wait for 100 us;
       test_running <= false;
       wait;
    end process p_main;
