@@ -20,7 +20,7 @@ entity vga_disp is
       hcount_i    : in  std_logic_vector(10 downto 0);
       vcount_i    : in  std_logic_vector(10 downto 0);
       blank_i     : in  std_logic;
-      val_i       : in  std_logic_vector(31 downto 0);
+      val_i       : in  std_logic_vector(1023 downto 0);
 
       vga_hsync_o : out std_logic;
       vga_vsync_o : out std_logic;
@@ -74,7 +74,7 @@ begin
    stage0.hcount <= hcount_i;
    stage0.vcount <= vcount_i;
    stage0.blank  <= blank_i;
-   stage0.val    <= val_i;
+   stage0.val    <= val_i(31 downto 0);
 
    -- Stage 1 : Make sure "val" is only sampled when off screen.
    p_stage1 : process (vga_clk_i) is

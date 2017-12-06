@@ -35,19 +35,13 @@ architecture Structural of imem is
    end function;
 
    signal memory : t_imem := InitRamFromFile(G_INIT_FILE);
---   (
---      X"A01FF800", -- AND (r31, r31, r0)  
---      X"903FF800", -- CMPEQ (r31, r31, r1)
---      X"80410800", -- ADD (r1, r1, r2)    
---      X"A4620800", -- OR (r2, r1, r3)     
---      others => (others => '0'));
 
 begin
 
    --assert ia_i(1 downto 0) = "00" report "Misaligned instruction" severity failure;
 
    -- 1 combinational read port.
-   id_o <= memory(conv_integer(ia_i(31 downto 2)));
+   id_o <= memory(conv_integer(ia_i(11 downto 2)));
 
 end Structural;
 

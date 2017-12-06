@@ -4,12 +4,13 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity dmem is
    port (
-      clk_i  : in  std_logic;
-      ma_i   : in  std_logic_vector(31 downto 0);  -- Memory Address
-      moe_i  : in  std_logic;                      -- Memory Output Enable
-      mrd_o  : out std_logic_vector(31 downto 0);  -- Memory Read Data
-      wr_i   : in  std_logic;                      -- Write
-      mwd_i  : in  std_logic_vector(31 downto 0)   -- Memory Write Data
+      clk_i    : in  std_logic;
+      clken_i  : in  std_logic;
+      ma_i     : in  std_logic_vector(31 downto 0);  -- Memory Address
+      moe_i    : in  std_logic;                      -- Memory Output Enable
+      mrd_o    : out std_logic_vector(31 downto 0);  -- Memory Read Data
+      wr_i     : in  std_logic;                      -- Write
+      mwd_i    : in  std_logic_vector(31 downto 0)   -- Memory Write Data
    );
 end dmem;
 
@@ -36,8 +37,10 @@ begin
    process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if wr_i = '1' then
-            memory(conv_integer(ma_i(31 downto 2))) <= mwd_i;
+         if clken_i = '1' then
+            if wr_i = '1' then
+               memory(conv_integer(ma_i(31 downto 2))) <= mwd_i;
+            end if;
          end if;
       end if;
    end process;

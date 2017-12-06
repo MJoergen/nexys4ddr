@@ -14,8 +14,8 @@ entity vga_module is
       green_o : out std_logic_vector(3 downto 0); 
       blue_o  : out std_logic_vector(3 downto 0);
 
-      -- Switches
-      val_i   : in  std_logic_vector(31 downto 0)
+      -- Data to display
+      val_i   : in  std_logic_vector(1023 downto 0)
    );
 end vga_module;
 

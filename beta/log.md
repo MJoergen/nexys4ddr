@@ -33,3 +33,8 @@ the entire CPU, in order for timing checks to become meaningfull.
 # 2017-12-05
 I've implemented the data path of the CPU, but it needs testing. I need to implement an
 assembler at some point.
+
+# 2017-12-06
+Now the data path of the CPU seems to be working. An alpha-version of the assembler
+has been made, and the instruction memory is initialized from a file (both in simulation
+and in synthesis). Next is to show the entire register file on the VGA port.

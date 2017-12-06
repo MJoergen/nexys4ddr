@@ -1,10 +1,10 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Wed Dec  6 19:18:00 2017
+[*] Wed Dec  6 19:52:46 2017
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/beta/src/cpu/cpu_module.ghw"
-[dumpfile_mtime] "Wed Dec  6 19:08:43 2017"
-[dumpfile_size] 362334
+[dumpfile_mtime] "Wed Dec  6 19:52:09 2017"
+[dumpfile_size] 298595
 [savefile] "/home/mike/git/nexys4ddr/beta/src/cpu/cpu_module_tb.gtkw"
 [timestart] 0
 [size] 1920 1136
@@ -21,6 +21,8 @@
 @28
 top.cpu_module_tb.i_dut.rstn_i
 top.cpu_module_tb.i_dut.clk_i
+@29
+top.cpu_module_tb.clken
 @c00200
 -Instruction Memory
 @22
@@ -61,14 +63,14 @@ top.cpu_module_tb.i_dut.i_ctl.moe_o
 top.cpu_module_tb.i_dut.i_ctl.wr_o
 @1000200
 -Control Logic
-@800201
+@800200
 -ALU
-@23
+@22
 #{top.cpu_module_tb.i_dut.i_alu.alufn_i[5:0]} top.cpu_module_tb.i_dut.i_alu.alufn_i[5] top.cpu_module_tb.i_dut.i_alu.alufn_i[4] top.cpu_module_tb.i_dut.i_alu.alufn_i[3] top.cpu_module_tb.i_dut.i_alu.alufn_i[2] top.cpu_module_tb.i_dut.i_alu.alufn_i[1] top.cpu_module_tb.i_dut.i_alu.alufn_i[0]
 #{top.cpu_module_tb.i_dut.i_alu.a_i[31:0]} top.cpu_module_tb.i_dut.i_alu.a_i[31] top.cpu_module_tb.i_dut.i_alu.a_i[30] top.cpu_module_tb.i_dut.i_alu.a_i[29] top.cpu_module_tb.i_dut.i_alu.a_i[28] top.cpu_module_tb.i_dut.i_alu.a_i[27] top.cpu_module_tb.i_dut.i_alu.a_i[26] top.cpu_module_tb.i_dut.i_alu.a_i[25] top.cpu_module_tb.i_dut.i_alu.a_i[24] top.cpu_module_tb.i_dut.i_alu.a_i[23] top.cpu_module_tb.i_dut.i_alu.a_i[22] top.cpu_module_tb.i_dut.i_alu.a_i[21] top.cpu_module_tb.i_dut.i_alu.a_i[20] top.cpu_module_tb.i_dut.i_alu.a_i[19] top.cpu_module_tb.i_dut.i_alu.a_i[18] top.cpu_module_tb.i_dut.i_alu.a_i[17] top.cpu_module_tb.i_dut.i_alu.a_i[16] top.cpu_module_tb.i_dut.i_alu.a_i[15] top.cpu_module_tb.i_dut.i_alu.a_i[14] top.cpu_module_tb.i_dut.i_alu.a_i[13] top.cpu_module_tb.i_dut.i_alu.a_i[12] top.cpu_module_tb.i_dut.i_alu.a_i[11] top.cpu_module_tb.i_dut.i_alu.a_i[10] top.cpu_module_tb.i_dut.i_alu.a_i[9] top.cpu_module_tb.i_dut.i_alu.a_i[8] top.cpu_module_tb.i_dut.i_alu.a_i[7] top.cpu_module_tb.i_dut.i_alu.a_i[6] top.cpu_module_tb.i_dut.i_alu.a_i[5] top.cpu_module_tb.i_dut.i_alu.a_i[4] top.cpu_module_tb.i_dut.i_alu.a_i[3] top.cpu_module_tb.i_dut.i_alu.a_i[2] top.cpu_module_tb.i_dut.i_alu.a_i[1] top.cpu_module_tb.i_dut.i_alu.a_i[0]
 #{top.cpu_module_tb.i_dut.i_alu.b_i[31:0]} top.cpu_module_tb.i_dut.i_alu.b_i[31] top.cpu_module_tb.i_dut.i_alu.b_i[30] top.cpu_module_tb.i_dut.i_alu.b_i[29] top.cpu_module_tb.i_dut.i_alu.b_i[28] top.cpu_module_tb.i_dut.i_alu.b_i[27] top.cpu_module_tb.i_dut.i_alu.b_i[26] top.cpu_module_tb.i_dut.i_alu.b_i[25] top.cpu_module_tb.i_dut.i_alu.b_i[24] top.cpu_module_tb.i_dut.i_alu.b_i[23] top.cpu_module_tb.i_dut.i_alu.b_i[22] top.cpu_module_tb.i_dut.i_alu.b_i[21] top.cpu_module_tb.i_dut.i_alu.b_i[20] top.cpu_module_tb.i_dut.i_alu.b_i[19] top.cpu_module_tb.i_dut.i_alu.b_i[18] top.cpu_module_tb.i_dut.i_alu.b_i[17] top.cpu_module_tb.i_dut.i_alu.b_i[16] top.cpu_module_tb.i_dut.i_alu.b_i[15] top.cpu_module_tb.i_dut.i_alu.b_i[14] top.cpu_module_tb.i_dut.i_alu.b_i[13] top.cpu_module_tb.i_dut.i_alu.b_i[12] top.cpu_module_tb.i_dut.i_alu.b_i[11] top.cpu_module_tb.i_dut.i_alu.b_i[10] top.cpu_module_tb.i_dut.i_alu.b_i[9] top.cpu_module_tb.i_dut.i_alu.b_i[8] top.cpu_module_tb.i_dut.i_alu.b_i[7] top.cpu_module_tb.i_dut.i_alu.b_i[6] top.cpu_module_tb.i_dut.i_alu.b_i[5] top.cpu_module_tb.i_dut.i_alu.b_i[4] top.cpu_module_tb.i_dut.i_alu.b_i[3] top.cpu_module_tb.i_dut.i_alu.b_i[2] top.cpu_module_tb.i_dut.i_alu.b_i[1] top.cpu_module_tb.i_dut.i_alu.b_i[0]
 #{top.cpu_module_tb.i_dut.i_alu.alu_o[31:0]} top.cpu_module_tb.i_dut.i_alu.alu_o[31] top.cpu_module_tb.i_dut.i_alu.alu_o[30] top.cpu_module_tb.i_dut.i_alu.alu_o[29] top.cpu_module_tb.i_dut.i_alu.alu_o[28] top.cpu_module_tb.i_dut.i_alu.alu_o[27] top.cpu_module_tb.i_dut.i_alu.alu_o[26] top.cpu_module_tb.i_dut.i_alu.alu_o[25] top.cpu_module_tb.i_dut.i_alu.alu_o[24] top.cpu_module_tb.i_dut.i_alu.alu_o[23] top.cpu_module_tb.i_dut.i_alu.alu_o[22] top.cpu_module_tb.i_dut.i_alu.alu_o[21] top.cpu_module_tb.i_dut.i_alu.alu_o[20] top.cpu_module_tb.i_dut.i_alu.alu_o[19] top.cpu_module_tb.i_dut.i_alu.alu_o[18] top.cpu_module_tb.i_dut.i_alu.alu_o[17] top.cpu_module_tb.i_dut.i_alu.alu_o[16] top.cpu_module_tb.i_dut.i_alu.alu_o[15] top.cpu_module_tb.i_dut.i_alu.alu_o[14] top.cpu_module_tb.i_dut.i_alu.alu_o[13] top.cpu_module_tb.i_dut.i_alu.alu_o[12] top.cpu_module_tb.i_dut.i_alu.alu_o[11] top.cpu_module_tb.i_dut.i_alu.alu_o[10] top.cpu_module_tb.i_dut.i_alu.alu_o[9] top.cpu_module_tb.i_dut.i_alu.alu_o[8] top.cpu_module_tb.i_dut.i_alu.alu_o[7] top.cpu_module_tb.i_dut.i_alu.alu_o[6] top.cpu_module_tb.i_dut.i_alu.alu_o[5] top.cpu_module_tb.i_dut.i_alu.alu_o[4] top.cpu_module_tb.i_dut.i_alu.alu_o[3] top.cpu_module_tb.i_dut.i_alu.alu_o[2] top.cpu_module_tb.i_dut.i_alu.alu_o[1] top.cpu_module_tb.i_dut.i_alu.alu_o[0]
-@1000201
+@1000200
 -ALU
 @800200
 -Register File

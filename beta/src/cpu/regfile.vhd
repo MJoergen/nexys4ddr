@@ -4,16 +4,17 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity regfile is
    port (
-      regs_o    : out std_logic_vector(1023 downto 0); -- Debug output
-      cpu_clk_i : in  std_logic;
-      werf_i    : in  std_logic;
-      ra2sel_i  : in  std_logic;
-      ra_i      : in  std_logic_vector(   4 downto 0);
-      rb_i      : in  std_logic_vector(   4 downto 0);
-      rc_i      : in  std_logic_vector(   4 downto 0);
-      wdata_i   : in  std_logic_vector(  31 downto 0);
-      radata_o  : out std_logic_vector(  31 downto 0);
-      rbdata_o  : out std_logic_vector(  31 downto 0)
+      regs_o      : out std_logic_vector(1023 downto 0); -- Debug output
+      cpu_clk_i   : in  std_logic;
+      cpu_clken_i : in  std_logic;
+      werf_i      : in  std_logic;
+      ra2sel_i    : in  std_logic;
+      ra_i        : in  std_logic_vector(   4 downto 0);
+      rb_i        : in  std_logic_vector(   4 downto 0);
+      rc_i        : in  std_logic_vector(   4 downto 0);
+      wdata_i     : in  std_logic_vector(  31 downto 0);
+      radata_o    : out std_logic_vector(  31 downto 0);
+      rbdata_o    : out std_logic_vector(  31 downto 0)
    );
 end regfile;
 
@@ -30,10 +31,12 @@ begin
       variable reg : integer range 0 to 31;
    begin
       if rising_edge(cpu_clk_i) then
-         if werf_i = '1' then
-            if rc_i /= "11111" then -- Don't change R31.
-               reg := conv_integer(rc_i);
-               regs(reg*32 + 31 downto reg*32) <= wdata_i;
+         if cpu_clken_i = '1' then
+            if werf_i = '1' then
+               if rc_i /= "11111" then -- Don't change R31.
+                  reg := conv_integer(rc_i);
+                  regs(reg*32 + 31 downto reg*32) <= wdata_i;
+               end if;
             end if;
          end if;
       end if;

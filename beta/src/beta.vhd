@@ -27,16 +27,19 @@ architecture Structural of beta is
    signal clk_vga : std_logic;
 
    -- Signals driven by the CPU module
-   signal cpu_ia  : std_logic_vector(31 downto 0);
-   signal cpu_ma  : std_logic_vector(31 downto 0);
+   signal cpu_ia  : std_logic_vector(  31 downto 0);
+   signal cpu_ma  : std_logic_vector(  31 downto 0);
    signal cpu_moe : std_logic;
    signal cpu_wr  : std_logic;
-   signal cpu_mwd : std_logic_vector(31 downto 0);
-   signal cpu_val : std_logic_vector(31 downto 0);
+   signal cpu_mwd : std_logic_vector(  31 downto 0);
+   signal cpu_val : std_logic_vector(1023 downto 0);
 
    -- Signals driven by the memory modules
    signal imem_id : std_logic_vector(31 downto 0);
    signal dmem_mrd : std_logic_vector(31 downto 0);
+
+   signal clk_cpu_en : std_logic := '0';
+   signal counter    : std_logic_vector(23 downto 0) := (others => '0');
 
 begin
 
@@ -60,6 +63,18 @@ begin
       clk_out1 => clk_cpu  --  10 MHz
    );
 
+   p_divider : process (clk_cpu)
+   begin
+      if rising_edge(clk_cpu) then
+         clk_cpu_en <= '0';
+         if counter = 0 then
+            clk_cpu_en <= '1';
+         end if;
+         counter <= counter + 1;
+      end if;
+   end process p_divider;
+
+
 
    -- Instantiate the VGA module controlling the VGA display port.
    i_vga_module : entity work.vga_module
@@ -78,16 +93,17 @@ begin
    i_cpu_module : entity work.cpu_module
    port map
    (
-      clk_i  => clk_cpu,
-      rstn_i => rstn_i,
-      ia_o   => cpu_ia,
-      id_i   => imem_id,
-      ma_o   => cpu_ma,
-      moe_o  => cpu_moe,
-      mrd_i  => dmem_mrd,
-      wr_o   => cpu_wr,
-      mwd_o  => cpu_mwd,
-      val_o  => cpu_val
+      clk_i   => clk_cpu,
+      clken_i => clk_cpu_en,
+      rstn_i  => rstn_i,
+      ia_o    => cpu_ia,
+      id_i    => imem_id,
+      ma_o    => cpu_ma,
+      moe_o   => cpu_moe,
+      mrd_i   => dmem_mrd,
+      wr_o    => cpu_wr,
+      mwd_o   => cpu_mwd,
+      val_o   => cpu_val
    );
 
    -- Instantiate Instruction Memory
@@ -100,12 +116,13 @@ begin
    -- Instantiate Data Memory
    i_dmem : entity work.dmem
    port map (
-      clk_i => clk_cpu,
-      ma_i  => cpu_ma,
-      moe_i => cpu_moe,
-      mrd_o => dmem_mrd,
-      wr_i  => cpu_wr,
-      mwd_i => cpu_mwd
+      clk_i   => clk_cpu,
+      clken_i => clk_cpu_en,
+      ma_i    => cpu_ma,
+      moe_i   => cpu_moe,
+      mrd_o   => dmem_mrd,
+      wr_i    => cpu_wr,
+      mwd_i   => cpu_mwd
    );
    
 

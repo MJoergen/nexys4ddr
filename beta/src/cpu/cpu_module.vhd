@@ -5,17 +5,18 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 entity cpu_module is
    port (
       -- Clock
-      clk_i  : in  std_logic;                        -- 10 MHz
-      rstn_i : in  std_logic;                        -- Active low
-      ia_o   : out std_logic_vector(  31 downto 0);  -- Instruction Address
-      id_i   : in  std_logic_vector(  31 downto 0);  -- Instruction Data
-      ma_o   : out std_logic_vector(  31 downto 0);  -- Memory Address
-      moe_o  : out std_logic;                        -- Memory Output Enable
-      mrd_i  : in  std_logic_vector(  31 downto 0);  -- Memory Read Data
-      wr_o   : out std_logic;                        -- Write
-      mwd_o  : out std_logic_vector(  31 downto 0);  -- Memory Write Data
+      clk_i   : in  std_logic;                        -- 10 MHz
+      clken_i : in  std_logic;                        -- Clock enable
+      rstn_i  : in  std_logic;                        -- Active low
+      ia_o    : out std_logic_vector(  31 downto 0);  -- Instruction Address
+      id_i    : in  std_logic_vector(  31 downto 0);  -- Instruction Data
+      ma_o    : out std_logic_vector(  31 downto 0);  -- Memory Address
+      moe_o   : out std_logic;                        -- Memory Output Enable
+      mrd_i   : in  std_logic_vector(  31 downto 0);  -- Memory Read Data
+      wr_o    : out std_logic;                        -- Write
+      mwd_o   : out std_logic_vector(  31 downto 0);  -- Memory Write Data
 
-      val_o  : out std_logic_vector(1023 downto 0)   -- Debug output (to VGA)
+      val_o   : out std_logic_vector(1023 downto 0)   -- Debug output (to VGA)
    );
 end cpu_module;
 
@@ -68,9 +69,10 @@ begin
    -- Program counter
    i_pc : entity work.pc
    port map (
-      cpu_clk_i => clk_i,
-      rstn_i    => rstn_i,
-      ia_o      => pc_ia
+      cpu_clk_i   => clk_i,
+      cpu_clken_i => clken_i,
+      rstn_i      => rstn_i,
+      ia_o        => pc_ia
    );
 
    -- Instruction Address
@@ -79,16 +81,17 @@ begin
    -- Register File
    i_regfile : entity work.regfile
    port map (
-      cpu_clk_i => clk_i,
-      werf_i    => ctl_werf,
-      ra2sel_i  => ctl_ra2sel,
-      ra_i      => id_ra,
-      rb_i      => id_rb,
-      rc_i      => id_rc,
-      wdata_i   => mux_c,
-      radata_o  => regfile_radata,
-      rbdata_o  => regfile_rbdata,
-      regs_o    => val_o            -- Debug output
+      cpu_clk_i   => clk_i,
+      cpu_clken_i => clken_i,
+      werf_i      => ctl_werf,
+      ra2sel_i    => ctl_ra2sel,
+      ra_i        => id_ra,
+      rb_i        => id_rb,
+      rc_i        => id_rc,
+      wdata_i     => mux_c,
+      radata_o    => regfile_radata,
+      rbdata_o    => regfile_rbdata,
+      regs_o      => val_o            -- Debug output
    );
 
    -- Arithmetic & Logic Unit
