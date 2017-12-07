@@ -38,3 +38,8 @@ assembler at some point.
 Now the data path of the CPU seems to be working. An alpha-version of the assembler
 has been made, and the instruction memory is initialized from a file (both in simulation
 and in synthesis). Next is to show the entire register file on the VGA port.
+
+# 2017-12-07
+Now the entire register file is displayed on the VGA port. Next is to do more testing,
+and then implement the rest of the CPU.
+I'm looking at how to modify the CLANG compiler to generate beta-assembly code.
