@@ -33,20 +33,20 @@ end vga_disp;
 architecture Behavioral of vga_disp is
 
    -- Screen pixel position to place the text.
-   constant OFFSET_X    : integer := 600;
-   constant OFFSET_Y    : integer := 400;
+   constant OFFSET_X    : integer := 300;
+   constant OFFSET_Y    : integer := 200;
 
    -- This employs a six stage pipeline in order to improve timing.
    type t_stage is record
-      hsync     : std_logic;                     -- valid in all stages
-      vsync     : std_logic;                     -- valid in all stages
-      hcount    : std_logic_vector(10 downto 0); -- valid in all stages
-      vcount    : std_logic_vector(10 downto 0); -- valid in all stages
-      blank     : std_logic;                     -- valid in all stages
-      val       : std_logic_vector(31 downto 0); -- valid in stage 2
-      hex       : std_logic_vector(3 downto 0);  -- valid in stage 3
-      pix       : std_logic;                     -- valid in stage 4
-      vga_color : std_logic_vector(11 downto 0); -- valid in stage 5
+      hsync     : std_logic;                       -- valid in all stages
+      vsync     : std_logic;                       -- valid in all stages
+      hcount    : std_logic_vector(10 downto 0);   -- valid in all stages
+      vcount    : std_logic_vector(10 downto 0);   -- valid in all stages
+      blank     : std_logic;                       -- valid in all stages
+      val       : std_logic_vector(1023 downto 0);   -- valid in stage 2
+      hex       : std_logic_vector(3 downto 0);    -- valid in stage 3
+      pix       : std_logic;                       -- valid in stage 4
+      vga_color : std_logic_vector(11 downto 0);   -- valid in stage 5
    end record t_stage;
 
    constant STAGE_DEFAULT : t_stage := (
@@ -74,7 +74,7 @@ begin
    stage0.hcount <= hcount_i;
    stage0.vcount <= vcount_i;
    stage0.blank  <= blank_i;
-   stage0.val    <= val_i(31 downto 0);
+   stage0.val    <= val_i;
 
    -- Stage 1 : Make sure "val" is only sampled when off screen.
    p_stage1 : process (vga_clk_i) is
@@ -86,17 +86,26 @@ begin
          stage1.vcount <= stage0.vcount;
          stage1.blank  <= stage0.blank;
 
+         -- Only sample this value when off screen.
          if stage0.blank = '1' then
-            stage1.val <= stage0.val; -- Only sample this value when off screen.
+            stage1.val <= stage0.val;
          end if;
       end if;
    end process p_stage1;
 
-   -- Stage 2 : Synchronize the val
+   -- Stage 2 : Select the register
    p_stage2 : process (vga_clk_i) is
+      variable xoffset : std_logic_vector(8 downto 0);
+      variable yoffset : std_logic_vector(7 downto 0);
+      variable reg     : std_logic_vector(4 downto 0);
    begin
       if rising_edge(vga_clk_i) then
          stage2 <= stage1;
+
+         xoffset := stage1.hcount(9 downto 1) - OFFSET_X/2;
+         yoffset := stage1.vcount(8 downto 1) - OFFSET_Y/2;
+         reg     := xoffset(7) & yoffset(7 downto 4);
+         stage2.val(31 downto 0) <= stage1.val(conv_integer(reg)*32+31 downto conv_integer(reg)*32);
       end if;
    end process p_stage2;
 
@@ -199,8 +208,9 @@ begin
 
             -- There are 8 characters horizontally. Each character is 2*CHAR_WIDTH
             -- pixels wide.
-            if (hcount >= OFFSET_X) and (hcount < OFFSET_X + 2*CHAR_WIDTH*8)
-            and (vcount >= OFFSET_Y) and (vcount < OFFSET_Y + 2*CHAR_HEIGHT) then
+            if (((hcount >= OFFSET_X) and (hcount < OFFSET_X + 2*CHAR_WIDTH*8)) or
+                ((hcount >= OFFSET_X + 256) and (hcount < OFFSET_X + 2*CHAR_WIDTH*8 + 256)))
+            and (vcount >= OFFSET_Y) and (vcount < OFFSET_Y + 2*CHAR_HEIGHT*16) then
                if stage4.pix = '1' then
                   stage5.vga_color <= vga_dark;
                end if;
