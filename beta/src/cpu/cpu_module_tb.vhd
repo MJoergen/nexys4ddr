@@ -92,8 +92,31 @@ begin
 
    -- This is the main test
    p_main : process
+      type t_res_vector is array (natural range <>) of std_logic_vector(31 downto 0);
+      constant res_vector : t_res_vector := (
+         X"00000002",
+         X"0000011A",
+         X"00011F12",
+         X"047C7B8C",
+         X"C7B8C7A7",
+         X"A17A11C7",
+         X"A1638E2C",
+         X"871C71C7",
+         X"47A2B9C0");
+      variable i : integer := 0;
    begin
-      wait for 100 us;
+      for i in 0 to res_vector'length loop
+         while wr /= '1' loop
+            wait until clk = '0';
+            wait until clk = '1';
+         end loop;
+         assert ma = X"000003FC";
+         assert mwd = res_vector(i);
+
+         wait until wr = '0';
+      end loop;
+
+      report "Test PASSED";
       test_running <= false;
       wait;
    end process p_main;

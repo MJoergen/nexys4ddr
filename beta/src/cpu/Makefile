@@ -21,7 +21,7 @@ TB_SRC += dmem.vhd
 
 wavesave = cpu_module_tb.gtkw
 
-stoptime = --stop-time=30us
+stoptime = --stop-time=300us
 
 include ../../../xilinx.mk
 
