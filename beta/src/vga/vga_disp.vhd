@@ -20,7 +20,9 @@ entity vga_disp is
       hcount_i    : in  std_logic_vector(10 downto 0);
       vcount_i    : in  std_logic_vector(10 downto 0);
       blank_i     : in  std_logic;
-      val_i       : in  std_logic_vector(1023 downto 0);
+      regs_i      : in  std_logic_vector(1023 downto 0);
+      ia_i        : in  std_logic_vector(  31 downto 0);
+      count_i     : in  std_logic_vector(   7 downto 0);
 
       vga_hsync_o : out std_logic;
       vga_vsync_o : out std_logic;
@@ -43,7 +45,10 @@ architecture Behavioral of vga_disp is
       hcount    : std_logic_vector(10 downto 0);   -- valid in all stages
       vcount    : std_logic_vector(10 downto 0);   -- valid in all stages
       blank     : std_logic;                       -- valid in all stages
-      val       : std_logic_vector(1023 downto 0);   -- valid in stage 2
+      regs      : std_logic_vector(1023 downto 0); -- valid in stage 1
+      ia        : std_logic_vector(31 downto 0);   -- valid in stage 1
+      count     : std_logic_vector(7 downto 0);    -- valid in stage 1
+      value     : std_logic_vector(31 downto 0);   -- valid in stage 2
       hex       : std_logic_vector(3 downto 0);    -- valid in stage 3
       pix       : std_logic;                       -- valid in stage 4
       vga_color : std_logic_vector(11 downto 0);   -- valid in stage 5
@@ -55,7 +60,10 @@ architecture Behavioral of vga_disp is
       hcount    => (others => '0'),
       vcount    => (others => '0'),
       blank     => '1',
-      val       => (others => '0'),
+      regs      => (others => '0'),
+      ia        => (others => '0'),
+      count     => (others => '0'),
+      value     => (others => '0'),
       hex       => (others => '0'),
       pix       => '0',
       vga_color => (others => '0'));
@@ -74,7 +82,9 @@ begin
    stage0.hcount <= hcount_i;
    stage0.vcount <= vcount_i;
    stage0.blank  <= blank_i;
-   stage0.val    <= val_i;
+   stage0.regs   <= regs_i;
+   stage0.ia     <= ia_i;
+   stage0.count  <= count_i;
 
    -- Stage 1 : Make sure "val" is only sampled when off screen.
    p_stage1 : process (vga_clk_i) is
@@ -87,8 +97,10 @@ begin
          stage1.blank  <= stage0.blank;
 
          -- Only sample this value when off screen.
-         if stage0.blank = '1' then
-            stage1.val <= stage0.val;
+         if stage0.vsync = '1' then
+            stage1.regs  <= stage0.regs;
+            stage1.ia    <= stage0.ia;
+            stage1.count <= stage0.count;
          end if;
       end if;
    end process p_stage1;
@@ -105,7 +117,15 @@ begin
          xoffset := stage1.hcount(9 downto 1) - OFFSET_X/2;
          yoffset := stage1.vcount(8 downto 1) - OFFSET_Y/2;
          reg     := xoffset(7) & yoffset(7 downto 4);
-         stage2.val(31 downto 0) <= stage1.val(conv_integer(reg)*32+31 downto conv_integer(reg)*32);
+         if xoffset(8) = '0' then
+            stage2.value <= stage1.regs(conv_integer(reg)*32+31 downto conv_integer(reg)*32);
+         else
+            if yoffset(4) = '0' then
+               stage2.value <= stage1.ia;
+            else
+               stage2.value <= stage1.count & X"000000";
+            end if;
+         end if;
       end if;
    end process p_stage2;
 
@@ -141,7 +161,7 @@ begin
          nib := offset_to_nib(conv_integer(offset));
 
          -- Each hex digit consumes 4 bits.
-         stage3.hex <= stage2.val((7-nib)*4+3 downto (7-nib)*4);
+         stage3.hex <= stage2.value((7-nib)*4+3 downto (7-nib)*4);
       end if;
    end process p_stage3;
 
@@ -194,6 +214,7 @@ begin
    p_stage5 : process (vga_clk_i) is
       variable hcount : integer;
       variable vcount : integer;
+      variable enable : boolean;
    begin
       if rising_edge(vga_clk_i) then 
          stage5 <= stage4;
@@ -206,11 +227,22 @@ begin
          if stage4.blank = '0' then
             stage5.vga_color <= vga_gray; -- Default background color on screen.
 
-            -- There are 8 characters horizontally. Each character is 2*CHAR_WIDTH
-            -- pixels wide.
-            if (((hcount >= OFFSET_X) and (hcount < OFFSET_X + 2*CHAR_WIDTH*8)) or
-                ((hcount >= OFFSET_X + 256) and (hcount < OFFSET_X + 2*CHAR_WIDTH*8 + 256)))
-            and (vcount >= OFFSET_Y) and (vcount < OFFSET_Y + 2*CHAR_HEIGHT*16) then
+            enable := false;
+            if (hcount >= OFFSET_X) and (hcount < OFFSET_X + 2*CHAR_WIDTH*8) then -- 1st column
+               if (vcount >= OFFSET_Y) and (vcount < OFFSET_Y + 2*CHAR_HEIGHT*16) then
+                  enable := true;
+               end if;
+            elsif (hcount >= OFFSET_X + 256) and (hcount < OFFSET_X + 2*CHAR_WIDTH*8 + 256) then -- 2nd column
+               if (vcount >= OFFSET_Y) and (vcount < OFFSET_Y + 2*CHAR_HEIGHT*16) then
+                  enable := true;
+               end if;
+            elsif (hcount >= OFFSET_X + 512) and (hcount < OFFSET_X + 2*CHAR_WIDTH*8 + 512) then -- 3rd column
+               if (vcount >= OFFSET_Y) and (vcount < OFFSET_Y + 2*CHAR_HEIGHT*2) then
+                  enable := true;
+               end if;
+            end if;
+
+            if enable then
                if stage4.pix = '1' then
                   stage5.vga_color <= vga_dark;
                end if;

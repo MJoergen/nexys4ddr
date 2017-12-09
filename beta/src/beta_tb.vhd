@@ -27,6 +27,9 @@ architecture Structural of beta_tb is
     -- Switches
     signal sw        : std_logic_vector (15 downto 0);
 
+    -- Buttons
+    signal btnc      : std_logic;
+
     signal test_running : boolean := true;
 
 begin
@@ -47,7 +50,11 @@ begin
 
 
     -- Generate input switches
-    sw <= (others => '0');
+    sw <= X"FFFF";
+
+
+    -- Generate input buttons
+    btnc <= '0';
 
 
     -- Instantiate DUT
@@ -60,7 +67,8 @@ begin
         vga_red_o   => vga_red,
         vga_green_o => vga_green,
         vga_blue_o  => vga_blue,
-        sw_i        => sw
+        sw_i        => sw,
+        btnc_i      => btnc
         );
 
     test_running <= true, false after 1000 us;

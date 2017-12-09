@@ -16,30 +16,32 @@ entity beta is
       vga_blue_o  : out std_logic_vector(3 downto 0);
 
       -- Switches
-      sw_i        : in  std_logic_vector(15 downto 0)
+      sw_i        : in  std_logic_vector(15 downto 0);
+
+      -- Buttons
+      btnc_i      : in  std_logic                        -- Used for singlestepping
    );
 end beta;
 
 architecture Structural of beta is
 
    -- Signals driven by the Clock modules
-   signal clk_cpu : std_logic;
-   signal clk_vga : std_logic;
+   signal clk_cpu    : std_logic;
+   signal clk_vga    : std_logic;
+   signal clk_cpu_en : std_logic;
+   signal clk_count  : std_logic_vector(7 downto 0);
 
    -- Signals driven by the CPU module
-   signal cpu_ia  : std_logic_vector(  31 downto 0);
-   signal cpu_ma  : std_logic_vector(  31 downto 0);
-   signal cpu_moe : std_logic;
-   signal cpu_wr  : std_logic;
-   signal cpu_mwd : std_logic_vector(  31 downto 0);
-   signal cpu_val : std_logic_vector(1023 downto 0);
+   signal cpu_ia   : std_logic_vector(  31 downto 0);
+   signal cpu_ma   : std_logic_vector(  31 downto 0);
+   signal cpu_moe  : std_logic;
+   signal cpu_wr   : std_logic;
+   signal cpu_mwd  : std_logic_vector(  31 downto 0);
+   signal cpu_regs : std_logic_vector(1023 downto 0);
 
    -- Signals driven by the memory modules
-   signal imem_id : std_logic_vector(31 downto 0);
+   signal imem_id  : std_logic_vector(31 downto 0);
    signal dmem_mrd : std_logic_vector(31 downto 0);
-
-   signal clk_cpu_en : std_logic := '0';
-   signal counter    : std_logic_vector(23 downto 0) := (others => '0');
 
 begin
 
@@ -63,17 +65,15 @@ begin
       clk_out1 => clk_cpu  --  10 MHz
    );
 
-   p_divider : process (clk_cpu)
-   begin
-      if rising_edge(clk_cpu) then
-         clk_cpu_en <= '0';
-         if counter = 0 then
-            clk_cpu_en <= '1';
-         end if;
-         counter <= counter + 1;
-      end if;
-   end process p_divider;
-
+   -- Clock enable, controller by button and by timer.
+   i_clken : entity work.clken
+   port map (
+      clk_cpu_i => clk_cpu,
+      sw_i      => sw_i,
+      btnc_i    => btnc_i,
+      clk_en_o  => clk_cpu_en,
+      count_o   => clk_count
+   );
 
 
    -- Instantiate the VGA module controlling the VGA display port.
@@ -86,7 +86,9 @@ begin
       red_o   => vga_red_o,
       green_o => vga_green_o,
       blue_o  => vga_blue_o,
-      val_i   => cpu_val
+      regs_i  => cpu_regs,
+      ia_i    => cpu_ia,
+      count_i => clk_count
    );
 
    -- Instantiate the CPU module
@@ -103,7 +105,7 @@ begin
       mrd_i   => dmem_mrd,
       wr_o    => cpu_wr,
       mwd_o   => cpu_mwd,
-      val_o   => cpu_val
+      regs_o  => cpu_regs
    );
 
    -- Instantiate Instruction Memory

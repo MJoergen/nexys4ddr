@@ -18,13 +18,13 @@ architecture Structural of cpu_module_tb is
    signal mrd   : std_logic_vector(  31 downto 0);  -- Memory Read Data
    signal wr    : std_logic;                        -- Write
    signal mwd   : std_logic_vector(  31 downto 0);  -- Memory Write Data
-   signal val   : std_logic_vector(1023 downto 0);
+   signal regs  : std_logic_vector(1023 downto 0);
 
    signal test_running : boolean := true;
 
    -- Clock divider
    signal clken   : std_logic := '0';
-   signal counter : std_logic_vector(1 downto 0) := (others => '0');
+   signal counter : std_logic_vector(0 downto 0) := (others => '0');
 
 begin
 
@@ -67,7 +67,7 @@ begin
       mrd_i   => mrd,
       wr_o    => wr,
       mwd_o   => mwd,
-      val_o   => val
+      regs_o  => regs
    );
 
    -- Instantiate Instruction Memory

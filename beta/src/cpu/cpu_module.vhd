@@ -16,7 +16,7 @@ entity cpu_module is
       wr_o    : out std_logic;                        -- Write
       mwd_o   : out std_logic_vector(  31 downto 0);  -- Memory Write Data
 
-      val_o   : out std_logic_vector(1023 downto 0)   -- Debug output (to VGA)
+      regs_o  : out std_logic_vector(1023 downto 0)   -- Debug output (to VGA)
    );
 end cpu_module;
 
@@ -91,7 +91,7 @@ begin
       wdata_i     => mux_c,
       radata_o    => regfile_radata,
       rbdata_o    => regfile_rbdata,
-      regs_o      => val_o            -- Debug output
+      regs_o      => regs_o            -- Debug output
    );
 
    -- Arithmetic & Logic Unit

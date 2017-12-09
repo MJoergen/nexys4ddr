@@ -9,6 +9,7 @@ SRC += src/clock/clk_wiz_vga.vhd
 SRC += src/clock/clk_wiz_vga_clk_wiz.vhd
 SRC += src/clock/clk_wiz_cpu.vhd
 SRC += src/clock/clk_wiz_cpu_clk_wiz.vhd
+SRC += src/clock/clken.vhd
 
 # VGA driver
 SRC += src/vga/vga_module.vhd

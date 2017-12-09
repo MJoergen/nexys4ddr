@@ -15,7 +15,9 @@ entity vga_module is
       blue_o  : out std_logic_vector(3 downto 0);
 
       -- Data to display
-      val_i   : in  std_logic_vector(1023 downto 0)
+      regs_i  : in  std_logic_vector(1023 downto 0);
+      ia_i    : in  std_logic_vector(  31 downto 0);
+      count_i : in  std_logic_vector(   7 downto 0)
    );
 end vga_module;
 
@@ -54,7 +56,9 @@ begin
       hcount_i    => hcount,
       vcount_i    => vcount,
       blank_i     => blank,
-      val_i       => val_i,
+      regs_i      => regs_i,
+      ia_i        => ia_i,
+      count_i     => count_i,
       vga_red_o   => red_o,
       vga_green_o => green_o,
       vga_blue_o  => blue_o,
