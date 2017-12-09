@@ -149,7 +149,7 @@ def translate(a):
             ra = getreg(cmd[1])
             vb = getval(cmd[2])
             rc = getreg(cmd[3])
-            opc = to_b((i<<26) + (rc<<21) + (ra<<16) + vb)
+            opc = to_b((i<<26) + (rc<<21) + (ra<<16) + (vb & 0xFFFF))
         f.append(opc)
     return f
 
