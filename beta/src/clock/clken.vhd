@@ -9,6 +9,8 @@ entity clken is
 
       -- Switches
       sw_i        : in  std_logic_vector(15 downto 0);
+      -- sw_i(0) = 0 is used for single-step mode.
+      -- sw_i(0) = 1 means the clock is free-running.
 
       -- Buttons
       btnc_i      : in  std_logic;                       -- Used for singlestepping
@@ -34,7 +36,7 @@ begin
       if rising_edge(clk_cpu_i) then
          counter <= counter + conv_integer(sw_i(15 downto 1) & "00000000000") + 1;
 
-         if counter(counter'left) = '1' then
+         if counter(counter'left) = '1' and sw_i(0) = '1' then
             counter <= (others => '0');
          end if;
 
