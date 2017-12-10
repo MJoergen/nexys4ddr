@@ -30,8 +30,7 @@ SRC += src/cpu/alu/alu_module.vhd
 SRC += src/cpu/cpu_module.vhd
 
 # Memory
-SRC += src/cpu/imem.vhd
-SRC += src/cpu/dmem.vhd
+SRC += src/cpu/mem.vhd
 
 stoptime = --stop-time=5us
 

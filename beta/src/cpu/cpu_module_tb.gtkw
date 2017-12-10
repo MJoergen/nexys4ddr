@@ -1,49 +1,49 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Fri Dec  8 08:10:43 2017
+[*] Sun Dec 10 16:07:50 2017
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/beta/src/cpu/cpu_module.ghw"
-[dumpfile_mtime] "Fri Dec  8 08:09:33 2017"
-[dumpfile_size] 351140
+[dumpfile_mtime] "Sun Dec 10 16:04:05 2017"
+[dumpfile_size] 286551
 [savefile] "/home/mike/git/nexys4ddr/beta/src/cpu/cpu_module_tb.gtkw"
-[timestart] 62061700000
+[timestart] 46837000000
 [size] 1920 1010
 [pos] -1 -1
-*-27.212433 63027000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-27.838377 47856000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.cpu_module_tb.
 [treeopen] top.cpu_module_tb.i_dut.
-[treeopen] top.cpu_module_tb.i_dut.i_regfile.
+[treeopen] top.cpu_module_tb.i_mem.
 [sst_width] 255
 [signals_width] 343
 [sst_expanded] 1
-[sst_vpaned_height] 676
+[sst_vpaned_height] 428
 @28
 top.cpu_module_tb.i_dut.rstn_i
 top.cpu_module_tb.i_dut.clk_i
 top.cpu_module_tb.clken
-@c00200
--Instruction Memory
-@22
-#{top.cpu_module_tb.i_imem.ia_i[31:0]} top.cpu_module_tb.i_imem.ia_i[31] top.cpu_module_tb.i_imem.ia_i[30] top.cpu_module_tb.i_imem.ia_i[29] top.cpu_module_tb.i_imem.ia_i[28] top.cpu_module_tb.i_imem.ia_i[27] top.cpu_module_tb.i_imem.ia_i[26] top.cpu_module_tb.i_imem.ia_i[25] top.cpu_module_tb.i_imem.ia_i[24] top.cpu_module_tb.i_imem.ia_i[23] top.cpu_module_tb.i_imem.ia_i[22] top.cpu_module_tb.i_imem.ia_i[21] top.cpu_module_tb.i_imem.ia_i[20] top.cpu_module_tb.i_imem.ia_i[19] top.cpu_module_tb.i_imem.ia_i[18] top.cpu_module_tb.i_imem.ia_i[17] top.cpu_module_tb.i_imem.ia_i[16] top.cpu_module_tb.i_imem.ia_i[15] top.cpu_module_tb.i_imem.ia_i[14] top.cpu_module_tb.i_imem.ia_i[13] top.cpu_module_tb.i_imem.ia_i[12] top.cpu_module_tb.i_imem.ia_i[11] top.cpu_module_tb.i_imem.ia_i[10] top.cpu_module_tb.i_imem.ia_i[9] top.cpu_module_tb.i_imem.ia_i[8] top.cpu_module_tb.i_imem.ia_i[7] top.cpu_module_tb.i_imem.ia_i[6] top.cpu_module_tb.i_imem.ia_i[5] top.cpu_module_tb.i_imem.ia_i[4] top.cpu_module_tb.i_imem.ia_i[3] top.cpu_module_tb.i_imem.ia_i[2] top.cpu_module_tb.i_imem.ia_i[1] top.cpu_module_tb.i_imem.ia_i[0]
-#{top.cpu_module_tb.i_imem.id_o[31:0]} top.cpu_module_tb.i_imem.id_o[31] top.cpu_module_tb.i_imem.id_o[30] top.cpu_module_tb.i_imem.id_o[29] top.cpu_module_tb.i_imem.id_o[28] top.cpu_module_tb.i_imem.id_o[27] top.cpu_module_tb.i_imem.id_o[26] top.cpu_module_tb.i_imem.id_o[25] top.cpu_module_tb.i_imem.id_o[24] top.cpu_module_tb.i_imem.id_o[23] top.cpu_module_tb.i_imem.id_o[22] top.cpu_module_tb.i_imem.id_o[21] top.cpu_module_tb.i_imem.id_o[20] top.cpu_module_tb.i_imem.id_o[19] top.cpu_module_tb.i_imem.id_o[18] top.cpu_module_tb.i_imem.id_o[17] top.cpu_module_tb.i_imem.id_o[16] top.cpu_module_tb.i_imem.id_o[15] top.cpu_module_tb.i_imem.id_o[14] top.cpu_module_tb.i_imem.id_o[13] top.cpu_module_tb.i_imem.id_o[12] top.cpu_module_tb.i_imem.id_o[11] top.cpu_module_tb.i_imem.id_o[10] top.cpu_module_tb.i_imem.id_o[9] top.cpu_module_tb.i_imem.id_o[8] top.cpu_module_tb.i_imem.id_o[7] top.cpu_module_tb.i_imem.id_o[6] top.cpu_module_tb.i_imem.id_o[5] top.cpu_module_tb.i_imem.id_o[4] top.cpu_module_tb.i_imem.id_o[3] top.cpu_module_tb.i_imem.id_o[2] top.cpu_module_tb.i_imem.id_o[1] top.cpu_module_tb.i_imem.id_o[0]
-@1401200
--Instruction Memory
 @800201
--Data Memory
+-Instruction Memory
 @23
-#{top.cpu_module_tb.i_dmem.ma_i[31:0]} top.cpu_module_tb.i_dmem.ma_i[31] top.cpu_module_tb.i_dmem.ma_i[30] top.cpu_module_tb.i_dmem.ma_i[29] top.cpu_module_tb.i_dmem.ma_i[28] top.cpu_module_tb.i_dmem.ma_i[27] top.cpu_module_tb.i_dmem.ma_i[26] top.cpu_module_tb.i_dmem.ma_i[25] top.cpu_module_tb.i_dmem.ma_i[24] top.cpu_module_tb.i_dmem.ma_i[23] top.cpu_module_tb.i_dmem.ma_i[22] top.cpu_module_tb.i_dmem.ma_i[21] top.cpu_module_tb.i_dmem.ma_i[20] top.cpu_module_tb.i_dmem.ma_i[19] top.cpu_module_tb.i_dmem.ma_i[18] top.cpu_module_tb.i_dmem.ma_i[17] top.cpu_module_tb.i_dmem.ma_i[16] top.cpu_module_tb.i_dmem.ma_i[15] top.cpu_module_tb.i_dmem.ma_i[14] top.cpu_module_tb.i_dmem.ma_i[13] top.cpu_module_tb.i_dmem.ma_i[12] top.cpu_module_tb.i_dmem.ma_i[11] top.cpu_module_tb.i_dmem.ma_i[10] top.cpu_module_tb.i_dmem.ma_i[9] top.cpu_module_tb.i_dmem.ma_i[8] top.cpu_module_tb.i_dmem.ma_i[7] top.cpu_module_tb.i_dmem.ma_i[6] top.cpu_module_tb.i_dmem.ma_i[5] top.cpu_module_tb.i_dmem.ma_i[4] top.cpu_module_tb.i_dmem.ma_i[3] top.cpu_module_tb.i_dmem.ma_i[2] top.cpu_module_tb.i_dmem.ma_i[1] top.cpu_module_tb.i_dmem.ma_i[0]
-@29
-top.cpu_module_tb.i_dmem.wr_i
-@23
-#{top.cpu_module_tb.i_dmem.mwd_i[31:0]} top.cpu_module_tb.i_dmem.mwd_i[31] top.cpu_module_tb.i_dmem.mwd_i[30] top.cpu_module_tb.i_dmem.mwd_i[29] top.cpu_module_tb.i_dmem.mwd_i[28] top.cpu_module_tb.i_dmem.mwd_i[27] top.cpu_module_tb.i_dmem.mwd_i[26] top.cpu_module_tb.i_dmem.mwd_i[25] top.cpu_module_tb.i_dmem.mwd_i[24] top.cpu_module_tb.i_dmem.mwd_i[23] top.cpu_module_tb.i_dmem.mwd_i[22] top.cpu_module_tb.i_dmem.mwd_i[21] top.cpu_module_tb.i_dmem.mwd_i[20] top.cpu_module_tb.i_dmem.mwd_i[19] top.cpu_module_tb.i_dmem.mwd_i[18] top.cpu_module_tb.i_dmem.mwd_i[17] top.cpu_module_tb.i_dmem.mwd_i[16] top.cpu_module_tb.i_dmem.mwd_i[15] top.cpu_module_tb.i_dmem.mwd_i[14] top.cpu_module_tb.i_dmem.mwd_i[13] top.cpu_module_tb.i_dmem.mwd_i[12] top.cpu_module_tb.i_dmem.mwd_i[11] top.cpu_module_tb.i_dmem.mwd_i[10] top.cpu_module_tb.i_dmem.mwd_i[9] top.cpu_module_tb.i_dmem.mwd_i[8] top.cpu_module_tb.i_dmem.mwd_i[7] top.cpu_module_tb.i_dmem.mwd_i[6] top.cpu_module_tb.i_dmem.mwd_i[5] top.cpu_module_tb.i_dmem.mwd_i[4] top.cpu_module_tb.i_dmem.mwd_i[3] top.cpu_module_tb.i_dmem.mwd_i[2] top.cpu_module_tb.i_dmem.mwd_i[1] top.cpu_module_tb.i_dmem.mwd_i[0]
-@29
-top.cpu_module_tb.i_dmem.moe_i
-@23
-#{top.cpu_module_tb.i_dmem.mrd_o[31:0]} top.cpu_module_tb.i_dmem.mrd_o[31] top.cpu_module_tb.i_dmem.mrd_o[30] top.cpu_module_tb.i_dmem.mrd_o[29] top.cpu_module_tb.i_dmem.mrd_o[28] top.cpu_module_tb.i_dmem.mrd_o[27] top.cpu_module_tb.i_dmem.mrd_o[26] top.cpu_module_tb.i_dmem.mrd_o[25] top.cpu_module_tb.i_dmem.mrd_o[24] top.cpu_module_tb.i_dmem.mrd_o[23] top.cpu_module_tb.i_dmem.mrd_o[22] top.cpu_module_tb.i_dmem.mrd_o[21] top.cpu_module_tb.i_dmem.mrd_o[20] top.cpu_module_tb.i_dmem.mrd_o[19] top.cpu_module_tb.i_dmem.mrd_o[18] top.cpu_module_tb.i_dmem.mrd_o[17] top.cpu_module_tb.i_dmem.mrd_o[16] top.cpu_module_tb.i_dmem.mrd_o[15] top.cpu_module_tb.i_dmem.mrd_o[14] top.cpu_module_tb.i_dmem.mrd_o[13] top.cpu_module_tb.i_dmem.mrd_o[12] top.cpu_module_tb.i_dmem.mrd_o[11] top.cpu_module_tb.i_dmem.mrd_o[10] top.cpu_module_tb.i_dmem.mrd_o[9] top.cpu_module_tb.i_dmem.mrd_o[8] top.cpu_module_tb.i_dmem.mrd_o[7] top.cpu_module_tb.i_dmem.mrd_o[6] top.cpu_module_tb.i_dmem.mrd_o[5] top.cpu_module_tb.i_dmem.mrd_o[4] top.cpu_module_tb.i_dmem.mrd_o[3] top.cpu_module_tb.i_dmem.mrd_o[2] top.cpu_module_tb.i_dmem.mrd_o[1] top.cpu_module_tb.i_dmem.mrd_o[0]
+#{top.cpu_module_tb.i_mem.ia_i[31:0]} top.cpu_module_tb.i_mem.ia_i[31] top.cpu_module_tb.i_mem.ia_i[30] top.cpu_module_tb.i_mem.ia_i[29] top.cpu_module_tb.i_mem.ia_i[28] top.cpu_module_tb.i_mem.ia_i[27] top.cpu_module_tb.i_mem.ia_i[26] top.cpu_module_tb.i_mem.ia_i[25] top.cpu_module_tb.i_mem.ia_i[24] top.cpu_module_tb.i_mem.ia_i[23] top.cpu_module_tb.i_mem.ia_i[22] top.cpu_module_tb.i_mem.ia_i[21] top.cpu_module_tb.i_mem.ia_i[20] top.cpu_module_tb.i_mem.ia_i[19] top.cpu_module_tb.i_mem.ia_i[18] top.cpu_module_tb.i_mem.ia_i[17] top.cpu_module_tb.i_mem.ia_i[16] top.cpu_module_tb.i_mem.ia_i[15] top.cpu_module_tb.i_mem.ia_i[14] top.cpu_module_tb.i_mem.ia_i[13] top.cpu_module_tb.i_mem.ia_i[12] top.cpu_module_tb.i_mem.ia_i[11] top.cpu_module_tb.i_mem.ia_i[10] top.cpu_module_tb.i_mem.ia_i[9] top.cpu_module_tb.i_mem.ia_i[8] top.cpu_module_tb.i_mem.ia_i[7] top.cpu_module_tb.i_mem.ia_i[6] top.cpu_module_tb.i_mem.ia_i[5] top.cpu_module_tb.i_mem.ia_i[4] top.cpu_module_tb.i_mem.ia_i[3] top.cpu_module_tb.i_mem.ia_i[2] top.cpu_module_tb.i_mem.ia_i[1] top.cpu_module_tb.i_mem.ia_i[0]
+#{top.cpu_module_tb.i_mem.id_o[31:0]} top.cpu_module_tb.i_mem.id_o[31] top.cpu_module_tb.i_mem.id_o[30] top.cpu_module_tb.i_mem.id_o[29] top.cpu_module_tb.i_mem.id_o[28] top.cpu_module_tb.i_mem.id_o[27] top.cpu_module_tb.i_mem.id_o[26] top.cpu_module_tb.i_mem.id_o[25] top.cpu_module_tb.i_mem.id_o[24] top.cpu_module_tb.i_mem.id_o[23] top.cpu_module_tb.i_mem.id_o[22] top.cpu_module_tb.i_mem.id_o[21] top.cpu_module_tb.i_mem.id_o[20] top.cpu_module_tb.i_mem.id_o[19] top.cpu_module_tb.i_mem.id_o[18] top.cpu_module_tb.i_mem.id_o[17] top.cpu_module_tb.i_mem.id_o[16] top.cpu_module_tb.i_mem.id_o[15] top.cpu_module_tb.i_mem.id_o[14] top.cpu_module_tb.i_mem.id_o[13] top.cpu_module_tb.i_mem.id_o[12] top.cpu_module_tb.i_mem.id_o[11] top.cpu_module_tb.i_mem.id_o[10] top.cpu_module_tb.i_mem.id_o[9] top.cpu_module_tb.i_mem.id_o[8] top.cpu_module_tb.i_mem.id_o[7] top.cpu_module_tb.i_mem.id_o[6] top.cpu_module_tb.i_mem.id_o[5] top.cpu_module_tb.i_mem.id_o[4] top.cpu_module_tb.i_mem.id_o[3] top.cpu_module_tb.i_mem.id_o[2] top.cpu_module_tb.i_mem.id_o[1] top.cpu_module_tb.i_mem.id_o[0]
 @1000201
+-Instruction Memory
+@800200
 -Data Memory
-@c00200
+@22
+#{top.cpu_module_tb.i_mem.ma_i[31:0]} top.cpu_module_tb.i_mem.ma_i[31] top.cpu_module_tb.i_mem.ma_i[30] top.cpu_module_tb.i_mem.ma_i[29] top.cpu_module_tb.i_mem.ma_i[28] top.cpu_module_tb.i_mem.ma_i[27] top.cpu_module_tb.i_mem.ma_i[26] top.cpu_module_tb.i_mem.ma_i[25] top.cpu_module_tb.i_mem.ma_i[24] top.cpu_module_tb.i_mem.ma_i[23] top.cpu_module_tb.i_mem.ma_i[22] top.cpu_module_tb.i_mem.ma_i[21] top.cpu_module_tb.i_mem.ma_i[20] top.cpu_module_tb.i_mem.ma_i[19] top.cpu_module_tb.i_mem.ma_i[18] top.cpu_module_tb.i_mem.ma_i[17] top.cpu_module_tb.i_mem.ma_i[16] top.cpu_module_tb.i_mem.ma_i[15] top.cpu_module_tb.i_mem.ma_i[14] top.cpu_module_tb.i_mem.ma_i[13] top.cpu_module_tb.i_mem.ma_i[12] top.cpu_module_tb.i_mem.ma_i[11] top.cpu_module_tb.i_mem.ma_i[10] top.cpu_module_tb.i_mem.ma_i[9] top.cpu_module_tb.i_mem.ma_i[8] top.cpu_module_tb.i_mem.ma_i[7] top.cpu_module_tb.i_mem.ma_i[6] top.cpu_module_tb.i_mem.ma_i[5] top.cpu_module_tb.i_mem.ma_i[4] top.cpu_module_tb.i_mem.ma_i[3] top.cpu_module_tb.i_mem.ma_i[2] top.cpu_module_tb.i_mem.ma_i[1] top.cpu_module_tb.i_mem.ma_i[0]
+@28
+top.cpu_module_tb.i_mem.wr_i
+@22
+#{top.cpu_module_tb.i_mem.mwd_i[31:0]} top.cpu_module_tb.i_mem.mwd_i[31] top.cpu_module_tb.i_mem.mwd_i[30] top.cpu_module_tb.i_mem.mwd_i[29] top.cpu_module_tb.i_mem.mwd_i[28] top.cpu_module_tb.i_mem.mwd_i[27] top.cpu_module_tb.i_mem.mwd_i[26] top.cpu_module_tb.i_mem.mwd_i[25] top.cpu_module_tb.i_mem.mwd_i[24] top.cpu_module_tb.i_mem.mwd_i[23] top.cpu_module_tb.i_mem.mwd_i[22] top.cpu_module_tb.i_mem.mwd_i[21] top.cpu_module_tb.i_mem.mwd_i[20] top.cpu_module_tb.i_mem.mwd_i[19] top.cpu_module_tb.i_mem.mwd_i[18] top.cpu_module_tb.i_mem.mwd_i[17] top.cpu_module_tb.i_mem.mwd_i[16] top.cpu_module_tb.i_mem.mwd_i[15] top.cpu_module_tb.i_mem.mwd_i[14] top.cpu_module_tb.i_mem.mwd_i[13] top.cpu_module_tb.i_mem.mwd_i[12] top.cpu_module_tb.i_mem.mwd_i[11] top.cpu_module_tb.i_mem.mwd_i[10] top.cpu_module_tb.i_mem.mwd_i[9] top.cpu_module_tb.i_mem.mwd_i[8] top.cpu_module_tb.i_mem.mwd_i[7] top.cpu_module_tb.i_mem.mwd_i[6] top.cpu_module_tb.i_mem.mwd_i[5] top.cpu_module_tb.i_mem.mwd_i[4] top.cpu_module_tb.i_mem.mwd_i[3] top.cpu_module_tb.i_mem.mwd_i[2] top.cpu_module_tb.i_mem.mwd_i[1] top.cpu_module_tb.i_mem.mwd_i[0]
+@28
+top.cpu_module_tb.i_mem.moe_i
+@22
+#{top.cpu_module_tb.i_mem.mrd_o[31:0]} top.cpu_module_tb.i_mem.mrd_o[31] top.cpu_module_tb.i_mem.mrd_o[30] top.cpu_module_tb.i_mem.mrd_o[29] top.cpu_module_tb.i_mem.mrd_o[28] top.cpu_module_tb.i_mem.mrd_o[27] top.cpu_module_tb.i_mem.mrd_o[26] top.cpu_module_tb.i_mem.mrd_o[25] top.cpu_module_tb.i_mem.mrd_o[24] top.cpu_module_tb.i_mem.mrd_o[23] top.cpu_module_tb.i_mem.mrd_o[22] top.cpu_module_tb.i_mem.mrd_o[21] top.cpu_module_tb.i_mem.mrd_o[20] top.cpu_module_tb.i_mem.mrd_o[19] top.cpu_module_tb.i_mem.mrd_o[18] top.cpu_module_tb.i_mem.mrd_o[17] top.cpu_module_tb.i_mem.mrd_o[16] top.cpu_module_tb.i_mem.mrd_o[15] top.cpu_module_tb.i_mem.mrd_o[14] top.cpu_module_tb.i_mem.mrd_o[13] top.cpu_module_tb.i_mem.mrd_o[12] top.cpu_module_tb.i_mem.mrd_o[11] top.cpu_module_tb.i_mem.mrd_o[10] top.cpu_module_tb.i_mem.mrd_o[9] top.cpu_module_tb.i_mem.mrd_o[8] top.cpu_module_tb.i_mem.mrd_o[7] top.cpu_module_tb.i_mem.mrd_o[6] top.cpu_module_tb.i_mem.mrd_o[5] top.cpu_module_tb.i_mem.mrd_o[4] top.cpu_module_tb.i_mem.mrd_o[3] top.cpu_module_tb.i_mem.mrd_o[2] top.cpu_module_tb.i_mem.mrd_o[1] top.cpu_module_tb.i_mem.mrd_o[0]
+@1000200
+-Data Memory
+@800200
 -Control Logic
 @22
 #{top.cpu_module_tb.i_dut.i_ctl.id_i[5:0]} top.cpu_module_tb.i_dut.i_ctl.id_i[5] top.cpu_module_tb.i_dut.i_ctl.id_i[4] top.cpu_module_tb.i_dut.i_ctl.id_i[3] top.cpu_module_tb.i_dut.i_ctl.id_i[2] top.cpu_module_tb.i_dut.i_ctl.id_i[1] top.cpu_module_tb.i_dut.i_ctl.id_i[0]
@@ -60,7 +60,7 @@ top.cpu_module_tb.i_dut.i_ctl.bsel_o
 top.cpu_module_tb.i_dut.i_ctl.werf_o
 top.cpu_module_tb.i_dut.i_ctl.moe_o
 top.cpu_module_tb.i_dut.i_ctl.wr_o
-@1401200
+@1000200
 -Control Logic
 @c00200
 -ALU

@@ -108,15 +108,8 @@ begin
       regs_o  => cpu_regs
    );
 
-   -- Instantiate Instruction Memory
-   i_imem : entity work.imem
-   port map (
-      ia_i => cpu_ia,
-      id_o => imem_id
-   );
-
-   -- Instantiate Data Memory
-   i_dmem : entity work.dmem
+   -- Instantiate Memory (Instruction and Data)
+   i_mem : entity work.mem
    port map (
       clk_i   => clk_cpu,
       clken_i => clk_cpu_en,
@@ -124,7 +117,9 @@ begin
       moe_i   => cpu_moe,
       mrd_o   => dmem_mrd,
       wr_i    => cpu_wr,
-      mwd_i   => cpu_mwd
+      mwd_i   => cpu_mwd,
+      ia_i    => cpu_ia,
+      id_o    => imem_id
    );
    
 

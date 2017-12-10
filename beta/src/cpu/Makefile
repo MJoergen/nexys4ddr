@@ -16,8 +16,7 @@ SRC += alu/mult.vhd
 TB_SRC  = cpu_module_tb.vhd
 
 # Not part of the CPU module
-TB_SRC += imem.vhd
-TB_SRC += dmem.vhd
+TB_SRC += mem.vhd
 
 wavesave = cpu_module_tb.gtkw
 

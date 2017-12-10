@@ -70,15 +70,8 @@ begin
       regs_o  => regs
    );
 
-   -- Instantiate Instruction Memory
-   i_imem : entity work.imem
-   port map (
-      ia_i => ia,
-      id_o => id
-   );
-
-   -- Instantiate Data Memory
-   i_dmem : entity work.dmem
+   -- Instantiate Memory (Data and instruction)
+   i_mem : entity work.mem
    port map (
       clk_i   => clk,
       clken_i => clken,
@@ -86,7 +79,9 @@ begin
       moe_i   => moe,
       mrd_o   => mrd,
       wr_i    => wr,
-      mwd_i   => mwd
+      mwd_i   => mwd,
+      ia_i    => ia,
+      id_o    => id
    );
 
 
@@ -111,7 +106,7 @@ begin
 
       variable i : integer := 0;
    begin
-      for i in 0 to res_vector'length loop
+      for i in 0 to res_vector'length-1 loop
          while wr /= '1' loop
             wait until clk = '0';
             wait until clk = '1';
