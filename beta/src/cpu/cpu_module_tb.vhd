@@ -10,6 +10,7 @@ architecture Structural of cpu_module_tb is
 
    signal clk   : std_logic;                      -- 10 MHz
    signal rstn  : std_logic;                      -- Active low
+   signal irq   : std_logic;
 
    signal ia    : std_logic_vector(  31 downto 0);  -- Instruction Address
    signal id    : std_logic_vector(  31 downto 0);  -- Instruction Data
@@ -21,6 +22,7 @@ architecture Structural of cpu_module_tb is
    signal regs  : std_logic_vector(1023 downto 0);
 
    signal test_running : boolean := true;
+   signal instructions : integer;
 
    -- Clock divider
    signal clken   : std_logic := '0';
@@ -60,6 +62,7 @@ begin
       clk_i   => clk,
       clken_i => clken,
       rstn_i  => rstn,
+      irq_i   => irq,
       ia_o    => ia,
       id_i    => id,
       ma_o    => ma,
@@ -87,41 +90,55 @@ begin
 
    -- This is the main test
    p_main : process
-      type t_entry_res is record
-         val : std_logic_vector(31 downto 0);
-         ia  : std_logic_vector(31 downto 0);
-      end record;
-
-      type t_res_vector is array (natural range <>) of t_entry_res;
-      constant res_vector : t_res_vector := (
-         (X"00000002", X"00000034"),
-         (X"0000011A", X"000000A0"),
-         (X"00011F12", X"00000110"),
-         (X"047C7B8C", X"000001BC"),
-         (X"C7B8C7A7", X"000001F4"),
-         (X"A17A11C7", X"00000274"),
-         (X"A1638E2C", X"000002EC"),
-         (X"871C71C7", X"000003A8"),
-         (X"47A2B9C0", X"000003C4"));
-
-      variable i : integer := 0;
    begin
-      for i in 0 to res_vector'length-1 loop
-         while wr /= '1' loop
-            wait until clk = '0';
-            wait until clk = '1';
-         end loop;
-         assert ma = X"000003FC";
-         assert ia = res_vector(i).ia;
-         assert mwd = res_vector(i).val;
+      if ia = X"0000000C" or ia = X"8000000C" then
+         report "Test FAILED";
+         test_running <= false;
+         wait;
+      end if;
 
-         wait until wr = '0';
-      end loop;
+      if ia = X"000003C4" or ia = X"800003C4" then
+         report "Test PASSED";
+         test_running <= false;
+         wait;
+      end if;
 
-      report "Test PASSED";
-      test_running <= false;
-      wait;
+      wait until clk = '0';
+      wait until clk = '1';
+
    end process p_main;
+
+   -- Count instructions
+   p_count : process (clk, rstn)
+   begin
+      if rising_edge(clk) then
+         if clken = '1' then
+            instructions <= instructions + 1;
+         end if;
+         if rstn = '0' then
+            instructions <= 0;
+         end if;
+      end if;
+   end process p_count;
+
+   -- Generate Interrupt
+   p_irq : process
+   begin
+      irq <= '0';
+      wait until rising_edge(clk);
+
+      wait until instructions = 10;
+      irq <= '1';
+      wait until rising_edge(clk);
+      irq <= '0';
+
+      wait until instructions = 273;
+      irq <= '1';
+      wait until rising_edge(clk);
+      irq <= '0';
+
+      wait;
+   end process p_irq;
 
 end Structural;
 

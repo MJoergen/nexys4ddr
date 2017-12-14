@@ -6,7 +6,7 @@ use std.textio.all;
 
 entity mem is
    generic (
-      G_INIT_FILE : string := "lab6basicblock.txt"
+      G_INIT_FILE : string := "lab6.txt"
    );
    port (
       clk_i    : in  std_logic;
