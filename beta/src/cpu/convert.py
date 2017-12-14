@@ -19,10 +19,7 @@ def filter_line(a, op=","):
     elif idx == 0:
         return ''
     else:
-        if op == ",":
-            a = a[:(idx-1)]
-        else:
-            a = a[:idx]
+        a = a[:idx]
     return a    
 
 #pads binary translation with addition 0's
