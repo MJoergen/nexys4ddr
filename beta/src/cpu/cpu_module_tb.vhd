@@ -23,6 +23,8 @@ architecture Structural of cpu_module_tb is
 
    signal test_running : boolean := true;
    signal instructions : integer;
+   signal branch : std_logic := '0';
+   signal ia_prev : std_logic_vector(31 downto 0) := (others => '0');
 
    -- Clock divider
    signal clken   : std_logic := '0';
@@ -121,20 +123,33 @@ begin
       end if;
    end process p_count;
 
+   p_branches : process (clk, rstn)
+   begin
+      if rising_edge(clk) then
+         branch <= '0';
+         if clken = '1' then
+            ia_prev <= ia;
+            if ia /= ia_prev+4 then
+               branch <= '1';
+            end if;
+         end if;
+      end if;
+   end process p_branches;
+
    -- Generate Interrupt
    p_irq : process
    begin
       irq <= '0';
       wait until rising_edge(clk);
 
-      wait until instructions = 10;
+      wait until instructions = 10-1;
       irq <= '1';
-      wait until rising_edge(clk);
+      wait until rising_edge(clk) and clken = '1';
       irq <= '0';
 
-      wait until instructions = 273;
+      wait until instructions = 273-1;
       irq <= '1';
-      wait until rising_edge(clk);
+      wait until rising_edge(clk) and clken = '1';
       irq <= '0';
 
       wait;
