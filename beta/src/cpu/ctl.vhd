@@ -7,6 +7,7 @@ entity ctl is
       rstn_i   : in  std_logic;
       id_i     : in  std_logic_vector(5 downto 0);
       z_i      : in  std_logic;
+      sm_i     : in  std_logic;  -- Supervisor mode
       irq_i    : in  std_logic;
       pcsel_o  : out std_logic_vector(2 downto 0);
       wasel_o  : out std_logic;
@@ -133,7 +134,7 @@ begin
       end if;
    end process p_res;
 
-   process (res, id_i, z_i, irq_i)
+   process (res, id_i, z_i, irq_i, sm_i)
    begin
       pcsel_o  <= res(17 downto 15);
       wasel_o  <= res(14);
@@ -154,7 +155,7 @@ begin
          pcsel_o <= "000";
       end if;
 
-      if irq_i = '1' then
+      if irq_i = '1' and sm_i = '0' then
          -- Set the new Instruction Address to G_XADDR
          pcsel_o <= "100";
 

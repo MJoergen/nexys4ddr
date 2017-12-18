@@ -152,6 +152,7 @@ begin
       rstn_i   => rstn_i,
       id_i     => id_opcode,
       z_i      => nora_z,
+      sm_i     => pc_ia(31),
       irq_i    => irq_i,
       pcsel_o  => ctl_pcsel,
       wasel_o  => ctl_wasel,

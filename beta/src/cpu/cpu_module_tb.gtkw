@@ -1,10 +1,10 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Thu Dec 14 06:08:05 2017
+[*] Mon Dec 18 06:53:00 2017
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/beta/src/cpu/cpu_module.ghw"
-[dumpfile_mtime] "Thu Dec 14 06:04:42 2017"
-[dumpfile_size] 145444
+[dumpfile_mtime] "Mon Dec 18 06:52:44 2017"
+[dumpfile_size] 313880
 [savefile] "/home/mike/git/nexys4ddr/beta/src/cpu/cpu_module_tb.gtkw"
 [timestart] 0
 [size] 1920 1010
@@ -23,6 +23,8 @@
 top.cpu_module_tb.i_dut.rstn_i
 top.cpu_module_tb.i_dut.clk_i
 top.cpu_module_tb.clken
+@29
+top.cpu_module_tb.branch
 @800200
 -Instruction Memory
 @22
@@ -30,7 +32,7 @@ top.cpu_module_tb.clken
 #{top.cpu_module_tb.i_mem.id_o[31:0]} top.cpu_module_tb.i_mem.id_o[31] top.cpu_module_tb.i_mem.id_o[30] top.cpu_module_tb.i_mem.id_o[29] top.cpu_module_tb.i_mem.id_o[28] top.cpu_module_tb.i_mem.id_o[27] top.cpu_module_tb.i_mem.id_o[26] top.cpu_module_tb.i_mem.id_o[25] top.cpu_module_tb.i_mem.id_o[24] top.cpu_module_tb.i_mem.id_o[23] top.cpu_module_tb.i_mem.id_o[22] top.cpu_module_tb.i_mem.id_o[21] top.cpu_module_tb.i_mem.id_o[20] top.cpu_module_tb.i_mem.id_o[19] top.cpu_module_tb.i_mem.id_o[18] top.cpu_module_tb.i_mem.id_o[17] top.cpu_module_tb.i_mem.id_o[16] top.cpu_module_tb.i_mem.id_o[15] top.cpu_module_tb.i_mem.id_o[14] top.cpu_module_tb.i_mem.id_o[13] top.cpu_module_tb.i_mem.id_o[12] top.cpu_module_tb.i_mem.id_o[11] top.cpu_module_tb.i_mem.id_o[10] top.cpu_module_tb.i_mem.id_o[9] top.cpu_module_tb.i_mem.id_o[8] top.cpu_module_tb.i_mem.id_o[7] top.cpu_module_tb.i_mem.id_o[6] top.cpu_module_tb.i_mem.id_o[5] top.cpu_module_tb.i_mem.id_o[4] top.cpu_module_tb.i_mem.id_o[3] top.cpu_module_tb.i_mem.id_o[2] top.cpu_module_tb.i_mem.id_o[1] top.cpu_module_tb.i_mem.id_o[0]
 @1000200
 -Instruction Memory
-@c00201
+@c00200
 -Data Memory
 @22
 #{top.cpu_module_tb.i_mem.ma_i[31:0]} top.cpu_module_tb.i_mem.ma_i[31] top.cpu_module_tb.i_mem.ma_i[30] top.cpu_module_tb.i_mem.ma_i[29] top.cpu_module_tb.i_mem.ma_i[28] top.cpu_module_tb.i_mem.ma_i[27] top.cpu_module_tb.i_mem.ma_i[26] top.cpu_module_tb.i_mem.ma_i[25] top.cpu_module_tb.i_mem.ma_i[24] top.cpu_module_tb.i_mem.ma_i[23] top.cpu_module_tb.i_mem.ma_i[22] top.cpu_module_tb.i_mem.ma_i[21] top.cpu_module_tb.i_mem.ma_i[20] top.cpu_module_tb.i_mem.ma_i[19] top.cpu_module_tb.i_mem.ma_i[18] top.cpu_module_tb.i_mem.ma_i[17] top.cpu_module_tb.i_mem.ma_i[16] top.cpu_module_tb.i_mem.ma_i[15] top.cpu_module_tb.i_mem.ma_i[14] top.cpu_module_tb.i_mem.ma_i[13] top.cpu_module_tb.i_mem.ma_i[12] top.cpu_module_tb.i_mem.ma_i[11] top.cpu_module_tb.i_mem.ma_i[10] top.cpu_module_tb.i_mem.ma_i[9] top.cpu_module_tb.i_mem.ma_i[8] top.cpu_module_tb.i_mem.ma_i[7] top.cpu_module_tb.i_mem.ma_i[6] top.cpu_module_tb.i_mem.ma_i[5] top.cpu_module_tb.i_mem.ma_i[4] top.cpu_module_tb.i_mem.ma_i[3] top.cpu_module_tb.i_mem.ma_i[2] top.cpu_module_tb.i_mem.ma_i[1] top.cpu_module_tb.i_mem.ma_i[0]
@@ -42,7 +44,7 @@ top.cpu_module_tb.i_mem.wr_i
 top.cpu_module_tb.i_mem.moe_i
 @22
 #{top.cpu_module_tb.i_mem.mrd_o[31:0]} top.cpu_module_tb.i_mem.mrd_o[31] top.cpu_module_tb.i_mem.mrd_o[30] top.cpu_module_tb.i_mem.mrd_o[29] top.cpu_module_tb.i_mem.mrd_o[28] top.cpu_module_tb.i_mem.mrd_o[27] top.cpu_module_tb.i_mem.mrd_o[26] top.cpu_module_tb.i_mem.mrd_o[25] top.cpu_module_tb.i_mem.mrd_o[24] top.cpu_module_tb.i_mem.mrd_o[23] top.cpu_module_tb.i_mem.mrd_o[22] top.cpu_module_tb.i_mem.mrd_o[21] top.cpu_module_tb.i_mem.mrd_o[20] top.cpu_module_tb.i_mem.mrd_o[19] top.cpu_module_tb.i_mem.mrd_o[18] top.cpu_module_tb.i_mem.mrd_o[17] top.cpu_module_tb.i_mem.mrd_o[16] top.cpu_module_tb.i_mem.mrd_o[15] top.cpu_module_tb.i_mem.mrd_o[14] top.cpu_module_tb.i_mem.mrd_o[13] top.cpu_module_tb.i_mem.mrd_o[12] top.cpu_module_tb.i_mem.mrd_o[11] top.cpu_module_tb.i_mem.mrd_o[10] top.cpu_module_tb.i_mem.mrd_o[9] top.cpu_module_tb.i_mem.mrd_o[8] top.cpu_module_tb.i_mem.mrd_o[7] top.cpu_module_tb.i_mem.mrd_o[6] top.cpu_module_tb.i_mem.mrd_o[5] top.cpu_module_tb.i_mem.mrd_o[4] top.cpu_module_tb.i_mem.mrd_o[3] top.cpu_module_tb.i_mem.mrd_o[2] top.cpu_module_tb.i_mem.mrd_o[1] top.cpu_module_tb.i_mem.mrd_o[0]
-@1401201
+@1401200
 -Data Memory
 @800200
 -Control Logic
