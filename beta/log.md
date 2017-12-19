@@ -43,3 +43,16 @@ and in synthesis). Next is to show the entire register file on the VGA port.
 Now the entire register file is displayed on the VGA port. Next is to do more testing,
 and then implement the rest of the CPU.
 I'm looking at how to modify the CLANG compiler to generate beta-assembly code.
+
+# 2017-12-19
+The Beta computer now passes the lab 6 checkoff. I still feel it needs some
+more testing regarding the supervisor mode and function calls and interrupts,
+in particular the LP abd XP registers. The next part of the project is to
+become familiar with programming in the Beta assembler language. I want to implement
+a small program to search for prime numbers. For this I need to implement the 
+division instruction. Since I don't have a clear idea of how to implement division,
+I'm approaching it in three steps. The first step is to implement it in C. Then I'll
+translate (by hand) the program into Beta assembly, and finally I'll implement it
+in VHDL. I also want to implement other instructions such as popcount (count the number
+of ones in a register), Msb find (find the index of the left-most one), bit reversal and 
+byte reversal, among others.
