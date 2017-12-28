@@ -19,7 +19,8 @@ entity beta is
       sw_i        : in  std_logic_vector(15 downto 0);
 
       -- Buttons
-      btnc_i      : in  std_logic                        -- Used for singlestepping
+      btnc_i      : in  std_logic;                       -- Used for singlestepping
+      btnl_i      : in  std_logic                        -- IRQ
    );
 end beta;
 
@@ -98,6 +99,7 @@ begin
       clk_i   => clk_cpu,
       clken_i => clk_cpu_en,
       rstn_i  => rstn_i,
+      irq_i   => btnl_i,
       ia_o    => cpu_ia,
       id_i    => imem_id,
       ma_o    => cpu_ma,
