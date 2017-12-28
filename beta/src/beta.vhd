@@ -2,6 +2,16 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
+-------------------------------------------------------
+-- This is the top-level entity for the Beta computer.
+-- Currently, the only I/O is the VGA monitor used to
+-- display the internal CPU registers etc.
+-- The buttons and switches are to control the clock 
+-- and singlestepping, as well as IRQ.
+-- Later, perhaps more I/O will be added, e.g. an
+-- Ethernet port.
+-------------------------------------------------------
+
 entity beta is
    port (
       -- Clock
@@ -66,7 +76,7 @@ begin
       clk_out1 => clk_cpu  --  10 MHz
    );
 
-   -- Clock enable, controller by button and by timer.
+   -- Clock enable, controlled by button and by timer.
    i_clken : entity work.clken
    port map (
       clk_cpu_i => clk_cpu,
@@ -81,15 +91,16 @@ begin
    i_vga_module : entity work.vga_module
    port map
    (
-      clk_i   => clk_vga,
-      hs_o    => vga_hs_o,
-      vs_o    => vga_vs_o,
-      red_o   => vga_red_o,
-      green_o => vga_green_o,
-      blue_o  => vga_blue_o,
-      regs_i  => cpu_regs,
-      ia_i    => cpu_ia,
-      count_i => clk_count
+      clk_i     => clk_vga,
+      hs_o      => vga_hs_o,
+      vs_o      => vga_vs_o,
+      red_o     => vga_red_o,
+      green_o   => vga_green_o,
+      blue_o    => vga_blue_o,
+      regs_i    => cpu_regs,        -- CPU registers
+      ia_i      => cpu_ia,          -- Instruction Address
+      count_i   => clk_count,       -- Clock counter
+      imem_id_i => imem_id          -- Instruction Data
    );
 
    -- Instantiate the CPU module

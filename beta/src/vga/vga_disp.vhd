@@ -23,6 +23,7 @@ entity vga_disp is
       regs_i      : in  std_logic_vector(1023 downto 0);
       ia_i        : in  std_logic_vector(  31 downto 0);
       count_i     : in  std_logic_vector(   7 downto 0);
+      imem_id_i   : in  std_logic_vector(  31 downto 0);
 
       vga_hsync_o : out std_logic;
       vga_vsync_o : out std_logic;
@@ -48,6 +49,7 @@ architecture Behavioral of vga_disp is
       regs      : std_logic_vector(1023 downto 0); -- valid in stage 1
       ia        : std_logic_vector(31 downto 0);   -- valid in stage 1
       count     : std_logic_vector(7 downto 0);    -- valid in stage 1
+      imem_id   : std_logic_vector(31 downto 0);   -- valid in stage 1
       value     : std_logic_vector(31 downto 0);   -- valid in stage 2
       hex       : std_logic_vector(3 downto 0);    -- valid in stage 3
       pix       : std_logic;                       -- valid in stage 4
@@ -63,6 +65,7 @@ architecture Behavioral of vga_disp is
       regs      => (others => '0'),
       ia        => (others => '0'),
       count     => (others => '0'),
+      imem_id   => (others => '0'),
       value     => (others => '0'),
       hex       => (others => '0'),
       pix       => '0',
@@ -77,14 +80,15 @@ architecture Behavioral of vga_disp is
 
 begin
 
-   stage0.hsync  <= vga_hsync_i;
-   stage0.vsync  <= vga_vsync_i;
-   stage0.hcount <= hcount_i;
-   stage0.vcount <= vcount_i;
-   stage0.blank  <= blank_i;
-   stage0.regs   <= regs_i;
-   stage0.ia     <= ia_i;
-   stage0.count  <= count_i;
+   stage0.hsync   <= vga_hsync_i;
+   stage0.vsync   <= vga_vsync_i;
+   stage0.hcount  <= hcount_i;
+   stage0.vcount  <= vcount_i;
+   stage0.blank   <= blank_i;
+   stage0.regs    <= regs_i;
+   stage0.ia      <= ia_i;
+   stage0.count   <= count_i;
+   stage0.imem_id <= imem_id_i;
 
    -- Stage 1 : Make sure "val" is only sampled when off screen.
    p_stage1 : process (vga_clk_i) is
@@ -98,9 +102,10 @@ begin
 
          -- Only sample this value when off screen.
          if stage0.vsync = '1' then
-            stage1.regs  <= stage0.regs;
-            stage1.ia    <= stage0.ia;
-            stage1.count <= stage0.count;
+            stage1.regs    <= stage0.regs;
+            stage1.ia      <= stage0.ia;
+            stage1.count   <= stage0.count;
+            stage1.imem_id <= stage0.imem_id;
          end if;
       end if;
    end process p_stage1;
@@ -123,7 +128,7 @@ begin
             if yoffset(4) = '0' then
                stage2.value <= stage1.ia;
             else
-               stage2.value <= stage1.count & X"000000";
+               stage2.value <= stage1.imem_id;
             end if;
          end if;
       end if;
@@ -174,6 +179,7 @@ begin
       variable xdiff  : integer range 0 to CHAR_WIDTH-1;
       variable ydiff  : integer range 0 to CHAR_HEIGHT-1;
       variable bitmap : vga_bitmap_t;
+      variable c      : integer range 0 to 2*CHAR_WIDTH*8-1;
 
       -- Modulus by 22 (= 2*CHAR_WIDTH)
       type offset_to_pix_t is array (0 to 255) of integer;
@@ -206,6 +212,15 @@ begin
          bitmap := vga_letters(conv_integer(stage3.hex));
 
          stage4.pix <= bitmap(ydiff*CHAR_WIDTH + xdiff);
+
+         if (stage3.hcount >= OFFSET_X + 512) and (stage3.hcount < OFFSET_X + 2*CHAR_WIDTH*8 + 512) then -- 3rd column
+            if (stage3.vcount >= OFFSET_Y + 2*CHAR_HEIGHT*2) and (stage3.vcount < OFFSET_Y + 2*CHAR_HEIGHT*3) then
+               stage4.pix <= '0';
+               if stage3.hcount >= OFFSET_X + 512 + ((conv_integer(stage3.count) * 2*CHAR_WIDTH*8) / 256) then
+                  stage4.pix <= '1';
+               end if;
+            end if;
+         end if;
       end if;
    end process p_stage4;
 
@@ -237,7 +252,7 @@ begin
                   enable := true;
                end if;
             elsif (hcount >= OFFSET_X + 512) and (hcount < OFFSET_X + 2*CHAR_WIDTH*8 + 512) then -- 3rd column
-               if (vcount >= OFFSET_Y) and (vcount < OFFSET_Y + 2*CHAR_HEIGHT*2) then
+               if (vcount >= OFFSET_Y) and (vcount < OFFSET_Y + 2*CHAR_HEIGHT*3) then
                   enable := true;
                end if;
             end if;

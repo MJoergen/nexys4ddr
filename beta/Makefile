@@ -29,10 +29,24 @@ SRC += src/cpu/alu/mult.vhd
 SRC += src/cpu/alu/alu_module.vhd
 SRC += src/cpu/cpu_module.vhd
 
+# Separate testbench for the CPU module
+CPU_TB_SRC   = src/cpu/cpu_module_tb.vhd
+CPU_TB       = cpu_module_tb
+CPU_WAVE     = src/cpu_module.ghw
+CPU_WAVESAVE = src/cpu_module_tb.gtkw
+
 # Memory
-SRC += src/cpu/mem.vhd
+SRC += src/mem/mem.vhd
 
 stoptime = --stop-time=5us
+
+# Separate target to simulate the CPU
+.PHONY: cpu
+cpu: $(unisim_lib) $(SRC) $(CPU_TB_SRC)
+	ghdl -i --work=work $(SRC) $(CPU_TB_SRC)
+	ghdl -m --ieee=synopsys -fexplicit $(CPU_TB)
+	ghdl -r $(CPU_TB) --assert-level=error --wave=$(CPU_WAVE) $(stoptime)
+	gtkwave $(CPU_WAVE) $(CPU_WAVESAVE)
 
 include ../xilinx.mk
 
