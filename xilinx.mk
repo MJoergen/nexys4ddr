@@ -39,7 +39,7 @@
 ###############################################################################
 
 # Variables used for synthesis
-VIVADO ?= /opt/Xilinx/Vivado/2017.3
+VIVADO ?= /opt/Xilinx/Vivado/2017.4
 OUTDIR ?= build
 XDC    ?= src/$(TOP).xdc
 TCL    ?= $(TOP).tcl
@@ -150,14 +150,7 @@ junk += usage_statistics_webtalk.html
 
 .PHONY: program
 program: $(OUTDIR)/$(TOP).bit
-	echo "open_hw" > $(TCL)
-	echo "connect_hw_server" >> $(TCL)
-	echo "open_hw_target" >> $(TCL)
-	echo "set_property PROGRAM.FILE {$(OUTDIR)/$(TOP).bit} [lindex [get_hw_devices] 0]" >> $(TCL)
-	echo "program_hw_devices [lindex [get_hw_devices] 0]" >> $(TCL)
-	echo "disconnect_hw_server" >> $(TCL)
-	echo "exit" >> $(TCL)
-	. $(ENV); vivado -mode tcl -source $(TCL)
+	djtgcfg prog -d Nexys4DDR -i 0 --file $(OUTDIR)/$(TOP).bit
 
 ###############################################################################
 
