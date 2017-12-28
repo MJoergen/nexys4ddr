@@ -100,7 +100,8 @@ begin
       regs_i    => cpu_regs,        -- CPU registers
       ia_i      => cpu_ia,          -- Instruction Address
       count_i   => clk_count,       -- Clock counter
-      imem_id_i => imem_id          -- Instruction Data
+      imem_id_i => imem_id,         -- Instruction Data
+      irq_i     => btnl_i
    );
 
    -- Instantiate the CPU module

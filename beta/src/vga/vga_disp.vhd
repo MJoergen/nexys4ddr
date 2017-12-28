@@ -24,6 +24,7 @@ entity vga_disp is
       ia_i        : in  std_logic_vector(  31 downto 0);
       count_i     : in  std_logic_vector(   7 downto 0);
       imem_id_i   : in  std_logic_vector(  31 downto 0);
+      irq_i       : in  std_logic;
 
       vga_hsync_o : out std_logic;
       vga_vsync_o : out std_logic;
@@ -50,6 +51,7 @@ architecture Behavioral of vga_disp is
       ia        : std_logic_vector(31 downto 0);   -- valid in stage 1
       count     : std_logic_vector(7 downto 0);    -- valid in stage 1
       imem_id   : std_logic_vector(31 downto 0);   -- valid in stage 1
+      irq       : std_logic;                       -- valid in stage 1
       value     : std_logic_vector(31 downto 0);   -- valid in stage 2
       hex       : std_logic_vector(3 downto 0);    -- valid in stage 3
       pix       : std_logic;                       -- valid in stage 4
@@ -66,6 +68,7 @@ architecture Behavioral of vga_disp is
       ia        => (others => '0'),
       count     => (others => '0'),
       imem_id   => (others => '0'),
+      irq       => '0',
       value     => (others => '0'),
       hex       => (others => '0'),
       pix       => '0',
@@ -89,6 +92,7 @@ begin
    stage0.ia      <= ia_i;
    stage0.count   <= count_i;
    stage0.imem_id <= imem_id_i;
+   stage0.irq     <= irq_i;
 
    -- Stage 1 : Make sure "val" is only sampled when off screen.
    p_stage1 : process (vga_clk_i) is
@@ -106,6 +110,7 @@ begin
             stage1.ia      <= stage0.ia;
             stage1.count   <= stage0.count;
             stage1.imem_id <= stage0.imem_id;
+            stage1.irq     <= stage0.irq;
          end if;
       end if;
    end process p_stage1;
@@ -258,7 +263,7 @@ begin
             end if;
 
             if enable then
-               if stage4.pix = '1' then
+               if (stage4.pix xor stage4.irq) = '1' then
                   stage5.vga_color <= vga_dark;
                end if;
             end if;

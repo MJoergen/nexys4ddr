@@ -22,7 +22,7 @@ end pc;
 
 architecture Structural of pc is
 
-   signal ia      : std_logic_vector(31 downto 0);
+   signal ia      : std_logic_vector(31 downto 0) := G_RESET;
    signal ia4     : std_logic_vector(31 downto 0);
    signal new_ia4 : std_logic_vector(31 downto 0);
    signal high_ia : std_logic_vector(31 downto 0);

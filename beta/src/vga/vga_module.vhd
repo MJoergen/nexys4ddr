@@ -18,7 +18,8 @@ entity vga_module is
       regs_i    : in  std_logic_vector(1023 downto 0);
       ia_i      : in  std_logic_vector(  31 downto 0);
       count_i   : in  std_logic_vector(   7 downto 0);
-      imem_id_i : in  std_logic_vector(  31 downto 0)
+      imem_id_i : in  std_logic_vector(  31 downto 0);
+      irq_i     : in  std_logic
    );
 end vga_module;
 
@@ -61,6 +62,7 @@ begin
       ia_i        => ia_i,
       count_i     => count_i,
       imem_id_i   => imem_id_i,
+      irq_i       => irq_i,
       vga_red_o   => red_o,
       vga_green_o => green_o,
       vga_blue_o  => blue_o,
