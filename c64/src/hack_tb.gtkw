@@ -1,42 +1,92 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Mon Jan  1 08:52:25 2018
+[*] Mon Jan  1 16:20:50 2018
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/c64/hack.ghw"
-[dumpfile_mtime] "Mon Jan  1 08:51:02 2018"
-[dumpfile_size] 1570092
+[dumpfile_mtime] "Mon Jan  1 16:04:28 2018"
+[dumpfile_size] 140782221
 [savefile] "/home/mike/git/nexys4ddr/c64/src/hack_tb.gtkw"
-[timestart] 3821000000
-[size] 1920 1010
+[timestart] 193495000000
+[size] 1920 1136
 [pos] -1 -1
-*-27.371244 1040000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-27.782053 194239038425 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.hack_tb.
 [treeopen] top.hack_tb.inst_hack.
 [treeopen] top.hack_tb.inst_hack.inst_vga_module.
-[treeopen] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.
+[treeopen] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.
+[treeopen] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.
 [sst_width] 255
 [signals_width] 256
 [sst_expanded] 1
 [sst_vpaned_height] 278
 @28
-top.hack_tb.rst
 top.hack_tb.clk
 @420
 top.hack_tb.test_running
-@800200
+@c00200
 -VGA
-@29
+@28
 top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.rst_i
 top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.clk_i
-@25
+@24
 #{top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[10:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[10] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[9] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[8] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[7] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[6] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[5] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[4] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[3] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[0]
 #{top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[10:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[10] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[9] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[8] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[7] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[6] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[5] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[4] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[3] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[0]
-@29
+@28
 top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hs_o
 top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vs_o
 top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.blank_o
-@1000200
+@1401200
 -VGA
+@28
+top.hack_tb.inst_hack.inst_vga_module.vs_o
+top.hack_tb.inst_hack.inst_vga_module.hs_o
+@22
+#{top.hack_tb.inst_hack.inst_vga_module.col_o[11:0]} top.hack_tb.inst_hack.inst_vga_module.col_o[11] top.hack_tb.inst_hack.inst_vga_module.col_o[10] top.hack_tb.inst_hack.inst_vga_module.col_o[9] top.hack_tb.inst_hack.inst_vga_module.col_o[8] top.hack_tb.inst_hack.inst_vga_module.col_o[7] top.hack_tb.inst_hack.inst_vga_module.col_o[6] top.hack_tb.inst_hack.inst_vga_module.col_o[5] top.hack_tb.inst_hack.inst_vga_module.col_o[4] top.hack_tb.inst_hack.inst_vga_module.col_o[3] top.hack_tb.inst_hack.inst_vga_module.col_o[2] top.hack_tb.inst_hack.inst_vga_module.col_o[1] top.hack_tb.inst_hack.inst_vga_module.col_o[0]
+@800200
+-Stage 3
+@22
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.char[7:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.char[7] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.char[6] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.char[5] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.char[4] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.char[3] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.char[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.char[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.char[0]
+@28
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.pix_y[2:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.pix_y[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.pix_y[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.pix_y[0]
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.pix_x[2:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.pix_x[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.pix_x[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.pix_x[0]
+@22
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.char_y[4:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.char_y[4] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.char_y[3] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.char_y[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.char_y[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.char_y[0]
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.char_x[5:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.char_x[5] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.char_x[4] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.char_x[3] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.char_x[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.char_x[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.char_x[0]
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.vcount[10:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.vcount[10] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.vcount[9] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.vcount[8] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.vcount[7] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.vcount[6] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.vcount[5] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.vcount[4] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.vcount[3] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.vcount[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.vcount[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.vcount[0]
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.hcount[10:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.hcount[10] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.hcount[9] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.hcount[8] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.hcount[7] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.hcount[6] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.hcount[5] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.hcount[4] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.hcount[3] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.hcount[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.hcount[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.hcount[0]
+@1000200
+-Stage 3
+@800200
+-Stage 4
+@22
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.row[7:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.row[7] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.row[6] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.row[5] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.row[4] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.row[3] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.row[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.row[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.row[0]
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.char[7:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.char[7] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.char[6] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.char[5] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.char[4] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.char[3] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.char[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.char[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.char[0]
+@28
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.pix_y[2:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.pix_y[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.pix_y[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.pix_y[0]
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.pix_x[2:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.pix_x[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.pix_x[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.pix_x[0]
+@22
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.char_y[4:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.char_y[4] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.char_y[3] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.char_y[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.char_y[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.char_y[0]
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.char_x[5:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.char_x[5] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.char_x[4] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.char_x[3] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.char_x[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.char_x[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.char_x[0]
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.vcount[10:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.vcount[10] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.vcount[9] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.vcount[8] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.vcount[7] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.vcount[6] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.vcount[5] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.vcount[4] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.vcount[3] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.vcount[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.vcount[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.vcount[0]
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.hcount[10:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.hcount[10] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.hcount[9] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.hcount[8] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.hcount[7] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.hcount[6] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.hcount[5] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.hcount[4] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.hcount[3] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.hcount[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.hcount[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage4.hcount[0]
+@1000200
+-Stage 4
+@800201
+-Stage 5
+@23
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.col[11:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.col[11] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.col[10] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.col[9] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.col[8] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.col[7] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.col[6] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.col[5] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.col[4] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.col[3] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.col[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.col[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.col[0]
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.row[7:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.row[7] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.row[6] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.row[5] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.row[4] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.row[3] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.row[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.row[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.row[0]
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.char[7:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.char[7] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.char[6] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.char[5] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.char[4] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.char[3] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.char[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.char[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.char[0]
+@29
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.pix_y[2:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.pix_y[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.pix_y[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.pix_y[0]
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.pix_x[2:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.pix_x[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.pix_x[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.pix_x[0]
+@23
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.char_y[4:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.char_y[4] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.char_y[3] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.char_y[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.char_y[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.char_y[0]
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.char_x[5:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.char_x[5] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.char_x[4] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.char_x[3] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.char_x[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.char_x[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.char_x[0]
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.vcount[10:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.vcount[10] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.vcount[9] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.vcount[8] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.vcount[7] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.vcount[6] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.vcount[5] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.vcount[4] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.vcount[3] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.vcount[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.vcount[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.vcount[0]
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.hcount[10:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.hcount[10] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.hcount[9] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.hcount[8] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.hcount[7] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.hcount[6] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.hcount[5] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.hcount[4] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.hcount[3] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.hcount[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.hcount[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage5.hcount[0]
+@1000201
+-Stage 5
 [pattern_trace] 1
 [pattern_trace] 0
