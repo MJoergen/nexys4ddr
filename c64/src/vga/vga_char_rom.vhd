@@ -48,6 +48,7 @@ architecture Structural of vga_char_rom is
 
 begin
 
+   -- This has to be registered in order to make it into a Block RAM.
    process (clk_i)
    begin
       if rising_edge(clk_i) then
