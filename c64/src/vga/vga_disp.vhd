@@ -31,7 +31,7 @@ end vga_disp;
 
 architecture Behavioral of vga_disp is
 
-   -- This employs a six stage pipeline in order to improve timing.
+   -- This employs a five stage pipeline in order to improve timing.
    type t_stage is record
       hsync     : std_logic;                       -- valid in all stages
       vsync     : std_logic;                       -- valid in all stages
@@ -79,7 +79,8 @@ begin
    stage0.vcount  <= vcount_i;
    stage0.blank   <= blank_i;
 
-   -- Stage 1 : Make sure "val" is only sampled when off screen.
+   -- Stage 1 : Make sure signals from other clock domains are only sampled
+   -- when off screen.
    p_stage1 : process (clk_i) is
    begin
       if rising_edge(clk_i) then
@@ -91,7 +92,7 @@ begin
       end if;
    end process p_stage1;
 
-   -- Stage 2 :
+   -- Stage 2 : Calculate character and pixel positions.
    p_stage2 : process (clk_i) is
    begin
       if rising_edge(clk_i) then
@@ -103,7 +104,7 @@ begin
       end if;
    end process p_stage2;
 
-   -- Stage 3 :
+   -- Stage 3 : Determine which character to display.
    p_stage3 : process (clk_i) is
       variable char_x : integer;
       variable char_y : integer;
@@ -118,6 +119,7 @@ begin
       end if;
    end process p_stage3;
 
+   -- Stage 4 : Read the character bitmap from the ROM.
    i_char_rom : entity work.vga_char_rom
    generic map (
                   G_CHAR_FILE => G_CHAR_FILE 
@@ -134,17 +136,16 @@ begin
    begin
       if rising_edge(clk_i) then
          stage4 <= stage3;
-         stage4.row <= stage4_row;
       end if;
    end process p_stage4;
 
-   -- Stage 5 :
+   -- Stage 5 : Determine the color at the current pixel.
    p_stage5 : process (clk_i) is
       variable pix : std_logic;
    begin
       if rising_edge(clk_i) then
          stage5 <= stage4;
-         pix := stage4.row(7-conv_integer(stage4.pix_x));
+         pix := stage4_row(7-conv_integer(stage4.pix_x));
          if pix = '1' then
             stage5.col <= X"444";
          else
