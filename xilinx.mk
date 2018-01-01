@@ -72,7 +72,7 @@ junk += $(wave)
 .PHONY: elaborate
 elaborate: $(testbench)
 
-$(testbench): $(unisim_lib) $(SRC) $(TB_SRC)
+$(testbench): $(unisim_lib) $(SRC) $(TB_SRC) Makefile
 	ghdl -i --work=work $(SRC) $(TB_SRC)
 	ghdl -m --ieee=synopsys -fexplicit $(testbench)
 junk += $(testbench)
