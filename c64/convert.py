@@ -33,7 +33,7 @@ def translate(a):
     for c in a:
         v = ord(c)
         print hex(v)
-        b = to_b(v)
+        b = to_b(v, 8)
         f.append(b)
     return f
 
