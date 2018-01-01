@@ -1,0 +1,42 @@
+[*]
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Mon Jan  1 08:52:25 2018
+[*]
+[dumpfile] "/home/mike/git/nexys4ddr/c64/hack.ghw"
+[dumpfile_mtime] "Mon Jan  1 08:51:02 2018"
+[dumpfile_size] 1570092
+[savefile] "/home/mike/git/nexys4ddr/c64/src/hack_tb.gtkw"
+[timestart] 3821000000
+[size] 1920 1010
+[pos] -1 -1
+*-27.371244 1040000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.hack_tb.
+[treeopen] top.hack_tb.inst_hack.
+[treeopen] top.hack_tb.inst_hack.inst_vga_module.
+[treeopen] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.
+[sst_width] 255
+[signals_width] 256
+[sst_expanded] 1
+[sst_vpaned_height] 278
+@28
+top.hack_tb.rst
+top.hack_tb.clk
+@420
+top.hack_tb.test_running
+@800200
+-VGA
+@29
+top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.rst_i
+top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.clk_i
+@25
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[10:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[10] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[9] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[8] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[7] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[6] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[5] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[4] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[3] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hcount_o[0]
+#{top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[10:0]} top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[10] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[9] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[8] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[7] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[6] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[5] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[4] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[3] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[2] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[1] top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vcount_o[0]
+@29
+top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.hs_o
+top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.vs_o
+top.hack_tb.inst_hack.inst_vga_module.inst_vga_ctrl.blank_o
+@1000200
+-VGA
+[pattern_trace] 1
+[pattern_trace] 0
