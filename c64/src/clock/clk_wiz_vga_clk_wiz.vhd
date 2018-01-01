@@ -55,7 +55,7 @@
 --  Output     Output      Phase    Duty Cycle   Pk-to-Pk     Phase
 --   Clock     Freq (MHz)  (degrees)    (%)     Jitter (ps)  Error (ps)
 ------------------------------------------------------------------------------
--- CLK_OUT1___25.000______0.000______50.0______127.691_____97.646
+-- CLK_OUT1___25.173______0.000______50.0______127.691_____97.646
 --
 ------------------------------------------------------------------------------
 -- Input Clock   Freq (MHz)    Input Jitter (UI)
@@ -128,11 +128,11 @@ clk_in1_clk_wiz_0 <= clk_in1;
     CLKOUT4_CASCADE      => FALSE,
     COMPENSATION         => "ZHOLD",
     STARTUP_WAIT         => FALSE,
-    DIVCLK_DIVIDE        => 1,
-    CLKFBOUT_MULT_F      => 9.125,
+    DIVCLK_DIVIDE        => 4,
+    CLKFBOUT_MULT_F      => 36.375,
     CLKFBOUT_PHASE       => 0.000,
     CLKFBOUT_USE_FINE_PS => FALSE,
-    CLKOUT0_DIVIDE_F     => 36.500,
+    CLKOUT0_DIVIDE_F     => 36.125,
     CLKOUT0_PHASE        => 0.000,
     CLKOUT0_DUTY_CYCLE   => 0.500,
     CLKOUT0_USE_FINE_PS  => FALSE,
