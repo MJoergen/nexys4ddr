@@ -144,11 +144,11 @@ begin
    begin
       if rising_edge(clk_i) then
          stage5 <= stage4;
-         pix := stage4.row(conv_integer(stage4.pix_x));
+         pix := stage4.row(7-conv_integer(stage4.pix_x));
          if pix = '1' then
-            stage5.col <= X"CCC";
-         else
             stage5.col <= X"444";
+         else
+            stage5.col <= X"CCC";
          end if;
 
          if stage4.blank = '1' then
