@@ -6,13 +6,14 @@
 --               but has been greatly simplified and reduced in
 --               functionality.
 --               Only 4 sprites are support to keep resource 
---               requirenets at a minimum.
+--               requirements at a minimum.
 --
 -- Memory map :
 --              0x0000 - 0x003F : Sprite 0 bitmap area
 --              0x0040 - 0x007F : Sprite 1 bitmap area
 --              0x0080 - 0x00BF : Sprite 2 bitmap area
 --              0x00C0 - 0x00FF : Sprite 3 bitmap area
+--
 --              0x0100          : Sprite 0 X position (bits 7 - 0)
 --              0x0101          : bit 0 : Sprite 0 X position bit 8.
 --              0x0102          : Sprite 0 Y position
@@ -49,22 +50,27 @@ use ieee.numeric_std.all;
 
 entity vga_sprite is
    port (
-      clk_i       : in  std_logic;
-      rst_i       : in  std_logic;
+      vga_clk_i   : in  std_logic;
+      vga_rst_i   : in  std_logic;
 
+      cpu_clk_i   : in  std_logic;
+      cpu_rst_i   : in  std_logic;
+
+      -- Inputs @ vga_clk_i
       hcount_i    : in  std_logic_vector(10 downto 0);
       vcount_i    : in  std_logic_vector(10 downto 0);
       hs_i        : in  std_logic;
       vs_i        : in  std_logic;
       col_i       : in  std_logic_vector(11 downto 0);
 
+      -- Outputs @ vga_clk_i
       hcount_o    : out std_logic_vector(10 downto 0);
       vcount_o    : out std_logic_vector(10 downto 0);
       hs_o        : out std_logic;
       vs_o        : out std_logic;
       col_o       : out std_logic_vector(11 downto 0);
 
-      -- Configuration
+      -- Configuration @ cpu_clk_i
       addr_i      : in  std_logic_vector(8 downto 0);
       cs_i        : in  std_logic;
       data_o      : out std_logic_vector(7 downto 0);
@@ -134,19 +140,19 @@ begin
    -- Stage 1 : Calculate index into bitmap
    ----------------------------------------
 
-   p_stage1 : process (clk_i)
+   p_stage1 : process (vga_clk_i)
       variable v_pix_x : std_logic_vector(10 downto 0);
       variable v_pix_y : std_logic_vector(10 downto 0);
-      variable v_index : std_logic_vector(10 downto 0);
+      variable v_index : std_logic_vector(21 downto 0);
       constant c24 : std_logic_vector(10 downto 0) := std_logic_vector(to_unsigned(24, 11));
    begin
-      if rising_edge(clk_i) then
+      if rising_edge(vga_clk_i) then
          stage1 <= stage0;
 
          for i in 0 to 3 loop
             stage1.show(i) <= '0';
-            v_pix_x := stage0.hcount - sprites(i).posx;
-            v_pix_y := stage0.hcount - sprites(i).posy;
+            v_pix_x := stage0.hcount - ("00" & sprites(i).posx);
+            v_pix_y := stage0.vcount - ("000" & sprites(i).posy);
             if v_pix_x < 24 and v_pix_y < 21 and sprites(i).enable = '1' then
                stage1.show(i) <= '1';
 
@@ -162,10 +168,10 @@ begin
    -- Stage 2
    ----------------------------------------
 
-   p_stage2 : process (clk_i)
+   p_stage2 : process (vga_clk_i)
       variable v_index : integer range 0 to 24*21-1;
    begin
-      if rising_edge(clk_i) then
+      if rising_edge(vga_clk_i) then
          stage2 <= stage1;
 
          for i in 0 to 3 loop
@@ -180,14 +186,14 @@ begin
    -- Stage 3
    ----------------------------------------
 
-   p_stage3 : process (clk_i)
+   p_stage3 : process (vga_clk_i)
       variable v_color : std_logic_vector(7 downto 0) := (others => '0');
       function col8to12(arg : std_logic_vector(7 downto 0)) return std_logic_vector is
       begin
          return arg(7 downto 5) & "0" & arg(4 downto 2) & "0" & arg(1 downto 0) & "00";
       end function col8to12;
    begin
-      if rising_edge(clk_i) then
+      if rising_edge(vga_clk_i) then
          stage3 <= stage2;
 
          -- Sprites behind
@@ -223,11 +229,11 @@ begin
    -- Configuration write
    ----------------------------------------
 
-   p_sprites : process (clk_i)
+   p_sprites : process (cpu_clk_i)
       variable sprite_num : integer range 0 to 3;
-      variable offset : integer range 0 to 7;
+      variable offset : integer range 0 to 63;
    begin
-      if rising_edge(clk_i) then
+      if rising_edge(cpu_clk_i) then
          if cs_i = '1' and wren_i = '1' then
             if addr_i(8) = '0' then
                sprite_num := conv_integer(addr_i(7 downto 6));
@@ -249,7 +255,7 @@ begin
             end if;
          end if;
 
-         if rst_i = '1' then
+         if cpu_rst_i = '1' then
             for i in 0 to 3 loop
                sprites(i).posx   <= (others => '0');
                sprites(i).posy   <= (others => '0');
@@ -267,9 +273,9 @@ begin
    -- Configuration read
    ----------------------------------------
 
-   process (addr_i, cs_i, sprites)
+   process (addr_i, cs_i, wren_i, sprites)
       variable sprite_num : integer range 0 to 3;
-      variable offset : integer range 0 to 7;
+      variable offset : integer range 0 to 63;
    begin
       data_o <= (others => 'Z');
       if cs_i = '1' and wren_i = '0' then

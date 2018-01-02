@@ -15,6 +15,9 @@ SRC += src/vga/vga_disp.vhd
 SRC += src/vga/vga_sprite.vhd
 SRC += src/vga/vga_module.vhd
 
+# Configuration
+SRC += src/config.vhd
+
 stoptime = --stop-time=50us
 
 include ../xilinx.mk

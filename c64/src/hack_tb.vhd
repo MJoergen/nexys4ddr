@@ -44,7 +44,7 @@ begin
     end process clk_gen;
 
     -- Generate reset (asserted low)
-    rstn <= '0', '1' after 20 ns;
+    rstn <= '0', '1' after 100 ns;
 
 
     -- Generate input switches

@@ -8,15 +8,17 @@ entity vga_module is
    );
    port (
       -- Clock
-      clk_i : in  std_logic;
-      rst_i : in  std_logic;
+      vga_clk_i : in  std_logic;
+      vga_rst_i : in  std_logic;
+      cpu_clk_i : in  std_logic;
+      cpu_rst_i : in  std_logic;
 
-      -- VGA port
+      -- VGA port @ vga_clk_i
       hs_o  : out std_logic; 
       vs_o  : out std_logic;
       col_o : out std_logic_vector(11 downto 0);
 
-      -- Configuration
+      -- Configuration @ cpu_clk_i
       addr_i : in  std_logic_vector(8 downto 0);
       cs_i   : in  std_logic;
       data_o : out std_logic_vector(7 downto 0);
@@ -53,8 +55,8 @@ begin
    -- This generates the VGA timing signals
    inst_vga_ctrl : entity work.vga_ctrl
    port map (
-      clk_i    => clk_i,
-      rst_i    => rst_i,
+      clk_i    => vga_clk_i,
+      rst_i    => vga_rst_i,
       hs_o     => ctrl_hs,
       vs_o     => ctrl_vs,
       hcount_o => ctrl_hcount,
@@ -68,7 +70,7 @@ begin
                   G_CHAR_FILE => G_CHAR_FILE 
                )
    port map (
-      clk_i    => clk_i,
+      clk_i    => vga_clk_i,
       hcount_i => ctrl_hcount,
       vcount_i => ctrl_vcount,
       hsync_i  => ctrl_hs,
@@ -83,26 +85,28 @@ begin
 
    inst_vga_sprite : entity work.vga_sprite
    port map (
-      clk_i    => clk_i,
-      rst_i    => rst_i,
+      vga_clk_i => vga_clk_i,
+      vga_rst_i => vga_rst_i,
+      cpu_clk_i => cpu_clk_i,
+      cpu_rst_i => cpu_rst_i,
 
-      hcount_i => disp_hcount,
-      vcount_i => disp_vcount,
-      hs_i     => disp_hs,
-      vs_i     => disp_vs,
-      col_i    => disp_col,
+      hcount_i  => disp_hcount,
+      vcount_i  => disp_vcount,
+      hs_i      => disp_hs,
+      vs_i      => disp_vs,
+      col_i     => disp_col,
 
-      hcount_o => sprite_hcount,
-      vcount_o => sprite_vcount,
-      hs_o     => sprite_hs,
-      vs_o     => sprite_vs,
-      col_o    => sprite_col,
+      hcount_o  => sprite_hcount,
+      vcount_o  => sprite_vcount,
+      hs_o      => sprite_hs,
+      vs_o      => sprite_vs,
+      col_o     => sprite_col,
 
-      addr_i   => addr_i,
-      cs_i     => cs_i,
-      data_o   => data_o,
-      wren_i   => wren_i,
-      data_i   => data_i
+      addr_i    => addr_i,
+      cs_i      => cs_i,
+      data_o    => data_o,
+      wren_i    => wren_i,
+      data_i    => data_i
    );
 
    hs_o  <= sprite_hs;
