@@ -141,18 +141,18 @@ begin
    ----------------------------------------
 
    p_stage1 : process (vga_clk_i)
-      variable v_pix_x : std_logic_vector(10 downto 0);
-      variable v_pix_y : std_logic_vector(10 downto 0);
-      variable v_index : std_logic_vector(21 downto 0);
-      constant c24 : std_logic_vector(10 downto 0) := std_logic_vector(to_unsigned(24, 11));
+      variable v_pix_x : std_logic_vector( 9 downto 0);
+      variable v_pix_y : std_logic_vector( 9 downto 0);
+      variable v_index : std_logic_vector(19 downto 0);
+      constant c24 : std_logic_vector(9 downto 0) := std_logic_vector(to_unsigned(24, 10));
    begin
       if rising_edge(vga_clk_i) then
          stage1 <= stage0;
 
          for i in 0 to 3 loop
             stage1.show(i) <= '0';
-            v_pix_x := stage0.hcount - ("00" & sprites(i).posx);
-            v_pix_y := stage0.vcount - ("000" & sprites(i).posy);
+            v_pix_x := stage0.hcount(9 downto 0) - ("0" & sprites(i).posx);
+            v_pix_y := stage0.vcount(9 downto 0) - ("00" & sprites(i).posy);
             if v_pix_x < 24 and v_pix_y < 21 and sprites(i).enable = '1' then
                stage1.show(i) <= '1';
 
