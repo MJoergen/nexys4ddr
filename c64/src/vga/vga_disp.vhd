@@ -17,12 +17,14 @@ entity vga_disp is
    port (
       clk_i    : in  std_logic;
 
-      hsync_i  : in  std_logic;
-      vsync_i  : in  std_logic;
       hcount_i : in  std_logic_vector(10 downto 0);
       vcount_i : in  std_logic_vector(10 downto 0);
+      hsync_i  : in  std_logic;
+      vsync_i  : in  std_logic;
       blank_i  : in  std_logic;
 
+      hcount_o : out std_logic_vector(10 downto 0);
+      vcount_o : out std_logic_vector(10 downto 0);
       hsync_o  : out std_logic;
       vsync_o  : out std_logic;
       col_o    : out std_logic_vector(11 downto 0)
@@ -158,9 +160,11 @@ begin
       end if;
    end process p_stage5;
 
-   col_o   <= stage5.col;
-   hsync_o <= stage5.hsync;
-   vsync_o <= stage5.vsync;
+   hcount_o <= stage5.hcount;
+   vcount_o <= stage5.vcount;
+   hsync_o  <= stage5.hsync;
+   vsync_o  <= stage5.vsync;
+   col_o    <= stage5.col;
 
 end Behavioral;
 

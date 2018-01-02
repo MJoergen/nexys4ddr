@@ -12,6 +12,7 @@ SRC += src/clock/clk_wiz_vga_clk_wiz.vhd
 SRC += src/vga/vga_ctrl.vhd
 SRC += src/vga/vga_char_rom.vhd
 SRC += src/vga/vga_disp.vhd
+SRC += src/vga/vga_sprite.vhd
 SRC += src/vga/vga_module.vhd
 
 stoptime = --stop-time=50us
