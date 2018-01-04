@@ -6,7 +6,7 @@ use ieee.numeric_std.all;
 entity hack is
 
    generic (
-      G_SIMULATION : string;
+      G_SIMULATION : string := "";
       G_CHAR_FILE : string := "charset1.bin.txt"
    );
    port (
