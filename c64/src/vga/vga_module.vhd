@@ -49,6 +49,7 @@ architecture Structural of vga_module is
    signal sprite_hcount : std_logic_vector(10 downto 0);
    signal sprite_vcount : std_logic_vector(10 downto 0);
    signal sprite_col    : std_logic_vector(11 downto 0);
+   signal sprite_data   : std_logic_vector(7 downto 0);
 
 begin
 
@@ -57,6 +58,7 @@ begin
    port map (
       clk_i    => vga_clk_i,
       rst_i    => vga_rst_i,
+
       hs_o     => ctrl_hs,
       vs_o     => ctrl_vs,
       hcount_o => ctrl_hcount,
@@ -71,11 +73,13 @@ begin
                )
    port map (
       clk_i    => vga_clk_i,
+
       hcount_i => ctrl_hcount,
       vcount_i => ctrl_vcount,
       hsync_i  => ctrl_hs,
       vsync_i  => ctrl_vs,
       blank_i  => ctrl_blank,
+
       hcount_o => disp_hcount,
       vcount_o => disp_vcount,
       hsync_o  => disp_hs,
@@ -104,7 +108,7 @@ begin
 
       addr_i    => addr_i,
       cs_i      => cs_i,
-      data_o    => data_o,
+      data_o    => sprite_data,
       wren_i    => wren_i,
       data_i    => data_i
    );
@@ -112,6 +116,8 @@ begin
    hs_o  <= sprite_hs;
    vs_o  <= sprite_vs;
    col_o <= sprite_col;
+
+   data_o <= sprite_data;
 
 end Structural;
 
