@@ -81,6 +81,15 @@ end vga_sprite;
 
 architecture Behavioral of vga_sprite is
 
+   function reverse(arg : std_logic_vector) return std_logic_vector is
+      variable res : std_logic_vector(arg'length-1 downto 0);
+   begin
+      for i in 0 to arg'length-1 loop
+         res(i) := arg(arg'length-1-i);
+      end loop;
+      return res;
+   end function reverse;
+
    -- This contains configuration data for each sprite
    type t_sprite is record
       bitmap      : std_logic_vector(21*24-1 downto 0);
@@ -238,7 +247,7 @@ begin
             if addr_i(8) = '0' then
                sprite_num := conv_integer(addr_i(7 downto 6));
                offset := conv_integer(addr_i(5 downto 0));
-               sprites(sprite_num).bitmap(offset*8+7 downto offset*8) <= data_i;
+               sprites(sprite_num).bitmap(offset*8+7 downto offset*8) <= reverse(data_i);
             else -- addr_i(8) = '1' 
                sprite_num := conv_integer(addr_i(4 downto 3));
                offset := conv_integer(addr_i(2 downto 0));
@@ -283,7 +292,7 @@ begin
          if addr_i(8) = '0' then
             sprite_num := conv_integer(addr_i(7 downto 6));
             offset := conv_integer(addr_i(5 downto 0));
-            data_o <= sprites(sprite_num).bitmap(offset*8+7 downto offset*8);
+            data_o <= reverse(sprites(sprite_num).bitmap(offset*8+7 downto offset*8));
          else -- addr_i(8) = '1' 
             sprite_num := conv_integer(addr_i(4 downto 3));
             offset := conv_integer(addr_i(2 downto 0));
