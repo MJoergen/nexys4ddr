@@ -151,8 +151,8 @@ begin
 
          for i in 0 to 3 loop
             stage1.show(i) <= '0';
-            v_pix_x := stage0.hcount(9 downto 0) - ("0" & sprites(i).posx);
-            v_pix_y := stage0.vcount(9 downto 0) - ("00" & sprites(i).posy);
+            v_pix_x := stage0.hcount(10 downto 1) - ("0" & sprites(i).posx);
+            v_pix_y := stage0.vcount(10 downto 1) - ("00" & sprites(i).posy);
             if v_pix_x < 24 and v_pix_y < 21 and sprites(i).enable = '1' then
                stage1.show(i) <= '1';
 
