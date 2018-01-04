@@ -9,6 +9,9 @@ use ieee.STD_LOGIC_1164.ALL;
 use ieee.STD_LOGIC_UNSIGNED.ALL;
 
 entity hack_tb is
+   generic (
+      G_SIMULATION : string := ""
+   );
 end hack_tb;
 
 architecture Structural of hack_tb is
@@ -57,15 +60,18 @@ begin
 
     -- Instantiate DUT
     inst_hack : entity work.hack
+    generic map (
+       G_SIMULATION => G_SIMULATION 
+    )
     port map (
-        clk_i     => clk,
-        rstn_i    => rstn,
-        vga_hs_o  => vga_hs,
-        vga_vs_o  => vga_vs,
-        vga_col_o => vga_col,
-        sw_i      => sw,
-        btn_i     => btn
-        );
+       clk_i     => clk,
+       rstn_i    => rstn,
+       vga_hs_o  => vga_hs,
+       vga_vs_o  => vga_vs,
+       vga_col_o => vga_col,
+       sw_i      => sw,
+       btn_i     => btn
+    );
 
     test_running <= true, false after 1000 us;
    

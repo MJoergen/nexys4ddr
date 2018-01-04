@@ -6,6 +6,7 @@ use ieee.numeric_std.all;
 entity hack is
 
    generic (
+      G_SIMULATION : string;
       G_CHAR_FILE : string := "charset1.bin.txt"
    );
    port (
@@ -44,15 +45,21 @@ architecture Structural of hack is
 begin
 
    ------------------------------
-   -- Generate clocks
+   -- Generate clocks. Speed up simulation by skipping the MMCME2_ADV
    ------------------------------
 
-   inst_clk_wiz_vga : entity work.clk_wiz_vga
-   port map
-   (
-      clk_in1  => clk_i,   -- 100 MHz
-      clk_out1 => clk_vga  -- 25 MHz
-   );
+   gen_simulation: if G_SIMULATION = "yes"  generate
+      clk_vga <= clk_i;
+   end generate gen_simulation;
+
+   gen_no_simulation: if G_SIMULATION /= "yes"  generate
+      inst_clk_wiz_vga : entity work.clk_wiz_vga
+      port map
+      (
+         clk_in1  => clk_i,   -- 100 MHz
+         clk_out1 => clk_vga  -- 25 MHz
+      );
+   end generate gen_no_simulation;
 
    clk_cpu <= clk_i;
 
@@ -82,7 +89,7 @@ begin
 
    inst_vga_module : entity work.vga_module
    generic map (
-                  G_CHAR_FILE => G_CHAR_FILE 
+                  G_CHAR_FILE  => G_CHAR_FILE 
                )
    port map (
       vga_clk_i => clk_vga,
@@ -107,6 +114,9 @@ begin
    ------------------------------
 
    inst_config : entity work.config
+   generic map (
+      G_SIMULATION => G_SIMULATION
+   )
    port map (
       clk_i  => clk_cpu,
       rst_i  => rst_cpu,

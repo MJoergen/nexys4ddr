@@ -4,7 +4,7 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity vga_module is
    generic (
-      G_CHAR_FILE : string
+      G_CHAR_FILE  : string
    );
    port (
       -- Clock

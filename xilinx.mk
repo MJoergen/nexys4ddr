@@ -39,7 +39,7 @@
 ###############################################################################
 
 # Variables used for synthesis
-VIVADO ?= /opt/Xilinx/Vivado/2017.4
+VIVADO ?= /opt/Xilinx/Vivado/2017.3
 OUTDIR ?= build
 XDC    ?= src/$(TOP).xdc
 TCL    ?= $(TOP).tcl
@@ -66,7 +66,7 @@ sim: $(wave)
 	gtkwave $(wave) $(wavesave)
 
 $(wave): $(testbench)
-	-ghdl -r $(testbench) --assert-level=error --wave=$(wave) $(stoptime)
+	-ghdl -r $(testbench) --assert-level=error --wave=$(wave) $(stoptime) -gG_SIMULATION=yes
 junk += $(wave)
 
 .PHONY: elaborate
