@@ -118,9 +118,9 @@ architecture Structural of config is
       ("0" & X"25", X"FF"),
       ("0" & X"26", X"FF"),
 
-      ("0" & X"27", X"FE"),
+      ("0" & X"27", X"7F"),
       ("0" & X"28", X"FF"),
-      ("0" & X"29", X"7F"),
+      ("0" & X"29", X"FE"),
 
       ("0" & X"2A", X"7F"),
       ("0" & X"2B", X"FF"),
