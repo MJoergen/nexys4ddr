@@ -27,7 +27,7 @@ architecture Structural of config is
       if simulation = "yes" then
          return 5;
       else
-         return 10000000;  -- 100 Mhz / 10 millioner = 10 pixels / sec.
+         return 10000;
       end if;
 
    end function;
@@ -43,11 +43,8 @@ architecture Structural of config is
    signal move_counter : integer range 0 to C_COUNT_MAX := 0;
    signal move_now     : std_logic;
 
-   signal dirx         : integer range -1 to 1 := 1;
-   signal diry         : integer range -1 to 1 := 1;
-
-   signal posx         : std_logic_vector(8 downto 0) := (others => '0');
-   signal posy         : std_logic_vector(7 downto 0) := (others => '0');
+   signal posx         : std_logic_vector(15 downto 0) := (others => '0');
+   signal posy         : std_logic_vector(15 downto 0) := (others => '0');
 
    signal move_cs      : std_logic;
    signal move_wren    : std_logic;
@@ -201,36 +198,34 @@ begin
    end process p_move;
 
 
-   p_dir : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if move_now = '1' then
-            if dirx = 1 and posx = 320-24 then
-               dirx <= -1;
-            end if;
-
-            if dirx = -1 and posx = 0 then
-               dirx <= 1;
-            end if;
-
-            if diry = 1 and posy = 240-21 then
-               diry <= -1;
-            end if;
-
-            if diry = -1 and posy = 0 then
-               diry <= 1;
-            end if;
-         end if;
-      end if;
-   end process p_dir;
-
-
+   -- Here we use the semi-implicit Euler method:
+   -- x1 = x0 - y0*dt
+   -- y1 = y0 + x1*dt
+   -- Here we have dt = 1/256.
    p_pos : process (clk_i)
+      variable newx_v : std_logic_vector(15 downto 0);
+
+      function sign_extend(arg : std_logic_vector(7 downto 0))
+      return std_logic_vector is
+         variable res : std_logic_vector(15 downto 0);
+      begin
+         res := (others => arg(7)); -- Copy sign bit to all bits.
+         res(7 downto 0) := arg;
+         return res;
+      end function sign_extend;
+
    begin
       if rising_edge(clk_i) then
          if move_now = '1' then
-            posx <= posx + dirx;
-            posy <= posy + diry;
+            newx_v := posx - sign_extend(posy(15 downto 8));
+            posy <= posy + sign_extend(newx_v(15 downto 8));
+            posx <= newx_v;
+         end if;
+
+         -- Start at the position (64, 0).
+         if rst_i = '1' then
+            posx <= X"4000";
+            posy <= X"0000";
          end if;
       end if;
    end process p_pos;
@@ -255,21 +250,21 @@ begin
 
             when FSM_MOVE_X =>
                move_addr <= "100000000";
-               move_data <= posx(7 downto 0);
+               move_data <= posx(15 downto 8) xor X"80";
                move_cs   <= '1';
                move_wren <= '1';
                fsm_state <= FSM_MOVE_MSB;
 
             when FSM_MOVE_MSB =>
                move_addr <= "100000001";
-               move_data <= "0000000" & posx(8);
+               move_data <= "00000000";
                move_cs   <= '1';
                move_wren <= '1';
                fsm_state <= FSM_MOVE_Y;
 
             when FSM_MOVE_Y =>
                move_addr <= "100000010";
-               move_data <= posy;
+               move_data <= posy(15 downto 8) xor X"80";
                move_cs   <= '1';
                move_wren <= '1';
                fsm_state <= FSM_IDLE;
