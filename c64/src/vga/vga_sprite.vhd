@@ -145,6 +145,8 @@ architecture Behavioral of vga_sprite is
    signal stage6 : t_stage := STAGE_DEFAULT;
    signal stage7 : t_stage := STAGE_DEFAULT;
 
+
+   -- Signals connected to the sprite bitmap BRAM
    signal vga_addr   : std_logic_vector( 5 downto 0);   -- 2 bits for sprite #, and 4 bits for row.
    signal vga_data   : std_logic_vector(15 downto 0);
    signal vga_rden   : std_logic;
@@ -165,24 +167,33 @@ begin
       variable pix_y_v : std_logic_vector( 9 downto 0);
    begin
       if rising_edge(vga_clk_i) then
+         vga_rden <= '0';
 
          case fsm_state is
             when IDLE_ST =>
                if hcount_i = 0 then
+                  -- Generate read signals for all sprites at once.
                   for i in 0 to 3 loop
-                     fsm_rden(i) <= '0';
                      pix_y_v := stage0.vcount(10 downto 1) - ("00" & config(i).posy);
+                     fsm_addr(4*(i+1)-1 downto 4*i) <= pix_y_v(3 downto 0);
+
+                     fsm_rden(i) <= '0';
                      if pix_y_v <= 15 then
                         fsm_rden(i) <= config(i).enable;
                      end if;
-                     fsm_addr(4*(i+1)-1 downto 4*i) <= pix_y_v(3 downto 0);
                   end loop;
 
-                  sprite <= 0; -- Prepare reading sprite 0 bitmap
                   fsm_state <= READING_ST;
+                  vga_rden <= fsm_rden(0);
+                  vga_addr <= "00" & fsm_addr(3 downto 0);
+
+                  sprite <= 1; -- Prepare reading sprite 0 bitmap
                end if;
 
             when READING_ST =>
+               vga_rden <= fsm_rden(sprite);
+               vga_addr <= conv_std_logic_vector(sprite, 2) & fsm_addr(4*sprite + 3 downto 4*sprite);
+
                if sprite /= 3 then
                   sprite <= sprite + 1;
                else
@@ -193,8 +204,6 @@ begin
       end if;
    end process p_fsm;
 
-   vga_rden <= fsm_rden(sprite) when fsm_state = READING_ST else '0';
-   vga_addr <= conv_std_logic_vector(sprite, 2) & fsm_addr(sprite*4 + 3 downto sprite*4);
 
    -- Store for use next clock cycle
    p_delay : process (vga_clk_i)
