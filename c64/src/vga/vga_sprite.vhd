@@ -1,52 +1,40 @@
 -----------------------------------------------------------------------------
 -- Description:  This generates sprites as an overlay.
---               Configuration information is taken from a RAM.
---               Sprite 0 has the highest priority.
---               The design is inpired by the VIC-II from the C-64,
---               but has been greatly simplified and reduced in
---               functionality.
---               Only 4 sprites are support to keep resource 
---               requirements at a minimum.
+--               Only 4 sprites are supported to keep resource requirements at
+--               a minimum.
 --
 -- Memory map :
---              0x0000 - 0x003F : Sprite 0 bitmap area
---              0x0040 - 0x007F : Sprite 1 bitmap area
---              0x0080 - 0x00BF : Sprite 2 bitmap area
---              0x00C0 - 0x00FF : Sprite 3 bitmap area
+--              0x0000 - 0x000F : Sprite 0 bitmap area
+--              0x0010 - 0x001F : Sprite 1 bitmap area
+--              0x0020 - 0x002F : Sprite 2 bitmap area
+--              0x0030 - 0x003F : Sprite 3 bitmap area
 --
---              0x0100          : Sprite 0 X position (bits 7 - 0)
---              0x0101          : bit 0 : Sprite 0 X position bit 8.
---              0x0102          : Sprite 0 Y position
---              0x0103          : Sprite 0 color (RRRGGGBB)
---              0x0104          : bit 0 : Sprite 0 enabled
---              0x0105          : bit 0 : Sprite 0 behind text
+--              0x0100          : bits 8-0 : Sprite 0 X position
+--              0x0101          : bits 7-0 : Sprite 0 Y position
+--              0x0102          : bits 7-0 : Sprite 0 color (RRRGGGBB)
+--              0x0103          : bit    0 : Sprite 0 enabled
 --
---              0x0108          : Sprite 1 X position (bits 7 - 0)
---              0x0109          : bit 0 : Sprite 1 X position bit 8.
---              0x010A          : Sprite 1 Y position
---              0x010B          : Sprite 1 color (RRRGGGBB)
---              0x010C          : bit 0 : Sprite 1 enabled
---              0x010D          : bit 0 : Sprite 1 behind text
+--              0x0104          : bits 8-0 : Sprite 1 X position
+--              0x0105          : bits 7-0 : Sprite 1 Y position
+--              0x0106          : bits 7-0 : Sprite 1 color (RRRGGGBB)
+--              0x0107          : bit    0 : Sprite 1 enabled
 --
---              0x0110          : Sprite 2 X position (bits 7 - 0)
---              0x0111          : bit 0 : Sprite 2 X position bit 8.
---              0x0112          : Sprite 2 Y position
---              0x0113          : Sprite 2 color (RRRGGGBB)
---              0x0114          : bit 0 : Sprite 2 enabled
---              0x0115          : bit 0 : Sprite 2 behind text
+--              0x0108          : bits 8-0 : Sprite 2 X position
+--              0x0109          : bits 7-0 : Sprite 2 Y position
+--              0x010A          : bits 7-0 : Sprite 2 color (RRRGGGBB)
+--              0x010B          : bit    0 : Sprite 2 enabled
 --
---              0x0118          : Sprite 3 X position (bits 7 - 0)
---              0x0119          : bit 0 : Sprite 3 X position bit 8.
---              0x011A          : Sprite 3 Y position
---              0x011B          : Sprite 3 color (RRRGGGBB)
---              0x011C          : bit 0 : Sprite 3 enabled
---              0x011D          : bit 0 : Sprite 3 behind text
+--              0x010C          : bits 8-0 : Sprite 3 X position
+--              0x010D          : bits 7-0 : Sprite 3 Y position
+--              0x010E          : bits 7-0 : Sprite 3 color (RRRGGGBB)
+--              0x010F          : bit    0 : Sprite 3 enabled
+--
 -----------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.ALL;
 use ieee.std_logic_unsigned.all;
-use ieee.numeric_std.all;
+use ieee.std_logic_arith.all;
 
 entity vga_sprite is
    port (
@@ -71,11 +59,9 @@ entity vga_sprite is
       col_o       : out std_logic_vector(11 downto 0);
 
       -- Configuration @ cpu_clk_i
-      addr_i      : in  std_logic_vector(8 downto 0);
-      cs_i        : in  std_logic;
-      data_o      : out std_logic_vector(7 downto 0);
-      wren_i      : in  std_logic;
-      data_i      : in  std_logic_vector(7 downto 0)
+      cpu_addr_i  : in  std_logic_vector(8 downto 0);
+      cpu_wren_i  : in  std_logic;
+      cpu_data_i  : in  std_logic_vector(15 downto 0)
    );
 end vga_sprite;
 
@@ -90,49 +76,177 @@ architecture Behavioral of vga_sprite is
       return res;
    end function reverse;
 
+   function col8to12(arg : std_logic_vector(7 downto 0)) return std_logic_vector is
+   begin
+      return arg(7 downto 5) & "0" & arg(4 downto 2) & "0" & arg(1 downto 0) & "00";
+   end function col8to12;
+
+
+   -- State machine to read sprite bitmaps from BRAM
+   type t_fsm is (IDLE_ST, READING_ST);
+   signal fsm_state   : t_fsm := IDLE_ST;
+   signal sprite      : integer range 0 to 3; -- Current sprite number being read from bitmap RAM
+   signal fsm_rden    : std_logic_vector(3 downto 0);
+   signal fsm_addr    : std_logic_vector(4*4-1 downto 0);
+   signal vga_rden_d  : std_logic;
+   signal vga_addr_d  : std_logic_vector(5 downto 0);
+   signal stage5_rows : std_logic_vector(16*4-1 downto 0);
+
+
    -- This contains configuration data for each sprite
-   type t_sprite is record
-      bitmap      : std_logic_vector(21*24-1 downto 0);
+   type t_config is record
       posx        : std_logic_vector(8 downto 0);
       posy        : std_logic_vector(7 downto 0);
       color       : std_logic_vector(7 downto 0);
       enable      : std_logic;
-      behind      : std_logic;
-   end record t_sprite;
+   end record t_config;
 
-   type t_sprite_vector is array (natural range <>) of t_sprite;
+   type t_config_vector is array (natural range <>) of t_config;
+
+
 
    -- Pipeline
    type t_stage is record
-      hcount : std_logic_vector(10 downto 0);    -- Valid in stage 0
-      vcount : std_logic_vector(10 downto 0);    -- Valid in stage 0
-      hs     : std_logic;                        -- Valid in stage 0
-      vs     : std_logic;                        -- Valid in stage 0
-      col    : std_logic_vector(11 downto 0);    -- Valid in stage 0
-      index  : std_logic_vector(4*9-1 downto 0); -- Valid in stage 1
-      show   : std_logic_vector(3 downto 0);     -- Valid in stage 1
-      pix    : std_logic_vector(3 downto 0);     -- Valid in stage 2
+      hcount          : std_logic_vector(10 downto 0);     -- Valid in stage 0
+      vcount          : std_logic_vector(10 downto 0);     -- Valid in stage 0
+      hs              : std_logic;                         -- Valid in stage 0
+      vs              : std_logic;                         -- Valid in stage 0
+      col             : std_logic_vector(11 downto 0);     -- Valid in stage 0
+      row_index       : std_logic_vector(4*4-1 downto 0);  -- Valid in stage 1 (0 - 15) for each sprite
+      row_index_valid : std_logic_vector(3 downto 0);      -- Valid in stage 1
+      col_index       : std_logic_vector(4*4-1 downto 0);  -- Valid in stage 1 (0 - 15) for each sprite
+      col_index_valid : std_logic_vector(3 downto 0);      -- Valid in stage 1
+      pix             : std_logic_vector(3 downto 0);      -- Valid in stage 6
    end record t_stage;
 
    constant STAGE_DEFAULT : t_stage := (
-      hcount => (others => '0'),
-      vcount => (others => '0'),
-      hs     => '0',
-      vs     => '0',
-      col    => (others => '0'),
-      index  => (others => '0'),
-      show   => (others => '0'),
-      pix    => (others => '0')
+      hcount          => (others => '0'),
+      vcount          => (others => '0'),
+      hs              => '0',
+      vs              => '0',
+      col             => (others => '0'),
+      row_index       => (others => '0'),
+      row_index_valid => (others => '0'),
+      col_index       => (others => '0'),
+      col_index_valid => (others => '0'),
+      pix             => (others => '0')
    );
 
-   signal sprites : t_sprite_vector(3 downto 0);   -- Configuration data
+   ----------------------------------------------------------------------
+
+   signal config  : t_config_vector(3 downto 0);   -- Configuration data
 
    signal stage0 : t_stage := STAGE_DEFAULT;
    signal stage1 : t_stage := STAGE_DEFAULT;
    signal stage2 : t_stage := STAGE_DEFAULT;
    signal stage3 : t_stage := STAGE_DEFAULT;
+   signal stage4 : t_stage := STAGE_DEFAULT;
+   signal stage5 : t_stage := STAGE_DEFAULT;
+   signal stage6 : t_stage := STAGE_DEFAULT;
+   signal stage7 : t_stage := STAGE_DEFAULT;
+
+   signal vga_addr   : std_logic_vector( 5 downto 0);   -- 2 bits for sprite #, and 4 bits for row.
+   signal vga_data   : std_logic_vector(15 downto 0);
+   signal vga_rden   : std_logic;
+
+   signal cpu_addr   : std_logic_vector( 5 downto 0);   -- 2 bits for sprite #, and 4 bits for row.
+   signal cpu_data   : std_logic_vector(15 downto 0);
+   signal cpu_wren   : std_logic;
 
 begin
+
+   ------------------------------------------------------------------------
+   -- Control reading sprite bitmaps from the BRAM.
+   -- Reading starts when hcount_i = 0 and takes one clock cycle pr sprite.
+   -- With 4 sprites, the bitmap data is ready at stage 5.
+   ------------------------------------------------------------------------
+
+   p_fsm : process (vga_clk_i)
+      variable pix_y_v : std_logic_vector( 9 downto 0);
+   begin
+      if rising_edge(vga_clk_i) then
+
+         case fsm_state is
+            when IDLE_ST =>
+               if hcount_i = 0 then
+                  for i in 0 to 3 loop
+                     fsm_rden(i) <= '0';
+                     pix_y_v := stage0.vcount(10 downto 1) - ("00" & config(i).posy);
+                     if pix_y_v <= 15 then
+                        fsm_rden(i) <= config(i).enable;
+                     end if;
+                     fsm_addr(4*(i+1)-1 downto 4*i) <= pix_y_v(3 downto 0);
+                  end loop;
+
+                  sprite <= 0; -- Prepare reading sprite 0 bitmap
+                  fsm_state <= READING_ST;
+               end if;
+
+            when READING_ST =>
+               if sprite /= 3 then
+                  sprite <= sprite + 1;
+               else
+                  fsm_state <= IDLE_ST;
+               end if;
+
+         end case;
+      end if;
+   end process p_fsm;
+
+   vga_rden <= fsm_rden(sprite) when fsm_state = READING_ST else '0';
+   vga_addr <= conv_std_logic_vector(sprite, 2) & fsm_addr(sprite*4 + 3 downto sprite*4);
+
+   -- Store for use next clock cycle
+   p_delay : process (vga_clk_i)
+   begin
+      if rising_edge(vga_clk_i) then
+         vga_rden_d <= vga_rden;
+         vga_addr_d <= vga_addr;
+      end if;
+   end process p_delay;
+
+
+   ---------------------------------
+   -- Instantiate sprite bitmap BRAM
+   ---------------------------------
+
+   inst_bitmaps : entity work.bitmaps
+   port map (
+      vga_clk_i   => vga_clk_i,
+      vga_rst_i   => vga_rst_i,
+
+      cpu_clk_i   => cpu_clk_i,
+      cpu_rst_i   => cpu_rst_i,
+
+      -- Read port @ vga_clk_i
+      vga_rden_i  => vga_rden,
+      vga_addr_i  => vga_addr,
+      vga_data_o  => vga_data,
+
+      -- Write port @ cpu_clk_i
+      cpu_wren_i  => cpu_wren,
+      cpu_addr_i  => cpu_addr,
+      cpu_data_i  => cpu_data
+   );
+
+
+   -------------------------
+   -- Store output from BRAM
+   -------------------------
+
+   gen_bitmap_row : for i in 0 to 3 generate
+      p_bitmap_row : process (vga_clk_i)
+      begin
+         if rising_edge(vga_clk_i) then
+            if vga_rden_d = '1' and conv_integer(vga_addr_d(5 downto 4)) = i then
+               stage5_rows(i*16 + 15 downto i*16) <= vga_data;
+            end if;
+         end if;
+      end process p_bitmap_row;
+   end generate gen_bitmap_row;
+   
+
+
 
    ----------------------------
    -- Stage 0
@@ -146,92 +260,99 @@ begin
 
 
    ----------------------------------------
-   -- Stage 1 : Calculate index into bitmap
+   -- Stage 1 : Calculate horizontal
    ----------------------------------------
 
    p_stage1 : process (vga_clk_i)
-      variable v_pix_x : std_logic_vector( 9 downto 0);
-      variable v_pix_y : std_logic_vector( 9 downto 0);
-      variable v_index : std_logic_vector(19 downto 0);
-      constant c24 : std_logic_vector(9 downto 0) := std_logic_vector(to_unsigned(24, 10));
+      variable pix_x_v : std_logic_vector( 9 downto 0);
+      variable pix_y_v : std_logic_vector( 9 downto 0);
    begin
       if rising_edge(vga_clk_i) then
          stage1 <= stage0;
 
+         stage1.col_index_valid <= (others => '0');
          for i in 0 to 3 loop
-            stage1.show(i) <= '0';
-            v_pix_x := stage0.hcount(10 downto 1) - ("0" & sprites(i).posx);
-            v_pix_y := stage0.vcount(10 downto 1) - ("00" & sprites(i).posy);
-            if v_pix_x < 24 and v_pix_y < 21 and sprites(i).enable = '1' then
-               stage1.show(i) <= '1';
+            pix_x_v := stage0.hcount(10 downto 1) - ("0" & config(i).posx);
+            stage1.col_index(4*(i+1)-1 downto 4*i) <= pix_x_v(3 downto 0);
+            if pix_x_v <= 15 then
+               stage1.col_index_valid(i) <= config(i).enable;
+            end if;
 
-               v_index := v_pix_y*c24 + v_pix_x;
-               stage1.index(9*(i+1)-1 downto 9*i) <= v_index(8 downto 0);
+            pix_y_v := stage0.vcount(10 downto 1) - ("00" & config(i).posy);
+            stage1.row_index(4*(i+1)-1 downto 4*i) <= pix_y_v(3 downto 0);
+            if pix_y_v <= 15 then
+               stage1.row_index_valid(i) <= config(i).enable;
             end if;
          end loop;
+
       end if;
    end process p_stage1;
 
 
-   ----------------------------------------
-   -- Stage 2
-   ----------------------------------------
 
-   p_stage2 : process (vga_clk_i)
-      variable v_index : integer range 0 to 24*21-1;
+   --------------------------------------------
+   -- Stage 2, 3, 4, and 5: Wait for BRAM reads
+   --------------------------------------------
+
+   p_stage2345 : process (vga_clk_i)
    begin
       if rising_edge(vga_clk_i) then
          stage2 <= stage1;
-
-         for i in 0 to 3 loop
-            v_index := conv_integer(stage1.index(9*(i+1)-1 downto 9*i));
-            stage2.pix(i) <= sprites(i).bitmap(v_index);
-         end loop;
+         stage3 <= stage2;
+         stage4 <= stage3;
+         stage5 <= stage4;
       end if;
-   end process p_stage2;
+   end process p_stage2345;
 
 
    ----------------------------------------
-   -- Stage 3
+   -- Stage 6
    ----------------------------------------
 
-   p_stage3 : process (vga_clk_i)
-      variable v_color : std_logic_vector(7 downto 0) := (others => '0');
-      function col8to12(arg : std_logic_vector(7 downto 0)) return std_logic_vector is
-      begin
-         return arg(7 downto 5) & "0" & arg(4 downto 2) & "0" & arg(1 downto 0) & "00";
-      end function col8to12;
+   p_stage6 : process (vga_clk_i)
    begin
       if rising_edge(vga_clk_i) then
-         stage3 <= stage2;
+         stage6 <= stage5;
 
-         -- Sprites behind
+         stage6.pix <= (others => '0');
          for i in 3 downto 0 loop
-            if stage2.show(i) = '1' and stage2.pix(i) = '1' and sprites(i).behind = '1' then
-               stage3.col <= col8to12(sprites(i).color);
-            end if;
-         end loop;
-
-         -- Sprites in front
-         for i in 3 downto 0 loop
-            if stage2.show(i) = '1' and stage2.pix(i) = '1' and sprites(i).behind = '0' then
-               stage3.col <= col8to12(sprites(i).color);
+            if stage5.row_index_valid(i) = '1' and stage5.col_index_valid(i) = '1' then
+               stage6.pix(i) <= stage5_rows(i*16 + conv_integer(stage5.col_index(i*4 + 3 downto i*4)));
             end if;
          end loop;
 
       end if;
-   end process p_stage3;
+   end process p_stage6;
+
+
+   ----------------------------------------
+   -- Stage 7
+   ----------------------------------------
+
+   p_stage7 : process (vga_clk_i)
+   begin
+      if rising_edge(vga_clk_i) then
+         stage7 <= stage6;
+
+         for i in 3 downto 0 loop
+            if stage6.pix(i) = '1' then
+               stage7.col <= col8to12(config(i).color);
+            end if;
+         end loop;
+
+      end if;
+   end process p_stage7;
 
 
    ----------------------------------------
    -- Drive output signals
    ----------------------------------------
 
-   hcount_o <= stage3.hcount;
-   vcount_o <= stage3.vcount;
-   hs_o     <= stage3.hs;
-   vs_o     <= stage3.vs;
-   col_o    <= stage3.col;
+   hcount_o <= stage7.hcount;
+   vcount_o <= stage7.vcount;
+   hs_o     <= stage7.hs;
+   vs_o     <= stage7.vs;
+   col_o    <= stage7.col;
 
 
    ----------------------------------------
@@ -240,25 +361,25 @@ begin
 
    p_sprites : process (cpu_clk_i)
       variable sprite_num : integer range 0 to 3;
-      variable offset : integer range 0 to 63;
+      variable offset : integer range 0 to 3;
    begin
       if rising_edge(cpu_clk_i) then
-         if cs_i = '1' and wren_i = '1' then
-            if addr_i(8) = '0' then
-               sprite_num := conv_integer(addr_i(7 downto 6));
-               offset := conv_integer(addr_i(5 downto 0));
-               sprites(sprite_num).bitmap(offset*8+7 downto offset*8) <= reverse(data_i);
+         cpu_wren <= '0';
+
+         if cpu_wren_i = '1' then
+            if cpu_addr_i(8) = '0' then
+               cpu_wren <= '1';
+               cpu_addr <= cpu_addr_i(5 downto 0);
+               cpu_data <= reverse(cpu_data_i);
             else -- addr_i(8) = '1' 
-               sprite_num := conv_integer(addr_i(4 downto 3));
-               offset := conv_integer(addr_i(2 downto 0));
+               sprite_num := conv_integer(cpu_addr_i(3 downto 2));
+               offset := conv_integer(cpu_addr_i(1 downto 0));
 
                case offset is
-                  when 0 => sprites(sprite_num).posx(7 downto 0) <= data_i;
-                  when 1 => sprites(sprite_num).posx(8)          <= data_i(0);
-                  when 2 => sprites(sprite_num).posy             <= data_i;
-                  when 3 => sprites(sprite_num).color            <= data_i;
-                  when 4 => sprites(sprite_num).enable           <= data_i(0);
-                  when 5 => sprites(sprite_num).behind           <= data_i(0);
+                  when 0 => config(sprite_num).posx   <= cpu_data_i(8 downto 0);
+                  when 1 => config(sprite_num).posy   <= cpu_data_i(7 downto 0);
+                  when 2 => config(sprite_num).color  <= cpu_data_i(7 downto 0);
+                  when 3 => config(sprite_num).enable <= cpu_data_i(0);
                   when others => null;
                end case;
             end if;
@@ -266,49 +387,14 @@ begin
 
          if cpu_rst_i = '1' then
             for i in 0 to 3 loop
-               sprites(i).posx   <= (others => '0');
-               sprites(i).posy   <= (others => '0');
-               sprites(i).color  <= (others => '0');
-               sprites(i).enable <= '0';
-               sprites(i).behind <= '0';
-               sprites(i).bitmap <= (others => '0');
+               config(i).posx   <= (others => '0');
+               config(i).posy   <= (others => '0');
+               config(i).color  <= (others => '0');
+               config(i).enable <= '0';
             end loop;
          end if;
       end if;
    end process p_sprites;
-
-
-   ----------------------------------------
-   -- Configuration read
-   ----------------------------------------
-
-   process (addr_i, cs_i, wren_i, sprites)
-      variable sprite_num : integer range 0 to 3;
-      variable offset : integer range 0 to 63;
-   begin
-      data_o <= (others => 'Z');
-      if cs_i = '1' and wren_i = '0' then
-         data_o <= (others => '0');
-         if addr_i(8) = '0' then
-            sprite_num := conv_integer(addr_i(7 downto 6));
-            offset := conv_integer(addr_i(5 downto 0));
-            data_o <= reverse(sprites(sprite_num).bitmap(offset*8+7 downto offset*8));
-         else -- addr_i(8) = '1' 
-            sprite_num := conv_integer(addr_i(4 downto 3));
-            offset := conv_integer(addr_i(2 downto 0));
-
-            case offset is
-               when 0 => data_o <= sprites(sprite_num).posx(7 downto 0);
-               when 1 => data_o <= "0000000" & sprites(sprite_num).posx(8);
-               when 2 => data_o <= sprites(sprite_num).posy;
-               when 3 => data_o <= sprites(sprite_num).color;
-               when 4 => data_o <= "0000000" & sprites(sprite_num).enable;
-               when 5 => data_o <= "0000000" & sprites(sprite_num).behind;
-               when others => null;
-            end case;
-         end if;
-      end if;
-   end process;
 
 end Behavioral;
 

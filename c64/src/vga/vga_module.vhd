@@ -19,11 +19,9 @@ entity vga_module is
       col_o : out std_logic_vector(11 downto 0);
 
       -- Configuration @ cpu_clk_i
-      addr_i : in  std_logic_vector(8 downto 0);
-      cs_i   : in  std_logic;
-      data_o : out std_logic_vector(7 downto 0);
-      wren_i : in  std_logic;
-      data_i : in  std_logic_vector(7 downto 0)
+      cpu_addr_i : in  std_logic_vector( 8 downto 0);
+      cpu_wren_i : in  std_logic;
+      cpu_data_i : in  std_logic_vector(15 downto 0)
    );
 end vga_module;
 
@@ -106,18 +104,14 @@ begin
       vs_o      => sprite_vs,
       col_o     => sprite_col,
 
-      addr_i    => addr_i,
-      cs_i      => cs_i,
-      data_o    => sprite_data,
-      wren_i    => wren_i,
-      data_i    => data_i
+      cpu_addr_i => cpu_addr_i,
+      cpu_wren_i => cpu_wren_i,
+      cpu_data_i => cpu_data_i
    );
 
    hs_o  <= sprite_hs;
    vs_o  <= sprite_vs;
    col_o <= sprite_col;
-
-   data_o <= sprite_data;
 
 end Structural;
 

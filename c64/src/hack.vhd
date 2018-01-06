@@ -36,11 +36,9 @@ architecture Structural of hack is
    signal clk_cpu : std_logic;
    signal rst_cpu : std_logic := '1';  -- Asserted high.
    
-   signal cpu_addr   : std_logic_vector(8 downto 0);
-   signal cpu_cs_vga : std_logic;
-   signal vga_data   : std_logic_vector(7 downto 0);
+   signal cpu_addr   : std_logic_vector( 8 downto 0);
    signal cpu_wren   : std_logic;
-   signal cpu_data   : std_logic_vector(7 downto 0);
+   signal cpu_data   : std_logic_vector(15 downto 0);
 
 begin
 
@@ -101,11 +99,9 @@ begin
       col_o => vga_col_o,
 
       -- Configuration @ cpu_clk_i
-      addr_i => cpu_addr,
-      cs_i   => cpu_cs_vga,
-      data_o => vga_data,     -- Currently not connected.
-      wren_i => cpu_wren,
-      data_i => cpu_data
+      cpu_addr_i => cpu_addr,
+      cpu_wren_i => cpu_wren,
+      cpu_data_i => cpu_data
    );
 
 
@@ -121,7 +117,6 @@ begin
       clk_i  => clk_cpu,
       rst_i  => rst_cpu,
       addr_o => cpu_addr,
-      cs_o   => cpu_cs_vga,
       wren_o => cpu_wren,
       data_o => cpu_data
    );

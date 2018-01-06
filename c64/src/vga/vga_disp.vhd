@@ -128,14 +128,15 @@ begin
                data_o => stage2_divmod13
             );
 
-   stage2_char_y <= stage2_divmod13(8 downto 4);   -- (0 - 17)
-   stage2_pix_y  <= stage2_divmod13(3 downto 0);   -- (0 - 12)
+   stage2_char_y <= stage2_divmod13(8 downto 4);   -- (quotient,  0 - 17)
+   stage2_pix_y  <= stage2_divmod13(3 downto 0);   -- (remainder, 0 - 12)
 
    -- Calculate address into character memory
    stage2_char_addr <= conv_std_logic_vector(
                        conv_integer(stage2_char_y)*40 + conv_integer(stage2.char_x),
                        10);
 
+   -- Propagate remaining signals.
    p_stage2 : process (clk_i) is
    begin
       if rising_edge(clk_i) then
@@ -163,6 +164,10 @@ begin
                data_o => stage3_char_val
             );
 
+   -- Calculate address into character bitmap ROM.
+   stage3_addr <= stage3_char_val & stage3.pix_y;
+
+   -- Propagate remaining signals.
    p_stage3 : process (clk_i) is
    begin
       if rising_edge(clk_i) then
@@ -172,8 +177,6 @@ begin
          stage3.pix_y  <= stage2_pix_y;
       end if;
    end process p_stage3;
-
-   stage3_addr <= stage3_char_val & stage3.pix_y;
 
 
    ----------------------------------------------------
@@ -192,6 +195,7 @@ begin
                data_o => stage4_row
             );
 
+   -- Propagate remaining signals.
    p_stage4 : process (clk_i) is
    begin
       if rising_edge(clk_i) then
@@ -204,6 +208,7 @@ begin
    -- Stage 5 : Determine the color at the current pixel.
    -----------------------------------------------------
 
+   -- Propagate remaining signals.
    p_stage5 : process (clk_i) is
       variable pix : std_logic;
    begin
