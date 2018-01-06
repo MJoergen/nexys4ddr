@@ -4,29 +4,27 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_textio.all;
 use std.textio.all;
 
--- This contains 8x8 pixels for each of 256 characters.
--- This is eight bytes for each character, i.e. a total of 2 KB.
--- It reads the entire charset from a text file.
-entity vga_char_rom is
+-- This is a generic ROM instantiation from a text file.
+entity rom_file is
 
    generic (
+      G_ADDR_SIZE : integer;     -- Number of bits in address
+      G_DATA_SIZE : integer;     -- Number of bits in data
       G_CHAR_FILE : string
    );
    port (
       clk_i  : in  std_logic;
-      addr_i : in  std_logic_vector(7 downto 0);  -- Which of the 256 characters
-      row_i  : in  std_logic_vector(2 downto 0);  -- Which of the 8 rows
-      data_o : out std_logic_vector(7 downto 0)
+      addr_i : in  std_logic_vector(G_ADDR_SIZE-1 downto 0);
+      data_o : out std_logic_vector(G_DATA_SIZE-1 downto 0)
    );
 
-end vga_char_rom;
+end rom_file;
 
-architecture Structural of vga_char_rom is
+architecture Structural of rom_file is
 
-   type t_mem is array (0 to 2047) of std_logic_vector(7 downto 0);
+   type t_mem is array (0 to 2**G_ADDR_SIZE-1) of std_logic_vector(G_DATA_SIZE-1 downto 0);
 
    -- This reads the ROM contents from a text file
-   -- Each line consists of 8 binary digits.
    impure function InitRamFromFile(RamFileName : in string) return t_mem is
       FILE RamFile : text is in RamFileName;
       variable RamFileLine : line;
@@ -42,9 +40,7 @@ architecture Structural of vga_char_rom is
       return RAM;
    end function;
 
-   signal char_rom : t_mem := InitRamFromFile(G_CHAR_FILE);
-
-   signal data : std_logic_vector(7 downto 0);
+   signal rom : t_mem := InitRamFromFile(G_CHAR_FILE);
 
 begin
 
@@ -52,11 +48,9 @@ begin
    process (clk_i)
    begin
       if rising_edge(clk_i) then
-         data <= char_rom(conv_integer(addr_i & row_i));
+         data_o <= rom(conv_integer(addr_i));
       end if;
    end process;
-
-   data_o <= data;
 
 end Structural;
 

@@ -10,7 +10,7 @@ SRC += src/clock/clk_wiz_vga_clk_wiz.vhd
 
 # VGA driver
 SRC += src/vga/vga_ctrl.vhd
-SRC += src/vga/vga_char_rom.vhd
+SRC += src/vga/rom_file.vhd
 SRC += src/vga/vga_disp.vhd
 SRC += src/vga/vga_sprite.vhd
 SRC += src/vga/vga_module.vhd
@@ -18,7 +18,7 @@ SRC += src/vga/vga_module.vhd
 # Configuration
 SRC += src/config.vhd
 
-stoptime = --stop-time=50us
+stoptime = --stop-time=150us
 
 include ../xilinx.mk
 

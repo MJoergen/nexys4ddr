@@ -7,7 +7,7 @@ entity hack is
 
    generic (
       G_SIMULATION : string := "";
-      G_CHAR_FILE : string := "charset1.bin.txt"
+      G_CHAR_FILE : string := "ProggyClean.txt"
    );
    port (
       -- Clock
