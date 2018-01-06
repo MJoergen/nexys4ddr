@@ -216,13 +216,24 @@ begin
    end process p_fsm;
 
 
-   -----------------------
-   -- Drive output signals
-   -----------------------
+   ---------------------------
+   -- Register output signals
+   ---------------------------
 
-   wren_o <= init_wren when fsm_state = FSM_INIT else move_wren;
-   addr_o <= init_addr when fsm_state = FSM_INIT else move_addr;
-   data_o <= init_data when fsm_state = FSM_INIT else move_data;
+   p_out : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if fsm_state = FSM_INIT then
+            wren_o <= init_wren;
+            addr_o <= init_addr;
+            data_o <= init_data;
+         else
+            wren_o <= move_wren;
+            addr_o <= move_addr;
+            data_o <= move_data;
+         end if;
+      end if;
+   end process p_out;
 
 end architecture Structural;
 
