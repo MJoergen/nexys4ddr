@@ -205,16 +205,6 @@ begin
    end process p_fsm;
 
 
-   -- Store for use next clock cycle
-   p_delay : process (vga_clk_i)
-   begin
-      if rising_edge(vga_clk_i) then
-         vga_rden_d <= vga_rden;
-         vga_addr_d <= vga_addr;
-      end if;
-   end process p_delay;
-
-
    ---------------------------------
    -- Instantiate sprite bitmap BRAM
    ---------------------------------
@@ -242,6 +232,15 @@ begin
    -------------------------
    -- Store output from BRAM
    -------------------------
+
+   -- Store for use next clock cycle
+   p_delay : process (vga_clk_i)
+   begin
+      if rising_edge(vga_clk_i) then
+         vga_rden_d <= vga_rden;
+         vga_addr_d <= vga_addr;
+      end if;
+   end process p_delay;
 
    gen_bitmap_row : for i in 0 to 3 generate
       p_bitmap_row : process (vga_clk_i)
