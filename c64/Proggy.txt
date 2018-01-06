@@ -1,0 +1,13 @@
+I've found a font I like.
+
+I've downloaded the file ProggyClean.pcf from proggyfonts.net
+This is a 8x5 font inside a 13x8 bounding box.
+
+Since the screen resolution is 640x480, this gives 80x36 characters on screen, which is 2880 bytes.
+The font file contains 256 characters, and with 16 bytes pr. character (instead of 13), this is 4 kB.
+
+The actual conversion takes place in several steps.
+1: Convert from pcf to bdf, using the tool here: https://github.com/ganaware/pcf2bdf
+2: Extract the bitmap using: grep -e "^[0-9,A-F][0-9,A-F]$" ProggyClean.bdf > ProggyClean.hex
+3: Convert to binary and insert 3 empty lines (from 13 to 16) for each character, using convert.py
+
