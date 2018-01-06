@@ -27,7 +27,7 @@ architecture Structural of config is
       if simulation = "yes" then
          return 5;
       else
-         return 10000;
+         return 500000;
       end if;
 
    end function;
@@ -91,39 +91,39 @@ architecture Structural of config is
       ("0" & X"11", X"FC"),
 
       ("0" & X"12", X"7F"),
-      ("0" & X"13", X"FF"),
+      ("0" & X"13", X"E7"),
       ("0" & X"14", X"FE"),
 
       ("0" & X"15", X"7F"),
-      ("0" & X"16", X"FF"),
+      ("0" & X"16", X"81"),
       ("0" & X"17", X"FE"),
 
       ("0" & X"18", X"FF"),
-      ("0" & X"19", X"FF"),
+      ("0" & X"19", X"81"),
       ("0" & X"1A", X"FF"),
 
       ("0" & X"1B", X"FF"),
-      ("0" & X"1C", X"FF"),
+      ("0" & X"1C", X"00"),
       ("0" & X"1D", X"FF"),
 
       ("0" & X"1E", X"FF"),
-      ("0" & X"1F", X"FF"),
+      ("0" & X"1F", X"00"),
       ("0" & X"20", X"FF"),
 
       ("0" & X"21", X"FF"),
-      ("0" & X"22", X"FF"),
+      ("0" & X"22", X"00"),
       ("0" & X"23", X"FF"),
 
       ("0" & X"24", X"FF"),
-      ("0" & X"25", X"FF"),
+      ("0" & X"25", X"81"),
       ("0" & X"26", X"FF"),
 
       ("0" & X"27", X"7F"),
-      ("0" & X"28", X"FF"),
+      ("0" & X"28", X"81"),
       ("0" & X"29", X"FE"),
 
       ("0" & X"2A", X"7F"),
-      ("0" & X"2B", X"FF"),
+      ("0" & X"2B", X"E7"),
       ("0" & X"2C", X"FE"),
 
       ("0" & X"2D", X"3F"),
@@ -201,7 +201,7 @@ begin
    -- Here we use the semi-implicit Euler method:
    -- x1 = x0 - y0*dt
    -- y1 = y0 + x1*dt
-   -- Here we have dt = 1/256.
+   -- We are using the value dt = 1/256.
    p_pos : process (clk_i)
       variable newx_v : std_logic_vector(15 downto 0);
 
@@ -217,12 +217,12 @@ begin
    begin
       if rising_edge(clk_i) then
          if move_now = '1' then
-            newx_v := posx - sign_extend(posy(15 downto 8));
-            posy <= posy + sign_extend(newx_v(15 downto 8));
+            newx_v := posx - sign_extend(posy(15 downto 8));   -- x0 - y0*dt
+            posy <= posy + sign_extend(newx_v(15 downto 8));   -- y0 + x1*dt
             posx <= newx_v;
          end if;
 
-         -- Start at the position (64, 0).
+         -- Start at the position (64, 0), i.e. a radius of 64.
          if rst_i = '1' then
             posx <= X"4000";
             posy <= X"0000";
@@ -250,7 +250,7 @@ begin
 
             when FSM_MOVE_X =>
                move_addr <= "100000000";
-               move_data <= posx(15 downto 8) xor X"80";
+               move_data <= posx(15 downto 8) + X"80";
                move_cs   <= '1';
                move_wren <= '1';
                fsm_state <= FSM_MOVE_MSB;
@@ -264,7 +264,7 @@ begin
 
             when FSM_MOVE_Y =>
                move_addr <= "100000010";
-               move_data <= posy(15 downto 8) xor X"80";
+               move_data <= posy(15 downto 8) + X"80";
                move_cs   <= '1';
                move_wren <= '1';
                fsm_state <= FSM_IDLE;
@@ -280,7 +280,7 @@ begin
    -- Drive output signals
    -----------------------
 
-   cs_o   <= init_cs when fsm_state = FSM_INIT else move_cs;
+   cs_o   <= init_cs   when fsm_state = FSM_INIT else move_cs;
    wren_o <= init_wren when fsm_state = FSM_INIT else move_wren;
    addr_o <= init_addr when fsm_state = FSM_INIT else move_addr;
    data_o <= init_data when fsm_state = FSM_INIT else move_data;
