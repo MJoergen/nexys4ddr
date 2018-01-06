@@ -2,15 +2,23 @@
 
 import sys
 import time
-import string
 
 filename = sys.argv[1]
 
 def main():
-    a = open(filename, "rb").read()
+    a = prepare_file(filename)
     result = translate(a)
-    print result
     write_file(result)
+
+def filter_line(a, op=","):
+    idx = a.find(op)
+    if idx == -1:
+        return a
+    elif idx == 0:
+        return ''
+    else:
+        a = a[:idx]
+    return a    
 
 #pads binary translation with addition 0's
 def to_b(a, l=32):
@@ -25,20 +33,36 @@ def to_b(a, l=32):
 to_binary = lambda x: x >= 0 and str(bin(x))[2:] or "-" + str(bin(x))[3:]
 
 
+def prepare_file(filename):
+    f = open(filename)
+    a = f.readlines()
+    a = map(filter_line, a)                      # Remove comments
+    a = [ i.strip() for i in [ x for x in a ] ]  # Remove white space
+    a = filter(lambda x : x != '', a)            # Remove empty elements
+    return a
+
 def getval(s):
     return int(s, 16)
 
 def translate(a):
     f = []
+    count = 0
     for c in a:
-        v = ord(c)
-        print hex(v)
+        v = getval(c)
         b = to_b(v, 8)
         f.append(b)
+        count += 1
+        if count == 13:
+            b = to_b(0, 8)
+            f.append(b)
+            f.append(b)
+            f.append(b)
+            count = 0
     return f
 
 def write_file(f):
-    name = filename + ".txt"
+    name = filter_line(filename, op=".")
+    name = name + ".txt"
     fl = open(name, "w")
     for i in f:
         fl.write(i+"\n")
