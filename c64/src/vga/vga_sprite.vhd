@@ -4,30 +4,30 @@
 --               a minimum.
 --
 -- Memory map :
+-- Each sprite has associated 0x20 bytes of data
 --              0x0000 - 0x000F : Sprite 0 bitmap area
---              0x0010 - 0x001F : Sprite 1 bitmap area
---              0x0020 - 0x002F : Sprite 2 bitmap area
---              0x0030 - 0x003F : Sprite 3 bitmap area
+--              0x0010          : bits 8-0 : Sprite 0 X position
+--              0x0011          : bits 7-0 : Sprite 0 Y position
+--              0x0012          : bits 7-0 : Sprite 0 color (RRRGGGBB)
+--              0x0013          : bit    0 : Sprite 0 enabled
 --
---              0x0100          : bits 8-0 : Sprite 0 X position
---              0x0101          : bits 7-0 : Sprite 0 Y position
---              0x0102          : bits 7-0 : Sprite 0 color (RRRGGGBB)
---              0x0103          : bit    0 : Sprite 0 enabled
+--              0x0020 - 0x002F : Sprite 1 bitmap area
+--              0x0030          : bits 8-0 : Sprite 1 X position
+--              0x0031          : bits 7-0 : Sprite 1 Y position
+--              0x0032          : bits 7-0 : Sprite 1 color (RRRGGGBB)
+--              0x0033          : bit    0 : Sprite 1 enabled
 --
---              0x0104          : bits 8-0 : Sprite 1 X position
---              0x0105          : bits 7-0 : Sprite 1 Y position
---              0x0106          : bits 7-0 : Sprite 1 color (RRRGGGBB)
---              0x0107          : bit    0 : Sprite 1 enabled
+--              0x0040 - 0x004F : Sprite 2 bitmap area
+--              0x0050          : bits 8-0 : Sprite 2 X position
+--              0x0051          : bits 7-0 : Sprite 2 Y position
+--              0x0052          : bits 7-0 : Sprite 2 color (RRRGGGBB)
+--              0x0053          : bit    0 : Sprite 2 enabled
 --
---              0x0108          : bits 8-0 : Sprite 2 X position
---              0x0109          : bits 7-0 : Sprite 2 Y position
---              0x010A          : bits 7-0 : Sprite 2 color (RRRGGGBB)
---              0x010B          : bit    0 : Sprite 2 enabled
---
---              0x010C          : bits 8-0 : Sprite 3 X position
---              0x010D          : bits 7-0 : Sprite 3 Y position
---              0x010E          : bits 7-0 : Sprite 3 color (RRRGGGBB)
---              0x010F          : bit    0 : Sprite 3 enabled
+--              0x0060 - 0x006F : Sprite 3 bitmap area
+--              0x0070          : bits 8-0 : Sprite 3 X position
+--              0x0071          : bits 7-0 : Sprite 3 Y position
+--              0x0072          : bits 7-0 : Sprite 3 color (RRRGGGBB)
+--              0x0073          : bit    0 : Sprite 3 enabled
 --
 -----------------------------------------------------------------------------
 
@@ -59,7 +59,7 @@ entity vga_sprite is
       col_o       : out std_logic_vector(11 downto 0);
 
       -- Configuration @ cpu_clk_i
-      cpu_addr_i  : in  std_logic_vector(8 downto 0);
+      cpu_addr_i  : in  std_logic_vector(6 downto 0);
       cpu_wren_i  : in  std_logic;
       cpu_data_i  : in  std_logic_vector(15 downto 0)
    );
@@ -365,14 +365,14 @@ begin
    begin
       if rising_edge(cpu_clk_i) then
          cpu_wren <= '0';
+         sprite_num := conv_integer(cpu_addr_i(6 downto 5));
 
          if cpu_wren_i = '1' then
-            if cpu_addr_i(8) = '0' then
+            if cpu_addr_i(4) = '0' then
                cpu_wren <= '1';
-               cpu_addr <= cpu_addr_i(5 downto 0);
+               cpu_addr <= cpu_addr_i(6 downto 5) & cpu_addr_i(3 downto 0);
                cpu_data <= reverse(cpu_data_i);
-            else -- addr_i(8) = '1' 
-               sprite_num := conv_integer(cpu_addr_i(3 downto 2));
+            else -- addr_i(4) = '1' 
                offset := conv_integer(cpu_addr_i(1 downto 0));
 
                case offset is

@@ -36,7 +36,7 @@ architecture Structural of hack is
    signal clk_cpu : std_logic;
    signal rst_cpu : std_logic := '1';  -- Asserted high.
    
-   signal cpu_addr   : std_logic_vector( 8 downto 0);
+   signal cpu_addr   : std_logic_vector( 6 downto 0);
    signal cpu_wren   : std_logic;
    signal cpu_data   : std_logic_vector(15 downto 0);
 

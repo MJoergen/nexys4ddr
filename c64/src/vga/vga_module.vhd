@@ -19,7 +19,7 @@ entity vga_module is
       col_o : out std_logic_vector(11 downto 0);
 
       -- Configuration @ cpu_clk_i
-      cpu_addr_i : in  std_logic_vector( 8 downto 0);
+      cpu_addr_i : in  std_logic_vector( 6 downto 0);
       cpu_wren_i : in  std_logic;
       cpu_data_i : in  std_logic_vector(15 downto 0)
    );

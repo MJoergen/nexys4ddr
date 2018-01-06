@@ -12,7 +12,7 @@ entity config is
       clk_i  : in  std_logic;
       rst_i  : in  std_logic;
       wren_o : out std_logic;
-      addr_o : out std_logic_vector( 8 downto 0);
+      addr_o : out std_logic_vector( 6 downto 0);
       data_o : out std_logic_vector(15 downto 0)
    );
 
@@ -34,7 +34,7 @@ architecture Structural of config is
    constant C_COUNT_MAX : integer := get_counter_size(G_SIMULATION);
 
    signal init_wren    : std_logic;
-   signal init_addr    : std_logic_vector( 8 downto 0);
+   signal init_addr    : std_logic_vector( 7 downto 0);
    signal init_data    : std_logic_vector(15 downto 0);
    signal init_counter : integer := 0;
 
@@ -45,7 +45,7 @@ architecture Structural of config is
    signal posy         : std_logic_vector(15 downto 0) := (others => '0');
 
    signal move_wren    : std_logic;
-   signal move_addr    : std_logic_vector( 8 downto 0) := (others => '0');
+   signal move_addr    : std_logic_vector( 7 downto 0) := (others => '0');
    signal move_data    : std_logic_vector(15 downto 0) := (others => '0');
 
 
@@ -55,7 +55,7 @@ architecture Structural of config is
 
 
    type t_config is record
-      addr : std_logic_vector( 8 downto 0);
+      addr : std_logic_vector( 7 downto 0);
       data : std_logic_vector(15 downto 0);
    end record t_config;
 
@@ -63,50 +63,50 @@ architecture Structural of config is
 
    constant C_CONFIG : t_config_vector := (
       -- Sprite 0
-      ("0" & X"00", X"0000"),
-      ("0" & X"01", X"0000"),
-      ("0" & X"02", X"0180"),
-      ("0" & X"03", X"0660"),
-      ("0" & X"04", X"0810"),
-      ("0" & X"05", X"1008"),
-      ("0" & X"06", X"1008"),
-      ("0" & X"07", X"2004"),
-      ("0" & X"08", X"2004"),
-      ("0" & X"09", X"1008"),
-      ("0" & X"0A", X"1008"),
-      ("0" & X"0B", X"0810"),
-      ("0" & X"0C", X"0660"),
-      ("0" & X"0D", X"0180"),
-      ("0" & X"0E", X"0000"),
-      ("0" & X"0F", X"0000"),
+      (X"00", X"0000"),
+      (X"01", X"0000"),
+      (X"02", X"0180"),
+      (X"03", X"0660"),
+      (X"04", X"0810"),
+      (X"05", X"1008"),
+      (X"06", X"1008"),
+      (X"07", X"2004"),
+      (X"08", X"2004"),
+      (X"09", X"1008"),
+      (X"0A", X"1008"),
+      (X"0B", X"0810"),
+      (X"0C", X"0660"),
+      (X"0D", X"0180"),
+      (X"0E", X"0000"),
+      (X"0F", X"0000"),
 
-      ("1" & X"00", X"0020"),   -- X position bits 8-0
-      ("1" & X"01", X"0000"),   -- Y position
-      ("1" & X"02", X"00F0"),   -- Color
-      ("1" & X"03", X"0001"),   -- Enable
+      (X"10", X"0020"),   -- X position bits 8-0
+      (X"11", X"0000"),   -- Y position
+      (X"12", X"00F0"),   -- Color
+      (X"13", X"0001"),   -- Enable
 
       -- Sprite 1
-      ("0" & X"10", X"FFFF"),
-      ("0" & X"11", X"8001"),
-      ("0" & X"12", X"8001"),
-      ("0" & X"13", X"8001"),
-      ("0" & X"14", X"8001"),
-      ("0" & X"15", X"8001"),
-      ("0" & X"16", X"8001"),
-      ("0" & X"17", X"8001"),
-      ("0" & X"18", X"8001"),
-      ("0" & X"19", X"8001"),
-      ("0" & X"1A", X"8001"),
-      ("0" & X"1B", X"8001"),
-      ("0" & X"1C", X"8001"),
-      ("0" & X"1D", X"8001"),
-      ("0" & X"1E", X"8001"),
-      ("0" & X"1F", X"FFFF"),
+      (X"20", X"FFFF"),
+      (X"21", X"8001"),
+      (X"22", X"8001"),
+      (X"23", X"8001"),
+      (X"24", X"8001"),
+      (X"25", X"8001"),
+      (X"26", X"8001"),
+      (X"27", X"8001"),
+      (X"28", X"8001"),
+      (X"29", X"8001"),
+      (X"2A", X"8001"),
+      (X"2B", X"8001"),
+      (X"2C", X"8001"),
+      (X"2D", X"8001"),
+      (X"2E", X"8001"),
+      (X"2F", X"FFFF"),
 
-      ("1" & X"04", X"0023"),   -- X position bits 8-0
-      ("1" & X"05", X"0000"),   -- Y position
-      ("1" & X"06", X"00AA"),   -- Color
-      ("1" & X"07", X"0001")    -- Enable
+      (X"34", X"0023"),   -- X position bits 8-0
+      (X"35", X"0000"),   -- Y position
+      (X"36", X"00AA"),   -- Color
+      (X"37", X"0001")    -- Enable
    );
 
 begin
@@ -196,14 +196,14 @@ begin
                end if;
 
             when FSM_MOVE_X =>
-               move_addr <= "100000000";
+               move_addr <= X"10";
                move_data(15 downto 8) <= X"00";
                move_data(7 downto 0)  <= posx(15 downto 8) + X"80";
                move_wren <= '1';
                fsm_state <= FSM_MOVE_Y;
 
             when FSM_MOVE_Y =>
-               move_addr <= "100000001";
+               move_addr <= X"11";
                move_data(15 downto 8) <= X"00";
                move_data(7 downto 0)  <= posy(15 downto 8) + X"80";
                move_wren <= '1';
@@ -225,11 +225,11 @@ begin
       if rising_edge(clk_i) then
          if fsm_state = FSM_INIT then
             wren_o <= init_wren;
-            addr_o <= init_addr;
+            addr_o <= init_addr(6 downto 0);
             data_o <= init_data;
          else
             wren_o <= move_wren;
-            addr_o <= move_addr;
+            addr_o <= move_addr(6 downto 0);
             data_o <= move_data;
          end if;
       end if;
