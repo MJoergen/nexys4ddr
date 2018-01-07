@@ -58,10 +58,12 @@ entity vga_sprite is
       vs_o        : out std_logic;
       col_o       : out std_logic_vector(11 downto 0);
 
-      -- Configuration @ cpu_clk_i
+      -- Configuration and status @ cpu_clk_i
       cpu_addr_i  : in  std_logic_vector(6 downto 0);
       cpu_wren_i  : in  std_logic;
-      cpu_data_i  : in  std_logic_vector(15 downto 0)
+      cpu_data_i  : in  std_logic_vector(15 downto 0);
+      cpu_rden_i  : in  std_logic;
+      cpu_data_o  : out std_logic_vector(15 downto 0)
    );
 end vga_sprite;
 
@@ -81,29 +83,7 @@ architecture Behavioral of vga_sprite is
       return arg(7 downto 5) & "0" & arg(4 downto 2) & "0" & arg(1 downto 0) & "00";
    end function col8to12;
 
-
-   -- State machine to read sprite bitmaps from BRAM
-   type t_fsm is (IDLE_ST, READING_ST);
-   signal fsm_state   : t_fsm := IDLE_ST;
-   signal sprite      : integer range 0 to 3; -- Current sprite number being read from bitmap RAM
-   signal fsm_rden    : std_logic_vector(3 downto 0);
-   signal fsm_addr    : std_logic_vector(4*4-1 downto 0);
-   signal vga_rden_d  : std_logic;
-   signal vga_addr_d  : std_logic_vector(5 downto 0);
-   signal stage5_rows : std_logic_vector(16*4-1 downto 0);
-
-
-   -- This contains configuration data for each sprite
-   type t_config is record
-      posx        : std_logic_vector(8 downto 0);
-      posy        : std_logic_vector(7 downto 0);
-      color       : std_logic_vector(7 downto 0);
-      enable      : std_logic;
-   end record t_config;
-
-   type t_config_vector is array (natural range <>) of t_config;
-
-
+   ----------------------------------------------------------------------
 
    -- Pipeline
    type t_stage is record
@@ -117,6 +97,7 @@ architecture Behavioral of vga_sprite is
       col_index       : std_logic_vector(4*4-1 downto 0);  -- Valid in stage 1 (0 - 15) for each sprite
       col_index_valid : std_logic_vector(3 downto 0);      -- Valid in stage 1
       pix             : std_logic_vector(3 downto 0);      -- Valid in stage 6
+      collision       : std_logic_vector(3 downto 0);      -- Valid in stage 6
    end record t_stage;
 
    constant STAGE_DEFAULT : t_stage := (
@@ -129,12 +110,9 @@ architecture Behavioral of vga_sprite is
       row_index_valid => (others => '0'),
       col_index       => (others => '0'),
       col_index_valid => (others => '0'),
-      pix             => (others => '0')
+      pix             => (others => '0'),
+      collision       => (others => '0')
    );
-
-   ----------------------------------------------------------------------
-
-   signal config  : t_config_vector(3 downto 0);   -- Configuration data
 
    signal stage0 : t_stage := STAGE_DEFAULT;
    signal stage1 : t_stage := STAGE_DEFAULT;
@@ -145,6 +123,21 @@ architecture Behavioral of vga_sprite is
    signal stage6 : t_stage := STAGE_DEFAULT;
    signal stage7 : t_stage := STAGE_DEFAULT;
 
+   ----------------------------------------------------------------------
+
+   -- This contains configuration data for each sprite
+   type t_config is record
+      posx        : std_logic_vector(8 downto 0);
+      posy        : std_logic_vector(7 downto 0);
+      color       : std_logic_vector(7 downto 0);
+      enable      : std_logic;
+   end record t_config;
+
+   type t_config_vector is array (natural range <>) of t_config;
+
+   signal config  : t_config_vector(3 downto 0);   -- Configuration data
+
+   ----------------------------------------------------------------------
 
    -- Signals connected to the sprite bitmap BRAM
    signal vga_addr   : std_logic_vector( 5 downto 0);   -- 2 bits for sprite #, and 4 bits for row.
@@ -154,6 +147,21 @@ architecture Behavioral of vga_sprite is
    signal cpu_addr   : std_logic_vector( 5 downto 0);   -- 2 bits for sprite #, and 4 bits for row.
    signal cpu_data   : std_logic_vector(15 downto 0);
    signal cpu_wren   : std_logic;
+
+   -- State machine to read sprite bitmaps from BRAM
+   type t_fsm is (IDLE_ST, READING_ST);
+   signal fsm_state   : t_fsm := IDLE_ST;
+   signal sprite      : integer range 0 to 3; -- Current sprite number being read from bitmap RAM
+   signal fsm_rden    : std_logic_vector(3 downto 0);
+   signal fsm_addr    : std_logic_vector(4*4-1 downto 0);
+   signal vga_rden_d  : std_logic;
+   signal vga_addr_d  : std_logic_vector(5 downto 0);
+   signal stage5_rows : std_logic_vector(16*4-1 downto 0);
+
+   ----------------------------------------------------------------------
+
+   -- Latched collusion status
+   signal collision : std_logic_vector(3 downto 0) := (others => '0');
 
 begin
 
@@ -279,6 +287,8 @@ begin
          stage1 <= stage0;
 
          stage1.col_index_valid <= (others => '0');
+         stage1.row_index_valid <= (others => '0');
+
          for i in 0 to 3 loop
             pix_x_v := stage0.hcount(10 downto 1) - ("0" & config(i).posx);
             stage1.col_index(4*(i+1)-1 downto 4*i) <= pix_x_v(3 downto 0);
@@ -348,19 +358,15 @@ begin
             end if;
          end loop;
 
+         -- More than 1 bit set in stage6.pix indicates collision between two
+         -- or more sprites.
+         stage7.collision <= (others => '0');
+         if (stage6.pix and (stage6.pix - 1)) /= 0 then
+            stage7.collision <= stage6.pix;
+         end if;
+
       end if;
    end process p_stage7;
-
-
-   ----------------------------------------
-   -- Drive output signals
-   ----------------------------------------
-
-   hcount_o <= stage7.hcount;
-   vcount_o <= stage7.vcount;
-   hs_o     <= stage7.hs;
-   vs_o     <= stage7.vs;
-   col_o    <= stage7.col;
 
 
    ----------------------------------------
@@ -403,6 +409,43 @@ begin
          end if;
       end if;
    end process p_sprites;
+
+
+   --------------
+   -- Status read
+   --------------
+
+   p_status : process (cpu_clk_i)
+   begin
+      if rising_edge(cpu_clk_i) then
+         cpu_data_o <= (others => '0');
+         collision <= collision or stage7.collision;
+
+         if cpu_rden_i = '1' then
+            if cpu_addr_i = "0000000" then
+               cpu_data_o <= X"000" & collision;
+               collision <= (others => '0');
+            end if;
+         end if;
+
+         if cpu_rst_i = '1' then
+            collision <= (others => '0');
+         end if;
+      end if;
+   end process p_status;
+
+
+   ----------------------------------------
+   -- Drive output signals
+   ----------------------------------------
+
+   hcount_o <= stage7.hcount;
+   vcount_o <= stage7.vcount;
+   hs_o     <= stage7.hs;
+   vs_o     <= stage7.vs;
+   col_o    <= stage7.col when collision = 0
+               else not stage7.col;
+
 
 end Behavioral;
 

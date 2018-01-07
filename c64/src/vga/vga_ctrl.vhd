@@ -25,7 +25,7 @@ end vga_ctrl;
 architecture Behavioral of vga_ctrl is
 
    -- The following numbers produce a 640x480 screen at 60 Hz refresh rate.
-   -- This assumes a clock frequency of 25.175 MHz.
+   -- This assumes a clock frequency of 800*525*60 Hz = 25.2 MHz.
    constant FRAME_WIDTH  : natural := 640;
    constant FRAME_HEIGHT : natural := 480;
 
@@ -110,12 +110,17 @@ begin
    active <= '1' when h_cntr < FRAME_WIDTH and v_cntr < FRAME_HEIGHT
              else '0';
 
-   -- Assign outputs
-   hs_o     <= h_sync;
-   vs_o     <= v_sync;
-   hcount_o <= h_cntr;
-   vcount_o <= v_cntr;
-   blank_o  <= not active;
+   -- Register outputs
+   p_output : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         hs_o     <= h_sync;
+         vs_o     <= v_sync;
+         hcount_o <= h_cntr;
+         vcount_o <= v_cntr;
+         blank_o  <= not active;
+      end if;
+   end process p_output;
 
 end Behavioral;
 

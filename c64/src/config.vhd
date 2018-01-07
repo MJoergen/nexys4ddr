@@ -11,9 +11,11 @@ entity config is
    port (
       clk_i  : in  std_logic;
       rst_i  : in  std_logic;
-      wren_o : out std_logic;
       addr_o : out std_logic_vector( 6 downto 0);
-      data_o : out std_logic_vector(15 downto 0)
+      wren_o : out std_logic;
+      data_o : out std_logic_vector(15 downto 0);
+      rden_o : out std_logic;
+      data_i : in  std_logic_vector(15 downto 0)
    );
 
 end entity config;
@@ -44,10 +46,10 @@ architecture Structural of config is
    signal posx         : std_logic_vector(15 downto 0) := (others => '0');
    signal posy         : std_logic_vector(15 downto 0) := (others => '0');
 
+   signal move_rden    : std_logic;
    signal move_wren    : std_logic;
    signal move_addr    : std_logic_vector( 7 downto 0) := (others => '0');
    signal move_data    : std_logic_vector(15 downto 0) := (others => '0');
-
 
    -- State machine to control the CPU
    type t_fsm_state is (FSM_INIT, FSM_IDLE, FSM_MOVE_X, FSM_MOVE_Y);
@@ -150,7 +152,7 @@ architecture Structural of config is
       (X"6F", "0110000000000110"),
 
       (X"70", X"0080"),   -- X position bits 8-0
-      (X"71", X"0060"),   -- Y position
+      (X"71", X"00C0"),   -- Y position
       (X"72", X"000F"),   -- Color
       (X"73", X"0001")    -- Enable
 
@@ -230,6 +232,7 @@ begin
    begin
       if rising_edge(clk_i) then
          move_wren <= '0';
+         move_rden <= '0';
 
          case fsm_state is
             when FSM_INIT =>
@@ -271,13 +274,15 @@ begin
    begin
       if rising_edge(clk_i) then
          if fsm_state = FSM_INIT then
-            wren_o <= init_wren;
             addr_o <= init_addr(6 downto 0);
+            wren_o <= init_wren;
             data_o <= init_data;
+            rden_o <= '0';
          else
-            wren_o <= move_wren;
             addr_o <= move_addr(6 downto 0);
+            wren_o <= move_wren;
             data_o <= move_data;
+            rden_o <= move_rden;
          end if;
       end if;
    end process p_out;
