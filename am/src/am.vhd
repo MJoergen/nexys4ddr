@@ -5,6 +5,18 @@
 -- the M68000 processor.
 -- This computer is designed to run on both a BASYS2 board and 
 -- a NEXYS4DDR board, both from Digilent.
+--
+-- The computer consists of the following parts:
+-- * MC68000 CPU
+-- * Memory
+-- * VGA driver
+-- * USB keyboard input
+--
+-- All peripherals are memory-mapped according to the following
+-- address layout:
+-- 0x000000 - 0x000FFF : Memory (4 kB)
+-- 0x010000 - 0x010FFF : VGA driver (4 kB)
+-- 0x020000 - 0x020000 : USB Keyboard input (1 byte)
 -----------------------------------------------------------------
 
 library ieee;

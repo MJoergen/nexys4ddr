@@ -11,17 +11,25 @@ The computer consists of the following parts:
 This computer is designed to run on both a BASYS2 board and 
 a NEXYS4DDR board, both from Digilent.
 
+You can see more about its features here: [Rockwell Retro Encabulator
+](https://www.youtube.com/watch?v=RXJKdh1KZ0w&t=) (That was a joke ...)
+
 
 ## The MC68000 processor
-This is a RISC processor with 32-bit data bus and 16-bit address bus.
+This is a RISC processor with 16-bit data bus and 24-bit address bus. It has
+sixteen internal 32-bit registers. Memory is accessed in big-endian format.
+I/O is accessed through memory-mapped addresses.
 
 Features implemented are:
 * Integer ALU
+* Interrupt (section 5.1.4 and 6.3.2)
 
 Feature not (yet) implemented are:
+* Test and set (TAS) read-modify-write (section 5.1.3)
+* Bus arbitration (sections 5.2 and 5.3 and 5.4 and 5.6)
+* Reset operation (section 5.5)
+* Supervisor mode and exceptions (section 6)
 * Floating Point Unit
-* Supervisor mode
-* Interrupt
 
 More information about this processor can be found here:
 [https://www.nxp.com/docs/en/reference-manual/MC68000UM.pdf](https://www.nxp.com/docs/en/reference-manual/MC68000UM.pdf)
