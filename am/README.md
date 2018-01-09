@@ -16,7 +16,7 @@ You can see more about its features here: [Rockwell Retro Encabulator
 
 
 ## The MC68000 processor
-This is a RISC processor with 16-bit data bus and 24-bit address bus. It has
+This is a processor with 16-bit data bus and 24-bit address bus. It has
 sixteen internal 32-bit registers. Memory is accessed in big-endian format.
 I/O is accessed through memory-mapped addresses.
 
@@ -33,6 +33,8 @@ Feature not (yet) implemented are:
 
 More information about this processor can be found here:
 [https://www.nxp.com/docs/en/reference-manual/MC68000UM.pdf](https://www.nxp.com/docs/en/reference-manual/MC68000UM.pdf)
+Detailed description of the instruction set is here:
+[https://www.nxp.com/docs/en/reference-manual/M68000PRM.pdf](https://www.nxp.com/docs/en/reference-manual/M68000PRM.pdf)
 
 
 ## Memory
