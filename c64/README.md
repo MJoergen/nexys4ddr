@@ -47,6 +47,9 @@ only has very few registers.  Therefore programs have to use RAM instead of
 registers to do calculations, which makes the programs slower. A future project
 might implement a different CPU with a larger number of internal registers.
 
+A C-program emulating the 6502 processor can be found here:
+[http://rubbermallet.org/fake6502.c](http://rubbermallet.org/fake6502.c)
+
 
 ## Memory
 The BASYS2 board (XC3S250E FPGA from Xilinx) has only a limited amount of
