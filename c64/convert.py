@@ -10,7 +10,7 @@ def main():
     result = translate(a)
     write_file(result)
 
-def filter_line(a, op=","):
+def filter_line(a, op=";"):
     idx = a.find(op)
     if idx == -1:
         return a
@@ -48,16 +48,10 @@ def translate(a):
     f = []
     count = 0
     for c in a:
-        v = getval(c)
-        b = to_b(v, 8)
-        f.append(b)
-        count += 1
-        if count == 13:
-            b = to_b(0, 8)
+        for d in c.split(" "):
+            v = getval(d)
+            b = to_b(v, 8)
             f.append(b)
-            f.append(b)
-            f.append(b)
-            count = 0
     return f
 
 def write_file(f):
