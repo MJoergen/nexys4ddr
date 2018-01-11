@@ -22,6 +22,9 @@ SRC += src/cpu/ctl.vhd
 SRC += src/cpu/alu.vhd
 SRC += src/cpu/cpu_module.vhd
 
+# Memory
+SRC += src/mem.vhd
+
 # Configuration
 SRC += src/config.vhd
 

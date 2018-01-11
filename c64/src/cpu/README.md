@@ -51,6 +51,16 @@ two reads (the two bytes of the instruction), then two additional reads from
 memory and one write to memory. This can not be done in a simple pipeline, and
 therefore we need a sequential state machine containing microcode.
 
+## LDA #$40
+Let's look at how to implement this instruction.
+The byte sequence for this instruction is "A9 40".
+The first clock cycle sends the PC to the memory address, and enables memory
+read. And increments the PC. Then it stores the instruction in an 
+internal instruction register and begins decoding.
+The second clock cycle sends the PC to the memory address, and enables memory
+read.
+
+
 ## Possible inputs to the ALU
 * First  : A register
 * Second : Result of addressing mode (only used for some operations)

@@ -46,6 +46,8 @@ architecture Structural of hack is
    signal irq         : std_logic;
    signal cpu_debug   : std_logic_vector(63 downto 0);
 
+   signal mem_data    : std_logic_vector(7 downto 0);
+
 begin
 
    ------------------------------
@@ -132,6 +134,21 @@ begin
       debug_o => cpu_debug 
    );
 
+   ------------------------------
+   -- Instantiate Memory
+   ------------------------------
+
+   inst_mem : entity work.mem
+   port map (
+      clk_i  => clk_cpu,
+      rst_i  => rst_cpu,
+
+      addr_i => cpu_addr(9 downto 0),
+      wren_i => cpu_wren,
+      data_i => cpu_data,
+      rden_i => cpu_rden,
+      data_o => mem_data
+   );
 
 end Structural;
 

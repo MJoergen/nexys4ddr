@@ -65,7 +65,7 @@ architecture Structural of cpu_module is
    signal inst : std_logic_vector(7 downto 0);
 
 begin
-
+ 
    -- Debug output
    debug_o(23 downto  0) <= regs_debug;
    debug_o(31 downto 24) <= reg_sp;
