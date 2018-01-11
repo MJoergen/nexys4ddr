@@ -23,20 +23,33 @@ Most instructions are of the form AAABBBCC.
 * 110: absolute, Y
 * 111: absolute, X
 
-## ALU operations (13 in total so far)
-* Arithmetic shift left 1 bit (ASL)
-* Logical shift right 1 bit (LSR)
-* Rotate left 1 bit (ROL)
-* Rotate right 1 bit (ROR)
-* AND
-* OR
-* XOR
-* Add with carry (ADC)
-* Subtract with borrow (SBC)
-* Increment with 1
-* Decrement with 1
-* Compare (same as SBC?)
-* Test (same as AND?)
+## ALU operations (13 in total so far) (number of operands in parenthesis)
+* Arithmetic shift left 1 bit (ASL) (1)   (1000)
+* Logical shift right 1 bit (LSR)   (1)   (1010)
+* Rotate left 1 bit (ROL)           (1)   (1001)
+* Rotate right 1 bit (ROR)          (1)   (1011)
+* Increment with 1                  (1)   (1111)
+* Decrement with 1                  (1)   (1110)
+* AND                               (2)   (0001)
+* OR                                (2)   (0000)
+* XOR                               (2)   (0010)
+* Add with carry (ADC)              (2)   (0011)
+* Subtract with borrow (SBC)        (2)   (0111)
+* Compare (same as SBC?)            (2)   (0110)
+* Test (same as AND?)               (2)
+
+## Read modify write
+The 6502 CPU supports instructions like INC $AAAA, where it
+reads a value from memory, sends the value to fhe ALU, and writes
+the output of the ALU back to memory. This is called "read-modify-write".
+Therefore, one of the inputs to the ALU should be memory read, and the
+output of the ALU should be connected to memory write.
+
+## Initial design notes
+Since the 6502 supports instructions like e.g. INC ($15,X), it must first do
+two reads (the two bytes of the instruction), then two additional reads from
+memory and one write to memory. This can not be done in a simple pipeline, and
+therefore we need a sequential state machine containing microcode.
 
 ## Possible inputs to the ALU
 * First  : A register

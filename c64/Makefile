@@ -16,6 +16,12 @@ SRC += src/vga/vga_disp.vhd
 SRC += src/vga/vga_sprite.vhd
 SRC += src/vga/vga_module.vhd
 
+# CPU
+SRC += src/cpu/regs.vhd
+SRC += src/cpu/ctl.vhd
+SRC += src/cpu/alu.vhd
+SRC += src/cpu/cpu_module.vhd
+
 # Configuration
 SRC += src/config.vhd
 

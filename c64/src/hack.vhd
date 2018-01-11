@@ -36,11 +36,15 @@ architecture Structural of hack is
    signal clk_cpu : std_logic;
    signal rst_cpu : std_logic := '1';  -- Asserted high.
    
-   signal cpu_addr   : std_logic_vector( 6 downto 0);
-   signal cpu_wren   : std_logic;
-   signal cpu_data   : std_logic_vector(15 downto 0);
-   signal cpu_rden   : std_logic;
-   signal vga_data   : std_logic_vector(15 downto 0);
+   signal cpu_addr    : std_logic_vector(15 downto 0);
+   signal cpu_wren    : std_logic;
+   signal cpu_data    : std_logic_vector( 7 downto 0);
+   signal cpu_rden    : std_logic;
+   signal vga_data    : std_logic_vector(15 downto 0);
+   signal vga_data_in : std_logic_vector(15 downto 0);
+
+   signal irq         : std_logic;
+   signal cpu_debug   : std_logic_vector(63 downto 0);
 
 begin
 
@@ -101,31 +105,33 @@ begin
       col_o => vga_col_o,
 
       -- Configuration @ cpu_clk_i
-      cpu_addr_i => cpu_addr,
+      cpu_addr_i => cpu_addr(6 downto 0),
       cpu_wren_i => cpu_wren,
-      cpu_data_i => cpu_data,
+      cpu_data_i => vga_data_in,
       cpu_rden_i => cpu_rden,
       cpu_data_o => vga_data
    );
 
+   vga_data_in <= X"00" & cpu_data;
+
 
    ------------------------------
-   -- Instantiate Configuration
+   -- Instantiate CPU
    ------------------------------
 
-   inst_config : entity work.config
-   generic map (
-      G_SIMULATION => G_SIMULATION
-   )
+   inst_cpu : entity work.cpu_module
    port map (
-      clk_i  => clk_cpu,
-      rst_i  => rst_cpu,
-      addr_o => cpu_addr,
-      wren_o => cpu_wren,
-      data_o => cpu_data,
-      rden_o => cpu_rden,
-      data_i => vga_data
+      clk_i   => clk_cpu,
+      rst_i   => rst_cpu,
+      addr_o  => cpu_addr,
+      rden_o  => cpu_rden,
+      data_i  => vga_data(7 downto 0),
+      wren_o  => cpu_wren,
+      data_o  => cpu_data,
+      irq_i   => irq,
+      debug_o => cpu_debug 
    );
+
 
 end Structural;
 
