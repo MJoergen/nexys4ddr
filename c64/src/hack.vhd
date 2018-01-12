@@ -1,14 +1,23 @@
 library ieee;
-use ieee.STD_LOGIC_1164.ALL;
-use ieee.STD_LOGIC_UNSIGNED.ALL;
-use ieee.numeric_std.all;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+
+-- This is the top level instance of this "computer".
+-- It consists of four blocks:
+-- 1) The CPU controlling everything
+-- 2) The ROM
+-- 3) The VGA module (memory mapped)
+-- 4) The RAM
+-- 
+-- The ROM, VGA, and RAM all respond upon read on the falling clock edge. This
+-- "imitates" an asynchronous memory interface.
 
 entity hack is
 
    generic (
       G_ROM_SIZE   : integer := 10;   -- Number of bits in ROM address
       G_RAM_SIZE   : integer := 10;   -- Number of bits in RAM address
-      G_SIMULATION : string := "";
+      G_SIMULATION : boolean := false;
       G_ROM_FILE   : string := "rom.txt";
       G_CHAR_FILE  : string := "ProggyClean.txt"
    );
@@ -75,8 +84,8 @@ begin
       sys_rstn_i => sys_rstn_i,
       rst_cpu_o  => rst_cpu,
       rst_vga_o  => rst_vga,
-      clk_cpu_o  => rst_cpu,
-      clk_vga_o  => rst_vga
+      clk_cpu_o  => clk_cpu,
+      clk_vga_o  => clk_vga
    );
 
 
@@ -103,7 +112,9 @@ begin
 
    inst_vga_module : entity work.vga_module
    generic map (
-                  G_CHAR_FILE  => G_CHAR_FILE 
+                  G_CHAR_FILE  => G_CHAR_FILE,
+                  G_DO_RD_REG  => true,
+                  G_RD_CLK_RIS => false    -- Register on falling edge.
                )
    port map (
       vga_clk_i => clk_vga,
@@ -113,13 +124,15 @@ begin
       col_o => vga_col_o,
 
       -- Configuration @ cpu_clk_i
-      cpu_clk_i => clk_cpu,
-      cpu_rst_i => rst_cpu,
+      cpu_clk_i  => clk_cpu,
+      cpu_rst_i  => rst_cpu,
       cpu_addr_i => cpu_addr(6 downto 0),
       cpu_wren_i => cpu_wren,
       cpu_data_i => cpu_data,
       cpu_rden_i => rden_vga,
-      cpu_data_o => data
+      cpu_data_o => data,
+
+      cpu_irq_o => vga_irq
    );
 
 
@@ -136,6 +149,7 @@ begin
       G_CHAR_FILE  => G_ROM_FILE
    )
    port map (
+      -- Write port not connected, because it is a ROM.
       wr_clk_i  => '0',
       wr_en_i   => '0',
       wr_addr_i => (others => '0'),
@@ -147,6 +161,7 @@ begin
       rd_data_o => data
    );
 
+
    ------------------------------
    -- Instantiate RAM
    ------------------------------
@@ -157,7 +172,7 @@ begin
       G_DATA_SIZE  => 8,
       G_DO_RD_REG  => true,
       G_RD_CLK_RIS => false,   -- Register on falling edge.
-      G_CHAR_FILE  => ""
+      G_CHAR_FILE  => ""       -- No initial contents of RAM.
    )
    port map (
       wr_clk_i  => clk_cpu,

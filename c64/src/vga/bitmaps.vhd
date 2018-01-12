@@ -21,7 +21,7 @@ entity bitmaps is
 
       -- Write port @ cpu_clk_i
       cpu_addr_i  : in  std_logic_vector( 5 downto 0);   -- 2 bits for sprite #, and 4 bits for row.
-      cpu_data_i  : in  std_logic_vector(15 downto 0);
+      cpu_data_i  : in  std_logic_vector( 7 downto 0);
       cpu_wren_i  : in  std_logic
    );
 end bitmaps;
@@ -58,7 +58,7 @@ begin
    process (cpu_clk_i)
    begin
       if rising_edge(cpu_clk_i) then
-         bitmaps(conv_integer(cpu_addr_i)) <= cpu_data_i;
+         bitmaps(conv_integer(cpu_addr_i)) <= X"00" & cpu_data_i;
       end if;
    end process;
 

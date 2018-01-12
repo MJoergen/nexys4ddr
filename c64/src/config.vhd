@@ -1,7 +1,6 @@
 library ieee;
-use ieee.STD_LOGIC_1164.ALL;
-use ieee.STD_LOGIC_UNSIGNED.ALL;
-use ieee.numeric_std.all;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
 
 entity config is
 

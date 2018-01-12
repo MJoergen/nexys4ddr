@@ -7,7 +7,7 @@ use ieee.std_logic_unsigned.all;
 entity clk_rst is
 
    generic (
-              G_SIMULATION : string
+              G_SIMULATION : boolean
            );
    port (
            sys_clk_i  : in  std_logic;
@@ -33,11 +33,11 @@ begin
    -- Generate clocks. Speed up simulation by skipping the MMCME2_ADV
    ------------------------------
 
-   gen_simulation: if G_SIMULATION = "yes"  generate
+   gen_simulation: if G_SIMULATION = true  generate
       clk_vga <= sys_clk_i;
    end generate gen_simulation;
 
-   gen_no_simulation: if G_SIMULATION /= "yes"  generate
+   gen_no_simulation: if G_SIMULATION = false  generate
       inst_clk_wiz_vga : entity work.clk_wiz_vga
       port map
       (

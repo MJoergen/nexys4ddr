@@ -37,6 +37,10 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
 entity vga_sprite is
+   generic (
+      G_DO_RD_REG  : boolean;     -- Register on read port?
+      G_RD_CLK_RIS : boolean      -- Rising clock on read port?
+   );
    port (
       vga_clk_i   : in  std_logic;
       vga_rst_i   : in  std_logic;
@@ -63,7 +67,8 @@ entity vga_sprite is
       cpu_wren_i  : in  std_logic;
       cpu_data_i  : in  std_logic_vector(7 downto 0);
       cpu_rden_i  : in  std_logic;
-      cpu_data_o  : out std_logic_vector(7 downto 0)
+      cpu_data_o  : out std_logic_vector(7 downto 0);
+      cpu_irq_o   : out std_logic
    );
 end vga_sprite;
 
@@ -145,7 +150,7 @@ architecture Behavioral of vga_sprite is
    signal vga_rden   : std_logic;
 
    signal cpu_addr   : std_logic_vector( 5 downto 0);   -- 2 bits for sprite #, and 4 bits for row.
-   signal cpu_data   : std_logic_vector(15 downto 0);
+   signal cpu_data   : std_logic_vector( 7 downto 0);
    signal cpu_wren   : std_logic;
 
    -- State machine to read sprite bitmaps from BRAM
@@ -433,6 +438,11 @@ begin
          end if;
       end if;
    end process p_status;
+
+   cpu_irq_o <= '0';
+
+   assert G_DO_RD_REG = true report "Wrong value for G_DO_RD_REG" severity failure;
+   assert G_RD_CLK_RIS = false report "Wrong value for G_RD_CLK_RIS" severity failure;
 
 
    ----------------------------------------

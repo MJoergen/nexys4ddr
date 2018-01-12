@@ -29,9 +29,6 @@ SRC += src/mem_file.vhd
 # Control logic
 SRC += src/cs.vhd
 
-# Configuration
-SRC += src/config.vhd
-
 stoptime = --stop-time=250us
 
 include ../xilinx.mk

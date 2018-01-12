@@ -66,7 +66,7 @@ sim: $(wave)
 	gtkwave $(wave) $(wavesave)
 
 $(wave): $(testbench)
-	-ghdl -r $(testbench) --assert-level=error --wave=$(wave) $(stoptime) -gG_SIMULATION=yes
+	-ghdl -r $(testbench) --assert-level=error --wave=$(wave) $(stoptime) -gG_SIMULATION=true
 junk += $(wave)
 
 .PHONY: elaborate

@@ -97,7 +97,7 @@ begin
       end process;
    end generate gen_rising_reg;
 
-   gen_falling_reg: if G_DO_RD_REG = true and G_RD_CLK_RIS = true  generate
+   gen_falling_reg: if G_DO_RD_REG = true and G_RD_CLK_RIS = false  generate
       process (rd_clk_i)
       begin
          if falling_edge(rd_clk_i) then

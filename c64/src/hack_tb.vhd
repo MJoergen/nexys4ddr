@@ -10,15 +10,15 @@ use ieee.STD_LOGIC_UNSIGNED.ALL;
 
 entity hack_tb is
    generic (
-      G_SIMULATION : string := ""
+      G_SIMULATION : boolean := true
    );
 end hack_tb;
 
 architecture Structural of hack_tb is
 
     -- Clock and reset
-    signal clk  : std_logic;  -- 100 MHz
-    signal rstn : std_logic := '1';
+    signal sys_clk  : std_logic;  -- 100 MHz
+    signal sys_rstn : std_logic := '1';
 
     -- VGA port
     signal vga_hs    : std_logic; 
@@ -42,12 +42,12 @@ begin
         wait;
       end if;
 
-      clk <= '1', '0' after 5 ns; -- 100 MHz
+      sys_clk <= '1', '0' after 5 ns; -- 100 MHz
       wait for 10 ns;
     end process clk_gen;
 
     -- Generate reset (asserted low)
-    rstn <= '0', '1' after 100 ns;
+    sys_rstn <= '0', '1' after 100 ns;
 
 
     -- Generate input switches
@@ -64,8 +64,8 @@ begin
        G_SIMULATION => G_SIMULATION 
     )
     port map (
-       sys_clk_i  => clk,
-       sys_rstn_i => rstn,
+       sys_clk_i  => sys_clk,
+       sys_rstn_i => sys_rstn,
        vga_hs_o   => vga_hs,
        vga_vs_o   => vga_vs,
        vga_col_o  => vga_col,

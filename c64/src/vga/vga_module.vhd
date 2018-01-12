@@ -4,7 +4,9 @@ use ieee.std_logic_unsigned.all;
 
 entity vga_module is
    generic (
-      G_CHAR_FILE  : string
+      G_CHAR_FILE  : string;
+      G_DO_RD_REG  : boolean;     -- Register on read port?
+      G_RD_CLK_RIS : boolean      -- Rising clock on read port?
    );
    port (
       -- Clock
@@ -23,7 +25,8 @@ entity vga_module is
       cpu_wren_i : in  std_logic;
       cpu_data_i : in  std_logic_vector(7 downto 0);
       cpu_rden_i : in  std_logic;
-      cpu_data_o : out std_logic_vector(7 downto 0)
+      cpu_data_o : out std_logic_vector(7 downto 0);
+      cpu_irq_o  : out std_logic
    );
 end vga_module;
 
@@ -88,6 +91,10 @@ begin
    );
 
    inst_vga_sprite : entity work.vga_sprite
+   generic map (
+      G_DO_RD_REG  => G_DO_RD_REG,
+      G_RD_CLK_RIS => G_RD_CLK_RIS
+   )
    port map (
       vga_clk_i => vga_clk_i,
       vga_rst_i => vga_rst_i,
@@ -110,7 +117,8 @@ begin
       cpu_wren_i => cpu_wren_i,
       cpu_data_i => cpu_data_i,
       cpu_rden_i => cpu_rden_i,
-      cpu_data_o => cpu_data_o
+      cpu_data_o => cpu_data_o,
+      cpu_irq_o  => cpu_irq_o
    );
 
    hs_o  <= sprite_hs;
