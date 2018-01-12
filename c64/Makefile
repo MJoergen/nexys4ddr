@@ -7,6 +7,7 @@ SRC  = src/$(TOP).vhd
 # Clocks
 SRC += src/clock/clk_wiz_vga.vhd
 SRC += src/clock/clk_wiz_vga_clk_wiz.vhd
+SRC += src/clk_rst.vhd
 
 # VGA driver
 SRC += src/vga/bitmaps.vhd
@@ -23,7 +24,10 @@ SRC += src/cpu/alu.vhd
 SRC += src/cpu/cpu_module.vhd
 
 # Memory
-SRC += src/mem.vhd
+SRC += src/mem_file.vhd
+
+# Control logic
+SRC += src/cs.vhd
 
 # Configuration
 SRC += src/config.vhd

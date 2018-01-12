@@ -61,9 +61,9 @@ entity vga_sprite is
       -- Configuration and status @ cpu_clk_i
       cpu_addr_i  : in  std_logic_vector(6 downto 0);
       cpu_wren_i  : in  std_logic;
-      cpu_data_i  : in  std_logic_vector(15 downto 0);
+      cpu_data_i  : in  std_logic_vector(7 downto 0);
       cpu_rden_i  : in  std_logic;
-      cpu_data_o  : out std_logic_vector(15 downto 0)
+      cpu_data_o  : out std_logic_vector(7 downto 0)
    );
 end vga_sprite;
 
@@ -390,7 +390,7 @@ begin
                offset := conv_integer(cpu_addr_i(1 downto 0));
 
                case offset is
-                  when 0 => config(sprite_num).posx   <= cpu_data_i(8 downto 0);
+                  when 0 => config(sprite_num).posx   <= "0" & cpu_data_i(7 downto 0); -- TBD
                   when 1 => config(sprite_num).posy   <= cpu_data_i(7 downto 0);
                   when 2 => config(sprite_num).color  <= cpu_data_i(7 downto 0);
                   when 3 => config(sprite_num).enable <= cpu_data_i(0);
@@ -423,7 +423,7 @@ begin
 
          if cpu_rden_i = '1' then
             if cpu_addr_i = "0000000" then
-               cpu_data_o <= X"000" & collision;
+               cpu_data_o <= "0000" & collision;
                collision <= (others => '0');
             end if;
          end if;
