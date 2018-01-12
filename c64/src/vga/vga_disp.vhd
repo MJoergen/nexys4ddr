@@ -116,16 +116,19 @@ begin
    -- Stage 2 : Calculate the character and pixel coordinates
    ----------------------------------------------------------
 
-   i_divmod13_rom : entity work.rom_file
+   i_divmod13_rom : entity work.mem_file
    generic map (
-                  G_ADDR_SIZE => 8,
-                  G_DATA_SIZE => 9,
-                  G_CHAR_FILE => "divmod13.txt"
+                  G_ADDR_SIZE  => 8,
+                  G_DATA_SIZE  => 9,
+                  G_DO_RD_REG  => true,
+                  G_RD_CLK_RIS => true,
+                  G_ROM_FILE   => "divmod13.txt"
                )
    port map (
-               clk_i  => clk_i,
-               addr_i => stage1.vcount(8 downto 1),
-               data_o => stage2_divmod13
+               rd_clk_i  => clk_i,
+               rd_en_i   => '1',
+               rd_addr_i => stage1.vcount(8 downto 1),
+               rd_data_o => stage2_divmod13
             );
 
    stage2_char_y <= stage2_divmod13(8 downto 4);   -- (quotient,  0 - 17)
@@ -152,16 +155,19 @@ begin
    -- Stage 3 : Read the character symbol from display memory
    ----------------------------------------------------------
 
-   i_char_mem : entity work.rom_file
+   i_char_mem : entity work.mem_file
    generic map (
-                  G_ADDR_SIZE => 10,
-                  G_DATA_SIZE => 8,
-                  G_CHAR_FILE => "chars.txt"
+                  G_ADDR_SIZE  => 10,
+                  G_DATA_SIZE  => 8,
+                  G_DO_RD_REG  => true,
+                  G_RD_CLK_RIS => true,
+                  G_ROM_FILE   => "chars.txt"
                )
    port map (
-               clk_i  => clk_i,
-               addr_i => stage2_char_addr,
-               data_o => stage3_char_val
+               rd_clk_i  => clk_i,
+               rd_en_i   => '1',
+               rd_addr_i => stage2_char_addr,
+               rd_data_o => stage3_char_val
             );
 
    -- Calculate address into character bitmap ROM.
@@ -183,16 +189,19 @@ begin
    -- Stage 4 : Read the character bitmap from the ROM.
    ----------------------------------------------------
 
-   i_char_rom : entity work.rom_file
+   i_char_rom : entity work.mem_file
    generic map (
-                  G_ADDR_SIZE => 12,
-                  G_DATA_SIZE => 8,
-                  G_CHAR_FILE => G_CHAR_FILE 
+                  G_ADDR_SIZE  => 12,
+                  G_DATA_SIZE  => 8,
+                  G_DO_RD_REG  => true,
+                  G_RD_CLK_RIS => true,
+                  G_ROM_FILE => G_CHAR_FILE 
                )
    port map (
-               clk_i  => clk_i,
-               addr_i => stage3_addr,
-               data_o => stage4_row
+               rd_clk_i  => clk_i,
+               rd_en_i   => '1',
+               rd_addr_i => stage3_addr,
+               rd_data_o => stage4_row
             );
 
    -- Propagate remaining signals.

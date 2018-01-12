@@ -146,7 +146,7 @@ begin
       G_DATA_SIZE  => 8,
       G_DO_RD_REG  => true,
       G_RD_CLK_RIS => false,   -- Register on falling edge.
-      G_CHAR_FILE  => G_ROM_FILE
+      G_ROM_FILE   => G_ROM_FILE
    )
    port map (
       -- Write port not connected, because it is a ROM.
@@ -172,7 +172,7 @@ begin
       G_DATA_SIZE  => 8,
       G_DO_RD_REG  => true,
       G_RD_CLK_RIS => false,   -- Register on falling edge.
-      G_CHAR_FILE  => ""       -- No initial contents of RAM.
+      G_ROM_FILE   => G_ROM_FILE       -- No initial contents of RAM.
    )
    port map (
       wr_clk_i  => clk_cpu,

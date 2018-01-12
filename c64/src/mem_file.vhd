@@ -19,13 +19,13 @@ entity mem_file is
       G_DATA_SIZE  : integer;     -- Number of bits in data
       G_DO_RD_REG  : boolean;     -- Register on read port?
       G_RD_CLK_RIS : boolean;     -- Rising clock on read port?
-      G_CHAR_FILE  : string       -- Initial memory contents
+      G_ROM_FILE   : string       -- Initial memory contents
    );
    port (
-      wr_clk_i  : in  std_logic;
-      wr_en_i   : in  std_logic;
-      wr_addr_i : in  std_logic_vector(G_ADDR_SIZE-1 downto 0);
-      wr_data_i : in  std_logic_vector(G_DATA_SIZE-1 downto 0);
+      wr_clk_i  : in  std_logic := '0';
+      wr_en_i   : in  std_logic := '0';
+      wr_addr_i : in  std_logic_vector(G_ADDR_SIZE-1 downto 0) := (others => '0');
+      wr_data_i : in  std_logic_vector(G_DATA_SIZE-1 downto 0) := (others => '0');
 
       rd_clk_i  : in  std_logic;
       rd_en_i   : in  std_logic;
@@ -55,7 +55,7 @@ architecture Structural of mem_file is
       return RAM;
    end function;
 
-   signal mem     : t_mem := InitRamFromFile(G_CHAR_FILE);
+   signal mem     : t_mem := InitRamFromFile(G_ROM_FILE);
 
    signal rd_data : std_logic_vector(G_DATA_SIZE-1 downto 0);
 

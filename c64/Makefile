@@ -11,7 +11,7 @@ SRC += src/clk_rst.vhd
 
 # VGA driver
 SRC += src/vga/bitmaps.vhd
-SRC += src/vga/rom_file.vhd
+#SRC += src/vga/rom_file.vhd
 SRC += src/vga/vga_ctrl.vhd
 SRC += src/vga/vga_disp.vhd
 SRC += src/vga/vga_sprite.vhd

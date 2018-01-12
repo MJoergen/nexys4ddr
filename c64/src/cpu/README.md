@@ -55,10 +55,11 @@ therefore we need a sequential state machine containing microcode.
 Let's look at how to implement this instruction.
 The byte sequence for this instruction is "A9 40".
 The first clock cycle sends the PC to the memory address, and enables memory
-read. And increments the PC. Then it stores the instruction in an 
-internal instruction register and begins decoding.
-The second clock cycle sends the PC to the memory address, and enables memory
-read.
+read. And increments the PC. 
+The second clock cycle it stores the instruction in an internal instruction
+register and begins decoding.  It also sends the PC to the memory address, and
+enables memory read. And increments the PC.
+The third clock cycle it stores the read value in the A register.
 
 
 ## Possible inputs to the ALU
