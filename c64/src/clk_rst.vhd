@@ -22,10 +22,10 @@ end entity clk_rst;
 
 architecture Structural of clk_rst is
 
-   signal rst_cpu : std_logic;
+   signal rst_cpu : std_logic := '1';
    signal rst_vga : std_logic := '1';
    signal clk_cpu : std_logic;
-   signal clk_vga : std_logic := '1';
+   signal clk_vga : std_logic;
 
 begin
 

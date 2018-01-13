@@ -57,6 +57,10 @@ memory (24 kB of synchronous Block RAM and 4 kB of asynchronous Distributed
 RAM).  Therefore, only a small amount of memory is supported for the entire
 computer.
 
+Note that in order to "imitate" asynchronous RAM, the memory operates on
+falling clock edges, whereas the rest of the design operates on rising clock
+edges.
+
 The NEXYS4DDR board has external DDR memory, but this will not be used.
 
 

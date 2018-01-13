@@ -1,6 +1,11 @@
 --------------------------------------
 -- The Control Logic
 --
+--   rden       <= ctl(0);           -- Read data from memory or I/O
+--   wren       <= ctl(1);           -- Write data to memory or I/O
+--   alu_func   <= ctl(5 downto 2);  -- ALU function code
+--   regs_wren  <= ctl(6);           -- Write to register
+--   regs_wrmux <= ctl(8 downto 7);  -- Mux input to register file
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -22,6 +27,7 @@ architecture Structural of ctl is
 
 begin
 
+   -- Store the microinstruction counter
    p_cnt : process (clk_i)
    begin
       if rising_edge(clk_i) then
@@ -33,6 +39,7 @@ begin
       end if;
    end process p_cnt;
 
+   -- Store the current instruction
    p_inst : process (clk_i)
    begin
       if rising_edge(clk_i) then
@@ -41,6 +48,30 @@ begin
          end if;
       end if;
    end process p_inst;
+
+   process (cnt_r)
+   begin
+      ctl_o <= (others => '0');     -- Default value to avoid latch.
+
+      if cnt_r = 0 then
+         ctl_o(0) <= '1';              -- rden from memory
+         ctl_o(1) <= '0';              -- wren to memory
+         ctl_o(5 downto 2) <= "1100";  -- ALU function (NOP)
+         ctl_o(6) <= '0';              -- regs_wren
+         ctl_o(8 downto 7) <= "00";    -- regs_wrmux
+         ctl_o(10 downto 9) <= "00";   -- reg_nr
+      end if;
+
+      if cnt_r = 1 then
+         ctl_o(0) <= '1';              -- rden from memory
+         ctl_o(1) <= '0';              -- wren to memory
+         ctl_o(5 downto 2) <= "1100";  -- ALU function (NOP)
+         ctl_o(6) <= '1';              -- regs_wren
+         ctl_o(8 downto 7) <= "00";    -- regs_wrmux
+         ctl_o(10 downto 9) <= "00";   -- reg_nr -> A
+      end if;
+
+   end process;
 
 end architecture Structural;
 

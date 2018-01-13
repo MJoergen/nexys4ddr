@@ -21,6 +21,7 @@ SRC += src/vga/vga_module.vhd
 SRC += src/cpu/regs.vhd
 SRC += src/cpu/ctl.vhd
 SRC += src/cpu/alu.vhd
+SRC += src/cpu/pc.vhd
 SRC += src/cpu/cpu_module.vhd
 
 # Memory
@@ -29,7 +30,7 @@ SRC += src/mem_file.vhd
 # Control logic
 SRC += src/cs.vhd
 
-stoptime = --stop-time=250us
+stoptime = --stop-time=500ns
 
 include ../xilinx.mk
 

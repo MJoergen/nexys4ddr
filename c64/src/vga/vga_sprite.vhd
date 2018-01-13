@@ -423,7 +423,7 @@ begin
    p_status : process (cpu_clk_i)
    begin
       if rising_edge(cpu_clk_i) then
-         cpu_data_o <= (others => '0');
+         cpu_data_o <= (others => 'Z');
          collision <= collision or stage7.collision;
 
          if cpu_rden_i = '1' then
