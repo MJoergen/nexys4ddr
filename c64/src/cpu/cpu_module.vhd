@@ -46,7 +46,7 @@ architecture Structural of cpu_module is
    signal ctl_mem_rden      : std_logic;    -- Read from memory
    signal ctl_mem_wren      : std_logic;    -- Write to memory
    signal ctl_mem_addr_wren : std_logic;    -- Write to address hold register
-   signal ctl_mem_addr_sel  : std_logic_vector(1 downto 0);   -- Memory address select
+   signal ctl_mem_addr_sel  : std_logic_vector(3 downto 0);   -- Memory address select
    signal ctl_mem_data_sel  : std_logic_vector(1 downto 0);   -- Memory data select
    signal ctl_reg_wren      : std_logic;    -- Write to register file
    signal ctl_reg_nr        : std_logic_vector(1 downto 0);   -- Register number
@@ -210,9 +210,15 @@ begin
    -----------------------
 
    -- Select memory address
-   addr_o <= reg_pc               when ctl_mem_addr_sel = "00" else
-             X"00" & mem_addr_reg when ctl_mem_addr_sel = "01" else
-             X"01" & reg_sp       when ctl_mem_addr_sel = "10" else
+   addr_o <= reg_pc               when ctl_mem_addr_sel = "0000" else
+             X"00" & mem_addr_reg when ctl_mem_addr_sel = "0001" else
+             X"01" & reg_sp       when ctl_mem_addr_sel = "0010" else
+             X"FFFA"              when ctl_mem_addr_sel = "1010" else
+             X"FFFB"              when ctl_mem_addr_sel = "1011" else
+             X"FFFC"              when ctl_mem_addr_sel = "1100" else
+             X"FFFD"              when ctl_mem_addr_sel = "1101" else
+             X"FFFE"              when ctl_mem_addr_sel = "1110" else
+             X"FFFF"              when ctl_mem_addr_sel = "1111" else
              (others => 'X');
 
    -- Select memory data

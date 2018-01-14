@@ -1,19 +1,20 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Sun Jan 14 11:26:10 2018
+[*] Sun Jan 14 19:33:20 2018
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/c64/hack.ghw"
-[dumpfile_mtime] "Sun Jan 14 11:22:31 2018"
-[dumpfile_size] 153465
+[dumpfile_mtime] "Sun Jan 14 19:30:06 2018"
+[dumpfile_size] 159119
 [savefile] "/home/mike/git/nexys4ddr/c64/src/hack_tb.gtkw"
-[timestart] 1540700000
+[timestart] 4853600000
 [size] 1920 1010
 [pos] -1 -1
 *-24.414629 1637700000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.hack_tb.
 [treeopen] top.hack_tb.inst_hack.
-[treeopen] top.hack_tb.inst_hack.inst_cpu.
+[treeopen] top.hack_tb.inst_hack.inst_ram.
+[treeopen] top.hack_tb.inst_hack.inst_ram.mem.
 [sst_width] 299
 [signals_width] 306
 [sst_expanded] 1
@@ -37,6 +38,12 @@ top.hack_tb.inst_hack.inst_cpu.wren_o
 #{top.hack_tb.inst_hack.inst_cpu.data_o[7:0]} top.hack_tb.inst_hack.inst_cpu.data_o[7] top.hack_tb.inst_hack.inst_cpu.data_o[6] top.hack_tb.inst_hack.inst_cpu.data_o[5] top.hack_tb.inst_hack.inst_cpu.data_o[4] top.hack_tb.inst_hack.inst_cpu.data_o[3] top.hack_tb.inst_hack.inst_cpu.data_o[2] top.hack_tb.inst_hack.inst_cpu.data_o[1] top.hack_tb.inst_hack.inst_cpu.data_o[0]
 @1000200
 -CPU
+@22
+#{top.hack_tb.inst_hack.inst_ram.mem[0][7:0]} top.hack_tb.inst_hack.inst_ram.mem[0][7] top.hack_tb.inst_hack.inst_ram.mem[0][6] top.hack_tb.inst_hack.inst_ram.mem[0][5] top.hack_tb.inst_hack.inst_ram.mem[0][4] top.hack_tb.inst_hack.inst_ram.mem[0][3] top.hack_tb.inst_hack.inst_ram.mem[0][2] top.hack_tb.inst_hack.inst_ram.mem[0][1] top.hack_tb.inst_hack.inst_ram.mem[0][0]
+#{top.hack_tb.inst_hack.inst_ram.mem[1][7:0]} top.hack_tb.inst_hack.inst_ram.mem[1][7] top.hack_tb.inst_hack.inst_ram.mem[1][6] top.hack_tb.inst_hack.inst_ram.mem[1][5] top.hack_tb.inst_hack.inst_ram.mem[1][4] top.hack_tb.inst_hack.inst_ram.mem[1][3] top.hack_tb.inst_hack.inst_ram.mem[1][2] top.hack_tb.inst_hack.inst_ram.mem[1][1] top.hack_tb.inst_hack.inst_ram.mem[1][0]
+#{top.hack_tb.inst_hack.inst_ram.mem[2][7:0]} top.hack_tb.inst_hack.inst_ram.mem[2][7] top.hack_tb.inst_hack.inst_ram.mem[2][6] top.hack_tb.inst_hack.inst_ram.mem[2][5] top.hack_tb.inst_hack.inst_ram.mem[2][4] top.hack_tb.inst_hack.inst_ram.mem[2][3] top.hack_tb.inst_hack.inst_ram.mem[2][2] top.hack_tb.inst_hack.inst_ram.mem[2][1] top.hack_tb.inst_hack.inst_ram.mem[2][0]
+@23
+#{top.hack_tb.inst_hack.inst_ram.mem[3][7:0]} top.hack_tb.inst_hack.inst_ram.mem[3][7] top.hack_tb.inst_hack.inst_ram.mem[3][6] top.hack_tb.inst_hack.inst_ram.mem[3][5] top.hack_tb.inst_hack.inst_ram.mem[3][4] top.hack_tb.inst_hack.inst_ram.mem[3][3] top.hack_tb.inst_hack.inst_ram.mem[3][2] top.hack_tb.inst_hack.inst_ram.mem[3][1] top.hack_tb.inst_hack.inst_ram.mem[3][0]
 @800200
 -Register File
 @28
@@ -67,13 +74,13 @@ top.hack_tb.inst_hack.inst_cpu.inst_alu.v_o
 top.hack_tb.inst_hack.inst_cpu.inst_alu.z_o
 @1000200
 -ALU
-@800201
+@800200
 -Control
-@29
+@28
 #{top.hack_tb.inst_hack.inst_cpu.inst_ctl.cnt_r[2:0]} top.hack_tb.inst_hack.inst_cpu.inst_ctl.cnt_r[2] top.hack_tb.inst_hack.inst_cpu.inst_ctl.cnt_r[1] top.hack_tb.inst_hack.inst_cpu.inst_ctl.cnt_r[0]
-@23
+@22
 #{top.hack_tb.inst_hack.inst_cpu.inst_ctl.inst_r[7:0]} top.hack_tb.inst_hack.inst_cpu.inst_ctl.inst_r[7] top.hack_tb.inst_hack.inst_cpu.inst_ctl.inst_r[6] top.hack_tb.inst_hack.inst_cpu.inst_ctl.inst_r[5] top.hack_tb.inst_hack.inst_cpu.inst_ctl.inst_r[4] top.hack_tb.inst_hack.inst_cpu.inst_ctl.inst_r[3] top.hack_tb.inst_hack.inst_cpu.inst_ctl.inst_r[2] top.hack_tb.inst_hack.inst_cpu.inst_ctl.inst_r[1] top.hack_tb.inst_hack.inst_cpu.inst_ctl.inst_r[0]
-@1000201
+@1000200
 -Control
 @22
 #{top.hack_tb.inst_hack.inst_cpu.sr[7:0]} top.hack_tb.inst_hack.inst_cpu.sr[7] top.hack_tb.inst_hack.inst_cpu.sr[6] top.hack_tb.inst_hack.inst_cpu.sr[5] top.hack_tb.inst_hack.inst_cpu.sr[4] top.hack_tb.inst_hack.inst_cpu.sr[3] top.hack_tb.inst_hack.inst_cpu.sr[2] top.hack_tb.inst_hack.inst_cpu.sr[1] top.hack_tb.inst_hack.inst_cpu.sr[0]
