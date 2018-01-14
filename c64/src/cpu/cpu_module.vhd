@@ -54,6 +54,7 @@ architecture Structural of cpu_module is
    signal ctl_alu_func      : std_logic_vector(3 downto 0);   -- ALU function
    signal ctl_clc           : std_logic;                      -- Clear carry
    signal ctl_sr_alu_wren   : std_logic;                      -- Update status register
+   signal ctl_sp_sel        : std_logic_vector(1 downto 0);   -- Stack pointer update
    signal ctl_debug         : std_logic_vector(10 downto 0);
 
    -- Program Registers
@@ -117,6 +118,7 @@ begin
                alu_func_o      => ctl_alu_func,
                clc_o           => ctl_clc,
                sr_alu_wren_o   => ctl_sr_alu_wren,
+               sp_sel_o        => ctl_sp_sel,
                debug_o         => ctl_debug
             );
 
@@ -150,6 +152,24 @@ begin
          end if;
       end if;
    end process p_pc;
+
+
+   -- Stack pointer
+   p_sp : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         case ctl_sp_sel is
+            when "00" => null;
+            when "01" => reg_sp <= reg_sp + 1;
+            when "10" => reg_sp <= reg_sp - 1;
+            when others => assert false severity failure;
+         end case;
+
+         if rst_i = '1' then
+            reg_sp <= X"FF";
+         end if;
+      end if;
+   end process p_sp;
       
 
    -- Memory address hold register
@@ -192,10 +212,13 @@ begin
    -- Select memory address
    addr_o <= reg_pc               when ctl_mem_addr_sel = "00" else
              X"00" & mem_addr_reg when ctl_mem_addr_sel = "01" else
+             X"01" & reg_sp       when ctl_mem_addr_sel = "10" else
              (others => 'X');
 
    -- Select memory data
-   data_o <= regs_rd_data when ctl_mem_data_sel = "00" else
+   data_o <= regs_rd_data        when ctl_mem_data_sel = "00" else
+             reg_pc(15 downto 8) when ctl_mem_data_sel = "01" else
+             reg_pc(7 downto 0)  when ctl_mem_data_sel = "10" else
              (others => 'X');
 
    rden_o <= ctl_mem_rden;
