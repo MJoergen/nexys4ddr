@@ -33,7 +33,7 @@ begin
    data_o <= reg_a when reg_nr_i = "00" else
              reg_x when reg_nr_i = "01" else
              reg_y when reg_nr_i = "10" else
-             X"00" when reg_nr_i = "11";
+             X"00"; -- when reg_nr_i = "11";
 
    p_reg : process (clk_i)
    begin
