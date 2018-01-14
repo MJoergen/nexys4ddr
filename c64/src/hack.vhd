@@ -107,33 +107,35 @@ begin
 
 
    ------------------------------
-   -- Instantiate VGA module
+   -- Instantiate VGA module (only during synthesis)
    ------------------------------
 
-   inst_vga_module : entity work.vga_module
-   generic map (
-                  G_CHAR_FILE  => G_CHAR_FILE,
-                  G_DO_RD_REG  => true,
-                  G_RD_CLK_RIS => false    -- Register on falling edge.
-               )
-   port map (
-      vga_clk_i => clk_vga,
-      vga_rst_i => rst_vga,
-      hs_o  => vga_hs_o,
-      vs_o  => vga_vs_o,
-      col_o => vga_col_o,
+   gen_vga: if G_SIMULATION = false  generate
+      inst_vga_module : entity work.vga_module
+      generic map (
+                     G_CHAR_FILE  => G_CHAR_FILE,
+                     G_DO_RD_REG  => true,
+                     G_RD_CLK_RIS => false    -- Register on falling edge.
+                  )
+      port map (
+         vga_clk_i => clk_vga,
+         vga_rst_i => rst_vga,
+         hs_o  => vga_hs_o,
+         vs_o  => vga_vs_o,
+         col_o => vga_col_o,
 
-      -- Configuration @ cpu_clk_i
-      cpu_clk_i  => clk_cpu,
-      cpu_rst_i  => rst_cpu,
-      cpu_addr_i => cpu_addr(6 downto 0),
-      cpu_wren_i => cpu_wren,
-      cpu_data_i => cpu_data,
-      cpu_rden_i => rden_vga,
-      cpu_data_o => data,
+         -- Configuration @ cpu_clk_i
+         cpu_clk_i  => clk_cpu,
+         cpu_rst_i  => rst_cpu,
+         cpu_addr_i => cpu_addr(6 downto 0),
+         cpu_wren_i => cpu_wren,
+         cpu_data_i => cpu_data,
+         cpu_rden_i => rden_vga,
+         cpu_data_o => data,
 
-      cpu_irq_o => vga_irq
-   );
+         cpu_irq_o => vga_irq
+      );
+   end generate gen_vga;
 
 
    ------------------------------

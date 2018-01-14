@@ -1,24 +1,21 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Sat Jan 13 18:10:07 2018
+[*] Sun Jan 14 10:09:10 2018
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/c64/hack.ghw"
-[dumpfile_mtime] "Sat Jan 13 18:06:47 2018"
-[dumpfile_size] 254658
+[dumpfile_mtime] "Sun Jan 14 10:06:54 2018"
+[dumpfile_size] 60464
 [savefile] "/home/mike/git/nexys4ddr/c64/src/hack_tb.gtkw"
-[timestart] 0
+[timestart] 149300000
 [size] 1920 1010
 [pos] -1 -1
-*-25.414629 48163100000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-24.414629 227700000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.hack_tb.
 [treeopen] top.hack_tb.inst_hack.
 [treeopen] top.hack_tb.inst_hack.inst_cpu.
+[treeopen] top.hack_tb.inst_hack.inst_cpu.inst_alu.
 [treeopen] top.hack_tb.inst_hack.inst_cpu.inst_regs.
-[treeopen] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage1.
-[treeopen] top.hack_tb.inst_hack.inst_vga_module.inst_vga_disp.stage3.
-[treeopen] top.hack_tb.inst_hack.inst_vga_module.inst_vga_sprite.
-[treeopen] top.hack_tb.inst_hack.inst_vga_module.inst_vga_sprite.stage1.
 [sst_width] 299
 [signals_width] 306
 [sst_expanded] 1
@@ -42,20 +39,30 @@ top.hack_tb.inst_hack.inst_cpu.wren_o
 #{top.hack_tb.inst_hack.inst_cpu.data_o[7:0]} top.hack_tb.inst_hack.inst_cpu.data_o[7] top.hack_tb.inst_hack.inst_cpu.data_o[6] top.hack_tb.inst_hack.inst_cpu.data_o[5] top.hack_tb.inst_hack.inst_cpu.data_o[4] top.hack_tb.inst_hack.inst_cpu.data_o[3] top.hack_tb.inst_hack.inst_cpu.data_o[2] top.hack_tb.inst_hack.inst_cpu.data_o[1] top.hack_tb.inst_hack.inst_cpu.data_o[0]
 @1000200
 -CPU
-@800201
+@800200
 -Register File
-@29
+@28
 #{top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_nr_i[1:0]} top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_nr_i[1] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_nr_i[0]
-@23
+@22
 #{top.hack_tb.inst_hack.inst_cpu.inst_regs.data_o[7:0]} top.hack_tb.inst_hack.inst_cpu.inst_regs.data_o[7] top.hack_tb.inst_hack.inst_cpu.inst_regs.data_o[6] top.hack_tb.inst_hack.inst_cpu.inst_regs.data_o[5] top.hack_tb.inst_hack.inst_cpu.inst_regs.data_o[4] top.hack_tb.inst_hack.inst_cpu.inst_regs.data_o[3] top.hack_tb.inst_hack.inst_cpu.inst_regs.data_o[2] top.hack_tb.inst_hack.inst_cpu.inst_regs.data_o[1] top.hack_tb.inst_hack.inst_cpu.inst_regs.data_o[0]
-@29
+@28
 top.hack_tb.inst_hack.inst_cpu.inst_regs.wren_i
-@23
+@22
 #{top.hack_tb.inst_hack.inst_cpu.inst_regs.data_i[7:0]} top.hack_tb.inst_hack.inst_cpu.inst_regs.data_i[7] top.hack_tb.inst_hack.inst_cpu.inst_regs.data_i[6] top.hack_tb.inst_hack.inst_cpu.inst_regs.data_i[5] top.hack_tb.inst_hack.inst_cpu.inst_regs.data_i[4] top.hack_tb.inst_hack.inst_cpu.inst_regs.data_i[3] top.hack_tb.inst_hack.inst_cpu.inst_regs.data_i[2] top.hack_tb.inst_hack.inst_cpu.inst_regs.data_i[1] top.hack_tb.inst_hack.inst_cpu.inst_regs.data_i[0]
 #{top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_a[7:0]} top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_a[7] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_a[6] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_a[5] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_a[4] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_a[3] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_a[2] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_a[1] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_a[0]
 #{top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_x[7:0]} top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_x[7] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_x[6] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_x[5] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_x[4] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_x[3] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_x[2] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_x[1] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_x[0]
 #{top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_y[7:0]} top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_y[7] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_y[6] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_y[5] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_y[4] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_y[3] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_y[2] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_y[1] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_y[0]
-@1000201
+@1000200
 -Register File
+@800200
+-ALU
+@22
+#{top.hack_tb.inst_hack.inst_cpu.inst_alu.a_i[7:0]} top.hack_tb.inst_hack.inst_cpu.inst_alu.a_i[7] top.hack_tb.inst_hack.inst_cpu.inst_alu.a_i[6] top.hack_tb.inst_hack.inst_cpu.inst_alu.a_i[5] top.hack_tb.inst_hack.inst_cpu.inst_alu.a_i[4] top.hack_tb.inst_hack.inst_cpu.inst_alu.a_i[3] top.hack_tb.inst_hack.inst_cpu.inst_alu.a_i[2] top.hack_tb.inst_hack.inst_cpu.inst_alu.a_i[1] top.hack_tb.inst_hack.inst_cpu.inst_alu.a_i[0]
+#{top.hack_tb.inst_hack.inst_cpu.inst_alu.b_i[7:0]} top.hack_tb.inst_hack.inst_cpu.inst_alu.b_i[7] top.hack_tb.inst_hack.inst_cpu.inst_alu.b_i[6] top.hack_tb.inst_hack.inst_cpu.inst_alu.b_i[5] top.hack_tb.inst_hack.inst_cpu.inst_alu.b_i[4] top.hack_tb.inst_hack.inst_cpu.inst_alu.b_i[3] top.hack_tb.inst_hack.inst_cpu.inst_alu.b_i[2] top.hack_tb.inst_hack.inst_cpu.inst_alu.b_i[1] top.hack_tb.inst_hack.inst_cpu.inst_alu.b_i[0]
+#{top.hack_tb.inst_hack.inst_cpu.inst_alu.func_i[3:0]} top.hack_tb.inst_hack.inst_cpu.inst_alu.func_i[3] top.hack_tb.inst_hack.inst_cpu.inst_alu.func_i[2] top.hack_tb.inst_hack.inst_cpu.inst_alu.func_i[1] top.hack_tb.inst_hack.inst_cpu.inst_alu.func_i[0]
+#{top.hack_tb.inst_hack.inst_cpu.inst_alu.res_o[7:0]} top.hack_tb.inst_hack.inst_cpu.inst_alu.res_o[7] top.hack_tb.inst_hack.inst_cpu.inst_alu.res_o[6] top.hack_tb.inst_hack.inst_cpu.inst_alu.res_o[5] top.hack_tb.inst_hack.inst_cpu.inst_alu.res_o[4] top.hack_tb.inst_hack.inst_cpu.inst_alu.res_o[3] top.hack_tb.inst_hack.inst_cpu.inst_alu.res_o[2] top.hack_tb.inst_hack.inst_cpu.inst_alu.res_o[1] top.hack_tb.inst_hack.inst_cpu.inst_alu.res_o[0]
+#{top.hack_tb.inst_hack.inst_cpu.inst_alu.sr_o[7:0]} top.hack_tb.inst_hack.inst_cpu.inst_alu.sr_o[7] top.hack_tb.inst_hack.inst_cpu.inst_alu.sr_o[6] top.hack_tb.inst_hack.inst_cpu.inst_alu.sr_o[5] top.hack_tb.inst_hack.inst_cpu.inst_alu.sr_o[4] top.hack_tb.inst_hack.inst_cpu.inst_alu.sr_o[3] top.hack_tb.inst_hack.inst_cpu.inst_alu.sr_o[2] top.hack_tb.inst_hack.inst_cpu.inst_alu.sr_o[1] top.hack_tb.inst_hack.inst_cpu.inst_alu.sr_o[0]
+@1000200
+-ALU
 [pattern_trace] 1
 [pattern_trace] 0
