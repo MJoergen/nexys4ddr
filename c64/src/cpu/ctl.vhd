@@ -17,12 +17,12 @@ entity ctl is
       mem_addr_wren_o : out std_logic;    -- Write to address hold register
       mem_addr_sel_o  : out std_logic_vector(1 downto 0);   -- Memory address select
       mem_data_sel_o  : out std_logic_vector(1 downto 0);   -- Memory data select
-      reg_data_sel_o  : out std_logic_vector(1 downto 0);
       reg_wren_o      : out std_logic;    -- Write to register file
       reg_nr_o        : out std_logic_vector(1 downto 0);   -- Register number
       pc_sel_o        : out std_logic_vector(1 downto 0);   -- PC relect
       alu_func_o      : out std_logic_vector(3 downto 0);   -- ALU function
       clc_o           : out std_logic;                      -- Clear carry
+      sr_alu_wren_o   : out std_logic;                      -- Write status register
 
       debug_o : out std_logic_vector(10 downto 0)
    );
@@ -72,12 +72,12 @@ begin
       mem_addr_wren_o <= '0';
       mem_addr_sel_o  <= "00";
       mem_data_sel_o  <= "00";
-      reg_data_sel_o  <= "00";
       reg_wren_o      <= '0';
       reg_nr_o        <= "00";
       pc_sel_o        <= "00";
       alu_func_o      <= "0000";
       clc_o           <= '0';
+      sr_alu_wren_o   <= '0';
 
       last            <= '0';
 
@@ -85,70 +85,45 @@ begin
          mem_rden_o <= '1';            -- Read byte 0 from memory
       end if;
 
-      if cnt_r = 1 and inst_r = X"A9" then   -- LDA #$40
+      -- The following line handles immediate operand addressing mode
+      -- of the instructions ORA, AND, EOR, ADC, (STA), LDA, CMP, SBC.
+      if cnt_r = 1 and inst_r(4 downto 0) = "01001" then
          mem_rden_o     <= '1';        -- Read byte 0 from memory
-         reg_data_sel_o <= "00";
+         alu_func_o     <= "0" & inst_r(7 downto 5); 
+         sr_alu_wren_o  <= '1';
          reg_nr_o       <= "00";       -- Select register A
          reg_wren_o     <= '1';        -- Write to register
          last           <= '1';        -- Next instruction
       end if;
 
-      if cnt_r = 1 and inst_r = X"85" then   -- STA $01
+      -- The following lines handle zero page addressing mode
+      -- of the instructions ORA, AND, EOR, ADC, STA, LDA, CMP, SBC.
+      if cnt_r = 1 and inst_r(4 downto 0) = "00101" then
          mem_rden_o      <= '1';       -- Read byte 0 from memory
          mem_addr_wren_o <= '1';       -- Write to address hold register
       end if;
 
-      if cnt_r = 2 and inst_r = X"85" then
-         mem_wren_o     <= '1';        -- Write to memory
-         mem_addr_sel_o <= "01";       -- Select z.p. address from hold register
-         reg_nr_o       <= "00";       -- Select register A
-         mem_data_sel_o <= "00";       -- Select register file
-         pc_sel_o       <= "11";       -- PC unchanged
-         last <= '1';                  -- Next instruction
-      end if;
-
-      if cnt_r = 1 and inst_r = X"A5" then   -- LDA $03
-         mem_rden_o      <= '1';       -- Read byte 0 from memory
-         mem_addr_wren_o <= '1';       -- Write to address hold register
-      end if;
-
-      if cnt_r = 2 and inst_r = X"A5" then 
+      if cnt_r = 2 and inst_r(4 downto 0) = "00101" then
          mem_rden_o     <= '1';        -- Read from memory
          mem_addr_sel_o <= "01";       -- Select z.p. address from hold register
-         reg_data_sel_o <= "00";
+         alu_func_o     <= "0" & inst_r(7 downto 5); 
+         sr_alu_wren_o  <= '1';
          reg_nr_o       <= "00";       -- Select register A
          reg_wren_o     <= '1';        -- Write to register
          pc_sel_o       <= "11";       -- PC unchanged
-         last <= '1';                  -- Next instruction
+         last           <= '1';        -- Next instruction
+      end if;
+
+      -- Override, in case of STA 
+      if cnt_r = 2 and inst_r = X"85" then
+         mem_rden_o     <= '0';        -- Don't read from memory
+         mem_wren_o     <= '1';        -- Write to memory
+         mem_data_sel_o <= "00";       -- Select register file
       end if;
 
       if cnt_r = 1 and inst_r = X"18" then   -- CLC
          pc_sel_o       <= "11";       -- PC unchanged
          clc_o          <= '1';        -- Clear carry
-         last           <= '1';        -- Next instruction
-      end if;
-
-      if cnt_r = 1 and inst_r = X"65" then   -- ADC $00
-         mem_rden_o      <= '1';       -- Read byte 0 from memory
-         mem_addr_wren_o <= '1';       -- Write to address hold register
-      end if;
-
-      if cnt_r = 2 and inst_r = X"65" then 
-         mem_rden_o     <= '1';        -- Read from memory
-         mem_addr_sel_o <= "01";       -- Select z.p. address from hold register
-         reg_data_sel_o <= "01";       -- Write from ALU output
-         alu_func_o     <= "0011";     -- ADC
-         reg_nr_o       <= "00";       -- Select register A
-         reg_wren_o     <= '1';        -- Write to register
-         pc_sel_o       <= "11";       -- PC unchanged
-         last           <= '1';        -- Next instruction
-      end if;
-
-      if cnt_r = 1 and inst_r = X"69" then   -- ADC #$00
-         mem_rden_o     <= '1';        -- Read byte 0 from memory
-         reg_data_sel_o <= "01";       -- Write from ALU output
-         reg_nr_o       <= "00";       -- Select register A
-         reg_wren_o     <= '1';        -- Write to register
          last           <= '1';        -- Next instruction
       end if;
 

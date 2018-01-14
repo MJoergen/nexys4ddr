@@ -8,8 +8,9 @@
 -- * AND                               (2)   (0001)
 -- * XOR                               (2)   (0010)
 -- * Add with carry (ADC)              (2)   (0011)
--- * Subtract with borrow (SBC)        (2)   (0111)
+-- * = B                               (2)   (0101)
 -- * Compare (same as SBC?)            (2)   (0110)
+-- * Subtract with borrow (SBC)        (2)   (0111)
 -- * Arithmetic shift left 1 bit (ASL) (1)   (1000)
 -- * Logical shift right 1 bit (LSR)   (1)   (1010)
 -- * Rotate left 1 bit (ROL)           (1)   (1001)
@@ -28,7 +29,10 @@ entity alu is
       c_i    : in  std_logic;
       func_i : in  std_logic_vector(3 downto 0);
       res_o  : out std_logic_vector(7 downto 0);
-      sr_o   : out std_logic_vector(7 downto 0)
+      c_o    : out std_logic;
+      s_o    : out std_logic;
+      v_o    : out std_logic;
+      z_o    : out std_logic
    );
 end alu;
 
@@ -40,6 +44,7 @@ architecture Structural of alu is
    signal and0 : std_logic_vector(8 downto 0);
    signal xor0 : std_logic_vector(8 downto 0);
    signal adc  : std_logic_vector(8 downto 0);
+   signal cmp  : std_logic_vector(8 downto 0);
    signal sbc  : std_logic_vector(8 downto 0);
    signal asl  : std_logic_vector(8 downto 0);
    signal rol0 : std_logic_vector(8 downto 0);
@@ -47,6 +52,7 @@ architecture Structural of alu is
    signal ror0 : std_logic_vector(8 downto 0);
    signal dec  : std_logic_vector(8 downto 0);
    signal inc  : std_logic_vector(8 downto 0);
+   signal b    : std_logic_vector(8 downto 0);
 
 begin
 
@@ -55,6 +61,8 @@ begin
    xor0 <= c_i & (a_i xor b_i);
    adc  <= ("0" & a_i) + ("0" & b_i) + (X"00" & c_i);
    sbc  <= ("0" & a_i) - ("0" & b_i) - (X"00" & c_i);
+   b    <= c_i & b_i;
+   cmp  <= sbc(8) & a_i;
 
    asl  <= a_i & "0";
    rol0 <= a_i & c_i;
@@ -67,6 +75,8 @@ begin
           and0   when func_i = "0001" else
           xor0   when func_i = "0010" else
           adc    when func_i = "0011" else
+          b      when func_i = "0101" else
+          cmp    when func_i = "0110" else
           sbc    when func_i = "0111" else
           asl    when func_i = "1000" else
           rol0   when func_i = "1001" else
@@ -77,7 +87,10 @@ begin
           c_i & a_i;
 
    res_o <= res(7 downto 0);
-   sr_o(7)  <= res(8);
+   c_o <= res(8);
+   s_o <= '0';
+   v_o <= '0';
+   z_o <= '0';
 
 end architecture Structural;
 

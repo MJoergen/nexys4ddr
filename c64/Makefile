@@ -30,7 +30,7 @@ SRC += src/mem_file.vhd
 # Control logic
 SRC += src/cs.vhd
 
-stoptime = --stop-time=1500ns
+stoptime = --stop-time=5000ns
 
 include ../xilinx.mk
 

@@ -37,7 +37,10 @@ architecture Structural of cpu_module is
    signal alu_a    : std_logic_vector(7 downto 0);
    signal alu_b    : std_logic_vector(7 downto 0);
    signal alu_out  : std_logic_vector(7 downto 0);
-   signal alu_sr   : std_logic_vector(7 downto 0);
+   signal alu_c    : std_logic;
+   signal alu_s    : std_logic;
+   signal alu_v    : std_logic;
+   signal alu_z    : std_logic;
 
    -- Signals driven by the Control Logic
    signal ctl_mem_rden      : std_logic;    -- Read from memory
@@ -45,12 +48,12 @@ architecture Structural of cpu_module is
    signal ctl_mem_addr_wren : std_logic;    -- Write to address hold register
    signal ctl_mem_addr_sel  : std_logic_vector(1 downto 0);   -- Memory address select
    signal ctl_mem_data_sel  : std_logic_vector(1 downto 0);   -- Memory data select
-   signal ctl_reg_data_sel  : std_logic_vector(1 downto 0);   -- Register write data select
    signal ctl_reg_wren      : std_logic;    -- Write to register file
    signal ctl_reg_nr        : std_logic_vector(1 downto 0);   -- Register number
    signal ctl_pc_sel        : std_logic_vector(1 downto 0);   -- PC select
    signal ctl_alu_func      : std_logic_vector(3 downto 0);   -- ALU function
    signal ctl_clc           : std_logic;                      -- Clear carry
+   signal ctl_sr_alu_wren   : std_logic;                      -- Update status register
    signal ctl_debug         : std_logic_vector(10 downto 0);
 
    -- Program Registers
@@ -80,10 +83,8 @@ begin
    -- Second operand to ALU is typically memory input
    alu_b <= data_i;
 
-   -- Input to the register file is typically from memory.
-   regs_wr_data <= data_i when ctl_reg_data_sel = "00" else
-                   alu_out when ctl_reg_data_sel = "01" else
-                   (others => 'X');
+   -- Input to the register file is directly from the ALU.
+   regs_wr_data <= alu_out;
 
    -- Instantiate the ALU (combinatorial)
    inst_alu : entity work.alu
@@ -93,7 +94,10 @@ begin
                c_i    => sr(0),  -- Carry
                func_i => ctl_alu_func,
                res_o  => alu_out,
-               sr_o   => alu_sr
+               c_o    => alu_c,
+               s_o    => alu_s,
+               v_o    => alu_v,
+               z_o    => alu_z
             );
 
    -- Instantiate the control logic
@@ -107,12 +111,12 @@ begin
                mem_addr_wren_o => ctl_mem_addr_wren,
                mem_addr_sel_o  => ctl_mem_addr_sel,
                mem_data_sel_o  => ctl_mem_data_sel,
-               reg_data_sel_o  => ctl_reg_data_sel,
                reg_wren_o      => ctl_reg_wren,
                reg_nr_o        => ctl_reg_nr,
                pc_sel_o        => ctl_pc_sel,
                alu_func_o      => ctl_alu_func,
                clc_o           => ctl_clc,
+               sr_alu_wren_o   => ctl_sr_alu_wren,
                debug_o         => ctl_debug
             );
 
@@ -165,6 +169,13 @@ begin
       if rising_edge(clk_i) then
          if ctl_clc = '1' then
             sr(0) <= '0';
+         end if;
+
+         if ctl_sr_alu_wren = '1' then
+            sr(0) <= alu_c;
+            sr(1) <= alu_z;
+            sr(6) <= alu_v;
+            sr(7) <= alu_s;
          end if;
 
          if rst_i = '1' then
