@@ -36,7 +36,6 @@ architecture Structural of cpu_module is
    -- Signals connected to ALU
    signal alu_a    : std_logic_vector(7 downto 0);
    signal alu_b    : std_logic_vector(7 downto 0);
-   signal alu_c    : std_logic;
    signal alu_out  : std_logic_vector(7 downto 0);
    signal alu_sr   : std_logic_vector(7 downto 0);
 
@@ -51,6 +50,7 @@ architecture Structural of cpu_module is
    signal ctl_reg_nr        : std_logic_vector(1 downto 0);   -- Register number
    signal ctl_pc_sel        : std_logic_vector(1 downto 0);   -- PC select
    signal ctl_alu_func      : std_logic_vector(3 downto 0);   -- ALU function
+   signal ctl_clc           : std_logic;                      -- Clear carry
    signal ctl_debug         : std_logic_vector(10 downto 0);
 
    -- Program Registers
@@ -64,13 +64,8 @@ architecture Structural of cpu_module is
    signal regs_debug   : std_logic_vector(23 downto 0);
 
    -- Additional Registers
-   signal inst : std_logic_vector(7 downto 0);
-
-   -- Control signals
-   signal j_ena      : std_logic;
-   signal j_addr     : std_logic_vector(15 downto 0);
-
    signal mem_addr_reg : std_logic_vector(7 downto 0);
+   signal sr           : std_logic_vector(7 downto 0);
 
 begin
  
@@ -85,9 +80,6 @@ begin
    -- Second operand to ALU is typically memory input
    alu_b <= data_i;
 
-   -- The ALU output is typically written to memory
-   data_o <= alu_out;
-
    -- Input to the register file is typically from memory.
    regs_wr_data <= data_i when ctl_reg_data_sel = "00" else
                    alu_out when ctl_reg_data_sel = "01" else
@@ -98,7 +90,7 @@ begin
    port map (
                a_i    => alu_a,
                b_i    => alu_b,
-               c_i    => alu_c,
+               c_i    => sr(0),  -- Carry
                func_i => ctl_alu_func,
                res_o  => alu_out,
                sr_o   => alu_sr
@@ -120,6 +112,7 @@ begin
                reg_nr_o        => ctl_reg_nr,
                pc_sel_o        => ctl_pc_sel,
                alu_func_o      => ctl_alu_func,
+               clc_o           => ctl_clc,
                debug_o         => ctl_debug
             );
 
@@ -142,6 +135,8 @@ begin
       if rising_edge(clk_i) then
          case ctl_pc_sel is
             when "00" => reg_pc <= reg_pc + 1;
+            when "01" => reg_pc(15 downto 8) <= data_i;
+                         reg_pc(7 downto 0) <= mem_addr_reg;
             when "11" => null;
             when others => assert false severity failure;
          end case;
@@ -162,6 +157,21 @@ begin
          end if;
       end if;
    end process p_mem_addr_sel;
+
+
+   -- Status register
+   p_sr : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if ctl_clc = '1' then
+            sr(0) <= '0';
+         end if;
+
+         if rst_i = '1' then
+            sr <= X"00";
+         end if;
+      end if;
+   end process p_sr;
 
 
    -----------------------

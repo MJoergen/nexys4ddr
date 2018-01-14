@@ -22,6 +22,7 @@ entity ctl is
       reg_nr_o        : out std_logic_vector(1 downto 0);   -- Register number
       pc_sel_o        : out std_logic_vector(1 downto 0);   -- PC relect
       alu_func_o      : out std_logic_vector(3 downto 0);   -- ALU function
+      clc_o           : out std_logic;                      -- Clear carry
 
       debug_o : out std_logic_vector(10 downto 0)
    );
@@ -76,6 +77,7 @@ begin
       reg_nr_o        <= "00";
       pc_sel_o        <= "00";
       alu_func_o      <= "0000";
+      clc_o           <= '0';
 
       last            <= '0';
 
@@ -122,6 +124,7 @@ begin
 
       if cnt_r = 1 and inst_r = X"18" then   -- CLC
          pc_sel_o       <= "11";       -- PC unchanged
+         clc_o          <= '1';        -- Clear carry
          last           <= '1';        -- Next instruction
       end if;
 
@@ -139,6 +142,25 @@ begin
          reg_wren_o     <= '1';        -- Write to register
          pc_sel_o       <= "11";       -- PC unchanged
          last           <= '1';        -- Next instruction
+      end if;
+
+      if cnt_r = 1 and inst_r = X"69" then   -- ADC #$00
+         mem_rden_o     <= '1';        -- Read byte 0 from memory
+         reg_data_sel_o <= "01";       -- Write from ALU output
+         reg_nr_o       <= "00";       -- Select register A
+         reg_wren_o     <= '1';        -- Write to register
+         last           <= '1';        -- Next instruction
+      end if;
+
+      if cnt_r = 1 and inst_r = X"4C" then   -- JMP $0404
+         mem_rden_o      <= '1';       -- Read byte 0 from memory
+         mem_addr_wren_o <= '1';       -- Write to address hold register
+      end if;
+
+      if cnt_r = 2 and inst_r = X"4C" then
+         mem_rden_o      <= '1';       -- Read byte 0 from memory
+         pc_sel_o        <= "01";      -- Jump
+         last            <= '1';       -- Next instruction
       end if;
 
    end process;
