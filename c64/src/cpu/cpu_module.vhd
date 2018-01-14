@@ -69,7 +69,6 @@ architecture Structural of cpu_module is
 
    -- Additional Registers
    signal mem_addr_reg : std_logic_vector(7 downto 0);
-   signal sr           : std_logic_vector(7 downto 0);
 
 begin
  
@@ -92,7 +91,7 @@ begin
    port map (
                a_i    => alu_a,
                b_i    => alu_b,
-               c_i    => sr(0),  -- Carry
+               c_i    => reg_sr(0),  -- Carry
                func_i => ctl_alu_func,
                res_o  => alu_out,
                c_o    => alu_c,
@@ -188,18 +187,18 @@ begin
    begin
       if rising_edge(clk_i) then
          if ctl_clc = '1' then
-            sr(0) <= '0';
+            reg_sr(0) <= '0';
          end if;
 
          if ctl_sr_alu_wren = '1' then
-            sr(0) <= alu_c;
-            sr(1) <= alu_z;
-            sr(6) <= alu_v;
-            sr(7) <= alu_s;
+            reg_sr(0) <= alu_c;
+            reg_sr(1) <= alu_z;
+            reg_sr(6) <= alu_v;
+            reg_sr(7) <= alu_s;
          end if;
 
          if rst_i = '1' then
-            sr <= X"00";
+            reg_sr <= X"00";
          end if;
       end if;
    end process p_sr;
@@ -225,6 +224,7 @@ begin
    data_o <= regs_rd_data        when ctl_mem_data_sel = "00" else
              reg_pc(15 downto 8) when ctl_mem_data_sel = "01" else
              reg_pc(7 downto 0)  when ctl_mem_data_sel = "10" else
+             reg_sr              when ctl_mem_data_sel = "11" else
              (others => 'X');
 
    rden_o <= ctl_mem_rden;
