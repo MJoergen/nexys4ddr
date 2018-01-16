@@ -65,7 +65,7 @@ all: sim
 sim: $(wave)
 	gtkwave $(wave) $(wavesave)
 
-$(wave): $(testbench) rom.txt
+$(wave): $(testbench) rom.txt ram.txt
 	-ghdl -r $(testbench) --assert-level=error --wave=$(wave) $(stoptime) -gG_SIMULATION=true
 junk += $(wave)
 
@@ -177,10 +177,16 @@ junk += $(VECTORS_OBJ)
 rom.bin:	$(PROG_OBJ) $(VECTORS_OBJ)
 	ld65 -C $(LD_CFG) $(PROG_OBJ) $(VECTORS_OBJ)
 junk += rom.bin
+junk += ram.bin
+junk += a.out
 
 rom.txt:	rom.bin
 	hex2bin.py rom.bin
 junk += rom.txt
+
+ram.txt:	ram.bin
+	hex2bin.py ram.bin
+junk += ram.txt
 
 ###############################################################################
 

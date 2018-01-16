@@ -46,6 +46,12 @@ begin
                when others =>
             end case;
          end if;
+
+         if rst_i = '1' then
+            reg_a <= X"00";
+            reg_x <= X"00";
+            reg_y <= X"00";
+         end if;
       end if;
    end process p_reg;
 
