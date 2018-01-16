@@ -178,6 +178,10 @@ rom.bin:	$(PROG_OBJ) $(VECTORS_OBJ)
 	ld65 -C $(LD_CFG) $(PROG_OBJ) $(VECTORS_OBJ)
 junk += rom.bin
 
+rom.txt:	rom.bin
+	hex2bin.py rom.bin
+junk += rom.txt
+
 ###############################################################################
 
 .PHONY: clean
