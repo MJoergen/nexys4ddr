@@ -34,4 +34,21 @@ stoptime = --stop-time=5000ns
 
 include ../xilinx.mk
 
+PROG_SRC = circle.c
+
+# Don't change below here
+VECTORS_AS = vectors.s
+LD_CFG = ld.cfg
+PROG_AS  = $(PROG_SRC:.c=.s)
+ALL_AS = $(VECTORS_AS) $(PROG_AS)
+ALL_OBJ = $(ALL_AS:.s=.o)
+
+rom.bin:	$(ALL_OBJ)
+	ld65 -C $(LD_CFG) $(ALL_OBJ)
+
+%.o: %.s
+	ca65 $<
+
+%.s: %.c
+	cc65 $<
 
