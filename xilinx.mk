@@ -65,7 +65,7 @@ all: sim
 sim: $(wave)
 	gtkwave $(wave) $(wavesave)
 
-$(wave): $(testbench)
+$(wave): $(testbench) rom.txt
 	-ghdl -r $(testbench) --assert-level=error --wave=$(wave) $(stoptime) -gG_SIMULATION=true
 junk += $(wave)
 

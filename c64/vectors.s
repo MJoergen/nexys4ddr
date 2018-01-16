@@ -17,7 +17,7 @@
 
 .segment	"VECTORS"
 
-.addr _irq
-.addr _irq
+.addr _nmi
+.addr _reset
 .addr _irq
 

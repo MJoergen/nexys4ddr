@@ -52,7 +52,7 @@ In particular, the orbit is closed.
    y += x/256;
 */
 
-void __fastcall__ irq(void)
+void __fastcall__ reset(void)
 {
    __asm__("LDA %b", XLO);
    __asm__("CLC");
@@ -67,5 +67,15 @@ void __fastcall__ irq(void)
    __asm__("LDA %b", YHI);
    __asm__("ADC #$00");
    __asm__("STA %b", YHI);
+}
+
+void __fastcall__ irq(void)
+{
+   __asm__("RTI");
+}
+
+void __fastcall__ nmi(void)
+{
+   __asm__("RTI");
 }
 
