@@ -45,7 +45,7 @@ architecture Structural of cpu_module is
    -- Signals driven by the Control Logic
    signal ctl_mem_rden      : std_logic;    -- Read from memory
    signal ctl_mem_wren      : std_logic;    -- Write to memory
-   signal ctl_mem_addr_wren : std_logic;    -- Write to address hold register
+   signal ctl_mem_addr_wren : std_logic_vector(1 downto 0);    -- Write to address hold register
    signal ctl_mem_addr_sel  : std_logic_vector(3 downto 0);   -- Memory address select
    signal ctl_mem_data_sel  : std_logic_vector(1 downto 0);   -- Memory data select
    signal ctl_reg_wren      : std_logic;    -- Write to register file
@@ -68,7 +68,7 @@ architecture Structural of cpu_module is
    signal regs_debug   : std_logic_vector(23 downto 0);
 
    -- Additional Registers
-   signal mem_addr_reg : std_logic_vector(7 downto 0);
+   signal mem_addr_reg : std_logic_vector(15 downto 0);
 
 begin
  
@@ -105,6 +105,7 @@ begin
    port map (
                clk_i           => clk_i,
                rst_i           => rst_i,
+               irq_i           => irq_i,
                data_i          => data_i,
                mem_rden_o      => ctl_mem_rden,
                mem_wren_o      => ctl_mem_wren,
@@ -141,7 +142,7 @@ begin
          case ctl_pc_sel is
             when "00" => reg_pc <= reg_pc + 1;
             when "01" => reg_pc(15 downto 8) <= data_i;
-                         reg_pc(7 downto 0) <= mem_addr_reg;
+                         reg_pc( 7 downto 0) <= mem_addr_reg(7 downto 0);
             when "11" => null;
             when others => assert false severity failure;
          end case;
@@ -172,14 +173,17 @@ begin
       
 
    -- Memory address hold register
-   p_mem_addr_sel : process (clk_i)
+   p_mem_addr_reg_lo : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if ctl_mem_addr_wren = '1' then
-            mem_addr_reg <= data_i;
+         if ctl_mem_addr_wren(0) = '1' then
+            mem_addr_reg(7 downto 0) <= data_i;
+         end if;
+         if ctl_mem_addr_wren(1) = '1' then
+            mem_addr_reg(15 downto 8) <= data_i;
          end if;
       end if;
-   end process p_mem_addr_sel;
+   end process p_mem_addr_reg_lo;
 
 
    -- Status register
@@ -209,9 +213,10 @@ begin
    -----------------------
 
    -- Select memory address
-   addr_o <= reg_pc               when ctl_mem_addr_sel = "0000" else
-             X"00" & mem_addr_reg when ctl_mem_addr_sel = "0001" else
+   addr_o <= reg_pc                           when ctl_mem_addr_sel = "0000" else
+             X"00" & mem_addr_reg(7 downto 0) when ctl_mem_addr_sel = "0001" else
              X"01" & reg_sp       when ctl_mem_addr_sel = "0010" else
+             mem_addr_reg         when ctl_mem_addr_sel = "0011" else
              X"FFFA"              when ctl_mem_addr_sel = "1010" else
              X"FFFB"              when ctl_mem_addr_sel = "1011" else
              X"FFFC"              when ctl_mem_addr_sel = "1100" else

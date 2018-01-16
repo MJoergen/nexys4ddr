@@ -54,7 +54,19 @@ In particular, the orbit is closed.
 
 void __fastcall__ reset(void)
 {
-   __asm__("BRK");
+   __asm__("LDA #$FF");
+   __asm__("STA $8000");
+   __asm__("STA $8001");
+   __asm__("STA $8002");
+   __asm__("STA $8003");
+   __asm__("STA $8020"); // X
+   __asm__("STA $8023"); // Color
+   __asm__("STA $8024"); // Enable
+   __asm__("LDA #$00");
+   __asm__("STA $00");
+   __asm__("STA $01");
+   __asm__("STA $02");
+   __asm__("STA $03");
 here:
    goto here;  // Just do an endless loop. Everything is run from the IRQ.
 }
@@ -74,6 +86,13 @@ void __fastcall__ irq(void)
    __asm__("LDA %b", YHI);
    __asm__("ADC #$00");
    __asm__("STA %b", YHI);
+   __asm__("CLC");
+   __asm__("ADC #$80");
+   __asm__("STA $8022"); // Y
+   __asm__("LDA %b", XHI);
+   __asm__("CLC");
+   __asm__("ADC #$80");
+   __asm__("STA $8020"); // X
    __asm__("RTI");
 }
 

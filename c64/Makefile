@@ -31,7 +31,7 @@ SRC += src/mem_file.vhd
 # Control logic
 SRC += src/cs.vhd
 
-stoptime = --stop-time=5000ns
+stoptime = --stop-time=50000ns
 
 PROG_SRC = circle.c
 

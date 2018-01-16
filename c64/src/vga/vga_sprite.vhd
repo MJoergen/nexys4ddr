@@ -444,7 +444,7 @@ begin
       end if;
    end process p_status;
 
-   cpu_irq_o <= '0';
+   cpu_irq_o <= '1' when stage7.hcount = 0 else '0';
 
    assert G_DO_RD_REG = true report "Wrong value for G_DO_RD_REG" severity failure;
    assert G_RD_CLK_RIS = false report "Wrong value for G_RD_CLK_RIS" severity failure;
