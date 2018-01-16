@@ -87,7 +87,7 @@ junk += unisim-obj93.cf
 ###############################################################################
 
 # Generate tcl-file for vivado batch mode
-$(TCL) : $(SRC) Makefile
+$(TCL) : $(SRC) Makefile rom.txt ram.txt
 	cat ../reportCriticalPaths.tcl > $(TCL)
 	# Step 1
 	echo "# Step 1" >> $(TCL)

@@ -12,12 +12,12 @@ entity ctl is
       rst_i  : in  std_logic;
       data_i : in  std_logic_vector( 7 downto 0);
 
-      mem_rden_o      : out std_logic;    -- Read from memory
-      mem_wren_o      : out std_logic;    -- Write to memory
-      mem_addr_wren_o : out std_logic;    -- Write to address hold register
+      mem_rden_o      : out std_logic;                      -- Read from memory
+      mem_wren_o      : out std_logic;                      -- Write to memory
+      mem_addr_wren_o : out std_logic;                      -- Write to address hold register
       mem_addr_sel_o  : out std_logic_vector(3 downto 0);   -- Memory address select
       mem_data_sel_o  : out std_logic_vector(1 downto 0);   -- Memory data select
-      reg_wren_o      : out std_logic;    -- Write to register file
+      reg_wren_o      : out std_logic;                      -- Write to register file
       reg_nr_o        : out std_logic_vector(1 downto 0);   -- Register number
       pc_sel_o        : out std_logic_vector(1 downto 0);   -- PC relect
       alu_func_o      : out std_logic_vector(3 downto 0);   -- ALU function
@@ -170,7 +170,7 @@ begin
             when X"3E" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0"; -- ROL a,X
             when X"3F" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0";
 
-            when X"40" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0"; -- RTI
+            when X"40" => ctl <= B"0_0_0_0_0000_01_11_00_0_00_0000_0_0_0"; -- RTI
             when X"41" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0"; -- EOR (d,X)
             when X"42" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0";
             when X"43" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0";
@@ -448,7 +448,7 @@ begin
             when X"3E" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0"; -- ROL a,X
             when X"3F" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0";
 
-            when X"40" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0"; -- RTI
+            when X"40" => ctl <= B"0_0_0_0_0000_01_11_00_0_00_0010_0_0_1"; -- RTI
             when X"41" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0"; -- EOR (d,X)
             when X"42" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0";
             when X"43" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0";
@@ -726,7 +726,7 @@ begin
             when X"3E" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0"; -- ROL a,X
             when X"3F" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0";
 
-            when X"40" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0"; -- RTI
+            when X"40" => ctl <= B"0_0_0_0_0000_01_11_00_0_00_0010_1_0_1"; -- RTI
             when X"41" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0"; -- EOR (d,X)
             when X"42" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0";
             when X"43" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0";
@@ -1004,7 +1004,7 @@ begin
             when X"3E" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0"; -- ROL a,X
             when X"3F" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0";
 
-            when X"40" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0"; -- RTI
+            when X"40" => ctl <= B"0_1_0_0_0000_00_01_00_0_00_0000_0_0_0"; -- RTI
             when X"41" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0"; -- EOR (d,X)
             when X"42" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0";
             when X"43" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_0_0_0";

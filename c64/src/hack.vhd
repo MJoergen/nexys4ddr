@@ -111,7 +111,7 @@ begin
    -- Instantiate VGA module (only during synthesis)
    ------------------------------
 
-   gen_vga: if G_SIMULATION = false  generate
+   gen_vga: if true generate -- G_SIMULATION = false  generate
       inst_vga_module : entity work.vga_module
       generic map (
                      G_CHAR_FILE  => G_CHAR_FILE,
@@ -128,7 +128,7 @@ begin
          -- Configuration @ cpu_clk_i
          cpu_clk_i  => clk_cpu,
          cpu_rst_i  => rst_cpu,
-         cpu_addr_i => cpu_addr(6 downto 0),
+         cpu_addr_i => cpu_addr(7 downto 0),
          cpu_wren_i => cpu_wren,
          cpu_data_i => cpu_data,
          cpu_rden_i => rden_vga,

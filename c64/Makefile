@@ -7,11 +7,12 @@ SRC  = src/$(TOP).vhd
 # Clocks
 SRC += src/clock/clk_wiz_vga.vhd
 SRC += src/clock/clk_wiz_vga_clk_wiz.vhd
+SRC += src/clock/clk_wiz_cpu.vhd
+SRC += src/clock/clk_wiz_cpu_clk_wiz.vhd
 SRC += src/clk_rst.vhd
 
 # VGA driver
 SRC += src/vga/bitmaps.vhd
-#SRC += src/vga/rom_file.vhd
 SRC += src/vga/vga_ctrl.vhd
 SRC += src/vga/vga_disp.vhd
 SRC += src/vga/vga_sprite.vhd

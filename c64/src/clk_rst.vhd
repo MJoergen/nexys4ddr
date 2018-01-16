@@ -35,6 +35,7 @@ begin
 
    gen_simulation: if G_SIMULATION = true  generate
       clk_vga <= sys_clk_i;
+      clk_cpu <= sys_clk_i;
    end generate gen_simulation;
 
    gen_no_simulation: if G_SIMULATION = false  generate
@@ -44,9 +45,14 @@ begin
          clk_in1  => sys_clk_i,   -- 100 MHz
          clk_out1 => clk_vga  -- 25 MHz
       );
-   end generate gen_no_simulation;
 
-   clk_cpu <= sys_clk_i;
+      inst_clk_wiz_cpu : entity work.clk_wiz_cpu
+      port map
+      (
+         clk_in1  => sys_clk_i,   -- 100 MHz
+         clk_out1 => clk_cpu  -- 20 MHz
+      );
+   end generate gen_no_simulation;
 
 
    ------------------------------

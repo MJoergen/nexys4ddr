@@ -54,6 +54,13 @@ In particular, the orbit is closed.
 
 void __fastcall__ reset(void)
 {
+   __asm__("BRK");
+here:
+   goto here;  // Just do an endless loop. Everything is run from the IRQ.
+}
+
+void __fastcall__ irq(void)
+{
    __asm__("LDA %b", XLO);
    __asm__("CLC");
    __asm__("SBC %b", YHI);
@@ -67,10 +74,6 @@ void __fastcall__ reset(void)
    __asm__("LDA %b", YHI);
    __asm__("ADC #$00");
    __asm__("STA %b", YHI);
-}
-
-void __fastcall__ irq(void)
-{
    __asm__("RTI");
 }
 

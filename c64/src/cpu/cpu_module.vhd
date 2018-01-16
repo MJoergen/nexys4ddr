@@ -114,10 +114,10 @@ begin
                reg_wren_o      => ctl_reg_wren,
                reg_nr_o        => ctl_reg_nr,
                pc_sel_o        => ctl_pc_sel,
+               sp_sel_o        => ctl_sp_sel,
                alu_func_o      => ctl_alu_func,
                clc_o           => ctl_clc,
                sr_alu_wren_o   => ctl_sr_alu_wren,
-               sp_sel_o        => ctl_sp_sel,
                debug_o         => ctl_debug
             );
 

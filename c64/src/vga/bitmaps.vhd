@@ -20,7 +20,7 @@ entity bitmaps is
       vga_rden_i  : in  std_logic;
 
       -- Write port @ cpu_clk_i
-      cpu_addr_i  : in  std_logic_vector( 5 downto 0);   -- 2 bits for sprite #, and 4 bits for row.
+      cpu_addr_i  : in  std_logic_vector( 6 downto 0);   -- 2 bits for sprite #, 4 bits for row, and 1 bit for left/right side.
       cpu_data_i  : in  std_logic_vector( 7 downto 0);
       cpu_wren_i  : in  std_logic
    );
@@ -56,9 +56,15 @@ begin
 
    -- Write port
    process (cpu_clk_i)
+      variable index_v : integer range 0 to 63;
    begin
       if rising_edge(cpu_clk_i) then
-         bitmaps(conv_integer(cpu_addr_i)) <= X"00" & cpu_data_i;
+         index_v := conv_integer(cpu_addr_i(6 downto 1));
+         case cpu_addr_i(0) is
+            when '0' => bitmaps(index_v)( 7 downto 0) <= cpu_data_i;
+            when '1' => bitmaps(index_v)(15 downto 8) <= cpu_data_i;
+            when others => null;
+         end case;
       end if;
    end process;
 
