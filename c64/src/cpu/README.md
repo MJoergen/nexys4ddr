@@ -13,6 +13,9 @@ Most instructions are of the form AAABBBCC.
 * BBB (bits 4-2) : Addressing mode
 * CC (bits 1-0) : Opcode
 
+The instruction decoding is described here:
+[http://axis.llx.com/~nparker/a2/opcodes.html](http://axis.llx.com/~nparker/a2/opcodes.html)
+
 ## Addressing modes
 * 000: (zero page, X)
 * 001: zero page
