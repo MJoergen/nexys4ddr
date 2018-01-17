@@ -67,12 +67,14 @@ void __fastcall__ reset(void)
    __asm__("STA $01");
    __asm__("STA $02");
    __asm__("STA $03");
+   __asm__("CLI");
 here:
    goto here;  // Just do an endless loop. Everything is run from the IRQ.
 }
 
 void __fastcall__ irq(void)
 {
+   __asm__("LDA $8001");  // Clear interrupt source
    __asm__("LDA %b", XLO);
    __asm__("CLC");
    __asm__("SBC %b", YHI);

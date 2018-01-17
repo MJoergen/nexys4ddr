@@ -89,6 +89,7 @@ junk += unisim-obj93.cf
 # Generate tcl-file for vivado batch mode
 $(TCL) : $(SRC) Makefile rom.txt ram.txt
 	cat ../reportCriticalPaths.tcl > $(TCL)
+	echo "set_param messaging.defaultLimit 1000" >> $(TCL)
 	# Step 1
 	echo "# Step 1" >> $(TCL)
 	echo "set outputDir $(OUTDIR)" >> $(TCL)
@@ -103,7 +104,7 @@ $(TCL) : $(SRC) Makefile rom.txt ram.txt
 	echo "read_xdc $(XDC)" >> $(TCL)
 	# Step 3
 	echo "# Step 3" >> $(TCL)
-	echo "synth_design -top $(TOP) -part $(PART)" >> $(TCL)
+	echo "synth_design -verbose -top $(TOP) -part $(PART) -flatten_hierarchy none -keep_equivalent_registers -resource_sharing off" >> $(TCL)
 	echo "write_checkpoint -force \$$outputDir/post_synth.dcp" >> $(TCL)
 	echo "report_timing_summary -file \$$outputDir/post_synth_timing_summary.rpt" >> $(TCL)
 	echo "report_utilization -file \$$outputDir/post_synth_util.rpt" >> $(TCL)

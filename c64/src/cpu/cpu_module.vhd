@@ -43,18 +43,19 @@ architecture Structural of cpu_module is
    signal alu_z    : std_logic;
 
    -- Signals driven by the Control Logic
-   signal ctl_mem_rden      : std_logic;    -- Read from memory
-   signal ctl_mem_wren      : std_logic;    -- Write to memory
+   signal ctl_mem_rden      : std_logic;                       -- Read from memory
+   signal ctl_mem_wren      : std_logic;                       -- Write to memory
    signal ctl_mem_addr_wren : std_logic_vector(1 downto 0);    -- Write to address hold register
-   signal ctl_mem_addr_sel  : std_logic_vector(3 downto 0);   -- Memory address select
-   signal ctl_mem_data_sel  : std_logic_vector(1 downto 0);   -- Memory data select
-   signal ctl_reg_wren      : std_logic;    -- Write to register file
-   signal ctl_reg_nr        : std_logic_vector(1 downto 0);   -- Register number
-   signal ctl_pc_sel        : std_logic_vector(1 downto 0);   -- PC select
-   signal ctl_alu_func      : std_logic_vector(3 downto 0);   -- ALU function
-   signal ctl_clc           : std_logic;                      -- Clear carry
-   signal ctl_sr_alu_wren   : std_logic;                      -- Update status register
-   signal ctl_sp_sel        : std_logic_vector(1 downto 0);   -- Stack pointer update
+   signal ctl_mem_addr_sel  : std_logic_vector(3 downto 0);    -- Memory address select
+   signal ctl_mem_data_sel  : std_logic_vector(1 downto 0);    -- Memory data select
+   signal ctl_reg_wren      : std_logic;                       -- Write to register file
+   signal ctl_reg_nr        : std_logic_vector(1 downto 0);    -- Register number
+   signal ctl_pc_sel        : std_logic_vector(1 downto 0);    -- PC select
+   signal ctl_alu_func      : std_logic_vector(3 downto 0);    -- ALU function
+   signal ctl_clc           : std_logic;                       -- Clear carry
+   signal ctl_sr_alu_wren   : std_logic;                       -- Update status register
+   signal ctl_sp_sel        : std_logic_vector(1 downto 0);    -- Stack pointer update
+   signal ctl_irq_mask_wr   : std_logic_vector(1 downto 0);    -- IRQ mask write
    signal ctl_debug         : std_logic_vector(10 downto 0);
 
    -- Program Registers
@@ -121,6 +122,7 @@ begin
                alu_func_o      => ctl_alu_func,
                clc_o           => ctl_clc,
                sr_alu_wren_o   => ctl_sr_alu_wren,
+               irq_mask_wr_o   => ctl_irq_mask_wr,
                debug_o         => ctl_debug
             );
 
@@ -151,9 +153,9 @@ begin
             when others => assert false severity failure;
          end case;
 
-         if rst_i = '1' then
-            reg_pc <= X"FC00";
-         end if;
+--         if rst_i = '1' then
+--            reg_pc <= X"FC00";
+--         end if;
       end if;
    end process p_pc;
 
@@ -177,7 +179,7 @@ begin
       
 
    -- Memory address hold register
-   p_mem_addr_reg_lo : process (clk_i)
+   p_mem_addr_reg : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if ctl_mem_addr_wren(0) = '1' then
@@ -187,7 +189,7 @@ begin
             mem_addr_reg(15 downto 8) <= data_i;
          end if;
       end if;
-   end process p_mem_addr_reg_lo;
+   end process p_mem_addr_reg;
 
 
    -- Status register
@@ -205,6 +207,13 @@ begin
             reg_sr(7) <= alu_s;
          end if;
 
+         case ctl_irq_mask_wr is
+            when "01" => reg_sr(2) <= data_i(2);   -- RTI
+            when "10" => reg_sr(2) <= '0';         -- CLI
+            when "11" => reg_sr(2) <= '1';         -- SEI, BRK
+            when others => null;
+         end case;
+
          if rst_i = '1' then
             reg_sr <= X"00";
          end if;
@@ -221,8 +230,8 @@ begin
              X"00" & mem_addr_reg(7 downto 0) when ctl_mem_addr_sel = "0001" else
              X"01" & reg_sp       when ctl_mem_addr_sel = "0010" else
              mem_addr_reg         when ctl_mem_addr_sel = "0011" else
-             X"FFFA"              when ctl_mem_addr_sel = "1000" else    -- BRK
-             X"FFFB"              when ctl_mem_addr_sel = "1001" else    -- BRK
+             X"FFFE"              when ctl_mem_addr_sel = "1000" else    -- BRK
+             X"FFFF"              when ctl_mem_addr_sel = "1001" else    -- BRK
              X"FFFA"              when ctl_mem_addr_sel = "1010" else    -- NMI
              X"FFFB"              when ctl_mem_addr_sel = "1011" else    -- NMI
              X"FFFC"              when ctl_mem_addr_sel = "1100" else    -- RESET

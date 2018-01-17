@@ -438,7 +438,7 @@ begin
 
    p_status : process (cpu_clk_i)
    begin
-      if rising_edge(cpu_clk_i) then
+      if falling_edge(cpu_clk_i) then
          cpu_data_o <= (others => 'Z');
 
          if cpu_rden_i = '1' then
@@ -462,7 +462,7 @@ begin
          collision <= collision or stage7.collision;
 
          -- Latch interrupt at start of specific vertical line.
-         if stage7.hcount = 0 and stage7.vcount = 1 then
+         if stage7.hcount = 0 and stage7.vcount = 480 then
             cpu_irq_l <= '1';
          end if;
 

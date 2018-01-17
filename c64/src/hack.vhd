@@ -30,8 +30,11 @@ entity hack is
       sys_rstn_i : in  std_logic;  -- Asserted low
 
       -- Input switches and push buttons
-      sw_i       : in  std_logic_vector (15 downto 0);
-      btn_i      : in  std_logic_vector ( 4 downto 0);
+      sw_i       : in  std_logic_vector(15 downto 0);
+      btn_i      : in  std_logic_vector( 4 downto 0);
+
+      -- Output LEDs
+      led_o      : out std_logic_vector(15 downto 0);
 
      -- Output to VGA monitor
       vga_hs_o   : out std_logic;
@@ -63,14 +66,18 @@ architecture Structural of hack is
    signal cpu_data  : std_logic_vector( 7 downto 0);
    signal cpu_rden  : std_logic;
 
-   -- Common tristated read data bus
-   signal data      : std_logic_vector(7 downto 0);
+   signal rom_data : std_logic_vector(7 downto 0);
+   signal ram_data : std_logic_vector(7 downto 0);
+   signal vga_data : std_logic_vector(7 downto 0);
+   signal data     : std_logic_vector(7 downto 0);
 
    -- Additional signals
    signal vga_irq   : std_logic;
    signal cpu_debug : std_logic_vector(63 downto 0);
 
 begin
+
+   led_o <= cpu_debug(47 downto 32);
 
    ------------------------------
    -- Instantiate Clock and Reset
@@ -132,7 +139,7 @@ begin
          cpu_wren_i => cpu_wren,
          cpu_data_i => cpu_data,
          cpu_rden_i => rden_vga,
-         cpu_data_o => data,
+         cpu_data_o => vga_data,
 
          cpu_irq_o => vga_irq
       );
@@ -161,7 +168,7 @@ begin
       rd_clk_i  => clk_cpu,
       rd_en_i   => rden_rom,
       rd_addr_i => cpu_addr(G_ROM_SIZE-1 downto 0),
-      rd_data_o => data
+      rd_data_o => rom_data
    );
 
 
@@ -186,11 +193,14 @@ begin
       rd_clk_i  => clk_cpu,
       rd_en_i   => rden_ram,
       rd_addr_i => cpu_addr(G_RAM_SIZE-1 downto 0),
-      rd_data_o => data
+      rd_data_o => ram_data
    );
 
 
-   data <= (others => 'L');
+   data <= rom_data when rden_rom = '1' else
+           ram_data when rden_ram = '1' else
+           vga_data when rden_vga = '1' else
+           (others => '0');
 
    ------------------------------
    -- Instantiate CPU

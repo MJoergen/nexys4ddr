@@ -1,10 +1,10 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Wed Jan 17 02:44:02 2018
+[*] Wed Jan 17 03:21:55 2018
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/c64/hack.ghw"
-[dumpfile_mtime] "Wed Jan 17 02:43:44 2018"
-[dumpfile_size] 2561177
+[dumpfile_mtime] "Wed Jan 17 03:21:31 2018"
+[dumpfile_size] 2564833
 [savefile] "/home/mike/git/nexys4ddr/c64/src/hack_tb.gtkw"
 [timestart] 59800000
 [size] 1920 1010
@@ -25,9 +25,8 @@
 top.hack_tb.test_running
 @28
 top.hack_tb.inst_hack.inst_cpu.rst_i
-@29
 top.hack_tb.inst_hack.inst_cpu.irq_i
-@28
+top.hack_tb.inst_hack.inst_cpu.irq_masked
 top.hack_tb.inst_hack.inst_cpu.clk_i
 @800200
 -CPU
@@ -61,9 +60,11 @@ top.hack_tb.inst_hack.inst_cpu.inst_regs.wren_i
 #{top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_a[7:0]} top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_a[7] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_a[6] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_a[5] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_a[4] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_a[3] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_a[2] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_a[1] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_a[0]
 #{top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_x[7:0]} top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_x[7] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_x[6] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_x[5] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_x[4] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_x[3] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_x[2] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_x[1] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_x[0]
 #{top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_y[7:0]} top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_y[7] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_y[6] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_y[5] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_y[4] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_y[3] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_y[2] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_y[1] top.hack_tb.inst_hack.inst_cpu.inst_regs.reg_y[0]
+@23
+#{top.hack_tb.inst_hack.inst_cpu.reg_sr[7:0]} top.hack_tb.inst_hack.inst_cpu.reg_sr[7] top.hack_tb.inst_hack.inst_cpu.reg_sr[6] top.hack_tb.inst_hack.inst_cpu.reg_sr[5] top.hack_tb.inst_hack.inst_cpu.reg_sr[4] top.hack_tb.inst_hack.inst_cpu.reg_sr[3] top.hack_tb.inst_hack.inst_cpu.reg_sr[2] top.hack_tb.inst_hack.inst_cpu.reg_sr[1] top.hack_tb.inst_hack.inst_cpu.reg_sr[0]
 @1000200
 -Register File
-@800200
+@c00200
 -ALU
 @22
 #{top.hack_tb.inst_hack.inst_cpu.inst_alu.a_i[7:0]} top.hack_tb.inst_hack.inst_cpu.inst_alu.a_i[7] top.hack_tb.inst_hack.inst_cpu.inst_alu.a_i[6] top.hack_tb.inst_hack.inst_cpu.inst_alu.a_i[5] top.hack_tb.inst_hack.inst_cpu.inst_alu.a_i[4] top.hack_tb.inst_hack.inst_cpu.inst_alu.a_i[3] top.hack_tb.inst_hack.inst_cpu.inst_alu.a_i[2] top.hack_tb.inst_hack.inst_cpu.inst_alu.a_i[1] top.hack_tb.inst_hack.inst_cpu.inst_alu.a_i[0]
@@ -76,7 +77,7 @@ top.hack_tb.inst_hack.inst_cpu.inst_alu.c_o
 top.hack_tb.inst_hack.inst_cpu.inst_alu.s_o
 top.hack_tb.inst_hack.inst_cpu.inst_alu.v_o
 top.hack_tb.inst_hack.inst_cpu.inst_alu.z_o
-@1000200
+@1401200
 -ALU
 @800200
 -Control

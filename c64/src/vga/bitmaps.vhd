@@ -60,11 +60,14 @@ begin
    begin
       if rising_edge(cpu_clk_i) then
          index_v := conv_integer(cpu_addr_i(6 downto 1));
-         case cpu_addr_i(0) is
-            when '0' => bitmaps(index_v)( 7 downto 0) <= cpu_data_i;
-            when '1' => bitmaps(index_v)(15 downto 8) <= cpu_data_i;
-            when others => null;
-         end case;
+
+         if cpu_wren_i = '1' then
+            case cpu_addr_i(0) is
+               when '0' => bitmaps(index_v)( 7 downto 0) <= cpu_data_i;
+               when '1' => bitmaps(index_v)(15 downto 8) <= cpu_data_i;
+               when others => null;
+            end case;
+         end if;
       end if;
    end process;
 
