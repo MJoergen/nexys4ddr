@@ -172,7 +172,18 @@ architecture Behavioral of vga_sprite is
    -- Latched collusion status
    signal collision : std_logic_vector(3 downto 0) := (others => '0');
 
+   -- Latched interrupt
+   signal cpu_irq_l : std_logic;
+
 begin
+
+   -----------------
+   -- Internal check
+   -----------------
+
+   assert G_DO_RD_REG  = true report "Wrong value for G_DO_RD_REG" severity failure;
+   assert G_RD_CLK_RIS = false report "Wrong value for G_RD_CLK_RIS" severity failure;
+
 
    ------------------------------------------------------------------------
    -- Control reading sprite bitmaps from the BRAM.
@@ -429,25 +440,34 @@ begin
    begin
       if rising_edge(cpu_clk_i) then
          cpu_data_o <= (others => 'Z');
-         collision <= collision or stage7.collision;
 
          if cpu_rden_i = '1' then
             if cpu_addr_i = "0000000" then
                cpu_data_o <= "0000" & collision;
                collision <= (others => '0');
             end if;
+
+            if cpu_addr_i = "0000001" then
+               cpu_data_o <= "0000000" & cpu_irq_l;
+               cpu_irq_l <= '0';
+            end if;
          end if;
 
          if cpu_rst_i = '1' then
             collision <= (others => '0');
+            cpu_irq_l <= '0';
          end if;
+
+         -- Latch collision values.
+         collision <= collision or stage7.collision;
+
+         -- Latch interrupt at start of specific vertical line.
+         if stage7.hcount = 0 and stage7.vcount = 1 then
+            cpu_irq_l <= '1';
+         end if;
+
       end if;
    end process p_status;
-
-   cpu_irq_o <= '1' when stage7.hcount = 0 else '0';
-
-   assert G_DO_RD_REG = true report "Wrong value for G_DO_RD_REG" severity failure;
-   assert G_RD_CLK_RIS = false report "Wrong value for G_RD_CLK_RIS" severity failure;
 
 
    ----------------------------------------
@@ -460,6 +480,7 @@ begin
    vs_o     <= stage7.vs;
    col_o    <= stage7.col when collision = 0
                else not stage7.col;
+   cpu_irq_o <= cpu_irq_l;
 
 
 end Behavioral;

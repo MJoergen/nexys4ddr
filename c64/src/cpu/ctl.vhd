@@ -38,13 +38,16 @@ architecture Structural of ctl is
    signal invalid : std_logic;
 
    signal ctl     : std_logic_vector(24 downto 0);
+   signal irq_l   : std_logic := '0';
+   signal rst_l   : std_logic := '0';
 
 begin
 
    mem_rden_o      <= ctl(0);
    mem_wren_o      <= ctl(1);
    mem_addr_wren_o <= ctl(3 downto 2);
-   mem_addr_sel_o  <= ctl(7 downto 4);
+   mem_addr_sel_o  <= ctl(7 downto 4) when ctl(7) = '0'
+                      else '1' & rst_l & irq_l & ctl(4);
    mem_data_sel_o  <= ctl(9 downto 8);
    reg_wren_o      <= ctl(10);
    reg_nr_o        <= ctl(12 downto 11);
@@ -74,8 +77,16 @@ begin
       if rising_edge(clk_i) then
          cnt_r <= cnt_r + 1;
 
-         if rst_i = '1' or last = '1' then
+         if last = '1' then
             cnt_r <= (others => '0');
+
+            if irq_i = '1' then
+               cnt_r <= "001";
+            end if;
+         end if;
+
+         if rst_i = '1' then
+            cnt_r <= "011";
          end if;
       end if;
    end process p_cnt;
@@ -87,13 +98,34 @@ begin
       if rising_edge(clk_i) then
          if cnt_r = 0 then
             inst_r <= data_i;
+         end if;
 
-            if irq_i = '1' then
-               inst_r <= X"00";
-            end if;
+         if last = '1' and irq_i = '1' then
+            inst_r <= X"00";
+         end if;
+
+         if rst_i = '1' then
+            inst_r <= X"00";
          end if;
       end if;
    end process p_inst;
+
+
+   -- Latch reset and interrupt
+   p_irq_reset : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if last = '1' then
+            irq_l <= irq_i;
+            rst_l <= irq_i;
+         end if;
+
+         if rst_i = '1' then
+            irq_l <= '0';
+            rst_l <= rst_i;
+         end if;
+      end if;
+   end process p_irq_reset;
 
 
    -- Combinatorial process
@@ -941,7 +973,7 @@ begin
 
       if cnt_r = 4 then
          case inst_r is
-            when X"00" => ctl <= B"0_0_0_0_0000_00_11_00_0_00_1110_01_0_1"; -- BRK b
+            when X"00" => ctl <= B"0_0_0_0_0000_00_11_00_0_00_1000_01_0_1"; -- BRK b
             when X"01" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA (d,X)
             when X"02" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
             when X"03" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
@@ -1219,7 +1251,7 @@ begin
 
       if cnt_r = 5 then
          case inst_r is
-            when X"00" => ctl <= B"0_1_0_0_0000_00_01_00_0_00_1111_00_0_1"; -- BRK b
+            when X"00" => ctl <= B"0_1_0_0_0000_00_01_00_0_00_1001_10_0_1"; -- BRK b
             when X"01" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA (d,X)
             when X"02" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
             when X"03" => ctl <= B"1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";

@@ -70,6 +70,8 @@ architecture Structural of cpu_module is
    -- Additional Registers
    signal mem_addr_reg : std_logic_vector(15 downto 0);
 
+   signal irq_masked : std_logic;
+
 begin
  
    -- Internal checking
@@ -105,7 +107,7 @@ begin
    port map (
                clk_i           => clk_i,
                rst_i           => rst_i,
-               irq_i           => irq_i,
+               irq_i           => irq_masked,
                data_i          => data_i,
                mem_rden_o      => ctl_mem_rden,
                mem_wren_o      => ctl_mem_wren,
@@ -121,6 +123,8 @@ begin
                sr_alu_wren_o   => ctl_sr_alu_wren,
                debug_o         => ctl_debug
             );
+
+   irq_masked <= irq_i and not reg_sr(2);
 
    -- Instantiate register file
    inst_regs : entity work.regs
@@ -217,12 +221,14 @@ begin
              X"00" & mem_addr_reg(7 downto 0) when ctl_mem_addr_sel = "0001" else
              X"01" & reg_sp       when ctl_mem_addr_sel = "0010" else
              mem_addr_reg         when ctl_mem_addr_sel = "0011" else
-             X"FFFA"              when ctl_mem_addr_sel = "1010" else
-             X"FFFB"              when ctl_mem_addr_sel = "1011" else
-             X"FFFC"              when ctl_mem_addr_sel = "1100" else
-             X"FFFD"              when ctl_mem_addr_sel = "1101" else
-             X"FFFE"              when ctl_mem_addr_sel = "1110" else
-             X"FFFF"              when ctl_mem_addr_sel = "1111" else
+             X"FFFA"              when ctl_mem_addr_sel = "1000" else    -- BRK
+             X"FFFB"              when ctl_mem_addr_sel = "1001" else    -- BRK
+             X"FFFA"              when ctl_mem_addr_sel = "1010" else    -- NMI
+             X"FFFB"              when ctl_mem_addr_sel = "1011" else    -- NMI
+             X"FFFC"              when ctl_mem_addr_sel = "1100" else    -- RESET
+             X"FFFD"              when ctl_mem_addr_sel = "1101" else    -- RESET
+             X"FFFE"              when ctl_mem_addr_sel = "1110" else    -- IRQ
+             X"FFFF"              when ctl_mem_addr_sel = "1111" else    -- IRQ
              (others => 'X');
 
    -- Select memory data
