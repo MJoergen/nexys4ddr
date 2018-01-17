@@ -17,7 +17,6 @@ entity bitmaps is
       -- Read port @ vga_clk_i
       vga_addr_i  : in  std_logic_vector( 5 downto 0);   -- 2 bits for sprite #, and 4 bits for row.
       vga_data_o  : out std_logic_vector(15 downto 0);
-      vga_rden_i  : in  std_logic;
 
       -- Write port @ cpu_clk_i
       cpu_addr_i  : in  std_logic_vector( 6 downto 0);   -- 2 bits for sprite #, 4 bits for row, and 1 bit for left/right side.

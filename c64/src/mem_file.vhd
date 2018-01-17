@@ -28,7 +28,6 @@ entity mem_file is
       wr_data_i : in  std_logic_vector(G_DATA_SIZE-1 downto 0) := (others => '0');
 
       rd_clk_i  : in  std_logic;
-      rd_en_i   : in  std_logic;
       rd_addr_i : in  std_logic_vector(G_ADDR_SIZE-1 downto 0);
       rd_data_o : out std_logic_vector(G_DATA_SIZE-1 downto 0)
    );
@@ -82,17 +81,14 @@ begin
    rd_data <= mem(conv_integer(rd_addr_i));
 
    gen_no_reg: if G_DO_RD_REG = false  generate
-      rd_data_o <= rd_data when rd_en_i = '1' else (others => 'Z');
+      rd_data_o <= rd_data;
    end generate gen_no_reg;
 
    gen_rising_reg: if G_DO_RD_REG = true and G_RD_CLK_RIS = true  generate
       process (rd_clk_i)
       begin
          if rising_edge(rd_clk_i) then
-            rd_data_o <= (others => 'Z');
-            if rd_en_i = '1' then
-               rd_data_o <= rd_data;
-            end if;
+            rd_data_o <= rd_data;
          end if;
       end process;
    end generate gen_rising_reg;
@@ -101,10 +97,7 @@ begin
       process (rd_clk_i)
       begin
          if falling_edge(rd_clk_i) then
-            rd_data_o <= (others => 'Z');
-            if rd_en_i = '1' then
-               rd_data_o <= rd_data;
-            end if;
+            rd_data_o <= rd_data;
          end if;
       end process;
    end generate gen_falling_reg;

@@ -24,7 +24,6 @@ entity vga_module is
       cpu_addr_i : in  std_logic_vector(7 downto 0);
       cpu_wren_i : in  std_logic;
       cpu_data_i : in  std_logic_vector(7 downto 0);
-      cpu_rden_i : in  std_logic;
       cpu_data_o : out std_logic_vector(7 downto 0);
       cpu_irq_o  : out std_logic
    );
@@ -116,7 +115,6 @@ begin
       cpu_addr_i => cpu_addr_i,
       cpu_wren_i => cpu_wren_i,
       cpu_data_i => cpu_data_i,
-      cpu_rden_i => cpu_rden_i,
       cpu_data_o => cpu_data_o,
       cpu_irq_o  => cpu_irq_o
    );

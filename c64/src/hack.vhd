@@ -56,9 +56,6 @@ architecture Structural of hack is
    signal cs_rom    : std_logic;
    signal cs_vga    : std_logic;
    signal cs_ram    : std_logic;
-   signal rden_rom  : std_logic;
-   signal rden_vga  : std_logic;
-   signal rden_ram  : std_logic;
 
    -- Signals driven by the CPU.
    signal cpu_addr  : std_logic_vector(15 downto 0);
@@ -70,6 +67,8 @@ architecture Structural of hack is
    signal ram_data : std_logic_vector(7 downto 0);
    signal vga_data : std_logic_vector(7 downto 0);
    signal data     : std_logic_vector(7 downto 0);
+   signal vga_wren : std_logic;
+   signal ram_wren : std_logic;
 
    -- Additional signals
    signal vga_irq   : std_logic;
@@ -77,7 +76,7 @@ architecture Structural of hack is
 
 begin
 
-   led_o <= cpu_debug(47 downto 32);
+   --led_o <= cpu_debug(47 downto 32);
 
    ------------------------------
    -- Instantiate Clock and Reset
@@ -109,10 +108,13 @@ begin
       ram_o  => cs_ram
    );
 
-   rden_rom <= cs_rom and cpu_rden;
-   rden_vga <= cs_vga and cpu_rden;
-   rden_ram <= cs_ram and cpu_rden;
+   data <= rom_data when cs_rom = '1' else
+           ram_data when cs_ram = '1' else
+           vga_data when cs_vga = '1' else
+           (others => '0');
 
+   vga_wren <= cpu_wren and cs_vga;
+   ram_wren <= cpu_wren and cs_ram; 
 
    ------------------------------
    -- Instantiate VGA module (only during synthesis)
@@ -136,9 +138,8 @@ begin
          cpu_clk_i  => clk_cpu,
          cpu_rst_i  => rst_cpu,
          cpu_addr_i => cpu_addr(7 downto 0),
-         cpu_wren_i => cpu_wren,
+         cpu_wren_i => vga_wren,
          cpu_data_i => cpu_data,
-         cpu_rden_i => rden_vga,
          cpu_data_o => vga_data,
 
          cpu_irq_o => vga_irq
@@ -166,7 +167,6 @@ begin
       wr_data_i => (others => '0'),
 
       rd_clk_i  => clk_cpu,
-      rd_en_i   => rden_rom,
       rd_addr_i => cpu_addr(G_ROM_SIZE-1 downto 0),
       rd_data_o => rom_data
    );
@@ -186,21 +186,15 @@ begin
    )
    port map (
       wr_clk_i  => clk_cpu,
-      wr_en_i   => cpu_wren,
+      wr_en_i   => ram_wren,
       wr_addr_i => cpu_addr(G_RAM_SIZE-1 downto 0),
       wr_data_i => cpu_data,
 
       rd_clk_i  => clk_cpu,
-      rd_en_i   => rden_ram,
       rd_addr_i => cpu_addr(G_RAM_SIZE-1 downto 0),
       rd_data_o => ram_data
    );
 
-
-   data <= rom_data when rden_rom = '1' else
-           ram_data when rden_ram = '1' else
-           vga_data when rden_vga = '1' else
-           (others => '0');
 
    ------------------------------
    -- Instantiate CPU

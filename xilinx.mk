@@ -138,7 +138,7 @@ junk += $(TCL)
 bit: $(OUTDIR)/$(TOP).bit
 
 $(OUTDIR)/$(TOP).bit: $(TCL)
-	source $(ENV); vivado -mode tcl -source $(TCL)
+	bash -c "source $(ENV); vivado -mode tcl -source $(TCL)"
 junk += vivado*.jou
 junk += vivado*.log
 junk += fsm_encoding.os

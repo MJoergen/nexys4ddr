@@ -63,6 +63,8 @@ void __fastcall__ reset(void)
    __asm__("STA $8023"); // Color
    __asm__("STA $8024"); // Enable
    __asm__("LDA #$00");
+   __asm__("STA $8021"); // X MSB
+   __asm__("STA $8022"); // Y
    __asm__("STA $00");
    __asm__("STA $01");
    __asm__("STA $02");

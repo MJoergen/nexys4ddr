@@ -70,7 +70,6 @@ entity vga_sprite is
       cpu_addr_i  : in  std_logic_vector(7 downto 0);
       cpu_wren_i  : in  std_logic;
       cpu_data_i  : in  std_logic_vector(7 downto 0);
-      cpu_rden_i  : in  std_logic;
       cpu_data_o  : out std_logic_vector(7 downto 0);
       cpu_irq_o   : out std_logic
    );
@@ -170,10 +169,18 @@ architecture Behavioral of vga_sprite is
    ----------------------------------------------------------------------
 
    -- Latched collusion status
-   signal collision : std_logic_vector(3 downto 0) := (others => '0');
+   signal vga_coll_latch : std_logic_vector(3 downto 0) := (others => '0');
 
    -- Latched interrupt
-   signal cpu_irq_l : std_logic;
+   signal vga_irq_latch : std_logic;
+
+   -- Clear signals from the CPU
+   signal coll_clear_cpu : std_logic;
+   signal irq_clear_cpu  : std_logic;
+
+   -- Clock domain crossing
+   signal coll_clear_vga : std_logic;
+   signal irq_clear_vga  : std_logic;
 
 begin
 
@@ -193,6 +200,7 @@ begin
 
    p_fsm : process (vga_clk_i)
       variable pix_y_v : std_logic_vector( 9 downto 0);
+      variable fsm_rden_v : std_logic_vector(3 downto 0);
    begin
       if rising_edge(vga_clk_i) then
          vga_rden <= '0';
@@ -205,15 +213,17 @@ begin
                      pix_y_v := stage0.vcount(10 downto 1) - ("00" & config(i).posy);
                      fsm_addr(4*(i+1)-1 downto 4*i) <= pix_y_v(3 downto 0);
 
-                     fsm_rden(i) <= '0';
+                     fsm_rden_v(i) := '0';
                      if pix_y_v <= 15 then
-                        fsm_rden(i) <= config(i).enable;
+                        fsm_rden_v(i) := config(i).enable;
                      end if;
                   end loop;
 
+                  vga_rden <= fsm_rden_v(0);
+                  vga_addr <= "00" & pix_y_v(3 downto 0);
+
+                  fsm_rden <= fsm_rden_v;
                   fsm_state <= READING_ST;
-                  vga_rden <= fsm_rden(0);
-                  vga_addr <= "00" & fsm_addr(3 downto 0);
 
                   sprite <= 1; -- Prepare reading sprite 0 bitmap
                end if;
@@ -246,7 +256,6 @@ begin
       cpu_rst_i   => cpu_rst_i,
 
       -- Read port @ vga_clk_i
-      vga_rden_i  => vga_rden,
       vga_addr_i  => vga_addr,
       vga_data_o  => vga_data,
 
@@ -276,6 +285,9 @@ begin
          if rising_edge(vga_clk_i) then
             if vga_rden_d = '1' and conv_integer(vga_addr_d(5 downto 4)) = i then
                stage5_rows(i*16 + 15 downto i*16) <= vga_data;
+            end if;
+            if vga_rst_i = '1' then
+               stage5_rows(i*16 + 15 downto i*16) <= (others => '0');
             end if;
          end if;
       end process p_bitmap_row;
@@ -389,13 +401,66 @@ begin
    end process p_stage7;
 
 
+   ----------------------
+   -- Latch output to CPU
+   ----------------------
+
+   p_latch_vga : process (vga_clk_i)
+   begin
+      if rising_edge(vga_clk_i) then
+
+         -- Latch collision values.
+         for i in 0 to 3 loop
+            if stage7.collision(i) = '1' then
+               vga_coll_latch(i) <= '1';
+            end if;
+         end loop;
+
+         -- Latch interrupt at start of specific vertical line.
+         if stage7.hcount = 0 and stage7.vcount = 1 then -- 480 then
+            vga_irq_latch <= '1';
+         end if;
+
+         -- Clear latched values when requested by CPU
+         if coll_clear_vga = '1' then
+            vga_coll_latch <= (others => '0');
+         end if;
+
+         if irq_clear_vga = '1' then
+            vga_irq_latch <= '0';
+         end if;
+
+         if vga_rst_i = '1' then
+            vga_coll_latch <= (others => '0');
+            vga_irq_latch  <= '0';
+         end if;
+
+      end if;
+   end process p_latch_vga;
+
+
+   ------------------------------------------
+   -- Clock crossing : cpu_clk_i -> vga_clk_i
+   ------------------------------------------
+
+   -- Note: We assume that the VGA clock is faster than the CPU clock
+   -- Therefore, the CPU pulse is long enough to be sampled.
+   p_cc : process (vga_clk_i)
+   begin
+      if rising_edge(vga_clk_i) then
+         irq_clear_vga  <= irq_clear_cpu;
+         coll_clear_vga <= coll_clear_cpu;
+      end if;
+   end process p_cc;
+
+
    ----------------------------------------
-   -- Configuration write
+   -- Configuration write @ cpu_clk_i
    ----------------------------------------
 
    p_sprites : process (cpu_clk_i)
       variable sprite_num : integer range 0 to 3;
-      variable offset : integer range 0 to 4;
+      variable offset : integer range 0 to 7;
    begin
       if rising_edge(cpu_clk_i) then
          cpu_wren <= '0';
@@ -407,7 +472,7 @@ begin
                cpu_addr <= cpu_addr_i(7 downto 6) & cpu_addr_i(4 downto 0);
                cpu_data <= reverse(cpu_data_i);
             else -- addr_i(4) = '1' 
-               offset := conv_integer(cpu_addr_i(1 downto 0));
+               offset := conv_integer(cpu_addr_i(2 downto 0));
 
                case offset is
                   when 0 => config(sprite_num).posx(7 downto 0)   <= cpu_data_i;
@@ -432,38 +497,31 @@ begin
    end process p_sprites;
 
 
-   --------------
-   -- Status read
-   --------------
+   --------------------------
+   -- Status read @ cpu_clk_i
+   --------------------------
 
    p_status : process (cpu_clk_i)
    begin
       if falling_edge(cpu_clk_i) then
-         cpu_data_o <= (others => 'Z');
+         coll_clear_cpu <= '0';
+         irq_clear_cpu  <= '0';
 
-         if cpu_rden_i = '1' then
-            if cpu_addr_i = "0000000" then
-               cpu_data_o <= "0000" & collision;
-               collision <= (others => '0');
-            end if;
+         cpu_data_o <= (others => '0');
 
-            if cpu_addr_i = "0000001" then
-               cpu_data_o <= "0000000" & cpu_irq_l;
-               cpu_irq_l <= '0';
-            end if;
+         if cpu_addr_i = "00000000" then
+            cpu_data_o <= "0000" & vga_coll_latch;
+            coll_clear_cpu <= '1';
+         end if;
+
+         if cpu_addr_i = "00000001" then
+            cpu_data_o <= "0000000" & vga_irq_latch;
+            irq_clear_cpu <= '1';
          end if;
 
          if cpu_rst_i = '1' then
-            collision <= (others => '0');
-            cpu_irq_l <= '0';
-         end if;
-
-         -- Latch collision values.
-         collision <= collision or stage7.collision;
-
-         -- Latch interrupt at start of specific vertical line.
-         if stage7.hcount = 0 and stage7.vcount = 480 then
-            cpu_irq_l <= '1';
+            coll_clear_cpu <= '1';
+            irq_clear_cpu  <= '1';
          end if;
 
       end if;
@@ -474,13 +532,12 @@ begin
    -- Drive output signals
    ----------------------------------------
 
-   hcount_o <= stage7.hcount;
-   vcount_o <= stage7.vcount;
-   hs_o     <= stage7.hs;
-   vs_o     <= stage7.vs;
-   col_o    <= stage7.col when collision = 0
-               else not stage7.col;
-   cpu_irq_o <= cpu_irq_l;
+   hcount_o  <= stage7.hcount;
+   vcount_o  <= stage7.vcount;
+   hs_o      <= stage7.hs;
+   vs_o      <= stage7.vs;
+   col_o     <= stage7.col;
+   cpu_irq_o <= vga_irq_latch;
 
 
 end Behavioral;

@@ -126,7 +126,6 @@ begin
                )
    port map (
                rd_clk_i  => clk_i,
-               rd_en_i   => '1',
                rd_addr_i => stage1.vcount(8 downto 1),
                rd_data_o => stage2_divmod13
             );
@@ -165,7 +164,6 @@ begin
                )
    port map (
                rd_clk_i  => clk_i,
-               rd_en_i   => '1',
                rd_addr_i => stage2_char_addr,
                rd_data_o => stage3_char_val
             );
@@ -199,7 +197,6 @@ begin
                )
    port map (
                rd_clk_i  => clk_i,
-               rd_en_i   => '1',
                rd_addr_i => stage3_addr,
                rd_data_o => stage4_row
             );
