@@ -47,36 +47,137 @@ In particular, the orbit is closed.
 #define YLO 2
 #define YHI 3
 
+#define VGA_0_BITMAP    0x8000
+#define VGA_0_POSXLO    0x8020
+#define VGA_0_POSXHI    0x8021
+#define VGA_0_POSY      0x8022
+#define VGA_0_COLOR     0x8023
+#define VGA_0_ENABLE    0x8024
+
+
+// Entry point after CPU reset
+void __fastcall__ reset(void)
+{
+   // Program bitmap for sprite 0
+   __asm__("LDA #$00");
+   __asm__("STA $8000");
+   __asm__("LDA #$00");
+   __asm__("STA $8001");
+
+   __asm__("LDA #$00");
+   __asm__("STA $8002");
+   __asm__("LDA #$00");
+   __asm__("STA $8003");
+
+   __asm__("LDA #$01");
+   __asm__("STA $8004");
+   __asm__("LDA #$80");
+   __asm__("STA $8005");
+
+   __asm__("LDA #$06");
+   __asm__("STA $8006");
+   __asm__("LDA #$60");
+   __asm__("STA $8007");
+
+   __asm__("LDA #$08");
+   __asm__("STA $8008");
+   __asm__("LDA #$10");
+   __asm__("STA $8009");
+
+   __asm__("LDA #$10");
+   __asm__("STA $800A");
+   __asm__("LDA #$08");
+   __asm__("STA $800B");
+
+   __asm__("LDA #$10");
+   __asm__("STA $800C");
+   __asm__("LDA #$08");
+   __asm__("STA $800D");
+
+   __asm__("LDA #$20");
+   __asm__("STA $800E");
+   __asm__("LDA #$04");
+   __asm__("STA $800F");
+
+   __asm__("LDA #$20");
+   __asm__("STA $8010");
+   __asm__("LDA #$04");
+   __asm__("STA $8011");
+
+   __asm__("LDA #$10");
+   __asm__("STA $8012");
+   __asm__("LDA #$08");
+   __asm__("STA $8013");
+
+   __asm__("LDA #$10");
+   __asm__("STA $8014");
+   __asm__("LDA #$08");
+   __asm__("STA $8015");
+
+   __asm__("LDA #$08");
+   __asm__("STA $8016");
+   __asm__("LDA #$10");
+   __asm__("STA $8017");
+
+   __asm__("LDA #$06");
+   __asm__("STA $8018");
+   __asm__("LDA #$60");
+   __asm__("STA $8019");
+
+   __asm__("LDA #$01");
+   __asm__("STA $801A");
+   __asm__("LDA #$80");
+   __asm__("STA $801B");
+
+   __asm__("LDA #$00");
+   __asm__("STA $801C");
+   __asm__("LDA #$00");
+   __asm__("STA $801D");
+
+   __asm__("LDA #$00");
+   __asm__("STA $801E");
+   __asm__("LDA #$00");
+   __asm__("STA $801F");
+
+   // Configure sprite 0
+   __asm__("LDA #$FF");
+   __asm__("STA %w", VGA_0_POSXLO);
+   __asm__("STA %w", VGA_0_COLOR);
+   __asm__("STA %w", VGA_0_ENABLE);
+   __asm__("LDA #$00");
+   __asm__("STA %w", VGA_0_POSXHI);
+   __asm__("STA %w", VGA_0_POSY);
+
+   // Clear variables in zero page.
+   __asm__("STA %b", XLO);
+   __asm__("STA %b", XHI);
+   __asm__("STA %b", YLO);
+   __asm__("STA %b", YHI);
+
+   // Enable interrupts.
+   __asm__("CLI");
+
+   // Loop forever doing nothing
+here:
+   goto here;  // Just do an endless loop. Everything is run from the IRQ.
+} // end of reset
+
+
+// The interrupt service routine.
+void __fastcall__ irq(void)
+{
+   // Clear interrupt source
+   // When entering this function, the interrupts are already disabled, 
+   // but the interrupt source (i.e. the VGA driver) is continuously
+   // asserting the IRQ pin.
+   // Reading this register clears the assertion.
+   __asm__("LDA $8001");
+   
+
 /*
    x -= y/256;
    y += x/256;
 */
-
-void __fastcall__ reset(void)
-{
-   __asm__("LDA #$FF");
-   __asm__("STA $8000");
-   __asm__("STA $8001");
-   __asm__("STA $8002");
-   __asm__("STA $8003");
-   __asm__("STA $8020"); // X
-   __asm__("STA $8023"); // Color
-   __asm__("STA $8024"); // Enable
-   __asm__("LDA #$00");
-   __asm__("STA $8021"); // X MSB
-   __asm__("STA $8022"); // Y
-   __asm__("STA $00");
-   __asm__("STA $01");
-   __asm__("STA $02");
-   __asm__("STA $03");
-   __asm__("CLI");
-here:
-   goto here;  // Just do an endless loop. Everything is run from the IRQ.
-}
-
-void __fastcall__ irq(void)
-{
-   __asm__("LDA $8001");  // Clear interrupt source
    __asm__("LDA %b", XLO);
    __asm__("CLC");
    __asm__("SBC %b", YHI);
@@ -92,16 +193,19 @@ void __fastcall__ irq(void)
    __asm__("STA %b", YHI);
    __asm__("CLC");
    __asm__("ADC #$80");
-   __asm__("STA $8022"); // Y
+   __asm__("STA %w", VGA_0_POSY); // Set Y coordinate of sprite 0
    __asm__("LDA %b", XHI);
    __asm__("CLC");
    __asm__("ADC #$80");
-   __asm__("STA $8020"); // X
+   __asm__("STA %w", VGA_0_POSXLO); // Set X coordinate of sprite 0
    __asm__("RTI");
-}
+} // end of irq
 
+
+// Non-maskable interrupt
 void __fastcall__ nmi(void)
 {
+   // Not used.
    __asm__("RTI");
-}
+} // end of nmi
 
