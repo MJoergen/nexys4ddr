@@ -142,7 +142,8 @@ begin
          cpu_data_i => cpu_data,
          cpu_data_o => vga_data,
 
-         cpu_irq_o => vga_irq
+         cpu_irq_o => vga_irq,
+         debug_o   => led_o(2 downto 0)
       );
    end generate gen_vga;
 
@@ -204,14 +205,29 @@ begin
    port map (
       clk_i   => clk_cpu,
       rst_i   => rst_cpu,
+
       addr_o  => cpu_addr,
+
       rden_o  => cpu_rden,
       data_i  => data,
+
       wren_o  => cpu_wren,
       data_o  => cpu_data,
+
       irq_i   => vga_irq,
       debug_o => cpu_debug 
    );
+
+   p_temp : process (clk_cpu)
+   begin
+      if rising_edge(clk_cpu) then
+         if cpu_wren = '1' and cpu_addr = X"0005" then
+            led_o(15 downto 8) <= cpu_data;
+         end if;
+      end if;
+   end process p_temp;
+
+   led_o(3) <= cpu_debug(59);
 
 end Structural;
 
