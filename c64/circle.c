@@ -172,6 +172,17 @@ void __fastcall__ irq(void)
    // asserting the IRQ pin.
    // Reading this register clears the assertion.
    __asm__("LDA $8001");
+
+   // Just move the sprite vertically down slowly (one pixel every four seconds).
+   __asm__("LDA %b", YLO);
+   __asm__("CLC");
+   __asm__("ADC #$01");
+   __asm__("STA %b", YLO);
+   __asm__("LDA %b", YHI);
+   __asm__("ADC #$00");
+   __asm__("STA %b", YHI);
+   __asm__("STA %w", VGA_0_POSY); // Set Y coordinate of sprite 0
+   __asm__("RTI");
    
 
 /*
