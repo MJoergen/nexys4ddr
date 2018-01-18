@@ -46,6 +46,8 @@ In particular, the orbit is closed.
 #define XHI 1
 #define YLO 2
 #define YHI 3
+#define TEMP1 4
+#define TEMP2 5
 
 #define VGA_0_BITMAP    0x8000
 #define VGA_0_POSXLO    0x8020
@@ -142,23 +144,35 @@ void __fastcall__ reset(void)
    // Configure sprite 0
    __asm__("LDA #$FF");
    __asm__("STA %w", VGA_0_POSXLO);
-   __asm__("STA %w", VGA_0_COLOR);
    __asm__("STA %w", VGA_0_ENABLE);
+   __asm__("LDA #$E0"); // Red
+   __asm__("STA %w", VGA_0_COLOR);
    __asm__("LDA #$00");
    __asm__("STA %w", VGA_0_POSXHI);
    __asm__("STA %w", VGA_0_POSY);
 
    // Clear variables in zero page.
    __asm__("STA %b", XLO);
-   __asm__("STA %b", XHI);
    __asm__("STA %b", YLO);
    __asm__("STA %b", YHI);
+   __asm__("STA %b", TEMP1);
+   __asm__("STA %b", TEMP2);
+   __asm__("LDA #$40");    // Radius of circle
+   __asm__("STA %b", XHI);
 
    // Enable interrupts.
    __asm__("CLI");
 
    // Loop forever doing nothing
 here:
+   __asm__("LDA %b", TEMP1);
+   __asm__("CLC");
+   __asm__("ADC #$01");
+   __asm__("STA %b", TEMP1);
+   __asm__("LDA %b", TEMP2);
+   __asm__("ADC #$00");
+   __asm__("STA %b", TEMP2);
+
    goto here;  // Just do an endless loop. Everything is run from the IRQ.
 } // end of reset
 
