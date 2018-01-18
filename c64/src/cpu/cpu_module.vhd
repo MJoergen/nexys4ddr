@@ -255,7 +255,9 @@ begin
    debug_o(31 downto 24) <= reg_sp;
    debug_o(47 downto 32) <= reg_pc;
    debug_o(58 downto 48) <= ctl_debug;
-   debug_o(63 downto 59) <= (others => '0');
+   debug_o(59) <= reg_sr(2);
+   debug_o(63 downto 60) <= (others => '0');
+
 
 end Structural;
 
