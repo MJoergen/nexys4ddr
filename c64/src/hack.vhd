@@ -74,6 +74,9 @@ architecture Structural of hack is
    signal vga_irq   : std_logic;
    signal cpu_debug : std_logic_vector(63 downto 0);
 
+   signal btn_deb   : std_logic := '0';
+   signal btn_pulse : std_logic := '0';
+
 begin
 
    --led_o <= cpu_debug(47 downto 32);
@@ -209,9 +212,26 @@ begin
       data_i  => data,
       wren_o  => cpu_wren,
       data_o  => cpu_data,
-      irq_i   => vga_irq,
+--      irq_i   => vga_irq,
+      irq_i   => btn_pulse,
       debug_o => cpu_debug 
    );
+
+
+   inst_debounce : entity work.debounce
+   port map (
+      clk_i => clk_cpu,
+      sig_i => btn_i(0),   -- Center button
+      sig_o => btn_deb
+   );
+
+   inst_edgedetect : entity work.edgedetect
+   port map (
+      clk_i => clk_cpu,
+      sig_i => btn_deb,
+      sig_o => btn_pulse
+   );
+
 
 end Structural;
 
