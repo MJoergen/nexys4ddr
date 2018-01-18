@@ -31,6 +31,10 @@ SRC += src/mem_file.vhd
 # Control logic
 SRC += src/cs.vhd
 
+# Misc
+SRC += src/debounce.vhd
+SRC += src/edgedetect.vhd
+
 stoptime = --stop-time=75000ns
 
 PROG_SRC = circle.c
