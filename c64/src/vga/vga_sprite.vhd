@@ -200,6 +200,10 @@ begin
    -- With 4 sprites, the bitmap data is ready at stage 5.
    ------------------------------------------------------------------------
 
+   gen_addr : for i in 0 to 3 generate
+      fsm_addr(4*(i+1)-1 downto 4*i) <= vcount_i(4 downto 1) - config(i).posy(3 downto 0);
+   end generate gen_addr;
+
    p_fsm : process (vga_clk_i)
       variable pix_y_v : std_logic_vector( 9 downto 0);
       variable fsm_rden_v : std_logic_vector(3 downto 0);
@@ -213,7 +217,6 @@ begin
                   -- Generate read signals for all sprites at once.
                   for i in 0 to 3 loop
                      pix_y_v := stage0.vcount(10 downto 1) - ("00" & config(i).posy);
-                     fsm_addr(4*(i+1)-1 downto 4*i) <= pix_y_v(3 downto 0);
 
                      fsm_rden_v(i) := '0';
                      if pix_y_v <= 15 then
@@ -222,7 +225,7 @@ begin
                   end loop;
 
                   vga_rden <= fsm_rden_v(0);
-                  vga_addr <= "00" & pix_y_v(3 downto 0);
+                  vga_addr <= "00" & fsm_addr(3 downto 0);
 
                   fsm_rden <= fsm_rden_v;
                   fsm_state <= READING_ST;
