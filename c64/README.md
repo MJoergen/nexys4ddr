@@ -82,6 +82,8 @@ be achieved using the cc65 compiler.
 of the 6502 implementation.
 * 6502 emulator.  A C-program emulating the 6502 processor can be found here:
 [http://rubbermallet.org/fake6502.c](http://rubbermallet.org/fake6502.c)
+* www.pagetable.com Nice blog stuffed with knowledge.
+* Finally, there is the large repositories at visual6502.org and 6502.org.
 
 
 ## Additional features
