@@ -71,7 +71,9 @@ entity vga_sprite is
       cpu_wren_i  : in  std_logic;
       cpu_data_i  : in  std_logic_vector(7 downto 0);
       cpu_data_o  : out std_logic_vector(7 downto 0);
-      cpu_irq_o   : out std_logic
+      cpu_irq_o   : out std_logic;
+
+      debug_o     : out std_logic_vector(2 downto 0)
    );
 end vga_sprite;
 
@@ -526,6 +528,10 @@ begin
 
       end if;
    end process p_status;
+
+   debug_o(0) <= irq_clear_cpu;
+   debug_o(1) <= irq_clear_vga;
+   debug_o(2) <= vga_irq_latch;
 
 
    ----------------------------------------

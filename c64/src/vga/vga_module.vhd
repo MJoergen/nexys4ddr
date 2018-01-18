@@ -25,7 +25,9 @@ entity vga_module is
       cpu_wren_i : in  std_logic;
       cpu_data_i : in  std_logic_vector(7 downto 0);
       cpu_data_o : out std_logic_vector(7 downto 0);
-      cpu_irq_o  : out std_logic
+      cpu_irq_o  : out std_logic;
+
+      debug_o    : out std_logic_vector(2 downto 0)
    );
 end vga_module;
 
@@ -116,7 +118,8 @@ begin
       cpu_wren_i => cpu_wren_i,
       cpu_data_i => cpu_data_i,
       cpu_data_o => cpu_data_o,
-      cpu_irq_o  => cpu_irq_o
+      cpu_irq_o  => cpu_irq_o,
+      debug_o    => debug_o
    );
 
    hs_o  <= sprite_hs;
