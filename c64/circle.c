@@ -95,6 +95,7 @@ w = (1, sin(v/2) + i*cos(v/2))^T.
 #define YHI 3
 #define TEMP1 4
 #define TEMP2 5
+#define YTEMP 6
 
 #define VGA_0_BITMAP    0x8000
 #define VGA_0_POSXLO    0x8020
@@ -107,7 +108,7 @@ w = (1, sin(v/2) + i*cos(v/2))^T.
 // Entry point after CPU reset
 void __fastcall__ reset(void)
 {
-   // Program bitmap for sprite 0
+   // Write bitmap for sprite 0
    __asm__("LDA #$00");
    __asm__("STA $8000");
    __asm__("LDA #$00");
@@ -194,9 +195,10 @@ void __fastcall__ reset(void)
    __asm__("STA %w", VGA_0_ENABLE);
    __asm__("LDA #$E0"); // Red
    __asm__("STA %w", VGA_0_COLOR);
+   __asm__("LDA #$01");
+   __asm__("STA %w", VGA_0_POSY);
    __asm__("LDA #$00");
    __asm__("STA %w", VGA_0_POSXHI);
-   __asm__("STA %w", VGA_0_POSY);
 
    // Clear variables in zero page.
    __asm__("STA %b", XLO);
@@ -212,14 +214,6 @@ void __fastcall__ reset(void)
 
    // Loop forever doing nothing
 here:
-   __asm__("LDA %b", TEMP1);
-   __asm__("CLC");
-   __asm__("ADC #$01");
-   __asm__("STA %b", TEMP1);
-   __asm__("LDA %b", TEMP2);
-   __asm__("ADC #$00");
-   __asm__("STA %b", TEMP2);
-
    goto here;  // Just do an endless loop. Everything is run from the IRQ.
 } // end of reset
 
@@ -234,42 +228,56 @@ void __fastcall__ irq(void)
    // Reading this register clears the assertion.
    __asm__("LDA $8001");
 
-   // Just move the sprite vertically down slowly (one pixel every four seconds).
-   __asm__("LDA %b", YLO);
-   __asm__("CLC");
-   __asm__("ADC #$01");
-   __asm__("STA %b", YLO);
-   __asm__("LDA %b", YHI);
-   __asm__("ADC #$00");
-   __asm__("STA %b", YHI);
-   __asm__("STA %w", VGA_0_POSY); // Set Y coordinate of sprite 0
-   __asm__("RTI");
-   
-
 /*
    x -= y/256;
    y += x/256;
 */
-   __asm__("LDA %b", XLO);
+   __asm__("LDA %b", YHI); // Make YHI negative
    __asm__("CLC");
-   __asm__("SBC %b", YHI);
-   __asm__("STA %b", XLO);
-   __asm__("LDA %b", XHI);
+   __asm__("SBC #$01");
+   __asm__("EOR #$FF");
+   __asm__("STA %b", YTEMP);
+
+   __asm__("LDA %b", YTEMP); // Move sign bit to carry.
+   __asm__("CLC");
+   __asm__("ADC %b", YTEMP);
+   __asm__("LDA %b", XHI); // Decrement if YTEMP was negative.
    __asm__("SBC #$00");
    __asm__("STA %b", XHI);
+
+   __asm__("LDA %b", XLO);
    __asm__("CLC");
-   __asm__("ADC %b", YLO);
+   __asm__("ADC %b", YTEMP);
+   __asm__("STA %b", XLO);
+   __asm__("LDA %b", XHI);
+   __asm__("ADC #$00");
+   __asm__("STA %b", XHI);
+
+   __asm__("LDA %b", XHI); // Move sign bit to carry.
+   __asm__("CLC");
+   __asm__("ADC %b", XHI);
+   __asm__("LDA %b", YHI); // Decrement if XHI was negative.
+   __asm__("SBC #$00");
+   __asm__("STA %b", YHI);
+
+   __asm__("LDA %b", YLO);
+   __asm__("CLC");
+   __asm__("ADC %b", XHI);
    __asm__("STA %b", YLO);
    __asm__("LDA %b", YHI);
    __asm__("ADC #$00");
    __asm__("STA %b", YHI);
+
    __asm__("CLC");
    __asm__("ADC #$80");
    __asm__("STA %w", VGA_0_POSY); // Set Y coordinate of sprite 0
+   __asm__("STA %b", TEMP2);
+
    __asm__("LDA %b", XHI);
    __asm__("CLC");
    __asm__("ADC #$80");
    __asm__("STA %w", VGA_0_POSXLO); // Set X coordinate of sprite 0
+
    __asm__("RTI");
 } // end of irq
 
