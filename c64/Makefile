@@ -9,13 +9,14 @@ SRC += src/clock/clk_wiz_vga.vhd
 SRC += src/clock/clk_wiz_vga_clk_wiz.vhd
 SRC += src/clock/clk_wiz_cpu.vhd
 SRC += src/clock/clk_wiz_cpu_clk_wiz.vhd
-SRC += src/clk_rst.vhd
+SRC += src/clock/clk_rst.vhd
 
 # VGA driver
-SRC += src/vga/bitmaps.vhd
-SRC += src/vga/vga_ctrl.vhd
-SRC += src/vga/vga_disp.vhd
-SRC += src/vga/vga_sprite.vhd
+SRC += src/vga/bitmaps_mem.vhd
+SRC += src/vga/conf_stat.vhd
+SRC += src/vga/sync.vhd
+SRC += src/vga/chars.vhd
+SRC += src/vga/sprites.vhd
 SRC += src/vga/vga_module.vhd
 
 # CPU
@@ -26,18 +27,20 @@ SRC += src/cpu/pc.vhd
 SRC += src/cpu/cpu_module.vhd
 
 # Memory
-SRC += src/mem_file.vhd
+SRC += src/mem/rom_file.vhd
+SRC += src/mem/mem.vhd
+SRC += src/mem/cs.vhd
 
-# Control logic
-SRC += src/cs.vhd
+# Clock domain crossing
+SRC += src/cdc/cdcpulse.vhd
+SRC += src/cdc/cdcvector.vhd
 
-# Misc
-SRC += src/debounce.vhd
-SRC += src/edgedetect.vhd
+# Machine code
+PROG_SRC    = src/prog/circle.c
+LD_CFG      = src/prog/ld.cfg
+VECTORS_AS  = src/prog/vectors.s
 
-stoptime = --stop-time=75000ns
-
-PROG_SRC = circle.c
+stoptime = --stop-time=150000ns
 
 include ../xilinx.mk
 

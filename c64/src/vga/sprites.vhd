@@ -1,0 +1,298 @@
+-----------------------------------------------------------------------------
+-- Description:  This generates sprites as an overlay.
+--               Only 4 sprites are supported to keep resource requirements at
+--               a minimum.
+-----------------------------------------------------------------------------
+
+library ieee;
+use ieee.std_logic_1164.ALL;
+use ieee.std_logic_unsigned.all;
+use ieee.std_logic_arith.all;
+
+entity sprites is
+   port (
+      clk_i         : in  std_logic;
+
+      hcount_i      : in  std_logic_vector(10 downto 0);
+      vcount_i      : in  std_logic_vector(10 downto 0);
+      hs_i          : in  std_logic;
+      vs_i          : in  std_logic;
+      col_i         : in  std_logic_vector(11 downto 0);
+
+      -- The config_i signal contains configuration data (26 bits) for each sprite
+      -- Bits  8- 0 : X-position
+      -- Bits 16- 9 : Y-position
+      -- Bits 24-17 : Colour
+      -- Bit     25 : Enable
+      config_i      : in  std_logic_vector(26*4-1 downto 0);
+      bitmap_addr_o : out std_logic_vector( 5 downto 0);
+      bitmap_data_i : in  std_logic_vector(15 downto 0);
+
+      hcount_o      : out std_logic_vector(10 downto 0);
+      vcount_o      : out std_logic_vector(10 downto 0);
+      hs_o          : out std_logic;
+      vs_o          : out std_logic;
+      col_o         : out std_logic_vector(11 downto 0)
+   );
+end sprites;
+
+architecture Behavioral of sprites is
+
+   -- This is the same value as defined in vga/sync.vhd
+   constant H_MAX   : natural := 800;            -- H total period (pixels)
+
+   signal fsm_addr  : std_logic_vector(4*4-1 downto 0) := (others => '0');
+   signal fsm_rden  : std_logic_vector(3 downto 0) := (others => '0');
+
+   -- Signals connected to the sprite bitmap BRAM
+   signal bitmap_addr   : std_logic_vector( 5 downto 0) := (others => '0');
+   signal bitmap_rden   : std_logic := '0';
+
+   -- State machine to read sprite bitmaps from BRAM
+   signal bitmap_rden_d : std_logic := '0';
+   signal bitmap_addr_d : std_logic_vector(5 downto 0) := (others => '0');
+   signal bitmap_rows   : std_logic_vector(16*4-1 downto 0) := (others => '0');
+
+   ----------------------------------------------------------------------
+
+   -- Convert colour from 8-bit format to 12-bit format
+   function col8to12(arg : std_logic_vector(7 downto 0)) return std_logic_vector is
+   begin
+      return arg(7 downto 5) & "0" & arg(4 downto 2) & "0" & arg(1 downto 0) & "00";
+   end function col8to12;
+
+   ----------------------------------------------------------------------
+
+   -- Pipeline
+   type t_stage is record
+      hcount          : std_logic_vector(10 downto 0);     -- Valid in stage 0
+      vcount          : std_logic_vector(10 downto 0);     -- Valid in stage 0
+      hs              : std_logic;                         -- Valid in stage 0
+      vs              : std_logic;                         -- Valid in stage 0
+      col             : std_logic_vector(11 downto 0);     -- Valid in stage 0
+      row_index       : std_logic_vector(4*4-1 downto 0);  -- Valid in stage 1 (0 - 15) for each sprite
+      row_index_valid : std_logic_vector(3 downto 0);      -- Valid in stage 1
+      col_index       : std_logic_vector(4*4-1 downto 0);  -- Valid in stage 1 (0 - 15) for each sprite
+      col_index_valid : std_logic_vector(3 downto 0);      -- Valid in stage 1
+      pix             : std_logic_vector(3 downto 0);      -- Valid in stage 2
+      collision       : std_logic_vector(3 downto 0);      -- Valid in stage 2
+   end record t_stage;
+
+   constant STAGE_DEFAULT : t_stage := (
+      hcount          => (others => '0'),
+      vcount          => (others => '0'),
+      hs              => '0',
+      vs              => '0',
+      col             => (others => '0'),
+      row_index       => (others => '0'),
+      row_index_valid => (others => '0'),
+      col_index       => (others => '0'),
+      col_index_valid => (others => '0'),
+      pix             => (others => '0'),
+      collision       => (others => '0')
+   );
+
+   signal stage0 : t_stage := STAGE_DEFAULT;
+   signal stage1 : t_stage := STAGE_DEFAULT;
+   signal stage2 : t_stage := STAGE_DEFAULT;
+   signal stage3 : t_stage := STAGE_DEFAULT;
+
+begin
+
+   ------------------------------------------------------------------------
+   -- Control reading sprite bitmaps from the BRAM.
+   -- Reading starts when hcount_i = -6 and takes one clock cycle pr sprite.
+   -- With 4 sprites, the bitmap data is ready at start of the next line.
+   ------------------------------------------------------------------------
+
+   p_fsm : process (clk_i)
+      variable vcount1_v : std_logic_vector(10 downto 0);
+      variable posy_v    : std_logic_vector( 7 downto 0);
+      variable enable_v  : std_logic;
+
+      variable pix_y_v : std_logic_vector( 9 downto 0);
+   begin
+      if rising_edge(clk_i) then
+
+         -- Get ready to read bitmap data
+         if hcount_i = H_MAX-6 then
+            vcount1_v := vcount_i + 1;  -- Next line
+
+            -- Loop over all sprites.
+            for i in 0 to 3 loop
+
+               -- Decode sprite configuration data
+               posy_v   := config_i(26*i + 16 downto 26*i + 9);
+               enable_v := config_i(26*i+25);
+
+               -- Get pixel row in this sprite
+               pix_y_v := vcount1_v(10 downto 1) - ("00" & posy_v);
+
+               fsm_rden(i) <= '0';
+               if pix_y_v <= 15 then
+                  fsm_rden(i) <= enable_v;
+               end if;
+               fsm_addr(4*(i+1)-1 downto 4*i) <= pix_y_v(3 downto 0);
+            end loop;
+         end if;
+      end if;
+   end process p_fsm;
+
+
+   p_read_bitmap : process (clk_i)
+      variable pix_x_v      : std_logic_vector(10 downto 0);
+      variable sprite_num_v : std_logic_vector(1 downto 0);
+   begin
+      if rising_edge(clk_i) then
+         pix_x_v := hcount_i - (H_MAX-5);
+         bitmap_rden <= '0';
+
+         if pix_x_v < 4 then
+            sprite_num_v := pix_x_v(1 downto 0); -- Read one sprite every pixel (clock)
+            bitmap_addr <= sprite_num_v & fsm_addr(
+                           conv_integer(sprite_num_v)*4 + 3 downto
+                           conv_integer(sprite_num_v)*4 + 0);
+            bitmap_rden <= fsm_rden(conv_integer(sprite_num_v));
+         end if;
+      end if;
+   end process p_read_bitmap;
+
+
+   --------------------
+   -- Store bitmap data
+   --------------------
+
+   -- Store for use next clock cycle
+   p_delay : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         bitmap_rden_d <= bitmap_rden;
+         bitmap_addr_d <= bitmap_addr;
+      end if;
+   end process p_delay;
+
+   gen_bitmap_row : for i in 0 to 3 generate
+      p_bitmap_row : process (clk_i)
+      begin
+         if rising_edge(clk_i) then
+            if bitmap_rden_d = '1' and conv_integer(bitmap_addr_d(5 downto 4)) = i then
+               bitmap_rows(i*16 + 15 downto i*16) <= bitmap_data_i;
+            end if;
+         end if;
+      end process p_bitmap_row;
+   end generate gen_bitmap_row;
+
+   -- Drive output signal
+   bitmap_addr_o <= bitmap_addr;
+   
+
+   ----------------------------
+   -- Stage 0
+   ----------------------------
+
+   stage0.hcount <= hcount_i;
+   stage0.vcount <= vcount_i;
+   stage0.hs     <= hs_i;
+   stage0.vs     <= vs_i;
+   stage0.col    <= col_i;
+
+
+   ----------------------------------------
+   -- Stage 1 : Calculate horizontal
+   ----------------------------------------
+
+   p_stage1 : process (clk_i)
+      variable posx_v   : std_logic_vector(8 downto 0);
+      variable posy_v   : std_logic_vector(7 downto 0);
+      variable enable_v : std_logic;
+      variable pix_x_v : std_logic_vector(9 downto 0);
+      variable pix_y_v : std_logic_vector(9 downto 0);
+   begin
+      if rising_edge(clk_i) then
+         stage1 <= stage0;
+
+         stage1.col_index_valid <= (others => '0');
+         stage1.row_index_valid <= (others => '0');
+
+         for i in 0 to 3 loop
+            posx_v   := config_i(26*i +  8 downto 26*i + 0);
+            posy_v   := config_i(26*i + 16 downto 26*i + 9);
+            enable_v := config_i(26*i+25);
+
+            pix_x_v := stage0.hcount(10 downto 1) - ("0" & posx_v);
+            stage1.col_index(4*(i+1)-1 downto 4*i) <= pix_x_v(3 downto 0);
+            if pix_x_v <= 15 then
+               stage1.col_index_valid(i) <= enable_v;
+            end if;
+
+            pix_y_v := stage0.vcount(10 downto 1) - ("00" & posy_v);
+            stage1.row_index(4*(i+1)-1 downto 4*i) <= pix_y_v(3 downto 0);
+            if pix_y_v <= 15 then
+               stage1.row_index_valid(i) <= enable_v;
+            end if;
+         end loop;
+
+      end if;
+   end process p_stage1;
+
+
+   ----------------------------------------
+   -- Stage 2 : Calculate pixel
+   ----------------------------------------
+
+   p_stage2 : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         stage2 <= stage1;
+
+         stage2.pix <= (others => '0');
+         for i in 3 downto 0 loop
+            if stage1.row_index_valid(i) = '1' and stage1.col_index_valid(i) = '1' then
+               stage2.pix(i) <= bitmap_rows(i*16 + conv_integer(stage1.col_index(i*4 + 3 downto i*4)));
+            end if;
+         end loop;
+
+      end if;
+   end process p_stage2;
+
+
+   ----------------------------------------
+   -- Stage 3 : Calculate color and collision
+   ----------------------------------------
+
+   p_stage3 : process (clk_i)
+      variable color_v : std_logic_vector(7 downto 0);
+   begin
+      if rising_edge(clk_i) then
+         stage3 <= stage2;
+
+         for i in 3 downto 0 loop
+            color_v := config_i(26*i + 24 downto 26*i + 17);
+            if stage2.pix(i) = '1' then
+               stage3.col <= col8to12(color_v);
+            end if;
+         end loop;
+
+         -- More than 1 bit set in stage2.pix indicates collision between two
+         -- or more sprites.
+         stage3.collision <= (others => '0');
+         if (stage2.pix and (stage2.pix - 1)) /= 0 then
+            stage3.collision <= stage2.pix;
+         end if;
+
+      end if;
+   end process p_stage3;
+
+
+   ----------------------------------------
+   -- Drive output signals
+   ----------------------------------------
+
+   hcount_o  <= stage3.hcount;
+   vcount_o  <= stage3.vcount;
+   hs_o      <= stage3.hs;
+   vs_o      <= stage3.vs;
+   col_o     <= stage3.col;
+
+end Behavioral;
+

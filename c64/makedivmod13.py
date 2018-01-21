@@ -7,16 +7,6 @@ def main():
     result = translate()
     write_file(result)
 
-def filter_line(a, op=","):
-    idx = a.find(op)
-    if idx == -1:
-        return a
-    elif idx == 0:
-        return ''
-    else:
-        a = a[:idx]
-    return a    
-
 #pads binary translation with addition 0's
 def to_b(a, l=32):
     num = to_binary(a)
@@ -29,9 +19,6 @@ def to_b(a, l=32):
 #attempts to convert to binary
 to_binary = lambda x: x >= 0 and str(bin(x))[2:] or "-" + str(bin(x))[3:]
 
-
-def getval(s):
-    return int(s, 16)
 
 def translate():
     f = []

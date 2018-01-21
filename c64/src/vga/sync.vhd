@@ -1,17 +1,18 @@
 ----------------------------------------------------------------------------------
 -- Description:  This generates the horizontal and vertical synchronization signals
 --               for a VGA display.
+--               There is no reset signal into this module, meaning that the
+--               VGA display remains intact during and after reset.
 -- The timing signals are described in this web page:
 -- https://eewiki.net/pages/viewpage.action?pageId=15925278
 ----------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.std_logic_unsigned.all;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
 
-entity vga_ctrl is
+entity sync is
    port (
-      rst_i    : in std_logic;
       clk_i    : in std_logic;
 
       hcount_o : out std_logic_vector(10 downto 0);
@@ -20,9 +21,9 @@ entity vga_ctrl is
       vs_o     : out std_logic;
       blank_o  : out std_logic
    );
-end vga_ctrl;
+end sync;
 
-architecture Behavioral of vga_ctrl is
+architecture Behavioral of sync is
 
    -- The following numbers produce a 640x480 screen at 60 Hz refresh rate.
    -- This assumes a clock frequency of 800*525*60 Hz = 25.2 MHz.
@@ -59,10 +60,6 @@ begin
          else
             h_cntr <= h_cntr + 1;
          end if;
-
-         if (rst_i = '1') then
-            h_cntr <= (others => '0');
-         end if;
       end if;
    end process p_h_cntr;
 
@@ -74,10 +71,6 @@ begin
             v_cntr <= (others =>'0');
          elsif h_cntr = (H_MAX - 1) then
             v_cntr <= v_cntr + 1;
-         end if;
-
-         if (rst_i = '1') then
-            v_cntr <= (others => '0');
          end if;
       end if;
    end process p_v_cntr;

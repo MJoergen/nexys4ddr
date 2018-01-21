@@ -6,10 +6,9 @@ library ieee;
 use ieee.std_logic_1164.ALL;
 use ieee.std_logic_unsigned.all;
 
-entity bitmaps is
+entity bitmaps_mem is
    port (
       vga_clk_i   : in  std_logic;
-      vga_rst_i   : in  std_logic;
 
       cpu_clk_i   : in  std_logic;
       cpu_rst_i   : in  std_logic;
@@ -20,12 +19,15 @@ entity bitmaps is
 
       -- Write port @ cpu_clk_i
       cpu_addr_i  : in  std_logic_vector( 6 downto 0);   -- 2 bits for sprite #, 4 bits for row, and 1 bit for left/right side.
+      cpu_wren_i  : in  std_logic;
       cpu_data_i  : in  std_logic_vector( 7 downto 0);
-      cpu_wren_i  : in  std_logic
+      --
+      cpu_rden_i  : in  std_logic;
+      cpu_data_o  : out std_logic_vector( 7 downto 0)
    );
-end bitmaps;
+end bitmaps_mem;
 
-architecture Behavioral of bitmaps is
+architecture Behavioral of bitmaps_mem is
 
    function reverse(arg : std_logic_vector) return std_logic_vector is
       variable res : std_logic_vector(arg'length-1 downto 0);

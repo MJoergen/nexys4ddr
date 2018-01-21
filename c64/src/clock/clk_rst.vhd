@@ -12,20 +12,20 @@ entity clk_rst is
    port (
            sys_clk_i  : in  std_logic;
            sys_rstn_i : in  std_logic;
-           rst_cpu_o  : out std_logic;
-           rst_vga_o  : out std_logic;
-           clk_cpu_o  : out std_logic;
-           clk_vga_o  : out std_logic
+           cpu_rst_o  : out std_logic;
+           vga_rst_o  : out std_logic;
+           cpu_clk_o  : out std_logic;
+           vga_clk_o  : out std_logic
         );
 
 end entity clk_rst;
 
 architecture Structural of clk_rst is
 
-   signal rst_cpu : std_logic := '1';
-   signal rst_vga : std_logic := '1';
-   signal clk_cpu : std_logic;
-   signal clk_vga : std_logic;
+   signal cpu_rst : std_logic := '1';
+   signal vga_rst : std_logic := '1';
+   signal cpu_clk : std_logic;
+   signal vga_clk : std_logic;
 
 begin
 
@@ -33,9 +33,10 @@ begin
    -- Generate clocks. Speed up simulation by skipping the MMCME2_ADV
    ------------------------------
 
+
    gen_simulation: if G_SIMULATION = true  generate
-      clk_vga <= sys_clk_i;
-      clk_cpu <= sys_clk_i;
+      vga_clk <= sys_clk_i;
+      cpu_clk <= sys_clk_i;
    end generate gen_simulation;
 
    gen_no_simulation: if G_SIMULATION = false  generate
@@ -43,15 +44,18 @@ begin
       port map
       (
          clk_in1  => sys_clk_i,   -- 100 MHz
-         clk_out1 => clk_vga  -- 25 MHz
+         clk_out1 => vga_clk  -- 25 MHz
       );
 
+      -- pragma synthesis_off
       inst_clk_wiz_cpu : entity work.clk_wiz_cpu
       port map
       (
          clk_in1  => sys_clk_i,   -- 100 MHz
-         clk_out1 => clk_cpu  -- 20 MHz
+         clk_out1 => cpu_clk  -- 20 MHz
       );
+      -- pragma synthesis_on
+      cpu_clk <= vga_clk;
    end generate gen_no_simulation;
 
 
@@ -59,29 +63,29 @@ begin
    -- Generate synchronous resets
    ------------------------------
 
-   p_rst_cpu : process (clk_cpu)
+   p_cpu_rst : process (cpu_clk)
    begin
-      if rising_edge(clk_cpu) then
-         rst_cpu <= not sys_rstn_i;     -- Register, and invert polarity.
+      if rising_edge(cpu_clk) then
+         cpu_rst <= not sys_rstn_i;     -- Register, and invert polarity.
       end if;
-   end process p_rst_cpu;
+   end process p_cpu_rst;
 
-   p_rst_vga : process (clk_vga)
+   p_vga_rst : process (vga_clk)
    begin
-      if rising_edge(clk_vga) then
-         rst_vga <= not sys_rstn_i;     -- Register, and invert polarity.
+      if rising_edge(vga_clk) then
+         vga_rst <= not sys_rstn_i;     -- Register, and invert polarity.
       end if;
-   end process p_rst_vga;
+   end process p_vga_rst;
 
 
    -----------------------
    -- Drive output signals
    -----------------------
 
-   rst_cpu_o <= rst_cpu;
-   rst_vga_o <= rst_vga;
-   clk_cpu_o <= clk_cpu;
-   clk_vga_o <= clk_vga;
+   cpu_rst_o <= cpu_rst;
+   vga_rst_o <= vga_rst;
+   cpu_clk_o <= cpu_clk;
+   vga_clk_o <= vga_clk;
 
 end architecture Structural;
 

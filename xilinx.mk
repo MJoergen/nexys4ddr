@@ -156,12 +156,12 @@ program: $(OUTDIR)/$(TOP).bit
 ###############################################################################
 
 PROG_AS     = $(PROG_SRC:.c=.s)
-VECTORS_AS  = vectors.s
+VECTORS_AS  ?= vectors.s
 
 PROG_OBJ    = $(PROG_AS:.s=.o)
 VECTORS_OBJ = $(VECTORS_AS:.s=.o)
 
-LD_CFG      = ld.cfg
+LD_CFG      ?= ld.cfg
 
 $(PROG_AS): $(PROG_SRC)
 	cc65 $<

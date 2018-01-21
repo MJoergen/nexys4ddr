@@ -15,10 +15,7 @@ use ieee.std_logic_1164.ALL;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-entity vga_disp is
-   generic (
-      G_CHAR_FILE : string
-   );
+entity chars is
    port (
       clk_i    : in  std_logic;
 
@@ -28,15 +25,21 @@ entity vga_disp is
       vsync_i  : in  std_logic;
       blank_i  : in  std_logic;
 
+      disp_addr_o : out std_logic_vector(9 downto 0);
+      disp_data_i : in  std_logic_vector(7 downto 0);
+
+      font_addr_o  : out std_logic_vector(11 downto 0);
+      font_data_i  : in  std_logic_vector(7 downto 0);
+
       hcount_o : out std_logic_vector(10 downto 0);
       vcount_o : out std_logic_vector(10 downto 0);
       hsync_o  : out std_logic;
       vsync_o  : out std_logic;
       col_o    : out std_logic_vector(11 downto 0)
    );
-end vga_disp;
+end chars;
 
-architecture Behavioral of vga_disp is
+architecture Behavioral of chars is
 
    -- This employs a five stage pipeline in order to improve timing.
    type t_stage is record
@@ -80,7 +83,7 @@ architecture Behavioral of vga_disp is
    signal stage3_char_val  : std_logic_vector(7 downto 0);
    signal stage3_addr      : std_logic_vector(11 downto 0);
 
-   signal stage4_row : std_logic_vector(7 downto 0);
+   signal stage4_row       : std_logic_vector(7 downto 0);
      
 begin
 
@@ -116,18 +119,18 @@ begin
    -- Stage 2 : Calculate the character and pixel coordinates
    ----------------------------------------------------------
 
-   i_divmod13_rom : entity work.mem_file
+   i_divmod13_rom : entity work.rom_file
    generic map (
+                  G_RD_CLK_RIS => true,
                   G_ADDR_SIZE  => 8,
                   G_DATA_SIZE  => 9,
-                  G_DO_RD_REG  => true,
-                  G_RD_CLK_RIS => true,
                   G_ROM_FILE   => "divmod13.txt"
                )
    port map (
-               rd_clk_i  => clk_i,
-               rd_addr_i => stage1.vcount(8 downto 1),
-               rd_data_o => stage2_divmod13
+               clk_i  => clk_i,
+               addr_i => stage1.vcount(8 downto 1),
+               rden_i => '1',
+               data_o => stage2_divmod13
             );
 
    stage2_char_y <= stage2_divmod13(8 downto 4);   -- (quotient,  0 - 17)
@@ -149,24 +152,12 @@ begin
       end if;
    end process p_stage2;
 
-
    ----------------------------------------------------------
    -- Stage 3 : Read the character symbol from display memory
    ----------------------------------------------------------
 
-   i_char_mem : entity work.mem_file
-   generic map (
-                  G_ADDR_SIZE  => 10,
-                  G_DATA_SIZE  => 8,
-                  G_DO_RD_REG  => true,
-                  G_RD_CLK_RIS => true,
-                  G_ROM_FILE   => "chars.txt"
-               )
-   port map (
-               rd_clk_i  => clk_i,
-               rd_addr_i => stage2_char_addr,
-               rd_data_o => stage3_char_val
-            );
+   disp_addr_o     <= stage2_char_addr;
+   stage3_char_val <= disp_data_i;
 
    -- Calculate address into character bitmap ROM.
    stage3_addr <= stage3_char_val & stage3.pix_y;
@@ -187,19 +178,8 @@ begin
    -- Stage 4 : Read the character bitmap from the ROM.
    ----------------------------------------------------
 
-   i_char_rom : entity work.mem_file
-   generic map (
-                  G_ADDR_SIZE  => 12,
-                  G_DATA_SIZE  => 8,
-                  G_DO_RD_REG  => true,
-                  G_RD_CLK_RIS => true,
-                  G_ROM_FILE => G_CHAR_FILE 
-               )
-   port map (
-               rd_clk_i  => clk_i,
-               rd_addr_i => stage3_addr,
-               rd_data_o => stage4_row
-            );
+   font_addr_o <= stage3_addr;
+   stage4_row  <= font_data_i;
 
    -- Propagate remaining signals.
    p_stage4 : process (clk_i) is
@@ -235,6 +215,7 @@ begin
    end process p_stage5;
 
 
+   -- Drive output signals
    hcount_o <= stage5.hcount;
    vcount_o <= stage5.vcount;
    hsync_o  <= stage5.hsync;

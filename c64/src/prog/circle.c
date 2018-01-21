@@ -88,6 +88,12 @@ w = (1, sin(v/2) + i*cos(v/2))^T.
 */
 
 
+/*
+-- Memory Map:
+-- 0x8000 - 0x83FF : Chars Memory
+-- 0x8400 - 0x85FF : Bitmap Memory
+-- 0x8600 - 0x87FF : Config and Status
+*/
 
 #define XLO 0
 #define XHI 1
@@ -97,12 +103,12 @@ w = (1, sin(v/2) + i*cos(v/2))^T.
 #define TEMP2 5
 #define YTEMP 6
 
-#define VGA_0_BITMAP    0x8000
-#define VGA_0_POSXLO    0x8020
-#define VGA_0_POSXHI    0x8021
-#define VGA_0_POSY      0x8022
-#define VGA_0_COLOR     0x8023
-#define VGA_0_ENABLE    0x8024
+#define VGA_0_BITMAP    0x8400
+#define VGA_0_POSXLO    0x8600
+#define VGA_0_POSXHI    0x8601
+#define VGA_0_POSY      0x8602
+#define VGA_0_COLOR     0x8603
+#define VGA_0_ENABLE    0x8604
 
 
 // Entry point after CPU reset
@@ -110,88 +116,89 @@ void __fastcall__ reset(void)
 {
    // Write bitmap for sprite 0
    __asm__("LDA #$00");
-   __asm__("STA $8000");
+   __asm__("STA %w", VGA_0_BITMAP+0);
    __asm__("LDA #$00");
-   __asm__("STA $8001");
+   __asm__("STA %w", VGA_0_BITMAP+1);
 
    __asm__("LDA #$00");
-   __asm__("STA $8002");
+   __asm__("STA %w", VGA_0_BITMAP+2);
    __asm__("LDA #$00");
-   __asm__("STA $8003");
+   __asm__("STA %w", VGA_0_BITMAP+3);
 
    __asm__("LDA #$01");
-   __asm__("STA $8004");
+   __asm__("STA %w", VGA_0_BITMAP+4);
    __asm__("LDA #$80");
-   __asm__("STA $8005");
+   __asm__("STA %w", VGA_0_BITMAP+5);
 
    __asm__("LDA #$06");
-   __asm__("STA $8006");
+   __asm__("STA %w", VGA_0_BITMAP+6);
    __asm__("LDA #$60");
-   __asm__("STA $8007");
+   __asm__("STA %w", VGA_0_BITMAP+7);
 
    __asm__("LDA #$08");
-   __asm__("STA $8008");
+   __asm__("STA %w", VGA_0_BITMAP+8);
    __asm__("LDA #$10");
-   __asm__("STA $8009");
+   __asm__("STA %w", VGA_0_BITMAP+9);
 
    __asm__("LDA #$10");
-   __asm__("STA $800A");
+   __asm__("STA %w", VGA_0_BITMAP+10);
    __asm__("LDA #$08");
-   __asm__("STA $800B");
+   __asm__("STA %w", VGA_0_BITMAP+11);
 
    __asm__("LDA #$10");
-   __asm__("STA $800C");
+   __asm__("STA %w", VGA_0_BITMAP+12);
    __asm__("LDA #$08");
-   __asm__("STA $800D");
+   __asm__("STA %w", VGA_0_BITMAP+13);
 
    __asm__("LDA #$20");
-   __asm__("STA $800E");
+   __asm__("STA %w", VGA_0_BITMAP+14);
    __asm__("LDA #$04");
-   __asm__("STA $800F");
+   __asm__("STA %w", VGA_0_BITMAP+15);
 
    __asm__("LDA #$20");
-   __asm__("STA $8010");
+   __asm__("STA %w", VGA_0_BITMAP+16);
    __asm__("LDA #$04");
-   __asm__("STA $8011");
+   __asm__("STA %w", VGA_0_BITMAP+17);
 
    __asm__("LDA #$10");
-   __asm__("STA $8012");
+   __asm__("STA %w", VGA_0_BITMAP+18);
    __asm__("LDA #$08");
-   __asm__("STA $8013");
+   __asm__("STA %w", VGA_0_BITMAP+19);
 
    __asm__("LDA #$10");
-   __asm__("STA $8014");
+   __asm__("STA %w", VGA_0_BITMAP+20);
    __asm__("LDA #$08");
-   __asm__("STA $8015");
+   __asm__("STA %w", VGA_0_BITMAP+21);
 
    __asm__("LDA #$08");
-   __asm__("STA $8016");
+   __asm__("STA %w", VGA_0_BITMAP+22);
    __asm__("LDA #$10");
-   __asm__("STA $8017");
+   __asm__("STA %w", VGA_0_BITMAP+23);
 
    __asm__("LDA #$06");
-   __asm__("STA $8018");
+   __asm__("STA %w", VGA_0_BITMAP+24);
    __asm__("LDA #$60");
-   __asm__("STA $8019");
+   __asm__("STA %w", VGA_0_BITMAP+25);
 
    __asm__("LDA #$01");
-   __asm__("STA $801A");
+   __asm__("STA %w", VGA_0_BITMAP+26);
    __asm__("LDA #$80");
-   __asm__("STA $801B");
+   __asm__("STA %w", VGA_0_BITMAP+27);
 
    __asm__("LDA #$00");
-   __asm__("STA $801C");
+   __asm__("STA %w", VGA_0_BITMAP+28);
    __asm__("LDA #$00");
-   __asm__("STA $801D");
+   __asm__("STA %w", VGA_0_BITMAP+29);
 
    __asm__("LDA #$00");
-   __asm__("STA $801E");
+   __asm__("STA %w", VGA_0_BITMAP+30);
    __asm__("LDA #$00");
-   __asm__("STA $801F");
+   __asm__("STA %w", VGA_0_BITMAP+31);
 
    // Configure sprite 0
-   __asm__("LDA #$FF");
+   __asm__("LDA #$00");
    __asm__("STA %w", VGA_0_POSXLO);
+   __asm__("LDA #$FF");
    __asm__("STA %w", VGA_0_ENABLE);
    __asm__("LDA #$E0"); // Red
    __asm__("STA %w", VGA_0_COLOR);
@@ -226,7 +233,12 @@ void __fastcall__ irq(void)
    // but the interrupt source (i.e. the VGA driver) is continuously
    // asserting the IRQ pin.
    // Reading this register clears the assertion.
-   __asm__("LDA $8001");
+   __asm__("LDA $8600");
+
+   __asm__("LDA $8100");
+   __asm__("CLC");
+   __asm__("ADC #$01");
+   __asm__("STA $8100");
 
 /*
    x -= y/256;

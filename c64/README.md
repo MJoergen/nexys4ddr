@@ -25,9 +25,16 @@ There is excellent material available - see secion below on resources.
 ## Design
 The computer consists of the following parts:
 * 6502 CPU
-* Memory
+* Memory (RAM and ROM)
 * VGA driver
-* USB keyboard input
+
+The following picture shows the block diagram
+
+![Block diagram](Overview.png "")
+
+Note that the dotted line indicates separation between two asynchronous clock
+domains. The VGA runs at 25 MHz  (determined by the video mode - 640x480 @ 60
+Hz), whereas the CPU runs at a different frequency.
 
 ### The 6502 processor
 This is an 8-bit processor with 16-bit address bus.  Memory is accessed in
@@ -62,9 +69,11 @@ VGA driver supports a 40x18 character display together with four sprites (16x16
 pixels).
 The total memory used by the VGA driver is about 4 kB of Block RAM.
 
+The following block diagram shows the architecture of the VGA module.
 
-### USB keyboard input
-Not much to say right now ...
+![VGA Module](VGA_Module.png "")
+
+Notice again the dotted line separating the two clock domains.
 
 
 
