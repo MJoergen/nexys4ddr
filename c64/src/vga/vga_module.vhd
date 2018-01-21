@@ -38,7 +38,7 @@ entity vga_module is
       cpu_clk_i  : in  std_logic;
       cpu_rst_i  : in  std_logic;
       --
-      cpu_addr_i : in  std_logic_vector(11 downto 0);
+      cpu_addr_i : in  std_logic_vector(10 downto 0);
       cpu_rden_i : in  std_logic;
       cpu_data_o : out std_logic_vector(7 downto 0);
       --
@@ -51,14 +51,9 @@ end vga_module;
 
 architecture Structural of vga_module is
    
-   function reverse(arg : std_logic_vector) return std_logic_vector is
-      variable res : std_logic_vector(arg'length-1 downto 0);
-   begin
-      for i in 0 to arg'length-1 loop
-         res(i) := arg(arg'length-1-i);
-      end loop;
-      return res;
-   end function reverse;
+   -- Number of visible lines
+   -- This must be the same as defined in src/vga/sync.vhd
+   constant FRAME_HEIGHT : natural := 480;
 
    -- Signals driven by the Sync block
    signal vga_sync_hs     : std_logic; 
@@ -77,8 +72,8 @@ architecture Structural of vga_module is
    signal vga_char_font_addr : std_logic_vector(11 downto 0);
    signal vga_char_font_data : std_logic_vector( 7 downto 0);
    --
-   signal vga_char_disp_addr  : std_logic_vector( 9 downto 0);
-   signal vga_char_disp_data  : std_logic_vector( 7 downto 0);
+   signal vga_char_disp_addr : std_logic_vector( 9 downto 0);
+   signal vga_char_disp_data : std_logic_vector( 7 downto 0);
 
    -- Signals driven by the Sprite Display block
    signal vga_sprite_hs     : std_logic; 
@@ -248,15 +243,12 @@ begin
 
       -- Write port @ cpu_clk_i
       cpu_clk_i   => cpu_clk_i,
-      cpu_rst_i   => cpu_rst_i,
       cpu_addr_i  => cpu_addr_i(6 downto 0),
       cpu_wren_i  => cpu_wren_bitmaps,
-      cpu_data_i  => reverse(cpu_data_i),
+      cpu_data_i  => cpu_data_i,
       cpu_rden_i  => cpu_rden_bitmaps,
       cpu_data_o  => cpu_rddata_bitmaps
    );
-
-
 
 
    ---------------------------------------
@@ -293,20 +285,18 @@ begin
    vga_vs_o  <= vga_sprite_vs;
    vga_col_o <= vga_sprite_col;
 
---   vga_hs_o  <= vga_char_hs;
---   vga_vs_o  <= vga_char_vs;
---   vga_col_o <= vga_char_col;
-
 
    --=====================================================
    -- CPU and VGA Clock Domain Crossing
    --=====================================================
 
-   -- TBD: Generate IRQ at start of a particular line, i.e. 60 times pr. second.
-   vga_sync <= '1' when vga_char_hcount = 0 and vga_char_vcount = 1 else '0';
+   -- Generate IRQ at start of a particular line, i.e. 60 times pr. second.
+   -- This is a single clock pulse.
+   -- TBD: This line could be configured by CPU.
+   vga_sync <= '1' when vga_char_hcount = 0 and vga_char_vcount = FRAME_HEIGHT else '0';
 
 
-   -- Synchronize Sync signal
+   -- Synchronize Sync pulse
    -- from VGA to CPU clock domain.
    inst_cdc_sync : entity work.cdcpulse
    port map (
@@ -363,9 +353,9 @@ begin
    -- Drive output signals to CPU port
    -----------------------------------
 
-   cpu_data_o <= cpu_rddata_chars            when cpu_rden_chars     = '1' else
-                 reverse(cpu_rddata_bitmaps) when cpu_rden_bitmaps   = '1' else
-                 cpu_rddata_conf_stat        when cpu_rden_conf_stat = '1' else
+   cpu_data_o <= cpu_rddata_chars     when cpu_rden_chars     = '1' else
+                 cpu_rddata_bitmaps   when cpu_rden_bitmaps   = '1' else
+                 cpu_rddata_conf_stat when cpu_rden_conf_stat = '1' else
                  (others => '0');
 
 end Structural;

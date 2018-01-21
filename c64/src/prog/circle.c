@@ -54,8 +54,7 @@ Since the determinant of this matrix is 1, and the trace is 2-dt^2, i.e. less th
 then we conclude that the eigenvalues are complex conjugate on the unit circle.
 
 The two eigenvalues are therefore l_12 = cos(v) +/- i*sin(v), and we must have
-2*cos(v) = 2-dt^2, i.e. cos(v) = 1-1/2*dt^2. This shows that v = dt approximately.
-Another formulation is: dt^2 = 2*(1-cos(v)) = (2*sin(v/2))^2. In other words:
+2*cos(v) = 2-dt^2, This shows that: dt^2 = 2*(1-cos(v)) = (2*sin(v/2))^2. In other words:
 dt = 2*sin(v/2).
 
 
@@ -83,18 +82,12 @@ w = (1, dt/2 + i*sqrt(4-dt^2)/2)^T.
 Now 4-dt^2 = 4*cos^2(v/2). Therefore, the eigenvector can be written as:
 w = (1, sin(v/2) + i*cos(v/2))^T.
 
-
-
 */
 
 
 /*
--- Memory Map:
--- 0x8000 - 0x83FF : Chars Memory
--- 0x8400 - 0x85FF : Bitmap Memory
--- 0x8600 - 0x87FF : Config and Status
-*/
-
+ * Define some zero-page variables
+ */
 #define XLO 0
 #define XHI 1
 #define YLO 2
@@ -103,6 +96,15 @@ w = (1, sin(v/2) + i*cos(v/2))^T.
 #define TEMP2 5
 #define YTEMP 6
 
+
+/*
+ * Memory Map:
+ * 0x8000 - 0x83FF : Chars Memory
+ * 0x8400 - 0x85FF : Bitmap Memory
+ * 0x8600 - 0x87FF : Config and Status
+ */
+
+#define VGA_SCREEN      0x8000
 #define VGA_0_BITMAP    0x8400
 #define VGA_0_POSXLO    0x8600
 #define VGA_0_POSXHI    0x8601
@@ -114,6 +116,14 @@ w = (1, sin(v/2) + i*cos(v/2))^T.
 // Entry point after CPU reset
 void __fastcall__ reset(void)
 {
+   // Write text on screen
+   __asm__("LDA #$4D");
+   __asm__("STA %w", VGA_SCREEN+100);
+   __asm__("LDA #$65");
+   __asm__("STA %w", VGA_SCREEN+101);
+   __asm__("LDA #$6A");
+   __asm__("STA %w", VGA_SCREEN+102);
+
    // Write bitmap for sprite 0
    __asm__("LDA #$00");
    __asm__("STA %w", VGA_0_BITMAP+0);
@@ -235,15 +245,11 @@ void __fastcall__ irq(void)
    // Reading this register clears the assertion.
    __asm__("LDA $8600");
 
-   __asm__("LDA $8100");
-   __asm__("CLC");
-   __asm__("ADC #$01");
-   __asm__("STA $8100");
-
 /*
-   x -= y/256;
-   y += x/256;
-*/
+ * As written above, implement the following:
+ * x -= y/256;
+ * y += x/256;
+ */
    __asm__("LDA %b", YHI); // Make YHI negative
    __asm__("CLC");
    __asm__("SBC #$01");

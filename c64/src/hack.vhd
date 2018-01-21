@@ -161,7 +161,7 @@ begin
          -- CPU Port
          cpu_clk_i  => cpu_clk,
          cpu_rst_i  => cpu_rst,
-         cpu_addr_i => cpu_addr(11 downto 0),   -- 12 bit = 0x0800 size.
+         cpu_addr_i => cpu_addr(10 downto 0),   -- 11 bit = 0x0800 size.
          cpu_rden_i => cpu_rden_vga,
          cpu_data_o => cpu_rddata_vga,
          cpu_wren_i => cpu_wren_vga,

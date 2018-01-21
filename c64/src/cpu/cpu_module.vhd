@@ -56,7 +56,7 @@ architecture Structural of cpu_module is
    signal ctl_sr_alu_wren   : std_logic;                       -- Update status register
    signal ctl_sp_sel        : std_logic_vector(1 downto 0);    -- Stack pointer update
    signal ctl_irq_mask_wr   : std_logic_vector(1 downto 0);    -- IRQ mask write
-   signal ctl_debug         : std_logic_vector(10 downto 0);
+   signal ctl_debug         : std_logic_vector(10 downto 0);   -- Microinstruction counter.
 
    -- Program Registers
    signal reg_sp : std_logic_vector( 7 downto 0);
@@ -152,10 +152,6 @@ begin
             when "11" => null;
             when others => assert false severity failure;
          end case;
-
---         if rst_i = '1' then
---            reg_pc <= X"FC00";
---         end if;
       end if;
    end process p_pc;
 
@@ -257,7 +253,6 @@ begin
    debug_o(58 downto 48) <= ctl_debug;
    debug_o(59) <= reg_sr(2);
    debug_o(63 downto 60) <= (others => '0');
-
 
 end Structural;
 
