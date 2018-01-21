@@ -34,29 +34,11 @@ end cpu_module;
 architecture Structural of cpu_module is
 
    -- Signals connected to ALU
-   signal alu_a    : std_logic_vector(7 downto 0);
-   signal alu_b    : std_logic_vector(7 downto 0);
    signal alu_out  : std_logic_vector(7 downto 0);
    signal alu_c    : std_logic;
    signal alu_s    : std_logic;
    signal alu_v    : std_logic;
    signal alu_z    : std_logic;
-
-   -- Signals driven by the Control Logic
-   signal ctl_mem_rden      : std_logic;                       -- Read from memory
-   signal ctl_mem_wren      : std_logic;                       -- Write to memory
-   signal ctl_mem_addr_wren : std_logic_vector(1 downto 0);    -- Write to address hold register
-   signal ctl_mem_addr_sel  : std_logic_vector(3 downto 0);    -- Memory address select
-   signal ctl_mem_data_sel  : std_logic_vector(1 downto 0);    -- Memory data select
-   signal ctl_reg_wren      : std_logic;                       -- Write to register file
-   signal ctl_reg_nr        : std_logic_vector(1 downto 0);    -- Register number
-   signal ctl_pc_sel        : std_logic_vector(1 downto 0);    -- PC select
-   signal ctl_alu_func      : std_logic_vector(3 downto 0);    -- ALU function
-   signal ctl_clc           : std_logic;                       -- Clear carry
-   signal ctl_sr_alu_wren   : std_logic;                       -- Update status register
-   signal ctl_sp_sel        : std_logic_vector(1 downto 0);    -- Stack pointer update
-   signal ctl_irq_mask_wr   : std_logic_vector(1 downto 0);    -- IRQ mask write
-   signal ctl_debug         : std_logic_vector(10 downto 0);   -- Microinstruction counter.
 
    -- Program Registers
    signal reg_sp : std_logic_vector( 7 downto 0);
@@ -65,7 +47,6 @@ architecture Structural of cpu_module is
 
    -- Signals connected to the register file
    signal regs_rd_data : std_logic_vector(7 downto 0);
-   signal regs_wr_data : std_logic_vector(7 downto 0);
    signal regs_debug   : std_logic_vector(23 downto 0);
 
    -- Additional Registers
@@ -73,60 +54,63 @@ architecture Structural of cpu_module is
 
    signal irq_masked : std_logic;
 
+   -- This file contains the following registers:
+   -- Register File (A, X, Y). Input is always from ALU. Requires ALU function
+   --    code (4 bits).
+   -- Program Counter. Input is either (PC + 4) or (mem_addr_reg) (1 bit).
+   -- Stack Pointer. Input is either (SP + 1) or (SP - 1) (1 bit).
+   -- Memory Address. Input is always data_i. 1 bit for each of hi and lo. (2 bits).
+   -- Status Register, NZCV. Input is always from ALU. 1 bit for each (4 bits).
+   -- Status Register, BID. 2 bits for each (6 bits).
+   -- Status Register, All. Input is either register or memory (1 bit).
+
+   -- Signals driven by the Control Logic
+   signal ctl_wr_reg       : std_logic_vector(4 downto 0);
+   signal ctl_wr_pc        : std_logic_vector(1 downto 0);
+   signal ctl_wr_sp        : std_logic_vector(1 downto 0);
+   signal ctl_wr_hold_addr : std_logic_vector(1 downto 0);
+   signal ctl_wr_szcv      : std_logic_vector(3 downto 0);
+   signal ctl_wr_b         : std_logic_vector(1 downto 0);
+   signal ctl_wr_i         : std_logic_vector(1 downto 0);
+   signal ctl_wr_d         : std_logic_vector(1 downto 0);
+   signal ctl_wr_sr        : std_logic_vector(1 downto 0);
+
+   -- Additionally, some MUX's:
+   signal ctl_mem_addr     : std_logic_vector(3 downto 0);
+   signal ctl_mem_rden     : std_logic;
+   signal ctl_reg_nr       : std_logic_vector(1 downto 0);
+
+   -- Memory write data. Input is Register, PC, or SR (2 bits).
+   signal ctl_mem_wrdata   : std_logic_vector(2 downto 0);
+
+   signal ctl_debug : std_logic_vector(10 downto 0);
+
 begin
- 
-   -- Internal checking
-   assert ctl_mem_rden /= '1' or ctl_mem_wren /= '1'
-      report "Simultaneous read and write"
-      severity failure;
 
-   -- First operand to ALU is typically a register
-   alu_a <= regs_rd_data;
-
-   -- Second operand to ALU is typically memory input
-   alu_b <= data_i;
-
-   -- Input to the register file is directly from the ALU.
-   regs_wr_data <= alu_out;
-
-   -- Instantiate the ALU (combinatorial)
-   inst_alu : entity work.alu
-   port map (
-               a_i    => alu_a,
-               b_i    => alu_b,
-               c_i    => reg_sr(0),  -- Carry
-               func_i => ctl_alu_func,
-               res_o  => alu_out,
-               c_o    => alu_c,
-               s_o    => alu_s,
-               v_o    => alu_v,
-               z_o    => alu_z
-            );
+   irq_masked <= irq_i and not reg_sr(2);
 
    -- Instantiate the control logic
    inst_ctl : entity work.ctl
    port map (
-               clk_i           => clk_i,
-               rst_i           => rst_i,
-               irq_i           => irq_masked,
-               data_i          => data_i,
-               mem_rden_o      => ctl_mem_rden,
-               mem_wren_o      => ctl_mem_wren,
-               mem_addr_wren_o => ctl_mem_addr_wren,
-               mem_addr_sel_o  => ctl_mem_addr_sel,
-               mem_data_sel_o  => ctl_mem_data_sel,
-               reg_wren_o      => ctl_reg_wren,
-               reg_nr_o        => ctl_reg_nr,
-               pc_sel_o        => ctl_pc_sel,
-               sp_sel_o        => ctl_sp_sel,
-               alu_func_o      => ctl_alu_func,
-               clc_o           => ctl_clc,
-               sr_alu_wren_o   => ctl_sr_alu_wren,
-               irq_mask_wr_o   => ctl_irq_mask_wr,
-               debug_o         => ctl_debug
+               clk_i          => clk_i,
+               rst_i          => rst_i,
+               irq_i          => irq_masked,
+               data_i         => data_i,
+               wr_reg_o       => ctl_wr_reg,
+               wr_pc_o        => ctl_wr_pc,
+               wr_sp_o        => ctl_wr_sp,
+               wr_hold_addr_o => ctl_wr_hold_addr,
+               wr_szcv_o      => ctl_wr_szcv,
+               wr_b_o         => ctl_wr_b,
+               wr_i_o         => ctl_wr_i,
+               wr_d_o         => ctl_wr_d,
+               wr_sr_o        => ctl_wr_sr,
+               mem_addr_o     => ctl_mem_addr,
+               mem_rden_o     => ctl_mem_rden,
+               reg_nr_o       => ctl_reg_nr,
+               mem_wrdata_o   => ctl_mem_wrdata,
+               debug_o        => ctl_debug
             );
-
-   irq_masked <= irq_i and not reg_sr(2);
 
    -- Instantiate register file
    inst_regs : entity work.regs
@@ -135,9 +119,23 @@ begin
                rst_i    => rst_i,
                reg_nr_i => ctl_reg_nr,
                data_o   => regs_rd_data,
-               wren_i   => ctl_reg_wren,
-               data_i   => regs_wr_data,
+               wren_i   => ctl_wr_reg(4),
+               data_i   => alu_out,
                debug_o  => regs_debug
+            );
+
+   -- Instantiate the ALU (combinatorial)
+   inst_alu : entity work.alu
+   port map (
+               a_i    => regs_rd_data,
+               b_i    => data_i,
+               c_i    => reg_sr(0),  -- Carry
+               func_i => ctl_wr_reg(3 downto 0),
+               res_o  => alu_out,
+               c_o    => alu_c,
+               s_o    => alu_s,
+               v_o    => alu_v,
+               z_o    => alu_z
             );
 
 
@@ -145,43 +143,43 @@ begin
    p_pc : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         case ctl_pc_sel is
-            when "00" => reg_pc <= reg_pc + 1;
-            when "01" => reg_pc(15 downto 8) <= data_i;
-                         reg_pc( 7 downto 0) <= mem_addr_reg(7 downto 0);
-            when "11" => null;
-            when others => assert false severity failure;
-         end case;
+         if ctl_wr_pc(1) = '1' then
+            if ctl_wr_pc(0) = '1' then
+               reg_pc <= reg_pc + 1;
+            else
+               reg_pc <= data_i & mem_addr_reg(7 downto 0);
+            end if;
+         end if;
       end if;
    end process p_pc;
-
 
    -- Stack pointer
    p_sp : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         case ctl_sp_sel is
-            when "00" => null;
-            when "01" => reg_sp <= reg_sp + 1;
-            when "10" => reg_sp <= reg_sp - 1;
-            when others => assert false severity failure;
-         end case;
+         if ctl_wr_sp(1) = '1' then
+            if ctl_wr_sp(0) = '1' then
+               reg_sp <= reg_sp + 1;
+            else
+               reg_sp <= reg_sp - 1;
+            end if;
+         end if;
 
          if rst_i = '1' then
             reg_sp <= X"FF";
          end if;
       end if;
    end process p_sp;
-      
+
 
    -- Memory address hold register
    p_mem_addr_reg : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if ctl_mem_addr_wren(0) = '1' then
+         if ctl_wr_hold_addr(0) = '1' then
             mem_addr_reg(7 downto 0) <= data_i;
          end if;
-         if ctl_mem_addr_wren(1) = '1' then
+         if ctl_wr_hold_addr(1) = '1' then
             mem_addr_reg(15 downto 8) <= data_i;
          end if;
       end if;
@@ -192,23 +190,41 @@ begin
    p_sr : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if ctl_clc = '1' then
-            reg_sr(0) <= '0';
-         end if;
-
-         if ctl_sr_alu_wren = '1' then
-            reg_sr(0) <= alu_c;
-            reg_sr(1) <= alu_z;
-            reg_sr(6) <= alu_v;
+         if ctl_wr_szcv(3) = '1' then
             reg_sr(7) <= alu_s;
          end if;
 
-         case ctl_irq_mask_wr is
-            when "01" => reg_sr(2) <= data_i(2);   -- RTI
-            when "10" => reg_sr(2) <= '0';         -- CLI
-            when "11" => reg_sr(2) <= '1';         -- SEI, BRK
-            when others => null;
-         end case;
+         if ctl_wr_szcv(2) = '1' then
+            reg_sr(1) <= alu_z;
+         end if;
+
+         if ctl_wr_szcv(1) = '1' then
+            reg_sr(0) <= alu_c;
+         end if;
+
+         if ctl_wr_szcv(0) = '1' then
+            reg_sr(6) <= alu_v;
+         end if;
+
+         if ctl_wr_b(1) = '1' then
+            reg_sr(4) <= ctl_wr_b(0);
+         end if;
+
+         if ctl_wr_i(1) = '1' then
+            reg_sr(2) <= ctl_wr_i(0);
+         end if;
+
+         if ctl_wr_d(1) = '1' then
+            reg_sr(3) <= ctl_wr_d(0);
+         end if;
+
+         if ctl_wr_sr(1) = '1' then
+            if ctl_wr_sr(0) = '1' then
+               reg_sr <= data_i;
+            else
+               reg_sr <= regs_rd_data;
+            end if;
+         end if;
 
          if rst_i = '1' then
             reg_sr <= X"00";
@@ -216,35 +232,35 @@ begin
       end if;
    end process p_sr;
 
-
+ 
    -----------------------
    -- Drive output signals
    -----------------------
 
    -- Select memory address
-   addr_o <= reg_pc                           when ctl_mem_addr_sel = "0000" else
-             X"00" & mem_addr_reg(7 downto 0) when ctl_mem_addr_sel = "0001" else
-             X"01" & reg_sp       when ctl_mem_addr_sel = "0010" else
-             mem_addr_reg         when ctl_mem_addr_sel = "0011" else
-             X"FFFE"              when ctl_mem_addr_sel = "1000" else    -- BRK
-             X"FFFF"              when ctl_mem_addr_sel = "1001" else    -- BRK
-             X"FFFA"              when ctl_mem_addr_sel = "1010" else    -- NMI
-             X"FFFB"              when ctl_mem_addr_sel = "1011" else    -- NMI
-             X"FFFC"              when ctl_mem_addr_sel = "1100" else    -- RESET
-             X"FFFD"              when ctl_mem_addr_sel = "1101" else    -- RESET
-             X"FFFE"              when ctl_mem_addr_sel = "1110" else    -- IRQ
-             X"FFFF"              when ctl_mem_addr_sel = "1111" else    -- IRQ
+   addr_o <= reg_pc                           when ctl_mem_addr = "0000" else
+             X"00" & mem_addr_reg(7 downto 0) when ctl_mem_addr = "0001" else
+             X"01" & reg_sp                   when ctl_mem_addr = "0010" else
+             mem_addr_reg                     when ctl_mem_addr = "0011" else
+             X"FFFE"                          when ctl_mem_addr = "1000" else    -- BRK
+             X"FFFF"                          when ctl_mem_addr = "1001" else    -- BRK
+             X"FFFA"                          when ctl_mem_addr = "1010" else    -- NMI
+             X"FFFB"                          when ctl_mem_addr = "1011" else    -- NMI
+             X"FFFC"                          when ctl_mem_addr = "1100" else    -- RESET
+             X"FFFD"                          when ctl_mem_addr = "1101" else    -- RESET
+             X"FFFE"                          when ctl_mem_addr = "1110" else    -- IRQ
+             X"FFFF"                          when ctl_mem_addr = "1111" else    -- IRQ
              (others => 'X');
 
    -- Select memory data
-   data_o <= regs_rd_data        when ctl_mem_data_sel = "00" else
-             reg_pc(15 downto 8) when ctl_mem_data_sel = "01" else
-             reg_pc(7 downto 0)  when ctl_mem_data_sel = "10" else
-             reg_sr              when ctl_mem_data_sel = "11" else
-             (others => 'X');
+   data_o <= regs_rd_data        when ctl_mem_wrdata(1 downto 0) = "00" else
+             reg_pc(15 downto 8) when ctl_mem_wrdata(1 downto 0) = "01" else
+             reg_pc(7 downto 0)  when ctl_mem_wrdata(1 downto 0) = "10" else
+             reg_sr              when ctl_mem_wrdata(1 downto 0) = "11" else
+             (others => '0');
 
    rden_o <= ctl_mem_rden;
-   wren_o <= ctl_mem_wren;
+   wren_o <= ctl_mem_wrdata(2);
 
    -- Debug output
    debug_o(23 downto  0) <= regs_debug;

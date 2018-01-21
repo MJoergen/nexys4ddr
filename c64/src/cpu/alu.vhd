@@ -61,7 +61,7 @@ begin
    xor0 <= c_i & (a_i xor b_i);
    adc  <= ("0" & a_i) + ("0" & b_i) + (X"00" & c_i);
    sbc  <= ("0" & a_i) - ("0" & b_i) - (X"00" & c_i);
-   b    <= c_i & b_i;
+   b    <= '0' & b_i;
    cmp  <= sbc(8) & a_i;
 
    asl  <= a_i & "0";
