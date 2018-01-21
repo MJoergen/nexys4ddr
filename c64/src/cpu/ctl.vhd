@@ -1,10 +1,12 @@
 --------------------------------------
 -- The Control Logic
 --
+-- This uses a ROM containing up to eight microcodes for each instruction.
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
+use ieee.std_logic_arith.all;
 
 entity ctl is
    port (
@@ -42,25 +44,2340 @@ architecture Structural of ctl is
    signal irq_l   : std_logic := '0';
    signal rst_l   : std_logic := '0';
 
+   subtype micro_op_type is std_logic_vector(26 downto 0);
+   type micro_op_rom_type is array(0 to 8*256-1) of micro_op_type;
+
+   constant C_READ_NEXT_BYTE : micro_op_type :=
+      B"00_0_0_0_0_0000_00_00_00_0_00_0000_00_0_1";
+
+   constant C_NOT_IMPLEMENTED : micro_op_type := 
+      B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
+
+   constant micro_op_rom : micro_op_rom_type := (
+   -- 00 BRK b
+            C_READ_NEXT_BYTE,
+            B"00_0_0_0_0_0000_10_11_00_0_01_0010_00_1_0",
+            B"00_0_0_0_0_0000_10_11_00_0_10_0010_00_1_0",
+            B"11_0_0_0_0_0000_10_11_00_0_11_0010_00_1_0",
+            B"00_0_0_0_0_0000_00_11_00_0_00_1000_01_0_1",
+            B"00_0_1_0_0_0000_00_01_00_0_00_1001_10_0_1",
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 01 ORA (d,X)
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 02
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 03
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 04
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 05 ORA d
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 06 ASL d
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 07
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 08 PHP
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 09 ORA #
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 0A ASL A
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 0B
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 0C
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 0D ORA a
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 0E ASL a
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 0F
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   --
+   -- 10 BPL r
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 11 ORA (d),Y
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 12
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 13
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 14
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 15 ORA d,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 16 ASL d,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 17
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 18 CLC
+            C_READ_NEXT_BYTE,
+            B"00_0_1_0_1_0000_00_11_00_0_00_0000_00_0_0",
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 19 ORA a,Y
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 1A
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 1B
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 1C
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 1D ORA a,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 1E ASL a,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 1F
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   --
+   -- 20 JSR a
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 21 AND (d,X)
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 22
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 23
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 24 BIT d
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 25 AND d
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 26 ROL d
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 27
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 28 PLP
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 29 AND #
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 2A ROL A
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 2B
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 2C BIT a
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 2D AND a
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 2E ROL a
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 2F
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   --
+   -- 30 BMI r
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 31 AND (d),Y
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 32
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 33
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 34
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 35 AND d,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 36 ROL d,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 37
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 38 SEC
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 39 AND a,Y
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 3A
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 3B
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 3C
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 3D AND a,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 3E ROL a,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 3F
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   --
+   -- 40 RTI
+            C_READ_NEXT_BYTE,
+            B"00_0_0_0_0_0000_01_11_00_0_00_0000_00_0_0",
+            B"01_0_0_0_0_0000_01_11_00_0_00_0010_00_0_1",
+            B"00_0_0_0_0_0000_01_11_00_0_00_0010_01_0_1",
+            B"00_0_1_0_0_0000_00_01_00_0_00_0010_00_0_1",
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 41 EOR (d,X)
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 42
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 43
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 44
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 45 EOR d
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 46 LSR d
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 47
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 48 PHA
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 49 EOR #
+            C_READ_NEXT_BYTE,
+            B"00_0_1_1_0_0010_00_00_00_1_00_0000_00_0_1",
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 4A LSR A
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 4B
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 4C JMP a
+            C_READ_NEXT_BYTE,
+            B"00_0_0_0_0_0000_00_00_00_0_00_0000_01_0_1",
+            B"00_0_1_0_0_0000_00_01_00_0_00_0000_00_0_1",
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 4D EOR a
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 4E LSR a
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 4F
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   --
+   -- 50 BVC r
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 51 EOR (d),Y
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 52
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 53
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 54
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 55 EOR d,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 56 LSR d,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 57
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 58 CLI
+            C_READ_NEXT_BYTE,
+            B"10_0_1_0_0_0000_00_11_00_0_00_0000_00_0_0",
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 59 EOR a,Y
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 5A
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 5B
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 5C
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 5D EOR a,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 5E LSR a,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 5F
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   --
+   -- 60 RTS
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 61 ADC (d,X)
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 62
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 63
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 64
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 65 ADC d
+            C_READ_NEXT_BYTE,
+            B"00_0_0_0_0_0000_00_00_00_0_00_0000_01_0_1",
+            B"00_0_1_1_0_0011_00_11_00_1_00_0001_00_0_1",
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 66 ROR d
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 67
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 68 PLA
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 69 ADC #
+            C_READ_NEXT_BYTE,
+            B"00_0_1_1_0_0011_00_00_00_1_00_0000_00_0_1",
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 6A ROR A
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 6B
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 6C JMP (a)
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 6D ADC a
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 6E ROR a
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 6F
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   --
+   -- 70 BVS r
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 71 ADC (d),Y
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 72
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 73
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 74
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 75 ADC d,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 76 ROR d,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 77
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 78 SEI
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 79 ADC a,Y
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 7A
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 7B
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 7C
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 7D ADC a,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 7E ROR a,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 7F
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   --
+   -- 80
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 81 STA (d,X)
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 82
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 83
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 84 STY
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 85 STA d
+            C_READ_NEXT_BYTE,
+            B"00_0_0_0_0_0000_00_00_00_0_00_0000_01_0_1",
+            B"00_0_1_0_0_0000_00_11_00_0_00_0001_00_1_0",
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 86 STX d
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 87
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 88 DEY
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 89
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 8A TXA
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 8B
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 8C STY a
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 8D STA a
+            C_READ_NEXT_BYTE,
+            B"00_0_0_0_0_0000_00_00_00_0_00_0000_01_0_1",
+            B"00_0_0_0_0_0000_00_00_00_0_00_0000_10_0_1",
+            B"00_0_1_0_0_0000_00_11_00_0_00_0011_00_1_0",
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 8E STX a
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 8F
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   --
+   -- 90 BCC r
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 91 STA (d),Y
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 92
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 93
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 94 STY d,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 95 STA d,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 96 STX d,Y
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 97
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 98 TYA
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 99 STA a,Y
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 9A TXS
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 9B
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 9C
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 9D STA a,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 9E
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- 9F
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   --
+   -- A0 LDY #
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- A1 LDA (d,X)
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- A2 LDX #
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- A3
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- A4 LDY d
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- A5 LDA d
+            C_READ_NEXT_BYTE,
+            B"00_0_0_0_0_0000_00_00_00_0_00_0000_01_0_1",
+            B"00_0_1_0_0_0101_00_11_00_1_00_0001_00_0_1",
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- A6 LDX d
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- A7
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- A8 TAY
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- A9 LDA #
+            C_READ_NEXT_BYTE,
+            B"00_0_1_0_0_0101_00_00_00_1_00_0000_00_0_1",
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- AA TAX
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- AB
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- AC LDY a
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- AD LDA a
+            C_READ_NEXT_BYTE,
+            B"00_0_0_0_0_0000_00_00_00_0_00_0000_01_0_1",
+            B"00_0_0_0_0_0000_00_00_00_0_00_0000_10_0_1",
+            B"00_0_1_0_0_0101_00_11_00_1_00_0011_00_0_1",
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- AE LDX a
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- AF
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   --
+   -- B0 BCS r
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- B1 LDA (d),Y
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- B2
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- B3
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- B4 LDY d,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- B5 LDA d,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- B6 LDX d,Y
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- B7
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- B8 CLV
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- B9 LDA a,Y
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- BA TSX
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- BB
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- BC LDY a,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- BD LDA a,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- BE LDX a,Y
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- BF
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   --
+   -- C0 CPY #
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- C1 CMP (d,X)
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- C2
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- C3
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- C4 CPY d
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- C5 CMP d
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- C6 DEC d
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- C7
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- C8 INY
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- C9 CMP #
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- CA DEX
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- CB
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- CC CPY a
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- CD CMP a
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- CE DEC a
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- CF
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   --
+   -- D0 BNE r
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- D1 CMP (d),Y
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- D2
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- D3
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- D4
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- D5 CMP d,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- D6 DEC d,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- D7
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- D8 CLD
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- D9 CMP a,Y
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- DA
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- DB
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- DC
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- DD CMP a,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- DE DEC a,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- DF
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   --
+   -- E0 CPX #
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- E1 SBC (d,X)
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- E2
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- E3
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- E4 CPX d
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- E5 SBC d
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- E6 INC d
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- E7
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- E8 INX
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- E9 SBC #
+            C_READ_NEXT_BYTE,
+            B"00_0_1_1_0_0111_00_00_00_1_00_0000_00_0_1",
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- EA NOP
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- EB
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- EC CPX a
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- ED SBC a
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- EE INC a
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- EF
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   --
+   -- F0 BEQ r
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- F1 SBC (d),Y
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- F2
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- F3
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- F4
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- F5 SBC d,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- F6 INC d,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- F7
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- F8 SED
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- F9 SBC a,Y
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- FA
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- FB
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- FC
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- FD SBC a,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- FE INC a,X
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+   -- FF
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED,
+            C_NOT_IMPLEMENTED
+         );
+
 begin
 
-   mem_rden_o      <= ctl(0);
-   mem_wren_o      <= ctl(1);
-   mem_addr_wren_o <= ctl(3 downto 2);
-   mem_addr_sel_o  <= ctl(7 downto 4) when ctl(7) = '0'
-                      else '1' & rst_l & irq_l & ctl(4);
-   mem_data_sel_o  <= ctl(9 downto 8);
-   reg_wren_o      <= ctl(10);
-   reg_nr_o        <= ctl(12 downto 11);
-   pc_sel_o        <= ctl(14 downto 13);
-   sp_sel_o        <= ctl(16 downto 15);
-   alu_func_o      <= ctl(20 downto 17);
-   clc_o           <= ctl(21);
-   sr_alu_wren_o   <= ctl(22);
-   last            <= ctl(23);
-   invalid         <= ctl(24);
-   irq_mask_wr_o   <= ctl(26 downto 25);
-
+   -- Check for illegal or unimplemented instructions.
    p_assert : process (clk_i)
    begin 
       if rising_edge(clk_i) then
@@ -70,8 +2387,6 @@ begin
       end if;
    end process p_assert;
 
-   debug_o( 7 downto 0) <= inst_r;
-   debug_o(10 downto 8) <= cnt_r;
 
    -- Store the microinstruction counter
    p_cnt : process (clk_i)
@@ -129,1963 +2444,32 @@ begin
       end if;
    end process p_irq_reset;
 
-
    -- Combinatorial process
    process (cnt_r, inst_r)
    begin
-      ctl <= B"00_0_0_0_0_0000_00_00_00_0_00_0000_00_0_0";  -- Default value to avoid latch.
-
-      if cnt_r = 0 then
-         ctl <= B"00_0_0_0_0_0000_00_00_00_0_00_0000_00_0_1";  -- Default value to avoid latch.
-      end if;
-
-      if cnt_r = 1 then
-         case inst_r is
-            when X"00" => ctl <= B"00_0_0_0_0_0000_10_11_00_0_01_0010_00_1_0"; -- BRK b
-            when X"01" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA (d,X)
-            when X"02" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"03" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"04" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"05" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA d
-            when X"06" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL d
-            when X"07" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"08" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PHP
-            when X"09" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA #
-            when X"0A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL A
-            when X"0B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"0C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"0D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA a
-            when X"0E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL a
-            when X"0F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"10" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BPL r
-            when X"11" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA (d),Y
-            when X"12" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"13" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"14" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"15" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA d,X
-            when X"16" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL d,X
-            when X"17" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"18" => ctl <= B"00_0_1_0_1_0000_00_11_00_0_00_0000_00_0_0"; -- CLC
-            when X"19" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA a,Y
-            when X"1A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"1B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"1C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"1D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA a,X
-            when X"1E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL a,X
-            when X"1F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"20" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- JSR a
-            when X"21" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND (d,X)
-            when X"22" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"23" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"24" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BIT d
-            when X"25" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND d
-            when X"26" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL d
-            when X"27" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"28" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PLP
-            when X"29" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND #
-            when X"2A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL A
-            when X"2B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"2C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BIT a
-            when X"2D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND a
-            when X"2E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL a
-            when X"2F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"30" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BMI r
-            when X"31" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND (d),Y
-            when X"32" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"33" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"34" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"35" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND d,X
-            when X"36" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL d,X
-            when X"37" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"38" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SEC
-            when X"39" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND a,Y
-            when X"3A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"3B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"3C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"3D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND a,X
-            when X"3E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL a,X
-            when X"3F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"40" => ctl <= B"00_0_0_0_0_0000_01_11_00_0_00_0000_00_0_0"; -- RTI
-            when X"41" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR (d,X)
-            when X"42" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"43" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"44" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"45" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR d
-            when X"46" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR d
-            when X"47" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"48" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PHA
-            when X"49" => ctl <= B"00_0_1_1_0_0010_00_00_00_1_00_0000_00_0_1"; -- EOR #
-            when X"4A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR A
-            when X"4B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"4C" => ctl <= B"00_0_0_0_0_0000_00_00_00_0_00_0000_01_0_1"; -- JMP a
-            when X"4D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR a
-            when X"4E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR a
-            when X"4F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"50" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BVC r
-            when X"51" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR (d),Y
-            when X"52" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"53" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"54" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"55" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR d,X
-            when X"56" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR d,X
-            when X"57" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"58" => ctl <= B"10_0_1_0_0_0000_00_11_00_0_00_0000_00_0_0"; -- CLI
-            when X"59" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR a,Y
-            when X"5A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"5B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"5C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"5D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR a,X
-            when X"5E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR a,X
-            when X"5F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"60" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- RTS
-            when X"61" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC (d,X)
-            when X"62" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"63" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"64" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"65" => ctl <= B"00_0_0_0_0_0000_00_00_00_0_00_0000_01_0_1"; -- ADC d
-            when X"66" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR d
-            when X"67" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"68" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PLA
-            when X"69" => ctl <= B"00_0_1_1_0_0011_00_00_00_1_00_0000_00_0_1"; -- ADC #
-            when X"6A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR A
-            when X"6B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"6C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- JMP (a)
-            when X"6D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC a
-            when X"6E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR a
-            when X"6F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"70" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BVS r
-            when X"71" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC (d),Y
-            when X"72" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"73" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"74" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"75" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC d,X
-            when X"76" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR d,X
-            when X"77" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"78" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SEI
-            when X"79" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC a,Y
-            when X"7A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"7B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"7C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"7D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC a,X
-            when X"7E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR a,X
-            when X"7F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"80" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"81" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA (d,X)
-            when X"82" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"83" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"84" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STY
-            when X"85" => ctl <= B"00_0_0_0_0_0000_00_00_00_0_00_0000_01_0_1"; -- STA d
-            when X"86" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STX d
-            when X"87" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"88" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEY
-            when X"89" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"8A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TXA
-            when X"8B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; 
-            when X"8C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STY a
-            when X"8D" => ctl <= B"00_0_0_0_0_0000_00_00_00_0_00_0000_01_0_1"; -- STA a
-            when X"8E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STX a
-            when X"8F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"90" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BCC r
-            when X"91" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA (d),Y
-            when X"92" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"93" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"94" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STY d,X
-            when X"95" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA d,X
-            when X"96" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STX d,Y
-            when X"97" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"98" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TYA
-            when X"99" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA a,Y
-            when X"9A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TXS
-            when X"9B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"9C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"9D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA a,X
-            when X"9E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"9F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"A0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY #
-            when X"A1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA (d,X)
-            when X"A2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX #
-            when X"A3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"A4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY d
-            when X"A5" => ctl <= B"00_0_0_0_0_0000_00_00_00_0_00_0000_01_0_1"; -- LDA d
-            when X"A6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX d
-            when X"A7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"A8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TAY
-            when X"A9" => ctl <= B"00_0_1_0_0_0101_00_00_00_1_00_0000_00_0_1"; -- LDA #
-            when X"AA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TAX
-            when X"AB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"AC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY a
-            when X"AD" => ctl <= B"00_0_0_0_0_0000_00_00_00_0_00_0000_01_0_1"; -- LDA a
-            when X"AE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX a
-            when X"AF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"B0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BCS r
-            when X"B1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA (d),Y
-            when X"B2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"B3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"B4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY d,X
-            when X"B5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA d,X
-            when X"B6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX d,Y
-            when X"B7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"B8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLV
-            when X"B9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA a,Y
-            when X"BA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TSX
-            when X"BB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"BC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY a,X
-            when X"BD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA a,X
-            when X"BE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX a,Y
-            when X"BF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"C0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPY #
-            when X"C1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP (d,X)
-            when X"C2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"C3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"C4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPY d
-            when X"C5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP d
-            when X"C6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC d
-            when X"C7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"C8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INY
-            when X"C9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP #
-            when X"CA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEX
-            when X"CB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"CC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPY a
-            when X"CD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP a
-            when X"CE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC a
-            when X"CF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"D0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BNE r
-            when X"D1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP (d),Y
-            when X"D2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP d,X
-            when X"D6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC d,X
-            when X"D7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLD
-            when X"D9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP a,Y
-            when X"DA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"DB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"DC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"DD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP a,X
-            when X"DE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC a,X
-            when X"DF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"E0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPX #
-            when X"E1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC (d,X)
-            when X"E2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"E3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"E4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPX d
-            when X"E5" => ctl <= B"00_0_0_0_0_0000_00_00_00_0_00_0000_01_0_1"; -- SBC d
-            when X"E6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC d
-            when X"E7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"E8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INX
-            when X"E9" => ctl <= B"00_0_1_1_0_0111_00_00_00_1_00_0000_00_0_1"; -- SBC #
-            when X"EA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- NOP
-            when X"EB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"EC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPX a
-            when X"ED" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC a
-            when X"EE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC a
-            when X"EF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"F0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BEQ r
-            when X"F1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC (d),Y
-            when X"F2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC d,X
-            when X"F6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC d,X
-            when X"F7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SED
-            when X"F9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC a,Y
-            when X"FA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"FB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"FC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"FD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC a,X
-            when X"FE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC a,X
-            when X"FF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when others =>ctl <= B"00_0_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; 
-         end case;
-      end if;
-
-      if cnt_r = 2 then
-         case inst_r is
-            when X"00" => ctl <= B"00_0_0_0_0_0000_10_11_00_0_10_0010_00_1_0"; -- BRK b
-            when X"01" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA (d,X)
-            when X"02" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"03" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"04" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"05" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA d
-            when X"06" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL d
-            when X"07" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"08" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PHP
-            when X"09" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA #
-            when X"0A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL A
-            when X"0B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"0C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"0D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA a
-            when X"0E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL a
-            when X"0F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"10" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BPL r
-            when X"11" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA (d),Y
-            when X"12" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"13" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"14" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"15" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA d,X
-            when X"16" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL d,X
-            when X"17" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"18" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLC
-            when X"19" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA a,Y
-            when X"1A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"1B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"1C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"1D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA a,X
-            when X"1E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL a,X
-            when X"1F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"20" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- JSR a
-            when X"21" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND (d,X)
-            when X"22" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"23" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"24" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BIT d
-            when X"25" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND d
-            when X"26" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL d
-            when X"27" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"28" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PLP
-            when X"29" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND #
-            when X"2A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL A
-            when X"2B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"2C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BIT a
-            when X"2D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND a
-            when X"2E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL a
-            when X"2F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"30" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BMI r
-            when X"31" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND (d),Y
-            when X"32" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"33" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"34" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"35" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND d,X
-            when X"36" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL d,X
-            when X"37" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"38" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SEC
-            when X"39" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND a,Y
-            when X"3A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"3B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"3C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"3D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND a,X
-            when X"3E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL a,X
-            when X"3F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"40" => ctl <= B"01_0_0_0_0_0000_01_11_00_0_00_0010_00_0_1"; -- RTI
-            when X"41" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR (d,X)
-            when X"42" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"43" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"44" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"45" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR d
-            when X"46" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR d
-            when X"47" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"48" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PHA
-            when X"49" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR #
-            when X"4A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR A
-            when X"4B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"4C" => ctl <= B"00_0_1_0_0_0000_00_01_00_0_00_0000_00_0_1"; -- JMP a
-            when X"4D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR a
-            when X"4E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR a
-            when X"4F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"50" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BVC r
-            when X"51" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR (d),Y
-            when X"52" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"53" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"54" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"55" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR d,X
-            when X"56" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR d,X
-            when X"57" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"58" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLI
-            when X"59" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR a,Y
-            when X"5A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"5B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"5C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"5D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR a,X
-            when X"5E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR a,X
-            when X"5F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"60" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- RTS
-            when X"61" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC (d,X)
-            when X"62" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"63" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"64" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"65" => ctl <= B"00_0_1_1_0_0011_00_11_00_1_00_0001_00_0_1"; -- ADC d
-            when X"66" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR d
-            when X"67" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"68" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PLA
-            when X"69" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC #
-            when X"6A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR A
-            when X"6B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"6C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- JMP (a)
-            when X"6D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC a
-            when X"6E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR a
-            when X"6F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"70" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BVS r
-            when X"71" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC (d),Y
-            when X"72" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"73" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"74" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"75" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC d,X
-            when X"76" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR d,X
-            when X"77" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"78" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SEI
-            when X"79" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC a,Y
-            when X"7A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"7B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"7C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"7D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC a,X
-            when X"7E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR a,X
-            when X"7F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"80" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"81" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA (d,X)
-            when X"82" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"83" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"84" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STY
-            when X"85" => ctl <= B"00_0_1_0_0_0000_00_11_00_0_00_0001_00_1_0"; -- STA d
-            when X"86" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STX d
-            when X"87" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"88" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEY
-            when X"89" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"8A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TXA
-            when X"8B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; 
-            when X"8C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STY a
-            when X"8D" => ctl <= B"00_0_0_0_0_0000_00_00_00_0_00_0000_10_0_1"; -- STA a
-            when X"8E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STX a
-            when X"8F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"90" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BCC r
-            when X"91" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA (d),Y
-            when X"92" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"93" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"94" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STY d,X
-            when X"95" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA d,X
-            when X"96" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STX d,Y
-            when X"97" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"98" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TYA
-            when X"99" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA a,Y
-            when X"9A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TXS
-            when X"9B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"9C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"9D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA a,X
-            when X"9E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"9F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"A0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY #
-            when X"A1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA (d,X)
-            when X"A2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX #
-            when X"A3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"A4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY d
-            when X"A5" => ctl <= B"00_0_1_0_0_0101_00_11_00_1_00_0001_00_0_1"; -- LDA d
-            when X"A6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX d
-            when X"A7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"A8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TAY
-            when X"A9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA #
-            when X"AA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TAX
-            when X"AB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"AC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY a
-            when X"AD" => ctl <= B"00_0_0_0_0_0000_00_00_00_0_00_0000_10_0_1"; -- LDA a
-            when X"AE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX a
-            when X"AF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"B0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BCS r
-            when X"B1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA (d),Y
-            when X"B2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"B3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"B4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY d,X
-            when X"B5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA d,X
-            when X"B6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX d,Y
-            when X"B7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"B8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLV
-            when X"B9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA a,Y
-            when X"BA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TSX
-            when X"BB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"BC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY a,X
-            when X"BD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA a,X
-            when X"BE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX a,Y
-            when X"BF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"C0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPY #
-            when X"C1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP (d,X)
-            when X"C2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"C3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"C4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPY d
-            when X"C5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP d
-            when X"C6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC d
-            when X"C7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"C8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INY
-            when X"C9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP #
-            when X"CA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEX
-            when X"CB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"CC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPY a
-            when X"CD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP a
-            when X"CE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC a
-            when X"CF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"D0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BNE r
-            when X"D1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP (d),Y
-            when X"D2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP d,X
-            when X"D6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC d,X
-            when X"D7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLD
-            when X"D9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP a,Y
-            when X"DA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"DB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"DC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"DD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP a,X
-            when X"DE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC a,X
-            when X"DF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"E0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPX #
-            when X"E1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC (d,X)
-            when X"E2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"E3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"E4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPX d
-            when X"E5" => ctl <= B"00_0_1_1_0_0111_00_11_00_1_00_0001_00_0_1"; -- SBC d
-            when X"E6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC d
-            when X"E7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"E8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INX
-            when X"E9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC #
-            when X"EA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- NOP
-            when X"EB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"EC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPX a
-            when X"ED" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC a
-            when X"EE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC a
-            when X"EF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"F0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BEQ r
-            when X"F1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC (d),Y
-            when X"F2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC d,X
-            when X"F6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC d,X
-            when X"F7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SED
-            when X"F9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC a,Y
-            when X"FA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"FB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"FC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"FD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC a,X
-            when X"FE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC a,X
-            when X"FF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when others =>ctl <= B"00_0_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; 
-         end case;
-      end if;
-
-      if cnt_r = 3 then
-         case inst_r is
-            when X"00" => ctl <= B"11_0_0_0_0_0000_10_11_00_0_11_0010_00_1_0"; -- BRK b
-            when X"01" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA (d,X)
-            when X"02" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"03" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"04" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"05" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA d
-            when X"06" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL d
-            when X"07" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"08" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PHP
-            when X"09" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA #
-            when X"0A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL A
-            when X"0B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"0C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"0D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA a
-            when X"0E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL a
-            when X"0F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"10" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BPL r
-            when X"11" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA (d),Y
-            when X"12" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"13" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"14" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"15" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA d,X
-            when X"16" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL d,X
-            when X"17" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"18" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLC
-            when X"19" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA a,Y
-            when X"1A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"1B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"1C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"1D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA a,X
-            when X"1E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL a,X
-            when X"1F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"20" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- JSR a
-            when X"21" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND (d,X)
-            when X"22" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"23" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"24" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BIT d
-            when X"25" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND d
-            when X"26" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL d
-            when X"27" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"28" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PLP
-            when X"29" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND #
-            when X"2A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL A
-            when X"2B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"2C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BIT a
-            when X"2D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND a
-            when X"2E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL a
-            when X"2F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"30" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BMI r
-            when X"31" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND (d),Y
-            when X"32" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"33" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"34" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"35" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND d,X
-            when X"36" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL d,X
-            when X"37" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"38" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SEC
-            when X"39" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND a,Y
-            when X"3A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"3B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"3C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"3D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND a,X
-            when X"3E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL a,X
-            when X"3F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"40" => ctl <= B"00_0_0_0_0_0000_01_11_00_0_00_0010_01_0_1"; -- RTI
-            when X"41" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR (d,X)
-            when X"42" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"43" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"44" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"45" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR d
-            when X"46" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR d
-            when X"47" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"48" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PHA
-            when X"49" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR #
-            when X"4A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR A
-            when X"4B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"4C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- JMP a
-            when X"4D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR a
-            when X"4E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR a
-            when X"4F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"50" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BVC r
-            when X"51" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR (d),Y
-            when X"52" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"53" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"54" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"55" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR d,X
-            when X"56" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR d,X
-            when X"57" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"58" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLI
-            when X"59" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR a,Y
-            when X"5A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"5B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"5C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"5D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR a,X
-            when X"5E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR a,X
-            when X"5F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"60" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- RTS
-            when X"61" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC (d,X)
-            when X"62" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"63" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"64" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"65" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC d
-            when X"66" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR d
-            when X"67" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"68" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PLA
-            when X"69" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC #
-            when X"6A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR A
-            when X"6B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"6C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- JMP (a)
-            when X"6D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC a
-            when X"6E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR a
-            when X"6F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"70" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BVS r
-            when X"71" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC (d),Y
-            when X"72" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"73" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"74" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"75" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC d,X
-            when X"76" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR d,X
-            when X"77" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"78" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SEI
-            when X"79" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC a,Y
-            when X"7A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"7B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"7C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"7D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC a,X
-            when X"7E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR a,X
-            when X"7F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"80" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"81" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA (d,X)
-            when X"82" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"83" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"84" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STY
-            when X"85" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA d
-            when X"86" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STX d
-            when X"87" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"88" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEY
-            when X"89" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"8A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TXA
-            when X"8B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; 
-            when X"8C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STY a
-            when X"8D" => ctl <= B"00_0_1_0_0_0000_00_11_00_0_00_0011_00_1_0"; -- STA a
-            when X"8E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STX a
-            when X"8F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"90" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BCC r
-            when X"91" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA (d),Y
-            when X"92" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"93" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"94" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STY d,X
-            when X"95" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA d,X
-            when X"96" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STX d,Y
-            when X"97" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"98" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TYA
-            when X"99" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA a,Y
-            when X"9A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TXS
-            when X"9B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"9C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"9D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA a,X
-            when X"9E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"9F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"A0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY #
-            when X"A1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA (d,X)
-            when X"A2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX #
-            when X"A3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"A4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY d
-            when X"A5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA d
-            when X"A6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX d
-            when X"A7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"A8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TAY
-            when X"A9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA #
-            when X"AA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TAX
-            when X"AB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"AC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY a
-            when X"AD" => ctl <= B"00_0_1_0_0_0101_00_11_00_1_00_0011_00_0_1"; -- LDA a
-            when X"AE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX a
-            when X"AF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"B0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BCS r
-            when X"B1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA (d),Y
-            when X"B2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"B3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"B4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY d,X
-            when X"B5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA d,X
-            when X"B6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX d,Y
-            when X"B7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"B8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLV
-            when X"B9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA a,Y
-            when X"BA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TSX
-            when X"BB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"BC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY a,X
-            when X"BD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA a,X
-            when X"BE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX a,Y
-            when X"BF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"C0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPY #
-            when X"C1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP (d,X)
-            when X"C2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"C3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"C4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPY d
-            when X"C5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP d
-            when X"C6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC d
-            when X"C7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"C8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INY
-            when X"C9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP #
-            when X"CA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEX
-            when X"CB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"CC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPY a
-            when X"CD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP a
-            when X"CE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC a
-            when X"CF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"D0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BNE r
-            when X"D1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP (d),Y
-            when X"D2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP d,X
-            when X"D6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC d,X
-            when X"D7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLD
-            when X"D9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP a,Y
-            when X"DA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"DB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"DC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"DD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP a,X
-            when X"DE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC a,X
-            when X"DF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"E0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPX #
-            when X"E1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC (d,X)
-            when X"E2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"E3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"E4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPX d
-            when X"E5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC d
-            when X"E6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC d
-            when X"E7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"E8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INX
-            when X"E9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC #
-            when X"EA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- NOP
-            when X"EB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"EC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPX a
-            when X"ED" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC a
-            when X"EE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC a
-            when X"EF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"F0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BEQ r
-            when X"F1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC (d),Y
-            when X"F2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC d,X
-            when X"F6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC d,X
-            when X"F7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SED
-            when X"F9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC a,Y
-            when X"FA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"FB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"FC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"FD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC a,X
-            when X"FE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC a,X
-            when X"FF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when others =>ctl <= B"00_0_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; 
-         end case;
-      end if;
-
-      if cnt_r = 4 then
-         case inst_r is
-            when X"00" => ctl <= B"00_0_0_0_0_0000_00_11_00_0_00_1000_01_0_1"; -- BRK b
-            when X"01" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA (d,X)
-            when X"02" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"03" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"04" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"05" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA d
-            when X"06" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL d
-            when X"07" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"08" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PHP
-            when X"09" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA #
-            when X"0A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL A
-            when X"0B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"0C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"0D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA a
-            when X"0E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL a
-            when X"0F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"10" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BPL r
-            when X"11" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA (d),Y
-            when X"12" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"13" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"14" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"15" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA d,X
-            when X"16" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL d,X
-            when X"17" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"18" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLC
-            when X"19" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA a,Y
-            when X"1A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"1B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"1C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"1D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA a,X
-            when X"1E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL a,X
-            when X"1F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"20" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- JSR a
-            when X"21" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND (d,X)
-            when X"22" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"23" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"24" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BIT d
-            when X"25" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND d
-            when X"26" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL d
-            when X"27" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"28" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PLP
-            when X"29" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND #
-            when X"2A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL A
-            when X"2B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"2C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BIT a
-            when X"2D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND a
-            when X"2E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL a
-            when X"2F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"30" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BMI r
-            when X"31" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND (d),Y
-            when X"32" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"33" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"34" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"35" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND d,X
-            when X"36" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL d,X
-            when X"37" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"38" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SEC
-            when X"39" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND a,Y
-            when X"3A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"3B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"3C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"3D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND a,X
-            when X"3E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL a,X
-            when X"3F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"40" => ctl <= B"00_0_1_0_0_0000_00_01_00_0_00_0010_00_0_1"; -- RTI
-            when X"41" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR (d,X)
-            when X"42" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"43" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"44" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"45" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR d
-            when X"46" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR d
-            when X"47" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"48" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PHA
-            when X"49" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR #
-            when X"4A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR A
-            when X"4B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"4C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- JMP a
-            when X"4D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR a
-            when X"4E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR a
-            when X"4F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"50" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BVC r
-            when X"51" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR (d),Y
-            when X"52" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"53" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"54" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"55" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR d,X
-            when X"56" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR d,X
-            when X"57" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"58" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLI
-            when X"59" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR a,Y
-            when X"5A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"5B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"5C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"5D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR a,X
-            when X"5E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR a,X
-            when X"5F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"60" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- RTS
-            when X"61" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC (d,X)
-            when X"62" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"63" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"64" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"65" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC d
-            when X"66" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR d
-            when X"67" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"68" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PLA
-            when X"69" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC #
-            when X"6A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR A
-            when X"6B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"6C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- JMP (a)
-            when X"6D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC a
-            when X"6E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR a
-            when X"6F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"70" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BVS r
-            when X"71" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC (d),Y
-            when X"72" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"73" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"74" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"75" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC d,X
-            when X"76" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR d,X
-            when X"77" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"78" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SEI
-            when X"79" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC a,Y
-            when X"7A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"7B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"7C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"7D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC a,X
-            when X"7E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR a,X
-            when X"7F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"80" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"81" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA (d,X)
-            when X"82" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"83" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"84" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STY
-            when X"85" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA d
-            when X"86" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STX d
-            when X"87" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"88" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEY
-            when X"89" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"8A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TXA
-            when X"8B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; 
-            when X"8C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STY a
-            when X"8D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA a
-            when X"8E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STX a
-            when X"8F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"90" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BCC r
-            when X"91" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA (d),Y
-            when X"92" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"93" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"94" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STY d,X
-            when X"95" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA d,X
-            when X"96" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STX d,Y
-            when X"97" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"98" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TYA
-            when X"99" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA a,Y
-            when X"9A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TXS
-            when X"9B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"9C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"9D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA a,X
-            when X"9E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"9F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"A0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY #
-            when X"A1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA (d,X)
-            when X"A2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX #
-            when X"A3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"A4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY d
-            when X"A5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA d
-            when X"A6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX d
-            when X"A7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"A8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TAY
-            when X"A9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA #
-            when X"AA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TAX
-            when X"AB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"AC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY a
-            when X"AD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA a
-            when X"AE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX a
-            when X"AF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"B0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BCS r
-            when X"B1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA (d),Y
-            when X"B2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"B3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"B4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY d,X
-            when X"B5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA d,X
-            when X"B6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX d,Y
-            when X"B7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"B8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLV
-            when X"B9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA a,Y
-            when X"BA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TSX
-            when X"BB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"BC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY a,X
-            when X"BD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA a,X
-            when X"BE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX a,Y
-            when X"BF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"C0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPY #
-            when X"C1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP (d,X)
-            when X"C2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"C3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"C4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPY d
-            when X"C5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP d
-            when X"C6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC d
-            when X"C7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"C8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INY
-            when X"C9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP #
-            when X"CA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEX
-            when X"CB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"CC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPY a
-            when X"CD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP a
-            when X"CE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC a
-            when X"CF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"D0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BNE r
-            when X"D1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP (d),Y
-            when X"D2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP d,X
-            when X"D6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC d,X
-            when X"D7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLD
-            when X"D9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP a,Y
-            when X"DA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"DB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"DC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"DD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP a,X
-            when X"DE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC a,X
-            when X"DF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"E0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPX #
-            when X"E1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC (d,X)
-            when X"E2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"E3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"E4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPX d
-            when X"E5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC d
-            when X"E6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC d
-            when X"E7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"E8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INX
-            when X"E9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC #
-            when X"EA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- NOP
-            when X"EB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"EC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPX a
-            when X"ED" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC a
-            when X"EE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC a
-            when X"EF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"F0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BEQ r
-            when X"F1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC (d),Y
-            when X"F2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC d,X
-            when X"F6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC d,X
-            when X"F7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SED
-            when X"F9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC a,Y
-            when X"FA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"FB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"FC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"FD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC a,X
-            when X"FE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC a,X
-            when X"FF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when others =>ctl <= B"00_0_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; 
-         end case;
-      end if;
-
-      if cnt_r = 5 then
-         case inst_r is
-            when X"00" => ctl <= B"00_0_1_0_0_0000_00_01_00_0_00_1001_10_0_1"; -- BRK b
-            when X"01" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA (d,X)
-            when X"02" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"03" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"04" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"05" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA d
-            when X"06" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL d
-            when X"07" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"08" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PHP
-            when X"09" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA #
-            when X"0A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL A
-            when X"0B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"0C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"0D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA a
-            when X"0E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL a
-            when X"0F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"10" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BPL r
-            when X"11" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA (d),Y
-            when X"12" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"13" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"14" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"15" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA d,X
-            when X"16" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL d,X
-            when X"17" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"18" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLC
-            when X"19" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA a,Y
-            when X"1A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"1B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"1C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"1D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA a,X
-            when X"1E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL a,X
-            when X"1F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"20" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- JSR a
-            when X"21" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND (d,X)
-            when X"22" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"23" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"24" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BIT d
-            when X"25" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND d
-            when X"26" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL d
-            when X"27" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"28" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PLP
-            when X"29" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND #
-            when X"2A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL A
-            when X"2B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"2C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BIT a
-            when X"2D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND a
-            when X"2E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL a
-            when X"2F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"30" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BMI r
-            when X"31" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND (d),Y
-            when X"32" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"33" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"34" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"35" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND d,X
-            when X"36" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL d,X
-            when X"37" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"38" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SEC
-            when X"39" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND a,Y
-            when X"3A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"3B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"3C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"3D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND a,X
-            when X"3E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL a,X
-            when X"3F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"40" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- RTI
-            when X"41" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR (d,X)
-            when X"42" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"43" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"44" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"45" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR d
-            when X"46" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR d
-            when X"47" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"48" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PHA
-            when X"49" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR #
-            when X"4A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR A
-            when X"4B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"4C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- JMP a
-            when X"4D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR a
-            when X"4E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR a
-            when X"4F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"50" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BVC r
-            when X"51" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR (d),Y
-            when X"52" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"53" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"54" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"55" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR d,X
-            when X"56" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR d,X
-            when X"57" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"58" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLI
-            when X"59" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR a,Y
-            when X"5A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"5B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"5C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"5D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR a,X
-            when X"5E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR a,X
-            when X"5F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"60" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- RTS
-            when X"61" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC (d,X)
-            when X"62" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"63" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"64" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"65" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC d
-            when X"66" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR d
-            when X"67" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"68" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PLA
-            when X"69" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC #
-            when X"6A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR A
-            when X"6B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"6C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- JMP (a)
-            when X"6D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC a
-            when X"6E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR a
-            when X"6F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"70" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BVS r
-            when X"71" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC (d),Y
-            when X"72" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"73" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"74" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"75" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC d,X
-            when X"76" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR d,X
-            when X"77" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"78" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SEI
-            when X"79" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC a,Y
-            when X"7A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"7B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"7C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"7D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC a,X
-            when X"7E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR a,X
-            when X"7F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"80" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"81" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA (d,X)
-            when X"82" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"83" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"84" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STY
-            when X"85" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA d
-            when X"86" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STX d
-            when X"87" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"88" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEY
-            when X"89" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"8A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TXA
-            when X"8B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; 
-            when X"8C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STY a
-            when X"8D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA a
-            when X"8E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STX a
-            when X"8F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"90" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BCC r
-            when X"91" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA (d),Y
-            when X"92" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"93" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"94" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STY d,X
-            when X"95" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA d,X
-            when X"96" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STX d,Y
-            when X"97" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"98" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TYA
-            when X"99" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA a,Y
-            when X"9A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TXS
-            when X"9B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"9C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"9D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA a,X
-            when X"9E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"9F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"A0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY #
-            when X"A1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA (d,X)
-            when X"A2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX #
-            when X"A3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"A4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY d
-            when X"A5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA d
-            when X"A6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX d
-            when X"A7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"A8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TAY
-            when X"A9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA #
-            when X"AA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TAX
-            when X"AB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"AC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY a
-            when X"AD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA a
-            when X"AE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX a
-            when X"AF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"B0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BCS r
-            when X"B1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA (d),Y
-            when X"B2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"B3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"B4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY d,X
-            when X"B5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA d,X
-            when X"B6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX d,Y
-            when X"B7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"B8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLV
-            when X"B9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA a,Y
-            when X"BA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TSX
-            when X"BB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"BC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY a,X
-            when X"BD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA a,X
-            when X"BE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX a,Y
-            when X"BF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"C0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPY #
-            when X"C1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP (d,X)
-            when X"C2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"C3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"C4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPY d
-            when X"C5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP d
-            when X"C6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC d
-            when X"C7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"C8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INY
-            when X"C9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP #
-            when X"CA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEX
-            when X"CB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"CC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPY a
-            when X"CD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP a
-            when X"CE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC a
-            when X"CF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"D0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BNE r
-            when X"D1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP (d),Y
-            when X"D2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP d,X
-            when X"D6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC d,X
-            when X"D7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLD
-            when X"D9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP a,Y
-            when X"DA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"DB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"DC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"DD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP a,X
-            when X"DE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC a,X
-            when X"DF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"E0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPX #
-            when X"E1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC (d,X)
-            when X"E2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"E3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"E4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPX d
-            when X"E5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC d
-            when X"E6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC d
-            when X"E7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"E8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INX
-            when X"E9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC #
-            when X"EA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- NOP
-            when X"EB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"EC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPX a
-            when X"ED" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC a
-            when X"EE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC a
-            when X"EF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"F0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BEQ r
-            when X"F1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC (d),Y
-            when X"F2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC d,X
-            when X"F6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC d,X
-            when X"F7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SED
-            when X"F9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC a,Y
-            when X"FA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"FB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"FC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"FD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC a,X
-            when X"FE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC a,X
-            when X"FF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when others =>ctl <= B"00_0_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; 
-         end case;
-      end if;
-
-      if cnt_r = 6 then
-         case inst_r is
-            when X"00" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BRK b
-            when X"01" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA (d,X)
-            when X"02" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"03" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"04" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"05" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA d
-            when X"06" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL d
-            when X"07" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"08" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PHP
-            when X"09" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA #
-            when X"0A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL A
-            when X"0B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"0C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"0D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA a
-            when X"0E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL a
-            when X"0F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"10" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BPL r
-            when X"11" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA (d),Y
-            when X"12" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"13" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"14" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"15" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA d,X
-            when X"16" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL d,X
-            when X"17" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"18" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLC
-            when X"19" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA a,Y
-            when X"1A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"1B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"1C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"1D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA a,X
-            when X"1E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL a,X
-            when X"1F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"20" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- JSR a
-            when X"21" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND (d,X)
-            when X"22" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"23" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"24" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BIT d
-            when X"25" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND d
-            when X"26" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL d
-            when X"27" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"28" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PLP
-            when X"29" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND #
-            when X"2A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL A
-            when X"2B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"2C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BIT a
-            when X"2D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND a
-            when X"2E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL a
-            when X"2F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"30" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BMI r
-            when X"31" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND (d),Y
-            when X"32" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"33" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"34" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"35" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND d,X
-            when X"36" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL d,X
-            when X"37" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"38" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SEC
-            when X"39" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND a,Y
-            when X"3A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"3B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"3C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"3D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND a,X
-            when X"3E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL a,X
-            when X"3F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"40" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- RTI
-            when X"41" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR (d,X)
-            when X"42" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"43" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"44" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"45" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR d
-            when X"46" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR d
-            when X"47" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"48" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PHA
-            when X"49" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR #
-            when X"4A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR A
-            when X"4B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"4C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- JMP a
-            when X"4D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR a
-            when X"4E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR a
-            when X"4F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"50" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BVC r
-            when X"51" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR (d),Y
-            when X"52" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"53" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"54" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"55" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR d,X
-            when X"56" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR d,X
-            when X"57" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"58" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLI
-            when X"59" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR a,Y
-            when X"5A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"5B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"5C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"5D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR a,X
-            when X"5E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR a,X
-            when X"5F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"60" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- RTS
-            when X"61" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC (d,X)
-            when X"62" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"63" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"64" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"65" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC d
-            when X"66" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR d
-            when X"67" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"68" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PLA
-            when X"69" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC #
-            when X"6A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR A
-            when X"6B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"6C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- JMP (a)
-            when X"6D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC a
-            when X"6E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR a
-            when X"6F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"70" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BVS r
-            when X"71" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC (d),Y
-            when X"72" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"73" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"74" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"75" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC d,X
-            when X"76" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR d,X
-            when X"77" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"78" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SEI
-            when X"79" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC a,Y
-            when X"7A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"7B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"7C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"7D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC a,X
-            when X"7E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR a,X
-            when X"7F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"80" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"81" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA (d,X)
-            when X"82" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"83" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"84" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STY
-            when X"85" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA d
-            when X"86" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STX d
-            when X"87" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"88" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEY
-            when X"89" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"8A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TXA
-            when X"8B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; 
-            when X"8C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STY a
-            when X"8D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA a
-            when X"8E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STX a
-            when X"8F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"90" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BCC r
-            when X"91" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA (d),Y
-            when X"92" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"93" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"94" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STY d,X
-            when X"95" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA d,X
-            when X"96" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STX d,Y
-            when X"97" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"98" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TYA
-            when X"99" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA a,Y
-            when X"9A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TXS
-            when X"9B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"9C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"9D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA a,X
-            when X"9E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"9F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"A0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY #
-            when X"A1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA (d,X)
-            when X"A2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX #
-            when X"A3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"A4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY d
-            when X"A5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA d
-            when X"A6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX d
-            when X"A7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"A8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TAY
-            when X"A9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA #
-            when X"AA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TAX
-            when X"AB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"AC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY a
-            when X"AD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA a
-            when X"AE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX a
-            when X"AF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"B0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BCS r
-            when X"B1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA (d),Y
-            when X"B2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"B3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"B4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY d,X
-            when X"B5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA d,X
-            when X"B6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX d,Y
-            when X"B7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"B8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLV
-            when X"B9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA a,Y
-            when X"BA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TSX
-            when X"BB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"BC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY a,X
-            when X"BD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA a,X
-            when X"BE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX a,Y
-            when X"BF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"C0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPY #
-            when X"C1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP (d,X)
-            when X"C2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"C3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"C4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPY d
-            when X"C5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP d
-            when X"C6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC d
-            when X"C7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"C8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INY
-            when X"C9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP #
-            when X"CA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEX
-            when X"CB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"CC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPY a
-            when X"CD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP a
-            when X"CE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC a
-            when X"CF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"D0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BNE r
-            when X"D1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP (d),Y
-            when X"D2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP d,X
-            when X"D6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC d,X
-            when X"D7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLD
-            when X"D9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP a,Y
-            when X"DA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"DB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"DC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"DD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP a,X
-            when X"DE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC a,X
-            when X"DF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"E0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPX #
-            when X"E1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC (d,X)
-            when X"E2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"E3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"E4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPX d
-            when X"E5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC d
-            when X"E6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC d
-            when X"E7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"E8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INX
-            when X"E9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC #
-            when X"EA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- NOP
-            when X"EB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"EC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPX a
-            when X"ED" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC a
-            when X"EE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC a
-            when X"EF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"F0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BEQ r
-            when X"F1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC (d),Y
-            when X"F2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC d,X
-            when X"F6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC d,X
-            when X"F7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SED
-            when X"F9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC a,Y
-            when X"FA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"FB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"FC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"FD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC a,X
-            when X"FE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC a,X
-            when X"FF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when others =>ctl <= B"00_0_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; 
-         end case;
-      end if;
-
-      if cnt_r = 7 then
-         case inst_r is
-            when X"00" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BRK b
-            when X"01" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA (d,X)
-            when X"02" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"03" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"04" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"05" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA d
-            when X"06" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL d
-            when X"07" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"08" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PHP
-            when X"09" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA #
-            when X"0A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL A
-            when X"0B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"0C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"0D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA a
-            when X"0E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL a
-            when X"0F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"10" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BPL r
-            when X"11" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA (d),Y
-            when X"12" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"13" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"14" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"15" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA d,X
-            when X"16" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL d,X
-            when X"17" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"18" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLC
-            when X"19" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA a,Y
-            when X"1A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"1B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"1C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"1D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ORA a,X
-            when X"1E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ASL a,X
-            when X"1F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"20" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- JSR a
-            when X"21" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND (d,X)
-            when X"22" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"23" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"24" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BIT d
-            when X"25" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND d
-            when X"26" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL d
-            when X"27" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"28" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PLP
-            when X"29" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND #
-            when X"2A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL A
-            when X"2B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"2C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BIT a
-            when X"2D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND a
-            when X"2E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL a
-            when X"2F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"30" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BMI r
-            when X"31" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND (d),Y
-            when X"32" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"33" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"34" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"35" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND d,X
-            when X"36" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL d,X
-            when X"37" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"38" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SEC
-            when X"39" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND a,Y
-            when X"3A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"3B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"3C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"3D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- AND a,X
-            when X"3E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROL a,X
-            when X"3F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"40" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- RTI
-            when X"41" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR (d,X)
-            when X"42" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"43" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"44" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"45" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR d
-            when X"46" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR d
-            when X"47" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"48" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PHA
-            when X"49" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR #
-            when X"4A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR A
-            when X"4B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"4C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- JMP a
-            when X"4D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR a
-            when X"4E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR a
-            when X"4F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"50" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BVC r
-            when X"51" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR (d),Y
-            when X"52" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"53" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"54" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"55" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR d,X
-            when X"56" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR d,X
-            when X"57" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"58" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLI
-            when X"59" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR a,Y
-            when X"5A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"5B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"5C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"5D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- EOR a,X
-            when X"5E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LSR a,X
-            when X"5F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"60" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- RTS
-            when X"61" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC (d,X)
-            when X"62" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"63" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"64" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"65" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC d
-            when X"66" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR d
-            when X"67" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"68" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- PLA
-            when X"69" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC #
-            when X"6A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR A
-            when X"6B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"6C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- JMP (a)
-            when X"6D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC a
-            when X"6E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR a
-            when X"6F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"70" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BVS r
-            when X"71" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC (d),Y
-            when X"72" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"73" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"74" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"75" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC d,X
-            when X"76" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR d,X
-            when X"77" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"78" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SEI
-            when X"79" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC a,Y
-            when X"7A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"7B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"7C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"7D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ADC a,X
-            when X"7E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- ROR a,X
-            when X"7F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"80" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"81" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA (d,X)
-            when X"82" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"83" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"84" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STY
-            when X"85" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA d
-            when X"86" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STX d
-            when X"87" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"88" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEY
-            when X"89" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"8A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TXA
-            when X"8B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; 
-            when X"8C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STY a
-            when X"8D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA a
-            when X"8E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STX a
-            when X"8F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"90" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BCC r
-            when X"91" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA (d),Y
-            when X"92" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"93" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"94" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STY d,X
-            when X"95" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA d,X
-            when X"96" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STX d,Y
-            when X"97" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"98" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TYA
-            when X"99" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA a,Y
-            when X"9A" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TXS
-            when X"9B" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"9C" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"9D" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- STA a,X
-            when X"9E" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"9F" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"A0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY #
-            when X"A1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA (d,X)
-            when X"A2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX #
-            when X"A3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"A4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY d
-            when X"A5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA d
-            when X"A6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX d
-            when X"A7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"A8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TAY
-            when X"A9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA #
-            when X"AA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TAX
-            when X"AB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"AC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY a
-            when X"AD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA a
-            when X"AE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX a
-            when X"AF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"B0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BCS r
-            when X"B1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA (d),Y
-            when X"B2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"B3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"B4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY d,X
-            when X"B5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA d,X
-            when X"B6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX d,Y
-            when X"B7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"B8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLV
-            when X"B9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA a,Y
-            when X"BA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- TSX
-            when X"BB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"BC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDY a,X
-            when X"BD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDA a,X
-            when X"BE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- LDX a,Y
-            when X"BF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"C0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPY #
-            when X"C1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP (d,X)
-            when X"C2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"C3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"C4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPY d
-            when X"C5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP d
-            when X"C6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC d
-            when X"C7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"C8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INY
-            when X"C9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP #
-            when X"CA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEX
-            when X"CB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"CC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPY a
-            when X"CD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP a
-            when X"CE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC a
-            when X"CF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"D0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BNE r
-            when X"D1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP (d),Y
-            when X"D2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP d,X
-            when X"D6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC d,X
-            when X"D7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"D8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CLD
-            when X"D9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP a,Y
-            when X"DA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"DB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"DC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"DD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CMP a,X
-            when X"DE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- DEC a,X
-            when X"DF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"E0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPX #
-            when X"E1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC (d,X)
-            when X"E2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"E3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"E4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPX d
-            when X"E5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC d
-            when X"E6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC d
-            when X"E7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"E8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INX
-            when X"E9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC #
-            when X"EA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- NOP
-            when X"EB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"EC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- CPX a
-            when X"ED" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC a
-            when X"EE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC a
-            when X"EF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when X"F0" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- BEQ r
-            when X"F1" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC (d),Y
-            when X"F2" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F3" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F4" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F5" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC d,X
-            when X"F6" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC d,X
-            when X"F7" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"F8" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SED
-            when X"F9" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC a,Y
-            when X"FA" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"FB" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"FC" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-            when X"FD" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- SBC a,X
-            when X"FE" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; -- INC a,X
-            when X"FF" => ctl <= B"00_1_0_0_0_0000_00_00_00_0_00_0000_00_0_0";
-
-            when others =>ctl <= B"00_0_0_0_0_0000_00_00_00_0_00_0000_00_0_0"; 
-         end case;
-      end if;
-
+      ctl <= micro_op_rom(conv_integer(inst_r & cnt_r));
    end process;
+
+   -- Drive output signals
+   mem_rden_o      <= ctl(0);
+   mem_wren_o      <= ctl(1);
+   mem_addr_wren_o <= ctl(3 downto 2);
+   mem_addr_sel_o  <= ctl(7 downto 4) when ctl(7) = '0'
+                      else '1' & rst_l & irq_l & ctl(4);
+   mem_data_sel_o  <= ctl(9 downto 8);
+   reg_wren_o      <= ctl(10);
+   reg_nr_o        <= ctl(12 downto 11);
+   pc_sel_o        <= ctl(14 downto 13);
+   sp_sel_o        <= ctl(16 downto 15);
+   alu_func_o      <= ctl(20 downto 17);
+   clc_o           <= ctl(21);
+   sr_alu_wren_o   <= ctl(22);
+   last            <= ctl(23);
+   invalid         <= ctl(24);
+   irq_mask_wr_o   <= ctl(26 downto 25);
+
+   debug_o( 7 downto 0) <= inst_r;
+   debug_o(10 downto 8) <= cnt_r;
 
 end architecture Structural;
 
