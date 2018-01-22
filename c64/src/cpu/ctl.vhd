@@ -1341,7 +1341,7 @@ architecture Structural of ctl is
             C_INVALID,
             C_INVALID,
             C_INVALID,
-   -- 84 STY
+   -- 84 STY d
             C_INVALID,
             C_INVALID,
             C_INVALID,
