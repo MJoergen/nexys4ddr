@@ -14,16 +14,16 @@
 // 18 CLC
 // 38 SEC
 // C9 CMP #
-// AA TAX         TBD: We need to verify the status flags, incl. carry
-// A8 TAY         TBD: We need to verify the status flags, incl. carry
-// 8A TXA         TBD: We need to verify the status flags, incl. carry
-// 98 TYA         TBD: We need to verify the status flags, incl. carry
-// 85 STA d       TBD: We need to verify the status flags, incl. carry
-// A5 LDA d       TBD: We need to verify the status flags, incl. carry
-
-// To come:
+// AA TAX
+// A8 TAY
+// 8A TXA
+// 98 TYA
+// 85 STA d
+// A5 LDA d
 // 8D STA a
 // AD LDA a
+
+// To come:
 // 49 EOR #
 // 69 ADC #
 // E9 SBC #
@@ -50,6 +50,7 @@ void __fastcall__ reset(void)
    // We assume that JMP works as expected.
 
    // First we test conditional branching forward
+   // We also test that LDA # correctly sets the Z and S flags.
    __asm__("LDA #$00");
    __asm__("BNE %g", error1);    // Should not jump
    __asm__("BMI %g", error1);    // Should not jump
@@ -166,44 +167,163 @@ noError6:
    __asm__("CMP #$11");
    __asm__("BNE %g", error6);    // Should not jump
 
+   // Test register transfer sets flags correctly.
+   __asm__("LDA #$88");          // Should set S=1 and Z=0.
+   __asm__("BEQ %g", error6);    // Should not jump
+   __asm__("BPL %g", error6);    // Should not jump
+   __asm__("CMP #$88");          // Should set S=0 and Z=1.
+   __asm__("BNE %g", error6);    // Should not jump
+   __asm__("BMI %g", error6);    // Should not jump
+   __asm__("TAX");               // Should set S=1 and Z=0.
+   __asm__("BEQ %g", error6);    // Should not jump
+   __asm__("BPL %g", error6);    // Should not jump
+
+   __asm__("LDA #$99");          // Should set S=1 and Z=0.
+   __asm__("BEQ %g", error6);    // Should not jump
+   __asm__("BPL %g", error6);    // Should not jump
+   __asm__("CMP #$99");          // Should set S=0 and Z=1.
+   __asm__("BNE %g", error6);    // Should not jump
+   __asm__("BMI %g", error6);    // Should not jump
+   __asm__("TAY");               // Should set S=1 and Z=0.
+   __asm__("BEQ %g", error6);    // Should not jump
+   __asm__("BPL %g", error6);    // Should not jump
+
+   __asm__("LDA #$00");          // Should set S=0 and Z=1.
+   __asm__("TAX");               // Should set S=0 and Z=1.
+   __asm__("TAY");               // Should set S=0 and Z=1.
+
+   __asm__("CLC");               // Set C=0
+   __asm__("LDA #$99");          // Should set S=1 and Z=0.
+   __asm__("BEQ %g", error6);    // Should not jump
+   __asm__("BPL %g", error6);    // Should not jump
+   __asm__("TXA");               // Should set S=0 and Z=1.
+   __asm__("BNE %g", error6);    // Should not jump
+   __asm__("BMI %g", error6);    // Should not jump
+   __asm__("BCS %g", error6);    // Should not jump
+
+   __asm__("SEC");               // Set C=1
+   __asm__("LDA #$AA");          // Should set S=1 and Z=0.
+   __asm__("BEQ %g", error6);    // Should not jump
+   __asm__("BPL %g", error6);    // Should not jump
+   __asm__("TYA");               // Should set S=0 and Z=1.
+   __asm__("BNE %g", error6);    // Should not jump
+   __asm__("BMI %g", error6);    // Should not jump
+   __asm__("BCC %g", error6);    // Should not jump
+
 
    // Now we test zero page memory
    __asm__("LDA #$11");
-   __asm__("STA $00");
+   __asm__("CMP #$11");          // Set S=0 and Z=1
+   __asm__("BNE %g", error7);    // Should not jump
+   __asm__("CLC");               // Set C=0
+   __asm__("STA $00");           // Should leave Z and C unchanged.
+   __asm__("BNE %g", error7);    // Should not jump
+   __asm__("BCS %g", error7);    // Should not jump
    __asm__("CMP #$11");          // Make sure A is not changed
    __asm__("BEQ %g", noError7);  // Should jump
 error7:
    __asm__("JMP %g", error7);
 noError7:
-   __asm__("LDA #$22");
+   __asm__("SEC");               // Set C=1
+   __asm__("LDA #$00");
    __asm__("STA $01");
-   __asm__("LDA #$33");
+   __asm__("BCC %g", error7);    // Should not jump
+   __asm__("LDA #$AA");
    __asm__("STA $02");
-   __asm__("LDA #$44");
+   __asm__("LDA #$BB");
    __asm__("STA $03");
-   __asm__("CMP #$44");          // Make sure A is not changed
+   __asm__("CMP #$BB");          // Make sure A is not changed
    __asm__("BNE %g", error7);    // Should not jump
 
-   __asm__("LDA $00");           // Read back values
+   __asm__("LDA $00");           // Should read back #$11
+   __asm__("BEQ %g", error7a);   // Should not jump
+   __asm__("BMI %g", error7a);   // Should not jump
    __asm__("CMP #$11");
    __asm__("BNE %g", error7a);   // Should not jump
+
    __asm__("LDA $01");
+   __asm__("BNE %g", error7a);   // Should not jump
+   __asm__("BMI %g", error7a);   // Should not jump
    __asm__("TAX");
+   __asm__("BNE %g", error7a);   // Should not jump
+   __asm__("BMI %g", error7a);   // Should not jump
+
    __asm__("LDA $02");
+   __asm__("BEQ %g", error7a);   // Should not jump
+   __asm__("BPL %g", error7a);   // Should not jump
    __asm__("TAY");
+   __asm__("BEQ %g", error7a);   // Should not jump
+   __asm__("BPL %g", error7a);   // Should not jump
+
    __asm__("LDA $03");
-   __asm__("CMP #$44");
+   __asm__("CMP #$BB");
    __asm__("BNE %g", error7a);   // Should not jump
    __asm__("TXA");
-   __asm__("CMP #$22");
+   __asm__("CMP #$00");
    __asm__("BNE %g", error7a);   // Should not jump
    __asm__("TYA");
-   __asm__("CMP #$33");
+   __asm__("CMP #$AA");
    __asm__("BEQ %g", noError7a); // Should jump
 error7a:
    __asm__("JMP %g", error7a);
 noError7a:
 
+   // Now we test absolute addressing
+   __asm__("LDA #$11");
+   __asm__("CMP #$11");          // Set S=0 and Z=1
+   __asm__("BNE %g", error8);    // Should not jump
+   __asm__("CLC");               // Set C=0
+   __asm__("STA $0100");         // Should leave Z and C unchanged.
+   __asm__("BNE %g", error8);    // Should not jump
+   __asm__("BCS %g", error8);    // Should not jump
+   __asm__("CMP #$11");          // Make sure A is not changed
+   __asm__("BEQ %g", noError8);  // Should jump
+error8:
+   __asm__("JMP %g", error8);
+noError8:
+   __asm__("LDA #$00");
+   __asm__("SEC");               // Set C=1
+   __asm__("STA $0101");
+   __asm__("BCC %g", error8);    // Should not jump
+   __asm__("LDA #$AA");
+   __asm__("STA $0102");
+   __asm__("LDA #$BB");
+   __asm__("STA $0103");
+   __asm__("CMP #$BB");          // Make sure A is not changed
+   __asm__("BNE %g", error8);    // Should not jump
+
+   __asm__("LDA $0100");           // Should read back #$11
+   __asm__("BEQ %g", error8a);   // Should not jump
+   __asm__("BMI %g", error8a);   // Should not jump
+   __asm__("CMP #$11");
+   __asm__("BNE %g", error8a);   // Should not jump
+
+   __asm__("LDA $0101");
+   __asm__("BNE %g", error8a);   // Should not jump
+   __asm__("BMI %g", error8a);   // Should not jump
+   __asm__("TAX");
+   __asm__("BNE %g", error8a);   // Should not jump
+   __asm__("BMI %g", error8a);   // Should not jump
+
+   __asm__("LDA $0102");         // AA
+   __asm__("BEQ %g", error8a);   // Should not jump
+   __asm__("BPL %g", error8a);   // Should not jump
+   __asm__("TAY");
+   __asm__("BEQ %g", error8a);   // Should not jump
+   __asm__("BPL %g", error8a);   // Should not jump
+
+   __asm__("LDA $0103");         // BB
+   __asm__("CMP #$BB");
+   __asm__("BNE %g", error8a);   // Should not jump
+   __asm__("TXA");
+   __asm__("CMP #$00");
+   __asm__("BNE %g", error8a);   // Should not jump
+   __asm__("TYA");
+   __asm__("CMP #$AA");
+   __asm__("BEQ %g", noError8a); // Should jump
+error8a:
+   __asm__("JMP %g", error8a);
+noError8a:
 
    // Loop forever doing nothing
 here:
