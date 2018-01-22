@@ -2,6 +2,9 @@
 -- The Control Logic
 --
 -- This uses a ROM containing up to eight microcodes for each instruction.
+--
+-- The specification of the individual instructions is primarily taken
+-- from this link: http://nesdev.com/6502.txt
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -808,7 +811,7 @@ architecture Structural of ctl is
             C_INVALID,
    -- 49 EOR #
             C_READ_NEXT_BYTE,
-            C_WR_REG_EOR + C_MEM_RD + C_WR_PC_INC + C_LAST,
+            C_WR_ADDR_PC + C_MEM_RD + C_WR_PC_INC + C_WR_REG_EOR + C_WR_SR_S + C_WR_SR_Z + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,
@@ -1098,7 +1101,7 @@ architecture Structural of ctl is
             C_INVALID,
    -- 69 ADC #
             C_READ_NEXT_BYTE,
-            C_WR_ADDR_PC + C_MEM_RD + C_WR_PC_INC + C_WR_REG_ADC + C_LAST,
+            C_WR_ADDR_PC + C_MEM_RD + C_WR_PC_INC + C_WR_REG_ADC + C_WR_SR_V + C_WR_SR_C + C_WR_SR_S + C_WR_SR_Z + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,
@@ -2103,8 +2106,8 @@ architecture Structural of ctl is
             C_INVALID,
             C_INVALID,
    -- D8 CLD
-            C_INVALID,
-            C_INVALID,
+            C_READ_NEXT_BYTE,
+            C_WR_SR_D_0 + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,
