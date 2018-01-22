@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Mon Jan 22 18:31:39 2018
+[*] Mon Jan 22 18:52:33 2018
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/c64/hack.ghw"
-[dumpfile_mtime] "Mon Jan 22 18:31:04 2018"
-[dumpfile_size] 504083
+[dumpfile_mtime] "Mon Jan 22 18:48:01 2018"
+[dumpfile_size] 505952
 [savefile] "/home/mike/git/nexys4ddr/c64/src/hack_tb.gtkw"
-[timestart] 5739200000
+[timestart] 6436200000
 [size] 1920 1010
 [pos] -1 -1
-*-24.548393 5788200000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-24.548393 6538600000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.hack_tb.
 [treeopen] top.hack_tb.inst_hack.
