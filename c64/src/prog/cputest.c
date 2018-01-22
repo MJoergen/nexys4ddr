@@ -25,6 +25,7 @@
 // 49 EOR #
 // 69 ADC #
 // E9 SBC #
+// E5 SBC d
 
 // To come:
 // 65 ADC d
@@ -434,7 +435,7 @@ noError10a:
    __asm__("ADC #$8C");           // Should become zero
    __asm__("BNE %g", error10a);   // Should not jump
 
-   // Now we test SBC
+   // Now we test SBC #
    __asm__("CLD");
    __asm__("LDA #$34");
    __asm__("SEC");
@@ -480,6 +481,63 @@ noError11a:
    __asm__("BVC %g", error11a);   // Should not jump
    __asm__("CMP #$74");
    __asm__("BNE %g", error11a);   // Should not jump
+
+   // Now we test SBC d
+   __asm__("CLD");
+   __asm__("LDA #$11");
+   __asm__("STA $01");
+   __asm__("LDA #$01");
+   __asm__("STA $02");
+   __asm__("LDA #$F0");
+   __asm__("STA $03");
+   __asm__("LDA #$40");
+   __asm__("STA $04");
+   __asm__("LDA #$7C");
+   __asm__("STA $05");
+   __asm__("LDA #$34");
+   __asm__("SEC");
+   __asm__("SBC $01");
+   __asm__("BCS %g", noError12a); // Should jump
+error12a:
+   __asm__("JMP %g", error12a);
+noError12a:
+   __asm__("BMI %g", error12a);   // Should not jump
+   __asm__("BEQ %g", error12a);   // Should not jump
+   __asm__("BVS %g", error12a);   // Should not jump
+   __asm__("CMP #$23");
+   __asm__("BNE %g", error12a);   // Should not jump
+
+   __asm__("CLC");
+   __asm__("SBC $02"); 
+   __asm__("BCC %g", error12a);   // Should not jump
+   __asm__("BMI %g", error12a);   // Should not jump
+   __asm__("BVS %g", error12a);   // Should not jump
+   __asm__("CMP #$21");
+   __asm__("BNE %g", error12a);   // Should not jump
+
+   __asm__("CLC");
+   __asm__("SBC $03"); 
+   __asm__("BCS %g", error12a);   // Should not jump
+   __asm__("BMI %g", error12a);   // Should not jump
+   __asm__("BVS %g", error12a);   // Should not jump
+   __asm__("CMP #$30");
+   __asm__("BNE %g", error12a);   // Should not jump
+
+   __asm__("SEC");
+   __asm__("SBC $04"); 
+   __asm__("BCS %g", error12a);   // Should not jump
+   __asm__("BPL %g", error12a);   // Should not jump
+   __asm__("BVS %g", error12a);   // Should not jump
+   __asm__("CMP #$F0");
+   __asm__("BNE %g", error12a);   // Should not jump
+
+   __asm__("SEC");
+   __asm__("SBC $05"); 
+   __asm__("BCC %g", error12a);   // Should not jump
+   __asm__("BMI %g", error12a);   // Should not jump
+   __asm__("BVC %g", error12a);   // Should not jump
+   __asm__("CMP #$74");
+   __asm__("BNE %g", error12a);   // Should not jump
 
 
    // Loop forever doing nothing
