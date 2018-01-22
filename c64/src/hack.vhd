@@ -166,10 +166,12 @@ begin
          cpu_data_o => cpu_rddata_vga,
          cpu_wren_i => cpu_wren_vga,
          cpu_data_i => cpu_wrdata,
-         cpu_irq_o  => cpu_irq_vga
+         cpu_irq_o  => cpu_irq_vga,
+         debug_o    => led_o(15 downto 8)
       );
    end generate gen_vga;
 
+   led_o(7 downto 0) <= (others => '0');
 
    ------------------------------
    -- Instantiate ROM
@@ -237,7 +239,7 @@ begin
 
 
    -- Dump Program Counter to LED's
-   led_o <= cpu_debug(47 downto 32);
+   --led_o <= cpu_debug(47 downto 32);
 
 end Structural;
 

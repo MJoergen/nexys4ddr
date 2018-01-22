@@ -45,7 +45,9 @@ entity vga_module is
       cpu_wren_i : in  std_logic;
       cpu_data_i : in  std_logic_vector(7 downto 0);
       --
-      cpu_irq_o  : out std_logic
+      cpu_irq_o  : out std_logic;
+
+      debug_o    : out std_logic_vector(7 downto 0)
    );
 end vga_module;
 
@@ -276,6 +278,7 @@ begin
       col_o         => vga_sprite_col
    );
 
+   debug_o <=  vga_config(16 downto 9);
 
    -----------------------
    -- Drive output signals
