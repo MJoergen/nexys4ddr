@@ -66,7 +66,7 @@ architecture Structural of cpu_module is
 
    -- Signals driven by the Control Logic
    signal ctl_wr_reg       : std_logic_vector(4 downto 0);
-   signal ctl_wr_pc        : std_logic_vector(1 downto 0);
+   signal ctl_wr_pc        : std_logic_vector(5 downto 0);
    signal ctl_wr_sp        : std_logic_vector(1 downto 0);
    signal ctl_wr_hold_addr : std_logic_vector(1 downto 0);
    signal ctl_wr_szcv      : std_logic_vector(3 downto 0);
@@ -82,6 +82,7 @@ architecture Structural of cpu_module is
 
    -- Memory write data. Input is Register, PC, or SR (2 bits).
    signal ctl_mem_wrdata   : std_logic_vector(2 downto 0);
+   signal ctl_wr_c         : std_logic_vector(1 downto 0);
 
    signal ctl_debug : std_logic_vector(10 downto 0);
 
@@ -109,6 +110,7 @@ begin
                mem_rden_o     => ctl_mem_rden,
                reg_nr_o       => ctl_reg_nr,
                mem_wrdata_o   => ctl_mem_wrdata,
+               wr_c_o         => ctl_wr_c,
                debug_o        => ctl_debug
             );
 
@@ -141,11 +143,31 @@ begin
 
    -- Program Counter register
    p_pc : process (clk_i)
+      function sign_extend(arg : std_logic_vector(7 downto 0))
+      return std_logic_vector is
+         variable res : std_logic_vector(15 downto 0);
+      begin
+         res := (others => arg(7)); -- Copy sign bit to all bits.
+         res(7 downto 0) := arg;
+         return res;
+      end function sign_extend;
    begin
       if rising_edge(clk_i) then
          if ctl_wr_pc(1) = '1' then
             if ctl_wr_pc(0) = '1' then
                reg_pc <= reg_pc + 1;
+               if ctl_wr_pc(2) = '1' then
+                  if (ctl_wr_pc(5 downto 3) = "000" and reg_sr(7) = '0') or
+                  (ctl_wr_pc(5 downto 3) = "001" and reg_sr(7) = '1') or
+                  (ctl_wr_pc(5 downto 3) = "010" and reg_sr(6) = '0') or
+                  (ctl_wr_pc(5 downto 3) = "011" and reg_sr(6) = '1') or
+                  (ctl_wr_pc(5 downto 3) = "100" and reg_sr(0) = '0') or
+                  (ctl_wr_pc(5 downto 3) = "101" and reg_sr(0) = '1') or
+                  (ctl_wr_pc(5 downto 3) = "110" and reg_sr(1) = '0') or
+                  (ctl_wr_pc(5 downto 3) = "111" and reg_sr(1) = '1') then
+                     reg_pc <= reg_pc + 1 + sign_extend(data_i);
+                  end if;
+               end if;
             else
                reg_pc <= data_i & mem_addr_reg(7 downto 0);
             end if;
@@ -208,6 +230,10 @@ begin
 
          if ctl_wr_b(1) = '1' then
             reg_sr(4) <= ctl_wr_b(0);
+         end if;
+
+         if ctl_wr_c(1) = '1' then
+            reg_sr(0) <= ctl_wr_c(0);
          end if;
 
          if ctl_wr_i(1) = '1' then

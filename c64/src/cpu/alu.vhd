@@ -88,9 +88,9 @@ begin
 
    res_o <= res(7 downto 0);
    c_o <= res(8);
-   s_o <= '0';
+   s_o <= res(7);
    v_o <= '0';
-   z_o <= '0';
+   z_o <= '1' when res(7 downto 0) = 0 else '0';
 
 end architecture Structural;
 
