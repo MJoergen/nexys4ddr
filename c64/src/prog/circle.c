@@ -271,34 +271,33 @@ void __fastcall__ irq(void)
  * x -= y/256;
  * y += x/256;
  */
-   __asm__("LDA %b", YHI); // Make YHI negative
-   __asm__("CLC");
-   __asm__("SBC #$01");
-   __asm__("EOR #$FF");
-   __asm__("STA %b", YTEMP);
+   __asm__("LDA %b", YHI);
+   __asm__("BPL %g", y_positive); // Jump if YHI is positive
 
-   __asm__("LDA %b", YTEMP); // Move sign bit to carry.
+   __asm__("LDA %b", XHI); // Increment if YHI is negative
    __asm__("CLC");
-   __asm__("ADC %b", YTEMP);
-   __asm__("LDA %b", XHI); // Decrement if YTEMP was negative.
-   __asm__("SBC #$00");
+   __asm__("ADC #$01");
    __asm__("STA %b", XHI);
 
+y_positive:
    __asm__("LDA %b", XLO);
-   __asm__("CLC");
-   __asm__("ADC %b", YTEMP);
+   __asm__("SEC");
+   __asm__("SBC %b", YHI);
    __asm__("STA %b", XLO);
    __asm__("LDA %b", XHI);
-   __asm__("ADC #$00");
+   __asm__("SBC #$00");
    __asm__("STA %b", XHI);
 
+
    __asm__("LDA %b", XHI); // Move sign bit to carry.
-   __asm__("CLC");
-   __asm__("ADC %b", XHI);
-   __asm__("LDA %b", YHI); // Decrement if XHI was negative.
-   __asm__("SBC #$00");
+   __asm__("BPL %g", x_positive); // Jump if XHI is positive
+
+   __asm__("LDA %b", YHI); // Decrement if XHI is negative.
+   __asm__("SEC");
+   __asm__("SBC #$01");
    __asm__("STA %b", YHI);
 
+x_positive:
    __asm__("LDA %b", YLO);
    __asm__("CLC");
    __asm__("ADC %b", XHI);
@@ -310,7 +309,6 @@ void __fastcall__ irq(void)
    __asm__("CLC");
    __asm__("ADC #$80");
    __asm__("STA %w", VGA_0_POSY); // Set Y coordinate of sprite 0
-   __asm__("STA %b", TEMP2);
 
    __asm__("LDA %b", XHI);
    __asm__("CLC");
