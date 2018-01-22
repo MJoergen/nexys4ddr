@@ -78,7 +78,8 @@ architecture Structural of cpu_module is
    -- Additionally, some MUX's:
    signal ctl_mem_addr     : std_logic_vector(3 downto 0);
    signal ctl_mem_rden     : std_logic;
-   signal ctl_reg_nr       : std_logic_vector(1 downto 0);
+   signal ctl_reg_nr_wr    : std_logic_vector(1 downto 0);
+   signal ctl_reg_nr_rd    : std_logic_vector(1 downto 0);
 
    -- Memory write data. Input is Register, PC, or SR (2 bits).
    signal ctl_mem_wrdata   : std_logic_vector(2 downto 0);
@@ -108,7 +109,8 @@ begin
                wr_sr_o        => ctl_wr_sr,
                mem_addr_o     => ctl_mem_addr,
                mem_rden_o     => ctl_mem_rden,
-               reg_nr_o       => ctl_reg_nr,
+               reg_nr_wr_o    => ctl_reg_nr_wr,
+               reg_nr_rd_o    => ctl_reg_nr_rd,
                mem_wrdata_o   => ctl_mem_wrdata,
                wr_c_o         => ctl_wr_c,
                debug_o        => ctl_debug
@@ -117,13 +119,14 @@ begin
    -- Instantiate register file
    inst_regs : entity work.regs
    port map ( 
-               clk_i    => clk_i,
-               rst_i    => rst_i,
-               reg_nr_i => ctl_reg_nr,
-               data_o   => regs_rd_data,
-               wren_i   => ctl_wr_reg(4),
-               data_i   => alu_out,
-               debug_o  => regs_debug
+               clk_i       => clk_i,
+               rst_i       => rst_i,
+               reg_nr_wr_i => ctl_reg_nr_wr,
+               reg_nr_rd_i => ctl_reg_nr_rd,
+               data_o      => regs_rd_data,
+               wren_i      => ctl_wr_reg(4),
+               data_i      => alu_out,
+               debug_o     => regs_debug
             );
 
    -- Instantiate the ALU (combinatorial)

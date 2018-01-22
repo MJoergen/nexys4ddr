@@ -108,12 +108,39 @@ noError5b:
    __asm__("BEQ %g", error5b);   // Should not jump
    __asm__("BMI %g", error5b);   // Should not jump
 
+   // Now we test register transfers
+   __asm__("LDA #$11");
+   __asm__("TAX");
+   __asm__("CMP #$11");          // Make sure A is not changed
+   __asm__("BNE %g", error6);    // Should not jump
+
+   __asm__("LDA #$22");
+   __asm__("TAY");
+   __asm__("CMP #$22");          // Make sure A is not changed
+   __asm__("BNE %g", error6);    // Should not jump
+
+   __asm__("LDA #$66");          // Put bogus value in register
+   __asm__("TXA");
+   __asm__("CMP #$11");
+   __asm__("BNE %g", error6);    // Should not jump
+
+   __asm__("TYA");
+   __asm__("CMP #$22");
+   __asm__("BEQ %g", noError6);    // Should jump
+error6:
+   __asm__("JMP %g", error6);
+noError6:
+
+   __asm__("TXA");               // Test X is not corrupted.
+   __asm__("CMP #$11");
+   __asm__("BNE %g", error6);    // Should not jump
 
 
 
 
    // Loop forever doing nothing
 here:
+   __asm__("LDA #$CC");          // Make it easy to recognize a successfull test.
    goto here;  // Just do an endless loop. Everything is run from the IRQ.
 } // end of reset
 

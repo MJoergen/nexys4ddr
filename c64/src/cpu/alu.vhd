@@ -52,6 +52,7 @@ architecture Structural of alu is
    signal ror0 : std_logic_vector(8 downto 0);
    signal dec  : std_logic_vector(8 downto 0);
    signal inc  : std_logic_vector(8 downto 0);
+   signal a    : std_logic_vector(8 downto 0);
    signal b    : std_logic_vector(8 downto 0);
 
 begin
@@ -62,6 +63,7 @@ begin
    adc  <= ("0" & a_i) + ("0" & b_i) + (X"00" & c_i);
    sbc  <= ("0" & a_i) + ("0" & (not b_i)) + (X"00" & c_i);
    --sbc  <= ("0" & a_i) - ("0" & b_i) - (X"00" & c_i);
+   a    <= '0' & a_i;
    b    <= '0' & b_i;
    cmp  <= ("0" & a_i) + ("0" & (not b_i)) + (X"00" & '1');
 
@@ -76,6 +78,7 @@ begin
           and0   when func_i = "0001" else
           xor0   when func_i = "0010" else
           adc    when func_i = "0011" else
+          a      when func_i = "0100" else
           b      when func_i = "0101" else
           cmp    when func_i = "0110" else
           sbc    when func_i = "0111" else
