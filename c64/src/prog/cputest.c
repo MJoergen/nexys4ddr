@@ -1,18 +1,47 @@
 // This test is mainly for simulation.
 // It tests the correct functionality of the individual instructions.
+// Instructions tested:
+// 4C JMP a
+// A9 LDA #
+// 10 BPL r
+// 30 BMI r
+// 50 BVC r
+// 70 BVS r
+// 90 BCC r
+// B0 BCS r
+// D0 BNE r
+// F0 BEQ r
+// 18 CLC
+// 38 SEC
+// C9 CMP #
+// AA TAX         TBD: We need to verify the status flags, incl. carry
+// A8 TAY         TBD: We need to verify the status flags, incl. carry
+// 8A TXA         TBD: We need to verify the status flags, incl. carry
+// 98 TYA         TBD: We need to verify the status flags, incl. carry
+// 85 STA d       TBD: We need to verify the status flags, incl. carry
+// A5 LDA d       TBD: We need to verify the status flags, incl. carry
 
-/*
- * Define some zero-page variables
- */
+// To come:
+// 8D STA a
+// AD LDA a
+// 49 EOR #
+// 69 ADC #
+// E9 SBC #
+// 65 ADC d
 
-
-/*
- * Memory Map:
- * 0x8000 - 0x83FF : Chars Memory
- * 0x8400 - 0x85FF : Bitmap Memory
- * 0x8600 - 0x87FF : Config and Status
- */
-
+// To come:
+// A2 LDX #
+// A0 LDY #
+// CA DEX
+// 88 DEY
+// E8 INX
+// C8 INY
+// A6 LDX d
+// A4 LDY d
+// 86 STX d
+// 84 STY d
+// 9A TXS
+// BA TSX
 
 
 // Entry point after CPU reset
@@ -66,10 +95,12 @@ noError4b:
    __asm__("JMP %g", error4d);
 noError4a:
    __asm__("SEC");
+   __asm__("LDA #$00");          // Verify carry is not altered
    __asm__("BCS %g", noError4b); // Should jump
    __asm__("JMP %g", error4d);
 noError4:
    __asm__("CLC");
+   __asm__("LDA #$00");          // Verify carry is not altered
    __asm__("BCC %g", noError4a); // Should jump
    __asm__("JMP %g", error4d);
 error4d:
