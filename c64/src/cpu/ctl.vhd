@@ -2261,7 +2261,7 @@ architecture Structural of ctl is
             C_INVALID,
    -- E9 SBC #
             C_READ_NEXT_BYTE,
-            C_WR_ADDR_PC + C_MEM_RD + C_WR_PC_INC + C_WR_REG_SBC + C_WR_SR_C + C_LAST,
+            C_WR_ADDR_PC + C_MEM_RD + C_WR_PC_INC + C_WR_REG_SBC + C_WR_SR_V + C_WR_SR_C + C_WR_SR_S + C_WR_SR_Z + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,
