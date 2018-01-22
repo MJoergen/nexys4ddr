@@ -62,6 +62,20 @@ architecture Structural of ctl is
    constant C_WR_REG_DEC   : micro_op_type := B"0_0_00_000_00_0_0000_00_00_00_00_0000_00_00_000000_11110";
    constant C_WR_REG_INC   : micro_op_type := B"0_0_00_000_00_0_0000_00_00_00_00_0000_00_00_000000_11111";
 
+   constant C_ALU_OR       : micro_op_type := B"0_0_00_000_00_0_0000_00_00_00_00_0000_00_00_000000_00000";
+   constant C_ALU_AND      : micro_op_type := B"0_0_00_000_00_0_0000_00_00_00_00_0000_00_00_000000_00001";
+   constant C_ALU_EOR      : micro_op_type := B"0_0_00_000_00_0_0000_00_00_00_00_0000_00_00_000000_00010";
+   constant C_ALU_ADC      : micro_op_type := B"0_0_00_000_00_0_0000_00_00_00_00_0000_00_00_000000_00011";
+   constant C_ALU_B        : micro_op_type := B"0_0_00_000_00_0_0000_00_00_00_00_0000_00_00_000000_00101";
+   constant C_ALU_CMP      : micro_op_type := B"0_0_00_000_00_0_0000_00_00_00_00_0000_00_00_000000_00110";
+   constant C_ALU_SBC      : micro_op_type := B"0_0_00_000_00_0_0000_00_00_00_00_0000_00_00_000000_00111";
+   constant C_ALU_ASL      : micro_op_type := B"0_0_00_000_00_0_0000_00_00_00_00_0000_00_00_000000_01000";
+   constant C_ALU_ROL      : micro_op_type := B"0_0_00_000_00_0_0000_00_00_00_00_0000_00_00_000000_01001";
+   constant C_ALU_LSR      : micro_op_type := B"0_0_00_000_00_0_0000_00_00_00_00_0000_00_00_000000_01010";
+   constant C_ALU_ROR      : micro_op_type := B"0_0_00_000_00_0_0000_00_00_00_00_0000_00_00_000000_01011";
+   constant C_ALU_DEC      : micro_op_type := B"0_0_00_000_00_0_0000_00_00_00_00_0000_00_00_000000_01110";
+   constant C_ALU_INC      : micro_op_type := B"0_0_00_000_00_0_0000_00_00_00_00_0000_00_00_000000_01111";
+
    constant C_WR_PC_LOAD   : micro_op_type := B"0_0_00_000_00_0_0000_00_00_00_00_0000_00_00_000010_00000";
    constant C_WR_PC_INC    : micro_op_type := B"0_0_00_000_00_0_0000_00_00_00_00_0000_00_00_000011_00000";
    constant C_WR_PC_BPL    : micro_op_type := B"0_0_00_000_00_0_0000_00_00_00_00_0000_00_00_000111_00000";
@@ -1947,8 +1961,8 @@ architecture Structural of ctl is
             C_INVALID,
             C_INVALID,
    -- C9 CMP #
-            C_INVALID,
-            C_INVALID,
+            C_READ_NEXT_BYTE,
+            C_WR_ADDR_PC + C_MEM_RD + C_WR_PC_INC + C_ALU_CMP + C_WR_SR_C + C_WR_SR_Z + C_WR_SR_S + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,

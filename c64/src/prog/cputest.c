@@ -59,23 +59,55 @@ error4:
 noError4c:
    __asm__("LDA #$FF");
    __asm__("BNE %g", noError5);  // Should jump
-   __asm__("JMP %g", error5);
+   __asm__("JMP %g", error4d);
 noError4b:
    __asm__("LDA #$00");
    __asm__("BEQ %g", noError4c); // Should jump
-   __asm__("JMP %g", error5);
+   __asm__("JMP %g", error4d);
 noError4a:
    __asm__("SEC");
    __asm__("BCS %g", noError4b); // Should jump
-   __asm__("JMP %g", error5);
+   __asm__("JMP %g", error4d);
 noError4:
    __asm__("CLC");
    __asm__("BCC %g", noError4a); // Should jump
-   __asm__("JMP %g", error5);
-error5:
-   __asm__("JMP %g", error5);
+   __asm__("JMP %g", error4d);
+error4d:
+   __asm__("JMP %g", error4d);
 
 noError5:
+   // Now we test compare
+   __asm__("SEC");               // Preset. Should be cleared in compare.
+   __asm__("LDA #$55");
+   __asm__("CMP #$AA");
+   __asm__("BCS %g", error5a);   // Should not jump
+   __asm__("BCC %g", noError5a); // Should jump
+error5a:
+   __asm__("JMP %g", error5a);
+noError5a:
+   __asm__("BEQ %g", error5a);   // Should not jump
+   __asm__("BPL %g", error5a);   // Should not jump
+
+   __asm__("CLC");               // Preclear. Should be set in compare.
+   __asm__("CMP #$55");          // Verify value in Accumulator is unchanged.
+   __asm__("BCC %g", error5c);   // Should not jump
+   __asm__("BCS %g", noError5c); // Should jump
+error5c:
+   __asm__("JMP %g", error5c);
+noError5c:
+   __asm__("BNE %g", error5c);   // Should not jump
+   __asm__("BMI %g", error5c);   // Should not jump
+
+   __asm__("CLC");               // Preclear. Should be set in compare.
+   __asm__("CMP #$33");
+   __asm__("BCC %g", error5b);   // Should not jump
+   __asm__("BCS %g", noError5b); // Should jump
+error5b:
+   __asm__("JMP %g", error5b);
+noError5b:
+   __asm__("BEQ %g", error5b);   // Should not jump
+   __asm__("BMI %g", error5b);   // Should not jump
+
 
 
 

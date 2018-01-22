@@ -60,9 +60,10 @@ begin
    and0 <= c_i & (a_i and b_i);
    xor0 <= c_i & (a_i xor b_i);
    adc  <= ("0" & a_i) + ("0" & b_i) + (X"00" & c_i);
-   sbc  <= ("0" & a_i) - ("0" & b_i) - (X"00" & c_i);
+   sbc  <= ("0" & a_i) + ("0" & (not b_i)) + (X"00" & c_i);
+   --sbc  <= ("0" & a_i) - ("0" & b_i) - (X"00" & c_i);
    b    <= '0' & b_i;
-   cmp  <= sbc(8) & a_i;
+   cmp  <= ("0" & a_i) + ("0" & (not b_i)) + (X"00" & '1');
 
    asl  <= a_i & "0";
    rol0 <= a_i & c_i;
