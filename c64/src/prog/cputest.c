@@ -325,7 +325,112 @@ error8a:
    __asm__("JMP %g", error8a);
 noError8a:
 
-   // Loop forever doing nothing
+   // Now we test EOR
+   __asm__("CLC");
+   __asm__("LDA #$BB");
+   __asm__("BEQ %g", error9a);   // Should not jump
+   __asm__("EOR #$BB");
+   __asm__("BCS %g", error9a);   // Should not jump
+   __asm__("BMI %g", error9a);   // Should not jump
+   __asm__("BEQ %g", noError9a); // Should jump
+error9a:
+   __asm__("JMP %g", error9a);
+noError9a:
+   __asm__("BMI %g", error9a);   // Should not jump
+   __asm__("CMP #$00");
+   __asm__("BNE %g", error9a);   // Should not jump
+
+   __asm__("SEC");
+   __asm__("EOR #$AA");
+   __asm__("BCC %g", error9a);   // Should not jump
+   __asm__("BPL %g", error9a);   // Should not jump
+   __asm__("BEQ %g", error9a);   // Should not jump
+   __asm__("EOR #$00");
+   __asm__("BCC %g", error9a);   // Should not jump
+   __asm__("BPL %g", error9a);   // Should not jump
+   __asm__("BEQ %g", error9a);   // Should not jump
+   __asm__("CMP #$AA");
+   __asm__("BNE %g", error9a);   // Should not jump
+
+   // Now we test ADC
+   __asm__("CLD");
+   __asm__("LDA #$12");
+   __asm__("CLC");
+   __asm__("ADC #$34");
+   __asm__("BCC %g", noError10a); // Should jump
+error10a:
+   __asm__("JMP %g", error10a);
+noError10a:
+   __asm__("BMI %g", error10a);   // Should not jump
+   __asm__("BVS %g", error10a);   // Should not jump
+   __asm__("CMP #$46");
+   __asm__("BNE %g", error10a);   // Should not jump
+
+   __asm__("SEC");
+   __asm__("ADC #$12"); // 000 -> V=0
+   __asm__("BCS %g", error10a);   // Should not jump
+   __asm__("BMI %g", error10a);   // Should not jump
+   __asm__("BVS %g", error10a);   // Should not jump
+   __asm__("CMP #$59");
+   __asm__("BNE %g", error10a);   // Should not jump
+
+   __asm__("SEC");
+   __asm__("ADC #$FE"); // 010 -> V=0
+   __asm__("BCC %g", error10a);   // Should not jump
+   __asm__("BMI %g", error10a);   // Should not jump
+   __asm__("BVS %g", error10a);   // Should not jump
+   __asm__("CMP #$58");
+   __asm__("BNE %g", error10a);   // Should not jump
+
+   __asm__("SEC");
+   __asm__("ADC #$41"); // 001 -> V=1
+   __asm__("BCS %g", error10a);   // Should not jump
+   __asm__("BPL %g", error10a);   // Should not jump
+   __asm__("BVC %g", error10a);   // Should not jump
+   __asm__("CMP #$9A");
+   __asm__("BNE %g", error10a);   // Should not jump
+
+   __asm__("CLC");
+   __asm__("ADC #$FE"); // 111 -> V=0
+   __asm__("BCC %g", error10a);   // Should not jump
+   __asm__("BPL %g", error10a);   // Should not jump
+   __asm__("BVS %g", error10a);   // Should not jump
+   __asm__("CMP #$98");
+   __asm__("BNE %g", error10a);   // Should not jump
+
+   __asm__("SEC");
+   __asm__("ADC #$02"); // 101 -> V=0
+   __asm__("BCS %g", error10a);   // Should not jump
+   __asm__("BPL %g", error10a);   // Should not jump
+   __asm__("BVS %g", error10a);   // Should not jump
+   __asm__("CMP #$9B");
+   __asm__("BNE %g", error10a);   // Should not jump
+
+   __asm__("SEC");
+   __asm__("ADC #$E0"); // 110 -> V=1
+   __asm__("BCC %g", error10a);   // Should not jump
+   __asm__("BMI %g", error10a);   // Should not jump
+   __asm__("BVC %g", error10a);   // Should not jump
+   __asm__("CMP #$7C");
+   __asm__("BNE %g", error10a);   // Should not jump
+
+   __asm__("CLC");
+   __asm__("ADC #$80"); // 011 -> V=0
+   __asm__("BCS %g", error10a);   // Should not jump
+   __asm__("BPL %g", error10a);   // Should not jump
+   __asm__("BVS %g", error10a);   // Should not jump
+   __asm__("CMP #$FC");
+   __asm__("BNE %g", error10a);   // Should not jump
+
+   __asm__("CLC");
+   __asm__("ADC #$78"); // 100 -> V=0
+   __asm__("BCC %g", error10a);   // Should not jump
+   __asm__("BMI %g", error10a);   // Should not jump
+   __asm__("BVS %g", error10a);   // Should not jump
+   __asm__("CMP #$74");
+   __asm__("BNE %g", error10a);   // Should not jump
+
+   // Loop forCver doing nothing
 here:
    __asm__("LDA #$CC");          // Make it easy to recognize a successfull test.
    goto here;  // Just do an endless loop. Everything is run from the IRQ.
