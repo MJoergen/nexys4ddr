@@ -1643,7 +1643,7 @@ architecture Structural of ctl is
    -- A5 LDA d
             C_READ_NEXT_BYTE,
             C_WR_HOLD_LO + C_MEM_RD + C_WR_PC_INC,
-            C_WR_ADDR_ZP + C_MEM_RD + C_WR_REG_B + C_LAST,
+            C_WR_ADDR_ZP + C_MEM_RD + C_WR_REG_B + C_WR_SR_S + C_WR_SR_Z + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,
@@ -1716,7 +1716,7 @@ architecture Structural of ctl is
             C_READ_NEXT_BYTE,
             C_WR_HOLD_LO + C_MEM_RD + C_WR_PC_INC,
             C_WR_HOLD_HI + C_MEM_RD + C_WR_PC_INC,
-            C_WR_ADDR_HOLD + C_MEM_RD + C_WR_REG_B + C_LAST,
+            C_WR_ADDR_HOLD + C_MEM_RD + C_WR_REG_B + C_WR_SR_S + C_WR_SR_Z + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,
