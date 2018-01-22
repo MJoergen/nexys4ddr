@@ -93,7 +93,8 @@ begin
    res_o <= res(7 downto 0);
    c_o <= res(8);
    s_o <= res(7);
-   v_o <= (not (a_i(7) xor b_i(7))) and (a_i(7) xor res(7));
+   v_o <= (not (a_i(7) xor b_i(7))) and (a_i(7) xor res(7)) when func_i = "0011" else
+          (     a_i(7) xor b_i(7) ) and (a_i(7) xor res(7));
    z_o <= '1' when res(7 downto 0) = 0 else '0';
 
 end architecture Structural;
