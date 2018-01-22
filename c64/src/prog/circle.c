@@ -82,6 +82,27 @@ w = (1, dt/2 + i*sqrt(4-dt^2)/2)^T.
 Now 4-dt^2 = 4*cos^2(v/2). Therefore, the eigenvector can be written as:
 w = (1, sin(v/2) + i*cos(v/2))^T.
 
+
+In general, if a 2x2 linear transformation A has determinant 1, i.e.
++---+---+
+| a | b |
++---+---+
+| c | d |
++---+---+
+with a*d - b*c = 1, then there is an associated invariant quadratic form with
+
++---------+---------+
+| c       | (d-a)/2 |
++---------+---------+
+| (d-a)/2 | -b      |
++---------+---------+
+
+In other words, if
+y1 = a*x1 + b*x2
+y2 = c*x1 + d*x2
+c*y1^2 - b*y2^2 + (d-a)*y1*y2 = (ad-bc) * (c*x1^2 - b*x2^2 + (d-a)*x1*x2).
+With ad-bc = 1 we see that the quadratic form is indeed invariant.
+
 */
 
 
