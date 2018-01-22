@@ -136,6 +136,42 @@ noError6:
    __asm__("BNE %g", error6);    // Should not jump
 
 
+   // Now we test zero page memory
+   __asm__("LDA #$11");
+   __asm__("STA $00");
+   __asm__("CMP #$11");          // Make sure A is not changed
+   __asm__("BEQ %g", noError7);  // Should jump
+error7:
+   __asm__("JMP %g", error7);
+noError7:
+   __asm__("LDA #$22");
+   __asm__("STA $01");
+   __asm__("LDA #$33");
+   __asm__("STA $02");
+   __asm__("LDA #$44");
+   __asm__("STA $03");
+   __asm__("CMP #$44");          // Make sure A is not changed
+   __asm__("BNE %g", error7);    // Should not jump
+
+   __asm__("LDA $00");           // Read back values
+   __asm__("CMP #$11");
+   __asm__("BNE %g", error7a);   // Should not jump
+   __asm__("LDA $01");
+   __asm__("TAX");
+   __asm__("LDA $02");
+   __asm__("TAY");
+   __asm__("LDA $03");
+   __asm__("CMP #$44");
+   __asm__("BNE %g", error7a);   // Should not jump
+   __asm__("TXA");
+   __asm__("CMP #$22");
+   __asm__("BNE %g", error7a);   // Should not jump
+   __asm__("TYA");
+   __asm__("CMP #$33");
+   __asm__("BEQ %g", noError7a); // Should jump
+error7a:
+   __asm__("JMP %g", error7a);
+noError7a:
 
 
    // Loop forever doing nothing
