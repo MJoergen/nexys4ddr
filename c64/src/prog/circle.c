@@ -142,7 +142,7 @@ With ad-bc = 1 we see that the quadratic form is indeed invariant.
 void __fastcall__ reset(void)
 {
    // Write text on screen
-   __asm__("LDA #$4D");
+   __asm__("LDA #$48");
    __asm__("STA %w", VGA_SCREEN+100);
    __asm__("LDA #$65");
    __asm__("STA %w", VGA_SCREEN+101);
@@ -287,7 +287,7 @@ void __fastcall__ irq(void)
 
    // Change text color
    __asm__("CLC");
-   __asm__("ADC #$0F");
+   __asm__("ADC #$4F");
    __asm__("STA %w", VGA_FGCOL);
    __asm__("EOR #$BB");
    __asm__("STA %w", VGA_BGCOL);
