@@ -215,7 +215,7 @@ begin
          stage5.font_addr <= stage4_char_val & stage4.pix_y;
 
          if stage4.char_y = 10 and stage4.char_x < 4 then
-            char_x_v   := conv_integer(stage4.char_x);
+            char_x_v   := 3-conv_integer(stage4.char_x);
             nibble_v   := status_i(char_x_v*4 + 3 downto char_x_v*4);
             char_val_v := nibble_v + X"30";
             if nibble_v > 9 then
