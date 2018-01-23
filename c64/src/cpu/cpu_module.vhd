@@ -292,9 +292,9 @@ begin
    wren_o <= ctl_mem_wrdata(2);
 
    -- Debug output
-   debug_o(23 downto  0) <= regs_debug;
-   debug_o(31 downto 24) <= reg_sp;
-   debug_o(47 downto 32) <= reg_pc;
+   debug_o(15 downto  0) <= reg_pc;
+   debug_o(39 downto 16) <= regs_debug;
+   debug_o(47 downto 40) <= reg_sp;
    debug_o(58 downto 48) <= ctl_debug;
    debug_o(59) <= reg_sr(2);
    debug_o(63 downto 60) <= (others => '0');

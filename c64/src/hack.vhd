@@ -159,15 +159,17 @@ begin
          vga_col_o => vga_col_o,
 
          -- CPU Port
-         cpu_clk_i  => cpu_clk,
-         cpu_rst_i  => cpu_rst,
-         cpu_addr_i => cpu_addr(10 downto 0),   -- 11 bit = 0x0800 size.
-         cpu_rden_i => cpu_rden_vga,
-         cpu_data_o => cpu_rddata_vga,
-         cpu_wren_i => cpu_wren_vga,
-         cpu_data_i => cpu_wrdata,
-         cpu_irq_o  => cpu_irq_vga,
-         debug_o    => led_o(15 downto 8)
+         cpu_clk_i    => cpu_clk,
+         cpu_rst_i    => cpu_rst,
+         cpu_addr_i   => cpu_addr(10 downto 0),   -- 11 bit = 0x0800 size.
+         cpu_rden_i   => cpu_rden_vga,
+         cpu_data_o   => cpu_rddata_vga,
+         cpu_wren_i   => cpu_wren_vga,
+         cpu_data_i   => cpu_wrdata,
+         cpu_irq_o    => cpu_irq_vga,
+         cpu_status_i => cpu_debug,
+
+         debug_o      => led_o(15 downto 8)
       );
    end generate gen_vga;
 

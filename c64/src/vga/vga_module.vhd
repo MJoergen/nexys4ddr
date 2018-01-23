@@ -35,19 +35,20 @@ entity vga_module is
       vga_col_o  : out std_logic_vector(11 downto 0);
 
       -- CPU port @ cpu_clk_i
-      cpu_clk_i  : in  std_logic;
-      cpu_rst_i  : in  std_logic;
+      cpu_clk_i    : in  std_logic;
+      cpu_rst_i    : in  std_logic;
       --
-      cpu_addr_i : in  std_logic_vector(10 downto 0);
-      cpu_rden_i : in  std_logic;
-      cpu_data_o : out std_logic_vector(7 downto 0);
+      cpu_addr_i   : in  std_logic_vector(10 downto 0);
+      cpu_rden_i   : in  std_logic;
+      cpu_data_o   : out std_logic_vector(7 downto 0);
       --
-      cpu_wren_i : in  std_logic;
-      cpu_data_i : in  std_logic_vector(7 downto 0);
+      cpu_wren_i   : in  std_logic;
+      cpu_data_i   : in  std_logic_vector(7 downto 0);
       --
-      cpu_irq_o  : out std_logic;
+      cpu_irq_o    : out std_logic;
+      cpu_status_i : in  std_logic_vector(63 downto 0);
 
-      debug_o    : out std_logic_vector(7 downto 0)
+      debug_o      : out std_logic_vector(7 downto 0)
    );
 end vga_module;
 
@@ -109,6 +110,7 @@ architecture Structural of vga_module is
    signal vga_sync   : std_logic;
    signal cpu_config : std_logic_vector(128*8-1 downto 0);
    signal cpu_sync   : std_logic;
+   signal vga_status : std_logic_vector(63 downto 0);
 
 begin
 
@@ -219,6 +221,7 @@ begin
       blank_i     => vga_sync_blank,
 
       config_i    => vga_config,
+      status_i    => vga_status,
 
       disp_addr_o => vga_char_disp_addr,
       disp_data_i => vga_char_disp_data,
@@ -312,6 +315,22 @@ begin
       -- The receiver
       tx_clk_i => cpu_clk_i,
       tx_out_o => cpu_sync
+   );
+
+   -- Synchronize CPU status information
+   -- from CPU to VGA clock domain.
+   inst_cdc_status : entity work.cdcvector
+   generic map (
+      G_SIZE => 64
+   )
+   port map (
+      -- The sender
+      rx_clk_i => cpu_clk_i,
+      rx_in_i  => cpu_status_i,
+
+      -- The receiver
+      tx_clk_i => vga_clk_i,
+      tx_out_o => vga_status
    );
 
    -- Synchronize Sprite configuration data
