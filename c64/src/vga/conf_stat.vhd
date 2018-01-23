@@ -3,32 +3,41 @@
 --               Only 4 sprites are supported to keep resource requirements at
 --               a minimum.
 --
--- Memory map :
+-- Memory map : 0x8600 - 0x87FF
 -- Each sprite has associated 0x10 bytes of data
---              0x0000 : bits 7-0 : Sprite 0 X position
---              0x0001 : bits   0 : Sprite 0 X position MSB
---              0x0002 : bits 7-0 : Sprite 0 Y position
---              0x0003 : bits 7-0 : Sprite 0 color (RRRGGGBB)
---              0x0004 : bit    0 : Sprite 0 enabled
+--              0x8600 : bits 7-0 : Sprite 0 X position
+--              0x8601 : bits   0 : Sprite 0 X position MSB
+--              0x8602 : bits 7-0 : Sprite 0 Y position
+--              0x8603 : bits 7-0 : Sprite 0 color (RRRGGGBB)
+--              0x8604 : bit    0 : Sprite 0 enabled
 --
---              0x0010 : bits 7-0 : Sprite 1 X position
---              0x0011 : bits   0 : Sprite 1 X position MSB
---              0x0012 : bits 7-0 : Sprite 1 Y position
---              0x0013 : bits 7-0 : Sprite 1 color (RRRGGGBB)
---              0x0014 : bit    0 : Sprite 1 enabled
+--              0x8610 : bits 7-0 : Sprite 1 X position
+--              0x8611 : bits   0 : Sprite 1 X position MSB
+--              0x8612 : bits 7-0 : Sprite 1 Y position
+--              0x8613 : bits 7-0 : Sprite 1 color (RRRGGGBB)
+--              0x8614 : bit    0 : Sprite 1 enabled
 --
---              0x0020 : bits 7-0 : Sprite 2 X position
---              0x0021 : bits   0 : Sprite 2 X position MSB
---              0x0022 : bits 7-0 : Sprite 2 Y position
---              0x0023 : bits 7-0 : Sprite 2 color (RRRGGGBB)
---              0x0024 : bit    0 : Sprite 2 enabled
+--              0x8620 : bits 7-0 : Sprite 2 X position
+--              0x8621 : bits   0 : Sprite 2 X position MSB
+--              0x8622 : bits 7-0 : Sprite 2 Y position
+--              0x8623 : bits 7-0 : Sprite 2 color (RRRGGGBB)
+--              0x8624 : bit    0 : Sprite 2 enabled
 --
---              0x0030 : bits 7-0 : Sprite 3 X position
---              0x0031 : bits   0 : Sprite 3 X position MSB
---              0x0032 : bits 7-0 : Sprite 3 Y position
---              0x0033 : bits 7-0 : Sprite 3 color (RRRGGGBB)
---              0x0034 : bit    0 : Sprite 3 enabled
+--              0x8630 : bits 7-0 : Sprite 3 X position
+--              0x8631 : bits   0 : Sprite 3 X position MSB
+--              0x8632 : bits 7-0 : Sprite 3 Y position
+--              0x8633 : bits 7-0 : Sprite 3 color (RRRGGGBB)
+--              0x8634 : bit    0 : Sprite 3 enabled
 --
+--              0x8640 :            IRQ status (bit 0 : Y-line interrupt)
+--              0x8641 :            Y-line
+--              0x8650 :            Char foreground color
+--              0x8651 :            Char background color
+--
+-- This whole block is implemented as 0x0080 bytes of LUT RAM.
+-- All decoding is done by the user of this block.
+-- This simplifies the code, but wastes a lot of memory cells.
+-- Bits 8 and 7 of the address input is ignored.
 -----------------------------------------------------------------------------
 
 library ieee;
@@ -38,9 +47,9 @@ use ieee.std_logic_arith.all;
 
 entity conf_stat is
    port (
-      clk_i    : in  std_logic;
+      clk_i    : in  std_logic;     -- @ CPU clock domain
       rst_i    : in  std_logic;
-      addr_i   : in  std_logic_vector(7 downto 0);
+      addr_i   : in  std_logic_vector(8 downto 0);
       --
       wren_i   : in  std_logic;
       data_i   : in  std_logic_vector(7 downto 0);
@@ -48,7 +57,7 @@ entity conf_stat is
       rden_i   : in  std_logic;
       data_o   : out std_logic_vector(7 downto 0);
       --
-      config_o : out std_logic_vector(26*4-1 downto 0);
+      config_o : out std_logic_vector(128*8-1 downto 0);
       --
       sync_i   : in  std_logic;
       irq_o    : out std_logic
@@ -57,41 +66,24 @@ end conf_stat;
 
 architecture Behavioral of conf_stat is
 
-   -- This contains configuration data (26 bits) for each sprite
-   -- Bits  8- 0 : X-position
-   -- Bits 16- 9 : Y-position
-   -- Bits 24-17 : Colour
-   -- Bit     25 : Enable
-   signal config : std_logic_vector(26*4-1 downto 0);
+   signal config : std_logic_vector(128*8-1 downto 0);
 
    -- Latched interrupt
    signal irq_latch : std_logic;
 
 begin
 
+   ------------------
+   -- Write to config
+   ------------------
+
    p_config : process (clk_i)
-      variable sprite_num : integer range 0 to 3;
-      variable offset     : integer range 0 to 7;
+      variable index_v : integer range 0 to 127;
    begin
       if rising_edge(clk_i) then
-         sprite_num := conv_integer(addr_i(5 downto 4));
-
          if wren_i = '1' then
-            offset := conv_integer(addr_i(2 downto 0));
-
-            case offset is
-               when 0 =>
-                  config(sprite_num*26 +  7 downto sprite_num*26 +  0) <= data_i;
-               when 1 =>
-                  config(sprite_num*26 +  8 downto sprite_num*26 +  8) <= data_i(0 downto 0);
-               when 2 =>
-                  config(sprite_num*26 + 16 downto sprite_num*26 +  9) <= data_i;
-               when 3 =>
-                  config(sprite_num*26 + 24 downto sprite_num*26 + 17) <= data_i;
-               when 4 =>
-                  config(sprite_num*26 + 25 downto sprite_num*26 + 25) <= data_i(0 downto 0);
-               when others => null;
-            end case;
+            index_v := conv_integer(addr_i(6 downto 0));
+            config(8*index_v + 7 downto 8*index_v) <= data_i;
          end if;
 
          if rst_i = '1' then
@@ -102,16 +94,32 @@ begin
    end process p_config;
 
 
-   --------------
-   -- Status read
-   --------------
+   -------------------
+   -- Read from config
+   -------------------
+
+   p_read : process (clk_i)
+      variable index_v : integer range 0 to 127;
+   begin
+      if falling_edge(clk_i) then
+         if rden_i = '1' then
+            index_v := conv_integer(addr_i(6 downto 0));
+            data_o <= config(8*index_v + 7 downto 8*index_v);
+         end if;
+      end if;
+   end process p_read;
+
+
+   ------------------------------------
+   -- Control the IRQ signal to the CPU
+   ------------------------------------
 
    p_status : process (clk_i)
    begin
       if falling_edge(clk_i) then
          
-         if addr_i = "00000000" and rden_i = '1' then
-            data_o <= "0000000" & irq_latch;
+         -- Special processing when reading from 0x8640
+         if addr_i = B"0_0100_0000" and rden_i = '1' then
             irq_latch <= '0';
          end if;
 
@@ -133,7 +141,6 @@ begin
 
    config_o <= config;
    irq_o    <= irq_latch;
-
 
 end Behavioral;
 

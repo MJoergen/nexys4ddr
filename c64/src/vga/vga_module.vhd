@@ -53,8 +53,8 @@ end vga_module;
 
 architecture Structural of vga_module is
    
-   -- Number of visible lines
-   -- This must be the same as defined in src/vga/sync.vhd
+   -- These must be the same as defined in src/vga/sync.vhd
+   constant FRAME_WIDTH  : natural := 640;
    constant FRAME_HEIGHT : natural := 480;
 
    -- Signals driven by the Sync block
@@ -105,9 +105,9 @@ architecture Structural of vga_module is
    signal cpu_rddata_conf_stat : std_logic_vector(7 downto 0);
 
    -- Clock domain crossing
-   signal vga_config : std_logic_vector(26*4-1 downto 0);
+   signal vga_config : std_logic_vector(128*8-1 downto 0);
    signal vga_sync   : std_logic;
-   signal cpu_config : std_logic_vector(26*4-1 downto 0);
+   signal cpu_config : std_logic_vector(128*8-1 downto 0);
    signal cpu_sync   : std_logic;
 
 begin
@@ -218,6 +218,8 @@ begin
       vsync_i     => vga_sync_vs,
       blank_i     => vga_sync_blank,
 
+      config_i    => vga_config,
+
       disp_addr_o => vga_char_disp_addr,
       disp_data_i => vga_char_disp_data,
 
@@ -245,7 +247,7 @@ begin
 
       -- Write port @ cpu_clk_i
       cpu_clk_i   => cpu_clk_i,
-      cpu_addr_i  => cpu_addr_i(6 downto 0),
+      cpu_addr_i  => cpu_addr_i(8 downto 0),
       cpu_wren_i  => cpu_wren_bitmaps,
       cpu_data_i  => cpu_data_i,
       cpu_rden_i  => cpu_rden_bitmaps,
@@ -293,10 +295,10 @@ begin
    -- CPU and VGA Clock Domain Crossing
    --=====================================================
 
-   -- Generate IRQ at start of a particular line, i.e. 60 times pr. second.
+   -- Generate IRQ at end of a particular line, i.e. 60 times pr. second.
    -- This is a single clock pulse.
-   -- TBD: This line could be configured by CPU.
-   vga_sync <= '1' when vga_char_hcount = 0 and vga_char_vcount = FRAME_HEIGHT else '0';
+   vga_sync <= '1' when vga_char_hcount = FRAME_WIDTH and
+               vga_char_vcount = vga_config(65*8 + 7 downto 65*8) else '0';
 
 
    -- Synchronize Sync pulse
@@ -316,7 +318,7 @@ begin
    -- from CPU to VGA clock domain.
    inst_cdc_config : entity work.cdcvector
    generic map (
-      G_SIZE => 26*4
+      G_SIZE => 128*8
    )
    port map (
       -- The sender
@@ -337,7 +339,7 @@ begin
    port map (
       clk_i   => cpu_clk_i,
       rst_i   => cpu_rst_i,
-      addr_i  => cpu_addr_i(7 downto 0),
+      addr_i  => cpu_addr_i(8 downto 0),
       --
       wren_i  => cpu_wren_conf_stat,
       data_i  => cpu_data_i,

@@ -25,6 +25,8 @@ entity chars is
       vsync_i  : in  std_logic;
       blank_i  : in  std_logic;
 
+      config_i : in  std_logic_vector(128*8-1 downto 0);
+
       disp_addr_o : out std_logic_vector(9 downto 0);
       disp_data_i : in  std_logic_vector(7 downto 0);
 
@@ -40,6 +42,12 @@ entity chars is
 end chars;
 
 architecture Behavioral of chars is
+
+   -- Convert colour from 8-bit format to 12-bit format
+   function col8to12(arg : std_logic_vector(7 downto 0)) return std_logic_vector is
+   begin
+      return arg(7 downto 5) & "0" & arg(4 downto 2) & "0" & arg(1 downto 0) & "00";
+   end function col8to12;
 
    -- This employs a five stage pipeline in order to improve timing.
    type t_stage is record
@@ -203,9 +211,9 @@ begin
 
          pix := stage4_row(7-conv_integer(stage4.pix_x));
          if pix = '1' then
-            stage5.col <= X"444";
+            stage5.col <= col8to12(config_i(80*8 + 7 downto 80*8));
          else
-            stage5.col <= X"CCC";
+            stage5.col <= col8to12(config_i(88*8 + 7 downto 88*8));
          end if;
 
          if stage4.blank = '1' then

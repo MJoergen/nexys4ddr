@@ -17,7 +17,7 @@ entity bitmaps_mem is
       vga_data_o  : out std_logic_vector(15 downto 0);
 
       -- Write port @ cpu_clk_i
-      cpu_addr_i  : in  std_logic_vector( 6 downto 0);   -- 2 bits for sprite #, 4 bits for row, and 1 bit for left/right side.
+      cpu_addr_i  : in  std_logic_vector( 8 downto 0);   -- 2 bits for sprite #, 4 bits for row, and 1 bit for left/right side.
       cpu_wren_i  : in  std_logic;
       cpu_data_i  : in  std_logic_vector( 7 downto 0);
       --
@@ -63,7 +63,7 @@ begin
       if rising_edge(cpu_clk_i) then
          index_v := conv_integer(cpu_addr_i(6 downto 1));
 
-         if cpu_wren_i = '1' then
+         if cpu_wren_i = '1' and cpu_addr_i(8 downto 7) = "00" then
             case cpu_addr_i(0) is
                when '0' => bitmaps(index_v)( 7 downto 0) <= reverse(cpu_data_i);
                when '1' => bitmaps(index_v)(15 downto 8) <= reverse(cpu_data_i);
@@ -80,7 +80,7 @@ begin
          cpu_data <= (others => '0');
          index_v := conv_integer(cpu_addr_i(6 downto 1));
 
-         if cpu_rden_i = '1' then
+         if cpu_rden_i = '1' and cpu_addr_i(8 downto 7) = "00" then
             case cpu_addr_i(0) is
                when '0' => cpu_data <= bitmaps(index_v)( 7 downto 0);
                when '1' => cpu_data <= bitmaps(index_v)(15 downto 8);

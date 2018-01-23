@@ -132,6 +132,10 @@ With ad-bc = 1 we see that the quadratic form is indeed invariant.
 #define VGA_0_POSY      0x8602
 #define VGA_0_COLOR     0x8603
 #define VGA_0_ENABLE    0x8604
+#define VGA_IRQ         0x8640
+#define VGA_YLINE       0x8641
+#define VGA_FGCOL       0x8650
+#define VGA_BGCOL       0x8651
 
 
 // Entry point after CPU reset
@@ -247,6 +251,15 @@ void __fastcall__ reset(void)
    __asm__("LDA #$40");    // Radius of circle
    __asm__("STA %b", XHI);
 
+   // Configure text color
+   __asm__("LDA #$44");
+   __asm__("STA %w", VGA_FGCOL);
+   __asm__("LDA #$CC");
+   __asm__("STA %w", VGA_BGCOL);
+
+   // Configure interrupt at end of line 0
+   __asm__("LDA #$00");
+   __asm__("STA %w", VGA_YLINE);
    // Enable interrupts.
    __asm__("CLI");
 
@@ -264,7 +277,27 @@ void __fastcall__ irq(void)
    // but the interrupt source (i.e. the VGA driver) is continuously
    // asserting the IRQ pin.
    // Reading this register clears the assertion.
-   __asm__("LDA $8600");
+   __asm__("LDA %w", VGA_IRQ);
+
+   // Change text color
+   __asm__("LDA %w", VGA_FGCOL);
+   __asm__("CLC");
+   __asm__("ADC #$11");
+   __asm__("STA %w", VGA_FGCOL);
+   __asm__("LDA %w", VGA_BGCOL);
+   __asm__("CLC");
+   __asm__("ADC #$11");
+   __asm__("STA %w", VGA_BGCOL);
+
+   // Configure interrupt after another 16 lines
+   __asm__("LDA %w", VGA_YLINE);
+   __asm__("CLC");
+   __asm__("ADC #$10");
+   __asm__("STA %w", VGA_YLINE);
+
+   // The rest of the ISR is only performed once every 
+   // screen refresh (@ 60 Hz).
+   __asm__("BNE %g", isr_end);
 
 /*
  * As written above, implement the following:
@@ -315,6 +348,7 @@ x_positive:
    __asm__("ADC #$80");
    __asm__("STA %w", VGA_0_POSXLO); // Set X coordinate of sprite 0
 
+isr_end:
    __asm__("RTI");
 } // end of irq
 
