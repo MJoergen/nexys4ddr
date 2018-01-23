@@ -279,24 +279,22 @@ void __fastcall__ irq(void)
    // Reading this register clears the assertion.
    __asm__("LDA %w", VGA_IRQ);
 
-   // Change text color
-   __asm__("LDA %w", VGA_FGCOL);
-   __asm__("CLC");
-   __asm__("ADC #$11");
-   __asm__("STA %w", VGA_FGCOL);
-   __asm__("LDA %w", VGA_BGCOL);
-   __asm__("CLC");
-   __asm__("ADC #$11");
-   __asm__("STA %w", VGA_BGCOL);
-
    // Configure interrupt after another 16 lines
    __asm__("LDA %w", VGA_YLINE);
    __asm__("CLC");
    __asm__("ADC #$10");
    __asm__("STA %w", VGA_YLINE);
 
+   // Change text color
+   __asm__("CLC");
+   __asm__("ADC #$0F");
+   __asm__("STA %w", VGA_FGCOL);
+   __asm__("EOR #$BB");
+   __asm__("STA %w", VGA_BGCOL);
+
    // The rest of the ISR is only performed once every 
    // screen refresh (@ 60 Hz).
+   __asm__("LDA %w", VGA_YLINE);
    __asm__("BNE %g", isr_end);
 
 /*
