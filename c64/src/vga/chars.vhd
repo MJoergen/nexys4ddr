@@ -2,6 +2,7 @@
 -- This generates a 320 x 234 pixel screen, consisting of 8 x 13 pixel characters.
 -- This corresponds to 40 x 18 characters.
 -- The character memory consists of 40x18 = 720 bytes. They are placed in a 10->8 RAM.
+-- The font memory is placed in a 12->8 ROM.
 --
 -- In order to calculate the character and pixel row, the y coordinate must
 -- be divided by 13. This is handled by a 8->9 RAM, where the address is the 
