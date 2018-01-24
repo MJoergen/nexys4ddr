@@ -88,6 +88,8 @@ begin
 
          if rst_i = '1' then
             config <= (others => '0');
+            config(8*80+7 downto 8*80) <= X"44";  -- Char foreground color
+            config(8*81+7 downto 8*81) <= X"CC";  -- Char background color
          end if;
 
       end if;
