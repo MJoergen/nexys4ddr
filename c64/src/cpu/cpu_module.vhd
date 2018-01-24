@@ -27,7 +27,7 @@ entity cpu_module is
       irq_i  : in  std_logic;
 
       -- Debug (to show on the VGA)
-      debug_o : out std_logic_vector(63 downto 0)
+      debug_o : out std_logic_vector(127 downto 0)
    );
 end cpu_module;
 
@@ -86,6 +86,9 @@ architecture Structural of cpu_module is
    signal ctl_wr_c         : std_logic_vector(1 downto 0);
 
    signal ctl_debug : std_logic_vector(10 downto 0);
+
+   signal addr : std_logic_vector(15 downto 0);
+   signal data : std_logic_vector( 7 downto 0);
 
 begin
 
@@ -262,42 +265,47 @@ begin
    end process p_sr;
 
  
+   -- Select memory address
+   addr <= reg_pc                           when ctl_mem_addr = "0000" else
+           X"00" & mem_addr_reg(7 downto 0) when ctl_mem_addr = "0001" else
+           X"01" & reg_sp                   when ctl_mem_addr = "0010" else
+           mem_addr_reg                     when ctl_mem_addr = "0011" else
+           X"FFFE"                          when ctl_mem_addr = "1000" else    -- BRK
+           X"FFFF"                          when ctl_mem_addr = "1001" else    -- BRK
+           X"FFFA"                          when ctl_mem_addr = "1010" else    -- NMI
+           X"FFFB"                          when ctl_mem_addr = "1011" else    -- NMI
+           X"FFFC"                          when ctl_mem_addr = "1100" else    -- RESET
+           X"FFFD"                          when ctl_mem_addr = "1101" else    -- RESET
+           X"FFFE"                          when ctl_mem_addr = "1110" else    -- IRQ
+           X"FFFF"                          when ctl_mem_addr = "1111" else    -- IRQ
+           (others => 'X');
+
+   -- Select memory data
+   data <= regs_rd_data        when ctl_mem_wrdata(1 downto 0) = "00" else
+           reg_pc(15 downto 8) when ctl_mem_wrdata(1 downto 0) = "01" else
+           reg_pc(7 downto 0)  when ctl_mem_wrdata(1 downto 0) = "10" else
+           reg_sr              when ctl_mem_wrdata(1 downto 0) = "11" else
+           (others => '0');
+
+
    -----------------------
    -- Drive output signals
    -----------------------
 
-   -- Select memory address
-   addr_o <= reg_pc                           when ctl_mem_addr = "0000" else
-             X"00" & mem_addr_reg(7 downto 0) when ctl_mem_addr = "0001" else
-             X"01" & reg_sp                   when ctl_mem_addr = "0010" else
-             mem_addr_reg                     when ctl_mem_addr = "0011" else
-             X"FFFE"                          when ctl_mem_addr = "1000" else    -- BRK
-             X"FFFF"                          when ctl_mem_addr = "1001" else    -- BRK
-             X"FFFA"                          when ctl_mem_addr = "1010" else    -- NMI
-             X"FFFB"                          when ctl_mem_addr = "1011" else    -- NMI
-             X"FFFC"                          when ctl_mem_addr = "1100" else    -- RESET
-             X"FFFD"                          when ctl_mem_addr = "1101" else    -- RESET
-             X"FFFE"                          when ctl_mem_addr = "1110" else    -- IRQ
-             X"FFFF"                          when ctl_mem_addr = "1111" else    -- IRQ
-             (others => 'X');
-
-   -- Select memory data
-   data_o <= regs_rd_data        when ctl_mem_wrdata(1 downto 0) = "00" else
-             reg_pc(15 downto 8) when ctl_mem_wrdata(1 downto 0) = "01" else
-             reg_pc(7 downto 0)  when ctl_mem_wrdata(1 downto 0) = "10" else
-             reg_sr              when ctl_mem_wrdata(1 downto 0) = "11" else
-             (others => '0');
-
+   addr_o <= addr;
+   data_o <= data;
    rden_o <= ctl_mem_rden;
    wren_o <= ctl_mem_wrdata(2);
 
    -- Debug output
-   debug_o(23 downto  0) <= regs_debug;
-   debug_o(31 downto 24) <= reg_sp;
-   debug_o(47 downto 32) <= reg_pc;
-   debug_o(58 downto 48) <= ctl_debug;
-   debug_o(59) <= reg_sr(2);
-   debug_o(63 downto 60) <= (others => '0');
+   debug_o( 15 downto   0) <= addr;
+   debug_o( 31 downto  16) <= "0000000" & ctl_mem_wrdata(2) & data;
+   debug_o( 47 downto  32) <= "0000000" & ctl_mem_rden & data_i;
+   debug_o( 63 downto  48) <= reg_pc;
+   debug_o( 79 downto  64) <= "00000" & ctl_debug;
+   debug_o( 95 downto  80) <= reg_sr & regs_debug(7 downto 0);
+   debug_o(111 downto  96) <= regs_debug(23 downto 8);
+   debug_o(127 downto 112) <= X"01" & reg_sp;
 
 end Structural;
 

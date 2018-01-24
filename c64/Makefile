@@ -41,7 +41,7 @@ PROG_SRC    = src/prog/circle.c
 LD_CFG      = src/prog/ld.cfg
 VECTORS_AS  = src/prog/vectors.s
 
-stoptime = --stop-time=9500ns
+stoptime = --stop-time=200us
 
 include ../xilinx.mk
 

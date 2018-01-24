@@ -19,12 +19,8 @@ entity sprites is
       vs_i          : in  std_logic;
       col_i         : in  std_logic_vector(11 downto 0);
 
-      -- The config_i signal contains configuration data (26 bits) for each sprite
-      -- Bits  8- 0 : X-position
-      -- Bits 16- 9 : Y-position
-      -- Bits 24-17 : Colour
-      -- Bit     25 : Enable
-      config_i      : in  std_logic_vector(26*4-1 downto 0);
+      config_i      : in  std_logic_vector(128*8-1 downto 0);
+
       bitmap_addr_o : out std_logic_vector( 5 downto 0);
       bitmap_data_i : in  std_logic_vector(15 downto 0);
 
@@ -107,7 +103,10 @@ begin
 
    p_fsm : process (clk_i)
       variable vcount1_v : std_logic_vector(10 downto 0);
+
+      variable posx_v    : std_logic_vector( 8 downto 0);
       variable posy_v    : std_logic_vector( 7 downto 0);
+      variable color_v   : std_logic_vector( 7 downto 0);
       variable enable_v  : std_logic;
 
       variable pix_y_v : std_logic_vector( 9 downto 0);
@@ -122,8 +121,10 @@ begin
             for i in 0 to 3 loop
 
                -- Decode sprite configuration data
-               posy_v   := config_i(26*i + 16 downto 26*i + 9);
-               enable_v := config_i(26*i+25);
+               posx_v   := config_i(16*8*i +  8 downto 16*8*i +  0);
+               posy_v   := config_i(16*8*i + 23 downto 16*8*i + 16);
+               color_v  := config_i(16*8*i + 31 downto 16*8*i + 24);
+               enable_v := config_i(16*8*i + 32);
 
                -- Get pixel row in this sprite
                pix_y_v := vcount1_v(10 downto 1) - ("00" & posy_v);
@@ -204,6 +205,7 @@ begin
    p_stage1 : process (clk_i)
       variable posx_v   : std_logic_vector(8 downto 0);
       variable posy_v   : std_logic_vector(7 downto 0);
+      variable color_v  : std_logic_vector(7 downto 0);
       variable enable_v : std_logic;
       variable pix_x_v : std_logic_vector(9 downto 0);
       variable pix_y_v : std_logic_vector(9 downto 0);
@@ -215,9 +217,10 @@ begin
          stage1.row_index_valid <= (others => '0');
 
          for i in 0 to 3 loop
-            posx_v   := config_i(26*i +  8 downto 26*i + 0);
-            posy_v   := config_i(26*i + 16 downto 26*i + 9);
-            enable_v := config_i(26*i+25);
+            posx_v   := config_i(16*8*i +  8 downto 16*8*i +  0);
+            posy_v   := config_i(16*8*i + 23 downto 16*8*i + 16);
+            color_v  := config_i(16*8*i + 31 downto 16*8*i + 24);
+            enable_v := config_i(16*8*i + 32);
 
             pix_x_v := stage0.hcount(10 downto 1) - ("0" & posx_v);
             stage1.col_index(4*(i+1)-1 downto 4*i) <= pix_x_v(3 downto 0);
@@ -261,13 +264,19 @@ begin
    ----------------------------------------
 
    p_stage3 : process (clk_i)
-      variable color_v : std_logic_vector(7 downto 0);
+      variable posx_v   : std_logic_vector(8 downto 0);
+      variable posy_v   : std_logic_vector(7 downto 0);
+      variable color_v  : std_logic_vector(7 downto 0);
+      variable enable_v : std_logic;
    begin
       if rising_edge(clk_i) then
          stage3 <= stage2;
 
          for i in 3 downto 0 loop
-            color_v := config_i(26*i + 24 downto 26*i + 17);
+            posx_v   := config_i(16*8*i +  8 downto 16*8*i +  0);
+            posy_v   := config_i(16*8*i + 23 downto 16*8*i + 16);
+            color_v  := config_i(16*8*i + 31 downto 16*8*i + 24);
+            enable_v := config_i(16*8*i + 32);
             if stage2.pix(i) = '1' then
                stage3.col <= col8to12(color_v);
             end if;
