@@ -184,7 +184,8 @@ begin
    inst_vga_char_disp_mem : entity work.mem
    generic map (
                   G_ADDR_SIZE => 10,  -- Size = 0x0400
-                  G_DATA_SIZE => 8
+                  G_DATA_SIZE => 8,
+                  G_INIT_VAL  => 32   -- 0x20 = space
                )
    port map (
       -- Port A @ cpu_clk_i
