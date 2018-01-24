@@ -1,6 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
+use ieee.std_logic_arith.all;
 use ieee.std_logic_textio.all;
 use std.textio.all;
 
@@ -11,7 +12,8 @@ entity mem is
 
    generic (
       G_ADDR_SIZE  : integer;     -- Number of bits in address
-      G_DATA_SIZE  : integer      -- Number of bits in data
+      G_DATA_SIZE  : integer;     -- Number of bits in data
+      G_INIT_VAL   : integer := 0
    );
    port (
       a_clk_i    : in  std_logic;
@@ -34,7 +36,7 @@ architecture Structural of mem is
 
    type t_mem is array (0 to 2**G_ADDR_SIZE-1) of std_logic_vector(G_DATA_SIZE-1 downto 0);
 
-   signal mem : t_mem := (others => (others => '0'));
+   signal mem : t_mem := (others => conv_std_logic_vector(G_INIT_VAL, G_DATA_SIZE));
 
 begin
 
