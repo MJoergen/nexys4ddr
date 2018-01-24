@@ -26,7 +26,7 @@ entity chars is
       blank_i  : in  std_logic;
 
       config_i : in  std_logic_vector(128*8-1 downto 0);
-      status_i : in  std_logic_vector(63 downto 0);
+      status_i : in  std_logic_vector(127 downto 0);
 
       disp_addr_o : out std_logic_vector(9 downto 0);
       disp_data_i : in  std_logic_vector(7 downto 0);
@@ -44,6 +44,9 @@ end chars;
 
 architecture Behavioral of chars is
 
+   constant C_DEBUG_POSX : integer := 20;
+   constant C_DEBUG_POSY : integer :=  5;
+
    -- Convert colour from 8-bit format to 12-bit format
    function col8to12(arg : std_logic_vector(7 downto 0)) return std_logic_vector is
    begin
@@ -57,12 +60,13 @@ architecture Behavioral of chars is
       hcount    : std_logic_vector(10 downto 0);   -- valid in all stages
       vcount    : std_logic_vector(10 downto 0);   -- valid in all stages
       blank     : std_logic;                       -- valid in all stages
-      status    : std_logic_vector(63 downto 0);   -- Valid in stage 1
+      status    : std_logic_vector(127 downto 0);  -- Valid in stage 1
       char_x    : std_logic_vector(5 downto 0);    -- valid in stage 2 (0 - 39)
       char_y    : std_logic_vector(4 downto 0);    -- valid in stage 2 (0 - 17)
       pix_x     : std_logic_vector(2 downto 0);    -- valid in stage 2 (0 - 7)
       pix_y     : std_logic_vector(3 downto 0);    -- valid in stage 2 (0 - 12)
       char_addr : std_logic_vector(9 downto 0);
+      nibble    : std_logic_vector(3 downto 0);
       font_addr : std_logic_vector(11 downto 0);
       pix       : std_logic;
       col       : std_logic_vector(11 downto 0);   -- valid in stage 5
@@ -80,6 +84,7 @@ architecture Behavioral of chars is
       pix_x  => (others => '0'),
       pix_y  => (others => '0'),
       char_addr => (others => '0'),
+      nibble    => (others => '0'),
       font_addr => (others => '0'),
       pix    => '0',
       col    => (others => '0')
@@ -187,6 +192,7 @@ begin
 
    ----------------------------------------------------------
    -- Stage 4 : Read the character symbol from display memory
+   --           Calculate nibble
    ----------------------------------------------------------
 
    disp_addr_o     <= stage3.char_addr;
@@ -194,9 +200,19 @@ begin
 
    -- Propagate remaining signals.
    p_stage4 : process (clk_i) is
+      variable char_x_v     : integer range 0 to 63;
+      variable char_y_v     : integer range 0 to 63;
+      variable nibble_idx_v : integer range 0 to 31;
    begin
       if rising_edge(clk_i) then
          stage4 <= stage3;
+         if stage3.char_y >= C_DEBUG_POSY and stage3.char_y < C_DEBUG_POSY+8 and
+            stage3.char_x >= C_DEBUG_POSX and stage3.char_x < C_DEBUG_POSX+4 then
+            char_x_v     := conv_integer(stage3.char_x - C_DEBUG_POSX);
+            char_y_v     := conv_integer(stage3.char_y - C_DEBUG_POSY);
+            nibble_idx_v := char_y_v*4 + 3-char_x_v;
+            stage4.nibble <= stage3.status(nibble_idx_v*4 + 3 downto nibble_idx_v*4);
+         end if;
       end if;
    end process p_stage4;
 
@@ -206,20 +222,17 @@ begin
    ------------------------------------------------------
 
    p_stage5 : process (clk_i) is
-      variable char_x_v   : integer range 0 to 63;
-      variable nibble_v   : std_logic_vector(3 downto 0);
       variable char_val_v : std_logic_vector(7 downto 0);
    begin
       if rising_edge(clk_i) then
          stage5 <= stage4;
          stage5.font_addr <= stage4_char_val & stage4.pix_y;
 
-         if stage4.char_y = 10 and stage4.char_x < 4 then
-            char_x_v   := 3-conv_integer(stage4.char_x);
-            nibble_v   := status_i(char_x_v*4 + 3 downto char_x_v*4);
-            char_val_v := nibble_v + X"30";
-            if nibble_v > 9 then
-               char_val_v := nibble_v + X"41" - X"0A";
+         if stage4.char_y >= C_DEBUG_POSY and stage4.char_y < C_DEBUG_POSY+8 and
+            stage4.char_x >= C_DEBUG_POSX and stage4.char_x < C_DEBUG_POSX+4 then
+            char_val_v := stage4.nibble + X"30";
+            if stage4.nibble > 9 then
+               char_val_v := stage4.nibble + X"41" - X"0A";
             end if;
             stage5.font_addr <= char_val_v & stage4.pix_y;
          end if;
