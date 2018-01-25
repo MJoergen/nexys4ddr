@@ -244,6 +244,7 @@ begin
    ----------------------------------------
 
    p_stage2 : process (clk_i)
+      variable col_index_v : integer range 0 to 15;
    begin
       if rising_edge(clk_i) then
          stage2 <= stage1;
@@ -251,7 +252,8 @@ begin
          stage2.pix <= (others => '0');
          for i in 3 downto 0 loop
             if stage1.row_index_valid(i) = '1' and stage1.col_index_valid(i) = '1' then
-               stage2.pix(i) <= bitmap_rows(i*16 + conv_integer(stage1.col_index(i*4 + 3 downto i*4)));
+               col_index_v := conv_integer(stage1.col_index(i*4 + 3 downto i*4));
+               stage2.pix(i) <= bitmap_rows(i*16 + col_index_v);
             end if;
          end loop;
 

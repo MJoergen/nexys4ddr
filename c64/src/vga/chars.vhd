@@ -48,6 +48,20 @@ architecture Behavioral of chars is
    constant C_DEBUG_POSX : integer := 20;
    constant C_DEBUG_POSY : integer :=  5;
 
+   type string_t is array (0 to 7) of character;
+   type names_t is array (0 to 7) of string_t; -- One string for each row.
+
+   constant C_NAMES : names_t := (
+      "    ADDR",
+      " WR_DATA",
+      " RD_DATA",
+      "      PC",
+      "    INST",
+      "    SR_A",
+      "     X_Y",
+      "      SP");
+ 
+
    -- Convert colour from 8-bit format to 12-bit format
    function col8to12(arg : std_logic_vector(7 downto 0)) return std_logic_vector is
    begin
@@ -201,15 +215,15 @@ begin
 
    -- Propagate remaining signals.
    p_stage4 : process (clk_i) is
-      variable char_x_v     : integer range 0 to 63;
-      variable char_y_v     : integer range 0 to 63;
+      variable char_x_v     : integer range 0 to 3;
+      variable char_y_v     : integer range 0 to 7;
       variable nibble_idx_v : integer range 0 to 31;
    begin
       if rising_edge(clk_i) then
          stage4 <= stage3;
-         if stage3.char_y >= C_DEBUG_POSY and stage3.char_y < C_DEBUG_POSY+8 and
-            stage3.char_x >= C_DEBUG_POSX and stage3.char_x < C_DEBUG_POSX+4 then
-            char_x_v     := conv_integer(stage3.char_x - C_DEBUG_POSX);
+         if stage3.char_y >= C_DEBUG_POSY   and stage3.char_y < C_DEBUG_POSY+8 and
+            stage3.char_x >= C_DEBUG_POSX+9 and stage3.char_x < C_DEBUG_POSX+13 then
+            char_x_v     := conv_integer(stage3.char_x - C_DEBUG_POSX - 9);
             char_y_v     := conv_integer(stage3.char_y - C_DEBUG_POSY);
             nibble_idx_v := char_y_v*4 + 3-char_x_v;
             stage4.nibble <= stage3.status(nibble_idx_v*4 + 3 downto nibble_idx_v*4);
@@ -224,31 +238,33 @@ begin
 
    p_stage5 : process (clk_i) is
       variable char_val_v : std_logic_vector(7 downto 0);
+      variable row_v : integer range 0 to 7;
+      variable col_v : integer range 0 to 7;
    begin
       if rising_edge(clk_i) then
          stage5 <= stage4;
          stage5.font_addr <= stage4_char_val & stage4.pix_y;
 
-         if stage4.char_y >= C_DEBUG_POSY and stage4.char_y < C_DEBUG_POSY+8 and
-            stage4.char_x >= C_DEBUG_POSX and stage4.char_x < C_DEBUG_POSX+4 then
+         if stage4.char_y >= C_DEBUG_POSY   and stage4.char_y < C_DEBUG_POSY+8 and
+            stage4.char_x >= C_DEBUG_POSX+9 and stage4.char_x < C_DEBUG_POSX+13 then
             char_val_v := stage4.nibble + X"30";
             if stage4.nibble > 9 then
                char_val_v := stage4.nibble + X"41" - X"0A";
             end if;
             stage5.font_addr <= char_val_v & stage4.pix_y;
          end if;
+
+         if stage4.char_y >= C_DEBUG_POSY and stage4.char_y < C_DEBUG_POSY+8 and
+            stage4.char_x >= C_DEBUG_POSX and stage4.char_x < C_DEBUG_POSX+8 then
+            row_v := conv_integer(stage4.char_y - C_DEBUG_POSY);
+            col_v := conv_integer(stage4.char_x - C_DEBUG_POSX);
+            char_val_v := conv_std_logic_vector(character'pos(C_NAMES(row_v)(col_v)), 8);
+            stage5.font_addr <= char_val_v & stage4.pix_y;
+         end if;
+
       end if;
    end process p_stage5;
 
-   -- TODO: Add display of the following character strings.
-   -- "    ADDR"
-   -- " WR_DATA"
-   -- " RD_DATA"
-   -- "      PC"
-   -- "    INST"
-   -- "    SR_A"
-   -- "     X_Y"
-   -- "      SP"
 
    ----------------------------------------------------
    -- Stage 6 : Read the character bitmap from the ROM.
