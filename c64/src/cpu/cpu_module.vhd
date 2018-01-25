@@ -161,7 +161,7 @@ begin
       if rising_edge(clk_i) then
          if ctl_wr_pc(1) = '1' then
             if ctl_wr_pc(0) = '1' then
-               reg_pc <= reg_pc + 1;
+               reg_pc <= reg_pc + 1;                              -- Used during instruction fetch
                if ctl_wr_pc(2) = '1' then
                   if (ctl_wr_pc(5 downto 3) = "000" and reg_sr(7) = '0') or
                   (ctl_wr_pc(5 downto 3) = "001" and reg_sr(7) = '1') or
@@ -171,11 +171,11 @@ begin
                   (ctl_wr_pc(5 downto 3) = "101" and reg_sr(0) = '1') or
                   (ctl_wr_pc(5 downto 3) = "110" and reg_sr(1) = '0') or
                   (ctl_wr_pc(5 downto 3) = "111" and reg_sr(1) = '1') then
-                     reg_pc <= reg_pc + 1 + sign_extend(data_i);
+                     reg_pc <= reg_pc + 1 + sign_extend(data_i);  -- Used during branch relative
                   end if;
                end if;
             else
-               reg_pc <= data_i & mem_addr_reg(7 downto 0);
+               reg_pc <= data_i & mem_addr_reg(7 downto 0);       -- Used during jump absolute
             end if;
          end if;
       end if;
@@ -205,10 +205,10 @@ begin
    begin
       if rising_edge(clk_i) then
          if ctl_wr_hold_addr(0) = '1' then
-            mem_addr_reg(7 downto 0) <= data_i;
+            mem_addr_reg(7 downto 0) <= data_i;       -- Used during zero-page addressing mode
          end if;
          if ctl_wr_hold_addr(1) = '1' then
-            mem_addr_reg(15 downto 8) <= data_i;
+            mem_addr_reg(15 downto 8) <= data_i;      -- Used during absolute addressing modes
          end if;
       end if;
    end process p_mem_addr_reg;
@@ -252,9 +252,9 @@ begin
 
          if ctl_wr_sr(1) = '1' then
             if ctl_wr_sr(0) = '1' then
-               reg_sr <= data_i;
+               reg_sr <= data_i;          -- Used during RTI
             else
-               reg_sr <= regs_rd_data;
+               reg_sr <= regs_rd_data;    -- Not currently used ????
             end if;
          end if;
 
@@ -266,10 +266,10 @@ begin
 
  
    -- Select memory address
-   addr <= reg_pc                           when ctl_mem_addr = "0000" else
-           X"00" & mem_addr_reg(7 downto 0) when ctl_mem_addr = "0001" else
-           X"01" & reg_sp                   when ctl_mem_addr = "0010" else
-           mem_addr_reg                     when ctl_mem_addr = "0011" else
+   addr <= reg_pc                           when ctl_mem_addr = "0000" else    -- Used during instruction fetch
+           X"00" & mem_addr_reg(7 downto 0) when ctl_mem_addr = "0001" else    -- Used during zero-page addressing
+           X"01" & reg_sp                   when ctl_mem_addr = "0010" else    -- Used during stack push and pull
+           mem_addr_reg                     when ctl_mem_addr = "0011" else    -- Used during other addressing modes
            X"FFFE"                          when ctl_mem_addr = "1000" else    -- BRK
            X"FFFF"                          when ctl_mem_addr = "1001" else    -- BRK
            X"FFFA"                          when ctl_mem_addr = "1010" else    -- NMI
@@ -281,10 +281,10 @@ begin
            (others => 'X');
 
    -- Select memory data
-   data <= regs_rd_data        when ctl_mem_wrdata(1 downto 0) = "00" else
-           reg_pc(15 downto 8) when ctl_mem_wrdata(1 downto 0) = "01" else
-           reg_pc(7 downto 0)  when ctl_mem_wrdata(1 downto 0) = "10" else
-           reg_sr              when ctl_mem_wrdata(1 downto 0) = "11" else
+   data <= regs_rd_data        when ctl_mem_wrdata(1 downto 0) = "00" else     -- Used during register store to memory
+           reg_pc(15 downto 8) when ctl_mem_wrdata(1 downto 0) = "01" else     -- Used during IRQ
+           reg_pc(7 downto 0)  when ctl_mem_wrdata(1 downto 0) = "10" else     -- Used during IRQ
+           reg_sr              when ctl_mem_wrdata(1 downto 0) = "11" else     -- Used during IRQ
            (others => '0');
 
 
@@ -298,14 +298,14 @@ begin
    wren_o <= ctl_mem_wrdata(2);
 
    -- Debug output
-   debug_o( 15 downto   0) <= addr;
-   debug_o( 31 downto  16) <= "0000000" & ctl_mem_wrdata(2) & data;
-   debug_o( 47 downto  32) <= "0000000" & ctl_mem_rden & data_i;
-   debug_o( 63 downto  48) <= reg_pc;
-   debug_o( 79 downto  64) <= "00000" & ctl_debug;
-   debug_o( 95 downto  80) <= reg_sr & regs_debug(7 downto 0);
-   debug_o(111 downto  96) <= regs_debug(23 downto 8);
-   debug_o(127 downto 112) <= X"01" & reg_sp;
+   debug_o( 15 downto   0) <= addr;                                     -- "ADDR"
+   debug_o( 31 downto  16) <= "0000000" & ctl_mem_wrdata(2) & data;     -- "WR_DATA"
+   debug_o( 47 downto  32) <= "0000000" & ctl_mem_rden & data_i;        -- "RD_DATA"
+   debug_o( 63 downto  48) <= reg_pc;                                   -- "PC"
+   debug_o( 79 downto  64) <= "00000" & ctl_debug;                      -- "INST"
+   debug_o( 95 downto  80) <= reg_sr & regs_debug(7 downto 0);          -- "SR_A"
+   debug_o(111 downto  96) <= regs_debug(23 downto 8);                  -- "X_Y"
+   debug_o(127 downto 112) <= X"01" & reg_sp;                           -- "SP"
 
 end Structural;
 
