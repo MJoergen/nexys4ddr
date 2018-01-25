@@ -1,3 +1,37 @@
+# CPU design and architecture
+This folder contains the implementation of the 6502 processor.
+
+# Data path
+The following diagram shows the data path through the processore:
+![Data path](Data_Path.png "")
+My drawing skills are somewhat lacking, but I hope you can get see the big picture.
+I've left out a lot of details, in order to keep the diagram fairly simple.
+
+Note: Currently only a few of the addressing modes are implemented (i.e. immediate,
+zero-page, and absolute). In order to implement the remaining addressing modes,
+it will probably be necessary to make adjustments to this diagram.
+
+In the picture there are 5 multiplexors. I will give a short description of each of them here:
+In parenthesis is given the name as it is used in the file ctl.vhd.
+1. (WR_SR). This controls what value is written into the Status Regiser.
+   Currently, the status values are taken either from the ALU (during ordinary
+   calculations) or from the Data input (during RTI).
+1. (WR_PC). This controls the update of the program counter. This can either be
+   a simple increment by 1 (during normal instruction fetch), or it can be
+   increment by a small value (i.e. during a branch relative), or finally it
+   can be taken from data input during e.g. a JMP instruction.
+1. (WR_SP). This controls the update of the stack pointer. It is either
+   increment with 1 (during e.g. PLA), or decrement with 1 (during e.g. PHA).
+1. (MEM_WR). This controls the data written to memory. This can either be the
+   status register (during e.g. an Interrupt), or the register output (when
+   writing register to memory, e.g. STA), or it can be the Program Counter
+   during e.g. an interrupt.
+1. (WR_ADDR). This controls the address written to memory. This can either be
+   the program counter (during normal instruction fetch), or the address hold
+   register (during a register read from or write to memory), or the stack
+   pointer (during e.g. RTI). Finally, it can be a hardcoded value like FFFE,
+   which occurs during an interrupt.
+
 # 6502 implementation notes
 
 ## Internal registers
@@ -6,15 +40,6 @@
 * Y (8-bit) index
 * SP (8-bit) stack pointer (upper high byte is always 0x01)
 * PC (16-bit) program counter
-
-## Opcode format
-Most instructions are of the form AAABBBCC.
-* AAA (bits 7-5) : Opcode
-* BBB (bits 4-2) : Addressing mode
-* CC (bits 1-0) : Opcode
-
-The instruction decoding is described here:
-[http://axis.llx.com/~nparker/a2/opcodes.html](http://axis.llx.com/~nparker/a2/opcodes.html)
 
 ## Addressing modes
 * 000: (zero page, X)
@@ -25,6 +50,30 @@ The instruction decoding is described here:
 * 101: zero page, X
 * 110: absolute, Y
 * 111: absolute, X
+
+## Initial design notes
+Since the 6502 supports instructions like e.g. INC ($15,X), it must first do
+two reads (the two bytes of the instruction), then two additional reads from
+memory and one write to memory. This can not be done in a simple pipeline, and
+therefore we need a sequential state machine containing microcode.
+
+The main reference for the implementation of this processor is taken from
+[http://nesdev.com/6502.txt](http://nesdev.com/6502.txt)
+
+
+
+
+The remainder of this page is largely obsolete, and will soon be deleted.
+
+
+## Opcode format
+Most instructions are of the form AAABBBCC.
+* AAA (bits 7-5) : Opcode
+* BBB (bits 4-2) : Addressing mode
+* CC (bits 1-0) : Opcode
+
+The instruction decoding is described here:
+[http://axis.llx.com/~nparker/a2/opcodes.html](http://axis.llx.com/~nparker/a2/opcodes.html)
 
 ## ALU operations (13 in total so far) (number of operands in parenthesis)
 * Arithmetic shift left 1 bit (ASL) (1)   (1000)
@@ -47,12 +96,6 @@ reads a value from memory, sends the value to fhe ALU, and writes
 the output of the ALU back to memory. This is called "read-modify-write".
 Therefore, one of the inputs to the ALU should be memory read, and the
 output of the ALU should be connected to memory write.
-
-## Initial design notes
-Since the 6502 supports instructions like e.g. INC ($15,X), it must first do
-two reads (the two bytes of the instruction), then two additional reads from
-memory and one write to memory. This can not be done in a simple pipeline, and
-therefore we need a sequential state machine containing microcode.
 
 ## LDA #$40
 Let's look at how to implement this instruction.
