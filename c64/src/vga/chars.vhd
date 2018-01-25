@@ -239,6 +239,15 @@ begin
       end if;
    end process p_stage5;
 
+   -- TODO: Add display of the following character strings.
+   -- "    ADDR"
+   -- " WR_DATA"
+   -- " RD_DATA"
+   -- "      PC"
+   -- "    INST"
+   -- "    SR_A"
+   -- "     X_Y"
+   -- "      SP"
 
    ----------------------------------------------------
    -- Stage 6 : Read the character bitmap from the ROM.
