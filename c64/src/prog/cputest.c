@@ -28,11 +28,17 @@
 // E5 SBC d
 
 // To come:
-// 65 ADC d
-
-// To come:
 // A2 LDX #
 // A0 LDY #
+// E0 CPX #
+// C0 CPY #
+// 9A TXS
+// BA TSX
+// 48 PHA
+// 68 PLA
+
+// To come:
+// 65 ADC d
 // CA DEX
 // 88 DEY
 // E8 INX
@@ -41,8 +47,6 @@
 // A4 LDY d
 // 86 STX d
 // 84 STY d
-// 9A TXS
-// BA TSX
 
 
 // Entry point after CPU reset
