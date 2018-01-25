@@ -23,7 +23,8 @@ use ieee.std_logic_unsigned.all;
 
 entity vga_module is
    generic (
-      G_FONT_FILE  : string
+      G_NEXYS4DDR : boolean;             -- True, when using the Nexys4DDR board.
+      G_FONT_FILE : string
    );
    port (
       -- VGA port @ vga_clk_i
@@ -322,7 +323,8 @@ begin
    -- from CPU to VGA clock domain.
    inst_cdc_status : entity work.cdcvector
    generic map (
-      G_SIZE => 128
+      G_NEXYS4DDR => G_NEXYS4DDR,
+      G_SIZE      => 128
    )
    port map (
       -- The sender
@@ -338,7 +340,8 @@ begin
    -- from CPU to VGA clock domain.
    inst_cdc_config : entity work.cdcvector
    generic map (
-      G_SIZE => 128*8
+      G_NEXYS4DDR => G_NEXYS4DDR,
+      G_SIZE      => 128*8
    )
    port map (
       -- The sender

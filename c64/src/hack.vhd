@@ -19,6 +19,7 @@ use ieee.std_logic_unsigned.all;
 entity hack is
 
    generic (
+      G_NEXYS4DDR  : boolean := false;             -- True, when using the Nexys4DDR board.
       G_ROM_SIZE   : integer := 10;                -- Number of bits in ROM address
       G_RAM_SIZE   : integer := 10;                -- Number of bits in RAM address
       G_SIMULATION : boolean := false;
@@ -98,7 +99,8 @@ begin
 
    inst_clk_rst : entity work.clk_rst
    generic map (
-      G_SIMULATION => G_SIMULATION
+      G_SIMULATION => G_SIMULATION,
+      G_NEXYS4DDR  => G_NEXYS4DDR
    )
    port map (
       sys_clk_i  => sys_clk_i,
@@ -148,7 +150,8 @@ begin
    gen_vga: if true generate -- G_SIMULATION = false  generate
       inst_vga_module : entity work.vga_module
       generic map (
-                     G_FONT_FILE  => G_FONT_FILE
+                     G_NEXYS4DDR => G_NEXYS4DDR,
+                     G_FONT_FILE => G_FONT_FILE
                   )
       port map (
          -- VGA Port

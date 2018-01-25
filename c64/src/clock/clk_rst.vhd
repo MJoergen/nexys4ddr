@@ -7,6 +7,7 @@ use ieee.std_logic_unsigned.all;
 entity clk_rst is
 
    generic (
+              G_NEXYS4DDR  : boolean;             -- True, when using the Nexys4DDR board.
               G_SIMULATION : boolean
            );
    port (
@@ -34,29 +35,39 @@ begin
    ------------------------------
 
 
-   gen_simulation: if G_SIMULATION = true  generate
-      vga_clk <= sys_clk_i;
+   gen_nexys4ddr : if G_NEXYS4DDR = true generate
+
+      gen_simulation: if G_SIMULATION = true  generate
+         vga_clk <= sys_clk_i;
+         cpu_clk <= sys_clk_i;
+      end generate gen_simulation;
+
+      gen_no_simulation: if G_SIMULATION = false  generate
+         inst_clk_wiz_vga : entity work.clk_wiz_vga
+         port map
+         (
+            clk_in1  => sys_clk_i,   -- 100 MHz
+            clk_out1 => vga_clk  -- 25 MHz
+         );
+
+         -- pragma synthesis_off
+         inst_clk_wiz_cpu : entity work.clk_wiz_cpu
+         port map
+         (
+            clk_in1  => sys_clk_i,   -- 100 MHz
+            clk_out1 => cpu_clk  -- 20 MHz
+         );
+         -- pragma synthesis_on
+         cpu_clk <= vga_clk;
+      end generate gen_no_simulation;
+
+   end generate gen_nexys4ddr;
+
+
+   gen_no_nexys4ddr : if G_NEXYS4DDR = false generate
       cpu_clk <= sys_clk_i;
-   end generate gen_simulation;
-
-   gen_no_simulation: if G_SIMULATION = false  generate
-      inst_clk_wiz_vga : entity work.clk_wiz_vga
-      port map
-      (
-         clk_in1  => sys_clk_i,   -- 100 MHz
-         clk_out1 => vga_clk  -- 25 MHz
-      );
-
-      -- pragma synthesis_off
-      inst_clk_wiz_cpu : entity work.clk_wiz_cpu
-      port map
-      (
-         clk_in1  => sys_clk_i,   -- 100 MHz
-         clk_out1 => cpu_clk  -- 20 MHz
-      );
-      -- pragma synthesis_on
-      cpu_clk <= vga_clk;
-   end generate gen_no_simulation;
+      vga_clk <= sys_clk_i;
+   end generate gen_no_nexys4ddr;
 
 
    ------------------------------

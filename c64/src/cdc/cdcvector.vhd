@@ -7,7 +7,8 @@ use ieee.std_logic_unsigned.all;
 entity cdcvector is
 
    generic (
-              G_SIZE : integer := 1
+              G_NEXYS4DDR : boolean;             -- True, when using the Nexys4DDR board.
+              G_SIZE      : integer := 1
            );
    port (
            -- The sender
@@ -29,32 +30,41 @@ architecture Structural of cdcvector is
 
 begin
 
-   ------------------------------
-   -- Synchronize in source clock domain
-   ------------------------------
+   gen_nexys4ddr : if G_NEXYS4DDR = true generate
 
-   p_rx : process (rx_clk_i)
-   begin
-      if rising_edge(rx_clk_i) then
-         rx_in_s <= rx_in_i;
-      end if;
-   end process p_rx;
+      ------------------------------
+      -- Synchronize in source clock domain
+      ------------------------------
+
+      p_rx : process (rx_clk_i)
+      begin
+         if rising_edge(rx_clk_i) then
+            rx_in_s <= rx_in_i;
+         end if;
+      end process p_rx;
 
 
-   --------------------
-   -- Synchronize in destinationn clock domain
-   --------------------
+      --------------------
+      -- Synchronize in destinationn clock domain
+      --------------------
 
-   p_tx : process (tx_clk_i)
-   begin
-      if rising_edge(tx_clk_i) then
-         tx_in_s <= rx_in_s;
-         tx_in_d_s <= tx_in_s;
-      end if;
-   end process p_tx;
+      p_tx : process (tx_clk_i)
+      begin
+         if rising_edge(tx_clk_i) then
+            tx_in_s <= rx_in_s;
+            tx_in_d_s <= tx_in_s;
+         end if;
+      end process p_tx;
 
-   -- Drive output signal
-   tx_out_o <= tx_in_d_s;
+      -- Drive output signal
+      tx_out_o <= tx_in_d_s;
+
+   end generate gen_nexys4ddr;
+
+
+   gen_no_nexys4ddr : if G_NEXYS4DDR = false generate
+      tx_out_o <= rx_in_i;
+   end generate gen_no_nexys4ddr;
 
 end architecture Structural;
 
