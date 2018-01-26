@@ -9,9 +9,6 @@ use ieee.STD_LOGIC_1164.ALL;
 use ieee.STD_LOGIC_UNSIGNED.ALL;
 
 entity hack_tb is
-   generic (
-      G_SIMULATION : boolean := true
-   );
 end hack_tb;
 
 architecture Structural of hack_tb is
@@ -51,7 +48,7 @@ begin
 
 
     -- Generate input switches
-    sw <= X"FFFF";
+    sw <= X"0000";
 
 
     -- Generate input buttons
@@ -61,7 +58,8 @@ begin
     -- Instantiate DUT
     inst_hack : entity work.hack
     generic map (
-       G_SIMULATION => G_SIMULATION 
+       G_SIMULATION => true,
+       G_NEXYS4DDR  => true
     )
     port map (
        sys_clk_i  => sys_clk,
