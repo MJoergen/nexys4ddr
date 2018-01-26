@@ -16,16 +16,16 @@ In parenthesis is given the name as it is used in the file ctl.vhd.
 1. (WR_SR). This controls what value is written into the Status Regiser.
    Currently, the status values are taken either from the ALU (during ordinary
    calculations) or from the Data input (during RTI).
+1. (MEM_WR). This controls the data written to memory. This can either be the
+   status register (during e.g. an Interrupt), or the register output (when
+   writing register to memory, e.g. STA), or it can be the Program Counter
+   during e.g. an interrupt.
 1. (WR_PC). This controls the update of the program counter. This can either be
    a simple increment by 1 (during normal instruction fetch), or it can be
    increment by a small value (i.e. during a branch relative), or finally it
    can be taken from data input during e.g. a JMP instruction.
 1. (WR_SP). This controls the update of the stack pointer. It is either
    increment with 1 (during e.g. PLA), or decrement with 1 (during e.g. PHA).
-1. (MEM_WR). This controls the data written to memory. This can either be the
-   status register (during e.g. an Interrupt), or the register output (when
-   writing register to memory, e.g. STA), or it can be the Program Counter
-   during e.g. an interrupt.
 1. (WR_ADDR). This controls the address written to memory. This can either be
    the program counter (during normal instruction fetch), or the address hold
    register (during a register read from or write to memory), or the stack
