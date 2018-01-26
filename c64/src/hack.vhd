@@ -178,7 +178,8 @@ begin
       );
    end generate gen_vga;
 
-   led_o(7 downto 0) <= (others => '0');
+   led_o(7 downto 1) <= (others => '0');
+   led_o(0) <= cpu_clk;
 
    ------------------------------
    -- Instantiate ROM
