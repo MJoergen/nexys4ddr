@@ -2545,7 +2545,7 @@ begin
    end process;
 
    -- Drive output signals
-   debug_o( 7 downto 0) <= inst_r;
+   debug_o( 7 downto 0) <= data_i when cnt_r = 0 else inst_r;
    debug_o(10 downto 8) <= cnt_r;
 
    wr_reg_o       <= ctl( 4 downto  0);
