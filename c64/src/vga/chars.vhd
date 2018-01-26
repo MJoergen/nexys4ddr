@@ -207,7 +207,7 @@ begin
                              10);
 
          -- INST
-         if stage2.char_y = C_DEBUG_POSY+C_INST_NUM and
+         if char_y_v = C_DEBUG_POSY+C_INST_NUM and
             stage2.char_x >= C_DEBUG_POSX and stage2.char_x < C_DEBUG_POSX+8 then
 
             stage3.inst_addr(10 downto 3) <= stage2.status(16*C_INST_NUM + 7 downto 16*C_INST_NUM);
@@ -344,7 +344,7 @@ begin
          if stage7.pix = '1' then
             stage8.col <= col8to12(config_i(80*8 + 7 downto 80*8));
          else
-            stage8.col <= col8to12(config_i(88*8 + 7 downto 88*8));
+            stage8.col <= col8to12(config_i(81*8 + 7 downto 81*8));
          end if;
 
          if stage7.blank = '1' then
