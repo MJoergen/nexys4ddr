@@ -5,7 +5,7 @@
 -- The font memory is placed in a 12->8 ROM.
 --
 -- In order to calculate the character and pixel row, the y coordinate must
--- be divided by 13. This is handled by a 8->9 RAM, where the address is the 
+-- be divided by 13. This is handled by an 8->9 ROM, where the address is the 
 -- y coordinate (pixel 0 to 233) and the data is 5 bits of quotient (character row 0
 -- to 17) and 4 bits of remainder (pixel row 0 to 12).
 -- The address into the character memory is then calculated as 40*row + col.
@@ -18,28 +18,28 @@ use ieee.std_logic_arith.all;
 
 entity chars is
    port (
-      clk_i    : in  std_logic;
+      clk_i       : in  std_logic;
 
-      hcount_i : in  std_logic_vector(10 downto 0);
-      vcount_i : in  std_logic_vector(10 downto 0);
-      hsync_i  : in  std_logic;
-      vsync_i  : in  std_logic;
-      blank_i  : in  std_logic;
+      hcount_i    : in  std_logic_vector(10 downto 0);
+      vcount_i    : in  std_logic_vector(10 downto 0);
+      hsync_i     : in  std_logic;
+      vsync_i     : in  std_logic;
+      blank_i     : in  std_logic;
 
-      config_i : in  std_logic_vector(128*8-1 downto 0);
-      status_i : in  std_logic_vector(127 downto 0);
+      config_i    : in  std_logic_vector(128*8-1 downto 0);
+      status_i    : in  std_logic_vector(127 downto 0);
 
-      disp_addr_o : out std_logic_vector(9 downto 0);
-      disp_data_i : in  std_logic_vector(7 downto 0);
+      disp_addr_o : out std_logic_vector( 9 downto 0);
+      disp_data_i : in  std_logic_vector( 7 downto 0);
 
       font_addr_o : out std_logic_vector(11 downto 0);
-      font_data_i : in  std_logic_vector(7 downto 0);
+      font_data_i : in  std_logic_vector( 7 downto 0);
 
-      hcount_o : out std_logic_vector(10 downto 0);
-      vcount_o : out std_logic_vector(10 downto 0);
-      hsync_o  : out std_logic;
-      vsync_o  : out std_logic;
-      col_o    : out std_logic_vector(11 downto 0)
+      hcount_o    : out std_logic_vector(10 downto 0);
+      vcount_o    : out std_logic_vector(10 downto 0);
+      hsync_o     : out std_logic;
+      vsync_o     : out std_logic;
+      col_o       : out std_logic_vector(11 downto 0)
    );
 end chars;
 
@@ -60,6 +60,7 @@ architecture Behavioral of chars is
       "    SR_A",
       "     X_Y",
       "      SP");
+   constant C_INST_NUM : integer := 4; -- Index into C_NAMES corresponding to "INST".
  
 
    -- Convert colour from 8-bit format to 12-bit format
@@ -68,41 +69,43 @@ architecture Behavioral of chars is
       return arg(7 downto 5) & "0" & arg(4 downto 2) & "0" & arg(1 downto 0) & "00";
    end function col8to12;
 
-   -- This employs a five stage pipeline in order to improve timing.
+   -- This employs an eight stage pipeline in order to improve timing.
    type t_stage is record
       hsync     : std_logic;                       -- valid in all stages
       vsync     : std_logic;                       -- valid in all stages
-      hcount    : std_logic_vector(10 downto 0);   -- valid in all stages
-      vcount    : std_logic_vector(10 downto 0);   -- valid in all stages
+      hcount    : std_logic_vector( 10 downto 0);  -- valid in all stages
+      vcount    : std_logic_vector( 10 downto 0);  -- valid in all stages
       blank     : std_logic;                       -- valid in all stages
       status    : std_logic_vector(127 downto 0);  -- Valid in stage 1
-      char_x    : std_logic_vector(5 downto 0);    -- valid in stage 2 (0 - 39)
-      char_y    : std_logic_vector(4 downto 0);    -- valid in stage 2 (0 - 17)
-      pix_x     : std_logic_vector(2 downto 0);    -- valid in stage 2 (0 - 7)
-      pix_y     : std_logic_vector(3 downto 0);    -- valid in stage 2 (0 - 12)
-      char_addr : std_logic_vector(9 downto 0);
-      nibble    : std_logic_vector(3 downto 0);
-      font_addr : std_logic_vector(11 downto 0);
+      char_x    : std_logic_vector(  5 downto 0);  -- valid in stage 2 (0 - 39)
+      char_y    : std_logic_vector(  4 downto 0);  -- valid in stage 2 (0 - 17)
+      pix_x     : std_logic_vector(  2 downto 0);  -- valid in stage 2 (0 - 7)
+      pix_y     : std_logic_vector(  3 downto 0);  -- valid in stage 2 (0 - 12)
+      char_addr : std_logic_vector(  9 downto 0);
+      inst_addr : std_logic_vector( 10 downto 0);
+      nibble    : std_logic_vector(  3 downto 0);
+      font_addr : std_logic_vector( 11 downto 0);
       pix       : std_logic;
-      col       : std_logic_vector(11 downto 0);   -- valid in stage 5
+      col       : std_logic_vector( 11 downto 0);  -- valid in stage 5
    end record t_stage;
 
    constant STAGE_DEFAULT : t_stage := (
-      hsync  => '0',
-      vsync  => '0',
-      hcount => (others => '0'),
-      vcount => (others => '0'),
-      blank  => '1',
-      status => (others => '0'),
-      char_x => (others => '0'),
-      char_y => (others => '0'),
-      pix_x  => (others => '0'),
-      pix_y  => (others => '0'),
+      hsync     => '0',
+      vsync     => '0',
+      hcount    => (others => '0'),
+      vcount    => (others => '0'),
+      blank     => '1',
+      status    => (others => '0'),
+      char_x    => (others => '0'),
+      char_y    => (others => '0'),
+      pix_x     => (others => '0'),
+      pix_y     => (others => '0'),
       char_addr => (others => '0'),
+      inst_addr => (others => '0'),
       nibble    => (others => '0'),
       font_addr => (others => '0'),
-      pix    => '0',
-      col    => (others => '0')
+      pix       => '0',
+      col       => (others => '0')
    );
 
    signal stage0 : t_stage := STAGE_DEFAULT;
@@ -117,6 +120,7 @@ architecture Behavioral of chars is
 
    signal stage2_divmod13  : std_logic_vector(8 downto 0);
    signal stage4_char_val  : std_logic_vector(7 downto 0);
+   signal stage4_inst_val  : std_logic_vector(7 downto 0);
    signal stage6_row       : std_logic_vector(7 downto 0);
      
 begin
@@ -201,8 +205,31 @@ begin
          stage3.char_addr <= conv_std_logic_vector(
                              conv_integer(char_y_v)*40 + conv_integer(stage2.char_x),
                              10);
+
+         -- INST
+         if stage2.char_y = C_DEBUG_POSY+C_INST_NUM and
+            stage2.char_x >= C_DEBUG_POSX and stage2.char_x < C_DEBUG_POSX+8 then
+
+            stage3.inst_addr(10 downto 3) <= stage2.status(16*C_INST_NUM + 7 downto 16*C_INST_NUM);
+            stage3.inst_addr( 2 downto 0) <= stage2.char_x - C_DEBUG_POSX;
+         end if;
       end if;
    end process p_stage3;
+
+
+   i_opcodes_rom : entity work.rom_file
+   generic map (
+                  G_RD_CLK_RIS => true,
+                  G_ADDR_SIZE  => 11,
+                  G_DATA_SIZE  => 8,
+                  G_ROM_FILE   => "opcodes.txt"
+               )
+   port map (
+               clk_i  => clk_i,
+               addr_i => stage3.inst_addr,
+               rden_i => '1',
+               data_o => stage4_inst_val
+            );
 
 
    ----------------------------------------------------------
@@ -238,8 +265,8 @@ begin
 
    p_stage5 : process (clk_i) is
       variable char_val_v : std_logic_vector(7 downto 0);
-      variable row_v : integer range 0 to 7;
-      variable col_v : integer range 0 to 7;
+      variable row_v  : integer range 0 to 7;
+      variable col_v  : integer range 0 to 7;
    begin
       if rising_edge(clk_i) then
          stage5 <= stage4;
@@ -260,6 +287,13 @@ begin
             col_v := conv_integer(stage4.char_x - C_DEBUG_POSX);
             char_val_v := conv_std_logic_vector(character'pos(C_NAMES(row_v)(col_v)), 8);
             stage5.font_addr <= char_val_v & stage4.pix_y;
+         end if;
+
+         -- INST
+         if stage4.char_y = C_DEBUG_POSY+C_INST_NUM and
+            stage4.char_x >= C_DEBUG_POSX and stage4.char_x < C_DEBUG_POSX+8 then
+
+            stage5.font_addr <= stage4_inst_val & stage4.pix_y;
          end if;
 
       end if;
