@@ -223,7 +223,7 @@ begin
          stage4 <= stage3;
          if stage3.char_y >= C_DEBUG_POSY   and stage3.char_y < C_DEBUG_POSY+8 and
             stage3.char_x >= C_DEBUG_POSX+9 and stage3.char_x < C_DEBUG_POSX+13 then
-            char_x_v     := conv_integer(stage3.char_x - C_DEBUG_POSX - 9);
+            char_x_v     := conv_integer(stage3.char_x - (C_DEBUG_POSX + 9));
             char_y_v     := conv_integer(stage3.char_y - C_DEBUG_POSY);
             nibble_idx_v := char_y_v*4 + 3-char_x_v;
             stage4.nibble <= stage3.status(nibble_idx_v*4 + 3 downto nibble_idx_v*4);
