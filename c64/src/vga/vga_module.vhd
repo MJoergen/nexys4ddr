@@ -285,7 +285,7 @@ begin
       col_o         => vga_sprite_col
    );
 
-   debug_o <=  vga_config(16 downto 9);
+   debug_o <=  vga_config(23 downto 16);
 
    -----------------------
    -- Drive output signals
