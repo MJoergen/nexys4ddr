@@ -211,7 +211,7 @@ begin
             stage2.char_x >= C_DEBUG_POSX and stage2.char_x < C_DEBUG_POSX+8 then
 
             stage3.inst_addr(10 downto 3) <= stage2.status(16*C_INST_NUM + 7 downto 16*C_INST_NUM);
-            stage3.inst_addr( 2 downto 0) <= stage2.char_x - C_DEBUG_POSX;
+            stage3.inst_addr( 2 downto 0) <= stage2.char_x(2 downto 0) - C_DEBUG_POSX;
          end if;
       end if;
    end process p_stage3;
