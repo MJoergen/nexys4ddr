@@ -13,6 +13,8 @@ entity clk_rst is
    port (
            sys_clk_i  : in  std_logic;
            sys_rstn_i : in  std_logic;
+           sys_mode_i : in  std_logic;    -- Select CPU clock between system and single step.
+           sys_step_i : in  std_logic;
            cpu_rst_o  : out std_logic;
            vga_rst_o  : out std_logic;
            cpu_clk_o  : out std_logic;
@@ -23,12 +25,27 @@ end entity clk_rst;
 
 architecture Structural of clk_rst is
 
-   signal cpu_rst : std_logic := '1';
-   signal vga_rst : std_logic := '1';
-   signal cpu_clk : std_logic;
-   signal vga_clk : std_logic;
+   signal cpu_rst      : std_logic := '1';
+   signal vga_rst      : std_logic := '1';
+   signal cpu_clk      : std_logic;
+   signal vga_clk      : std_logic;
+   signal cpu_clk_step : std_logic;
 
 begin
+
+   ------------------------------
+   -- Instantiate Debounce
+   ------------------------------
+
+   inst_debounce : entity work.debounce
+   port map (
+      clk_i => cpu_clk,
+
+      in_i  => sys_step_i,
+      out_o => cpu_clk_step
+   );
+
+
 
    ------------------------------
    -- Generate clocks. Speed up simulation by skipping the MMCME2_ADV
@@ -95,8 +112,9 @@ begin
 
    cpu_rst_o <= cpu_rst;
    vga_rst_o <= vga_rst;
-   cpu_clk_o <= cpu_clk;
    vga_clk_o <= vga_clk;
+
+   cpu_clk_o <= cpu_clk when sys_mode_i = '0' else cpu_clk_step;
 
 end architecture Structural;
 

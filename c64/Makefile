@@ -5,6 +5,7 @@ TOP = hack
 SRC  = src/$(TOP).vhd
 
 # Clocks
+SRC += src/clock/debounce.vhd
 SRC += src/clock/clk_wiz_vga.vhd
 SRC += src/clock/clk_wiz_vga_clk_wiz.vhd
 SRC += src/clock/clk_wiz_cpu.vhd

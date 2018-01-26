@@ -105,6 +105,8 @@ begin
    port map (
       sys_clk_i  => sys_clk_i,
       sys_rstn_i => sys_rstn_i,
+      sys_mode_i => sw_i(0),
+      sys_step_i => btn_i(0),
       cpu_rst_o  => cpu_rst,
       vga_rst_o  => vga_rst,
       cpu_clk_o  => cpu_clk,
