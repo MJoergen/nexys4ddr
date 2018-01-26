@@ -37,62 +37,64 @@ architecture Behavioral of bitmaps_mem is
       return res;
    end function reverse;
 
-   -- Bitmaps are stored in two parallel BRAMs, with 2 address bits to select
-   -- sprite, and 4 address bits to select row in sprite (0 - 15).
-   type t_bitmaps is array (0 to 63) of std_logic_vector(7 downto 0);
-
-   signal bitmaps_lo : t_bitmaps := (others => (others => '0'));  -- Bitmap data
-   signal bitmaps_hi : t_bitmaps := (others => (others => '0'));  -- Bitmap data
-
    signal cpu_data_hi : std_logic_vector(7 downto 0);
    signal cpu_data_lo : std_logic_vector(7 downto 0);
 
    signal vga_data_hi : std_logic_vector(7 downto 0);
    signal vga_data_lo : std_logic_vector(7 downto 0);
 
+   signal cpu_wren_hi : std_logic;
+   signal cpu_wren_lo : std_logic;
+
 begin
 
-   -- VGA port. This has to be registered in order to make it into a Block RAM.
-   process (vga_clk_i)
-   begin
-      if rising_edge(vga_clk_i) then
-         vga_data_hi <= bitmaps_hi(conv_integer(vga_addr_i));
-         vga_data_lo <= bitmaps_lo(conv_integer(vga_addr_i));
-      end if;
-   end process;
+   cpu_wren_hi <= '1' when (cpu_addr_i(0) = '1') and cpu_wren_i = '1' and cpu_addr_i(8 downto 7) = "00" else '0';
+   cpu_wren_lo <= '1' when (cpu_addr_i(0) = '0') and cpu_wren_i = '1' and cpu_addr_i(8 downto 7) = "00" else '0';
+
+   inst_mem_hi : entity work.mem
+   generic map (
+                  G_ADDR_SIZE => 6,
+                  G_DATA_SIZE => 8
+               )
+   port map (
+      -- Port A @ cpu_clk_i
+      a_clk_i    => cpu_clk_i,
+      a_addr_i   => cpu_addr_i(6 downto 1),
+      a_wren_i   => cpu_wren_hi,
+      a_wrdata_i => cpu_data_i,
+      a_rden_i   => cpu_rden_i,
+      a_rddata_o => cpu_data_hi,
+
+      -- Port B @ vga_clk_i
+      b_clk_i   => vga_clk_i,
+      b_addr_i  => vga_addr_i,
+      b_rden_i  => '1',
+      b_data_o  => vga_data_hi
+   );
+
+   inst_mem_lo : entity work.mem
+   generic map (
+                  G_ADDR_SIZE => 6,
+                  G_DATA_SIZE => 8
+               )
+   port map (
+      -- Port A @ cpu_clk_i
+      a_clk_i    => cpu_clk_i,
+      a_addr_i   => cpu_addr_i(6 downto 1),
+      a_wren_i   => cpu_wren_lo,
+      a_wrdata_i => cpu_data_i,
+      a_rden_i   => cpu_rden_i,
+      a_rddata_o => cpu_data_lo,
+
+      -- Port B @ vga_clk_i
+      b_clk_i   => vga_clk_i,
+      b_addr_i  => vga_addr_i,
+      b_rden_i  => '1',
+      b_data_o  => vga_data_lo
+   );
 
    vga_data_o <= reverse(vga_data_hi) & reverse(vga_data_lo);
 
-
-   -- CPU port
-   process (cpu_clk_i)
-      variable index_v : integer range 0 to 63;
-   begin
-      if rising_edge(cpu_clk_i) then
-         index_v := conv_integer(cpu_addr_i(6 downto 1));
-
-         if cpu_wren_i = '1' and cpu_addr_i(8 downto 7) = "00" then
-            case cpu_addr_i(0) is
-               when '0' => bitmaps_lo(index_v) <= cpu_data_i;
-               when '1' => bitmaps_hi(index_v) <= cpu_data_i;
-               when others => null;
-            end case;
-         end if;
-      end if;
-   end process;
-
-   process (cpu_clk_i)
-      variable index_v : integer range 0 to 63;
-   begin
-      if falling_edge(cpu_clk_i) then
-         index_v := conv_integer(cpu_addr_i(6 downto 1));
-
-         if cpu_rden_i = '1' and cpu_addr_i(8 downto 7) = "00" then
-            cpu_data_lo <= bitmaps_lo(index_v);
-            cpu_data_hi <= bitmaps_hi(index_v);
-         end if;
-      end if;
-   end process;
 
    cpu_data_o <= cpu_data_hi when cpu_addr_i(0) = '1' else
                  cpu_data_lo;
