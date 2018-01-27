@@ -89,6 +89,7 @@ architecture Structural of hack is
    -- Signals connected to the keyboard
    signal cpu_key_rden : std_logic;
    signal cpu_key_val  : std_logic_vector(7 downto 0);
+   signal cpu_keyboard_debug : std_logic_vector(63 downto 0);
 
    -------------------
    -- VGA clock domain
@@ -181,6 +182,7 @@ begin
          cpu_status_i   => cpu_debug,
          cpu_key_rden_o => cpu_key_rden,
          cpu_key_val_i  => cpu_key_val,
+         cpu_keyboard_debug_i => cpu_keyboard_debug,
 
          debug_o      => open
       );
@@ -264,7 +266,8 @@ begin
       ps2_data_i => ps2_data_i,
 
       rden_i     => cpu_key_rden,
-      val_o      => cpu_key_val
+      val_o      => cpu_key_val,
+      debug_o    => cpu_keyboard_debug
    );
 
 

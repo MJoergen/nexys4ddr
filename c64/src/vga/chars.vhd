@@ -28,6 +28,7 @@ entity chars is
 
       config_i    : in  std_logic_vector(128*8-1 downto 0);
       status_i    : in  std_logic_vector(127 downto 0);
+      keyboard_i  : in  std_logic_vector(63 downto 0);
 
       disp_addr_o : out std_logic_vector( 9 downto 0);
       disp_data_i : in  std_logic_vector( 7 downto 0);
@@ -45,7 +46,7 @@ end chars;
 
 architecture Behavioral of chars is
 
-   constant C_DEBUG_POSX : integer := 20;
+   constant C_DEBUG_POSX : integer := 10;
    constant C_DEBUG_POSY : integer :=  5;
 
    type string_t is array (0 to 7) of character;
@@ -77,6 +78,7 @@ architecture Behavioral of chars is
       vcount    : std_logic_vector( 10 downto 0);  -- valid in all stages
       blank     : std_logic;                       -- valid in all stages
       status    : std_logic_vector(127 downto 0);  -- Valid in stage 1
+      keyboard  : std_logic_vector( 63 downto 0);
       char_x    : std_logic_vector(  5 downto 0);  -- valid in stage 2 (0 - 39)
       char_y    : std_logic_vector(  4 downto 0);  -- valid in stage 2 (0 - 17)
       pix_x     : std_logic_vector(  2 downto 0);  -- valid in stage 2 (0 - 7)
@@ -96,6 +98,7 @@ architecture Behavioral of chars is
       vcount    => (others => '0'),
       blank     => '1',
       status    => (others => '0'),
+      keyboard  => (others => '0'),
       char_x    => (others => '0'),
       char_y    => (others => '0'),
       pix_x     => (others => '0'),
@@ -147,8 +150,9 @@ begin
          stage1.vcount <= stage0.vcount - 6;
          stage1.blank  <= stage0.blank;
          if (stage0.vcount < 6 or stage0.vcount >= 13*18*2 + 6) then
-            stage1.blank  <= '1';
-            stage1.status <= status_i;
+            stage1.blank    <= '1';
+            stage1.status   <= status_i;
+            stage1.keyboard <= keyboard_i;
          end if;
       end if;
    end process p_stage1;
@@ -255,6 +259,14 @@ begin
             nibble_idx_v := char_y_v*4 + 3-char_x_v;
             stage4.nibble <= stage3.status(nibble_idx_v*4 + 3 downto nibble_idx_v*4);
          end if;
+
+         if stage3.char_y >= C_DEBUG_POSY    and stage3.char_y < C_DEBUG_POSY+8 and
+            stage3.char_x >= C_DEBUG_POSX+16 and stage3.char_x < C_DEBUG_POSX+18 then
+            char_x_v     := conv_integer(stage3.char_x - (C_DEBUG_POSX + 16));
+            char_y_v     := conv_integer(stage3.char_y - C_DEBUG_POSY);
+            nibble_idx_v := char_y_v*2 + 1-char_x_v;
+            stage4.nibble <= stage3.keyboard(nibble_idx_v*4 + 3 downto nibble_idx_v*4);
+         end if;
       end if;
    end process p_stage4;
 
@@ -274,6 +286,15 @@ begin
 
          if stage4.char_y >= C_DEBUG_POSY   and stage4.char_y < C_DEBUG_POSY+8 and
             stage4.char_x >= C_DEBUG_POSX+9 and stage4.char_x < C_DEBUG_POSX+13 then
+            char_val_v := stage4.nibble + X"30";
+            if stage4.nibble > 9 then
+               char_val_v := stage4.nibble + X"41" - X"0A";
+            end if;
+            stage5.font_addr <= char_val_v & stage4.pix_y;
+         end if;
+
+         if stage4.char_y >= C_DEBUG_POSY   and stage4.char_y < C_DEBUG_POSY+8 and
+            stage4.char_x >= C_DEBUG_POSX+16 and stage4.char_x < C_DEBUG_POSX+18 then
             char_val_v := stage4.nibble + X"30";
             if stage4.nibble > 9 then
                char_val_v := stage4.nibble + X"41" - X"0A";

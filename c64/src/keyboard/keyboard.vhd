@@ -12,7 +12,8 @@ entity keyboard is
       ps2_data_i : in  std_logic;
 
       rden_i     : in  std_logic;
-      val_o      : out std_logic_vector(7 downto 0)
+      val_o      : out std_logic_vector(7 downto 0);
+      debug_o    : out std_logic_vector(63 downto 0)
    );
 end keyboard;
 
@@ -39,7 +40,7 @@ begin
 
    inst_bytefifo : entity work.bytefifo
    generic map (
-      SIZE => 16
+      SIZE => 8
    )
    port map (
       -- Clock
@@ -50,7 +51,9 @@ begin
       val_i  => key,
 
       rden_i => rden_i,
-      val_o  => val_o
+      val_o  => val_o,
+
+      debug_o => debug_o
    );
 
 end Structural;

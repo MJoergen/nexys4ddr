@@ -114,7 +114,7 @@ begin
             data_o <= config(8*index_v + 7 downto 8*index_v);
 
             if index_v = 6*16 then  -- 0x8660
-               data_o <= key_val_i;
+               data_o     <= key_val_i;
                key_rden_o <= '1';
             end if;
          end if;

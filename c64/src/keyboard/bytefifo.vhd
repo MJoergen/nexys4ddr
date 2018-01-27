@@ -20,7 +20,9 @@ entity bytefifo is
       val_i  : in  std_logic_vector(7 downto 0);
 
       rden_i : in  std_logic;
-      val_o  : out std_logic_vector(7 downto 0)
+      val_o  : out std_logic_vector(7 downto 0);
+
+      debug_o : out std_logic_vector(63 downto 0)
    );
 end bytefifo;
 
@@ -31,6 +33,8 @@ architecture Structural of bytefifo is
    signal wrptr_r : integer range 0 to SIZE-1 := 0;
 
 begin
+
+   debug_o <= fifo_r(63 downto 0);
 
    p_rdptr : process (clk_i)
    begin

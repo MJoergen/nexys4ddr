@@ -50,6 +50,7 @@ entity vga_module is
       cpu_status_i   : in  std_logic_vector(127 downto 0);
       cpu_key_rden_o : out std_logic;
       cpu_key_val_i  : in  std_logic_vector(7 downto 0);
+      cpu_keyboard_debug_i : in  std_logic_vector(63 downto 0);
 
       debug_o      : out std_logic_vector(7 downto 0)
    );
@@ -114,6 +115,7 @@ architecture Structural of vga_module is
    signal cpu_config : std_logic_vector(128*8-1 downto 0);
    signal cpu_sync   : std_logic;
    signal vga_status : std_logic_vector(127 downto 0);
+   signal vga_keyboard_debug : std_logic_vector(63 downto 0);
 
 begin
 
@@ -226,6 +228,7 @@ begin
 
       config_i    => vga_config,
       status_i    => vga_status,
+      keyboard_i  => vga_keyboard_debug,
 
       disp_addr_o => vga_char_disp_addr,
       disp_data_i => vga_char_disp_data,
@@ -337,6 +340,24 @@ begin
       tx_clk_i => vga_clk_i,
       tx_out_o => vga_status
    );
+
+   -- Synchronize keyboard fifo
+   -- from CPU to VGA clock domain.
+   inst_cdc_keyboard : entity work.cdcvector
+   generic map (
+      G_NEXYS4DDR => G_NEXYS4DDR,
+      G_SIZE      => 64
+   )
+   port map (
+      -- The sender
+      rx_clk_i => cpu_clk_i,
+      rx_in_i  => cpu_keyboard_debug_i,
+
+      -- The receiver
+      tx_clk_i => vga_clk_i,
+      tx_out_o => vga_keyboard_debug
+   );
+
 
    -- Synchronize Sprite configuration data
    -- from CPU to VGA clock domain.
