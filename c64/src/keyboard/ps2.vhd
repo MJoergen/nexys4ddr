@@ -13,6 +13,7 @@ entity ps2 is
    port (
       -- Clock
       clk_i      : in  std_logic;
+      rst_i      : in  std_logic;
 
       ps2_clk_i  : in  std_logic;
       ps2_data_i : in  std_logic;
@@ -75,6 +76,10 @@ begin
             else
                cnt <= 0;
             end if;
+         end if;
+
+         if rst_i = '1' then
+            cnt <= 0;
          end if;
       end if;
    end process p_cnt;

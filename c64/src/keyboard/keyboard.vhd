@@ -29,6 +29,7 @@ begin
    inst_ps2 : entity work.ps2
    port map (
       clk_i      => clk_i,
+      rst_i      => rst_i,
 
       ps2_clk_i  => ps2_clk_i,
       ps2_data_i => ps2_data_i,
