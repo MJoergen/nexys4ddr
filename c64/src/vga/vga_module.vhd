@@ -46,8 +46,10 @@ entity vga_module is
       cpu_wren_i   : in  std_logic;
       cpu_data_i   : in  std_logic_vector(7 downto 0);
       --
-      cpu_irq_o    : out std_logic;
-      cpu_status_i : in  std_logic_vector(127 downto 0);
+      cpu_irq_o      : out std_logic;
+      cpu_status_i   : in  std_logic_vector(127 downto 0);
+      cpu_key_rden_o : out std_logic;
+      cpu_key_val_i  : in  std_logic_vector(7 downto 0);
 
       debug_o      : out std_logic_vector(7 downto 0)
    );
@@ -372,8 +374,10 @@ begin
       --
       config_o => cpu_config,
       --
-      sync_i  => cpu_sync,
-      irq_o   => cpu_irq_o
+      sync_i     => cpu_sync,
+      irq_o      => cpu_irq_o,
+      key_rden_o => cpu_key_rden_o,
+      key_val_i  => cpu_key_val_i  
    );
 
 

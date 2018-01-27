@@ -137,6 +137,7 @@ With ad-bc = 1 we see that the quadratic form is indeed invariant.
 #define VGA_MASK        0x8642
 #define VGA_FGCOL       0x8650
 #define VGA_BGCOL       0x8651
+#define VGA_KEY         0x8660
 
 
 // Entry point after CPU reset
@@ -268,6 +269,11 @@ void __fastcall__ reset(void)
 
    // Loop forever doing nothing
 here:
+   __asm__("LDA %w", VGA_KEY);
+   __asm__("BEQ %g", here);   // Wait until key pressed
+
+   __asm__("STA %w", VGA_SCREEN+90);
+
    goto here;  // Just do an endless loop. Everything is run from the IRQ.
 } // end of reset
 

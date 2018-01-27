@@ -34,6 +34,7 @@
 --              0x8642 :            IRQ mask   (bit 0 : Y-line interrupt)
 --              0x8650 :            Char foreground color
 --              0x8651 :            Char background color
+--              0x8660 :            Keyboard
 --
 -- This whole block is implemented as 0x0080 bytes of LUT RAM.
 -- All decoding is done by the user of this block.
@@ -60,8 +61,10 @@ entity conf_stat is
       --
       config_o : out std_logic_vector(128*8-1 downto 0);
       --
-      sync_i   : in  std_logic;
-      irq_o    : out std_logic
+      sync_i     : in  std_logic;
+      irq_o      : out std_logic;
+      key_rden_o : out std_logic;
+      key_val_i  : in  std_logic_vector(7 downto 0)
    );
 end conf_stat;
 
@@ -105,9 +108,15 @@ begin
       variable index_v : integer range 0 to 127;
    begin
       if falling_edge(clk_i) then
+         key_rden_o <= '0';
          if rden_i = '1' then
             index_v := conv_integer(addr_i(6 downto 0));
             data_o <= config(8*index_v + 7 downto 8*index_v);
+
+            if index_v = 6*16 then  -- 0x8660
+               data_o <= key_val_i;
+               key_rden_o <= '1';
+            end if;
          end if;
       end if;
    end process p_read;

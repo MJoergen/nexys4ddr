@@ -36,7 +36,10 @@ SRC += src/mem/cs.vhd
 SRC += src/cdc/cdcpulse.vhd
 SRC += src/cdc/cdcvector.vhd
 
-SRC += src/ps2.vhd
+# Keyboard
+SRC += src/keyboard/ps2.vhd
+SRC += src/keyboard/bytefifo.vhd
+SRC += src/keyboard/keyboard.vhd
 
 # Machine code
 #PROG_SRC    = src/prog/circle.c

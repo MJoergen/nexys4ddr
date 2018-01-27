@@ -86,6 +86,9 @@ architecture Structural of hack is
    signal cpu_rddata_ram : std_logic_vector(7 downto 0);
    signal cpu_rddata_vga : std_logic_vector(7 downto 0);
 
+   -- Signals connected to the keyboard
+   signal cpu_key_rden : std_logic;
+   signal cpu_key_val  : std_logic_vector(7 downto 0);
 
    -------------------
    -- VGA clock domain
@@ -93,9 +96,6 @@ architecture Structural of hack is
 
    signal vga_clk   : std_logic;
    signal vga_rst   : std_logic;
-
-
-   signal key : std_logic_vector(31 downto 0);
 
 begin
 
@@ -170,34 +170,22 @@ begin
          vga_col_o => vga_col_o,
 
          -- CPU Port
-         cpu_clk_i    => cpu_clk,
-         cpu_rst_i    => cpu_rst,
-         cpu_addr_i   => cpu_addr(10 downto 0),   -- 11 bit = 0x0800 size.
-         cpu_rden_i   => cpu_rden_vga,
-         cpu_data_o   => cpu_rddata_vga,
-         cpu_wren_i   => cpu_wren_vga,
-         cpu_data_i   => cpu_wrdata,
-         cpu_irq_o    => cpu_irq_vga,
-         cpu_status_i => cpu_debug,
+         cpu_clk_i      => cpu_clk,
+         cpu_rst_i      => cpu_rst,
+         cpu_addr_i     => cpu_addr(10 downto 0),   -- 11 bit = 0x0800 size.
+         cpu_rden_i     => cpu_rden_vga,
+         cpu_data_o     => cpu_rddata_vga,
+         cpu_wren_i     => cpu_wren_vga,
+         cpu_data_i     => cpu_wrdata,
+         cpu_irq_o      => cpu_irq_vga,
+         cpu_status_i   => cpu_debug,
+         cpu_key_rden_o => cpu_key_rden,
+         cpu_key_val_i  => cpu_key_val,
 
          debug_o      => open
       );
    end generate gen_vga;
 
-   inst_ps2 : entity work.ps2
-   port map (
-      sys_clk_i  => sys_clk_i,
-
-      ps2_clk_i  => ps2_clk_i,
-      ps2_data_i => ps2_data_i,
-      key_o      => key
-   );
-
-   led_o <= key(15 downto 0);
-
-
---   led_o(7 downto 1) <= (others => '0');
---   led_o(0) <= cpu_clk;
 
    ------------------------------
    -- Instantiate ROM
@@ -264,8 +252,21 @@ begin
    );
 
 
-   -- Dump Program Counter to LED's
-   --led_o <= cpu_debug(47 downto 32);
+   ---------------------------
+   -- Instantiate the keyboard
+   ---------------------------
+   inst_keyboard : entity work.keyboard
+   port map (
+      clk_i      => cpu_clk,
+      rst_i      => cpu_rst,
+
+      ps2_clk_i  => ps2_clk_i,
+      ps2_data_i => ps2_data_i,
+
+      rden_i     => cpu_key_rden,
+      val_o      => cpu_key_val
+   );
+
 
 end Structural;
 
