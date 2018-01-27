@@ -1,3 +1,6 @@
+src/keyboard/ps2.vhd
+src/keyboard/bytefifo.vhd
+src/keyboard/keyboard.vhd
 src/cdc/cdcpulse.vhd
 src/cdc/cdcvector.vhd
 src/clock/debounce.vhd
