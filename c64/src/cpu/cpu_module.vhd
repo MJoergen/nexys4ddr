@@ -259,7 +259,7 @@ begin
          end if;
 
          if rst_i = '1' then
-            reg_sr <= X"00";
+            reg_sr <= X"04";              -- Interrupts are disabled after reset.
          end if;
       end if;
    end process p_sr;
