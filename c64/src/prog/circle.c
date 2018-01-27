@@ -134,6 +134,7 @@ With ad-bc = 1 we see that the quadratic form is indeed invariant.
 #define VGA_0_ENABLE    0x8604
 #define VGA_IRQ         0x8640
 #define VGA_YLINE       0x8641
+#define VGA_MASK        0x8642
 #define VGA_FGCOL       0x8650
 #define VGA_BGCOL       0x8651
 
@@ -260,6 +261,8 @@ void __fastcall__ reset(void)
    // Configure interrupt at end of line 0
    __asm__("LDA #$00");
    __asm__("STA %w", VGA_YLINE);
+   __asm__("LDA #$01");
+   __asm__("STA %w", VGA_MASK);
    // Enable interrupts.
    __asm__("CLI");
 

@@ -31,6 +31,7 @@
 --
 --              0x8640 :            IRQ status (bit 0 : Y-line interrupt)
 --              0x8641 :            Y-line
+--              0x8642 :            IRQ mask   (bit 0 : Y-line interrupt)
 --              0x8650 :            Char foreground color
 --              0x8651 :            Char background color
 --
@@ -125,7 +126,7 @@ begin
             irq_latch <= '0';
          end if;
 
-         if sync_i = '1' then
+         if sync_i = '1' and config(66*8) = '1' then  -- IRQ Mask
             irq_latch <= '1';
          end if;
 
