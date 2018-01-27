@@ -67,6 +67,8 @@ begin
        vga_hs_o   => vga_hs,
        vga_vs_o   => vga_vs,
        vga_col_o  => vga_col,
+       ps2_clk_i  => '1',
+       ps2_data_i => '1',
        sw_i       => sw,
        btn_i      => btn
     );

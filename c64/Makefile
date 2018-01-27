@@ -36,9 +36,11 @@ SRC += src/mem/cs.vhd
 SRC += src/cdc/cdcpulse.vhd
 SRC += src/cdc/cdcvector.vhd
 
+SRC += src/ps2.vhd
+
 # Machine code
-PROG_SRC    = src/prog/circle.c
-#PROG_SRC    = src/prog/cputest.c
+#PROG_SRC    = src/prog/circle.c
+PROG_SRC    = src/prog/cputest.c
 LD_CFG      = src/prog/ld.cfg
 VECTORS_AS  = src/prog/vectors.s
 

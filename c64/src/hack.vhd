@@ -37,6 +37,10 @@ entity hack is
       sw_i       : in  std_logic_vector(15 downto 0);
       btn_i      : in  std_logic_vector( 4 downto 0);
 
+      -- Keyboard / mouse
+      ps2_clk_i  : in  std_logic;
+      ps2_data_i : in  std_logic;
+
       -- Output LEDs
       led_o      : out std_logic_vector(15 downto 0);
 
@@ -90,6 +94,8 @@ architecture Structural of hack is
    signal vga_clk   : std_logic;
    signal vga_rst   : std_logic;
 
+
+   signal key : std_logic_vector(31 downto 0);
 
 begin
 
@@ -174,12 +180,24 @@ begin
          cpu_irq_o    => cpu_irq_vga,
          cpu_status_i => cpu_debug,
 
-         debug_o      => led_o(15 downto 8)
+         debug_o      => open
       );
    end generate gen_vga;
 
-   led_o(7 downto 1) <= (others => '0');
-   led_o(0) <= cpu_clk;
+   inst_ps2 : entity work.ps2
+   port map (
+      sys_clk_i  => sys_clk_i,
+
+      ps2_clk_i  => ps2_clk_i,
+      ps2_data_i => ps2_data_i,
+      key_o      => key
+   );
+
+   led_o <= key(15 downto 0);
+
+
+--   led_o(7 downto 1) <= (others => '0');
+--   led_o(0) <= cpu_clk;
 
    ------------------------------
    -- Instantiate ROM
