@@ -98,7 +98,9 @@ here:
    __asm__("BNE %g", keypress); 
 
    // A key has been released
+skip:
    __asm__("LDA %w", VGA_KEY); // Just ignore next byte from keyboard
+   __asm__("BEQ %g", skip);   // Wait until keyboard information ready
    __asm__("JMP %g", here); // Go back and wait for next keyboard information
 
 
@@ -115,10 +117,10 @@ keypress:
    __asm__("STA %w,X", VGA_SCREEN);
 
    // Update screen pointer
-   __asm__("TXA");
+   __asm__("LDA %b", OFFSET);
    __asm__("CLC");
    __asm__("ADC #$01");
-   __asm__("TAX");
+   __asm__("STA %b", OFFSET);
 
    goto here;  // Just do an endless loop. Everything is run from the IRQ.
 } // end of reset
