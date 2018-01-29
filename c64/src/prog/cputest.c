@@ -27,6 +27,7 @@
 // E9 SBC #
 // E5 SBC d
 // 9D STA a,X
+// BD LDA a,X
 
 // To come soon:
 // A2 LDX #
@@ -562,7 +563,7 @@ noError13:
    __asm__("LDA #$FF");
    __asm__("TAX");
    __asm__("LDA #$99");
-   __asm__("STA $0107,X");         // Should store #$AA to $0206
+   __asm__("STA $0107,X");         // Should store #$99 to $0206
 
    __asm__("LDA $0204");
    __asm__("CMP #$A5");
@@ -576,6 +577,28 @@ noError13:
    __asm__("CMP #$99");
    __asm__("BNE %g", error13);     // Should not jump
 
+
+   // Now we test some more addressing modes (LDA a,X)
+   __asm__("LDA #$01");
+   __asm__("TAX");
+   __asm__("LDA #$00");            // Set zero flag.
+   __asm__("LDA $0204,X");         // Should read #$5A from $0205, and clear zero flag.
+   __asm__("BMI %g", error14);     // Should not jump
+   __asm__("BNE %g", noError14);   // Should jump
+error14:
+   __asm__("JMP %g", error14);
+noError14:
+   __asm__("CMP #$5A");
+   __asm__("BNE %g", error14);     // Should not jump
+
+   __asm__("LDA #$FF");
+   __asm__("TAX");
+   __asm__("LDA #$00");            // Set zero flag.
+   __asm__("LDA $0107,X");         // Should read #$99 from $0206
+   __asm__("BPL %g", error14);     // Should not jump
+   __asm__("BEQ %g", error14);     // Should not jump
+   __asm__("CMP #$99");
+   __asm__("BNE %g", error14);     // Should not jump
 
 
    // Loop forever doing nothing
