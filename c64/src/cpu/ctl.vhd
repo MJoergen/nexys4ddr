@@ -97,6 +97,7 @@ architecture Structural of ctl is
 
    constant C_WR_HOLD_LO   : micro_op_type := B"0_0_00_000_00_00_0_0000_00_00_00_00_0000_01_00_000000_00000";
    constant C_WR_HOLD_HI   : micro_op_type := B"0_0_00_000_00_00_0_0000_00_00_00_00_0000_10_00_000000_00000";
+   constant C_WR_HOLD_ADD  : micro_op_type := B"0_0_00_000_00_00_0_0000_00_00_00_00_0000_11_00_000000_00000";
 
    constant C_WR_SR_V      : micro_op_type := B"0_0_00_000_00_00_0_0000_00_00_00_00_0001_00_00_000000_00000";
    constant C_WR_SR_C      : micro_op_type := B"0_0_00_000_00_00_0_0000_00_00_00_00_0010_00_00_000000_00000";
@@ -1571,11 +1572,11 @@ architecture Structural of ctl is
             C_INVALID,
             C_INVALID,
    -- 9D STA a,X
-            C_INVALID,
-            C_INVALID,
-            C_INVALID,
-            C_INVALID,
-            C_INVALID,
+            C_READ_NEXT_BYTE,
+            C_WR_HOLD_LO + C_MEM_RD + C_WR_PC_INC,
+            C_WR_HOLD_HI + C_MEM_RD + C_WR_PC_INC,
+            C_WR_HOLD_ADD + C_REG_RD_X,
+            C_WR_ADDR_HOLD + C_MEM_WR_REG + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,
@@ -2497,7 +2498,7 @@ begin
          end if;
 
          if rst_i = '1' then
-            cnt_r <= "011";
+            cnt_r <= "100";
          end if;
       end if;
    end process p_cnt;

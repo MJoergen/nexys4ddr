@@ -204,12 +204,12 @@ begin
    p_mem_addr_reg : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if ctl_wr_hold_addr(0) = '1' then
-            mem_addr_reg(7 downto 0) <= data_i;       -- Used during zero-page addressing mode
-         end if;
-         if ctl_wr_hold_addr(1) = '1' then
-            mem_addr_reg(15 downto 8) <= data_i;      -- Used during absolute addressing modes
-         end if;
+         case ctl_wr_hold_addr is
+            when "01" => mem_addr_reg( 7 downto 0) <= data_i;           -- Used during zero-page addressing mode
+            when "10" => mem_addr_reg(15 downto 8) <= data_i;           -- Used during absolute addressing modes
+            when "11" => mem_addr_reg <= mem_addr_reg + regs_rd_data;   -- Used during indirect addressing
+            when others => null;
+         end case;
       end if;
    end process p_mem_addr_reg;
 
