@@ -89,7 +89,7 @@ architecture Structural of hack is
    -- Signals connected to the keyboard
    signal cpu_key_rden : std_logic;
    signal cpu_key_val  : std_logic_vector(7 downto 0);
-   signal cpu_keyboard_debug : std_logic_vector(63 downto 0);
+   signal cpu_keyboard_debug : std_logic_vector(69 downto 0);
 
    -------------------
    -- VGA clock domain

@@ -50,7 +50,7 @@ entity vga_module is
       cpu_status_i   : in  std_logic_vector(127 downto 0);
       cpu_key_rden_o : out std_logic;
       cpu_key_val_i  : in  std_logic_vector(7 downto 0);
-      cpu_keyboard_debug_i : in  std_logic_vector(63 downto 0);
+      cpu_keyboard_debug_i : in  std_logic_vector(69 downto 0);
 
       debug_o      : out std_logic_vector(7 downto 0)
    );
@@ -115,7 +115,7 @@ architecture Structural of vga_module is
    signal cpu_config : std_logic_vector(128*8-1 downto 0);
    signal cpu_sync   : std_logic;
    signal vga_status : std_logic_vector(127 downto 0);
-   signal vga_keyboard_debug : std_logic_vector(63 downto 0);
+   signal vga_keyboard_debug : std_logic_vector(69 downto 0);
 
 begin
 
@@ -346,7 +346,7 @@ begin
    inst_cdc_keyboard : entity work.cdcvector
    generic map (
       G_NEXYS4DDR => G_NEXYS4DDR,
-      G_SIZE      => 64
+      G_SIZE      => 70
    )
    port map (
       -- The sender

@@ -28,7 +28,7 @@ entity chars is
 
       config_i    : in  std_logic_vector(128*8-1 downto 0);
       status_i    : in  std_logic_vector(127 downto 0);
-      keyboard_i  : in  std_logic_vector(63 downto 0);
+      keyboard_i  : in  std_logic_vector(69 downto 0);
 
       disp_addr_o : out std_logic_vector( 9 downto 0);
       disp_data_i : in  std_logic_vector( 7 downto 0);
@@ -78,7 +78,7 @@ architecture Behavioral of chars is
       vcount    : std_logic_vector( 10 downto 0);  -- valid in all stages
       blank     : std_logic;                       -- valid in all stages
       status    : std_logic_vector(127 downto 0);  -- Valid in stage 1
-      keyboard  : std_logic_vector( 63 downto 0);
+      keyboard  : std_logic_vector( 69 downto 0);
       char_x    : std_logic_vector(  5 downto 0);  -- valid in stage 2 (0 - 39)
       char_y    : std_logic_vector(  4 downto 0);  -- valid in stage 2 (0 - 17)
       pix_x     : std_logic_vector(  2 downto 0);  -- valid in stage 2 (0 - 7)
@@ -120,6 +120,7 @@ architecture Behavioral of chars is
    signal stage6 : t_stage := STAGE_DEFAULT;
    signal stage7 : t_stage := STAGE_DEFAULT;
    signal stage8 : t_stage := STAGE_DEFAULT;
+   signal stage9 : t_stage := STAGE_DEFAULT;
 
    signal stage2_divmod13  : std_logic_vector(8 downto 0);
    signal stage4_char_val  : std_logic_vector(7 downto 0);
@@ -358,12 +359,26 @@ begin
 
    -- Propagate remaining signals.
    p_stage8 : process (clk_i) is
+      variable row_v : integer range 0 to 7;
    begin
       if rising_edge(clk_i) then
          stage8 <= stage7;
 
          if stage7.pix = '1' then
             stage8.col <= col8to12(config_i(80*8 + 7 downto 80*8));
+
+            if stage7.char_y >= C_DEBUG_POSY and stage7.char_y < C_DEBUG_POSY+8 then
+               row_v := conv_integer(stage7.char_y - C_DEBUG_POSY);
+
+               if stage7.char_x = C_DEBUG_POSX+16 and 
+                  conv_integer(stage7.keyboard(66 downto 64)) = row_v then
+                  stage8.col <= (others => '0');
+               end if;
+               if stage7.char_x = C_DEBUG_POSX+17 and 
+                  conv_integer(stage7.keyboard(69 downto 67)) = row_v then
+                  stage8.col <= (others => '1');
+               end if;
+            end if;
          else
             stage8.col <= col8to12(config_i(81*8 + 7 downto 81*8));
          end if;

@@ -6,6 +6,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
+use ieee.std_logic_arith.all;
 
 entity bytefifo is
    generic (
@@ -22,7 +23,7 @@ entity bytefifo is
       rden_i : in  std_logic;
       val_o  : out std_logic_vector(7 downto 0);
 
-      debug_o : out std_logic_vector(63 downto 0)
+      debug_o : out std_logic_vector(69 downto 0)
    );
 end bytefifo;
 
@@ -34,7 +35,9 @@ architecture Structural of bytefifo is
 
 begin
 
-   debug_o <= fifo_r(63 downto 0);
+   debug_o(69 downto 67) <= conv_std_logic_vector(wrptr_r, 3);
+   debug_o(66 downto 64) <= conv_std_logic_vector(rdptr_r, 3);
+   debug_o(63 downto 0) <= fifo_r(63 downto 0);
 
    p_rdptr : process (clk_i)
    begin
@@ -54,17 +57,21 @@ begin
       end if;
    end process p_rdptr;
 
-   p_val : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         val_o <= fifo_r(rdptr_r*8 + 7 downto rdptr_r*8);
+   val_o <= fifo_r(rdptr_r*8 + 7 downto rdptr_r*8) when rdptr_r /= wrptr_r else
+            (others => '0');
 
-            -- Return all zeros, if fifo is empty.
-         if rdptr_r = wrptr_r then
-            val_o <= (others => '0');
-         end if;
-      end if;
-   end process p_val;
+
+--   p_val : process (clk_i)
+--   begin
+--      if rising_edge(clk_i) then
+--         val_o <= fifo_r(rdptr_r*8 + 7 downto rdptr_r*8);
+--
+--            -- Return all zeros, if fifo is empty.
+--         if rdptr_r = wrptr_r then
+--            val_o <= (others => '0');
+--         end if;
+--      end if;
+--   end process p_val;
 
    p_fifo : process (clk_i)
    begin

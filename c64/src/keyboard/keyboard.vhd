@@ -13,7 +13,7 @@ entity keyboard is
 
       rden_i     : in  std_logic;
       val_o      : out std_logic_vector(7 downto 0);
-      debug_o    : out std_logic_vector(63 downto 0)
+      debug_o    : out std_logic_vector(69 downto 0)
    );
 end keyboard;
 
