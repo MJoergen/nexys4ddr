@@ -270,6 +270,7 @@ begin
       debug_o    => cpu_keyboard_debug
    );
 
+   led_o <= (others => '0');
 
 end Structural;
 
