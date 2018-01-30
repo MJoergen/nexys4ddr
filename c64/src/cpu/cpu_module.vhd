@@ -206,6 +206,7 @@ begin
       if rising_edge(clk_i) then
          case ctl_wr_hold_addr is
             when "01" => mem_addr_reg( 7 downto 0) <= data_i;           -- Used during zero-page addressing mode
+                         mem_addr_reg(15 downto 8) <= (others => '0');
             when "10" => mem_addr_reg(15 downto 8) <= data_i;           -- Used during absolute addressing modes
             when "11" => mem_addr_reg <= mem_addr_reg + regs_rd_data;   -- Used during indirect addressing
             when others => null;
@@ -267,9 +268,8 @@ begin
  
    -- Select memory address
    addr <= reg_pc                           when ctl_mem_addr = "0000" else    -- Used during instruction fetch
-           X"00" & mem_addr_reg(7 downto 0) when ctl_mem_addr = "0001" else    -- Used during zero-page addressing
+           mem_addr_reg                     when ctl_mem_addr = "0001" else    -- Used during other addressing modes
            X"01" & reg_sp                   when ctl_mem_addr = "0010" else    -- Used during stack push and pull
-           mem_addr_reg                     when ctl_mem_addr = "0011" else    -- Used during other addressing modes
            X"FFFE"                          when ctl_mem_addr = "1000" else    -- BRK
            X"FFFF"                          when ctl_mem_addr = "1001" else    -- BRK
            X"FFFA"                          when ctl_mem_addr = "1010" else    -- NMI

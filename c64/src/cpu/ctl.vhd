@@ -114,9 +114,8 @@ architecture Structural of ctl is
    constant C_WR_SR_MEM    : micro_op_type := B"0_0_00_000_00_00_0_0000_11_00_00_00_0000_00_00_000000_00000";
 
    constant C_WR_ADDR_PC   : micro_op_type := B"0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_00000";
-   constant C_WR_ADDR_ZP   : micro_op_type := B"0_0_00_000_00_00_0_0001_00_00_00_00_0000_00_00_000000_00000";
+   constant C_WR_ADDR_HOLD : micro_op_type := B"0_0_00_000_00_00_0_0001_00_00_00_00_0000_00_00_000000_00000";
    constant C_WR_ADDR_SP   : micro_op_type := B"0_0_00_000_00_00_0_0010_00_00_00_00_0000_00_00_000000_00000";
-   constant C_WR_ADDR_HOLD : micro_op_type := B"0_0_00_000_00_00_0_0011_00_00_00_00_0000_00_00_000000_00000";
    constant C_WR_ADDR_FFFA : micro_op_type := B"0_0_00_000_00_00_0_1010_00_00_00_00_0000_00_00_000000_00000";
    constant C_WR_ADDR_FFFB : micro_op_type := B"0_0_00_000_00_00_0_1011_00_00_00_00_0000_00_00_000000_00000";
    constant C_WR_ADDR_FFFC : micro_op_type := B"0_0_00_000_00_00_0_1100_00_00_00_00_0000_00_00_000000_00000";
@@ -1067,7 +1066,7 @@ architecture Structural of ctl is
    -- 65 ADC d
             C_READ_NEXT_BYTE,
             C_WR_HOLD_LO + C_MEM_RD + C_WR_PC_INC,
-            C_WR_ADDR_ZP + C_MEM_RD + C_WR_REG_ADC + C_WR_SR_C + C_LAST,
+            C_WR_ADDR_HOLD + C_MEM_RD + C_WR_REG_ADC + C_WR_SR_C + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,
@@ -1357,7 +1356,7 @@ architecture Structural of ctl is
    -- 85 STA d
             C_READ_NEXT_BYTE,
             C_WR_ADDR_PC + C_MEM_RD + C_WR_HOLD_LO + C_WR_PC_INC,
-            C_WR_ADDR_ZP + C_MEM_WR_REG + C_LAST,
+            C_WR_ADDR_HOLD + C_MEM_WR_REG + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,
@@ -1647,7 +1646,7 @@ architecture Structural of ctl is
    -- A5 LDA d
             C_READ_NEXT_BYTE,
             C_WR_HOLD_LO + C_MEM_RD + C_WR_PC_INC,
-            C_WR_ADDR_ZP + C_MEM_RD + C_WR_REG_B + C_WR_SR_S + C_WR_SR_Z + C_LAST,
+            C_WR_ADDR_HOLD + C_MEM_RD + C_WR_REG_B + C_WR_SR_S + C_WR_SR_Z + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,
@@ -2227,7 +2226,7 @@ architecture Structural of ctl is
    -- E5 SBC d
             C_READ_NEXT_BYTE,
             C_WR_HOLD_LO + C_MEM_RD + C_WR_PC_INC,
-            C_WR_ADDR_ZP + C_MEM_RD + C_WR_REG_SBC + C_WR_SR_V + C_WR_SR_C + C_WR_SR_S + C_WR_SR_Z + C_LAST,
+            C_WR_ADDR_HOLD + C_MEM_RD + C_WR_REG_SBC + C_WR_SR_V + C_WR_SR_C + C_WR_SR_S + C_WR_SR_Z + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,
