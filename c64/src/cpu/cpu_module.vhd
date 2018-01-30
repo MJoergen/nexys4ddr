@@ -50,7 +50,8 @@ architecture Structural of cpu_module is
    signal regs_debug   : std_logic_vector(23 downto 0);
 
    -- Additional Registers
-   signal mem_addr_reg : std_logic_vector(15 downto 0) := (others => '0');
+   signal mem_addr_reg  : std_logic_vector(15 downto 0) := (others => '0');
+   signal mem_addr2_reg : std_logic_vector(15 downto 0) := (others => '0');
 
    signal irq_masked : std_logic;
 
@@ -65,15 +66,16 @@ architecture Structural of cpu_module is
    -- Status Register, All. Input is either register or memory (1 bit).
 
    -- Signals driven by the Control Logic
-   signal ctl_wr_reg       : std_logic_vector(4 downto 0);
-   signal ctl_wr_pc        : std_logic_vector(5 downto 0);
-   signal ctl_wr_sp        : std_logic_vector(1 downto 0);
-   signal ctl_wr_hold_addr : std_logic_vector(1 downto 0);
-   signal ctl_wr_szcv      : std_logic_vector(3 downto 0);
-   signal ctl_wr_b         : std_logic_vector(1 downto 0);
-   signal ctl_wr_i         : std_logic_vector(1 downto 0);
-   signal ctl_wr_d         : std_logic_vector(1 downto 0);
-   signal ctl_wr_sr        : std_logic_vector(1 downto 0);
+   signal ctl_wr_reg        : std_logic_vector(4 downto 0);
+   signal ctl_wr_pc         : std_logic_vector(5 downto 0);
+   signal ctl_wr_sp         : std_logic_vector(1 downto 0);
+   signal ctl_wr_hold_addr  : std_logic_vector(1 downto 0);
+   signal ctl_wr_hold_addr2 : std_logic_vector(1 downto 0);
+   signal ctl_wr_szcv       : std_logic_vector(3 downto 0);
+   signal ctl_wr_b          : std_logic_vector(1 downto 0);
+   signal ctl_wr_i          : std_logic_vector(1 downto 0);
+   signal ctl_wr_d          : std_logic_vector(1 downto 0);
+   signal ctl_wr_sr         : std_logic_vector(1 downto 0);
 
    -- Additionally, some MUX's:
    signal ctl_mem_addr     : std_logic_vector(3 downto 0);
@@ -97,26 +99,27 @@ begin
    -- Instantiate the control logic
    inst_ctl : entity work.ctl
    port map (
-               clk_i          => clk_i,
-               rst_i          => rst_i,
-               irq_i          => irq_masked,
-               data_i         => data_i,
-               wr_reg_o       => ctl_wr_reg,
-               wr_pc_o        => ctl_wr_pc,
-               wr_sp_o        => ctl_wr_sp,
-               wr_hold_addr_o => ctl_wr_hold_addr,
-               wr_szcv_o      => ctl_wr_szcv,
-               wr_b_o         => ctl_wr_b,
-               wr_i_o         => ctl_wr_i,
-               wr_d_o         => ctl_wr_d,
-               wr_sr_o        => ctl_wr_sr,
-               mem_addr_o     => ctl_mem_addr,
-               mem_rden_o     => ctl_mem_rden,
-               reg_nr_wr_o    => ctl_reg_nr_wr,
-               reg_nr_rd_o    => ctl_reg_nr_rd,
-               mem_wrdata_o   => ctl_mem_wrdata,
-               wr_c_o         => ctl_wr_c,
-               debug_o        => ctl_debug
+               clk_i           => clk_i,
+               rst_i           => rst_i,
+               irq_i           => irq_masked,
+               data_i          => data_i,
+               wr_reg_o        => ctl_wr_reg,
+               wr_pc_o         => ctl_wr_pc,
+               wr_sp_o         => ctl_wr_sp,
+               wr_hold_addr_o  => ctl_wr_hold_addr,
+               wr_szcv_o       => ctl_wr_szcv,
+               wr_b_o          => ctl_wr_b,
+               wr_i_o          => ctl_wr_i,
+               wr_d_o          => ctl_wr_d,
+               wr_sr_o         => ctl_wr_sr,
+               mem_addr_o      => ctl_mem_addr,
+               mem_rden_o      => ctl_mem_rden,
+               reg_nr_wr_o     => ctl_reg_nr_wr,
+               reg_nr_rd_o     => ctl_reg_nr_rd,
+               mem_wrdata_o    => ctl_mem_wrdata,
+               wr_c_o          => ctl_wr_c,
+               wr_hold_addr2_o => ctl_wr_hold_addr2,
+               debug_o         => ctl_debug
             );
 
    -- Instantiate register file
@@ -214,6 +217,19 @@ begin
       end if;
    end process p_mem_addr_reg;
 
+   -- Second memory address hold register
+   p_mem_addr2_reg : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         case ctl_wr_hold_addr2 is
+            when "10" => mem_addr2_reg( 7 downto 0) <= data_i + regs_rd_data;  -- Used during zero-page addressing mode
+                         mem_addr2_reg(15 downto 8) <= (others => '0');
+            when "11" => mem_addr2_reg( 7 downto 0) <= mem_addr2_reg( 7 downto 0) + 1;
+            when others => null;
+         end case;
+      end if;
+   end process p_mem_addr2_reg;
+
 
    -- Status register
    p_sr : process (clk_i)
@@ -268,8 +284,9 @@ begin
  
    -- Select memory address
    addr <= reg_pc                           when ctl_mem_addr = "0000" else    -- Used during instruction fetch
-           mem_addr_reg                     when ctl_mem_addr = "0001" else    -- Used during other addressing modes
+           mem_addr_reg                     when ctl_mem_addr = "0001" else    -- Used during zero-page and absolute addressing
            X"01" & reg_sp                   when ctl_mem_addr = "0010" else    -- Used during stack push and pull
+           mem_addr2_reg                    when ctl_mem_addr = "0011" else    -- Used during other addressing modes
            X"FFFE"                          when ctl_mem_addr = "1000" else    -- BRK
            X"FFFF"                          when ctl_mem_addr = "1001" else    -- BRK
            X"FFFA"                          when ctl_mem_addr = "1010" else    -- NMI
