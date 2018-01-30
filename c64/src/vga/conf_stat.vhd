@@ -75,6 +75,9 @@ architecture Behavioral of conf_stat is
    -- Latched interrupt
    signal irq_latch : std_logic := '0';
 
+   signal data     : std_logic_vector(7 downto 0) := (others => '0');
+   signal key_rden : std_logic := '0';
+
 begin
 
    ------------------
@@ -108,19 +111,21 @@ begin
       variable index_v : integer range 0 to 127;
    begin
       if falling_edge(clk_i) then
-         key_rden_o <= '0';
+         key_rden <= '0';
          if rden_i = '1' then
             index_v := conv_integer(addr_i(6 downto 0));
-            data_o <= config(8*index_v + 7 downto 8*index_v);
+            data <= config(8*index_v + 7 downto 8*index_v);
 
             if index_v = 6*16 then  -- 0x8660
-               data_o     <= key_val_i;
-               key_rden_o <= '1';
+               data     <= key_val_i;
+               key_rden <= '1';
             end if;
          end if;
       end if;
    end process p_read;
 
+   data_o     <= data;
+   key_rden_o <= key_rden;
 
    ------------------------------------
    -- Control the IRQ signal to the CPU
