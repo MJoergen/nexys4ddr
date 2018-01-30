@@ -1,6 +1,3 @@
-src/keyboard/ps2.vhd
-src/keyboard/bytefifo.vhd
-src/keyboard/keyboard.vhd
 src/cdc/cdcpulse.vhd
 src/cdc/cdcvector.vhd
 src/clock/debounce.vhd
@@ -9,6 +6,9 @@ src/clock/clk_wiz_cpu.vhd
 src/clock/clk_wiz_vga_clk_wiz.vhd
 src/clock/clk_wiz_vga.vhd
 src/clock/clk_rst.vhd
+src/keyboard/ps2.vhd
+src/keyboard/bytefifo.vhd
+src/keyboard/keyboard.vhd
 src/cpu/alu.vhd
 src/cpu/ctl.vhd
 src/cpu/pc.vhd
