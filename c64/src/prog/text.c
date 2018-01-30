@@ -29,7 +29,8 @@
 #define SHIFT_FLAG      0x02
 
 // Scan code for the shift key
-#define KEYB_SHIFT      0x00
+#define KEYB_SHIFT_LEFT  0x12
+#define KEYB_SHIFT_RIGHT 0x59
 
 // Mapping from normal (unshifted) scancode to ASCII
 const unsigned char normal[256] = {
@@ -196,10 +197,13 @@ skip:
    __asm__("CMP #$E0");
    __asm__("BEQ %g", skip);   // So far, we just ignore the extended keys.
 
-   __asm__("CMP #%b", KEYB_SHIFT);   // Is this a shift key
+   __asm__("CMP #%b", KEYB_SHIFT_LEFT);   // Is this a shift key
+   __asm__("BEQ %g", release_shift);
+   __asm__("CMP #%b", KEYB_SHIFT_RIGHT);
    __asm__("BNE %g", here); // Go back and wait for next keyboard information
 
    // Ok, the shift key has been released
+release_shift:
    __asm__("LDA #$00");
    __asm__("STA %b", SHIFT_FLAG);   // Clear the shift flag
    __asm__("LDA #%b", COL_DARK);
@@ -209,12 +213,14 @@ skip:
 
 
 keypress:
-   __asm__("CMP #%b", KEYB_SHIFT);   // Is this a shift key
+   __asm__("CMP #%b", KEYB_SHIFT_LEFT);   // Is this a shift key
+   __asm__("BEQ %g", key_shift);
+   __asm__("CMP #%b", KEYB_SHIFT_RIGHT);
    __asm__("BEQ %g", key_shift);   // Go elsewhere
 
    // Ok, a key has been pressed. Convert it to ASCII
    __asm__("TAX");
-   __asm__("LDA %b", KEYB_SHIFT);   // Is shift currently pressed?
+   __asm__("LDA %b", SHIFT_FLAG);   // Is shift currently pressed?
    __asm__("BNE %g", shifted);
    __asm__("LDA %v,X", normal);
    __asm__("JMP %g", cont);
