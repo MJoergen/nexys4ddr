@@ -28,6 +28,7 @@
 // E5 SBC d
 // 9D STA a,X
 // BD LDA a,X
+// A1 LDA (d,X)
 
 // To come soon:
 // A2 LDX #
@@ -600,6 +601,24 @@ noError14:
    __asm__("CMP #$99");
    __asm__("BNE %g", error14);     // Should not jump
 
+   // Now we test LDA (d,X)
+   __asm__("LDA #$94");             // Prepare memory
+   __asm__("STA $87");
+   __asm__("LDA #$02");
+   __asm__("STA $88");
+   __asm__("LDA #$B6");
+   __asm__("STA $0294");
+   __asm__("LDA #$CC");
+   __asm__("TAX");
+
+   __asm__("LDA #$00");             // Set zero bit
+   __asm__("LDA ($BB,X)");          // This should read the value #$B6 from address $0294
+   __asm__("BNE %g", noError15);    // Should jump
+error15:
+   __asm__("JMP %g", error15);
+noError15:
+   __asm__("CMP #$B6");             
+   __asm__("BNE %g", error15);      // Should not jump
 
    // Loop forever doing nothing
 here:
