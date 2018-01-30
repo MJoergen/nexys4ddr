@@ -17,13 +17,74 @@
 #define VGA_BGCOL       0x8651
 #define VGA_KEY         0x8660
 
+#define COL_LIGHT       0x6F   // 011_011_11
+#define COL_DARK        0x44   // 010_001_00
+#define COL_BLACK       0x00   // 000_000_00
+
 /*
  * Zero page addresses
  */
-#define OFFSET          0x00
+#define SCREEN_POS_LO   0x00
+#define SCREEN_POS_HI   0x01
+#define SHIFT_FLAG      0x02
 
-// Mapping from scancode to ASCII
-const unsigned char map[256] = {
+// Scan code for the shift key
+#define KEYB_SHIFT      0x00
+
+// Mapping from normal (unshifted) scancode to ASCII
+const unsigned char normal[256] = {
+
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x51, 0x31, 0x00,
+      0x00, 0x00, 0x5A, 0x53, 0x41, 0x57, 0x32, 0x00,
+
+      0x00, 0x43, 0x58, 0x44, 0x45, 0x34, 0x33, 0x00,
+      0x00, 0x20, 0x56, 0x46, 0x54, 0x52, 0x35, 0x00,
+
+      0x00, 0x4E, 0x42, 0x48, 0x47, 0x59, 0x36, 0x00,
+      0x00, 0x00, 0x4D, 0x4A, 0x55, 0x37, 0x38, 0x00,
+
+      0x00, 0x2C, 0x4B, 0x49, 0x4F, 0x30, 0x39, 0x00,
+      0x00, 0x2E, 0x2D, 0x4C, 0xC6, 0x50, 0x2B, 0x00,
+
+      0x00, 0x00, 0xD8, 0x00, 0xC5, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x0D, 0x7E, 0x00, 0x27, 0x00, 0x00,
+
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 
+   };
+
+// Mapping from shifted scancode to ASCII
+const unsigned char shifted[256] = {
 
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -79,19 +140,50 @@ const unsigned char map[256] = {
 void __fastcall__ reset(void)
 {
    // Configure text color
-   __asm__("LDA #$44");
+   __asm__("LDA #%b", COL_LIGHT);
    __asm__("STA %w", VGA_FGCOL);
-   __asm__("LDA #$CC");
+   __asm__("LDA #%b", COL_DARK);
    __asm__("STA %w", VGA_BGCOL);
    
-   // Initialize character pointer
+   // Clear the screen
    __asm__("LDA #$00"); 
-   __asm__("STA %b", OFFSET); 
+   __asm__("STA %b", SCREEN_POS_LO); 
+   __asm__("LDA #$80"); 
+   __asm__("STA %b", SCREEN_POS_HI); 
+   __asm__("LDA #$00"); 
+   __asm__("TAX"); 
+clear:
+   __asm__("LDA #$20"); 
+   __asm__("STA (%b, X)", SCREEN_POS_LO); 
+   __asm__("LDA %b", SCREEN_POS_LO); 
+   __asm__("CLC"); 
+   __asm__("ADC #$01"); 
+   __asm__("STA %b", SCREEN_POS_LO); 
+   __asm__("BCC %g", clear); 
+   __asm__("LDA %b", SCREEN_POS_HI); 
+   __asm__("ADC #$00"); 
+   __asm__("STA %b", SCREEN_POS_HI); 
+   __asm__("CMP #$84"); 
+   __asm__("BNE %g", clear); 
+
+   // Reset the current screen pointer
+   __asm__("LDA #$00"); 
+   __asm__("STA %b", SCREEN_POS_LO); 
+   __asm__("LDA #$80"); 
+   __asm__("STA %b", SCREEN_POS_HI); 
+
+   // Clear the shift flag
+   __asm__("LDA #$00"); 
+   __asm__("STA %b", SHIFT_FLAG); 
 
    // Wait for information from keyboard
 here:
    __asm__("LDA %w", VGA_KEY);
    __asm__("BEQ %g", here);   // Wait until keyboard information ready
+   __asm__("CMP #$E0");
+   __asm__("BEQ %g", here);   // So far, we just ignore the extended keys.
+   __asm__("CMP #$AA");
+   __asm__("BEQ %g", here);   // We ignore the initialization code too.
 
    // It is key press or key release?
    __asm__("CMP #$F0");
@@ -101,28 +193,65 @@ here:
 skip:
    __asm__("LDA %w", VGA_KEY); // Just ignore next byte from keyboard
    __asm__("BEQ %g", skip);   // Wait until keyboard information ready
+   __asm__("CMP #$E0");
+   __asm__("BEQ %g", skip);   // So far, we just ignore the extended keys.
+
+   __asm__("CMP #%b", KEYB_SHIFT);   // Is this a shift key
+   __asm__("BNE %g", here); // Go back and wait for next keyboard information
+
+   // Ok, the shift key has been released
+   __asm__("LDA #$00");
+   __asm__("STA %b", SHIFT_FLAG);   // Clear the shift flag
+   __asm__("LDA #%b", COL_DARK);
+   __asm__("STA %w", VGA_BGCOL);
+
    __asm__("JMP %g", here); // Go back and wait for next keyboard information
 
 
 keypress:
+   __asm__("CMP #%b", KEYB_SHIFT);   // Is this a shift key
+   __asm__("BEQ %g", key_shift);   // Go elsewhere
+
    // Ok, a key has been pressed. Convert it to ASCII
    __asm__("TAX");
-   __asm__("LDA %v,X", map);
+   __asm__("LDA %b", KEYB_SHIFT);   // Is shift currently pressed?
+   __asm__("BNE %g", shifted);
+   __asm__("LDA %v,X", normal);
+   __asm__("JMP %g", cont);
+shifted:
+   __asm__("LDA %v,X", shifted);
+cont:
 
    // Now write it to the screen
    __asm__("TAY");
-   __asm__("LDA %b", OFFSET); 
-   __asm__("TAX");
+   __asm__("LDA #$00"); 
+   __asm__("TAX"); 
    __asm__("TYA");
-   __asm__("STA %w,X", VGA_SCREEN);
+   __asm__("STA (%b, X)", SCREEN_POS_LO); 
 
    // Update screen pointer
-   __asm__("LDA %b", OFFSET);
-   __asm__("CLC");
-   __asm__("ADC #$01");
-   __asm__("STA %b", OFFSET);
+   __asm__("LDA %b", SCREEN_POS_LO); 
+   __asm__("CLC"); 
+   __asm__("ADC #$01"); 
+   __asm__("STA %b", SCREEN_POS_LO); 
+   __asm__("LDA %b", SCREEN_POS_HI); 
+   __asm__("ADC #$00"); 
+   __asm__("STA %b", SCREEN_POS_HI); 
+   __asm__("CMP #$84"); 
+   __asm__("BNE %g", here); 
+   __asm__("LDA #$80"); 
+   __asm__("STA %b", SCREEN_POS_HI); 
 
-   goto here;  // Just do an endless loop. Everything is run from the IRQ.
+   goto here;  // Just do an endless loop.
+
+key_shift:
+   // Ok, the shift key has been pressed
+   __asm__("LDA #$01");
+   __asm__("STA %b", SHIFT_FLAG);   // Set the shift flag
+   __asm__("LDA #%b", COL_BLACK);
+   __asm__("STA %w", VGA_BGCOL);
+
+   __asm__("JMP %g", here); // Go back and wait for next keyboard information
 } // end of reset
 
 
