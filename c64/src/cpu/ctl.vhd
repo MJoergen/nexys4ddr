@@ -1323,11 +1323,11 @@ architecture Structural of ctl is
             C_INVALID,
             C_INVALID,
    -- 81 STA (d,X)
-            C_INVALID,
-            C_INVALID,
-            C_INVALID,
-            C_INVALID,
-            C_INVALID,
+            C_READ_NEXT_BYTE,
+            C_WR_HOLD2_ADD + C_REG_RD_X + C_MEM_RD + C_WR_PC_INC,    -- compute d+X
+            C_WR_ADDR_HOLD2 + C_MEM_RD + C_WR_HOLD_LO + C_WR_HOLD2_INC, -- read from d+X
+            C_WR_ADDR_HOLD2 + C_MEM_RD + C_WR_HOLD_HI,                  -- read from d+X+1
+            C_WR_ADDR_HOLD + C_MEM_WR_REG + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,

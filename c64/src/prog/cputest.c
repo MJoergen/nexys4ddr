@@ -29,6 +29,7 @@
 // 9D STA a,X
 // BD LDA a,X
 // A1 LDA (d,X)
+// 81 STA (d,X)
 
 // To come soon:
 // A2 LDX #
@@ -618,6 +619,14 @@ error15:
    __asm__("JMP %g", error15);
 noError15:
    __asm__("CMP #$B6");             
+   __asm__("BNE %g", error15);      // Should not jump
+
+   // Now we test STA (d,X)
+   __asm__("LDA #$6B");
+   __asm__("STA ($BB,X)");          // This should store the value #$6B to address $0294
+   __asm__("LDA #$00");             // Set zero bit
+   __asm__("LDA $0294");
+   __asm__("CMP #$6B");
    __asm__("BNE %g", error15);      // Should not jump
 
    // Loop forever doing nothing
