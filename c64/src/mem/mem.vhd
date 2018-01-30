@@ -45,6 +45,9 @@ architecture Structural of mem is
    signal mem_a : t_mem := (others => conv_std_logic_vector(G_INIT_VAL, G_DATA_SIZE));
    signal mem_b : t_mem := (others => conv_std_logic_vector(G_INIT_VAL, G_DATA_SIZE));
 
+   signal a_rddata : std_logic_vector(G_DATA_SIZE-1 downto 0) := (others => '0');
+   signal b_data   : std_logic_vector(G_DATA_SIZE-1 downto 0) := (others => '0');
+
 begin
 
    -----------------
@@ -66,10 +69,12 @@ begin
    begin
       if falling_edge(a_clk_i) then
          if a_rden_i = '1' then
-            a_rddata_o <= mem_a(conv_integer(a_addr_i));
+            a_rddata <= mem_a(conv_integer(a_addr_i));
          end if;
       end if;
    end process p_a_rd;
+
+   a_rddata_o <= a_rddata;
 
 
    -----------------
@@ -92,10 +97,12 @@ begin
    begin
       if rising_edge(b_clk_i) then
          if b_rden_i = '1' then
-            b_data_o <= mem_b(conv_integer(b_addr_i));
+            b_data <= mem_b(conv_integer(b_addr_i));
          end if;
       end if;
    end process p_b_rd;
+
+   b_data_o <= b_data;
  
 end Structural;
 

@@ -41,16 +41,16 @@ architecture Structural of cpu_module is
    signal alu_z    : std_logic;
 
    -- Program Registers
-   signal reg_sp : std_logic_vector( 7 downto 0);
-   signal reg_pc : std_logic_vector(15 downto 0);
-   signal reg_sr : std_logic_vector( 7 downto 0);
+   signal reg_sp : std_logic_vector( 7 downto 0) := (others => '0');
+   signal reg_pc : std_logic_vector(15 downto 0) := (others => '0');
+   signal reg_sr : std_logic_vector( 7 downto 0) := (others => '0');
 
    -- Signals connected to the register file
    signal regs_rd_data : std_logic_vector(7 downto 0);
    signal regs_debug   : std_logic_vector(23 downto 0);
 
    -- Additional Registers
-   signal mem_addr_reg : std_logic_vector(15 downto 0);
+   signal mem_addr_reg : std_logic_vector(15 downto 0) := (others => '0');
 
    signal irq_masked : std_logic;
 

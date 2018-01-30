@@ -49,6 +49,12 @@ architecture Behavioral of sync is
    -- The active signal is used to signal the active region of the screen (when not blank)
    signal active : std_logic := '0';
 
+   signal hcount : std_logic_vector(10 downto 0) := (others => '0');
+   signal vcount : std_logic_vector(10 downto 0) := (others => '0');
+   signal hs     : std_logic := '0';
+   signal vs     : std_logic := '0';
+   signal blank  : std_logic := '0';
+
 begin
 
    -- Horizontal counter
@@ -107,13 +113,20 @@ begin
    p_output : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         hs_o     <= h_sync;
-         vs_o     <= v_sync;
-         hcount_o <= h_cntr;
-         vcount_o <= v_cntr;
-         blank_o  <= not active;
+         hs     <= h_sync;
+         vs     <= v_sync;
+         hcount <= h_cntr;
+         vcount <= v_cntr;
+         blank  <= not active;
       end if;
    end process p_output;
+
+
+   hs_o     <= hs;
+   vs_o     <= vs;
+   hcount_o <= hcount;
+   vcount_o <= vcount;
+   blank_o  <= blank;
 
 end Behavioral;
 

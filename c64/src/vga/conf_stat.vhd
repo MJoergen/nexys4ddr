@@ -70,10 +70,10 @@ end conf_stat;
 
 architecture Behavioral of conf_stat is
 
-   signal config : std_logic_vector(128*8-1 downto 0);
+   signal config : std_logic_vector(128*8-1 downto 0) := (others => '0');
 
    -- Latched interrupt
-   signal irq_latch : std_logic;
+   signal irq_latch : std_logic := '0';
 
 begin
 

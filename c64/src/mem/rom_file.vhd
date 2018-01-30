@@ -44,7 +44,7 @@ architecture Structural of rom_file is
 
    signal rom  : t_rom := InitRamFromFile(G_ROM_FILE);
 
-   signal data : std_logic_vector(G_DATA_SIZE-1 downto 0);
+   signal data : std_logic_vector(G_DATA_SIZE-1 downto 0) := (others => '0');
 
 begin
 

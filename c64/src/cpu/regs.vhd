@@ -21,9 +21,9 @@ end regs;
 
 architecture Structural of regs is
 
-   signal reg_a : std_logic_vector(7 downto 0);
-   signal reg_x : std_logic_vector(7 downto 0);
-   signal reg_y : std_logic_vector(7 downto 0);
+   signal reg_a : std_logic_vector(7 downto 0) := (others => '0');
+   signal reg_x : std_logic_vector(7 downto 0) := (others => '0');
+   signal reg_y : std_logic_vector(7 downto 0) := (others => '0');
 
 begin
 
