@@ -25,3 +25,5 @@ src/vga/sync.vhd
 src/vga/vga_module.vhd
 src/hack.vhd
 src/hack_tb.vhd
+src/nexys4ddr.vhd
+src/nexys4ddr_tb.vhd

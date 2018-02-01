@@ -6,6 +6,8 @@ TOP = nexys4ddr
 SRC  = src/$(TOP).vhd
 SRC += src/hack.vhd
 
+testbench = hack_tb
+
 # Clocks
 SRC += src/clock/debounce.vhd
 SRC += src/clock/clk_wiz_vga.vhd
@@ -44,13 +46,13 @@ SRC += src/keyboard/bytefifo.vhd
 SRC += src/keyboard/keyboard.vhd
 
 # Machine code
-PROG_SRC    = src/prog/text.c
+#PROG_SRC    = src/prog/text.c
 #PROG_SRC    = src/prog/circle.c
-#PROG_SRC    = src/prog/cputest.c
+PROG_SRC    = src/prog/cputest.c
 LD_CFG      = src/prog/ld.cfg
 VECTORS_AS  = src/prog/vectors.s
 
-stoptime = --stop-time=200us
+stoptime = --stop-time=20us
 
 include ../xilinx.mk
 
