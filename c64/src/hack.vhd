@@ -14,40 +14,39 @@ use ieee.std_logic_unsigned.all;
 --
 -- A note on naming convention: Since this design uses two asynchronuous clock
 -- domains, all signal names are prefixed with the corresponding clock
--- domain, i.e. cpu_ or vga_.
+-- domain, i.e. cpu_ or vga_. Signals without this prefix are considered asynchronous
+-- and therefore require synchronization before being used.
 
 entity hack is
 
    generic (
-      G_NEXYS4DDR  : boolean := false;             -- True, when using the Nexys4DDR board.
-      G_ROM_SIZE   : integer := 10;                -- Number of bits in ROM address
-      G_RAM_SIZE   : integer := 10;                -- Number of bits in RAM address
-      G_SIMULATION : boolean := false;
-      G_ROM_FILE   : string  := "rom.txt";         -- Contains the machine code
-      G_FONT_FILE  : string  := "ProggyClean.txt"  -- Contains the character font
+      G_NEXYS4DDR  : boolean;          -- True, when using the Nexys4DDR board.
+      G_ROM_SIZE   : integer;          -- Number of bits in ROM address
+      G_RAM_SIZE   : integer;          -- Number of bits in RAM address
+      G_ROM_FILE   : string;           -- Contains the machine code
+      G_FONT_FILE  : string            -- Contains the character font
    );
    port (
-      -- Clock
-      sys_clk_i  : in  std_logic;  -- 100 MHz on the Nexys4DDR board.
+      -- Clocks and resets
+      cpu_clk_i  : in  std_logic;
+      vga_clk_i  : in  std_logic;   -- 25 MHz for a 640x480 display.
+      cpu_rst_i  : in  std_logic;
+      -- The VGA port does not need a reset.
 
-      -- Reset
-      sys_rstn_i : in  std_logic;  -- Asserted low
-
-      -- Input switches and push buttons
-      sw_i       : in  std_logic_vector(15 downto 0);
-      btn_i      : in  std_logic_vector( 4 downto 0);
+      mode_i     : in  std_logic;   -- Enable single-step mode.
+      step_i     : in  std_logic;   -- Single step one CPU clock cycle.
 
       -- Keyboard / mouse
       ps2_clk_i  : in  std_logic;
       ps2_data_i : in  std_logic;
 
       -- Output LEDs
-      led_o      : out std_logic_vector(15 downto 0);
+      led_o      : out std_logic_vector( 7 downto 0);
 
      -- Output to VGA monitor
       vga_hs_o   : out std_logic;
       vga_vs_o   : out std_logic;
-      vga_col_o  : out std_logic_vector(11 downto 0)
+      vga_col_o  : out std_logic_vector( 7 downto 0)
   );
 
 end hack;
@@ -60,7 +59,6 @@ architecture Structural of hack is
 
    -- Clocks and Reset
    signal cpu_clk   : std_logic;
-   signal cpu_rst   : std_logic;
    
    -- Address Decoding
    signal cpu_cs_rom   : std_logic;
@@ -91,35 +89,20 @@ architecture Structural of hack is
    signal cpu_key_val  : std_logic_vector(7 downto 0);
    signal cpu_keyboard_debug : std_logic_vector(69 downto 0);
 
-   -------------------
-   -- VGA clock domain
-   -------------------
-
-   signal vga_clk   : std_logic;
-   signal vga_rst   : std_logic;
-
 begin
 
    ------------------------------
-   -- Instantiate Clock and Reset
+   -- Instantiate Debounce
    ------------------------------
 
    inst_clk_rst : entity work.clk_rst
-   generic map (
-      G_SIMULATION => G_SIMULATION,
-      G_NEXYS4DDR  => G_NEXYS4DDR
-   )
    port map (
-      sys_clk_i  => sys_clk_i,
-      sys_rstn_i => sys_rstn_i,
-      sys_mode_i => sw_i(0),
-      sys_step_i => btn_i(0),
-      cpu_rst_o  => cpu_rst,
-      vga_rst_o  => vga_rst,
-      cpu_clk_o  => cpu_clk,
-      vga_clk_o  => vga_clk
+      clk_i  => cpu_clk_i,
+      step_i => step_i,
+      mode_i => mode_i,
+      clk_o  => cpu_clk
    );
-
+ 
 
    -------------------------------
    -- Instantiate Address Decoding
@@ -152,41 +135,38 @@ begin
                  (others => '0');
 
 
-   ------------------------------
-   -- Instantiate VGA module (only during synthesis)
-   ------------------------------
+   -------------------------
+   -- Instantiate VGA module
+   -------------------------
 
-   gen_vga: if true generate -- G_SIMULATION = false  generate
-      inst_vga_module : entity work.vga_module
-      generic map (
-                     G_NEXYS4DDR => G_NEXYS4DDR,
-                     G_FONT_FILE => G_FONT_FILE
-                  )
-      port map (
-         -- VGA Port
-         vga_clk_i => vga_clk,
-         vga_rst_i => vga_rst,
-         vga_hs_o  => vga_hs_o,
-         vga_vs_o  => vga_vs_o,
-         vga_col_o => vga_col_o,
+   inst_vga_module : entity work.vga_module
+   generic map (
+                  G_NEXYS4DDR => G_NEXYS4DDR,
+                  G_FONT_FILE => G_FONT_FILE
+               )
+   port map (
+      -- VGA Port
+      vga_clk_i => vga_clk_i,
+      vga_hs_o  => vga_hs_o,
+      vga_vs_o  => vga_vs_o,
+      vga_col_o => vga_col_o,
 
-         -- CPU Port
-         cpu_clk_i      => cpu_clk,
-         cpu_rst_i      => cpu_rst,
-         cpu_addr_i     => cpu_addr(10 downto 0),   -- 11 bit = 0x0800 size.
-         cpu_rden_i     => cpu_rden_vga,
-         cpu_data_o     => cpu_rddata_vga,
-         cpu_wren_i     => cpu_wren_vga,
-         cpu_data_i     => cpu_wrdata,
-         cpu_irq_o      => cpu_irq_vga,
-         cpu_status_i   => cpu_debug,
-         cpu_key_rden_o => cpu_key_rden,
-         cpu_key_val_i  => cpu_key_val,
-         cpu_keyboard_debug_i => cpu_keyboard_debug,
+      -- CPU Port
+      cpu_clk_i      => cpu_clk,
+      cpu_rst_i      => cpu_rst_i,
+      cpu_addr_i     => cpu_addr(10 downto 0),   -- 11 bit = 0x0800 size.
+      cpu_rden_i     => cpu_rden_vga,
+      cpu_data_o     => cpu_rddata_vga,
+      cpu_wren_i     => cpu_wren_vga,
+      cpu_data_i     => cpu_wrdata,
+      cpu_irq_o      => cpu_irq_vga,
+      cpu_status_i   => cpu_debug,
+      cpu_key_rden_o => cpu_key_rden,
+      cpu_key_val_i  => cpu_key_val,
+      cpu_keyboard_debug_i => cpu_keyboard_debug,
 
-         debug_o      => open
-      );
-   end generate gen_vga;
+      debug_o      => open
+   );
 
 
    ------------------------------
@@ -239,7 +219,7 @@ begin
    inst_cpu : entity work.cpu_module
    port map (
       clk_i   => cpu_clk,
-      rst_i   => cpu_rst,
+      rst_i   => cpu_rst_i,
 
       addr_o  => cpu_addr,
 
@@ -260,7 +240,7 @@ begin
    inst_keyboard : entity work.keyboard
    port map (
       clk_i      => cpu_clk,
-      rst_i      => cpu_rst,
+      rst_i      => cpu_rst_i,
 
       ps2_clk_i  => ps2_clk_i,
       ps2_data_i => ps2_data_i,

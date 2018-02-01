@@ -29,11 +29,10 @@ entity vga_module is
    port (
       -- VGA port @ vga_clk_i
       vga_clk_i  : in  std_logic;
-      vga_rst_i  : in  std_logic;
       --
       vga_hs_o   : out std_logic; 
       vga_vs_o   : out std_logic;
-      vga_col_o  : out std_logic_vector(11 downto 0);
+      vga_col_o  : out std_logic_vector(7 downto 0);
 
       -- CPU port @ cpu_clk_i
       cpu_clk_i    : in  std_logic;
@@ -74,7 +73,7 @@ architecture Structural of vga_module is
    signal vga_char_vs     : std_logic;
    signal vga_char_hcount : std_logic_vector(10 downto 0);
    signal vga_char_vcount : std_logic_vector(10 downto 0);
-   signal vga_char_col    : std_logic_vector(11 downto 0);
+   signal vga_char_col    : std_logic_vector( 7 downto 0);
    --
    signal vga_char_font_addr : std_logic_vector(11 downto 0);
    signal vga_char_font_data : std_logic_vector( 7 downto 0);
@@ -87,7 +86,7 @@ architecture Structural of vga_module is
    signal vga_sprite_vs     : std_logic;
    signal vga_sprite_hcount : std_logic_vector(10 downto 0);
    signal vga_sprite_vcount : std_logic_vector(10 downto 0);
-   signal vga_sprite_col    : std_logic_vector(11 downto 0);
+   signal vga_sprite_col    : std_logic_vector( 7 downto 0);
 
    -- Signals driven by the Sprite Bitmap block
    signal vga_bitmap_addr   : std_logic_vector( 5 downto 0);

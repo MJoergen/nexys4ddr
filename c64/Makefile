@@ -1,8 +1,10 @@
 # Name of top level module
-TOP = hack
+TOP = nexys4ddr
+#TOP = basys2
 
 # List of sources files
 SRC  = src/$(TOP).vhd
+SRC += src/hack.vhd
 
 # Clocks
 SRC += src/clock/debounce.vhd

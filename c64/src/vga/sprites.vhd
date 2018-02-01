@@ -17,7 +17,7 @@ entity sprites is
       vcount_i      : in  std_logic_vector(10 downto 0);
       hs_i          : in  std_logic;
       vs_i          : in  std_logic;
-      col_i         : in  std_logic_vector(11 downto 0);
+      col_i         : in  std_logic_vector( 7 downto 0);
 
       config_i      : in  std_logic_vector(128*8-1 downto 0);
 
@@ -28,7 +28,7 @@ entity sprites is
       vcount_o      : out std_logic_vector(10 downto 0);
       hs_o          : out std_logic;
       vs_o          : out std_logic;
-      col_o         : out std_logic_vector(11 downto 0)
+      col_o         : out std_logic_vector( 7 downto 0)
    );
 end sprites;
 
@@ -51,21 +51,13 @@ architecture Behavioral of sprites is
 
    ----------------------------------------------------------------------
 
-   -- Convert colour from 8-bit format to 12-bit format
-   function col8to12(arg : std_logic_vector(7 downto 0)) return std_logic_vector is
-   begin
-      return arg(7 downto 5) & "0" & arg(4 downto 2) & "0" & arg(1 downto 0) & "00";
-   end function col8to12;
-
-   ----------------------------------------------------------------------
-
    -- Pipeline
    type t_stage is record
       hcount          : std_logic_vector(10 downto 0);     -- Valid in stage 0
       vcount          : std_logic_vector(10 downto 0);     -- Valid in stage 0
       hs              : std_logic;                         -- Valid in stage 0
       vs              : std_logic;                         -- Valid in stage 0
-      col             : std_logic_vector(11 downto 0);     -- Valid in stage 0
+      col             : std_logic_vector( 7 downto 0);     -- Valid in stage 0
       row_index       : std_logic_vector(4*4-1 downto 0);  -- Valid in stage 1 (0 - 15) for each sprite
       row_index_valid : std_logic_vector(3 downto 0);      -- Valid in stage 1
       col_index       : std_logic_vector(4*4-1 downto 0);  -- Valid in stage 1 (0 - 15) for each sprite
@@ -280,7 +272,7 @@ begin
             color_v  := config_i(16*8*i + 31 downto 16*8*i + 24);
             enable_v := config_i(16*8*i + 32);
             if stage2.pix(i) = '1' then
-               stage3.col <= col8to12(color_v);
+               stage3.col <= color_v;
             end if;
          end loop;
 

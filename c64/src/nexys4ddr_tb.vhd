@@ -8,13 +8,13 @@ library ieee;
 use ieee.STD_LOGIC_1164.ALL;
 use ieee.STD_LOGIC_UNSIGNED.ALL;
 
-entity hack_tb is
-end hack_tb;
+entity nexys4ddr_tb is
+end nexys4ddr_tb;
 
-architecture Structural of hack_tb is
+architecture Structural of nexys4ddr_tb is
 
     -- Clock and reset
-    signal sys_clk  : std_logic;  -- 100 MHz
+    signal clk100  : std_logic;  -- 100 MHz
     signal sys_rstn : std_logic := '1';
 
     -- VGA port
@@ -39,7 +39,7 @@ begin
         wait;
       end if;
 
-      sys_clk <= '1', '0' after 5 ns; -- 100 MHz
+      clk100 <= '1', '0' after 5 ns; -- 100 MHz
       wait for 10 ns;
     end process clk_gen;
 
@@ -56,13 +56,9 @@ begin
 
 
     -- Instantiate DUT
-    inst_hack : entity work.hack
-    generic map (
-       G_SIMULATION => true,
-       G_NEXYS4DDR  => true
-    )
+    inst_nexys4ddr : entity work.nexys4ddr
     port map (
-       sys_clk_i  => sys_clk,
+       clk100_i   => clk100,
        sys_rstn_i => sys_rstn,
        vga_hs_o   => vga_hs,
        vga_vs_o   => vga_vs,

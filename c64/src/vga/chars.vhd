@@ -40,7 +40,7 @@ entity chars is
       vcount_o    : out std_logic_vector(10 downto 0);
       hsync_o     : out std_logic;
       vsync_o     : out std_logic;
-      col_o       : out std_logic_vector(11 downto 0)
+      col_o       : out std_logic_vector( 7 downto 0)
    );
 end chars;
 
@@ -64,12 +64,6 @@ architecture Behavioral of chars is
    constant C_INST_NUM : integer := 4; -- Index into C_NAMES corresponding to "INST".
  
 
-   -- Convert colour from 8-bit format to 12-bit format
-   function col8to12(arg : std_logic_vector(7 downto 0)) return std_logic_vector is
-   begin
-      return arg(7 downto 5) & "0" & arg(4 downto 2) & "0" & arg(1 downto 0) & "00";
-   end function col8to12;
-
    -- This employs an eight stage pipeline in order to improve timing.
    type t_stage is record
       hsync     : std_logic;                       -- valid in all stages
@@ -88,7 +82,7 @@ architecture Behavioral of chars is
       nibble    : std_logic_vector(  3 downto 0);
       font_addr : std_logic_vector( 11 downto 0);
       pix       : std_logic;
-      col       : std_logic_vector( 11 downto 0);  -- valid in stage 5
+      col       : std_logic_vector(  7 downto 0);  -- valid in stage 5
    end record t_stage;
 
    constant STAGE_DEFAULT : t_stage := (
@@ -365,7 +359,7 @@ begin
          stage8 <= stage7;
 
          if stage7.pix = '1' then
-            stage8.col <= col8to12(config_i(80*8 + 7 downto 80*8));
+            stage8.col <= config_i(80*8 + 7 downto 80*8);
 
             if stage7.char_y >= C_DEBUG_POSY and stage7.char_y < C_DEBUG_POSY+8 then
                row_v := conv_integer(stage7.char_y - C_DEBUG_POSY);
@@ -380,11 +374,11 @@ begin
                end if;
             end if;
          else
-            stage8.col <= col8to12(config_i(81*8 + 7 downto 81*8));
+            stage8.col <= config_i(81*8 + 7 downto 81*8);
          end if;
 
          if stage7.blank = '1' then
-            stage8.col <= X"000";
+            stage8.col <= (others => '0');
          end if;
       end if;
    end process p_stage8;
