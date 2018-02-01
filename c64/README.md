@@ -30,7 +30,7 @@ The computer consists of the following parts:
 
 The following picture shows the block diagram
 
-![Block diagram](Overview.png "")
+![Block diagram](img/Overview.png "")
 
 Note that the dotted line indicates separation between two asynchronous clock
 domains. The VGA runs at 25 MHz  (determined by the video mode - 640x480 @ 60
@@ -71,7 +71,7 @@ The total memory used by the VGA driver is about 4 kB of Block RAM.
 
 The following block diagram shows the architecture of the VGA module.
 
-![VGA Module](VGA_Module.png "")
+![VGA Module](img/VGA_Module.png "")
 
 Notice again the dotted line separating the two clock domains.
 
