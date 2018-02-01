@@ -90,7 +90,20 @@ begin
       if rising_edge(clk_i) then
          if wren_i = '1' then
             index_v := conv_integer(addr_i(6 downto 0));
-            config(8*index_v + 7 downto 8*index_v) <= data_i;
+
+            -- This is written out explicitly as a case, to prevent registers on the unused bits.
+            case index_v is
+               when 16#00# to 16#04# => config(8*index_v + 7 downto 8*index_v) <= data_i; -- Sprite 0
+               when 16#10# to 16#14# => config(8*index_v + 7 downto 8*index_v) <= data_i; -- Sprite 1
+               when 16#20# to 16#24# => config(8*index_v + 7 downto 8*index_v) <= data_i; -- Sprite 2
+               when 16#30# to 16#34# => config(8*index_v + 7 downto 8*index_v) <= data_i; -- Sprite 3
+               when 16#40#           => config(8*index_v + 7 downto 8*index_v) <= data_i; -- IRQ status
+               when 16#41#           => config(8*index_v + 7 downto 8*index_v) <= data_i; -- Y-line
+               when 16#42#           => config(8*index_v + 7 downto 8*index_v) <= data_i; -- IRQ mask
+               when 16#50#           => config(8*index_v + 7 downto 8*index_v) <= data_i; -- Char foreground color
+               when 16#51#           => config(8*index_v + 7 downto 8*index_v) <= data_i; -- Char background color
+               when others => null;
+            end case;
          end if;
 
          if rst_i = '1' then
