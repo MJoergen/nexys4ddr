@@ -12,7 +12,7 @@ entity basys2 is
 
    port (
       -- Clock
-      clk_i      : in  std_logic;  -- We assume here this pin is connected to an external 25 MHz crystal.
+      clk25_i    : in  std_logic;  -- We assume here this pin is connected to an external 25 MHz crystal.
 
       -- Input switches and push buttons
       sw_i       : in  std_logic_vector(7 downto 0);
@@ -35,30 +35,39 @@ end basys2;
 
 architecture Structural of basys2 is
 
-   -- Clocks and Reset
-   signal cpu_clk   : std_logic;
-   signal vga_clk   : std_logic;
+   signal cpu_rst : std_logic := '0';
 
 begin
 
-   inst_dut : entity work.hack 
+   -- Generate synchronous CPU reset
+   p_cpu_rst : process (clk25_i)
+   begin
+      if rising_edge(clk25_i) then
+         cpu_rst <= btn_i(3);     -- Synchronize input
+      end if;
+   end process p_cpu_rst;
 
+   inst_dut : entity work.hack 
    generic map (
+      G_NEXYS4DDR  => false,             -- True, when using the Nexys4DDR board.
       G_ROM_SIZE   => 10,                -- Number of bits in ROM address
       G_RAM_SIZE   => 10,                -- Number of bits in RAM address
-      G_SIMULATION => false,
       G_ROM_FILE   => "rom.txt",         -- Contains the machine code
       G_FONT_FILE  => "ProggyClean.txt"  -- Contains the character font
    )
    port map (
-      sys_rstn_i => sys_rstn_i,
-      cpu_clk_i  => cpu_clk_i,
-      vga_clk_i  => vga_clk_i,
-      sw_i       => sw_i,
-      btn_i      => btn_i,
+      vga_clk_i  => clk25_i,
+      cpu_clk_i  => clk25_i,
+      cpu_rst_i  => cpu_rst,
+      --
+      mode_i     => sw_i(0),
+      step_i     => btn_i(0),
+      --
       ps2_clk_i  => ps2_clk_i,
       ps2_data_i => ps2_data_i,
+      --
       led_o      => led_o,
+      --
       vga_hs_o   => vga_hs_o,
       vga_vs_o   => vga_vs_o,
       vga_col_o  => vga_col_o
