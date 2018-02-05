@@ -150,6 +150,16 @@ void __fastcall__ reset(void)
    __asm__("STA %w", VGA_SCREEN+101);
    __asm__("LDA #$6A");
    __asm__("STA %w", VGA_SCREEN+102);
+   __asm__("LDA #$20");
+   __asm__("STA %w", VGA_SCREEN+103);
+   __asm__("LDA #$41");
+   __asm__("STA %w", VGA_SCREEN+104);
+   __asm__("LDA #$73");
+   __asm__("STA %w", VGA_SCREEN+105);
+   __asm__("LDA #$6b");
+   __asm__("STA %w", VGA_SCREEN+106);
+   __asm__("LDA #$21");
+   __asm__("STA %w", VGA_SCREEN+107);
 
    // Write bitmap for sprite 0
    __asm__("LDA #$00");
@@ -305,7 +315,7 @@ scroll:
    // Time to scroll?
    __asm__("LDA %b", CNT);
    __asm__("CLC");
-   __asm__("ADC #$08"); // The value 8 must be a divisor of 256.
+   __asm__("ADC #$40"); // The value 0x40 must be a divisor of 256.
    __asm__("STA %b", CNT);
    __asm__("BNE %g", circle);
 
