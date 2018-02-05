@@ -10,6 +10,9 @@ use ieee.std_logic_unsigned.all;
 
 entity nexys4ddr is
 
+   generic (
+      G_SIMULATION : boolean := false
+   );
    port (
       -- Clock
       clk100_i   : in  std_logic;   -- This pin is connected to an external 100 MHz crystal.
@@ -57,22 +60,29 @@ architecture Structural of nexys4ddr is
 begin
 
 
-   -- Generate VGA clock (25 MHz)
-   inst_clk_wiz_vga : entity work.clk_wiz_vga
-   port map
-   (
-      clk_in1  => clk100_i,
-      clk_out1 => vga_clk
-   );
- 
- 
-   -- Generate CPU clock (??? MHz)
-   inst_clk_wiz_cpu : entity work.clk_wiz_cpu
-   port map
-   (
-      clk_in1  => clk100_i,
-      clk_out1 => cpu_clk
-   );
+   gen_vga_clock : if G_SIMULATION = false generate
+      -- Generate VGA clock (25 MHz)
+      inst_clk_wiz_vga : entity work.clk_wiz_vga
+      port map
+      (
+         clk_in1  => clk100_i,
+         clk_out1 => vga_clk
+      );
+    
+    
+      -- Generate CPU clock (??? MHz)
+      inst_clk_wiz_cpu : entity work.clk_wiz_cpu
+      port map
+      (
+         clk_in1  => clk100_i,
+         clk_out1 => cpu_clk
+      );
+   end generate;
+
+   gen_no_vga_clock : if G_SIMULATION = true generate
+      vga_clk <= clk100_i;
+      cpu_clk <= clk100_i;
+   end generate;
  
  
    -- Generate synchronous CPU reset

@@ -57,6 +57,9 @@ begin
 
     -- Instantiate DUT
     inst_nexys4ddr : entity work.nexys4ddr
+    generic map (
+       G_SIMULATION => true
+    )
     port map (
        clk100_i   => clk100,
        sys_rstn_i => sys_rstn,
