@@ -35,7 +35,7 @@ end basys2;
 
 architecture Structural of basys2 is
 
-   signal cpu_rst : std_logic := '0';
+   signal cpu_rst : std_logic := '1';
 
 begin
 

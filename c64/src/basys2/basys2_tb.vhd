@@ -39,7 +39,7 @@ begin
       end if;
 
       clk25 <= '1', '0' after 20 ns; -- 25 MHz
-      wait for 10 ns;
+      wait for 40 ns;
     end process clk_gen;
 
     -- Generate reset (asserted high)
