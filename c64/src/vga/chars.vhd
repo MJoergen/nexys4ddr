@@ -114,7 +114,6 @@ architecture Behavioral of chars is
    signal stage6 : t_stage := STAGE_DEFAULT;
    signal stage7 : t_stage := STAGE_DEFAULT;
    signal stage8 : t_stage := STAGE_DEFAULT;
-   signal stage9 : t_stage := STAGE_DEFAULT;
 
    signal stage2_divmod13  : std_logic_vector(8 downto 0);
    signal stage4_char_val  : std_logic_vector(7 downto 0);
