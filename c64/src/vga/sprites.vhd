@@ -89,8 +89,8 @@ begin
 
    ------------------------------------------------------------------------
    -- Control reading sprite bitmaps from the BRAM.
-   -- Reading starts when hcount_i = -6 and takes one clock cycle pr sprite.
-   -- With 4 sprites, the bitmap data is ready at start of the next line.
+   -- Reading starts when hcount_i = -22 and takes one clock cycle pr sprite.
+   -- With 4 sprites, the bitmap data is ready at start of the next line (-16).
    ------------------------------------------------------------------------
 
    p_fsm : process (clk_i)
@@ -106,7 +106,7 @@ begin
       if rising_edge(clk_i) then
 
          -- Get ready to read bitmap data
-         if hcount_i = H_MAX-6 then
+         if hcount_i = H_MAX-22 then
             vcount1_v := vcount_i + 1;  -- Next line
 
             -- Loop over all sprites.
@@ -137,7 +137,7 @@ begin
       variable sprite_num_v : std_logic_vector(1 downto 0);
    begin
       if rising_edge(clk_i) then
-         pix_x_v := hcount_i - (H_MAX-5);
+         pix_x_v := hcount_i - (H_MAX-21);
          bitmap_rden <= '0';
 
          if pix_x_v < 4 then
