@@ -114,6 +114,7 @@ With ad-bc = 1 we see that the quadratic form is indeed invariant.
 #define YLO 2
 #define YHI 3
 #define CNT 4
+#define XSCROLL 5
 
 
 /*
@@ -253,6 +254,7 @@ void __fastcall__ reset(void)
 
    // Configure X scroll
    __asm__("LDA #$00");
+   __asm__("STA %b", XSCROLL);
    __asm__("STA %w", VGA_XSCROLL);
 
    // Configure text color
@@ -261,8 +263,8 @@ void __fastcall__ reset(void)
    __asm__("LDA #$CC");
    __asm__("STA %w", VGA_BGCOL);
 
-   // Configure interrupt at end of line 240 (i.e. end of screen).
-   __asm__("LDA #$F0");
+   // Configure interrupt at end of line 42 (i.e. middle of screen).
+   __asm__("LDA #$28");
    __asm__("STA %w", VGA_YLINE);
    __asm__("LDA #$01");
    __asm__("STA %w", VGA_MASK);
@@ -284,16 +286,31 @@ void __fastcall__ irq(void)
    // asserting the IRQ pin.
    // Reading this register clears the assertion.
    __asm__("LDA %w", VGA_IRQ);
+   __asm__("LDA %w", VGA_YLINE);
+   __asm__("CMP #$28");
+   __asm__("BNE %g", scroll);
+
+   // Reset scroll
+   __asm__("LDA #$00");
+   __asm__("STA %w", VGA_XSCROLL);
+   __asm__("LDA #$F0");
+   __asm__("STA %w", VGA_YLINE);
+   __asm__("RTI");
+
+scroll:
+   // Next interrupt after text line
+   __asm__("LDA #$28");
+   __asm__("STA %w", VGA_YLINE);
 
    // Time to scroll?
    __asm__("LDA %b", CNT);
    __asm__("CLC");
-   __asm__("ADC #$02"); // The value 8 must be a divisor of 256.
+   __asm__("ADC #$08"); // The value 8 must be a divisor of 256.
    __asm__("STA %b", CNT);
    __asm__("BNE %g", circle);
 
    // Yes. Time to move a whole character?
-   __asm__("LDA %w", VGA_XSCROLL);
+   __asm__("LDA %b", XSCROLL);
    __asm__("BNE %g", shift_pixel);
 
    // Keep left-most character
@@ -315,14 +332,17 @@ more_scroll:
    __asm__("TYA");
    __asm__("STA %w", VGA_SCREEN+119);
 
-   __asm__("LDA %w", VGA_XSCROLL);
+   __asm__("LDA %b", XSCROLL);
 shift_pixel:
    __asm__("SEC");
    __asm__("SBC #$01");
    __asm__("AND #$0F");
-   __asm__("STA %w", VGA_XSCROLL);
+   __asm__("STA %b", XSCROLL);
 
 circle:
+   __asm__("LDA %b", XSCROLL);
+   __asm__("STA %w", VGA_XSCROLL);
+
 /*
  * As written above, implement the following:
  * x -= y/256;
