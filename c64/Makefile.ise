@@ -1,0 +1,71 @@
+SRC_DIR = src
+
+project    = basys2
+top_module = basys2
+
+# List of sources files
+vfiles  = $(SRC_DIR)/basys2/basys2.vhd # Top level
+vfiles += $(SRC_DIR)/hack.vhd
+
+# Clocks
+vfiles += $(SRC_DIR)/clock/clk_rst.vhd
+vfiles += $(SRC_DIR)/clock/debounce.vhd
+
+# VGA driver
+vfiles += $(SRC_DIR)/vga/bitmaps_mem.vhd
+vfiles += $(SRC_DIR)/vga/conf_stat.vhd
+vfiles += $(SRC_DIR)/vga/sync.vhd
+vfiles += $(SRC_DIR)/vga/chars.vhd
+vfiles += $(SRC_DIR)/vga/sprites.vhd
+vfiles += $(SRC_DIR)/vga/vga_module.vhd
+
+# CPU
+vfiles += $(SRC_DIR)/cpu/regs.vhd
+vfiles += $(SRC_DIR)/cpu/ctl.vhd
+vfiles += $(SRC_DIR)/cpu/alu.vhd
+vfiles += $(SRC_DIR)/cpu/pc.vhd
+vfiles += $(SRC_DIR)/cpu/cpu_module.vhd
+
+# Memory
+vfiles += $(SRC_DIR)/mem/rom_file.vhd
+vfiles += $(SRC_DIR)/mem/mem.vhd
+vfiles += $(SRC_DIR)/mem/cs.vhd
+
+# Clock domain crossing
+vfiles += $(SRC_DIR)/cdc/cdcpulse.vhd
+vfiles += $(SRC_DIR)/cdc/cdcvector.vhd
+
+# Keyboard
+vfiles += $(SRC_DIR)/keyboard/ps2.vhd
+vfiles += $(SRC_DIR)/keyboard/bytefifo.vhd
+vfiles += $(SRC_DIR)/keyboard/keyboard.vhd
+
+# Synthesis
+vendor     = xilinx
+family     = spartan3e
+part       = xc3s250e-5-cp132
+board      = Basys2
+index      = 0
+#part       = xc7a35t-1-cpg236
+#board      = Basys3
+
+# Simulation
+testbench  = $(top_module)_tb
+tb_sources = $(SRC_DIR)/basys2/$(testbench).vhd
+wave       = $(testbench).ghw
+wavesave   = $(testbench).gtkw
+unisim_lib = unisim-obj93.cf
+#stoptime   = --stop-time=4000us
+stoptime   = --stop-time=100us --assert-level=none
+
+# Host PC application
+app_source = $(project).cpp
+app_libs   = -ldmgr -ldepp
+
+# Machine code
+PROG_SRC    = src/prog/cputest.c
+LD_CFG      = src/prog/ld.cfg
+VECTORS_AS  = src/prog/vectors.s
+
+include xilinx_ise.mk
+

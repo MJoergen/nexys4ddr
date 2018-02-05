@@ -155,39 +155,7 @@ program: $(OUTDIR)/$(TOP).bit
 
 ###############################################################################
 
-PROG_AS     = $(PROG_SRC:.c=.s)
-VECTORS_AS  ?= vectors.s
-
-PROG_OBJ    = $(PROG_AS:.s=.o)
-VECTORS_OBJ = $(VECTORS_AS:.s=.o)
-
-LD_CFG      ?= ld.cfg
-
-$(PROG_AS): $(PROG_SRC)
-	cc65 $<
-junk += $(PROG_AS)
-
-$(PROG_OBJ): $(PROG_AS)
-	ca65 $<
-junk += $(PROG_OBJ)
-
-$(VECTORS_OBJ): $(VECTORS_AS)
-	ca65 $<
-junk += $(VECTORS_OBJ)
-
-rom.bin:	$(PROG_OBJ) $(VECTORS_OBJ)
-	ld65 -C $(LD_CFG) $(PROG_OBJ) $(VECTORS_OBJ)
-junk += rom.bin
-junk += ram.bin
-junk += a.out
-
-rom.txt:	rom.bin
-	hex2bin.py rom.bin
-junk += rom.txt
-
-ram.txt:	ram.bin
-	hex2bin.py ram.bin
-junk += ram.txt
+include Makefile.prog
 
 ###############################################################################
 

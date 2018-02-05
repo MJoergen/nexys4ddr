@@ -1,0 +1,106 @@
+#
+# This is the global pin description file for the Xilinx Spartan 3E FPGA
+# pins for Basys2 Board
+#
+# I've adopted a naming convention, so all inputs to the FPGA are suffixed
+# with a "_i", and all outputs from the FPGA are suffixed with a "_o".
+#
+# The "Signal names" given in the comment to each pin, are the names 
+# used in the BASYS2 datasheet.
+
+# A crystal oscillator is connected to this FPGA pin
+# The frequency of the oscillator is fixed at 25 MHz.
+NET "clk25_i"  LOC = "M6"; # Bank = 2, Signal name = UCLK, PAD = GCLK0
+NET "clk25_i" TNM_NET = sys_clk_i;
+TIMESPEC TS_sys_clk_i = PERIOD "clk25_i" 40 ns HIGH 50%;  # 25 MHz
+
+# Pin assignments for PMOD's
+#NET "pmod_i<0>"  LOC = "B2";   # Signal name = JA1
+#NET "pmod_i<1>"  LOC = "A3";   # Signal name = JA2
+#NET "pmod_i<2>"  LOC = "J3";   # Signal name = JA3
+#NET "pmod_i<3>"  LOC = "B5";   # Signal name = JA4
+#NET "pmod_i<4>"  LOC = "C6";   # Signal name = JB1
+#NET "pmod_i<5>"  LOC = "B6";   # Signal name = JB2
+#NET "pmod_i<6>"  LOC = "C5";   # Signal name = JB3
+#NET "pmod_i<7>"  LOC = "B7";   # Signal name = JB4
+#NET "pmod_i<8>"  LOC = "A9";   # Signal name = JC1
+#NET "pmod_i<9>"  LOC = "B9";   # Signal name = JC2
+#NET "pmod_i<10>" LOC = "A10";  # Signal name = JC3
+#NET "pmod_i<11>" LOC = "C9";   # Signal name = JC4
+#NET "pmod_i<12>" LOC = "C12";  # Signal name = JD1
+#NET "pmod_i<13>" LOC = "A13";  # Signal name = JD2
+#NET "pmod_i<14>" LOC = "C13";  # Signal name = JD3
+#NET "pmod_i<15>" LOC = "D12";  # Signal name = JD4
+
+# Pin assignments for slide switches
+NET "sw_i<7>" LOC = "N3";  # Bank = 2, Signal name = SW7
+NET "sw_i<6>" LOC = "E2";  # Bank = 3, Signal name = SW6
+NET "sw_i<5>" LOC = "F3";  # Bank = 3, Signal name = SW5
+NET "sw_i<4>" LOC = "G3";  # Bank = 3, Signal name = SW4
+NET "sw_i<3>" LOC = "B4";  # Bank = 0, Signal name = SW3
+NET "sw_i<2>" LOC = "K3";  # Bank = 3, Signal name = SW2
+NET "sw_i<1>" LOC = "L3";  # Bank = 3, Signal name = SW1
+NET "sw_i<0>" LOC = "P11"; # Bank = 2, Signal name = SW0
+
+# Pin assignments for push buttons
+NET "btn_i<3>" LOC = "A7";  # Bank = 0, Signal name = BTN3
+NET "btn_i<2>" LOC = "M4";  # Bank = 2, Signal name = BTN2
+NET "btn_i<1>" LOC = "C11"; # Bank = 0, Signal name = BTN1
+NET "btn_i<0>" LOC = "G12"; # Bank = 1, Signal name = BTN0
+
+# Pin assignments for LEDs
+NET "led_o<7>" LOC = "G1" ; # Bank = 3, Signal name = LD7
+NET "led_o<6>" LOC = "P4" ; # Bank = 2, Signal name = LD6
+NET "led_o<5>" LOC = "N4" ; # Bank = 2, Signal name = LD5
+NET "led_o<4>" LOC = "N5" ; # Bank = 2, Signal name = LD4
+NET "led_o<3>" LOC = "P6" ; # Bank = 2, Signal name = LD3
+NET "led_o<2>" LOC = "P7" ; # Bank = 2, Signal name = LD2
+NET "led_o<1>" LOC = "M11"; # Bank = 2, Signal name = LD1
+NET "led_o<0>" LOC = "M5" ; # Bank = 2, Signal name = LD0
+
+# Pin assignments for seven-segment display
+#NET "seg_ca_o<0>"  LOC = "L14"; # Bank = 1, Signal name = CA
+#NET "seg_ca_o<1>"  LOC = "H12"; # Bank = 1, Signal name = CB
+#NET "seg_ca_o<2>"  LOC = "N14"; # Bank = 1, Signal name = CC
+#NET "seg_ca_o<3>"  LOC = "N11"; # Bank = 2, Signal name = CD
+#NET "seg_ca_o<4>"  LOC = "P12"; # Bank = 2, Signal name = CE
+#NET "seg_ca_o<5>"  LOC = "L13"; # Bank = 1, Signal name = CF
+#NET "seg_ca_o<6>"  LOC = "M12"; # Bank = 1, Signal name = CG
+#NET "seg_dp_o"     LOC = "N13"; # Bank = 1, Signal name = DP
+#NET "seg_an_o<3>"  LOC = "K14"; # Bank = 1, Signal name = AN3
+#NET "seg_an_o<2>"  LOC = "M13"; # Bank = 1, Signal name = AN2
+#NET "seg_an_o<1>"  LOC = "J12"; # Bank = 1, Signal name = AN1
+#NET "seg_an_o<0>"  LOC = "F12"; # Bank = 1, Signal name = AN0
+
+## The rest of this file is not used. It's included for future possible expansions
+
+# Pin assignment for VGA
+NET "vga_hs_o"       LOC = "J14"  | DRIVE = 2 ; # Bank = 1, Signal name = HSYNC
+NET "vga_vs_o"       LOC = "K13"  | DRIVE = 2 ; # Bank = 1, Signal name = VSYNC
+NET "vga_col_o<7>"   LOC = "F13"  | DRIVE = 2 ; # Bank = 1, Signal name = RED2
+NET "vga_col_o<6>"   LOC = "D13"  | DRIVE = 2 ; # Bank = 1, Signal name = RED1
+NET "vga_col_o<5>"   LOC = "C14"  | DRIVE = 2 ; # Bank = 1, Signal name = RED0
+NET "vga_col_o<4>"   LOC = "G14"  | DRIVE = 2 ; # Bank = 1, Signal name = GRN2
+NET "vga_col_o<3>"   LOC = "G13"  | DRIVE = 2 ; # Bank = 1, Signal name = GRN1 
+NET "vga_col_o<2>"   LOC = "F14"  | DRIVE = 2 ; # Bank = 1, Signal name = GRN0 
+NET "vga_col_o<1>"   LOC = "J13"  | DRIVE = 2 ; # Bank = 1, Signal name = BLU2
+NET "vga_col_o<0>"   LOC = "H13"  | DRIVE = 2 ; # Bank = 1, Signal name = BLU1 
+
+# Pin assignment for USB communication (not used)
+#NET "epp_write_i"  LOC = "C2"; # Bank = 3, Signal name = USB-WRITE
+#NET "epp_wait_o"   LOC = "D2"; # Bank = 3, Signal name = USB-WAIT
+#NET "epp_dstb_i"   LOC = "F1"; # Bank = 3, Signal name = USB-DSTB
+#NET "epp_astb_i"   LOC = "F2"; # Bank = 3, Signal name = USB-ASTB
+#NET "epp_db_io<7>" LOC = "H3"; # Bank = 3, Signal name = USB-DB7
+#NET "epp_db_io<6>" LOC = "H1"; # Bank = 3, Signal name = USB-DB6
+#NET "epp_db_io<5>" LOC = "H2"; # Bank = 3, Signal name = USB-DB5
+#NET "epp_db_io<4>" LOC = "L2"; # Bank = 3, Signal name = USB-DB4 
+#NET "epp_db_io<3>" LOC = "L1"; # Bank = 3, Signal name = USB-DB3
+#NET "epp_db_io<2>" LOC = "M1"; # Bank = 3, Signal name = USB-DB2
+#NET "epp_db_io<1>" LOC = "M2"; # Bank = 2, Signal name = USB-DB1
+#NET "epp_db_io<0>" LOC = "N2"; # Bank = 2, Signal name = USB-DB0
+
+# PS/2 connector (not used)
+#NET "ps2c_io" LOC = "B1" | PULLUP; # Bank = 3, Signal name = PS2C
+#NET "ps2d_io" LOC = "C3" | PULLUP; # Bank = 3, Signal name = PS2D
+
