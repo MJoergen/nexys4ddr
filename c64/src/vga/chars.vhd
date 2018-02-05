@@ -150,9 +150,6 @@ begin
             stage1.status   <= status_i;
             stage1.keyboard <= keyboard_i;
          end if;
-         if stage0.hcount < x_scroll_v then
-            stage1.blank    <= '1';
-         end if;
       end if;
    end process p_stage1;
 
