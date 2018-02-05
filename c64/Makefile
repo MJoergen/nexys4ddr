@@ -1,19 +1,20 @@
 # Name of top level module
 TOP = nexys4ddr
-#TOP = basys2
 
-# List of sources files
-SRC  = src/$(TOP).vhd
+# Platform specific files
+SRC    = src/nexys4ddr/nexys4ddr.vhd
+SRC   += src/nexys4ddr/clk_wiz_vga.vhd
+SRC   += src/nexys4ddr/clk_wiz_vga_clk_wiz.vhd
+SRC   += src/nexys4ddr/clk_wiz_cpu.vhd
+SRC   += src/nexys4ddr/clk_wiz_cpu_clk_wiz.vhd
+TB_SRC = src/nexys4ddr/$(testbench).vhd
+XDC    = src/nexys4ddr/$(TOP).xdc
+
+# Top level module
 SRC += src/hack.vhd
-
-testbench = hack_tb
 
 # Clocks
 SRC += src/clock/debounce.vhd
-SRC += src/clock/clk_wiz_vga.vhd
-SRC += src/clock/clk_wiz_vga_clk_wiz.vhd
-SRC += src/clock/clk_wiz_cpu.vhd
-SRC += src/clock/clk_wiz_cpu_clk_wiz.vhd
 SRC += src/clock/clk_rst.vhd
 
 # VGA driver
