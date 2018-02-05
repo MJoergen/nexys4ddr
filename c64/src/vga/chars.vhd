@@ -137,17 +137,22 @@ begin
    ------------------------------------------------------------------------
 
    p_stage1 : process (clk_i) is
+      variable x_scroll_v : std_logic_vector(7 downto 0);
    begin
       if rising_edge(clk_i) then
+         x_scroll_v := "0000" & config_i(67*8 + 3 downto 67*8);
          stage1.hsync  <= stage0.hsync;
          stage1.vsync  <= stage0.vsync;
-         stage1.hcount <= stage0.hcount;
+         stage1.hcount <= stage0.hcount - x_scroll_v;
          stage1.vcount <= stage0.vcount - 6;
          stage1.blank  <= stage0.blank;
-         if (stage0.vcount < 6 or stage0.vcount >= 13*18*2 + 6) then
+         if stage0.vcount < 6 or stage0.vcount >= 13*18*2 + 6 then
             stage1.blank    <= '1';
             stage1.status   <= status_i;
             stage1.keyboard <= keyboard_i;
+         end if;
+         if stage0.hcount < x_scroll_v then
+            stage1.blank    <= '1';
          end if;
       end if;
    end process p_stage1;

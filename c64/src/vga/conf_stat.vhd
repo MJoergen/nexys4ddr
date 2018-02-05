@@ -32,6 +32,7 @@
 --              0x8640 :            IRQ status (bit 0 : Y-line interrupt)
 --              0x8641 :            Y-line
 --              0x8642 :            IRQ mask   (bit 0 : Y-line interrupt)
+--              0x8643 :            X-scroll (bits 3-0, i.e. values 0-15)
 --              0x8650 :            Char foreground color
 --              0x8651 :            Char background color
 --              0x8660 :            Keyboard
@@ -100,6 +101,7 @@ begin
                when 16#40#           => config(8*index_v + 7 downto 8*index_v) <= data_i; -- IRQ status
                when 16#41#           => config(8*index_v + 7 downto 8*index_v) <= data_i; -- Y-line
                when 16#42#           => config(8*index_v + 7 downto 8*index_v) <= data_i; -- IRQ mask
+               when 16#43#           => config(8*index_v + 7 downto 8*index_v) <= data_i; -- X-scroll
                when 16#50#           => config(8*index_v + 7 downto 8*index_v) <= data_i; -- Char foreground color
                when 16#51#           => config(8*index_v + 7 downto 8*index_v) <= data_i; -- Char background color
                when others => null;
