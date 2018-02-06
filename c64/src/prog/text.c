@@ -144,10 +144,14 @@ const unsigned char shifted[256] = {
 
 // A little state machine to interpret the scan codes received
 // from the kayboard.
-char __fastcall__ keyboardUpdate(char scanCode)
+// Note, to optimize, I avoid using function arguments, because that leads to
+// very slow code.
+unsigned char keyboardUpdate(void)
 {
-   static char releaseMode = 0;
-   static char shiftPressed = 0;
+   static unsigned char releaseMode = 0;
+   static unsigned char shiftPressed = 0;
+
+   unsigned char scanCode = *((char *) VGA_KEY);
 
    // Check for special scan codes
    switch (scanCode)
