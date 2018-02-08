@@ -43,7 +43,7 @@ architecture Structural of nexys4ddr is
    -- Clocks and Reset
    signal vga_clk   : std_logic;
    signal cpu_clk   : std_logic;
-   signal cpu_rst   : std_logic;
+   signal cpu_rst   : std_logic := '1';
  
    -- VGA color output
    signal vga_col   : std_logic_vector(7 downto 0);
