@@ -346,12 +346,21 @@ x_positive:
    __asm__("ADC #$00");
    __asm__("STA %b", YHI);
 
+   // Move YLO high bit into carry
+   __asm__("LDA %b", YLO);
    __asm__("CLC");
+   __asm__("ADC %b", YLO);
+
+   __asm__("LDA %b", YHI);
    __asm__("ADC #$80");
    __asm__("STA %w", VGA_0_POSY); // Set Y coordinate of sprite 0
 
-   __asm__("LDA %b", XHI);
+   // Move XLO high bit into carry
+   __asm__("LDA %b", XLO);
    __asm__("CLC");
+   __asm__("ADC %b", XLO);
+
+   __asm__("LDA %b", XHI);
    __asm__("ADC #$80");
    __asm__("STA %w", VGA_0_POSXLO); // Set X coordinate of sprite 0
 

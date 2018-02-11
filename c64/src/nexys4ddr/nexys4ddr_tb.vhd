@@ -15,7 +15,7 @@ architecture Structural of nexys4ddr_tb is
 
     -- Clock and reset
     signal clk100  : std_logic;  -- 100 MHz
-    signal sys_rstn : std_logic := '1';
+    signal sys_rstn : std_logic := '0';
 
     -- VGA port
     signal vga_hs    : std_logic; 

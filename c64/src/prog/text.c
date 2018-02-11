@@ -31,9 +31,12 @@
 #define IRQ_X           0x04
 #define IRQ_CNT         0x05
 
-// Scan code for the shift key
-#define KEYB_SHIFT_LEFT  0x12
-#define KEYB_SHIFT_RIGHT 0x59
+// Keyboard scan codes
+#define KEYB_INITIALIZED  0xAAU
+#define KEYB_RELEASED     0xF0U
+#define KEYB_EXTENDED     0xE0U
+#define KEYB_SHIFT_LEFT   0x12
+#define KEYB_SHIFT_RIGHT  0x59
 
 // Mapping from normal (unshifted) scancode to ASCII
 const unsigned char normal[256] = {
@@ -139,6 +142,54 @@ const unsigned char shifted[256] = {
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 
    };
 
+// A little state machine to interpret the scan codes received
+// from the kayboard.
+// Note, to optimize, I avoid using function arguments, because that leads to
+// very slow code.
+unsigned char keyboardUpdate(void)
+{
+   static unsigned char releaseMode = 0;
+   static unsigned char shiftPressed = 0;
+
+   unsigned char scanCode = *((char *) VGA_KEY);
+
+   // Check for special scan codes
+   switch (scanCode)
+   {
+      case 0                : return 0;
+      case KEYB_INITIALIZED : return 0;
+      case KEYB_RELEASED    : releaseMode = 1; return 0;
+      case KEYB_EXTENDED    : return 0; // Just ignore for now
+   }
+
+   // First check if we are releasing a key
+   if (releaseMode)
+   {
+      // Special care must be made if we're releasing a shift key.
+      if (scanCode == KEYB_SHIFT_LEFT ||
+          scanCode == KEYB_SHIFT_RIGHT)
+      {
+         shiftPressed = 0;
+      }
+
+      releaseMode = 0;
+      return 0;
+   }
+
+   // Check for shift key.
+   if (scanCode == KEYB_SHIFT_LEFT ||
+         scanCode == KEYB_SHIFT_RIGHT)
+   {
+      shiftPressed = 1;
+      return 0;
+   }
+
+   if (shiftPressed)
+      return shifted[scanCode];
+
+   return normal[scanCode];
+} // end of keyboardUpdate
+
 
 // Entry point after CPU reset
 void __fastcall__ reset(void)
@@ -181,7 +232,7 @@ clear:
    __asm__("STA %w", VGA_YLINE);
    __asm__("LDA #$01"); 
    __asm__("STA %w", VGA_MASK);
-   __asm__("LDA %w", VGA_IRQ);  // Clear any pending IRQ
+   __asm__("LDA %w", VGA_IRQ);         // Clear any pending IRQ
    __asm__("LDA #$00"); 
    __asm__("STA %b", IRQ_CNT);
    __asm__("CLI"); 
@@ -193,47 +244,47 @@ clear:
    // Wait for information from keyboard
 here:
    __asm__("LDA %w", VGA_KEY);
-   __asm__("BEQ %g", here);   // Wait until keyboard information ready
-   __asm__("CMP #$E0");
-   __asm__("BEQ %g", here);   // So far, we just ignore the extended keys.
-   __asm__("CMP #$AA");
-   __asm__("BEQ %g", here);   // We ignore the initialization code too.
+   __asm__("BEQ %g", here);            // Wait until keyboard information ready
+   __asm__("CMP #%b", KEYB_EXTENDED);
+   __asm__("BEQ %g", here);            // So far, we just ignore the extended keys.
+   __asm__("CMP #%b", KEYB_INITIALIZED);
+   __asm__("BEQ %g", here);            // We ignore the initialization code too.
 
    // It is key press or key release?
-   __asm__("CMP #$F0");
+   __asm__("CMP #%b", KEYB_RELEASED);
    __asm__("BNE %g", keypress); 
 
    // A key has been released
 skip:
-   __asm__("LDA %w", VGA_KEY); // Just ignore next byte from keyboard
-   __asm__("BEQ %g", skip);   // Wait until keyboard information ready
-   __asm__("CMP #$E0");
-   __asm__("BEQ %g", skip);   // So far, we just ignore the extended keys.
+   __asm__("LDA %w", VGA_KEY);         // Just ignore next byte from keyboard
+   __asm__("BEQ %g", skip);            // Wait until keyboard information ready
+   __asm__("CMP #%b", KEYB_EXTENDED);
+   __asm__("BEQ %g", skip);            // So far, we just ignore the extended keys.
 
-   __asm__("CMP #%b", KEYB_SHIFT_LEFT);   // Is this a shift key
+   __asm__("CMP #%b", KEYB_SHIFT_LEFT);  // Is this a shift key
    __asm__("BEQ %g", release_shift);
    __asm__("CMP #%b", KEYB_SHIFT_RIGHT);
-   __asm__("BNE %g", here); // Go back and wait for next keyboard information
+   __asm__("BNE %g", here);            // Go back and wait for next keyboard information
 
    // Ok, the shift key has been released
 release_shift:
    __asm__("LDA #$00");
-   __asm__("STA %b", SHIFT_FLAG);   // Clear the shift flag
+   __asm__("STA %b", SHIFT_FLAG);      // Clear the shift flag
    __asm__("LDA #%b", COL_DARK);
    __asm__("STA %w", VGA_BGCOL);
 
-   __asm__("JMP %g", here); // Go back and wait for next keyboard information
+   __asm__("JMP %g", here);            // Go back and wait for next keyboard information
 
 
 keypress:
-   __asm__("CMP #%b", KEYB_SHIFT_LEFT);   // Is this a shift key
+   __asm__("CMP #%b", KEYB_SHIFT_LEFT);  // Is this a shift key
    __asm__("BEQ %g", key_shift);
    __asm__("CMP #%b", KEYB_SHIFT_RIGHT);
-   __asm__("BEQ %g", key_shift);   // Go elsewhere
+   __asm__("BEQ %g", key_shift);       // Go elsewhere
 
    // Ok, a key has been pressed. Convert it to ASCII
    __asm__("TAX");
-   __asm__("LDA %b", SHIFT_FLAG);   // Is shift currently pressed?
+   __asm__("LDA %b", SHIFT_FLAG);      // Is shift currently pressed?
    __asm__("BNE %g", shifted);
    __asm__("LDA %v,X", normal);
    __asm__("JMP %g", cont);
