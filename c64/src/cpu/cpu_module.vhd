@@ -34,6 +34,7 @@ end cpu_module;
 architecture Structural of cpu_module is
 
    -- Signals connected to ALU
+   signal alu_a_in : std_logic_vector(7 downto 0);
    signal alu_out  : std_logic_vector(7 downto 0);
    signal alu_c    : std_logic;
    signal alu_s    : std_logic;
@@ -66,7 +67,7 @@ architecture Structural of cpu_module is
    -- Status Register, All. Input is either register or memory (1 bit).
 
    -- Signals driven by the Control Logic
-   signal ctl_wr_reg        : std_logic_vector(4 downto 0);
+   signal ctl_wr_reg        : std_logic_vector(5 downto 0);
    signal ctl_wr_pc         : std_logic_vector(5 downto 0);
    signal ctl_wr_sp         : std_logic_vector(1 downto 0);
    signal ctl_wr_hold_addr  : std_logic_vector(1 downto 0);
@@ -138,7 +139,7 @@ begin
    -- Instantiate the ALU (combinatorial)
    inst_alu : entity work.alu
    port map (
-               a_i    => regs_rd_data,
+               a_i    => alu_a_in,
                b_i    => data_i,
                c_i    => reg_sr(0),  -- Carry
                func_i => ctl_wr_reg(3 downto 0),
@@ -148,6 +149,8 @@ begin
                v_o    => alu_v,
                z_o    => alu_z
             );
+
+   alu_a_in <= regs_rd_data when ctl_wr_reg(5) = '0' else reg_sp;
 
 
    -- Program Counter register
@@ -188,13 +191,12 @@ begin
    p_sp : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if ctl_wr_sp(1) = '1' then
-            if ctl_wr_sp(0) = '1' then
-               reg_sp <= reg_sp + 1;
-            else
-               reg_sp <= reg_sp - 1;
-            end if;
-         end if;
+         case ctl_wr_sp is
+            when "01" => reg_sp <= regs_rd_data;
+            when "10" => reg_sp <= reg_sp - 1;
+            when "11" => reg_sp <= reg_sp + 1;
+            when others => null;
+         end case;
 
          if rst_i = '1' then
             reg_sp <= X"FF";

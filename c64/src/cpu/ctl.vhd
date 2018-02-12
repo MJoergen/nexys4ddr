@@ -18,7 +18,7 @@ entity ctl is
       irq_i  : in  std_logic;
       data_i : in  std_logic_vector( 7 downto 0);
 
-      wr_reg_o        : out std_logic_vector(4 downto 0);
+      wr_reg_o        : out std_logic_vector(5 downto 0);
       wr_pc_o         : out std_logic_vector(5 downto 0);
       wr_sp_o         : out std_logic_vector(1 downto 0);
       wr_hold_addr_o  : out std_logic_vector(1 downto 0);
@@ -46,108 +46,110 @@ architecture Structural of ctl is
    signal last    : std_logic;
    signal invalid : std_logic;
 
-   signal ctl     : std_logic_vector(44 downto 0);
+   signal ctl     : std_logic_vector(45 downto 0);
    signal irq_l   : std_logic := '0';
    signal rst_l   : std_logic := '0';
 
-   subtype micro_op_type is std_logic_vector(44 downto 0);
+   subtype micro_op_type is std_logic_vector(45 downto 0);
    type micro_op_rom_type is array(0 to 8*256-1) of micro_op_type;
 
-   constant C_WR_REG_OR    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_10000";
-   constant C_WR_REG_AND   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_10001";
-   constant C_WR_REG_EOR   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_10010";
-   constant C_WR_REG_ADC   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_10011";
-   constant C_WR_REG_A     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_10100";
-   constant C_WR_REG_B     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_10101";
-   constant C_WR_REG_CMP   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_10110";
-   constant C_WR_REG_SBC   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_10111";
-   constant C_WR_REG_ASL   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_11000";
-   constant C_WR_REG_ROL   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_11001";
-   constant C_WR_REG_LSR   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_11010";
-   constant C_WR_REG_ROR   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_11011";
-   constant C_WR_REG_DEC   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_11110";
-   constant C_WR_REG_INC   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_11111";
+   constant C_WR_REG_OR    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010000";
+   constant C_WR_REG_AND   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010001";
+   constant C_WR_REG_EOR   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010010";
+   constant C_WR_REG_ADC   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010011";
+   constant C_WR_REG_A     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010100";
+   constant C_WR_REG_B     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010101";
+   constant C_WR_REG_CMP   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010110";
+   constant C_WR_REG_SBC   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010111";
+   constant C_WR_REG_ASL   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_011000";
+   constant C_WR_REG_ROL   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_011001";
+   constant C_WR_REG_LSR   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_011010";
+   constant C_WR_REG_ROR   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_011011";
+   constant C_WR_REG_DEC   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_011110";
+   constant C_WR_REG_INC   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_011111";
+   constant C_WR_REG_SP    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_110100";
 
-   constant C_ALU_OR       : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_00000";
-   constant C_ALU_AND      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_00001";
-   constant C_ALU_EOR      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_00010";
-   constant C_ALU_ADC      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_00011";
-   constant C_ALU_B        : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_00101";
-   constant C_ALU_CMP      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_00110";
-   constant C_ALU_SBC      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_00111";
-   constant C_ALU_ASL      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_01000";
-   constant C_ALU_ROL      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_01001";
-   constant C_ALU_LSR      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_01010";
-   constant C_ALU_ROR      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_01011";
-   constant C_ALU_DEC      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_01110";
-   constant C_ALU_INC      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_01111";
+   constant C_ALU_OR       : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_ALU_AND      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000001";
+   constant C_ALU_EOR      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000010";
+   constant C_ALU_ADC      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000011";
+   constant C_ALU_B        : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000101";
+   constant C_ALU_CMP      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000110";
+   constant C_ALU_SBC      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000111";
+   constant C_ALU_ASL      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_001000";
+   constant C_ALU_ROL      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_001001";
+   constant C_ALU_LSR      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_001010";
+   constant C_ALU_ROR      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_001011";
+   constant C_ALU_DEC      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_001110";
+   constant C_ALU_INC      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_001111";
 
-   constant C_WR_PC_LOAD   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000010_00000";
-   constant C_WR_PC_INC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000011_00000";
-   constant C_WR_PC_BPL    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000111_00000";
-   constant C_WR_PC_BMI    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_001111_00000";
-   constant C_WR_PC_BVC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_010111_00000";
-   constant C_WR_PC_BVS    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_011111_00000";
-   constant C_WR_PC_BCC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_100111_00000";
-   constant C_WR_PC_BCS    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_101111_00000";
-   constant C_WR_PC_BNE    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_110111_00000";
-   constant C_WR_PC_BEQ    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_111111_00000";
+   constant C_WR_PC_LOAD   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000010_000000";
+   constant C_WR_PC_INC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000011_000000";
+   constant C_WR_PC_BPL    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000111_000000";
+   constant C_WR_PC_BMI    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_001111_000000";
+   constant C_WR_PC_BVC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_010111_000000";
+   constant C_WR_PC_BVS    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_011111_000000";
+   constant C_WR_PC_BCC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_100111_000000";
+   constant C_WR_PC_BCS    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_101111_000000";
+   constant C_WR_PC_BNE    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_110111_000000";
+   constant C_WR_PC_BEQ    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_111111_000000";
 
-   constant C_WR_SP_DEC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_10_000000_00000";
-   constant C_WR_SP_INC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_11_000000_00000";
+   constant C_WR_SP_LOAD   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_01_000000_000000";
+   constant C_WR_SP_DEC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_10_000000_000000";
+   constant C_WR_SP_INC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_11_000000_000000";
 
-   constant C_WR_HOLD_LO   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_01_00_000000_00000";
-   constant C_WR_HOLD_HI   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_10_00_000000_00000";
-   constant C_WR_HOLD_ADD  : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_11_00_000000_00000";
+   constant C_WR_HOLD_LO   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_01_00_000000_000000";
+   constant C_WR_HOLD_HI   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_10_00_000000_000000";
+   constant C_WR_HOLD_ADD  : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_11_00_000000_000000";
 
-   constant C_WR_SR_V      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0001_00_00_000000_00000";
-   constant C_WR_SR_C      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0010_00_00_000000_00000";
-   constant C_WR_SR_Z      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0100_00_00_000000_00000";
-   constant C_WR_SR_S      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_1000_00_00_000000_00000";
+   constant C_WR_SR_V      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0001_00_00_000000_000000";
+   constant C_WR_SR_C      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0010_00_00_000000_000000";
+   constant C_WR_SR_Z      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0100_00_00_000000_000000";
+   constant C_WR_SR_S      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_1000_00_00_000000_000000";
 
-   constant C_WR_SR_B_0    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_10_0000_00_00_000000_00000";
-   constant C_WR_SR_B_1    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_11_0000_00_00_000000_00000";
-   constant C_WR_SR_I_0    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_10_00_0000_00_00_000000_00000";
-   constant C_WR_SR_I_1    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_11_00_0000_00_00_000000_00000";
-   constant C_WR_SR_D_0    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_10_00_00_0000_00_00_000000_00000";
-   constant C_WR_SR_D_1    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_11_00_00_0000_00_00_000000_00000";
-   constant C_WR_SR_REG    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_10_00_00_00_0000_00_00_000000_00000";
-   constant C_WR_SR_MEM    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_11_00_00_00_0000_00_00_000000_00000";
+   constant C_WR_SR_B_0    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_10_0000_00_00_000000_000000";
+   constant C_WR_SR_B_1    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_11_0000_00_00_000000_000000";
+   constant C_WR_SR_I_0    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_10_00_0000_00_00_000000_000000";
+   constant C_WR_SR_I_1    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_11_00_0000_00_00_000000_000000";
+   constant C_WR_SR_D_0    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_10_00_00_0000_00_00_000000_000000";
+   constant C_WR_SR_D_1    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_11_00_00_0000_00_00_000000_000000";
+   constant C_WR_SR_REG    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_10_00_00_00_0000_00_00_000000_000000";
+   constant C_WR_SR_MEM    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_11_00_00_00_0000_00_00_000000_000000";
 
-   constant C_WR_ADDR_PC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_00000";
-   constant C_WR_ADDR_HOLD  : micro_op_type := B"00_0_0_00_000_00_00_0_0001_00_00_00_00_0000_00_00_000000_00000";
-   constant C_WR_ADDR_SP    : micro_op_type := B"00_0_0_00_000_00_00_0_0010_00_00_00_00_0000_00_00_000000_00000";
-   constant C_WR_ADDR_HOLD2 : micro_op_type := B"00_0_0_00_000_00_00_0_0011_00_00_00_00_0000_00_00_000000_00000";
-   constant C_WR_ADDR_FFFA  : micro_op_type := B"00_0_0_00_000_00_00_0_1010_00_00_00_00_0000_00_00_000000_00000";
-   constant C_WR_ADDR_FFFB  : micro_op_type := B"00_0_0_00_000_00_00_0_1011_00_00_00_00_0000_00_00_000000_00000";
-   constant C_WR_ADDR_FFFC  : micro_op_type := B"00_0_0_00_000_00_00_0_1100_00_00_00_00_0000_00_00_000000_00000";
-   constant C_WR_ADDR_FFFD  : micro_op_type := B"00_0_0_00_000_00_00_0_1101_00_00_00_00_0000_00_00_000000_00000";
-   constant C_WR_ADDR_FFFE  : micro_op_type := B"00_0_0_00_000_00_00_0_1110_00_00_00_00_0000_00_00_000000_00000";
-   constant C_WR_ADDR_FFFF  : micro_op_type := B"00_0_0_00_000_00_00_0_1111_00_00_00_00_0000_00_00_000000_00000";
+   constant C_WR_ADDR_PC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_WR_ADDR_HOLD  : micro_op_type := B"00_0_0_00_000_00_00_0_0001_00_00_00_00_0000_00_00_000000_000000";
+   constant C_WR_ADDR_SP    : micro_op_type := B"00_0_0_00_000_00_00_0_0010_00_00_00_00_0000_00_00_000000_000000";
+   constant C_WR_ADDR_HOLD2 : micro_op_type := B"00_0_0_00_000_00_00_0_0011_00_00_00_00_0000_00_00_000000_000000";
+   constant C_WR_ADDR_FFFA  : micro_op_type := B"00_0_0_00_000_00_00_0_1010_00_00_00_00_0000_00_00_000000_000000";
+   constant C_WR_ADDR_FFFB  : micro_op_type := B"00_0_0_00_000_00_00_0_1011_00_00_00_00_0000_00_00_000000_000000";
+   constant C_WR_ADDR_FFFC  : micro_op_type := B"00_0_0_00_000_00_00_0_1100_00_00_00_00_0000_00_00_000000_000000";
+   constant C_WR_ADDR_FFFD  : micro_op_type := B"00_0_0_00_000_00_00_0_1101_00_00_00_00_0000_00_00_000000_000000";
+   constant C_WR_ADDR_FFFE  : micro_op_type := B"00_0_0_00_000_00_00_0_1110_00_00_00_00_0000_00_00_000000_000000";
+   constant C_WR_ADDR_FFFF  : micro_op_type := B"00_0_0_00_000_00_00_0_1111_00_00_00_00_0000_00_00_000000_000000";
 
-   constant C_MEM_RD       : micro_op_type := B"00_0_0_00_000_00_00_1_0000_00_00_00_00_0000_00_00_000000_00000";
+   constant C_MEM_RD       : micro_op_type := B"00_0_0_00_000_00_00_1_0000_00_00_00_00_0000_00_00_000000_000000";
 
-   constant C_REG_WR_A     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_00000";
-   constant C_REG_WR_X     : micro_op_type := B"00_0_0_00_000_00_01_0_0000_00_00_00_00_0000_00_00_000000_00000";
-   constant C_REG_WR_Y     : micro_op_type := B"00_0_0_00_000_00_10_0_0000_00_00_00_00_0000_00_00_000000_00000";
+   constant C_REG_WR_A     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_REG_WR_X     : micro_op_type := B"00_0_0_00_000_00_01_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_REG_WR_Y     : micro_op_type := B"00_0_0_00_000_00_10_0_0000_00_00_00_00_0000_00_00_000000_000000";
 
-   constant C_REG_RD_A     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_00000";
-   constant C_REG_RD_X     : micro_op_type := B"00_0_0_00_000_01_00_0_0000_00_00_00_00_0000_00_00_000000_00000";
-   constant C_REG_RD_Y     : micro_op_type := B"00_0_0_00_000_10_00_0_0000_00_00_00_00_0000_00_00_000000_00000";
+   constant C_REG_RD_A     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_REG_RD_X     : micro_op_type := B"00_0_0_00_000_01_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_REG_RD_Y     : micro_op_type := B"00_0_0_00_000_10_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
 
-   constant C_MEM_WR_REG   : micro_op_type := B"00_0_0_00_100_00_00_0_0000_00_00_00_00_0000_00_00_000000_00000";
-   constant C_MEM_WR_PC_HI : micro_op_type := B"00_0_0_00_101_00_00_0_0000_00_00_00_00_0000_00_00_000000_00000";
-   constant C_MEM_WR_PC_LO : micro_op_type := B"00_0_0_00_110_00_00_0_0000_00_00_00_00_0000_00_00_000000_00000";
-   constant C_MEM_WR_SR    : micro_op_type := B"00_0_0_00_111_00_00_0_0000_00_00_00_00_0000_00_00_000000_00000";
+   constant C_MEM_WR_REG   : micro_op_type := B"00_0_0_00_100_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_MEM_WR_PC_HI : micro_op_type := B"00_0_0_00_101_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_MEM_WR_PC_LO : micro_op_type := B"00_0_0_00_110_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_MEM_WR_SR    : micro_op_type := B"00_0_0_00_111_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
 
-   constant C_WR_SR_C_0    : micro_op_type := B"00_0_0_10_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_00000";
-   constant C_WR_SR_C_1    : micro_op_type := B"00_0_0_11_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_00000";
+   constant C_WR_SR_C_0    : micro_op_type := B"00_0_0_10_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_WR_SR_C_1    : micro_op_type := B"00_0_0_11_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
 
-   constant C_LAST         : micro_op_type := B"00_0_1_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_00000";
-   constant C_INVALID      : micro_op_type := B"00_1_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_00000";
+   constant C_LAST         : micro_op_type := B"00_0_1_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_INVALID      : micro_op_type := B"00_1_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
 
-   constant C_WR_HOLD2_ADD : micro_op_type := B"10_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_00000";
-   constant C_WR_HOLD2_INC : micro_op_type := B"11_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_00000";
+   constant C_WR_HOLD2_ADD : micro_op_type := B"10_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_WR_HOLD2_INC : micro_op_type := B"11_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
 
    constant C_READ_NEXT_BYTE : micro_op_type := C_WR_PC_INC + C_MEM_RD;
 
@@ -1549,8 +1551,8 @@ architecture Structural of ctl is
             C_INVALID,
             C_INVALID,
    -- 9A TXS
-            C_INVALID,
-            C_INVALID,
+            C_READ_NEXT_BYTE,
+            C_REG_RD_X + C_WR_SP_LOAD + C_WR_SR_S + C_WR_SR_Z + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,
@@ -1839,8 +1841,8 @@ architecture Structural of ctl is
             C_INVALID,
             C_INVALID,
    -- BA TSX
-            C_INVALID,
-            C_INVALID,
+            C_READ_NEXT_BYTE,
+            C_REG_WR_X + C_WR_REG_SP + C_WR_SR_S + C_WR_SR_Z + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,
@@ -2553,25 +2555,25 @@ begin
    debug_o( 7 downto 0) <= data_i when cnt_r = 0 else inst_r;
    debug_o(10 downto 8) <= cnt_r;
 
-   wr_reg_o        <= ctl( 4 downto  0);
-   wr_pc_o         <= ctl(10 downto  5);
-   wr_sp_o         <= ctl(12 downto 11);
-   wr_hold_addr_o  <= ctl(14 downto 13);
-   wr_szcv_o       <= ctl(18 downto 15);
-   wr_b_o          <= ctl(20 downto 19);
-   wr_i_o          <= ctl(22 downto 21);
-   wr_d_o          <= ctl(24 downto 23);
-   wr_sr_o         <= ctl(26 downto 25);
-   mem_addr_o      <= ctl(30 downto 27) when ctl(30) = '0'
-                      else '1' & rst_l & irq_l & ctl(27);
-   mem_rden_o      <= ctl(31);
-   reg_nr_wr_o     <= ctl(33 downto 32);
-   reg_nr_rd_o     <= ctl(35 downto 34);
-   mem_wrdata_o    <= ctl(38 downto 36);
-   wr_c_o          <= ctl(40 downto 39);
-   last            <= ctl(41);
-   invalid         <= ctl(42);
-   wr_hold_addr2_o <= ctl(44 downto 43);
+   wr_reg_o        <= ctl( 5 downto  0);
+   wr_pc_o         <= ctl(11 downto  6);
+   wr_sp_o         <= ctl(13 downto 12);
+   wr_hold_addr_o  <= ctl(15 downto 14);
+   wr_szcv_o       <= ctl(19 downto 16);
+   wr_b_o          <= ctl(21 downto 20);
+   wr_i_o          <= ctl(23 downto 22);
+   wr_d_o          <= ctl(25 downto 24);
+   wr_sr_o         <= ctl(27 downto 26);
+   mem_addr_o      <= ctl(31 downto 28) when ctl(31) = '0'
+                      else '1' & rst_l & irq_l & ctl(28);
+   mem_rden_o      <= ctl(32);
+   reg_nr_wr_o     <= ctl(34 downto 33);
+   reg_nr_rd_o     <= ctl(36 downto 35);
+   mem_wrdata_o    <= ctl(39 downto 37);
+   wr_c_o          <= ctl(41 downto 40);
+   last            <= ctl(42);
+   invalid         <= ctl(43);
+   wr_hold_addr2_o <= ctl(45 downto 44);
 
 
 end architecture Structural;

@@ -30,6 +30,7 @@
 // BD LDA a,X
 // A1 LDA (d,X)
 // 81 STA (d,X)
+// 29 AND #
 
 // To come soon:
 // A2 LDX #
@@ -628,6 +629,61 @@ noError15:
    __asm__("LDA $0294");
    __asm__("CMP #$6B");
    __asm__("BNE %g", error15);      // Should not jump
+
+   // Now we test LDX #
+   __asm__("LDA #$AA");             // Clear zero and set sign flag
+   __asm__("TAX");
+   __asm__("LDX #$00");             // This should set zero and clear sign flag
+   __asm__("BNE %g", error16);      // Should not jump
+   __asm__("BPL %g", noError16);    // Should jump
+error16:
+   __asm__("JMP %g", error16);
+noError16:
+   __asm__("LDX #$88");             // This should clear zero and set sign flag
+   __asm__("BEQ %g", error16);      // Should not jump
+   __asm__("BPL %g", error16);      // Should not jump
+   __asm__("CMP #$AA");             // Verify A register intact
+   __asm__("BNE %g", error16);      // Should not jump
+   __asm__("LDA #$55");             // Clear the A register
+   __asm__("TXA");
+   __asm__("CMP #$88");
+   __asm__("BNE %g", error16);      // Should not jump
+
+   // Now we test TSX and TXS
+   __asm__("LDX #$88");
+   __asm__("LDA #$00");             // Set zero and clear sign flag
+   __asm__("TXS");                  // This should clear zero and set sign flag
+   __asm__("BEQ %g", error17);      // Should not jump
+   __asm__("BMI %g", noError17);    // Should jump
+error17:
+   __asm__("JMP %g", error17);
+noError17:
+   __asm__("LDX #$00");
+   __asm__("CMP #$00");             // Verify A register intact
+   __asm__("BNE %g", error17);      // Should not jump
+   __asm__("LDA #$99");             // Clear zero and set sign flag
+   __asm__("TXS");                  // This should set zero and clear sign flag
+   __asm__("BNE %g", error17);      // Should not jump
+   __asm__("BMI %g", error17);      // Should not jump
+
+   __asm__("LDX #$88");
+   __asm__("TXS");
+   __asm__("LDA #$66");
+   __asm__("TAY");
+   __asm__("LDA #$77");
+   __asm__("LDX #$00");
+   __asm__("TSX");
+   __asm__("BEQ %g", error17);      // Should not jump
+   __asm__("BPL %g", error17);      // Should not jump
+   __asm__("CMP #$77");             // Verify A register intact
+   __asm__("BNE %g", error17);      // Should not jump
+   __asm__("TXA");
+   __asm__("CMP #$88");             // Verify correct value in X
+   __asm__("BNE %g", error17);      // Should not jump
+   __asm__("TYA");
+   __asm__("CMP #$66");             // Verify correct value in X
+   __asm__("BNE %g", error17);      // Should not jump
+
 
    // Loop forever doing nothing
 here:
