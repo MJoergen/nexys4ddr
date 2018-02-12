@@ -101,6 +101,6 @@ NET "vga_col_o<0>"   LOC = "H13"  | DRIVE = 2 ; # Bank = 1, Signal name = BLU1
 #NET "epp_db_io<0>" LOC = "N2"; # Bank = 2, Signal name = USB-DB0
 
 # PS/2 connector (not used)
-#NET "ps2c_io" LOC = "B1" | PULLUP; # Bank = 3, Signal name = PS2C
-#NET "ps2d_io" LOC = "C3" | PULLUP; # Bank = 3, Signal name = PS2D
+NET "ps2_clk_i"  LOC = "B1" | PULLUP; # Bank = 3, Signal name = PS2C
+NET "ps2_data_i" LOC = "C3" | PULLUP; # Bank = 3, Signal name = PS2D
 
