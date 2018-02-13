@@ -35,6 +35,8 @@
 // 9A TXS
 // BA TSX
 // E8 INX
+// C5 CMP d
+// 20 JSR a
 
 // To come soon:
 // A0 LDY #
