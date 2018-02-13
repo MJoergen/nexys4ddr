@@ -37,6 +37,7 @@
 // E8 INX
 // C5 CMP d
 // 20 JSR a
+// 60 RTS
 
 // To come soon:
 // A0 LDY #
@@ -55,6 +56,7 @@
 // 86 STX d
 // 84 STY d
 
+void __fastcall__ reset(void); // Forward declaration
 void __fastcall__ entry(void); // Forward declaration
 
 // Entry point after CPU reset
@@ -716,16 +718,33 @@ noError18:
    __asm__("BCS %g", error18);      // Should not jump
  
    // Now we test JSR
-   __asm__("LDA #<%g", error19);
+   __asm__("LDA #<%g", ret);
    __asm__("STA $90");
-   __asm__("LDA #>%g", error19);
+   __asm__("LDA #>%g", ret);
    __asm__("STA $91");
    __asm__("LDX #$88");             // Setup stack pointer
    __asm__("TXS");
    __asm__("LDX #$99");
-   __asm__("JSR %v", entry);      // This never returns
+   __asm__("JSR %v", entry);        // When this returns, X=#$77
+
+ret:
+   __asm__("INX");
+   __asm__("INX");
+   __asm__("TXA");
+   __asm__("CMP #$79");
+   __asm__("BNE %g", error19);      // Should not jump
+   __asm__("JMP %g", noError19);
+   __asm__("JMP %g", ret);          // This forces the compiler to add a reference to the label "ret".
 error19:
    __asm__("JMP %g", error19);
+noError19:
+
+   // Loop forever doing nothing
+here:
+   __asm__("LDA #$CC");          // Make it easy to recognize a successfull test.
+   goto here;  // Just do an endless loop. Everything is run from the IRQ.
+
+
    __asm__("INX");
    __asm__("INX");
    __asm__("INX");
@@ -759,10 +778,9 @@ noError20:
    __asm__("CMP $90");
    __asm__("BNE %g", error20);      // Should not jump
 
-   // Loop forever doing nothing
-here:
-   __asm__("LDA #$CC");          // Make it easy to recognize a successfull test.
-   goto here;  // Just do an endless loop. Everything is run from the IRQ.
+   // Now test RTS
+   __asm__("LDX #$77");
+   __asm__("RTS");
 
 error20:
    __asm__("JMP %g", error20);

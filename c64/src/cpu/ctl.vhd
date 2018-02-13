@@ -1027,11 +1027,11 @@ architecture Structural of ctl is
             C_INVALID,
    --
    -- 60 RTS
-            C_INVALID,
-            C_INVALID,
-            C_INVALID,
-            C_INVALID,
-            C_INVALID,
+            C_READ_NEXT_BYTE,
+            C_WR_SP_INC,
+            C_WR_ADDR_SP + C_WR_SP_INC + C_MEM_RD + C_WR_HOLD_LO,
+            C_WR_ADDR_SP + C_MEM_RD + C_WR_PC_LOAD,
+            C_WR_PC_INC + C_LAST,      -- Can be optimized by combining the last two micro-ops.
             C_INVALID,
             C_INVALID,
             C_INVALID,
