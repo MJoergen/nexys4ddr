@@ -8,11 +8,11 @@ VECTORS_OBJ = $(VECTORS_AS:.s=.o)
 LD_CFG      ?= ld.cfg
 
 $(PROG_AS): $(PROG_SRC)
-	cc65 $<
+	for i in $^; do cc65 $$i; done
 junk += $(PROG_AS)
 
 $(PROG_OBJ): $(PROG_AS)
-	ca65 $<
+	for i in $^; do ca65 $$i; done
 junk += $(PROG_OBJ)
 
 $(VECTORS_OBJ): $(VECTORS_AS)
