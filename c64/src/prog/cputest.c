@@ -31,14 +31,15 @@
 // A1 LDA (d,X)
 // 81 STA (d,X)
 // 29 AND #
+// A2 LDX #
+// 9A TXS
+// BA TSX
+// E8 INX
 
 // To come soon:
-// A2 LDX #
 // A0 LDY #
 // E0 CPX #
 // C0 CPY #
-// 9A TXS
-// BA TSX
 // 48 PHA
 // 68 PLA
 
@@ -46,13 +47,13 @@
 // 65 ADC d
 // CA DEX
 // 88 DEY
-// E8 INX
 // C8 INY
 // A6 LDX d
 // A4 LDY d
 // 86 STX d
 // 84 STY d
 
+void __fastcall__ entry(void); // Forward declaration
 
 // Entry point after CPU reset
 void __fastcall__ reset(void)
@@ -652,9 +653,9 @@ noError16:
    // Now we test TSX and TXS
    __asm__("LDX #$88");
    __asm__("LDA #$00");             // Set zero and clear sign flag
-   __asm__("TXS");                  // This should clear zero and set sign flag
-   __asm__("BEQ %g", error17);      // Should not jump
-   __asm__("BMI %g", noError17);    // Should jump
+   __asm__("TXS");                  // Flags should be unchanged.
+   __asm__("BNE %g", error17);      // Should not jump
+   __asm__("BPL %g", noError17);    // Should jump
 error17:
    __asm__("JMP %g", error17);
 noError17:
@@ -662,9 +663,9 @@ noError17:
    __asm__("CMP #$00");             // Verify A register intact
    __asm__("BNE %g", error17);      // Should not jump
    __asm__("LDA #$99");             // Clear zero and set sign flag
-   __asm__("TXS");                  // This should set zero and clear sign flag
-   __asm__("BNE %g", error17);      // Should not jump
-   __asm__("BMI %g", error17);      // Should not jump
+   __asm__("TXS");                  // Flags should be unchanged.
+   __asm__("BEQ %g", error17);      // Should not jump
+   __asm__("BPL %g", error17);      // Should not jump
 
    __asm__("LDX #$88");
    __asm__("TXS");
@@ -684,13 +685,86 @@ noError17:
    __asm__("CMP #$66");             // Verify correct value in X
    __asm__("BNE %g", error17);      // Should not jump
 
+   // Now we test INX
+   __asm__("LDX #$88");
+   __asm__("LDA #$00");             // Set zero and clear sign flag
+   __asm__("INX");                  // Should clear zero and set sign flag
+   __asm__("BEQ %g", error18);      // Should not jump
+   __asm__("BMI %g", noError18);    // Should jump
+error18:
+   __asm__("JMP %g", error18);
+noError18:
+   __asm__("TXA");
+   __asm__("CMP #$89");
+   __asm__("BNE %g", error18);      // Should not jump
+
+   // Now we test CMP d
+   __asm__("LDA #$88");
+   __asm__("STA $70");
+   __asm__("CLC");                  // Now zero is clear and sign is set and carry is clear
+   __asm__("CMP $70");              // This should set zero and clear sign and set carry
+   __asm__("BNE %g", error18);      // Should not jump
+   __asm__("BMI %g", error18);      // Should not jump
+   __asm__("BCC %g", error18);      // Should not jump
+   __asm__("LDA #$87");
+   __asm__("SEC");                  // Now carry is set
+   __asm__("CMP $70");              // This should clear zero and set sign and clear carry
+   __asm__("BEQ %g", error18);      // Should not jump
+   __asm__("BPL %g", error18);      // Should not jump
+   __asm__("BCS %g", error18);      // Should not jump
+ 
+   // Now we test JSR
+   __asm__("LDA #<%g", error19);
+   __asm__("STA $90");
+   __asm__("LDA #>%g", error19);
+   __asm__("STA $91");
+   __asm__("LDX #$88");             // Setup stack pointer
+   __asm__("TXS");
+   __asm__("LDX #$99");
+   __asm__("JSR %v", entry);      // This never returns
+error19:
+   __asm__("JMP %g", error19);
+   __asm__("INX");
+   __asm__("INX");
+   __asm__("INX");
+} // end of reset
+
+void __fastcall__ entry(void)
+{
+// Verify entry point is not slightly off.
+   __asm__("INX");
+   __asm__("INX");
+   __asm__("INX");
+   __asm__("TXA");
+   __asm__("CMP #$9C");
+   __asm__("BNE %g", error20);      // Should not jump
+   __asm__("TSX");
+   __asm__("TXA");
+   __asm__("CMP #$86");
+   __asm__("BNE %g", error20);      // Should not jump
+
+   __asm__("LDA $0187");            // Verify contents on stack
+   __asm__("TAX");
+   __asm__("LDA $0188");
+   __asm__("INX");
+   __asm__("BNE %g", noError20);
+   __asm__("CLC");
+   __asm__("ADC #$01");
+noError20:
+   __asm__("CMP $91");
+   __asm__("BNE %g", error20);      // Should not jump
+   __asm__("TXA");
+   __asm__("CMP $90");
+   __asm__("BNE %g", error20);      // Should not jump
 
    // Loop forever doing nothing
 here:
    __asm__("LDA #$CC");          // Make it easy to recognize a successfull test.
    goto here;  // Just do an endless loop. Everything is run from the IRQ.
-} // end of reset
 
+error20:
+   __asm__("JMP %g", error20);
+}
 
 // The interrupt service routine.
 void __fastcall__ irq(void)

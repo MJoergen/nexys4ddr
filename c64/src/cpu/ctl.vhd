@@ -83,6 +83,7 @@ architecture Structural of ctl is
    constant C_ALU_DEC      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_001110";
    constant C_ALU_INC      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_001111";
 
+   constant C_WR_PC_HOLD   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000001_000000";
    constant C_WR_PC_LOAD   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000010_000000";
    constant C_WR_PC_INC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000011_000000";
    constant C_WR_PC_BPL    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000111_000000";
@@ -446,11 +447,11 @@ architecture Structural of ctl is
             C_INVALID,
    --
    -- 20 JSR a
-            C_INVALID,
-            C_INVALID,
-            C_INVALID,
-            C_INVALID,
-            C_INVALID,
+            C_READ_NEXT_BYTE,
+            C_WR_ADDR_PC + C_MEM_RD       + C_WR_HOLD_LO + C_WR_PC_INC,
+            C_WR_ADDR_PC + C_MEM_RD       + C_WR_HOLD_HI,
+            C_WR_ADDR_SP + C_MEM_WR_PC_HI + C_WR_SP_DEC,
+            C_WR_ADDR_SP + C_MEM_WR_PC_LO + C_WR_SP_DEC + C_WR_PC_HOLD + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,
@@ -1552,7 +1553,7 @@ architecture Structural of ctl is
             C_INVALID,
    -- 9A TXS
             C_READ_NEXT_BYTE,
-            C_REG_RD_X + C_WR_SP_LOAD + C_WR_SR_S + C_WR_SR_Z + C_LAST,
+            C_REG_RD_X + C_WR_SP_LOAD + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,
@@ -1941,9 +1942,9 @@ architecture Structural of ctl is
             C_INVALID,
             C_INVALID,
    -- C5 CMP d
-            C_INVALID,
-            C_INVALID,
-            C_INVALID,
+            C_READ_NEXT_BYTE,
+            C_WR_HOLD_LO + C_MEM_RD + C_WR_PC_INC,
+            C_WR_ADDR_HOLD + C_MEM_RD + C_ALU_CMP + C_WR_SR_C + C_WR_SR_Z + C_WR_SR_S + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,
@@ -2258,8 +2259,8 @@ architecture Structural of ctl is
             C_INVALID,
             C_INVALID,
    -- E8 INX
-            C_INVALID,
-            C_INVALID,
+            C_READ_NEXT_BYTE,
+            C_REG_WR_X + C_REG_RD_X + C_WR_REG_INC + C_WR_SR_S + C_WR_SR_Z + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,

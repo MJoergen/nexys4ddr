@@ -165,8 +165,12 @@ begin
       end function sign_extend;
    begin
       if rising_edge(clk_i) then
-         if ctl_wr_pc(1) = '1' then
-            if ctl_wr_pc(0) = '1' then
+         case ctl_wr_pc(1 downto 0) is
+            when "01" =>
+               reg_pc <= mem_addr_reg;                            -- Used during JSR
+            when "10" =>
+               reg_pc <= data_i & mem_addr_reg(7 downto 0);       -- Used during jump absolute
+            when "11" =>
                reg_pc <= reg_pc + 1;                              -- Used during instruction fetch
                if ctl_wr_pc(2) = '1' then
                   if (ctl_wr_pc(5 downto 3) = "000" and reg_sr(7) = '0') or
@@ -180,10 +184,8 @@ begin
                      reg_pc <= reg_pc + 1 + sign_extend(data_i);  -- Used during branch relative
                   end if;
                end if;
-            else
-               reg_pc <= data_i & mem_addr_reg(7 downto 0);       -- Used during jump absolute
-            end if;
-         end if;
+            when others => null;
+         end case;
       end if;
    end process p_pc;
 
