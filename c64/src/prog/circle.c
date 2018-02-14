@@ -106,11 +106,7 @@ With ad-bc = 1 we see that the quadratic form is indeed invariant.
 */
 
 #include "memorymap.h"
-
-static unsigned char xLo;
-static unsigned char xHi;
-static unsigned char yLo;
-static unsigned char yHi;
+#include "zeropage.h"
 
 // Entry point after CPU reset
 void __fastcall__ circle_init(void)
@@ -209,10 +205,12 @@ void __fastcall__ circle_init(void)
    __asm__("STA %w", VGA_ADDR_SPRITE_0_X_MSB);
 
    // Reset coordinates
-   xLo = 0;
-   xHi = 0x40;
-   yLo = 0;
-   yHi = 0;
+   __asm__("LDA #$00");
+   __asm__("STA %b", ZP_XLO);
+   __asm__("STA %b", ZP_YLO);
+   __asm__("STA %b", ZP_YHI);
+   __asm__("LDA #$40");
+   __asm__("STA %b", ZP_XHI);
 
 } // end of circle_init
 
@@ -221,56 +219,56 @@ void __fastcall__ circle_init(void)
 void __fastcall__ circle_move(void)
 {
    // x -= y/256
-   __asm__("LDA %v", yHi);
+   __asm__("LDA %b", ZP_YHI);
    __asm__("BPL %g", y_positive); // Jump if YHI is positive
 
-   __asm__("LDA %v", xHi); // Increment if YHI is negative
+   __asm__("LDA %b", ZP_XHI); // Increment if YHI is negative
    __asm__("CLC");
    __asm__("ADC #$01");
-   __asm__("STA %v", xHi);
+   __asm__("STA %b", ZP_XHI);
 
 y_positive:
-   __asm__("LDA %v", xLo);
+   __asm__("LDA %b", ZP_XLO);
    __asm__("SEC");
-   __asm__("SBC %v", yHi);
-   __asm__("STA %v", xLo);
-   __asm__("LDA %v", xHi);
+   __asm__("SBC %b", ZP_YHI);
+   __asm__("STA %b", ZP_XLO);
+   __asm__("LDA %b", ZP_XHI);
    __asm__("SBC #$00");
-   __asm__("STA %v", xHi);
+   __asm__("STA %b", ZP_XHI);
 
    // y += x/256;
-   __asm__("LDA %v", xHi);
+   __asm__("LDA %b", ZP_XHI);
    __asm__("BPL %g", x_positive); // Jump if XHI is positive
 
-   __asm__("LDA %v", yHi); // Decrement if XHI is negative.
+   __asm__("LDA %b", ZP_YHI); // Decrement if XHI is negative.
    __asm__("SEC");
    __asm__("SBC #$01");
-   __asm__("STA %v", yHi);
+   __asm__("STA %b", ZP_YHI);
 
 x_positive:
-   __asm__("LDA %v", yLo);
+   __asm__("LDA %b", ZP_YLO);
    __asm__("CLC");
-   __asm__("ADC %v", xHi);
-   __asm__("STA %v", yLo);
-   __asm__("LDA %v", yHi);
+   __asm__("ADC %b", ZP_XHI);
+   __asm__("STA %b", ZP_YLO);
+   __asm__("LDA %b", ZP_YHI);
    __asm__("ADC #$00");
-   __asm__("STA %v", yHi);
+   __asm__("STA %b", ZP_YHI);
 
    // Move YLO high bit into carry
-   __asm__("LDA %v", yLo);
+   __asm__("LDA %b", ZP_YLO);
    __asm__("CLC");
-   __asm__("ADC %v", yLo);
+   __asm__("ADC %b", ZP_YLO);
 
-   __asm__("LDA %v", yHi);
+   __asm__("LDA %b", ZP_YHI);
    __asm__("ADC #$80");
    __asm__("STA %w", VGA_ADDR_SPRITE_0_Y); // Set Y coordinate of sprite 0
 
    // Move XLO high bit into carry
-   __asm__("LDA %v", xLo);
+   __asm__("LDA %b", ZP_XLO);
    __asm__("CLC");
-   __asm__("ADC %v", xLo);
+   __asm__("ADC %b", ZP_XLO);
 
-   __asm__("LDA %v", xHi);
+   __asm__("LDA %b", ZP_XHI);
    __asm__("ADC #$80");
    __asm__("STA %w", VGA_ADDR_SPRITE_0_X); // Set X coordinate of sprite 0
 

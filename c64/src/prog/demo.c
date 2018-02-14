@@ -86,7 +86,7 @@ void __fastcall__ reset(void)
 
    circle_init();
 
-   clearScreen();
+   //clearScreen();
 
    // Configure text color
    __asm__("LDA #%b", COL_LIGHT);
@@ -95,7 +95,8 @@ void __fastcall__ reset(void)
    __asm__("STA %w",  VGA_ADDR_BGCOL);
    
    // Configure VGA interrupt
-   __asm__("LDA #$F0"); 
+   //__asm__("LDA #$F0"); 
+   __asm__("LDA #$00"); 
    __asm__("STA %w", VGA_ADDR_YLINE);             // Set the interrupt at past the end of the screen
    __asm__("LDA #$01"); 
    __asm__("STA %w", VGA_ADDR_MASK);
