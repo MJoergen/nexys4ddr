@@ -1,8 +1,8 @@
 //
 // This is a complete demo. Features demonstrated are:
-// Horizontal scrolling text.
 // Keyboard input.
 // Moving sprites.
+// Horizontal scrolling text. TBD
 //
 
 #include "memorymap.h"
