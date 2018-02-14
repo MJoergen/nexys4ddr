@@ -177,30 +177,38 @@ void __fastcall__ readFromKeyboard(void)
    // It waits for and reads scan codes from the keyboard,
    // and converts it to ASCII characters.
 
+clearReleaseMode:
+   __asm__("LDA #$00"); 
+   __asm__("STA %v", releaseMode); 
+   __asm__("JMP %g", wait_for_keyboard);
+
+setReleaseMode:
+   __asm__("LDA #$01"); 
+   __asm__("STA %v", releaseMode); 
+
    // Wait for information from keyboard
 wait_for_keyboard:
    __asm__("LDA %w", VGA_KEY);
-   __asm__("BEQ %g", wait_for_keyboard);    // Wait until keyboard information ready
+   __asm__("BEQ %g", wait_for_keyboard);     // Wait until keyboard information ready
    __asm__("CMP #%b", KEYB_EXTENDED);
-   __asm__("BEQ %g", wait_for_keyboard);    // So far, we just ignore the extended keys.
+   __asm__("BEQ %g", wait_for_keyboard);     // So far, we just ignore the extended keys.
    __asm__("CMP #%b", KEYB_INITIALIZED);
-   __asm__("BEQ %g", wait_for_keyboard);    // We ignore the initialization code too.
+   __asm__("BEQ %g", wait_for_keyboard);     // We ignore the initialization code too.
 
    // It is key press or key release?
    __asm__("CMP #%b", KEYB_RELEASED);
-   __asm__("BNE %g", test_release_mode); 
+   __asm__("BEQ %g", setReleaseMode);        // Go back and wait for next keyboard scan code
 
-   // A key is being released
-   __asm__("LDA #$01"); 
-   __asm__("STA %v", releaseMode); 
-   __asm__("JMP %g", wait_for_keyboard);    // Go back and wait for next keyboard scan code
+   __asm__("TAX");
+   __asm__("LDA %v", releaseMode); 
+   __asm__("BEQ %g", key_pressed); 
+   __asm__("TXA");
 
-release_mode:
    // A key has been released
    __asm__("CMP #%b", KEYB_SHIFT_LEFT);      // Is this a shift key?
    __asm__("BEQ %g", release_shift);
    __asm__("CMP #%b", KEYB_SHIFT_RIGHT);
-   __asm__("BNE %g", wait_for_keyboard);    // No, just a regular key. Ignore it.
+   __asm__("BNE %g", clearReleaseMode);      // No, just a regular key. Ignore it.
 
 release_shift:
    __asm__("LDA #$00");
@@ -212,13 +220,9 @@ press_shift:
    __asm__("STA %v", shiftMode);
    __asm__("JMP %g", wait_for_keyboard);
 
-test_release_mode:
-   __asm__("TAX");
-   __asm__("LDA %v", releaseMode); 
-   __asm__("BNE %g", release_mode); 
-   __asm__("TXA");
-
+key_pressed:
    // A key is being pressed
+   __asm__("TXA");
    __asm__("CMP #%b", KEYB_SHIFT_LEFT);      // Is this a shift key
    __asm__("BEQ %g", press_shift);
    __asm__("CMP #%b", KEYB_SHIFT_RIGHT);
