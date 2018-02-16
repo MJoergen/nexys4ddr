@@ -301,18 +301,18 @@ void __fastcall__ reset(void)
 
    clearScreen();
 
-   // Initialize X scroll
-   __asm__("LDA #$00");
-   __asm__("STA %b", ZP_CNT);
-   __asm__("STA %b", ZP_XSCROLL);
-   __asm__("STA %w", VGA_ADDR_XSCROLL);
-
    // Configure text color
    __asm__("LDA #%b", COL_LIGHT);
    __asm__("STA %w",  VGA_ADDR_FGCOL);
    __asm__("LDA #%b", COL_DARK);
    __asm__("STA %w",  VGA_ADDR_BGCOL);
    
+   // Initialize X scroll
+   __asm__("LDA #$00");
+   __asm__("STA %b", ZP_CNT);
+   __asm__("STA %b", ZP_XSCROLL);
+   __asm__("STA %w", VGA_ADDR_XSCROLL);
+
    // Configure VGA interrupt
    __asm__("LDA #%b", YPOS_LINE1); 
    __asm__("STA %w", VGA_ADDR_YLINE);             // Set the interrupt at the end of the first line
@@ -328,6 +328,8 @@ void __fastcall__ reset(void)
    __asm__("STA %b", ZP_SCREEN_POS_LO); 
    __asm__("LDA #$80"); 
    __asm__("STA %b", ZP_SCREEN_POS_HI); 
+   __asm__("LDA $8000");                           // Read first character from screen memory (where cursor is).
+   __asm__("STA %b", ZP_CURSOR_CHAR);
 
 loop:
    __asm__("JSR %v", readFromKeyboard);      // This is a blocking call; it won't return until a valid keypress is detected.
