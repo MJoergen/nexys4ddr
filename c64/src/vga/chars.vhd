@@ -381,6 +381,10 @@ begin
          if stage7.blank = '1' then
             stage8.col <= (others => '0');
          end if;
+
+         -- Undo effects of horizontal scrolling.
+         stage8.hcount <= stage7.hcount + ("0000" & config_i(67*8 + 3 downto 67*8));
+
       end if;
    end process p_stage8;
 
