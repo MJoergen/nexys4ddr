@@ -1990,8 +1990,8 @@ architecture Structural of ctl is
             C_INVALID,
             C_INVALID,
    -- CA DEX
-            C_INVALID,
-            C_INVALID,
+            C_READ_NEXT_BYTE,
+            C_REG_WR_X + C_REG_RD_X + C_WR_REG_DEC + C_WR_SR_S + C_WR_SR_Z + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,

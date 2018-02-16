@@ -42,12 +42,12 @@
 // 91 STA (d),Y
 // C8 INY
 // 88 DEY
+// CA DEX
 
 // To come soon:
 // A0 LDY #
 // E0 CPX #
 // C0 CPY #
-// CA DEX
 // 48 PHA
 // 68 PLA
 // 65 ADC d
