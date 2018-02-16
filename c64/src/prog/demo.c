@@ -24,17 +24,15 @@ static void __fastcall__ clearScreen(void)
    __asm__("LDA #$80"); 
    __asm__("STA %b", ZP_SCREEN_POS_HI); 
    __asm__("LDA #$00"); 
-   __asm__("TAX"); 
+   __asm__("TAY"); 
 clear:
    __asm__("LDA #$20"); 
-   __asm__("STA (%b, X)", ZP_SCREEN_POS_LO); 
-   __asm__("LDA %b", ZP_SCREEN_POS_LO); 
+   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO); 
+   __asm__("INY"); 
+   __asm__("BNE %g", clear); 
+   __asm__("LDA %b", ZP_SCREEN_POS_HI); 
    __asm__("CLC"); 
    __asm__("ADC #$01"); 
-   __asm__("STA %b", ZP_SCREEN_POS_LO); 
-   __asm__("BCC %g", clear); 
-   __asm__("LDA %b", ZP_SCREEN_POS_HI); 
-   __asm__("ADC #$00"); 
    __asm__("STA %b", ZP_SCREEN_POS_HI); 
    __asm__("CMP #$84"); 
    __asm__("BNE %g", clear); 
@@ -48,16 +46,14 @@ static void __fastcall__ clearLine(void)
    __asm__("LDA #$80"); 
    __asm__("STA %b", ZP_SCREEN_POS_HI); 
    __asm__("LDA #$00"); 
-   __asm__("TAX"); 
+   __asm__("TAY"); 
 clear:
    __asm__("LDA #$20"); 
-   __asm__("STA (%b, X)", ZP_SCREEN_POS_LO); 
-   __asm__("LDA %b", ZP_SCREEN_POS_LO); 
+   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO); 
+   __asm__("TYA"); 
    __asm__("CMP #$27"); 
    __asm__("BEQ %g", rts); 
-   __asm__("CLC"); 
-   __asm__("ADC #$01"); 
-   __asm__("STA %b", ZP_SCREEN_POS_LO); 
+   __asm__("INY"); 
    __asm__("JMP %g", clear);
 rts:
    __asm__("RTS"); 
