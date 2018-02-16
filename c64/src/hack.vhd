@@ -78,6 +78,7 @@ architecture Structural of hack is
    signal cpu_rddata  : std_logic_vector(7 downto 0);
    signal cpu_irq_vga : std_logic;
    signal cpu_debug   : std_logic_vector(127 downto 0);
+   signal cpu_invalid : std_logic;
 
    -- Signals driven by other blocks
    signal cpu_rddata_rom : std_logic_vector(7 downto 0);
@@ -230,6 +231,7 @@ begin
       data_o  => cpu_wrdata,
 
       irq_i   => cpu_irq_vga,
+      invalid_o => cpu_invalid,
       debug_o => cpu_debug 
    );
 
@@ -250,7 +252,7 @@ begin
       debug_o    => cpu_keyboard_debug
    );
 
-   led_o <= (others => '0');
+   led_o <= (others => cpu_invalid);
 
 end Structural;
 

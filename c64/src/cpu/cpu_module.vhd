@@ -26,6 +26,8 @@ entity cpu_module is
       -- Interrupt
       irq_i  : in  std_logic;
 
+      invalid_o : out std_logic;
+
       -- Debug (to show on the VGA)
       debug_o : out std_logic_vector(127 downto 0)
    );
@@ -120,6 +122,7 @@ begin
                mem_wrdata_o    => ctl_mem_wrdata,
                wr_c_o          => ctl_wr_c,
                wr_hold_addr2_o => ctl_wr_hold_addr2,
+               invalid_o       => invalid_o,
                debug_o         => ctl_debug
             );
 

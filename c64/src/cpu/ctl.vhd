@@ -35,20 +35,22 @@ entity ctl is
       wr_c_o          : out std_logic_vector(1 downto 0);
       wr_hold_addr2_o : out std_logic_vector(1 downto 0);
 
+      invalid_o       : out std_logic;
       debug_o         : out std_logic_vector(10 downto 0)
    );
 end ctl;
 
 architecture Structural of ctl is
 
-   signal cnt_r   : std_logic_vector(2 downto 0) := (others => '0');
-   signal inst_r  : std_logic_vector(7 downto 0) := (others => '0');
-   signal last    : std_logic;
-   signal invalid : std_logic;
+   signal cnt_r     : std_logic_vector(2 downto 0) := (others => '0');
+   signal inst_r    : std_logic_vector(7 downto 0) := (others => '0');
+   signal last      : std_logic;
+   signal invalid   : std_logic;
+   signal invalid_r : std_logic := '0';
 
-   signal ctl     : std_logic_vector(45 downto 0);
-   signal irq_l   : std_logic := '0';
-   signal rst_l   : std_logic := '0';
+   signal ctl       : std_logic_vector(45 downto 0);
+   signal irq_l     : std_logic := '0';
+   signal rst_l     : std_logic := '0';
 
    subtype micro_op_type is std_logic_vector(45 downto 0);
    type micro_op_rom_type is array(0 to 8*256-1) of micro_op_type;
@@ -2479,11 +2481,16 @@ architecture Structural of ctl is
 
 begin
 
+   invalid_o <= invalid_r;
+
    -- Check for illegal or unimplemented instructions.
    p_assert : process (clk_i)
    begin 
       if rising_edge(clk_i) then
          if rst_i = '0' then
+            if invalid = '1' then
+               invalid_r <= '1';
+            end if;
             assert invalid = '0' report "Invalid opcode" severity failure;
          end if;
       end if;
