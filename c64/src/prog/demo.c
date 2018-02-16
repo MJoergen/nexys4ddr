@@ -101,7 +101,11 @@ rts:
 
 static unsigned char irqA;
 static unsigned char irqX;
+static unsigned char irqY;
 static unsigned char irqCnt;
+
+#define YPOS_LINE1 13 
+#define YPOS_LINE2 26 
 
 // The interrupt service routine.
 void __fastcall__ irq(void)
@@ -109,9 +113,62 @@ void __fastcall__ irq(void)
    __asm__("STA %v", irqA);    // Store A register
    __asm__("TXA");
    __asm__("STA %v", irqX);    // Store X register
+   __asm__("TYA");
+   __asm__("STA %v", irqY);    // Store Y register
 
    __asm__("LDA %w", VGA_ADDR_IRQ);  // Clear IRQ assertion.
 
+   __asm__("LDA %w", VGA_ADDR_YLINE);
+   __asm__("CMP #%b", YPOS_LINE1);
+   __asm__("BNE %g", clearScroll);
+
+   __asm__("LDA %b", ZP_XSCROLL);      // Enable scroll of line 1
+   __asm__("STA %w", VGA_ADDR_XSCROLL);
+   __asm__("LDA #%b", YPOS_LINE2);  // Set interrupt at end of line 2
+   __asm__("STA %w", VGA_ADDR_YLINE);
+   __asm__("JMP %g", end_irq);
+
+clearScroll:
+   __asm__("LDA #$00");             // Clear scroll
+   __asm__("STA %w", VGA_ADDR_XSCROLL);
+   __asm__("LDA #%b", YPOS_LINE1);  // Set interrupt at end of line 1
+   __asm__("STA %w", VGA_ADDR_YLINE);
+
+   __asm__("LDA %b", ZP_CNT);
+   __asm__("CLC");
+   __asm__("ADC #$40");
+   __asm__("STA %b", ZP_CNT);
+   __asm__("BNE %g", circle); // Time to shift a pixel ?
+
+   // Ok, we shift one pixel.
+   __asm__("LDA %b", ZP_XSCROLL);
+   __asm__("SEC");
+   __asm__("SBC #$01");
+   __asm__("AND #$0F");
+   __asm__("STA %b", ZP_XSCROLL);
+   __asm__("CMP #$0F");
+   __asm__("BNE %g", circle); // Time to shift a whole byte ?
+
+   // Ok, we shift a whole byte.
+   __asm__("LDA %w", VGA_ADDR_SCREEN+40); // Keep left-most character
+   __asm__("TAY");
+
+   __asm__("LDA #%b", 40);
+more_scroll:
+   __asm__("TAX");
+   __asm__("LDA %w,X", VGA_ADDR_SCREEN+1);
+   __asm__("STA %w,X", VGA_ADDR_SCREEN);
+   __asm__("TXA");
+   __asm__("CLC");
+   __asm__("ADC #$01");
+   __asm__("CMP #%b", 79);
+   __asm__("BNE %g", more_scroll);
+
+   // Wrap around
+   __asm__("TYA");
+   __asm__("STA %w", VGA_ADDR_SCREEN+79);
+
+circle:
    circle_move();
 
    // Blink with cursor
@@ -119,14 +176,21 @@ void __fastcall__ irq(void)
    __asm__("CLC");
    __asm__("ADC #$04");
    __asm__("STA %v", irqCnt);
-   __asm__("BNE %g", end_irq);
+   __asm__("BPL %g", make_cursor);
 
-   __asm__("LDX #$00");
-   __asm__("LDA (%b, X)", ZP_SCREEN_POS_LO); 
-   __asm__("EOR #$20");
+   __asm__("LDX #$00"); 
+   __asm__("LDA %b", ZP_CURSOR_CHAR);  // Restore character
+   __asm__("STA (%b, X)", ZP_SCREEN_POS_LO); 
+   __asm__("JMP %g", end_irq);
+
+make_cursor:
+   __asm__("LDX #$00"); 
+   __asm__("LDA #$00");        // Cursor character
    __asm__("STA (%b, X)", ZP_SCREEN_POS_LO); 
 
 end_irq:
+   __asm__("LDA %v", irqY);    // Restore Y
+   __asm__("TAY");
    __asm__("LDA %v", irqX);    // Restore X
    __asm__("TAX");
    __asm__("LDA %v", irqA);    // Restore A
@@ -136,6 +200,15 @@ end_irq:
 
 static void __fastcall__ updateBuffer(void)
 {
+   // Restore character
+   __asm__("TAY"); 
+   __asm__("LDX #$00"); 
+   __asm__("LDA %b", ZP_CURSOR_CHAR);
+   __asm__("STA (%b, X)", ZP_SCREEN_POS_LO); 
+   __asm__("LDA #$80");
+   __asm__("STA %v", irqCnt);             // Prevent IRQ from overwriting character
+   __asm__("TYA"); 
+
    // First check for various control characters
    __asm__("CMP #$08");
    __asm__("BEQ %g", backSpace);
@@ -153,7 +226,6 @@ static void __fastcall__ updateBuffer(void)
    __asm__("BEQ %g", enter);
    __asm__("CMP #$00");
    __asm__("BNE %g", normal);
-rts:
    __asm__("RTS");
 
 backSpace:
@@ -165,6 +237,14 @@ backSpace:
 
 delete:
    __asm__("JSR %v", deleteChar);
+
+rts:
+   __asm__("LDX #$00"); 
+   __asm__("LDA (%b, X)", ZP_SCREEN_POS_LO); 
+   __asm__("STA %b", ZP_CURSOR_CHAR);
+   __asm__("LDA #$00");
+   __asm__("STA %v", irqCnt);
+
    __asm__("RTS");
 
 left:
@@ -173,7 +253,7 @@ left:
    __asm__("SEC");            // Move cursor one left.
    __asm__("SBC #$01");
    __asm__("STA %b", ZP_SCREEN_POS_LO);
-   __asm__("RTS");
+   __asm__("JMP %g", rts);
 
 right:
    __asm__("LDA %b", ZP_SCREEN_POS_LO); 
@@ -182,17 +262,17 @@ right:
    __asm__("CLC");            // Move cursor one right.
    __asm__("ADC #$01");
    __asm__("STA %b", ZP_SCREEN_POS_LO);
-   __asm__("RTS");
+   __asm__("JMP %g", rts);
 
 home:
    __asm__("LDA #$00");
    __asm__("STA %b", ZP_SCREEN_POS_LO);
-   __asm__("RTS");
+   __asm__("JMP %g", rts);
 
 end:
    __asm__("LDA #$27");
    __asm__("STA %b", ZP_SCREEN_POS_LO);
-   __asm__("RTS");
+   __asm__("JMP %g", rts);
 
 enter:
    __asm__("JSR %v", copyLine);
@@ -202,6 +282,9 @@ enter:
 normal:
    __asm__("LDX #$00"); 
    __asm__("STA (%b, X)", ZP_SCREEN_POS_LO); 
+   __asm__("STA %b", ZP_CURSOR_CHAR);
+   __asm__("LDA #$00");
+   __asm__("STA %v", irqCnt);
    __asm__("JMP %g", right);
 
 } // end of updateBuffer
@@ -218,6 +301,12 @@ void __fastcall__ reset(void)
 
    clearScreen();
 
+   // Initialize X scroll
+   __asm__("LDA #$00");
+   __asm__("STA %b", ZP_CNT);
+   __asm__("STA %b", ZP_XSCROLL);
+   __asm__("STA %w", VGA_ADDR_XSCROLL);
+
    // Configure text color
    __asm__("LDA #%b", COL_LIGHT);
    __asm__("STA %w",  VGA_ADDR_FGCOL);
@@ -225,9 +314,8 @@ void __fastcall__ reset(void)
    __asm__("STA %w",  VGA_ADDR_BGCOL);
    
    // Configure VGA interrupt
-   __asm__("LDA #$F0"); 
-   //__asm__("LDA #$00"); 
-   __asm__("STA %w", VGA_ADDR_YLINE);             // Set the interrupt at past the end of the screen
+   __asm__("LDA #%b", YPOS_LINE1); 
+   __asm__("STA %w", VGA_ADDR_YLINE);             // Set the interrupt at the end of the first line
    __asm__("LDA #$01"); 
    __asm__("STA %w", VGA_ADDR_MASK);
    __asm__("LDA %w", VGA_ADDR_IRQ);               // Clear any pending IRQ
