@@ -209,7 +209,7 @@ void __fastcall__ circle_init(void)
    __asm__("STA %b", ZP_XLO);
    __asm__("STA %b", ZP_YLO);
    __asm__("STA %b", ZP_YHI);
-   __asm__("LDA #$40");
+   __asm__("LDA #$60");
    __asm__("STA %b", ZP_XHI);
 
 } // end of circle_init
@@ -260,7 +260,7 @@ x_positive:
    __asm__("ADC %b", ZP_YLO);
 
    __asm__("LDA %b", ZP_YHI);
-   __asm__("ADC #$80");
+   __asm__("ADC #$65");
    __asm__("STA %w", VGA_ADDR_SPRITE_0_Y); // Set Y coordinate of sprite 0
 
    // Move XLO high bit into carry
@@ -269,7 +269,7 @@ x_positive:
    __asm__("ADC %b", ZP_XLO);
 
    __asm__("LDA %b", ZP_XHI);
-   __asm__("ADC #$80");
+   __asm__("ADC #$65");
    __asm__("STA %w", VGA_ADDR_SPRITE_0_X); // Set X coordinate of sprite 0
 
 } // end of circle_move
