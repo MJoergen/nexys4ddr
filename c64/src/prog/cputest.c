@@ -38,19 +38,19 @@
 // C5 CMP d
 // 20 JSR a
 // 60 RTS
+// B1 LDA (d),Y
+// 91 STA (d),Y
+// C8 INY
+// 88 DEY
 
 // To come soon:
 // A0 LDY #
 // E0 CPX #
 // C0 CPY #
+// CA DEX
 // 48 PHA
 // 68 PLA
-
-// To come later:
 // 65 ADC d
-// CA DEX
-// 88 DEY
-// C8 INY
 // A6 LDX d
 // A4 LDY d
 // 86 STX d
@@ -738,6 +738,71 @@ ret:
 error19:
    __asm__("JMP %g", error19);
 noError19:
+
+   // Now we test LDA (d),Y
+   __asm__("LDA #$EE");             // Store magic value in memory
+   __asm__("STA $023C");
+   __asm__("LDA #$F8");             // Setup zero page pointer
+   __asm__("STA $90");
+   __asm__("LDA #$01");
+   __asm__("STA $91");
+   __asm__("LDA #$44");             // Setup offset
+   __asm__("TAY");
+   __asm__("LDA #$00");             // Set zero and clear sign
+   __asm__("LDA ($90),Y");          // This should clear zero and set sign
+   __asm__("BEQ %g", error21);      // Should not jump
+   __asm__("BMI %g", noError21);    // Should jump
+error21:
+   __asm__("JMP %g", error21);
+noError21:
+   __asm__("CMP #$EE");
+   __asm__("BNE %g", error21);      // Should not jump
+   __asm__("LDA $023C");            // Verify memory still intact
+   __asm__("CMP #$EE");
+   __asm__("BNE %g", error21);      // Should not jump
+
+   // Now we test STA (d),Y
+   __asm__("LDA #$DD");             // Set new magic value
+   __asm__("STA ($90),Y");
+   __asm__("LDA #$00");             // Clear previous value in A
+   __asm__("LDA $023C");            // Verify new memory contents
+   __asm__("CMP #$DD");
+   __asm__("BNE %g", error21);      // Should not jump
+
+   // Now we test INY
+   __asm__("LDA #$88");
+   __asm__("TAY");
+   __asm__("LDA #$99");
+   __asm__("TAX");
+   __asm__("LDA #$00");             // Set zero and clear sign flag
+   __asm__("INY");                  // Should clear zero and set sign flag
+   __asm__("BEQ %g", error22);      // Should not jump
+   __asm__("BMI %g", noError22);    // Should jump
+error22:
+   __asm__("JMP %g", error22);
+noError22:
+   __asm__("CMP #$00");             // A should be unchanged
+   __asm__("BNE %g", error22);      // Should not jump
+   __asm__("TXA");                  // X should be unchanged
+   __asm__("CMP #$99");
+   __asm__("BNE %g", error22);      // Should not jump
+   __asm__("TYA");                  // Y should be incremented
+   __asm__("CMP #$89");
+   __asm__("BNE %g", error22);      // Should not jump
+
+   // Now we test DEY
+   __asm__("LDA #$00");             // Set zero and clear sign flag
+   __asm__("DEY");                  // Should clear zero and set sign flag
+   __asm__("BEQ %g", error22);      // Should not jump
+   __asm__("BPL %g", error22);      // Should not jump
+   __asm__("CMP #$00");             // A should be unchanged
+   __asm__("BNE %g", error22);      // Should not jump
+   __asm__("TXA");                  // X should be unchanged
+   __asm__("CMP #$99");
+   __asm__("BNE %g", error22);      // Should not jump
+   __asm__("TYA");                  // Y should be decremented
+   __asm__("CMP #$88");
+   __asm__("BNE %g", error22);      // Should not jump
 
    // Loop forever doing nothing
 here:

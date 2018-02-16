@@ -55,69 +55,69 @@ architecture Structural of ctl is
    subtype micro_op_type is std_logic_vector(45 downto 0);
    type micro_op_rom_type is array(0 to 8*256-1) of micro_op_type;
 
-   constant C_WR_REG_OR    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010000";
-   constant C_WR_REG_AND   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010001";
-   constant C_WR_REG_EOR   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010010";
-   constant C_WR_REG_ADC   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010011";
-   constant C_WR_REG_A     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010100";
-   constant C_WR_REG_B     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010101";
-   constant C_WR_REG_CMP   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010110";
-   constant C_WR_REG_SBC   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010111";
-   constant C_WR_REG_ASL   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_011000";
-   constant C_WR_REG_ROL   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_011001";
-   constant C_WR_REG_LSR   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_011010";
-   constant C_WR_REG_ROR   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_011011";
-   constant C_WR_REG_DEC   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_011110";
-   constant C_WR_REG_INC   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_011111";
-   constant C_WR_REG_SP    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_110100";
+   constant C_WR_REG_OR     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010000";
+   constant C_WR_REG_AND    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010001";
+   constant C_WR_REG_EOR    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010010";
+   constant C_WR_REG_ADC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010011";
+   constant C_WR_REG_A      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010100";
+   constant C_WR_REG_B      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010101";
+   constant C_WR_REG_CMP    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010110";
+   constant C_WR_REG_SBC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_010111";
+   constant C_WR_REG_ASL    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_011000";
+   constant C_WR_REG_ROL    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_011001";
+   constant C_WR_REG_LSR    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_011010";
+   constant C_WR_REG_ROR    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_011011";
+   constant C_WR_REG_DEC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_011110";
+   constant C_WR_REG_INC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_011111";
+   constant C_WR_REG_SP     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_110100";
 
-   constant C_ALU_OR       : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
-   constant C_ALU_AND      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000001";
-   constant C_ALU_EOR      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000010";
-   constant C_ALU_ADC      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000011";
-   constant C_ALU_B        : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000101";
-   constant C_ALU_CMP      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000110";
-   constant C_ALU_SBC      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000111";
-   constant C_ALU_ASL      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_001000";
-   constant C_ALU_ROL      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_001001";
-   constant C_ALU_LSR      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_001010";
-   constant C_ALU_ROR      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_001011";
-   constant C_ALU_DEC      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_001110";
-   constant C_ALU_INC      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_001111";
+   constant C_ALU_OR        : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_ALU_AND       : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000001";
+   constant C_ALU_EOR       : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000010";
+   constant C_ALU_ADC       : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000011";
+   constant C_ALU_B         : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000101";
+   constant C_ALU_CMP       : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000110";
+   constant C_ALU_SBC       : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000111";
+   constant C_ALU_ASL       : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_001000";
+   constant C_ALU_ROL       : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_001001";
+   constant C_ALU_LSR       : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_001010";
+   constant C_ALU_ROR       : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_001011";
+   constant C_ALU_DEC       : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_001110";
+   constant C_ALU_INC       : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_001111";
 
-   constant C_WR_PC_HOLD   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000001_000000";
-   constant C_WR_PC_LOAD   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000010_000000";
-   constant C_WR_PC_INC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000011_000000";
-   constant C_WR_PC_BPL    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000111_000000";
-   constant C_WR_PC_BMI    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_001111_000000";
-   constant C_WR_PC_BVC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_010111_000000";
-   constant C_WR_PC_BVS    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_011111_000000";
-   constant C_WR_PC_BCC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_100111_000000";
-   constant C_WR_PC_BCS    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_101111_000000";
-   constant C_WR_PC_BNE    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_110111_000000";
-   constant C_WR_PC_BEQ    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_111111_000000";
+   constant C_WR_PC_HOLD    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000001_000000";
+   constant C_WR_PC_LOAD    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000010_000000";
+   constant C_WR_PC_INC     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000011_000000";
+   constant C_WR_PC_BPL     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000111_000000";
+   constant C_WR_PC_BMI     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_001111_000000";
+   constant C_WR_PC_BVC     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_010111_000000";
+   constant C_WR_PC_BVS     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_011111_000000";
+   constant C_WR_PC_BCC     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_100111_000000";
+   constant C_WR_PC_BCS     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_101111_000000";
+   constant C_WR_PC_BNE     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_110111_000000";
+   constant C_WR_PC_BEQ     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_111111_000000";
 
-   constant C_WR_SP_LOAD   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_01_000000_000000";
-   constant C_WR_SP_DEC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_10_000000_000000";
-   constant C_WR_SP_INC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_11_000000_000000";
+   constant C_WR_SP_LOAD    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_01_000000_000000";
+   constant C_WR_SP_DEC     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_10_000000_000000";
+   constant C_WR_SP_INC     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_11_000000_000000";
 
-   constant C_WR_HOLD_LO   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_01_00_000000_000000";
-   constant C_WR_HOLD_HI   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_10_00_000000_000000";
-   constant C_WR_HOLD_ADD  : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_11_00_000000_000000";
+   constant C_WR_HOLD_LO    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_01_00_000000_000000";
+   constant C_WR_HOLD_HI    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_10_00_000000_000000";
+   constant C_WR_HOLD_ADD   : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_11_00_000000_000000";
 
-   constant C_WR_SR_V      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0001_00_00_000000_000000";
-   constant C_WR_SR_C      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0010_00_00_000000_000000";
-   constant C_WR_SR_Z      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0100_00_00_000000_000000";
-   constant C_WR_SR_S      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_1000_00_00_000000_000000";
+   constant C_WR_SR_V       : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0001_00_00_000000_000000";
+   constant C_WR_SR_C       : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0010_00_00_000000_000000";
+   constant C_WR_SR_Z       : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0100_00_00_000000_000000";
+   constant C_WR_SR_S       : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_1000_00_00_000000_000000";
 
-   constant C_WR_SR_B_0    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_10_0000_00_00_000000_000000";
-   constant C_WR_SR_B_1    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_11_0000_00_00_000000_000000";
-   constant C_WR_SR_I_0    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_10_00_0000_00_00_000000_000000";
-   constant C_WR_SR_I_1    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_11_00_0000_00_00_000000_000000";
-   constant C_WR_SR_D_0    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_10_00_00_0000_00_00_000000_000000";
-   constant C_WR_SR_D_1    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_11_00_00_0000_00_00_000000_000000";
-   constant C_WR_SR_REG    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_10_00_00_00_0000_00_00_000000_000000";
-   constant C_WR_SR_MEM    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_11_00_00_00_0000_00_00_000000_000000";
+   constant C_WR_SR_B_0     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_10_0000_00_00_000000_000000";
+   constant C_WR_SR_B_1     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_11_0000_00_00_000000_000000";
+   constant C_WR_SR_I_0     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_10_00_0000_00_00_000000_000000";
+   constant C_WR_SR_I_1     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_11_00_0000_00_00_000000_000000";
+   constant C_WR_SR_D_0     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_10_00_00_0000_00_00_000000_000000";
+   constant C_WR_SR_D_1     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_11_00_00_0000_00_00_000000_000000";
+   constant C_WR_SR_REG     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_10_00_00_00_0000_00_00_000000_000000";
+   constant C_WR_SR_MEM     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_11_00_00_00_0000_00_00_000000_000000";
 
    constant C_WR_ADDR_PC    : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
    constant C_WR_ADDR_HOLD  : micro_op_type := B"00_0_0_00_000_00_00_0_0001_00_00_00_00_0000_00_00_000000_000000";
@@ -130,29 +130,30 @@ architecture Structural of ctl is
    constant C_WR_ADDR_FFFE  : micro_op_type := B"00_0_0_00_000_00_00_0_1110_00_00_00_00_0000_00_00_000000_000000";
    constant C_WR_ADDR_FFFF  : micro_op_type := B"00_0_0_00_000_00_00_0_1111_00_00_00_00_0000_00_00_000000_000000";
 
-   constant C_MEM_RD       : micro_op_type := B"00_0_0_00_000_00_00_1_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_MEM_RD        : micro_op_type := B"00_0_0_00_000_00_00_1_0000_00_00_00_00_0000_00_00_000000_000000";
 
-   constant C_REG_WR_A     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
-   constant C_REG_WR_X     : micro_op_type := B"00_0_0_00_000_00_01_0_0000_00_00_00_00_0000_00_00_000000_000000";
-   constant C_REG_WR_Y     : micro_op_type := B"00_0_0_00_000_00_10_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_REG_WR_A      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_REG_WR_X      : micro_op_type := B"00_0_0_00_000_00_01_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_REG_WR_Y      : micro_op_type := B"00_0_0_00_000_00_10_0_0000_00_00_00_00_0000_00_00_000000_000000";
 
-   constant C_REG_RD_A     : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
-   constant C_REG_RD_X     : micro_op_type := B"00_0_0_00_000_01_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
-   constant C_REG_RD_Y     : micro_op_type := B"00_0_0_00_000_10_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_REG_RD_A      : micro_op_type := B"00_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_REG_RD_X      : micro_op_type := B"00_0_0_00_000_01_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_REG_RD_Y      : micro_op_type := B"00_0_0_00_000_10_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
 
-   constant C_MEM_WR_REG   : micro_op_type := B"00_0_0_00_100_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
-   constant C_MEM_WR_PC_HI : micro_op_type := B"00_0_0_00_101_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
-   constant C_MEM_WR_PC_LO : micro_op_type := B"00_0_0_00_110_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
-   constant C_MEM_WR_SR    : micro_op_type := B"00_0_0_00_111_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_MEM_WR_REG    : micro_op_type := B"00_0_0_00_100_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_MEM_WR_PC_HI  : micro_op_type := B"00_0_0_00_101_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_MEM_WR_PC_LO  : micro_op_type := B"00_0_0_00_110_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_MEM_WR_SR     : micro_op_type := B"00_0_0_00_111_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
 
-   constant C_WR_SR_C_0    : micro_op_type := B"00_0_0_10_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
-   constant C_WR_SR_C_1    : micro_op_type := B"00_0_0_11_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_WR_SR_C_0     : micro_op_type := B"00_0_0_10_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_WR_SR_C_1     : micro_op_type := B"00_0_0_11_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
 
-   constant C_LAST         : micro_op_type := B"00_0_1_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
-   constant C_INVALID      : micro_op_type := B"00_1_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_LAST          : micro_op_type := B"00_0_1_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_INVALID       : micro_op_type := B"00_1_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
 
-   constant C_WR_HOLD2_ADD : micro_op_type := B"10_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
-   constant C_WR_HOLD2_INC : micro_op_type := B"11_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_WR_HOLD2_LOAD : micro_op_type := B"01_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_WR_HOLD2_ADD  : micro_op_type := B"10_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
+   constant C_WR_HOLD2_INC  : micro_op_type := B"11_0_0_00_000_00_00_0_0000_00_00_00_00_0000_00_00_000000_000000";
 
    constant C_READ_NEXT_BYTE : micro_op_type := C_WR_PC_INC + C_MEM_RD;
 
@@ -1391,8 +1392,8 @@ architecture Structural of ctl is
             C_INVALID,
             C_INVALID,
    -- 88 DEY
-            C_INVALID,
-            C_INVALID,
+            C_READ_NEXT_BYTE,
+            C_REG_WR_Y + C_REG_RD_Y + C_WR_REG_DEC + C_WR_SR_S + C_WR_SR_Z + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,
@@ -1473,12 +1474,12 @@ architecture Structural of ctl is
             C_INVALID,
             C_INVALID,
    -- 91 STA (d),Y
-            C_INVALID,
-            C_INVALID,
-            C_INVALID,
-            C_INVALID,
-            C_INVALID,
-            C_INVALID,
+            C_READ_NEXT_BYTE,
+            C_WR_HOLD2_LOAD + C_MEM_RD + C_WR_PC_INC,                   -- read value of d
+            C_WR_ADDR_HOLD2 + C_MEM_RD + C_WR_HOLD_LO + C_WR_HOLD2_INC, -- read from d
+            C_WR_ADDR_HOLD2 + C_MEM_RD + C_WR_HOLD_HI,                  -- read from d+1
+            C_WR_HOLD_ADD + C_REG_RD_Y,                                 -- calculate (d)+Y         TBD: Could perhaps be absorbed into previous or next micro-instruction.
+            C_WR_ADDR_HOLD + C_MEM_WR_REG + C_LAST,                     -- write to (d)+Y
             C_INVALID,
             C_INVALID,
    -- 92
@@ -1763,12 +1764,12 @@ architecture Structural of ctl is
             C_INVALID,
             C_INVALID,
    -- B1 LDA (d),Y
-            C_INVALID,
-            C_INVALID,
-            C_INVALID,
-            C_INVALID,
-            C_INVALID,
-            C_INVALID,
+            C_READ_NEXT_BYTE,
+            C_WR_HOLD2_LOAD + C_MEM_RD + C_WR_PC_INC,                   -- read value of d
+            C_WR_ADDR_HOLD2 + C_MEM_RD + C_WR_HOLD_LO + C_WR_HOLD2_INC, -- read from d
+            C_WR_ADDR_HOLD2 + C_MEM_RD + C_WR_HOLD_HI,                  -- read from d+1
+            C_WR_HOLD_ADD + C_REG_RD_Y,                                 -- calculate (d)+Y         TBD: Could perhaps be absorbed into previous or next micro-instruction.
+            C_WR_ADDR_HOLD + C_MEM_RD + C_WR_REG_B + C_WR_SR_S + C_WR_SR_Z + C_LAST,   -- read from (d)+Y
             C_INVALID,
             C_INVALID,
    -- B2
@@ -1971,8 +1972,8 @@ architecture Structural of ctl is
             C_INVALID,
             C_INVALID,
    -- C8 INY
-            C_INVALID,
-            C_INVALID,
+            C_READ_NEXT_BYTE,
+            C_REG_WR_Y + C_REG_RD_Y + C_WR_REG_INC + C_WR_SR_S + C_WR_SR_Z + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,

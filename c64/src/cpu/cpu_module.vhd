@@ -229,6 +229,8 @@ begin
    begin
       if rising_edge(clk_i) then
          case ctl_wr_hold_addr2 is
+            when "01" => mem_addr2_reg( 7 downto 0) <= data_i;                 -- Used during zero-page addressing mode
+                         mem_addr2_reg(15 downto 8) <= (others => '0');
             when "10" => mem_addr2_reg( 7 downto 0) <= data_i + regs_rd_data;  -- Used during zero-page addressing mode
                          mem_addr2_reg(15 downto 8) <= (others => '0');
             when "11" => mem_addr2_reg( 7 downto 0) <= mem_addr2_reg( 7 downto 0) + 1;
