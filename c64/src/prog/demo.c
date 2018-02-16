@@ -41,6 +41,56 @@ clear:
    __asm__("RTS"); 
 } // end of clearScreen
 
+static void __fastcall__ clearLine(void)
+{
+   __asm__("LDA #$00"); 
+   __asm__("STA %b", ZP_SCREEN_POS_LO); 
+   __asm__("LDA #$80"); 
+   __asm__("STA %b", ZP_SCREEN_POS_HI); 
+   __asm__("LDA #$00"); 
+   __asm__("TAX"); 
+clear:
+   __asm__("LDA #$20"); 
+   __asm__("STA (%b, X)", ZP_SCREEN_POS_LO); 
+   __asm__("LDA %b", ZP_SCREEN_POS_LO); 
+   __asm__("CMP #$27"); 
+   __asm__("BEQ %g", rts); 
+   __asm__("CLC"); 
+   __asm__("ADC #$01"); 
+   __asm__("STA %b", ZP_SCREEN_POS_LO); 
+   __asm__("JMP %g", clear);
+rts:
+   __asm__("RTS"); 
+} // end of clearLine
+
+static void __fastcall__ deleteChar(void)
+{
+   __asm__("LDA %b", ZP_SCREEN_POS_LO); 
+   __asm__("STA %b", ZP_STOP);                  // Store current position
+   __asm__("LDA #$27"); 
+   __asm__("STA %b", ZP_SCREEN_POS_LO);         // Move to end of line
+   __asm__("LDX #$00"); 
+   __asm__("LDA #$20"); 
+   __asm__("TAY");                              // Put ' ' in Y
+
+loop:
+   __asm__("LDA (%b, X)", ZP_SCREEN_POS_LO); 
+   __asm__("STA %b", ZP_TEMP); 
+   __asm__("TYA"); 
+   __asm__("STA (%b, X)", ZP_SCREEN_POS_LO); 
+   __asm__("LDA %b", ZP_SCREEN_POS_LO); 
+   __asm__("CMP %b", ZP_STOP); 
+   __asm__("BEQ %g", rts); 
+   __asm__("SEC"); 
+   __asm__("SBC #$01"); 
+   __asm__("STA %b", ZP_SCREEN_POS_LO); 
+   __asm__("LDA %b", ZP_TEMP); 
+   __asm__("TAY"); 
+   __asm__("JMP %g", loop); 
+rts:
+   __asm__("RTS"); 
+} // end of deleteChar
+
 static unsigned char irqA;
 static unsigned char irqX;
 static unsigned char irqCnt;
@@ -76,6 +126,77 @@ end_irq:
    __asm__("RTI");
 } // end of irq
 
+static void __fastcall__ updateBuffer(void)
+{
+   // First check for various control characters
+   __asm__("CMP #$08");
+   __asm__("BEQ %g", backSpace);
+   __asm__("CMP #$7F");
+   __asm__("BEQ %g", delete);
+   __asm__("CMP #$1B");
+   __asm__("BEQ %g", left);
+   __asm__("CMP #$1A");
+   __asm__("BEQ %g", right);
+   __asm__("CMP #$02");
+   __asm__("BEQ %g", home);
+   __asm__("CMP #$03");
+   __asm__("BEQ %g", end);
+   __asm__("CMP #$0D");
+   __asm__("BEQ %g", enter);
+   __asm__("CMP #$00");
+   __asm__("BNE %g", normal);
+rts:
+   __asm__("RTS");
+
+backSpace:
+   __asm__("LDA %b", ZP_SCREEN_POS_LO); 
+   __asm__("BEQ %g", rts);    // Ignore, if we are at beginning of line
+   __asm__("SEC");            // Move cursor one left.
+   __asm__("SBC #$01");
+   __asm__("STA %b", ZP_SCREEN_POS_LO);   // Continue with delete
+
+delete:
+   __asm__("JSR %v", deleteChar);
+   __asm__("RTS");
+
+left:
+   __asm__("LDA %b", ZP_SCREEN_POS_LO); 
+   __asm__("BEQ %g", rts);    // Ignore, if we are at beginning of line
+   __asm__("SEC");            // Move cursor one left.
+   __asm__("SBC #$01");
+   __asm__("STA %b", ZP_SCREEN_POS_LO);
+   __asm__("RTS");
+
+right:
+   __asm__("LDA %b", ZP_SCREEN_POS_LO); 
+   __asm__("CMP #$27");
+   __asm__("BEQ %g", rts);    // Ignore, if we are at end of line
+   __asm__("CLC");            // Move cursor one right.
+   __asm__("ADC #$01");
+   __asm__("STA %b", ZP_SCREEN_POS_LO);
+   __asm__("RTS");
+
+home:
+   __asm__("LDA #$00");
+   __asm__("STA %b", ZP_SCREEN_POS_LO);
+   __asm__("RTS");
+
+end:
+   __asm__("LDA #$27");
+   __asm__("STA %b", ZP_SCREEN_POS_LO);
+   __asm__("RTS");
+
+enter:
+   __asm__("JSR %v", clearLine);
+   __asm__("JMP %g", home);
+
+normal:
+   __asm__("LDX #$00"); 
+   __asm__("STA (%b, X)", ZP_SCREEN_POS_LO); 
+   __asm__("JMP %g", right);
+
+} // end of updateBuffer
+
 
 // Entry point after CPU reset
 void __fastcall__ reset(void)
@@ -86,7 +207,7 @@ void __fastcall__ reset(void)
 
    circle_init();
 
-   //clearScreen();
+   clearScreen();
 
    // Configure text color
    __asm__("LDA #%b", COL_LIGHT);
@@ -113,24 +234,7 @@ void __fastcall__ reset(void)
 
 loop:
    __asm__("JSR %v", readFromKeyboard);      // This is a blocking call; it won't return until a valid keypress is detected.
-
-   // Now write it to the screen
-   __asm__("LDX #$00"); 
-   __asm__("STA (%b, X)", ZP_SCREEN_POS_LO); 
-
-   // Update screen pointer
-   __asm__("LDA %b", ZP_SCREEN_POS_LO); 
-   __asm__("CLC"); 
-   __asm__("ADC #$01"); 
-   __asm__("STA %b", ZP_SCREEN_POS_LO); 
-   __asm__("LDA %b", ZP_SCREEN_POS_HI); 
-   __asm__("ADC #$00"); 
-   __asm__("STA %b", ZP_SCREEN_POS_HI); 
-   __asm__("CMP #$84"); 
-   __asm__("BNE %g", noWrap); 
-   __asm__("LDA #$80"); 
-   __asm__("STA %b", ZP_SCREEN_POS_HI); 
-noWrap:
+   __asm__("JSR %v", updateBuffer);
 
    goto loop;  // Just do an endless loop.
 } // end of reset
