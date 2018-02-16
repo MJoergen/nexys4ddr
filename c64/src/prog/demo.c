@@ -59,6 +59,18 @@ rts:
    __asm__("RTS"); 
 } // end of clearLine
 
+static void __fastcall__ copyLine(void)
+{
+   __asm__("LDA #$27"); 
+   __asm__("TAX"); 
+loop:
+   __asm__("LDA %w,X", VGA_ADDR_SCREEN);        // Copy from line 0
+   __asm__("STA %w,X", VGA_ADDR_SCREEN+40);     // to line 1
+   __asm__("DEX"); 
+   __asm__("BPL %g", loop); 
+   __asm__("RTS"); 
+} // end of copyLine
+
 static void __fastcall__ deleteChar(void)
 {
    __asm__("LDA %b", ZP_SCREEN_POS_LO); 
@@ -183,6 +195,7 @@ end:
    __asm__("RTS");
 
 enter:
+   __asm__("JSR %v", copyLine);
    __asm__("JSR %v", clearLine);
    __asm__("JMP %g", home);
 
