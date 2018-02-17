@@ -47,17 +47,18 @@ SRC += src/keyboard/bytefifo.vhd
 SRC += src/keyboard/keyboard.vhd
 
 # Machine code
+PROG_SRC    = src/prog/demo.c
+PROG_SRC   += src/prog/keyboard.c
+PROG_SRC   += src/prog/circle.c
+PROG_SRC   += src/prog/smult.c
 #PROG_SRC    = src/prog/text.c
 #PROG_SRC    = src/prog/circle.c
 #PROG_SRC    = src/prog/cputest.c
 #PROG_SRC    = src/prog/scroll.c
-PROG_SRC    = src/prog/demo.c
-PROG_SRC   += src/prog/keyboard.c
-PROG_SRC   += src/prog/circle.c
 LD_CFG      = src/prog/ld.cfg
 VECTORS_AS  = src/prog/vectors.s
 
-stoptime = --stop-time=120us
+stoptime = --stop-time=150us
 
 include ../xilinx.mk
 
