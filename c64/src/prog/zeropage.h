@@ -12,3 +12,8 @@
 #define ZP_XHI             0x11
 #define ZP_YLO             0x12
 #define ZP_YHI             0x13
+
+#define ZP_SMULT_A         0x20
+#define ZP_SMULT_X         0x21
+#define ZP_SMULT_T1        0x22
+#define ZP_SMULT_T2        0x23
