@@ -43,6 +43,9 @@
 // C8 INY
 // 88 DEY
 // CA DEX
+// 65 ADC d
+// 45 EOR d
+// 2A ROL A
 
 // To come soon:
 // A0 LDY #
@@ -50,7 +53,6 @@
 // C0 CPY #
 // 48 PHA
 // 68 PLA
-// 65 ADC d
 // A6 LDX d
 // A4 LDY d
 // 86 STX d
@@ -803,6 +805,27 @@ noError22:
    __asm__("TYA");                  // Y should be decremented
    __asm__("CMP #$88");
    __asm__("BNE %g", error22);      // Should not jump
+
+   // Now we test ROL A
+   __asm__("LDA #$24");
+   __asm__("SEC");                  // This sets carry
+   __asm__("ROL A");                // This clears carry
+   __asm__("BCC %g", noError23);    // Should jump
+error23:
+   __asm__("JMP %g", error23);
+noError23:
+   __asm__("CMP #$49");
+   __asm__("BNE %g", error23);
+   __asm__("LDA #$00");             // Set zero
+   __asm__("SEC");                  // This sets carry
+   __asm__("ROL A");                // This should clear zero
+   __asm__("BEQ %g", error23);
+   __asm__("LDA #$80");             // Clear zero and set sign bit
+   __asm__("CLC");                  // This sets carry
+   __asm__("ROL A");                // This should set zero, clear sign bit, and set carry
+   __asm__("BNE %g", error23);
+   __asm__("BMI %g", error23);
+   __asm__("BCC %g", error23);
 
    // Loop forever doing nothing
 here:
