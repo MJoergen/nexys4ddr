@@ -307,7 +307,7 @@ begin
    -- Generate IRQ at end of a particular line, i.e. 60 times pr. second.
    -- This is a single clock pulse.
    vga_sync <= '1' when vga_char_hcount = FRAME_WIDTH and
-               vga_char_vcount(10 downto 0) = (vga_config(65*8 + 7 downto 65*8) & "0") else '0';
+               vga_char_vcount(10 downto 0) = (vga_config(65*8 + 7 downto 65*8) & "1") else '0';
 
 
    -- Synchronize Sync pulse
