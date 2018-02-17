@@ -540,8 +540,8 @@ architecture Structural of ctl is
             C_INVALID,
             C_INVALID,
    -- 2A ROL A
-            C_INVALID,
-            C_INVALID,
+            C_READ_NEXT_BYTE,
+            C_WR_REG_ROL + C_WR_SR_C + C_WR_SR_S + C_WR_SR_Z + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,
@@ -785,9 +785,9 @@ architecture Structural of ctl is
             C_INVALID,
             C_INVALID,
    -- 45 EOR d
-            C_INVALID,
-            C_INVALID,
-            C_INVALID,
+            C_READ_NEXT_BYTE,
+            C_WR_HOLD_LO + C_MEM_RD + C_WR_PC_INC,
+            C_WR_ADDR_HOLD + C_MEM_RD + C_WR_REG_EOR + C_WR_SR_Z + C_WR_SR_S + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,
@@ -1077,7 +1077,7 @@ architecture Structural of ctl is
    -- 65 ADC d
             C_READ_NEXT_BYTE,
             C_WR_HOLD_LO + C_MEM_RD + C_WR_PC_INC,
-            C_WR_ADDR_HOLD + C_MEM_RD + C_WR_REG_ADC + C_WR_SR_C + C_LAST,
+            C_WR_ADDR_HOLD + C_MEM_RD + C_WR_REG_ADC + C_WR_SR_V + C_WR_SR_C + C_WR_SR_S + C_WR_SR_Z + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,
