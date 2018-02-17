@@ -8,6 +8,7 @@
 #include "memorymap.h"
 #include "zeropage.h"   // Variables to be stored in the zero-page.
 #include "circle.h"     // Routines to move the sprite around in a circle.
+#include "smult.h"      // Signed 8-bit multiplication.
 
 #define COL_LIGHT       0x6F   // 011_011_11
 #define COL_DARK        0x44   // 010_001_00
@@ -104,8 +105,8 @@ static unsigned char irqX;
 static unsigned char irqY;
 static unsigned char irqCnt;
 
-#define YPOS_LINE1 13 
-#define YPOS_LINE2 26 
+#define YPOS_LINE1 (1*13 - 1)
+#define YPOS_LINE2 (2*13 - 1)
 
 // The interrupt service routine.
 void __fastcall__ irq(void)
@@ -297,8 +298,8 @@ void __fastcall__ reset(void)
    __asm__("LDX #$FF");
    __asm__("TXS");                           // Reset stack pointer
 
+   smult_init();
    circle_init();
-
    clearScreen();
 
    // Configure text color
