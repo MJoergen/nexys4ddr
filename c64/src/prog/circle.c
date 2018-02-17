@@ -1,3 +1,4 @@
+#include "smult.h"
 /*
 Making an object travel in a circular orbit...
 
@@ -254,15 +255,6 @@ x_positive:
    __asm__("ADC #$00");
    __asm__("STA %b", ZP_YHI);
 
-   // Move YLO high bit into carry
-   __asm__("LDA %b", ZP_YLO);
-   __asm__("CLC");
-   __asm__("ADC %b", ZP_YLO);
-
-   __asm__("LDA %b", ZP_YHI);
-   __asm__("ADC #$65");
-   __asm__("STA %w", VGA_ADDR_SPRITE_0_Y); // Set Y coordinate of sprite 0
-
    // Move XLO high bit into carry
    __asm__("LDA %b", ZP_XLO);
    __asm__("CLC");
@@ -271,6 +263,35 @@ x_positive:
    __asm__("LDA %b", ZP_XHI);
    __asm__("ADC #$65");
    __asm__("STA %w", VGA_ADDR_SPRITE_0_X); // Set X coordinate of sprite 0
+
+//   // Move YLO high bit into carry
+//   __asm__("LDA %b", ZP_YLO);
+//   __asm__("CLC");
+//   __asm__("ADC %b", ZP_YLO);
+//
+//   __asm__("LDA %b", ZP_YHI);
+//   __asm__("ADC #$65");
+//   __asm__("STA %w", VGA_ADDR_SPRITE_0_Y); // Set Y coordinate of sprite 0
+
+   __asm__("LDA %b", ZP_YHI);
+   __asm__("TAX");
+   __asm__("LDA %b", ZP_XHI);
+   __asm__("JSR %v", smult); // The two numbers are in A and X. The result has MSB in X and LSB in A.
+
+   __asm__("ROL A");          // Multiply by 4 (two bit shifts).
+   __asm__("TAY");
+   __asm__("TXA");
+   __asm__("ROL A");
+   __asm__("TAX");
+
+   __asm__("TYA");
+   __asm__("ROL A");
+   __asm__("TXA");
+   __asm__("ROL A");
+
+   __asm__("CLC");
+   __asm__("ADC #$65");
+   __asm__("STA %w", VGA_ADDR_SPRITE_0_Y); // Set Y coordinate of sprite 0
 
 } // end of circle_move
 
