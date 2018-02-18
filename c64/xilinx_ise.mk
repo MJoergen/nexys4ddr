@@ -21,7 +21,7 @@
 #
 #   files 		description
 #   ----------  	------------
-#   $(project).ucf	ucf file
+#   $(ucf_file)	ucf file
 #
 # Library modules should have a modules.mk in their root directory,
 # namely $(libdir)/<libname>/module.mk, that simply adds to the vfiles
@@ -255,8 +255,8 @@ junk += $(project).ncd $(project).pcf $(project).ngm $(project).mrp $(project).m
 junk += smartguide.ncd $(project).psr 
 junk += $(project)_summary.xml $(project)_usage.xml
 
-#$(project).ngd: $(project).ngc $(project).ucf $(project).bmm
-$(project).ngd: $(project).ngc $(project).ucf
+#$(project).ngd: $(project).ngc $(ucf_file) $(project).bmm
+$(project).ngd: $(project).ngc $(ucf_file)
 	$(xil_env); ngdbuild $(intstyle) $(project).ngc #-bm $(project).bmm
 junk += $(project).ngd $(project).bld
 
