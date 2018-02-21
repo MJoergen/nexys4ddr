@@ -3,6 +3,8 @@ SRC_DIR = src
 project    = basys2
 top_module = basys2
 
+ucf_file = $(SRC_DIR)/basys2/basys2.ucf
+
 # List of sources files
 vfiles  = $(SRC_DIR)/basys2/basys2.vhd # Top level
 vfiles += $(SRC_DIR)/hack.vhd
@@ -63,9 +65,14 @@ app_source = $(project).cpp
 app_libs   = -ldmgr -ldepp
 
 # Machine code
-PROG_SRC    = src/prog/cputest.c
+PROG_SRC    = src/prog/demo.c
+PROG_SRC   += src/prog/keyboard.c
+PROG_SRC   += src/prog/circle.c
+PROG_SRC   += src/prog/smult.c
+#PROG_SRC    = src/prog/cputest.c
 LD_CFG      = src/prog/ld.cfg
 VECTORS_AS  = src/prog/vectors.s
 
 include xilinx_ise.mk
+include Makefile.prog
 

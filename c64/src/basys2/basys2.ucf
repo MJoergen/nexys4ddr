@@ -10,7 +10,9 @@
 
 # A crystal oscillator is connected to this FPGA pin
 # The frequency of the oscillator is fixed at 25 MHz.
-NET "clk25_i"  LOC = "M6"; # Bank = 2, Signal name = UCLK, PAD = GCLK0
+NET "clk25_i"  LOC = "M6"; # Bank = 2, Signal name = UCLK,  PAD = GCLK0
+#NET "clk50_i"  LOC = "B8"; # Bank = 0, Signal name = MCLK,  PAD = GCLK8
+#NET "rcclk_i"  LOC = "C8"; # Bank = 0, Signal name = RCCLK, PAD = GCLK9
 NET "clk25_i" TNM_NET = sys_clk_i;
 TIMESPEC TS_sys_clk_i = PERIOD "clk25_i" 40 ns HIGH 50%;  # 25 MHz
 
