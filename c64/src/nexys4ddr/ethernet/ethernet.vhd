@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
--- This module connects to the LAN8720A Ethernet PHY
+-- This module connects to the LAN8720A Ethernet PHY. The PHY supports the RMII specification.
 --
 -- From the NEXYS 4 DDR schematic
 -- RXD0/MODE0   : External pull UP
@@ -23,6 +23,11 @@ use ieee.std_logic_unsigned.all;
 --            on the XTAL1/CLKIN pin.
 --
 -- All signals are connected to BANK 16 of the FPGA, except: eth_rstn_o and eth_clkin_o are connected to BANK 35.
+--
+-- When transmitting, packets must be preceeded by an 8-byte preamble
+-- in hex: 55 55 55 55 55 55 55 D5
+-- Each byte is transmitted with LSB first.
+-- Frames are appended with a 32-bit CRC, and then followed by 12 bytes of interpacket gap (idle).
 
 entity ethernet is
 
@@ -30,7 +35,10 @@ entity ethernet is
       clk100_i     : in    std_logic;        -- Must be 100 MHz
       rst100_i     : in    std_logic;
 
+      -- Pulling interface
       data_i       : in    std_logic_vector(7 downto 0);
+      sof_i        : in    std_logic;
+      eof_i        : in    std_logic;
       empty_i      : in    std_logic;
       rden_o       : out   std_logic;
 
