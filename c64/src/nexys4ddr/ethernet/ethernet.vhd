@@ -69,6 +69,14 @@ architecture Structural of ethernet is
    -- Here we have 22 bits, corresponding to approx 4*10^6 clock cycles, i.e. 40 ms.
    signal rst_cnt    : std_logic_vector(21 downto 0) := (others => '1');   -- Set to all-ones, to start the count down.
 
+   -- State machine to control the MAC framing
+   type t_fsm_state is (IDLE_ST, PRE1_ST, PRE2_ST, PAYLOAD_ST, CRC_ST, IFG_ST);
+   signal fsm_state : t_fsm_state := IDLE_ST;
+
+   signal byte_cnt  : integer range 0 to 7;
+   signal cur_byte  : std_logic_vector(7 downto 0);
+   signal twobit_cnt: integer range 0 to 3;
+
 begin
 
    -- The clock must always be generated
@@ -96,6 +104,20 @@ begin
          end if;
       end if;
    end process proc_eth_rstn;
+
+   proc_mac : process (eth_refclk)
+   begin
+      if rising_edge(eth_refclk) then
+         case fsm_state is
+            when IDLE_ST    =>
+            when PRE1_ST    =>
+            when PRE2_ST    =>
+            when PAYLOAD_ST =>
+            when CRC_ST     =>
+            when IFG_ST     =>
+         end case;
+      end if;
+   end process proc_mac;
 
    -- Drive output signals
    eth_refclk_o <= eth_refclk;
