@@ -1,10 +1,8 @@
 src/cdc/cdcpulse.vhd
 src/cdc/cdcvector.vhd
 src/clock/debounce.vhd
-src/nexys4ddr/clk_wiz_cpu_clk_wiz.vhd
-src/nexys4ddr/clk_wiz_cpu.vhd
-src/nexys4ddr/clk_wiz_vga_clk_wiz.vhd
-src/nexys4ddr/clk_wiz_vga.vhd
+src/nexys4ddr/clk_wiz_0_clk_wiz.vhd
+src/nexys4ddr/clk_wiz_0.vhd
 src/clock/clk_rst.vhd
 src/keyboard/ps2.vhd
 src/keyboard/bytefifo.vhd
@@ -24,5 +22,6 @@ src/vga/sprites.vhd
 src/vga/sync.vhd
 src/vga/vga_module.vhd
 src/hack.vhd
+src/nexys4ddr/ethernet/mac.vhd
 src/nexys4ddr/nexys4ddr.vhd
 src/nexys4ddr/nexys4ddr_tb.vhd

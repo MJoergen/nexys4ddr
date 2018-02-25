@@ -64,18 +64,43 @@ architecture Structural of ethernet is
 
    -- Minimum reset assert time is 25 ms. At 50 MHz (= 20 ns) this is approx 10^6 clock cycles.
    -- Here we have 21 bits, corresponding to approx 2*10^6 clock cycles, i.e. 40 ms.
---   signal rst_cnt    : std_logic_vector(20 downto 0) := (others => '1');   -- Set to all-ones, to start the count down.
-   signal rst_cnt    : std_logic_vector(20 downto 0) := (others => '0');   -- Set to all-ones, to start the count down.
+   signal rst_cnt    : std_logic_vector(20 downto 0) := (others => '1');   -- Set to all-ones, to start the count down.
+--   signal rst_cnt    : std_logic_vector(20 downto 0) := (others => '0');   -- Set to all-ones, to start the count down.
 
    -- State machine to control the MAC framing
-   type t_fsm_state is (IDLE_ST, PRE1_ST, PRE2_ST, PAYLOAD_ST, CRC_ST, IFG_ST);
+   type t_fsm_state is (IDLE_ST, PRE1_ST, PRE2_ST, PAYLOAD_ST, LAST_ST, CRC_ST, IFG_ST);
    signal fsm_state : t_fsm_state := IDLE_ST;
 
-   signal byte_cnt   : integer range 0 to 12;
+   signal byte_cnt   : integer range 0 to 12000000;
    signal cur_byte   : std_logic_vector(7 downto 0) := X"00";
    signal twobit_cnt : std_logic_vector(1 downto 0) := "00";
 
+   signal crc        : std_logic_vector(31 downto 0);
+   signal crc_reg    : std_logic_vector(31 downto 0);
+   signal crc_enable : std_logic;
+
 begin
+
+   -- Calculate CRC
+   proc_crc : process (clk50_i)
+      variable crc_v : std_logic_vector(31 downto 0);
+   begin
+      if rising_edge(clk50_i) then
+         if crc_enable = '1' then   -- Consume two bits of data
+            crc_v := crc;
+            for i in 0 to 1 loop
+               if cur_byte(i) = crc_v(31) then
+                  crc_v :=  crc_v(30 downto 0) & '0';
+               else
+                  crc_v := (crc_v(30 downto 0) & '0') xor x"04C11DB7";
+               end if;
+            end loop;
+            crc <= crc_v;
+         else
+            crc <= (others => '1');
+         end if;
+      end if;
+   end process proc_crc;
 
    -- Generate PHY reset
    proc_eth_rstn : process (clk50_i)
@@ -93,7 +118,7 @@ begin
    proc_mac : process (clk50_i)
    begin
       if rising_edge(clk50_i) then
-         rden_o   <= '0';
+         rden_o     <= '0';
 
          twobit_cnt <= twobit_cnt + 1;
          cur_byte   <= "00" & cur_byte(7 downto 2);
@@ -121,6 +146,7 @@ begin
                   end if;
 
                when PRE2_ST    =>
+                  crc_enable <= '1';
                   cur_byte  <= data_i;
                   rden_o    <= '1';
                   fsm_state <= PAYLOAD_ST;
@@ -135,8 +161,7 @@ begin
                   cur_byte <= data_i;
                   rden_o   <= '1';
                   if eof_i = '1' then
-                     byte_cnt  <= 4;
-                     fsm_state <= CRC_ST;
+                     fsm_state <= LAST_ST;
                   end if;
 
                   -- Abort! Data not available yet.
@@ -145,17 +170,27 @@ begin
                      rden_o    <= '0';
                   end if;
 
-               when CRC_ST     =>
-                  cur_byte  <= X"55";           -- TBD
+               when LAST_ST => 
+                  byte_cnt   <= 4;
+                  cur_byte   <= not (crc(24) & crc(25) & crc(26) & crc(27) &
+                                     crc(28) & crc(29) & crc(30) & crc(31));      -- CRC is transmitted MSB first.
+                  crc_reg    <= crc(23 downto 0) & X"00";
+                  crc_enable <= '0';         -- This will reset the CRC.
+                  fsm_state  <= CRC_ST;
+
+               when CRC_ST =>
+                  cur_byte <= not (crc_reg(24) & crc_reg(25) & crc_reg(26) & crc_reg(27) &
+                                   crc_reg(28) & crc_reg(29) & crc_reg(30) & crc_reg(31));      -- CRC is transmitted MSB first.
+                  crc_reg  <= crc_reg(23 downto 0) & X"00";
                   if byte_cnt = 1 then
-                     byte_cnt  <= 11;           -- Only 11 octets, because the next state is always the idle state.
+                     byte_cnt  <= 11000000;           -- Only 11 octets, because the next state is always the idle state.
                      fsm_state <= IFG_ST;
                      eth_txen  <= '0';
                   else
                      byte_cnt <= byte_cnt - 1;
                   end if;
 
-               when IFG_ST     =>
+               when IFG_ST =>
                   if byte_cnt = 1 then
                      fsm_state <= IDLE_ST;
                   else
