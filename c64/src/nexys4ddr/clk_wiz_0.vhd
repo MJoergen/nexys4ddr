@@ -1,4 +1,4 @@
--- file: clk_wiz_eth.vhd
+-- file: clk_wiz_0.vhd
 -- 
 -- (c) Copyright 2008 - 2013 Xilinx, Inc. All rights reserved.
 -- 
@@ -55,7 +55,9 @@
 --  Output     Output      Phase    Duty Cycle   Pk-to-Pk     Phase
 --   Clock     Freq (MHz)  (degrees)    (%)     Jitter (ps)  Error (ps)
 ------------------------------------------------------------------------------
--- CLK_OUT1___108.000______0.000______50.0______127.691_____97.646
+-- _eth_clk____50.000______0.000______50.0______145.943_____94.994
+-- _vga_clk____25.000______0.000______50.0______169.602_____94.994
+-- _cpu_clk____30.000______0.000______50.0______163.613_____94.994
 --
 ------------------------------------------------------------------------------
 -- Input Clock   Freq (MHz)    Input Jitter (UI)
@@ -70,37 +72,43 @@ use ieee.std_logic_arith.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity clk_wiz_eth is
+entity clk_wiz_0 is
 port
  (-- Clock in ports
   clk_in1           : in     std_logic;
   -- Clock out ports
-  clk_out1          : out    std_logic
+  eth_clk           : out    std_logic;
+  vga_clk           : out    std_logic;
+  cpu_clk           : out    std_logic
  );
-end clk_wiz_eth;
+end clk_wiz_0;
 
-architecture xilinx of clk_wiz_eth is
+architecture xilinx of clk_wiz_0 is
   attribute CORE_GENERATION_INFO : string;
   attribute CORE_GENERATION_INFO of xilinx : architecture is "clk_wiz_0,clk_wiz_v5_1,{component_name=clk_wiz_0,use_phase_alignment=true,use_min_o_jitter=false,use_max_i_jitter=false,use_dyn_phase_shift=false,use_inclk_switchover=false,use_dyn_reconfig=false,enable_axi=0,feedback_source=FDBK_AUTO,PRIMITIVE=MMCM,num_out_clk=1,clkin1_period=10.0,clkin2_period=10.0,use_power_down=false,use_reset=false,use_locked=false,use_inclk_stopped=false,feedback_type=SINGLE,CLOCK_MGR_TYPE=NA,manual_override=false}";
 
-component clk_wiz_eth_clk_wiz
+component clk_wiz_0_clk_wiz
 port
  (-- Clock in ports
   clk_in1           : in     std_logic;
   -- Clock out ports
-  clk_out1          : out    std_logic
+  eth_clk           : out    std_logic;
+  vga_clk           : out    std_logic;
+  cpu_clk           : out    std_logic
  );
 end component;
 
 begin
 
-  U0: clk_wiz_eth_clk_wiz 
+  U0: clk_wiz_0_clk_wiz 
    port map ( 
 
    -- Clock in ports
    clk_in1 => clk_in1,
   -- Clock out ports  
-   clk_out1 => clk_out1              
+   eth_clk => eth_clk,             
+   vga_clk => vga_clk,             
+   cpu_clk => cpu_clk
  );
 
 end xilinx;
