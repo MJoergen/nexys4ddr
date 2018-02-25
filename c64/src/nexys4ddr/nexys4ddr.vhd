@@ -80,38 +80,23 @@ architecture Structural of nexys4ddr is
 begin
 
 
-   gen_vga_clock : if G_SIMULATION = false generate
-      -- Generate VGA clock (25 MHz)
-      inst_clk_wiz_vga : entity work.clk_wiz_vga
+   gen_clocks : if G_SIMULATION = false generate
+      -- Generate clocks
+      inst_clk_wiz_0 : entity work.clk_wiz_0
       port map
       (
          clk_in1  => clk100_i,
-         clk_out1 => vga_clk
+         eth_clk => eth_clk,
+         vga_clk => vga_clk,
+         cpu_clk => cpu_clk
       );
-    
-    
-      -- Generate CPU clock (??? MHz)
-      inst_clk_wiz_cpu : entity work.clk_wiz_cpu
-      port map
-      (
-         clk_in1  => clk100_i,
-         clk_out1 => cpu_clk
-      );
-    
-      -- Generate Ethernet clock (50 MHz)
-      inst_clk_wiz_eth : entity work.clk_wiz_eth
-      port map
-      (
-         clk_in1  => clk100_i,
-         clk_out1 => eth_clk
-      );
-   end generate;
+   end generate gen_clocks;
 
-   gen_no_vga_clock : if G_SIMULATION = true generate
+   gen_no_clocks : if G_SIMULATION = true generate
       vga_clk <= clk100_i;
       cpu_clk <= clk100_i;
       eth_clk <= clk100_i;
-   end generate;
+   end generate gen_no_clocks;
  
  
    -- Generate synchronous CPU reset
@@ -148,6 +133,51 @@ begin
       vga_vs_o   => vga_vs_o,
       vga_col_o  => vga_col
    );
+
+   proc_gen_data : process (eth_clk)
+      type t_mem is array (0 to 59) of std_logic_vector(7 downto 0);
+      variable mem_v : t_mem := 
+      -- MAC header
+      (X"FF", X"FF", x"FF", X"FF", X"FF", X"FF",
+       X"F4", X"6D", x"04", X"11", X"22", X"33",
+       X"08", X"06",
+       -- ARP data
+       X"00", X"01", X"08", X"00", X"06", X"04", X"00", X"01",
+       X"F4", X"6D", x"04", X"D7", X"F3", X"CA", X"C0", X"A8",
+       X"01", X"2B", X"00", X"00", X"00", X"00", X"00", X"00",
+       X"C0", X"A8", X"01", X"01",
+       -- Padding
+       X"00", X"01", X"02", X"03", X"04", X"05", X"06", X"07",
+       X"08", X"09", X"0A", X"0B", X"0C", X"0D", X"0E", X"0F",
+       X"10", X"11"
+    );
+
+      variable cnt_v : integer range 0 to 59 := 0;
+   begin
+      if rising_edge(eth_clk) then
+         mac_data  <= mem_v(cnt_v);
+         mac_empty <= '0';
+         mac_sof   <= '0';
+         mac_eof   <= '0';
+
+         if cnt_v = 0 then
+            mac_sof <= '1';
+         end if;
+         if cnt_v = 59 then
+            mac_eof <= '1';
+         end if;
+
+         if mac_rden = '1' then
+            if cnt_v = 59 then
+               cnt_v := 0;
+            else
+               cnt_v := cnt_v + 1;
+            end if;
+            mac_data <= mem_v(cnt_v);
+         end if;
+      end if;
+   end process proc_gen_data;
+
 
    inst_ethernet : entity work.ethernet
    port map (
