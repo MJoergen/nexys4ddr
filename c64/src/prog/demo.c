@@ -291,6 +291,104 @@ normal:
 } // end of updateBuffer
 
 
+void __fastcall__ initScreen(void)
+{
+   __asm__("LDA #%b", 't');
+   __asm__("STA %w", VGA_ADDR_SCREEN+4*40);
+   __asm__("LDA #%b", 's');
+   __asm__("STA %w", VGA_ADDR_SCREEN+4*40+1);
+   __asm__("LDA #%b", 'l');
+   __asm__("STA %w", VGA_ADDR_SCREEN+4*40+2);
+   __asm__("LDA #%b", 'd');
+   __asm__("STA %w", VGA_ADDR_SCREEN+4*40+3);
+   __asm__("LDA #%b", 'k');
+   __asm__("STA %w", VGA_ADDR_SCREEN+4*40+4);
+   __asm__("LDA #%b", 'l');
+   __asm__("STA %w", VGA_ADDR_SCREEN+4*40+5);
+   __asm__("LDA #%b", 's');
+   __asm__("STA %w", VGA_ADDR_SCREEN+4*40+6);
+   __asm__("LDA #%b", 't');
+   __asm__("STA %w", VGA_ADDR_SCREEN+4*40+7);
+
+   __asm__("LDA #%b", 'b');
+   __asm__("STA %w", VGA_ADDR_SCREEN+5*40);
+   __asm__("STA %w", VGA_ADDR_SCREEN+5*40+1);
+   __asm__("STA %w", VGA_ADDR_SCREEN+5*40+2);
+   __asm__("STA %w", VGA_ADDR_SCREEN+5*40+3);
+   __asm__("STA %w", VGA_ADDR_SCREEN+5*40+4);
+   __asm__("STA %w", VGA_ADDR_SCREEN+5*40+5);
+   __asm__("STA %w", VGA_ADDR_SCREEN+5*40+6);
+   __asm__("STA %w", VGA_ADDR_SCREEN+5*40+7);
+
+   __asm__("LDA #%b", '.');
+   __asm__("STA %w", VGA_ADDR_SCREEN+6*40);
+   __asm__("STA %w", VGA_ADDR_SCREEN+6*40+1);
+   __asm__("STA %w", VGA_ADDR_SCREEN+6*40+2);
+   __asm__("STA %w", VGA_ADDR_SCREEN+6*40+3);
+   __asm__("STA %w", VGA_ADDR_SCREEN+6*40+4);
+   __asm__("STA %w", VGA_ADDR_SCREEN+6*40+5);
+   __asm__("STA %w", VGA_ADDR_SCREEN+6*40+6);
+   __asm__("STA %w", VGA_ADDR_SCREEN+6*40+7);
+
+   __asm__("LDA #%b", '.');
+   __asm__("STA %w", VGA_ADDR_SCREEN+7*40);
+   __asm__("STA %w", VGA_ADDR_SCREEN+7*40+1);
+   __asm__("STA %w", VGA_ADDR_SCREEN+7*40+2);
+   __asm__("STA %w", VGA_ADDR_SCREEN+7*40+3);
+   __asm__("STA %w", VGA_ADDR_SCREEN+7*40+4);
+   __asm__("STA %w", VGA_ADDR_SCREEN+7*40+5);
+   __asm__("STA %w", VGA_ADDR_SCREEN+7*40+6);
+   __asm__("STA %w", VGA_ADDR_SCREEN+7*40+7);
+
+   __asm__("LDA #%b", '.');
+   __asm__("STA %w", VGA_ADDR_SCREEN+8*40);
+   __asm__("STA %w", VGA_ADDR_SCREEN+8*40+1);
+   __asm__("STA %w", VGA_ADDR_SCREEN+8*40+2);
+   __asm__("STA %w", VGA_ADDR_SCREEN+8*40+3);
+   __asm__("STA %w", VGA_ADDR_SCREEN+8*40+4);
+   __asm__("STA %w", VGA_ADDR_SCREEN+8*40+5);
+   __asm__("STA %w", VGA_ADDR_SCREEN+8*40+6);
+   __asm__("STA %w", VGA_ADDR_SCREEN+8*40+7);
+
+   __asm__("LDA #%b", '.');
+   __asm__("STA %w", VGA_ADDR_SCREEN+9*40);
+   __asm__("STA %w", VGA_ADDR_SCREEN+9*40+1);
+   __asm__("STA %w", VGA_ADDR_SCREEN+9*40+2);
+   __asm__("STA %w", VGA_ADDR_SCREEN+9*40+3);
+   __asm__("STA %w", VGA_ADDR_SCREEN+9*40+4);
+   __asm__("STA %w", VGA_ADDR_SCREEN+9*40+5);
+   __asm__("STA %w", VGA_ADDR_SCREEN+9*40+6);
+   __asm__("STA %w", VGA_ADDR_SCREEN+9*40+7);
+
+   __asm__("LDA #%b", 'B');
+   __asm__("STA %w", VGA_ADDR_SCREEN+10*40);
+   __asm__("STA %w", VGA_ADDR_SCREEN+10*40+1);
+   __asm__("STA %w", VGA_ADDR_SCREEN+10*40+2);
+   __asm__("STA %w", VGA_ADDR_SCREEN+10*40+3);
+   __asm__("STA %w", VGA_ADDR_SCREEN+10*40+4);
+   __asm__("STA %w", VGA_ADDR_SCREEN+10*40+5);
+   __asm__("STA %w", VGA_ADDR_SCREEN+10*40+6);
+   __asm__("STA %w", VGA_ADDR_SCREEN+10*40+7);
+
+   __asm__("LDA #%b", 'T');
+   __asm__("STA %w", VGA_ADDR_SCREEN+11*40);
+   __asm__("LDA #%b", 'S');
+   __asm__("STA %w", VGA_ADDR_SCREEN+11*40+1);
+   __asm__("LDA #%b", 'L');
+   __asm__("STA %w", VGA_ADDR_SCREEN+11*40+2);
+   __asm__("LDA #%b", 'D');
+   __asm__("STA %w", VGA_ADDR_SCREEN+11*40+3);
+   __asm__("LDA #%b", 'K');
+   __asm__("STA %w", VGA_ADDR_SCREEN+11*40+4);
+   __asm__("LDA #%b", 'L');
+   __asm__("STA %w", VGA_ADDR_SCREEN+11*40+5);
+   __asm__("LDA #%b", 'S');
+   __asm__("STA %w", VGA_ADDR_SCREEN+11*40+6);
+   __asm__("LDA #%b", 'T');
+   __asm__("STA %w", VGA_ADDR_SCREEN+11*40+7);
+   __asm__("RTS"); 
+} // end of initScreen
+
 // Entry point after CPU reset
 void __fastcall__ reset(void)
 {
@@ -301,6 +399,7 @@ void __fastcall__ reset(void)
    smult_init();
    circle_init();
    clearScreen();
+   initScreen();
 
    // Configure text color
    __asm__("LDA #%b", COL_LIGHT);

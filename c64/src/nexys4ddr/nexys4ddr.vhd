@@ -31,7 +31,20 @@ entity nexys4ddr is
       -- Output LEDs
       led_o      : out std_logic_vector(15 downto 0);
 
-     -- Output to VGA monitor
+      -- Connected to PHY
+      eth_txd_o    : out   std_logic_vector(1 downto 0);
+      eth_txen_o   : out   std_logic;
+      eth_rxd_i    : in    std_logic_vector(1 downto 0);
+      eth_rxerr_i  : in    std_logic;
+      eth_crsdv_i  : in    std_logic;
+      eth_intn_i   : in    std_logic;
+      eth_mdio_io  : inout std_logic;
+      eth_mdc_o    : out   std_logic;
+      eth_rstn_o   : out   std_logic;
+      eth_refclk_o : out   std_logic;        -- Connected to XTAL1/CLKIN. Must be driven to 50 MHz.
+                                             -- All RMII signals are syunchronous to this clock.
+
+      -- Output to VGA monitor
       vga_hs_o   : out std_logic;
       vga_vs_o   : out std_logic;
       vga_col_o  : out std_logic_vector(11 downto 0)
@@ -43,6 +56,7 @@ architecture Structural of nexys4ddr is
    -- Clocks and Reset
    signal vga_clk   : std_logic;
    signal cpu_clk   : std_logic;
+   signal eth_clk   : std_logic;
    signal cpu_rst   : std_logic := '1';
  
    -- VGA color output
@@ -56,6 +70,12 @@ architecture Structural of nexys4ddr is
    begin
       return arg(7 downto 5) & "0" & arg(4 downto 2) & "0" & arg(1 downto 0) & "00";
    end function col8to12;
+
+   signal mac_data  : std_logic_vector(7 downto 0) := X"AE";
+   signal mac_sof   : std_logic := '1';
+   signal mac_eof   : std_logic := '1';
+   signal mac_empty : std_logic := '0';
+   signal mac_rden  : std_logic := '0';
 
 begin
 
@@ -77,11 +97,20 @@ begin
          clk_in1  => clk100_i,
          clk_out1 => cpu_clk
       );
+    
+      -- Generate Ethernet clock (50 MHz)
+      inst_clk_wiz_eth : entity work.clk_wiz_eth
+      port map
+      (
+         clk_in1  => clk100_i,
+         clk_out1 => eth_clk
+      );
    end generate;
 
    gen_no_vga_clock : if G_SIMULATION = true generate
       vga_clk <= clk100_i;
       cpu_clk <= clk100_i;
+      eth_clk <= clk100_i;
    end generate;
  
  
@@ -119,7 +148,29 @@ begin
       vga_vs_o   => vga_vs_o,
       vga_col_o  => vga_col
    );
- 
+
+   inst_ethernet : entity work.ethernet
+   port map (
+      clk50_i      => eth_clk,
+      --
+      data_i       => mac_data,
+      sof_i        => mac_sof,
+      eof_i        => mac_eof,
+      empty_i      => mac_empty,
+      rden_o       => mac_rden,
+      --
+      eth_txd_o    => eth_txd_o,
+      eth_txen_o   => eth_txen_o,
+      eth_rxd_i    => eth_rxd_i,
+      eth_rxerr_i  => eth_rxerr_i,
+      eth_crsdv_i  => eth_crsdv_i,
+      eth_intn_i   => eth_intn_i,
+      eth_mdio_io  => eth_mdio_io,
+      eth_mdc_o    => eth_mdc_o,
+      eth_rstn_o   => eth_rstn_o,
+      eth_refclk_o => eth_refclk_o 
+   );
+
  
    led_o(15 downto 8) <= (others => '0');
    led_o( 7 downto 0) <= led;

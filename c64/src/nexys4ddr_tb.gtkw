@@ -1,21 +1,20 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Fri Feb 16 08:56:33 2018
+[*] Sun Feb 25 09:05:38 2018
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/c64/nexys4ddr.ghw"
-[dumpfile_mtime] "Fri Feb 16 08:53:28 2018"
-[dumpfile_size] 6831719
+[dumpfile_mtime] "Sun Feb 25 09:05:05 2018"
+[dumpfile_size] 582758
 [savefile] "/home/mike/git/nexys4ddr/c64/src/nexys4ddr_tb.gtkw"
-[timestart] 31419000000
+[timestart] 176100000
 [size] 1920 1136
 [pos] -1 -1
-*-29.068661 33300000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-25.068661 25000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.nexys4ddr_tb.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.
-[treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.
-[treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_ram.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_ram.mem_a.
+[treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.
 [sst_width] 348
 [signals_width] 185
 [sst_expanded] 1
@@ -73,5 +72,27 @@ top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.wren_o
 #{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_ram.mem_a[1][7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_ram.mem_a[1][7] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_ram.mem_a[1][6] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_ram.mem_a[1][5] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_ram.mem_a[1][4] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_ram.mem_a[1][3] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_ram.mem_a[1][2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_ram.mem_a[1][1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_ram.mem_a[1][0]
 @1000200
 -Memory
+@800200
+-MAC
+@28
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.clk50_i
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.empty_i
+@22
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.data_i[7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.data_i[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.data_i[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.data_i[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.data_i[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.data_i[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.data_i[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.data_i[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.data_i[0]
+@28
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.eth_txd_o[1:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.eth_txd_o[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.eth_txd_o[0]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.eth_rstn
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.eth_txen
+@420
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.fsm_state
+@421
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.byte_cnt
+@28
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.twobit_cnt[1:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.twobit_cnt[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.twobit_cnt[0]
+@22
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.cur_byte[7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.cur_byte[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.cur_byte[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.cur_byte[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.cur_byte[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.cur_byte[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.cur_byte[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.cur_byte[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.cur_byte[0]
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.rst_cnt[20:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.rst_cnt[20] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.rst_cnt[19] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.rst_cnt[18] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.rst_cnt[17] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.rst_cnt[16] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.rst_cnt[15] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.rst_cnt[14] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.rst_cnt[13] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.rst_cnt[12] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.rst_cnt[11] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.rst_cnt[10] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.rst_cnt[9] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.rst_cnt[8] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.rst_cnt[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.rst_cnt[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.rst_cnt[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.rst_cnt[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.rst_cnt[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.rst_cnt[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.rst_cnt[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.rst_cnt[0]
+@1000200
+-MAC
 [pattern_trace] 1
 [pattern_trace] 0
