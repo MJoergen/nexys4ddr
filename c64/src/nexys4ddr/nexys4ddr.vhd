@@ -78,11 +78,11 @@ architecture Structural of nexys4ddr is
    signal mac_tx_rden  : std_logic := '0';
 
    signal mac_smi_ready    : std_logic;
-   signal mac_smi_phy      : std_logic_vector(4 downto 0);
+   signal mac_smi_phy      : std_logic_vector(4 downto 0) := "00001"; -- Constant.
    signal mac_smi_addr     : std_logic_vector(4 downto 0);
-   signal mac_smi_rden     : std_logic;
+   signal mac_smi_rden     : std_logic := '0';
    signal mac_smi_data_out : std_logic_vector(15 downto 0);
-   signal mac_smi_wren     : std_logic;
+   signal mac_smi_wren     : std_logic := '0';
    signal mac_smi_data_in  : std_logic_vector(15 downto 0);
 
 begin
