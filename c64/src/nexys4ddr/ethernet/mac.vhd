@@ -1,6 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 -- This module connects to the LAN8720A Ethernet PHY. The PHY supports the RMII specification.
 --
@@ -28,8 +29,21 @@ use ieee.std_logic_unsigned.all;
 -- in hex: 55 55 55 55 55 55 55 D5
 -- Each byte is transmitted with LSB first.
 -- Frames are appended with a 32-bit CRC, and then followed by 12 bytes of interpacket gap (idle).
+--
+-- Timing (from the data sheet):
+-- On the transmit side: The MAC controller drives the transmit data onto the
+-- TXD bus and asserts TXEN to indicate valid data.  The data is latched by the
+-- transceivers RMII block on the rising edge of REF_CLK. The data is in the
+-- form of 2-bit wide 50MHz data. 
+-- SSD (/J/K/) is "Sent for rising TXEN".
+--
+-- On the receive side: The 2-bit data nibbles are sent to the RMII block.
+-- These data nibbles are clocked to the controller at a rate of 50MHz. The
+-- controller samples the data on the rising edge of XTAL1/CLKIN (REF_CLK). To
+-- ensure that the setup and hold requirements are met, the nibbles are clocked
+-- out of the transceiver on the falling edge of XTAL1/CLKIN (REF_CLK). 
 
-entity ethernet is
+entity mac is
 
    port (
       clk50_i      : in    std_logic;        -- Must be 50 MHz
@@ -48,15 +62,13 @@ entity ethernet is
       eth_rxerr_i  : in    std_logic;
       eth_crsdv_i  : in    std_logic;
       eth_intn_i   : in    std_logic;
-      eth_mdio_io  : inout std_logic;
-      eth_mdc_o    : out   std_logic;
       eth_rstn_o   : out   std_logic;
       eth_refclk_o : out   std_logic         -- Connected to XTAL1/CLKIN. Must be driven to 50 MHz.
                                              -- All RMII signals are syunchronous to this clock.
    );
-end ethernet;
+end mac;
 
-architecture Structural of ethernet is
+architecture Structural of mac is
 
    signal eth_txen   : std_logic := '0';
    signal eth_mdc    : std_logic := '0';  -- Not used at the moment.
@@ -64,8 +76,9 @@ architecture Structural of ethernet is
 
    -- Minimum reset assert time is 25 ms. At 50 MHz (= 20 ns) this is approx 10^6 clock cycles.
    -- Here we have 21 bits, corresponding to approx 2*10^6 clock cycles, i.e. 40 ms.
-   signal rst_cnt    : std_logic_vector(20 downto 0) := (others => '1');   -- Set to all-ones, to start the count down.
+--   signal rst_cnt    : std_logic_vector(20 downto 0) := (others => '1');   -- Set to all-ones, to start the count down.
 --   signal rst_cnt    : std_logic_vector(20 downto 0) := (others => '0');   -- Set to all-ones, to start the count down.
+   signal rst_cnt    : std_logic_vector(20 downto 0) := std_logic_vector(to_unsigned(50, 21));   -- 1 us.
 
    -- State machine to control the MAC framing
    type t_fsm_state is (IDLE_ST, PRE1_ST, PRE2_ST, PAYLOAD_ST, LAST_ST, CRC_ST, IFG_ST);
@@ -106,7 +119,7 @@ begin
    proc_eth_rstn : process (clk50_i)
    begin
       if rising_edge(clk50_i) then
-         if rst_cnt /= 0 then
+         if rst_cnt /= 0 or eth_rstn = '0' then
             rst_cnt <= rst_cnt - 1;
          else
             eth_rstn <= '1';              -- Clear reset
@@ -127,7 +140,7 @@ begin
             case fsm_state is
                when IDLE_ST    =>
                   eth_txen <= '0';
-                  if empty_i = '0' then
+                  if empty_i = '0' and eth_rstn = '1' and rst_cnt = 0 then
                      assert sof_i = '1' report "Missing SOF" severity failure;
                      byte_cnt  <= 7;
                      cur_byte  <= X"55";
@@ -207,7 +220,6 @@ begin
    eth_refclk_o <= clk50_i;
    eth_txd_o    <= cur_byte(1 downto 0);
    eth_txen_o   <= eth_txen;
-   eth_mdc_o    <= eth_mdc;
    eth_rstn_o   <= eth_rstn;
 
 end Structural;

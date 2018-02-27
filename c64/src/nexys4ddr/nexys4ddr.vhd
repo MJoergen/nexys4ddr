@@ -71,11 +71,19 @@ architecture Structural of nexys4ddr is
       return arg(7 downto 5) & "0" & arg(4 downto 2) & "0" & arg(1 downto 0) & "00";
    end function col8to12;
 
-   signal mac_data  : std_logic_vector(7 downto 0) := X"AE";
-   signal mac_sof   : std_logic := '1';
-   signal mac_eof   : std_logic := '1';
-   signal mac_empty : std_logic := '0';
-   signal mac_rden  : std_logic := '0';
+   signal mac_tx_data  : std_logic_vector(7 downto 0) := X"AE";
+   signal mac_tx_sof   : std_logic := '1';
+   signal mac_tx_eof   : std_logic := '1';
+   signal mac_tx_empty : std_logic := '0';
+   signal mac_tx_rden  : std_logic := '0';
+
+   signal mac_smi_ready    : std_logic;
+   signal mac_smi_phy      : std_logic_vector(4 downto 0);
+   signal mac_smi_addr     : std_logic_vector(4 downto 0);
+   signal mac_smi_rden     : std_logic;
+   signal mac_smi_data_out : std_logic_vector(15 downto 0);
+   signal mac_smi_wren     : std_logic;
+   signal mac_smi_data_in  : std_logic_vector(15 downto 0);
 
 begin
 
@@ -134,6 +142,7 @@ begin
       vga_col_o  => vga_col
    );
 
+
    proc_gen_data : process (eth_clk)
       type t_mem is array (0 to 59) of std_logic_vector(7 downto 0);
       variable mem_v : t_mem := 
@@ -155,25 +164,25 @@ begin
       variable cnt_v : integer range 0 to 59 := 0;
    begin
       if rising_edge(eth_clk) then
-         mac_data  <= mem_v(cnt_v);
-         mac_empty <= '0';
-         mac_sof   <= '0';
-         mac_eof   <= '0';
+         mac_tx_data  <= mem_v(cnt_v);
+         mac_tx_empty <= '0';
+         mac_tx_sof   <= '0';
+         mac_tx_eof   <= '0';
 
          if cnt_v = 0 then
-            mac_sof <= '1';
+            mac_tx_sof <= '1';
          end if;
          if cnt_v = 59 then
-            mac_eof <= '1';
+            mac_tx_eof <= '1';
          end if;
 
-         if mac_rden = '1' then
+         if mac_tx_rden = '1' then
             if cnt_v = 59 then
                cnt_v := 0;
             else
                cnt_v := cnt_v + 1;
             end if;
-            mac_data <= mem_v(cnt_v);
+            mac_tx_data <= mem_v(cnt_v);
          end if;
       end if;
    end process proc_gen_data;
@@ -182,12 +191,20 @@ begin
    inst_ethernet : entity work.ethernet
    port map (
       clk50_i      => eth_clk,
+      -- SMI interface
+      smi_ready_o  => mac_smi_ready,
+      smi_phy_i    => mac_smi_phy,
+      smi_addr_i   => mac_smi_addr,
+      smi_rden_i   => mac_smi_rden,
+      smi_data_o   => mac_smi_data_out,
+      smi_wren_i   => mac_smi_wren,
+      smi_data_i   => mac_smi_data_in,
       --
-      data_i       => mac_data,
-      sof_i        => mac_sof,
-      eof_i        => mac_eof,
-      empty_i      => mac_empty,
-      rden_o       => mac_rden,
+      tx_data_i    => mac_tx_data,
+      tx_sof_i     => mac_tx_sof,
+      tx_eof_i     => mac_tx_eof,
+      tx_empty_i   => mac_tx_empty,
+      tx_rden_o    => mac_tx_rden,
       --
       eth_txd_o    => eth_txd_o,
       eth_txen_o   => eth_txen_o,
