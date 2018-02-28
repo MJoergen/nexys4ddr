@@ -94,7 +94,7 @@ begin
    proc_crc : process (clk50_i)
       variable crc_v : std_logic_vector(31 downto 0);
    begin
-      if rising_edge(clk50_i) then
+      if falling_edge(clk50_i) then
          if crc_enable = '1' then   -- Consume two bits of data
             crc_v := crc;
             for i in 0 to 1 loop
@@ -114,7 +114,7 @@ begin
    -- Generate MAC framing
    proc_mac : process (clk50_i)
    begin
-      if rising_edge(clk50_i) then
+      if falling_edge(clk50_i) then
          rden_o     <= '0';
 
          twobit_cnt <= twobit_cnt + 1;
