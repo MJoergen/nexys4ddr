@@ -66,7 +66,6 @@ entity mac is
       eth_rxerr_i  : in    std_logic;
       eth_crsdv_i  : in    std_logic;
       eth_intn_i   : in    std_logic;
-      eth_rstn_o   : out   std_logic;
       eth_refclk_o : out   std_logic         -- Connected to XTAL1/CLKIN. Must be driven to 50 MHz.
                                              -- All RMII signals are syunchronous to this clock.
    );
@@ -76,12 +75,6 @@ architecture Structural of mac is
 
    signal eth_txen   : std_logic := '0';
    signal eth_mdc    : std_logic := '0';  -- Not used at the moment.
-   signal eth_rstn   : std_logic := '0';  -- Assert reset by default.
-
-   -- Minimum reset assert time is 25 ms. At 50 MHz (= 20 ns) this is approx 10^6 clock cycles.
-   -- Here we have 21 bits, corresponding to approx 2*10^6 clock cycles, i.e. 40 ms.
-   -- Set initially to all-ones, to start the count down.
-   signal rst_cnt    : std_logic_vector(G_RESET_SIZE-1 downto 0) := (others => '1');
 
    -- State machine to control the MAC framing
    type t_fsm_state is (IDLE_ST, PRE1_ST, PRE2_ST, PAYLOAD_ST, LAST_ST, CRC_ST, IFG_ST);
@@ -118,18 +111,6 @@ begin
       end if;
    end process proc_crc;
 
-   -- Generate PHY reset
-   proc_eth_rstn : process (clk50_i)
-   begin
-      if rising_edge(clk50_i) then
-         if rst_cnt /= 0 then
-            rst_cnt <= rst_cnt - 1;
-         end if;
-
-         eth_rstn <= not rst_cnt(rst_cnt'left);
-      end if;
-   end process proc_eth_rstn;
-
    -- Generate MAC framing
    proc_mac : process (clk50_i)
    begin
@@ -143,7 +124,7 @@ begin
             case fsm_state is
                when IDLE_ST    =>
                   eth_txen <= '0';
-                  if empty_i = '0' and rst_cnt = 0 then
+                  if empty_i = '0' then
                      assert sof_i = '1' report "Missing SOF" severity failure;
                      byte_cnt  <= 7;
                      cur_byte  <= X"55";
@@ -223,7 +204,6 @@ begin
    eth_refclk_o <= clk50_i;
    eth_txd_o    <= cur_byte(1 downto 0);
    eth_txen_o   <= eth_txen;
-   eth_rstn_o   <= eth_rstn;
 
 end Structural;
 

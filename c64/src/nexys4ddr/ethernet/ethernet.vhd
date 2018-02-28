@@ -39,7 +39,21 @@ end ethernet;
 
 architecture Structural of ethernet is
 
+   signal ready          : std_logic;
+   signal tx_empty_ready : std_logic;
+   signal smi_ready      : std_logic;
+
 begin
+
+   tx_empty_ready <= tx_empty_i or not ready;
+   smi_ready_o <= smi_ready and ready;
+
+   inst_reset : entity work.reset
+      port map (
+         clk50_i    => clk50_i,
+         ready_o    => ready,
+         eth_rstn_o => eth_rstn_o 
+      );
 
    inst_mac : entity work.mac
       port map (
@@ -47,7 +61,7 @@ begin
          data_i       => tx_data_i,
          sof_i        => tx_sof_i,
          eof_i        => tx_eof_i,
-         empty_i      => tx_empty_i,
+         empty_i      => tx_empty_ready,
          rden_o       => tx_rden_o,
          eth_txd_o    => eth_txd_o,
          eth_txen_o   => eth_txen_o,
@@ -55,14 +69,13 @@ begin
          eth_rxerr_i  => eth_rxerr_i,
          eth_crsdv_i  => eth_crsdv_i,
          eth_intn_i   => eth_intn_i,
-         eth_rstn_o   => eth_rstn_o,
          eth_refclk_o => eth_refclk_o 
       );
 
    inst_smi : entity work.smi
       port map (
          clk50_i      => clk50_i,
-         ready_o      => smi_ready_o, 
+         ready_o      => smi_ready, 
          phy_i        => smi_phy_i,
          addr_i       => smi_addr_i,
          rden_i       => smi_rden_i,
