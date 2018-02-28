@@ -87,6 +87,17 @@ architecture Structural of nexys4ddr is
 
 begin
 
+   proc_smi : process (eth_clk)
+   begin
+      if rising_edge(eth_clk) then
+         if mac_smi_ready = '1' then
+            mac_smi_wren     <= '1';
+            mac_smi_data_in  <= X"ABCD";
+            mac_smi_addr     <= "01010";
+         end if;
+      end if;
+   end process proc_smi;
+
 
    gen_clocks : if G_SIMULATION = false generate
       -- Generate clocks
