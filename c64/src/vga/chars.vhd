@@ -29,6 +29,7 @@ entity chars is
       config_i    : in  std_logic_vector(128*8-1 downto 0);
       status_i    : in  std_logic_vector(127 downto 0);
       keyboard_i  : in  std_logic_vector(69 downto 0);
+      eth_debug_i : in  std_logic_vector(511 downto 0);
 
       disp_addr_o : out std_logic_vector( 9 downto 0);
       disp_data_i : in  std_logic_vector( 7 downto 0);
@@ -73,6 +74,7 @@ architecture Behavioral of chars is
       blank     : std_logic;                       -- valid in all stages
       status    : std_logic_vector(127 downto 0);  -- Valid in stage 1
       keyboard  : std_logic_vector( 69 downto 0);
+      eth_debug : std_logic_vector(511 downto 0);
       char_x    : std_logic_vector(  5 downto 0);  -- valid in stage 2 (0 - 39)
       char_y    : std_logic_vector(  4 downto 0);  -- valid in stage 2 (0 - 17)
       pix_x     : std_logic_vector(  2 downto 0);  -- valid in stage 2 (0 - 7)
@@ -93,6 +95,7 @@ architecture Behavioral of chars is
       blank     => '1',
       status    => (others => '0'),
       keyboard  => (others => '0'),
+      eth_debug => (others => '0'),
       char_x    => (others => '0'),
       char_y    => (others => '0'),
       pix_x     => (others => '0'),
@@ -146,9 +149,10 @@ begin
          stage1.vcount <= stage0.vcount - 6;
          stage1.blank  <= stage0.blank;
          if stage0.vcount < 6 or stage0.vcount >= 13*18*2 + 6 then
-            stage1.blank    <= '1';
-            stage1.status   <= status_i;
-            stage1.keyboard <= keyboard_i;
+            stage1.blank     <= '1';
+            stage1.status    <= status_i;
+            stage1.keyboard  <= keyboard_i;
+            stage1.eth_debug <= eth_debug_i;
          end if;
       end if;
    end process p_stage1;
@@ -257,11 +261,11 @@ begin
          end if;
 
          if stage3.char_y >= C_DEBUG_POSY    and stage3.char_y < C_DEBUG_POSY+8 and
-            stage3.char_x >= C_DEBUG_POSX+16 and stage3.char_x < C_DEBUG_POSX+18 then
+            stage3.char_x >= C_DEBUG_POSX+16 and stage3.char_x < C_DEBUG_POSX+20 then
             char_x_v     := conv_integer(stage3.char_x - (C_DEBUG_POSX + 16));
             char_y_v     := conv_integer(stage3.char_y - C_DEBUG_POSY);
-            nibble_idx_v := char_y_v*2 + 1-char_x_v;
-            stage4.nibble <= stage3.keyboard(nibble_idx_v*4 + 3 downto nibble_idx_v*4);
+            nibble_idx_v := char_y_v*4 + 3-char_x_v;
+            stage4.nibble <= stage3.eth_debug(nibble_idx_v*4 + 3 downto nibble_idx_v*4);
          end if;
       end if;
    end process p_stage4;
@@ -290,7 +294,7 @@ begin
          end if;
 
          if stage4.char_y >= C_DEBUG_POSY   and stage4.char_y < C_DEBUG_POSY+8 and
-            stage4.char_x >= C_DEBUG_POSX+16 and stage4.char_x < C_DEBUG_POSX+18 then
+            stage4.char_x >= C_DEBUG_POSX+16 and stage4.char_x < C_DEBUG_POSX+20 then
             char_val_v := stage4.nibble + X"30";
             if stage4.nibble > 9 then
                char_val_v := stage4.nibble + X"41" - X"0A";
@@ -365,14 +369,14 @@ begin
             if stage7.char_y >= C_DEBUG_POSY and stage7.char_y < C_DEBUG_POSY+8 then
                row_v := conv_integer(stage7.char_y - C_DEBUG_POSY);
 
-               if stage7.char_x = C_DEBUG_POSX+16 and 
-                  conv_integer(stage7.keyboard(66 downto 64)) = row_v then
-                  stage8.col <= (others => '0');
-               end if;
-               if stage7.char_x = C_DEBUG_POSX+17 and 
-                  conv_integer(stage7.keyboard(69 downto 67)) = row_v then
-                  stage8.col <= (others => '1');
-               end if;
+--               if stage7.char_x = C_DEBUG_POSX+16 and 
+--                  conv_integer(stage7.keyboard(66 downto 64)) = row_v then
+--                  stage8.col <= (others => '0');
+--               end if;
+--               if stage7.char_x = C_DEBUG_POSX+17 and 
+--                  conv_integer(stage7.keyboard(69 downto 67)) = row_v then
+--                  stage8.col <= (others => '1');
+--               end if;
             end if;
          else
             stage8.col <= config_i(81*8 + 7 downto 81*8);

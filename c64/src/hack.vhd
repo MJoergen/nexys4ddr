@@ -43,7 +43,10 @@ entity hack is
       -- Output LEDs
       led_o      : out std_logic_vector( 7 downto 0);
 
-     -- Output to VGA monitor
+      -- Debug info from Ethernet PHY
+      eth_debug_i : in std_logic_vector(511 downto 0);
+
+      -- Output to VGA monitor
       vga_hs_o   : out std_logic;
       vga_vs_o   : out std_logic;
       vga_col_o  : out std_logic_vector( 7 downto 0)
@@ -166,7 +169,8 @@ begin
       cpu_key_val_i  => cpu_key_val,
       cpu_keyboard_debug_i => cpu_keyboard_debug,
 
-      debug_o      => open
+      eth_debug_i    => eth_debug_i,
+      debug_o        => open
    );
 
 

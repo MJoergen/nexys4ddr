@@ -50,6 +50,7 @@ entity vga_module is
       cpu_key_rden_o : out std_logic;
       cpu_key_val_i  : in  std_logic_vector(7 downto 0);
       cpu_keyboard_debug_i : in  std_logic_vector(69 downto 0);
+      eth_debug_i  : in std_logic_vector(511 downto 0);
 
       debug_o      : out std_logic_vector(7 downto 0)
    );
@@ -228,6 +229,7 @@ begin
       config_i    => vga_config,
       status_i    => vga_status,
       keyboard_i  => vga_keyboard_debug,
+      eth_debug_i => eth_debug_i,
 
       disp_addr_o => vga_char_disp_addr,
       disp_data_i => vga_char_disp_data,

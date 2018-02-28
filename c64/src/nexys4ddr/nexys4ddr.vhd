@@ -152,21 +152,22 @@ begin
       G_FONT_FILE  => "ProggyClean.txt"  -- Contains the character font
    )
    port map (
-      vga_clk_i  => vga_clk,
-      cpu_clk_i  => cpu_clk,
-      cpu_rst_i  => cpu_rst,
+      vga_clk_i   => vga_clk,
+      cpu_clk_i   => cpu_clk,
+      cpu_rst_i   => cpu_rst,
       --
-      mode_i     => sw_i(0),
-      step_i     => btn_i(0),
+      mode_i      => sw_i(0),
+      step_i      => btn_i(0),
       --
-      ps2_clk_i  => ps2_clk_i,
-      ps2_data_i => ps2_data_i,
+      ps2_clk_i   => ps2_clk_i,
+      ps2_data_i  => ps2_data_i,
       --
-      led_o      => led,
+      eth_debug_i => mac_smi_registers,
+      led_o       => led,
       --
-      vga_hs_o   => vga_hs_o,
-      vga_vs_o   => vga_vs_o,
-      vga_col_o  => vga_col
+      vga_hs_o    => vga_hs_o,
+      vga_vs_o    => vga_vs_o,
+      vga_col_o   => vga_col
    );
 
 
