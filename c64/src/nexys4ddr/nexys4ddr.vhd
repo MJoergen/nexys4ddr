@@ -79,22 +79,38 @@ architecture Structural of nexys4ddr is
 
    signal mac_smi_ready    : std_logic;
    signal mac_smi_phy      : std_logic_vector(4 downto 0) := "00001"; -- Constant.
-   signal mac_smi_addr     : std_logic_vector(4 downto 0);
+   signal mac_smi_addr     : std_logic_vector(4 downto 0) := "00000";
    signal mac_smi_rden     : std_logic := '0';
    signal mac_smi_data_out : std_logic_vector(15 downto 0);
    signal mac_smi_wren     : std_logic := '0';
    signal mac_smi_data_in  : std_logic_vector(15 downto 0);
 
+   signal mac_smi_registers : std_logic_vector(32*16-1 downto 0) := (others => '0');
+
 begin
 
    proc_smi : process (eth_clk)
+      variable state_v : std_logic_vector(1 downto 0);
    begin
       if rising_edge(eth_clk) then
-         if mac_smi_ready = '1' then
-            mac_smi_wren     <= '1';
-            mac_smi_data_in  <= X"ABCD";
-            mac_smi_addr     <= "01010";
-         end if;
+         state_v := mac_smi_ready & mac_smi_rden;
+         case state_v is
+            when "10" => -- Start new read
+               -- Store result.
+               mac_smi_registers(conv_integer(mac_smi_addr)*16 + 15 downto conv_integer(mac_smi_addr)*16) <= mac_smi_data_in;
+               -- Start next read.
+               mac_smi_addr <= mac_smi_addr + 1;
+               mac_smi_rden <= '1';
+
+            when "11" => -- Wait for acknowledge
+               null;
+            when "01" => -- Read acknowledged
+               mac_smi_rden <= '0';
+            when "00" => -- Wait for result
+               null;
+            when others =>
+               null;
+         end case;
       end if;
    end process proc_smi;
 
