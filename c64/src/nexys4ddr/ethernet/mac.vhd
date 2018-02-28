@@ -45,6 +45,10 @@ use ieee.numeric_std.all;
 
 entity mac is
 
+   generic (
+--      G_RESET_SIZE : integer := 22           -- Number of bits in reset counter.
+      G_RESET_SIZE : integer := 10           -- Number of bits in reset counter.
+   );
    port (
       clk50_i      : in    std_logic;        -- Must be 50 MHz
 
@@ -76,9 +80,8 @@ architecture Structural of mac is
 
    -- Minimum reset assert time is 25 ms. At 50 MHz (= 20 ns) this is approx 10^6 clock cycles.
    -- Here we have 21 bits, corresponding to approx 2*10^6 clock cycles, i.e. 40 ms.
---   signal rst_cnt    : std_logic_vector(20 downto 0) := (others => '1');   -- Set to all-ones, to start the count down.
---   signal rst_cnt    : std_logic_vector(20 downto 0) := (others => '0');   -- Set to all-ones, to start the count down.
-   signal rst_cnt    : std_logic_vector(20 downto 0) := std_logic_vector(to_unsigned(50, 21));   -- 1 us.
+   -- Set initially to all-ones, to start the count down.
+   signal rst_cnt    : std_logic_vector(G_RESET_SIZE-1 downto 0) := (others => '1');
 
    -- State machine to control the MAC framing
    type t_fsm_state is (IDLE_ST, PRE1_ST, PRE2_ST, PAYLOAD_ST, LAST_ST, CRC_ST, IFG_ST);
@@ -119,11 +122,11 @@ begin
    proc_eth_rstn : process (clk50_i)
    begin
       if rising_edge(clk50_i) then
-         if rst_cnt /= 0 or eth_rstn = '0' then
+         if rst_cnt /= 0 then
             rst_cnt <= rst_cnt - 1;
-         else
-            eth_rstn <= '1';              -- Clear reset
          end if;
+
+         eth_rstn <= not rst_cnt(rst_cnt'left);
       end if;
    end process proc_eth_rstn;
 
@@ -140,7 +143,7 @@ begin
             case fsm_state is
                when IDLE_ST    =>
                   eth_txen <= '0';
-                  if empty_i = '0' and eth_rstn = '1' and rst_cnt = 0 then
+                  if empty_i = '0' and rst_cnt = 0 then
                      assert sof_i = '1' report "Missing SOF" severity failure;
                      byte_cnt  <= 7;
                      cur_byte  <= X"55";
