@@ -20,8 +20,9 @@ end entity clk_rst;
 
 architecture Structural of clk_rst is
 
-   signal clk_step : std_logic;
-   signal clk_mode : std_logic;
+   signal clk_step     : std_logic;
+   signal clk_mode     : std_logic;
+   signal clk_mode_inv : std_logic;
 
 begin
 
@@ -46,17 +47,26 @@ begin
    );
 
 
+   clk_mode_inv <= not clk_mode;
+
    -----------------------
    -- Drive output signals
    -----------------------
 
+--   clk_o <= clk_i when clk_mode = '0' else clk_step;
+
    -- Note: For some reason, synthesis fails if I0 and I1 are swapped.
-   inst_bufgmux : BUFGMUX
+   inst_bufgmux : BUFGCTRL
    port map (
-      I1 => clk_i,
-      I0 => clk_step,
-      S  => clk_mode,
-      O  => clk_o
+      IGNORE0 => '0',
+      IGNORE1 => '0',
+      S0      => '1',
+      S1      => '1',
+      I1      => clk_i,
+      I0      => clk_step,
+      CE0     => clk_mode,
+      CE1     => clk_mode_inv,
+      O       => clk_o
    );
 
 end architecture Structural;

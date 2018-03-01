@@ -9,15 +9,13 @@ SRC   += src/nexys4ddr/ethernet/reset.vhd
 SRC   += src/nexys4ddr/ethernet/ethernet.vhd
 SRC   += src/nexys4ddr/clk_wiz_0.vhd
 SRC   += src/nexys4ddr/clk_wiz_0_clk_wiz.vhd
+SRC   += src/nexys4ddr/debounce.vhd
+SRC   += src/nexys4ddr/clk_rst.vhd
 TB_SRC = src/nexys4ddr/$(testbench).vhd
 XDC    = src/nexys4ddr/$(TOP).xdc
 
 # Top level module
 SRC += src/hack.vhd
-
-# Clocks
-SRC += src/clock/debounce.vhd
-SRC += src/clock/clk_rst.vhd
 
 # VGA driver
 SRC += src/vga/bitmaps_mem.vhd
