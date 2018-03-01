@@ -97,7 +97,7 @@ begin
          case state_v is
             when "10" => -- Start new read
                -- Store result.
-               mac_smi_registers(conv_integer(mac_smi_addr)*16 + 15 downto conv_integer(mac_smi_addr)*16) <= mac_smi_data_in;
+               mac_smi_registers(conv_integer(mac_smi_addr)*16 + 15 downto conv_integer(mac_smi_addr)*16) <= mac_smi_data_out;
                -- Start next read.
                mac_smi_addr <= mac_smi_addr + 1;
                mac_smi_rden <= '1';
