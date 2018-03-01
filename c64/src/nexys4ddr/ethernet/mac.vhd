@@ -124,6 +124,7 @@ begin
             case fsm_state is
                when IDLE_ST    =>
                   eth_txen <= '0';
+                  cur_byte <= X"00";
                   if empty_i = '0' then
                      assert sof_i = '1' report "Missing SOF" severity failure;
                      byte_cnt  <= 7;
