@@ -233,6 +233,9 @@ begin
        X"00", X"01", X"02", X"03", X"04", X"05", X"06", X"07",
        X"08", X"09", X"0A", X"0B", X"0C", X"0D", X"0E", X"0F",
        X"10", X"11"
+
+       -- The CRC for the above packet shall be
+       -- X"3F", X"45", X"2B", X"4F"
     );
 
       variable cnt_v : integer range 0 to 59 := 0;
