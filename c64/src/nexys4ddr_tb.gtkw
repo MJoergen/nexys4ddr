@@ -1,20 +1,20 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Sat Mar  3 11:10:54 2018
+[*] Sat Mar  3 15:20:40 2018
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/c64/nexys4ddr.ghw"
-[dumpfile_mtime] "Sat Mar  3 11:10:24 2018"
-[dumpfile_size] 831526
+[dumpfile_mtime] "Sat Mar  3 15:19:16 2018"
+[dumpfile_size] 1683597
 [savefile] "/home/mike/git/nexys4ddr/c64/src/nexys4ddr_tb.gtkw"
-[timestart] 0
+[timestart] 13122600000
 [size] 1920 1103
 [pos] -1 -1
-*-32.068481 670000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-26.068481 13357700000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.nexys4ddr_tb.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.
-[treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_ram.mem_a.
+[treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.
 [sst_width] 348
 [signals_width] 185
@@ -46,9 +46,7 @@ top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_vga_module.vga_clk_i
 -CPU
 @28
 top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.clk_i
-@29
 top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.rst_i
-@28
 top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.irq_i
 @22
 #{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.addr_o[15:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.addr_o[15] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.addr_o[14] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.addr_o[13] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.addr_o[12] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.addr_o[11] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.addr_o[10] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.addr_o[9] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.addr_o[8] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.addr_o[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.addr_o[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.addr_o[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.addr_o[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.addr_o[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.addr_o[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.addr_o[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.addr_o[0]
@@ -83,6 +81,13 @@ top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.wren_o
 top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.clk50_i
 #{top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.eth_txd_o[1:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.eth_txd_o[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.eth_txd_o[0]
 top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.eth_txen_o
+@22
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.cur_byte[7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.cur_byte[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.cur_byte[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.cur_byte[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.cur_byte[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.cur_byte[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.cur_byte[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.cur_byte[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.cur_byte[0]
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[31:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[31] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[30] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[29] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[28] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[27] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[26] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[25] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[24] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[23] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[22] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[21] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[20] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[19] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[18] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[17] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[16] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[15] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[14] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[13] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[12] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[11] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[10] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[9] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[8] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.crc[0]
+@420
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.byte_cnt
+@421
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.fsm_state
 @1000200
 -MAC
 @800200
