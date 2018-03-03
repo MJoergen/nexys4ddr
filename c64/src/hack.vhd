@@ -33,9 +33,6 @@ entity hack is
       cpu_rst_i  : in  std_logic;
       -- The VGA port does not need a reset.
 
-      mode_i     : in  std_logic;   -- Enable single-step mode.
-      step_i     : in  std_logic;   -- Single step one CPU clock cycle.
-
       -- Keyboard / mouse
       ps2_clk_i  : in  std_logic;
       ps2_data_i : in  std_logic;
@@ -60,9 +57,6 @@ architecture Structural of hack is
    -- CPU clock domain
    -------------------
 
-   -- Clocks and Reset
-   signal cpu_clk   : std_logic;
-   
    -- Address Decoding
    signal cpu_cs_rom   : std_logic;
    signal cpu_cs_vga   : std_logic;
@@ -94,19 +88,6 @@ architecture Structural of hack is
    signal cpu_keyboard_debug : std_logic_vector(69 downto 0);
 
 begin
-
-   ------------------------------
-   -- Instantiate Debounce
-   ------------------------------
-
-   inst_clk_rst : entity work.clk_rst
-   port map (
-      clk_i  => cpu_clk_i,
-      step_i => step_i,
-      mode_i => mode_i,
-      clk_o  => cpu_clk
-   );
- 
 
    -------------------------------
    -- Instantiate Address Decoding
@@ -156,7 +137,7 @@ begin
       vga_col_o => vga_col_o,
 
       -- CPU Port
-      cpu_clk_i      => cpu_clk,
+      cpu_clk_i      => cpu_clk_i,
       cpu_rst_i      => cpu_rst_i,
       cpu_addr_i     => cpu_addr(10 downto 0),   -- 11 bit = 0x0800 size.
       cpu_rden_i     => cpu_rden_vga,
@@ -186,7 +167,7 @@ begin
                   G_ROM_FILE   => G_ROM_FILE
    )
    port map (
-      clk_i  => cpu_clk,
+      clk_i  => cpu_clk_i,
       addr_i => cpu_addr(G_ROM_SIZE-1 downto 0),
       --
       rden_i => cpu_rden_rom,
@@ -204,7 +185,7 @@ begin
       G_DATA_SIZE  => 8
    )
    port map (
-      a_clk_i    => cpu_clk,
+      a_clk_i    => cpu_clk_i,
       a_addr_i   => cpu_addr(G_RAM_SIZE-1 downto 0),
       --
       a_wren_i   => cpu_wren_ram,
@@ -223,7 +204,7 @@ begin
 
    inst_cpu : entity work.cpu_module
    port map (
-      clk_i   => cpu_clk,
+      clk_i   => cpu_clk_i,
       rst_i   => cpu_rst_i,
 
       addr_o  => cpu_addr,
@@ -245,7 +226,7 @@ begin
    ---------------------------
    inst_keyboard : entity work.keyboard
    port map (
-      clk_i      => cpu_clk,
+      clk_i      => cpu_clk_i,
       rst_i      => cpu_rst_i,
 
       ps2_clk_i  => ps2_clk_i,

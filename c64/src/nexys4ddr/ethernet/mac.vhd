@@ -45,10 +45,6 @@ use ieee.numeric_std.all;
 
 entity mac is
 
-   generic (
---      G_RESET_SIZE : integer := 22           -- Number of bits in reset counter.
-      G_RESET_SIZE : integer := 10           -- Number of bits in reset counter.
-   );
    port (
       clk50_i      : in    std_logic;        -- Must be 50 MHz
 

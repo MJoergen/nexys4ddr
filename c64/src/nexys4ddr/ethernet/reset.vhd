@@ -6,11 +6,12 @@ use ieee.numeric_std.all;
 entity reset is
 
    generic (
---      G_RESET_SIZE : integer := 22           -- Number of bits in reset counter.
-      G_RESET_SIZE : integer := 10           -- Number of bits in reset counter.
+      G_RESET_SIZE : integer := 22           -- Number of bits in reset counter.
+--      G_RESET_SIZE : integer := 10           -- Number of bits in reset counter.
    );
    port (
       clk50_i      : in    std_logic;        -- Must be 50 MHz
+      rst_i        : in    std_logic;
 
       ready_o       : out   std_logic;
 
@@ -43,6 +44,12 @@ begin
          end if;
 
          eth_rstn <= not rst_cnt(rst_cnt'left);
+
+         if rst_i = '1' then
+            rst_cnt  <= (others => '1');
+            ready    <= '0';
+            eth_rstn <= '0';
+         end if;
       end if;
    end process proc_eth_rstn;
 

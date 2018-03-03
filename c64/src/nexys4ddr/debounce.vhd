@@ -7,7 +7,7 @@ use ieee.std_logic_unsigned.all;
 entity debounce is
 
    generic (
-              G_COUNT_MAX : integer := 25000 -- @ 25 MHz this is 1 millisecond.
+              G_COUNT_MAX : integer := 25 -- 000 -- @ 25 MHz this is 1 millisecond.
            );
    port (
            clk_i : in  std_logic;

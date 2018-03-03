@@ -247,7 +247,7 @@ set_property -dict { PACKAGE_PIN C10   IOSTANDARD LVCMOS33 } [get_ports { eth_rx
 set_property -dict { PACKAGE_PIN A10   IOSTANDARD LVCMOS33 } [get_ports { eth_txd_o[0]  }]; #IO_L14P_T2_SRCC_16 Sch=eth_txd[0]
 set_property -dict { PACKAGE_PIN A8    IOSTANDARD LVCMOS33 } [get_ports { eth_txd_o[1]  }]; #IO_L12N_T1_MRCC_16 Sch=eth_txd[1]
 set_property -dict { PACKAGE_PIN B9    IOSTANDARD LVCMOS33 } [get_ports { eth_txen_o    }]; #IO_L11N_T1_SRCC_16 Sch=eth_txen
-set_property -dict { PACKAGE_PIN D9    IOSTANDARD LVCMOS33 } [get_ports { eth_crsdv_io  }]; #IO_L6N_T0_VREF_16 Sch=eth_crsdv
+set_property -dict { PACKAGE_PIN D9    IOSTANDARD LVCMOS33 } [get_ports { eth_crsdv_i   }]; #IO_L6N_T0_VREF_16 Sch=eth_crsdv
 set_property -dict { PACKAGE_PIN B8    IOSTANDARD LVCMOS33 } [get_ports { eth_intn_i    }]; #IO_L12P_T1_MRCC_16 Sch=eth_intn
 set_property -dict { PACKAGE_PIN D5    IOSTANDARD LVCMOS33 } [get_ports { eth_refclk_o  }]; #IO_L11P_T1_SRCC_35 Sch=eth_refclk
 

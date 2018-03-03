@@ -2,6 +2,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
+library UNISIM;
+use UNISIM.Vcomponents.all;
+
 -- This is the top level wrapper for the NEXYS4DDR board.
 -- This is needed, because this design is meant to
 -- work on both the BASYS2 and the NEXYS4DDR boards.
@@ -58,12 +61,15 @@ architecture Structural of nexys4ddr is
    signal cpu_clk   : std_logic;
    signal eth_clk   : std_logic;
    signal cpu_rst   : std_logic := '1';
+   signal sys_rstn_debounce : std_logic := '0';
+   signal cpu_clk_stepped : std_logic;
+   signal eth_rst   : std_logic := '1';
  
    -- VGA color output
    signal vga_col   : std_logic_vector(7 downto 0);
  
    -- LED output
-   signal led : std_logic_vector(7 downto 0);
+   signal led : std_logic;
 
    -- Convert colour from 8-bit format to 12-bit format
    function col8to12(arg : std_logic_vector(7 downto 0)) return std_logic_vector is
@@ -87,7 +93,103 @@ architecture Structural of nexys4ddr is
 
    signal mac_smi_registers : std_logic_vector(32*16-1 downto 0) := (others => '0');
 
+   signal clk_step     : std_logic;
+   signal clk_mode     : std_logic;
+   signal clk_mode_inv : std_logic;
+
+   signal eth_rstn   : std_logic;
+   signal eth_refclk : std_logic;
+
 begin
+
+   ------------------------------
+   -- Instantiate Debounce
+   ------------------------------
+
+   inst_reset_debounce : entity work.debounce
+   port map (
+      clk_i => clk100_i,
+      in_i  => sys_rstn_i,
+      out_o => sys_rstn_debounce
+   );
+
+   inst_step_debounce : entity work.debounce
+   port map (
+      clk_i => clk100_i,
+      in_i  => btn_i(0),
+      out_o => clk_step
+   );
+
+   inst_mode_debounce : entity work.debounce
+   port map (
+      clk_i => clk100_i,
+      in_i  => sw_i(0),
+      out_o => clk_mode
+   );
+
+
+   ------------------------------
+   -- Generate clocks
+   ------------------------------
+
+   gen_clocks : if G_SIMULATION = false generate
+      -- Generate clocks
+      inst_clk_wiz_0 : entity work.clk_wiz_0
+      port map
+      (
+         clk_in1 => clk100_i,
+         eth_clk => eth_clk,
+         vga_clk => vga_clk,
+         cpu_clk => cpu_clk
+      );
+
+      clk_mode_inv <= not clk_mode;
+
+      -- Note: For some reason, synthesis fails if I0 and I1 are swapped.
+      inst_bufgmux : BUFGCTRL
+      port map (
+         IGNORE0 => '0',
+         IGNORE1 => '0',
+         S0      => '1',
+         S1      => '1',
+         I1      => cpu_clk,
+         I0      => clk_step,
+         CE0     => clk_mode,
+         CE1     => clk_mode_inv,
+         O       => cpu_clk_stepped
+      );
+   end generate gen_clocks;
+
+   gen_no_clocks : if G_SIMULATION = true generate
+      vga_clk <= clk100_i;
+      cpu_clk <= clk100_i;
+      eth_clk <= clk100_i;
+      cpu_clk_stepped <= cpu_clk when clk_mode = '0' else clk_step;
+   end generate gen_no_clocks;
+ 
+ 
+   ------------------------------
+   -- Generate reset
+   ------------------------------
+
+   p_cpu_rst : process (cpu_clk)
+   begin
+      if rising_edge(cpu_clk) then
+         cpu_rst <= not sys_rstn_debounce;     -- Synchronize and invert polarity.
+      end if;
+   end process p_cpu_rst;
+ 
+   p_eth_rst : process (eth_clk)
+   begin
+      if rising_edge(eth_clk) then
+         eth_rst <= not sys_rstn_debounce;     -- Synchronize and invert polarity.
+      end if;
+   end process p_eth_rst;
+ 
+
+   ------------------------------
+   -- Generate test data
+   ------------------------------
 
    proc_smi : process (eth_clk)
       variable state_v : std_logic_vector(1 downto 0);
@@ -113,62 +215,6 @@ begin
          end case;
       end if;
    end process proc_smi;
-
-
-   gen_clocks : if G_SIMULATION = false generate
-      -- Generate clocks
-      inst_clk_wiz_0 : entity work.clk_wiz_0
-      port map
-      (
-         clk_in1  => clk100_i,
-         eth_clk => eth_clk,
-         vga_clk => vga_clk,
-         cpu_clk => cpu_clk
-      );
-   end generate gen_clocks;
-
-   gen_no_clocks : if G_SIMULATION = true generate
-      vga_clk <= clk100_i;
-      cpu_clk <= clk100_i;
-      eth_clk <= clk100_i;
-   end generate gen_no_clocks;
- 
- 
-   -- Generate synchronous CPU reset
-   p_cpu_rst : process (cpu_clk)
-   begin
-      if rising_edge(cpu_clk) then
-         cpu_rst <= not sys_rstn_i;     -- Synchronize and invert polarity.
-      end if;
-   end process p_cpu_rst;
- 
-
-   inst_dut : entity work.hack 
-   generic map (
-      G_NEXYS4DDR  => true,              -- True, when using the Nexys4DDR board.
-      G_ROM_SIZE   => 11,                -- Number of bits in ROM address
-      G_RAM_SIZE   => 11,                -- Number of bits in RAM address
-      G_ROM_FILE   => "rom.txt",         -- Contains the machine code
-      G_FONT_FILE  => "ProggyClean.txt"  -- Contains the character font
-   )
-   port map (
-      vga_clk_i   => vga_clk,
-      cpu_clk_i   => cpu_clk,
-      cpu_rst_i   => cpu_rst,
-      --
-      mode_i      => sw_i(0),
-      step_i      => btn_i(0),
-      --
-      ps2_clk_i   => ps2_clk_i,
-      ps2_data_i  => ps2_data_i,
-      --
-      eth_debug_i => mac_smi_registers,
-      led_o       => led,
-      --
-      vga_hs_o    => vga_hs_o,
-      vga_vs_o    => vga_vs_o,
-      vga_col_o   => vga_col
-   );
 
 
    proc_gen_data : process (eth_clk)
@@ -199,6 +245,7 @@ begin
 
          if cnt_v = 0 then
             mac_tx_sof <= '1';
+            led <= not led;
          end if;
          if cnt_v = 59 then
             mac_tx_eof <= '1';
@@ -216,9 +263,15 @@ begin
    end process proc_gen_data;
 
 
+
+   ------------------------------
+   -- Ethernet PHY
+   ------------------------------
+
    inst_ethernet : entity work.ethernet
    port map (
       clk50_i      => eth_clk,
+      rst_i        => eth_rst,
       -- SMI interface
       smi_ready_o  => mac_smi_ready,
       smi_phy_i    => mac_smi_phy,
@@ -242,13 +295,47 @@ begin
       eth_intn_i   => eth_intn_i,
       eth_mdio_io  => eth_mdio_io,
       eth_mdc_o    => eth_mdc_o,
-      eth_rstn_o   => eth_rstn_o,
-      eth_refclk_o => eth_refclk_o 
+      eth_rstn_o   => eth_rstn,
+      eth_refclk_o => eth_refclk 
+   );
+
+
+   ------------------------------
+   -- Hack Computer!
+   ------------------------------
+
+   inst_dut : entity work.hack 
+   generic map (
+      G_NEXYS4DDR  => true,              -- True, when using the Nexys4DDR board.
+      G_ROM_SIZE   => 11,                -- Number of bits in ROM address
+      G_RAM_SIZE   => 11,                -- Number of bits in RAM address
+      G_ROM_FILE   => "rom.txt",         -- Contains the machine code
+      G_FONT_FILE  => "ProggyClean.txt"  -- Contains the character font
+   )
+   port map (
+      vga_clk_i   => vga_clk,
+      cpu_clk_i   => cpu_clk_stepped,
+      cpu_rst_i   => cpu_rst,
+      --
+      ps2_clk_i   => ps2_clk_i,
+      ps2_data_i  => ps2_data_i,
+      --
+      eth_debug_i => mac_smi_registers,
+      led_o       => open,
+      --
+      vga_hs_o    => vga_hs_o,
+      vga_vs_o    => vga_vs_o,
+      vga_col_o   => vga_col
    );
 
  
-   led_o(15 downto 8) <= (others => '0');
-   led_o( 7 downto 0) <= led;
+   led_o(15 downto 3) <= (others => '0');
+   led_o(0) <= led;
+   led_o(1) <= eth_rstn;
+   led_o(2) <= eth_refclk;
+
+   eth_rstn_o   <= eth_rstn;
+   eth_refclk_o <= eth_refclk;
 
    vga_col_o <= col8to12(vga_col);
    

@@ -60,7 +60,7 @@ begin
 
 
    -- Generate input switches
-   sw <= X"0001";
+   sw <= X"0000";
 
 
    -- Generate input buttons

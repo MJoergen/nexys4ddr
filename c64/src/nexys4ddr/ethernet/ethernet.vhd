@@ -6,6 +6,7 @@ use ieee.numeric_std.all;
 entity ethernet is
    port (
       clk50_i      : in    std_logic;        -- Must be 50 MHz
+      rst_i        : in    std_logic;
 
       -- SMI interface
       smi_ready_o  : out   std_logic;
@@ -46,11 +47,12 @@ architecture Structural of ethernet is
 begin
 
    tx_empty_ready <= tx_empty_i or not ready;
-   smi_ready_o <= smi_ready and ready;
+   smi_ready_o    <= smi_ready and ready;
 
    inst_reset : entity work.reset
       port map (
          clk50_i    => clk50_i,
+         rst_i      => rst_i,
          ready_o    => ready,
          eth_rstn_o => eth_rstn_o 
       );
