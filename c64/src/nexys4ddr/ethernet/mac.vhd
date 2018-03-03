@@ -88,6 +88,13 @@ begin
 
    -- Calculate CRC
    proc_crc : process (clk50_i)
+   begin
+      if falling_edge(clk50_i) then
+      end if;
+   end process proc_crc;
+
+   -- Generate MAC framing
+   proc_mac : process (clk50_i)
       variable crc_v : std_logic_vector(31 downto 0);
    begin
       if falling_edge(clk50_i) then
@@ -104,13 +111,7 @@ begin
          else
             crc <= (others => '1');
          end if;
-      end if;
-   end process proc_crc;
 
-   -- Generate MAC framing
-   proc_mac : process (clk50_i)
-   begin
-      if falling_edge(clk50_i) then
          rden_o     <= '0';
 
          twobit_cnt <= twobit_cnt + 1;
@@ -147,7 +148,9 @@ begin
 
                   -- Abort! Data not available yet.
                   if empty_i = '1' then
+                     cur_byte  <= (others => '0');
                      fsm_state <= IFG_ST;
+                     eth_txen  <= '0';
                      rden_o    <= '0';
                   end if;
 
@@ -160,15 +163,17 @@ begin
 
                   -- Abort! Data not available yet.
                   if empty_i = '1' then
+                     cur_byte  <= (others => '0');
                      fsm_state <= IFG_ST;
+                     eth_txen  <= '0';
                      rden_o    <= '0';
                   end if;
 
                when LAST_ST => 
                   byte_cnt   <= 4;
-                  cur_byte   <= not (crc(24) & crc(25) & crc(26) & crc(27) &
-                                     crc(28) & crc(29) & crc(30) & crc(31));      -- CRC is transmitted MSB first.
-                  crc_reg    <= crc(23 downto 0) & X"00";
+                  cur_byte   <= not (crc_v(24) & crc_v(25) & crc_v(26) & crc_v(27) &
+                                     crc_v(28) & crc_v(29) & crc_v(30) & crc_v(31));      -- CRC is transmitted MSB first.
+                  crc_reg    <= crc_v(23 downto 0) & X"00";
                   crc_enable <= '0';         -- This will reset the CRC.
                   fsm_state  <= CRC_ST;
 
@@ -178,6 +183,7 @@ begin
                   crc_reg  <= crc_reg(23 downto 0) & X"00";
                   if byte_cnt = 1 then
                      byte_cnt  <= 11000000;           -- Only 11 octets, because the next state is always the idle state.
+                     cur_byte  <= (others => '0');
                      fsm_state <= IFG_ST;
                      eth_txen  <= '0';
                   else
