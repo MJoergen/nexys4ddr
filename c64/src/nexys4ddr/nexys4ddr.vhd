@@ -100,6 +100,11 @@ architecture Structural of nexys4ddr is
    signal eth_rstn   : std_logic;
    signal eth_refclk : std_logic;
 
+   signal pl_ena      : std_logic;
+   signal pl_sof      : std_logic;
+   signal pl_eof      : std_logic;
+   signal pl_data     : std_logic_vector(7 downto 0);
+
 begin
 
    ------------------------------
@@ -188,7 +193,7 @@ begin
  
 
    ------------------------------
-   -- Generate test data
+   -- Read SMI from PHY
    ------------------------------
 
    proc_smi : process (eth_clk)
@@ -217,6 +222,10 @@ begin
    end process proc_smi;
 
 
+   ------------------------------
+   -- Generate test data
+   ------------------------------
+
    proc_gen_data : process (eth_clk)
       type t_mem is array (0 to 59) of std_logic_vector(7 downto 0);
       variable mem_v : t_mem := 
@@ -226,8 +235,8 @@ begin
        X"08", X"06",
        -- ARP data
        X"00", X"01", X"08", X"00", X"06", X"04", X"00", X"01",
-       X"F4", X"6D", x"04", X"D7", X"F3", X"CA", X"C0", X"A8",
-       X"01", X"2B", X"00", X"00", X"00", X"00", X"00", X"00",
+       X"F4", X"6D", x"04", X"11", X"22", X"33", X"C0", X"A8",
+       X"01", X"2D", X"00", X"00", X"00", X"00", X"00", X"00",
        X"C0", X"A8", X"01", X"01",
        -- Padding
        X"00", X"01", X"02", X"03", X"04", X"05", X"06", X"07",
@@ -240,31 +249,52 @@ begin
 
       variable cnt_v : integer range 0 to 59 := 0;
    begin
-      if rising_edge(eth_clk) then
-         mac_tx_data  <= mem_v(cnt_v);
-         mac_tx_empty <= '0';
-         mac_tx_sof   <= '0';
-         mac_tx_eof   <= '0';
+      if rising_edge(vga_clk) then
+         pl_data  <= mem_v(cnt_v);
+         pl_sof   <= '0';
+         pl_eof   <= '0';
+         pl_ena   <= '1';
+
+         if pl_eof = '1' then
+            pl_ena <= '0';
+         end if;
 
          if cnt_v = 0 then
-            mac_tx_sof <= '1';
+            pl_sof <= '1';
             led <= not led;
          end if;
-         if cnt_v = 59 then
-            mac_tx_eof <= '1';
-         end if;
 
-         if mac_tx_rden = '1' then
-            if cnt_v = 59 then
-               cnt_v := 0;
-            else
-               cnt_v := cnt_v + 1;
-            end if;
-            mac_tx_data <= mem_v(cnt_v);
+         if cnt_v < 59 then
+            cnt_v := cnt_v + 1;
+         else
+            pl_eof <= '1';
          end if;
       end if;
    end process proc_gen_data;
 
+
+   inst_encap : entity work.encap
+   port map (
+      pl_clk_i       => vga_clk,
+      pl_rst_i       => '0',
+      pl_ena_i       => '1',
+      pl_sof_i       => '1',
+      pl_eof_i       => '1',
+      pl_data_i      => X"77",
+      ctrl_mac_dst_i => X"FFFFFFFFFFFF",
+      ctrl_mac_src_i => X"F46D04112233",
+      ctrl_ip_dst_i  => X"C0A8012D",
+      ctrl_ip_src_i  => X"C0A8012E",
+      ctrl_udp_dst_i => X"1234",
+      ctrl_udp_src_i => X"2345",
+      mac_clk_i      => eth_clk,
+      mac_rst_i      => eth_rst,
+      mac_data_o     => mac_tx_data,
+      mac_sof_o      => mac_tx_sof,
+      mac_eof_o      => mac_tx_eof,
+      mac_empty_o    => mac_tx_empty,
+      mac_rden_i     => mac_tx_rden
+   );
 
 
    ------------------------------
