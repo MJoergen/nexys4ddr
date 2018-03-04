@@ -105,6 +105,9 @@ architecture Structural of nexys4ddr is
    signal pl_eof      : std_logic;
    signal pl_data     : std_logic_vector(7 downto 0);
 
+   signal cpu_rst_d  : std_logic := '1';
+   signal cpu_rst_d2 : std_logic := '1';
+
 begin
 
    ------------------------------
@@ -226,7 +229,7 @@ begin
    -- Generate test data
    ------------------------------
 
-   proc_gen_data : process (eth_clk)
+   proc_gen_data : process (cpu_clk)
       type t_mem is array (0 to 59) of std_logic_vector(7 downto 0);
       variable mem_v : t_mem := 
       -- MAC header
@@ -249,7 +252,7 @@ begin
 
       variable cnt_v : integer range 0 to 59 := 0;
    begin
-      if rising_edge(vga_clk) then
+      if rising_edge(cpu_clk) then
          pl_data  <= mem_v(cnt_v);
          pl_sof   <= '0';
          pl_eof   <= '0';
@@ -272,7 +275,9 @@ begin
             pl_eof <= '1';
          end if;
 
-         if eth_rstn = '0' then
+         cpu_rst_d  <= cpu_rst;
+         cpu_rst_d2 <= cpu_rst_d;
+         if cpu_rst_d2 = '1' then
             cnt_v := 0;
             pl_ena <= '0';
             pl_sof <= '0';
@@ -284,8 +289,8 @@ begin
 
    inst_encap : entity work.encap
    port map (
-      pl_clk_i       => vga_clk,
-      pl_rst_i       => '0',
+      pl_clk_i       => cpu_clk,
+      pl_rst_i       => cpu_rst,
       pl_ena_i       => pl_ena,
       pl_sof_i       => pl_sof,
       pl_eof_i       => pl_eof,
@@ -313,7 +318,7 @@ begin
    inst_ethernet : entity work.ethernet
    port map (
       clk50_i      => eth_clk,
-      rst_i        => eth_rst,
+      rst_i        => '0',
       -- SMI interface
       smi_ready_o  => mac_smi_ready,
       smi_phy_i    => mac_smi_phy,
