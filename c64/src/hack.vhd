@@ -44,9 +44,11 @@ entity hack is
       eth_debug_i : in std_logic_vector(511 downto 0);
 
       -- Output to VGA monitor
-      vga_hs_o   : out std_logic;
-      vga_vs_o   : out std_logic;
-      vga_col_o  : out std_logic_vector( 7 downto 0)
+      vga_hs_o     : out std_logic;
+      vga_vs_o     : out std_logic;
+      vga_col_o    : out std_logic_vector( 7 downto 0);
+      vga_hcount_o : out std_logic_vector(10 downto 0);
+      vga_vcount_o : out std_logic_vector(10 downto 0)
   );
 
 end hack;
@@ -131,10 +133,12 @@ begin
                )
    port map (
       -- VGA Port
-      vga_clk_i => vga_clk_i,
-      vga_hs_o  => vga_hs_o,
-      vga_vs_o  => vga_vs_o,
-      vga_col_o => vga_col_o,
+      vga_clk_i    => vga_clk_i,
+      vga_hs_o     => vga_hs_o,
+      vga_vs_o     => vga_vs_o,
+      vga_col_o    => vga_col_o,
+      vga_hcount_o => vga_hcount_o,
+      vga_vcount_o => vga_vcount_o,
 
       -- CPU Port
       cpu_clk_i      => cpu_clk_i,

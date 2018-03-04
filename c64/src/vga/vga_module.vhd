@@ -30,9 +30,11 @@ entity vga_module is
       -- VGA port @ vga_clk_i
       vga_clk_i  : in  std_logic;
       --
-      vga_hs_o   : out std_logic; 
-      vga_vs_o   : out std_logic;
-      vga_col_o  : out std_logic_vector(7 downto 0);
+      vga_hs_o     : out std_logic; 
+      vga_vs_o     : out std_logic;
+      vga_col_o    : out std_logic_vector(7 downto 0);
+      vga_hcount_o : out std_logic_vector(10 downto 0);
+      vga_vcount_o : out std_logic_vector(10 downto 0);
 
       -- CPU port @ cpu_clk_i
       cpu_clk_i    : in  std_logic;
@@ -297,9 +299,11 @@ begin
    -- Drive output signals
    -----------------------
 
-   vga_hs_o  <= vga_sprite_hs;
-   vga_vs_o  <= vga_sprite_vs;
-   vga_col_o <= vga_sprite_col;
+   vga_hs_o     <= vga_sprite_hs;
+   vga_vs_o     <= vga_sprite_vs;
+   vga_col_o    <= vga_sprite_col;
+   vga_hcount_o <= vga_sprite_hcount;
+   vga_vcount_o <= vga_sprite_vcount;
 
 
    --=====================================================
