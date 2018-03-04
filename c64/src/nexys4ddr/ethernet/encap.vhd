@@ -179,7 +179,8 @@ begin
 
                   hdr_len <= std_logic_vector(to_unsigned(hdr_data'length/8, 16));
                   mac_empty_o <= '0';
-                  mac_sof   <= '1';
+                  mac_sof     <= '1';
+                  mac_eof     <= '0';
                end if;
 
             when HDR_ST  =>
