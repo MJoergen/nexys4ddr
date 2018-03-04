@@ -23,15 +23,23 @@ end entity fifo;
 
 architecture behavioral of fifo is
 
+   signal fifo_in  : std_logic_vector(31 downto 0);
+   signal fifo_out : std_logic_vector(31 downto 0);
+
 begin  -- architecture behavioral
 
-  inst_FIFO18E1 : FIFO18E1
+   fifo_in(G_WIDTH-1 downto 0) <= wr_data_i;
+   fifo_in(31 downto G_WIDTH) <= (others => '0');
+
+   rd_data_o <= fifo_out(G_WIDTH-1 downto 0);
+
+   inst_FIFO18E1 : FIFO18E1
       GENERIC MAP (
          FIRST_WORD_FALL_THROUGH => true,
-         DATA_WIDTH              => G_WIDTH*9/8,
+         DATA_WIDTH              => (G_WIDTH*9)/8,
          EN_SYN                  => false)
       PORT MAP (
-         DI            => wr_data_i,
+         DI            => fifo_in,
          DIP           => (others => '0'),
          WREN          => wr_en_i,
          WRCLK         => wr_clk_i,
@@ -40,7 +48,7 @@ begin  -- architecture behavioral
          RST           => rd_rst_i,
          RSTREG        => '0',
          REGCE         => '0',
-         DO            => rd_data_o,
+         DO            => fifo_out,
          DOP           => open,
          FULL          => open,
          ALMOSTFULL    => open,
