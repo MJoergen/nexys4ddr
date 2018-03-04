@@ -14,6 +14,7 @@ use UNISIM.Vcomponents.all;
 entity nexys4ddr is
 
    generic (
+      G_RESET_SIZE : integer := 22;          -- Number of bits in reset counter.
       G_SIMULATION : boolean := false
    );
    port (
@@ -64,9 +65,14 @@ architecture Structural of nexys4ddr is
    signal sys_rstn_debounce : std_logic := '0';
    signal cpu_clk_stepped : std_logic;
    signal eth_rst   : std_logic := '1';
+   signal vga_rst   : std_logic := '1';
  
    -- VGA color output
-   signal vga_col   : std_logic_vector(7 downto 0);
+   signal vga_col    : std_logic_vector(7 downto 0);
+   signal vga_hs     : std_logic;
+   signal vga_vs     : std_logic;
+   signal vga_hcount : std_logic_vector(10 downto 0);
+   signal vga_vcount : std_logic_vector(10 downto 0);
  
    -- LED output
    signal led : std_logic;
@@ -105,8 +111,8 @@ architecture Structural of nexys4ddr is
    signal pl_eof      : std_logic;
    signal pl_data     : std_logic_vector(7 downto 0);
 
-   signal cpu_rst_d  : std_logic := '1';
-   signal cpu_rst_d2 : std_logic := '1';
+   signal vga_rst_d  : std_logic := '1';
+   signal vga_rst_d2 : std_logic := '1';
 
 begin
 
@@ -194,6 +200,13 @@ begin
       end if;
    end process p_eth_rst;
  
+   p_vga_rst : process (vga_clk)
+   begin
+      if rising_edge(vga_clk) then
+         vga_rst <= not sys_rstn_debounce;     -- Synchronize and invert polarity.
+      end if;
+   end process p_vga_rst;
+ 
 
    ------------------------------
    -- Read SMI from PHY
@@ -224,78 +237,55 @@ begin
       end if;
    end process proc_smi;
 
+   -- TODO: Read the VGA output and convert to .ppm (P6) format, see https://en.wikipedia.org/wiki/Netpbm_format
+   -- Use a simple run-length encoding during transfer.
+   -- Optionally, convert to png.
+   -- After that, use 'convert' to make a movie, see http://www.andrewnoske.com/wiki/Convert_an_image_sequence_to_a_movie
 
    ------------------------------
-   -- Generate test data
+   -- Transmit VGA data
    ------------------------------
 
-   proc_gen_data : process (cpu_clk)
-      type t_mem is array (0 to 59) of std_logic_vector(7 downto 0);
-      variable mem_v : t_mem := 
-      -- MAC header
-      (X"FF", X"FF", x"FF", X"FF", X"FF", X"FF",
-       X"F4", X"6D", x"04", X"11", X"22", X"33",
-       X"08", X"06",
-       -- ARP data
-       X"00", X"01", X"08", X"00", X"06", X"04", X"00", X"01",
-       X"F4", X"6D", x"04", X"11", X"22", X"33", X"C0", X"A8",
-       X"01", X"2D", X"00", X"00", X"00", X"00", X"00", X"00",
-       X"C0", X"A8", X"01", X"01",
-       -- Padding
-       X"00", X"01", X"02", X"03", X"04", X"05", X"06", X"07",
-       X"08", X"09", X"0A", X"0B", X"0C", X"0D", X"0E", X"0F",
-       X"10", X"11"
-
-       -- The CRC for the above packet shall be
-       -- X"3F", X"45", X"2B", X"4F"
-    );
-
-      variable cnt_v : integer range 0 to 59 := 0;
+   proc_tx_vga : process (vga_clk)
    begin
-      if rising_edge(cpu_clk) then
-         pl_data  <= mem_v(cnt_v);
+      if rising_edge(vga_clk) then
+         pl_data  <= vga_col;
          pl_sof   <= '0';
          pl_eof   <= '0';
-         pl_ena   <= '1';
+         pl_ena   <= '0';
 
-         if pl_eof = '1' then
-            pl_ena <= '0';
-            pl_sof <= '0';
-            pl_eof <= '0';
-         end if;
-
-         if cnt_v = 0 then
+         if vga_vcount(0) = '0' and vga_hcount = 100 then
             pl_sof <= '1';
-            led <= not led;
          end if;
-
-         if cnt_v < 59 then
-            cnt_v := cnt_v + 1;
-         else
+         if vga_vcount(0) = '1' and vga_hcount = 99 then
             pl_eof <= '1';
          end if;
+         if (vga_vcount(0) = '0' and vga_hcount >= 100 and vga_hcount < 640) or
+            (vga_vcount(0) = '1' and vga_hcount <= 99) then
+            pl_ena <= '1';
+         end if;
 
-         cpu_rst_d  <= cpu_rst;
-         cpu_rst_d2 <= cpu_rst_d;
-         if cpu_rst_d2 = '1' then
-            cnt_v := 0;
-            pl_ena <= '0';
-            pl_sof <= '0';
-            pl_eof <= '0';
+         vga_rst_d  <= vga_rst;
+         vga_rst_d2 <= vga_rst_d;
+
+         if vga_rst_d2 = '1' then
+            pl_sof   <= '0';
+            pl_eof   <= '0';
+            pl_ena   <= '0';
          end if;
       end if;
-   end process proc_gen_data;
+   end process proc_tx_vga;
 
 
    inst_encap : entity work.encap
    port map (
-      pl_clk_i       => cpu_clk,
-      pl_rst_i       => cpu_rst,
+      pl_clk_i       => vga_clk,
+      pl_rst_i       => vga_rst,
       pl_ena_i       => pl_ena,
       pl_sof_i       => pl_sof,
       pl_eof_i       => pl_eof,
       pl_data_i      => pl_data,
-      ctrl_mac_dst_i => X"FFFFFFFFFFFF",
+      ctrl_mac_dst_i => X"F46D04D7F3CA",
       ctrl_mac_src_i => X"F46D04112233",
       ctrl_ip_dst_i  => X"C0A8012B",
       ctrl_ip_src_i  => X"C0A8012E",
@@ -316,6 +306,9 @@ begin
    ------------------------------
 
    inst_ethernet : entity work.ethernet
+   generic map (
+      G_RESET_SIZE => G_RESET_SIZE
+   )
    port map (
       clk50_i      => eth_clk,
       rst_i        => '0',
@@ -370,9 +363,11 @@ begin
       eth_debug_i => mac_smi_registers,
       led_o       => open,
       --
-      vga_hs_o    => vga_hs_o,
-      vga_vs_o    => vga_vs_o,
-      vga_col_o   => vga_col
+      vga_hs_o     => vga_hs,
+      vga_vs_o     => vga_vs,
+      vga_col_o    => vga_col,
+      vga_hcount_o => vga_hcount,
+      vga_vcount_o => vga_vcount
    );
 
  
@@ -384,6 +379,8 @@ begin
    eth_rstn_o   <= eth_rstn;
    eth_refclk_o <= eth_refclk;
 
+   vga_hs_o  <= vga_hs;
+   vga_vs_o  <= vga_vs;
    vga_col_o <= col8to12(vga_col);
    
 end Structural;
