@@ -100,7 +100,7 @@ architecture Structural of nexys4ddr is
    signal eth_rstn   : std_logic;
    signal eth_refclk : std_logic;
 
-   signal pl_ena      : std_logic;
+   signal pl_ena      : std_logic := '0';
    signal pl_sof      : std_logic;
    signal pl_eof      : std_logic;
    signal pl_data     : std_logic_vector(7 downto 0);
@@ -257,6 +257,8 @@ begin
 
          if pl_eof = '1' then
             pl_ena <= '0';
+            pl_sof <= '0';
+            pl_eof <= '0';
          end if;
 
          if cnt_v = 0 then
@@ -269,6 +271,13 @@ begin
          else
             pl_eof <= '1';
          end if;
+
+         if eth_rstn = '0' then
+            cnt_v := 0;
+            pl_ena <= '0';
+            pl_sof <= '0';
+            pl_eof <= '0';
+         end if;
       end if;
    end process proc_gen_data;
 
@@ -277,10 +286,10 @@ begin
    port map (
       pl_clk_i       => vga_clk,
       pl_rst_i       => '0',
-      pl_ena_i       => '1',
-      pl_sof_i       => '1',
-      pl_eof_i       => '1',
-      pl_data_i      => X"77",
+      pl_ena_i       => pl_ena,
+      pl_sof_i       => pl_sof,
+      pl_eof_i       => pl_eof,
+      pl_data_i      => pl_data,
       ctrl_mac_dst_i => X"FFFFFFFFFFFF",
       ctrl_mac_src_i => X"F46D04112233",
       ctrl_ip_dst_i  => X"C0A8012D",
