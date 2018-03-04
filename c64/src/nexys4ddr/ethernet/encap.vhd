@@ -55,13 +55,16 @@ architecture Structural of encap is
    type t_fsm_state is (IDLE_ST, HDR_ST, PL_ST);
    signal fsm_state : t_fsm_state := IDLE_ST;
 
-   signal byte_cnt    : std_logic_vector(15 downto 0);
+   signal byte_cnt    : std_logic_vector(15 downto 0) := (others => '0');
 
    signal frm_len     : std_logic_vector(15 downto 0);
 
    -- Headers
    signal hdr_data : std_logic_vector(42*8-1 downto 0);
    signal hdr_len  : std_logic_vector(15 downto 0);
+
+   signal mac_sof : std_logic := '0';
+   signal mac_eof : std_logic := '0';
 
 begin
 
@@ -142,10 +145,10 @@ begin
    begin
       if falling_edge(mac_clk_i) then
          mac_ctrl_rden   <= '0';
-         mac_empty_o <= '1';
 
          case fsm_state is
             when IDLE_ST =>
+               mac_empty_o <= '1';
                if mac_ctrl_empty = '0' then   -- We now have a complete frame, so lets build the header
                   frm_len   <= mac_ctrl_out;
                   mac_ctrl_rden <= '1';
@@ -176,14 +179,14 @@ begin
 
                   hdr_len <= std_logic_vector(to_unsigned(hdr_data'length/8, 16));
                   mac_empty_o <= '0';
-                  mac_sof_o   <= '1';
+                  mac_sof   <= '1';
                end if;
 
             when HDR_ST  =>
                if mac_rden_i = '1' then
                   hdr_data(42*8-1 downto 0) <= hdr_data(41*8-1 downto 0) & X"00";
                   hdr_len <= hdr_len - 1;
-                  mac_sof_o <= '0';
+                  mac_sof <= '0';
 
                   if hdr_len = 1 then
                      fsm_state <= PL_ST;
@@ -193,18 +196,28 @@ begin
             when PL_ST  =>
                if mac_rden_i = '1' then
                   frm_len <= frm_len - 1;
+                  if frm_len <= 2 then
+                     mac_eof <= '1';
+                  end if;
                   if frm_len = 1 then
-                     mac_eof_o <= '1';
                      fsm_state <= IDLE_ST;
                   end if;
                end if;
 
          end case;
+
+         if mac_rst_i = '1' then
+            fsm_state <= IDLE_ST;
+         end if;
       end if;
    end process proc_mac;
 
-   mac_data_o <= hdr_data(42*8-1 downto 41*8) when fsm_state = HDR_ST else mac_data_out;
+   -- Drive output signals
    mac_data_rden <= '1' when mac_rden_i = '1' and fsm_state = PL_ST else '0';
+
+   mac_data_o <= hdr_data(42*8-1 downto 41*8) when fsm_state = HDR_ST else mac_data_out;
+   mac_sof_o  <= mac_sof;
+   mac_eof_o  <= mac_eof;
 
 end Structural;
 
