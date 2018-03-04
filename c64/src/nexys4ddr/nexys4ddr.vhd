@@ -297,7 +297,7 @@ begin
       pl_data_i      => pl_data,
       ctrl_mac_dst_i => X"FFFFFFFFFFFF",
       ctrl_mac_src_i => X"F46D04112233",
-      ctrl_ip_dst_i  => X"C0A8012D",
+      ctrl_ip_dst_i  => X"C0A8012B",
       ctrl_ip_src_i  => X"C0A8012E",
       ctrl_udp_dst_i => X"1234",
       ctrl_udp_src_i => X"2345",
