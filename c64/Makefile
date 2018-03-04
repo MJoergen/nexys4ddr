@@ -60,7 +60,7 @@ PROG_SRC   += src/prog/smult.c
 LD_CFG      = src/prog/ld.cfg
 VECTORS_AS  = src/prog/vectors.s
 
-stoptime = --stop-time=15us
+stoptime = --stop-time=50us
 
 include ../xilinx.mk
 
