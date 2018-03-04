@@ -2,6 +2,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
+use ieee.std_logic_textio.all;
+use std.textio.all;
 
 entity encap is
    port (
@@ -52,7 +54,7 @@ architecture Structural of encap is
    signal mac_ctrl_rden   : std_logic;
    signal mac_ctrl_empty  : std_logic;
 
-   type t_fsm_state is (IDLE_ST, HDR_ST, PL_ST);
+   type t_fsm_state is (IDLE_ST, CHKSUM_ST, HDR_ST, PL_ST);
    signal fsm_state : t_fsm_state := IDLE_ST;
 
    signal byte_cnt    : std_logic_vector(15 downto 0) := (others => '0');
@@ -142,6 +144,21 @@ begin
 
    -- Generate MAC frame
    proc_mac : process (mac_clk_i)
+      function chksum(arg : std_logic_vector) 
+         return std_logic_vector is
+         variable temp_v : std_logic_vector(31 downto 0) := (others => '0');
+         variable len_v : integer;
+         variable val_v : std_logic_vector(15 downto 0);
+      begin
+         len_v := arg'length;
+         for i in 0 to len_v/16-1 loop
+            val_v := arg(i*16+15+arg'right downto i*16+arg'right);
+            temp_v := temp_v + (X"0000" & val_v);
+         end loop;
+         temp_v := (X"0000" & temp_v(15 downto 0)) + (X"0000" & temp_v(31 downto 16));
+         return not temp_v(15 downto 0);
+      end function chksum;
+
    begin
       if falling_edge(mac_clk_i) then
          mac_ctrl_rden   <= '0';
@@ -152,13 +169,12 @@ begin
                if mac_ctrl_empty = '0' then   -- We now have a complete frame, so lets build the header
                   frm_len   <= mac_ctrl_out;
                   mac_ctrl_rden <= '1';
-                  fsm_state <= HDR_ST;
 
                   -- Build UDP header
                   hdr_data( 8*8-1 downto  6*8) <= ctrl_udp_src_i;
                   hdr_data( 6*8-1 downto  4*8) <= ctrl_udp_dst_i;
                   hdr_data( 4*8-1 downto  2*8) <= X"0008" + mac_ctrl_out;  -- Total length including UDP header and UDP payload.
-                  hdr_data( 2*8-1 downto  0*8) <= X"CCCC";  -- UDP header checksum.
+                  hdr_data( 2*8-1 downto  0*8) <= X"0000";  -- UDP header checksum (unused).
 
                   -- Build IP header
                   hdr_data(28*8-1 downto 27*8) <= X"45";
@@ -168,7 +184,7 @@ begin
                   hdr_data(22*8-1 downto 20*8) <= X"0000"; -- Fragmentation.
                   hdr_data(20*8-1 downto 19*8) <= X"FF";   -- TTL.
                   hdr_data(19*8-1 downto 18*8) <= X"11";   -- Protocol UDP.
-                  hdr_data(18*8-1 downto 16*8) <= X"CCCC"; -- IP header checksum.
+                  hdr_data(18*8-1 downto 16*8) <= X"0000"; -- IP header checksum.
                   hdr_data(16*8-1 downto 12*8) <= ctrl_ip_src_i;
                   hdr_data(12*8-1 downto  8*8) <= ctrl_ip_dst_i;
 
@@ -178,10 +194,15 @@ begin
                   hdr_data(30*8-1 downto 28*8) <= X"0800";
 
                   hdr_len <= std_logic_vector(to_unsigned(hdr_data'length/8, 16));
-                  mac_empty_o <= '0';
-                  mac_sof     <= '1';
-                  mac_eof     <= '0';
+                  fsm_state <= CHKSUM_ST;
                end if;
+
+            when CHKSUM_ST  =>
+               hdr_data(18*8-1 downto 16*8) <= chksum(hdr_data(28*8-1 downto 8*8));
+               mac_empty_o <= '0';
+               mac_sof     <= '1';
+               mac_eof     <= '0';
+               fsm_state <= HDR_ST;
 
             when HDR_ST  =>
                if mac_rden_i = '1' then
