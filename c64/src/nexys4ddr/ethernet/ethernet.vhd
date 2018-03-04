@@ -4,6 +4,9 @@ use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 
 entity ethernet is
+   generic (
+      G_RESET_SIZE : integer
+   );
    port (
       clk50_i      : in    std_logic;        -- Must be 50 MHz
       rst_i        : in    std_logic;
@@ -50,6 +53,9 @@ begin
    smi_ready_o    <= smi_ready and ready;
 
    inst_reset : entity work.reset
+      generic map (
+         G_RESET_SIZE => G_RESET_SIZE
+      )
       port map (
          clk50_i    => clk50_i,
          rst_i      => rst_i,
