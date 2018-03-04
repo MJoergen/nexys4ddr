@@ -76,7 +76,7 @@ architecture Structural of mac is
    type t_fsm_state is (IDLE_ST, PRE1_ST, PRE2_ST, PAYLOAD_ST, LAST_ST, CRC_ST, IFG_ST);
    signal fsm_state : t_fsm_state := IDLE_ST;
 
-   signal byte_cnt   : integer range 0 to 12000000;
+   signal byte_cnt   : integer range 0 to 12;
    signal cur_byte   : std_logic_vector(7 downto 0) := X"00";
    signal twobit_cnt : std_logic_vector(1 downto 0) := "00";
 
@@ -182,7 +182,7 @@ begin
                                    crc_reg(28) & crc_reg(29) & crc_reg(30) & crc_reg(31));      -- CRC is transmitted MSB first.
                   crc_reg  <= crc_reg(23 downto 0) & X"00";
                   if byte_cnt = 1 then
-                     byte_cnt  <= 11000000;           -- Only 11 octets, because the next state is always the idle state.
+                     byte_cnt  <= 11;           -- Only 11 octets, because the next state is always the idle state.
                      cur_byte  <= (others => '0');
                      fsm_state <= IFG_ST;
                      eth_txen  <= '0';
