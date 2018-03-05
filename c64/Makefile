@@ -9,6 +9,7 @@ SRC   += src/nexys4ddr/ethernet/smi.vhd
 SRC   += src/nexys4ddr/ethernet/fifo_alt.vhd
 SRC   += src/nexys4ddr/ethernet/encap.vhd
 SRC   += src/nexys4ddr/ethernet/ethernet.vhd
+SRC   += src/nexys4ddr/convert.vhd
 SRC   += src/nexys4ddr/clk_wiz_0.vhd
 SRC   += src/nexys4ddr/clk_wiz_0_clk_wiz.vhd
 SRC   += src/nexys4ddr/debounce.vhd
@@ -59,7 +60,7 @@ PROG_SRC   += src/prog/smult.c
 LD_CFG      = src/prog/ld.cfg
 VECTORS_AS  = src/prog/vectors.s
 
-stoptime = --stop-time=50us
+stoptime = --stop-time=75us
 
 include ../xilinx.mk
 

@@ -1,20 +1,21 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Sun Mar  4 10:20:08 2018
+[*] Mon Mar  5 20:31:13 2018
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/c64/nexys4ddr.ghw"
-[dumpfile_mtime] "Sun Mar  4 10:11:57 2018"
-[dumpfile_size] 2804749
+[dumpfile_mtime] "Mon Mar  5 20:27:40 2018"
+[dumpfile_size] 6337892
 [savefile] "/home/mike/git/nexys4ddr/c64/src/nexys4ddr_tb.gtkw"
-[timestart] 25108000000
+[timestart] 0
 [size] 1920 1103
 [pos] -1 -1
-*-27.916718 26295000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-33.435658 26295000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.nexys4ddr_tb.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.
+[treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.
+[treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_ram.mem_a.
-[treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.
 [sst_width] 348
 [signals_width] 226
 [sst_expanded] 1
@@ -91,46 +92,10 @@ top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_smi.eth_mdio_io
 -SMI
 @c00200
 -Reset
-@28
-top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_reset.clk50_i
-top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_reset.rst_i
-top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_reset.ready_o
-top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_reset.eth_rstn_o
 @1401200
 -Reset
 @28
 top.nexys4ddr_tb.inst_nexys4ddr.sys_rstn_i
-@800200
--Encap
-@28
-top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_clk_i
-top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_rst_i
-top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_ena_i
-top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_sof_i
-top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_eof_i
-@22
-#{top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_data_i[7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_data_i[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_data_i[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_data_i[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_data_i[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_data_i[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_data_i[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_data_i[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_data_i[0]
-@1000200
--Encap
-@800200
--Encap Ctrl FIFO
-@28
-top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_clk_i
-top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_ctrl_wren
-@22
-#{top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_ctrl_in[15:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_ctrl_in[15] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_ctrl_in[14] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_ctrl_in[13] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_ctrl_in[12] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_ctrl_in[11] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_ctrl_in[10] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_ctrl_in[9] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_ctrl_in[8] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_ctrl_in[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_ctrl_in[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_ctrl_in[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_ctrl_in[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_ctrl_in[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_ctrl_in[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_ctrl_in[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.pl_ctrl_in[0]
-@28
-top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.mac_clk_i
-top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.mac_rst_i
-top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.mac_ctrl_rden
-@22
-#{top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.mac_ctrl_out[15:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.mac_ctrl_out[15] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.mac_ctrl_out[14] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.mac_ctrl_out[13] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.mac_ctrl_out[12] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.mac_ctrl_out[11] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.mac_ctrl_out[10] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.mac_ctrl_out[9] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.mac_ctrl_out[8] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.mac_ctrl_out[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.mac_ctrl_out[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.mac_ctrl_out[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.mac_ctrl_out[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.mac_ctrl_out[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.mac_ctrl_out[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.mac_ctrl_out[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.mac_ctrl_out[0]
-@28
-top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.mac_ctrl_empty
-@1000200
--Encap Ctrl FIFO
-@420
-top.nexys4ddr_tb.inst_nexys4ddr.inst_encap.fsm_state
 @800200
 -Mac
 @28
@@ -156,5 +121,17 @@ top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.byte_cnt
 top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_mac.fsm_state
 @1000200
 -MAC
+@800200
+-Encap
+@28
+top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ena_i
+top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_sof_i
+top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_eof_i
+@22
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_data_i[7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_data_i[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_data_i[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_data_i[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_data_i[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_data_i[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_data_i[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_data_i[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_data_i[0]
+@23
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[15:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[15] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[14] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[13] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[12] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[11] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[10] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[9] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[8] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[0]
+@1000200
+-Encap
 [pattern_trace] 1
 [pattern_trace] 0

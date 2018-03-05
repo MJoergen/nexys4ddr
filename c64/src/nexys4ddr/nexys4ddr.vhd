@@ -97,11 +97,6 @@ architecture Structural of nexys4ddr is
 
    signal mac_smi_registers : std_logic_vector(32*16-1 downto 0) := (others => '0');
 
-   signal pl_ena      : std_logic := '0';
-   signal pl_sof      : std_logic;
-   signal pl_eof      : std_logic;
-   signal pl_data     : std_logic_vector(7 downto 0);
-
 begin
 
    -----------------------------
@@ -160,65 +155,29 @@ begin
       end if;
    end process proc_smi;
 
-   -- TODO: Read the VGA output and convert to .ppm (P6) format, see https://en.wikipedia.org/wiki/Netpbm_format
-   -- Use a simple run-length encoding during transfer.
-   -- Optionally, convert to png.
-   -- After that, use 'convert' to make a movie, see http://www.andrewnoske.com/wiki/Convert_an_image_sequence_to_a_movie
 
    ------------------------------
-   -- Transmit VGA data
+   -- Instantiate VGA -> ETH converter
    ------------------------------
 
-   proc_tx_vga : process (vga_clk)
-   begin
-      if rising_edge(vga_clk) then
-         pl_data  <= vga_col;
-         pl_sof   <= '0';
-         pl_eof   <= '0';
-         pl_ena   <= '0';
+   inst_convert : entity work.convert
+      port map (
+         vga_clk_i    => vga_clk,
+         vga_rst_i    => vga_rst,
+         vga_col_i    => vga_col,
+         vga_hs_i     => vga_hs,
+         vga_vs_i     => vga_vs,
+         vga_hcount_i => vga_hcount,
+         vga_vcount_i => vga_vcount,
 
-         if vga_vcount(0) = '0' and vga_hcount = 100 then
-            pl_sof <= '1';
-         end if;
-         if vga_vcount(0) = '1' and vga_hcount = 99 then
-            pl_eof <= '1';
-         end if;
-         if (vga_vcount(0) = '0' and vga_hcount >= 100 and vga_hcount < 640) or
-            (vga_vcount(0) = '1' and vga_hcount <= 99) then
-            pl_ena <= '1';
-         end if;
-
-         if vga_rst = '1' then
-            pl_sof   <= '0';
-            pl_eof   <= '0';
-            pl_ena   <= '0';
-         end if;
-      end if;
-   end process proc_tx_vga;
-
-
-   inst_encap : entity work.encap
-   port map (
-      pl_clk_i       => vga_clk,
-      pl_rst_i       => vga_rst,
-      pl_ena_i       => pl_ena,
-      pl_sof_i       => pl_sof,
-      pl_eof_i       => pl_eof,
-      pl_data_i      => pl_data,
-      ctrl_mac_dst_i => X"F46D04D7F3CA",
-      ctrl_mac_src_i => X"F46D04112233",
-      ctrl_ip_dst_i  => X"C0A8012B",
-      ctrl_ip_src_i  => X"C0A8012E",
-      ctrl_udp_dst_i => X"1234",
-      ctrl_udp_src_i => X"2345",
-      mac_clk_i      => eth_clk,
-      mac_rst_i      => eth_rst,
-      mac_data_o     => mac_tx_data,
-      mac_sof_o      => mac_tx_sof,
-      mac_eof_o      => mac_tx_eof,
-      mac_empty_o    => mac_tx_empty,
-      mac_rden_i     => mac_tx_rden
-   );
+         eth_clk_i    => eth_clk,
+         eth_rst_i    => eth_rst,
+         eth_data_o   => mac_tx_data,
+         eth_sof_o    => mac_tx_sof,
+         eth_eof_o    => mac_tx_eof,
+         eth_empty_o  => mac_tx_empty,
+         eth_rden_i   => mac_tx_rden  
+      );
 
 
    ------------------------------
