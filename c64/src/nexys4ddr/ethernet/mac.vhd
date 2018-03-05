@@ -61,9 +61,7 @@ entity mac is
       eth_rxd_i    : in    std_logic_vector(1 downto 0);
       eth_rxerr_i  : in    std_logic;
       eth_crsdv_i  : in    std_logic;
-      eth_intn_i   : in    std_logic;
-      eth_refclk_o : out   std_logic         -- Connected to XTAL1/CLKIN. Must be driven to 50 MHz.
-                                             -- All RMII signals are syunchronous to this clock.
+      eth_intn_i   : in    std_logic
    );
 end mac;
 
@@ -204,7 +202,6 @@ begin
 
 
    -- Drive output signals
-   eth_refclk_o <= clk50_i;
    eth_txd_o    <= cur_byte(1 downto 0);
    eth_txen_o   <= eth_txen;
 

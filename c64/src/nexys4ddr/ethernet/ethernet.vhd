@@ -49,19 +49,8 @@ architecture Structural of ethernet is
 
 begin
 
-   tx_empty_ready <= tx_empty_i or not ready;
-   smi_ready_o    <= smi_ready and ready;
-
-   inst_reset : entity work.reset
-      generic map (
-         G_RESET_SIZE => G_RESET_SIZE
-      )
-      port map (
-         clk50_i    => clk50_i,
-         rst_i      => rst_i,
-         ready_o    => ready,
-         eth_rstn_o => eth_rstn_o 
-      );
+   tx_empty_ready <= tx_empty_i or rst_i;
+   smi_ready_o    <= smi_ready and not rst_i;
 
    inst_mac : entity work.mac
       port map (
@@ -76,8 +65,7 @@ begin
          eth_rxd_i    => eth_rxd_i,
          eth_rxerr_i  => eth_rxerr_i,
          eth_crsdv_i  => eth_crsdv_i,
-         eth_intn_i   => eth_intn_i,
-         eth_refclk_o => eth_refclk_o 
+         eth_intn_i   => eth_intn_i
       );
 
    inst_smi : entity work.smi
@@ -93,6 +81,9 @@ begin
          eth_mdio_io  => eth_mdio_io,
          eth_mdc_o    => eth_mdc_o    
       );
+
+   eth_refclk_o <= clk50_i;
+   eth_rstn_o   <= not rst_i;
 
 end Structural;
 

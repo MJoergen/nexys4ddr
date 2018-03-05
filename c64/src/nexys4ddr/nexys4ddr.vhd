@@ -59,13 +59,11 @@ architecture Structural of nexys4ddr is
 
    -- Clocks and Reset
    signal vga_clk   : std_logic;
+   signal vga_rst   : std_logic;
    signal cpu_clk   : std_logic;
+   signal cpu_rst   : std_logic;
    signal eth_clk   : std_logic;
-   signal cpu_rst   : std_logic := '1';
-   signal sys_rstn_debounce : std_logic := '0';
-   signal cpu_clk_stepped : std_logic;
-   signal eth_rst   : std_logic := '1';
-   signal vga_rst   : std_logic := '1';
+   signal eth_rst   : std_logic;
  
    -- VGA color output
    signal vga_col    : std_logic_vector(7 downto 0);
@@ -99,114 +97,35 @@ architecture Structural of nexys4ddr is
 
    signal mac_smi_registers : std_logic_vector(32*16-1 downto 0) := (others => '0');
 
-   signal clk_step     : std_logic;
-   signal clk_mode     : std_logic;
-   signal clk_mode_inv : std_logic;
-
-   signal eth_rstn   : std_logic;
-   signal eth_refclk : std_logic;
-
    signal pl_ena      : std_logic := '0';
    signal pl_sof      : std_logic;
    signal pl_eof      : std_logic;
    signal pl_data     : std_logic_vector(7 downto 0);
 
-   signal vga_rst_d  : std_logic := '1';
-   signal vga_rst_d2 : std_logic := '1';
-
 begin
 
-   ------------------------------
-   -- Instantiate Debounce
-   ------------------------------
+   -----------------------------
+   -- Generate clocks and resets
+   -----------------------------
 
-   inst_reset_debounce : entity work.debounce
+   inst_clk_rst : entity work.clk_rst
+   generic map (
+      G_RESET_SIZE => G_RESET_SIZE,
+      G_SIMULATION => G_SIMULATION
+   )
    port map (
-      clk_i => clk100_i,
-      in_i  => sys_rstn_i,
-      out_o => sys_rstn_debounce
+      sys_clk100_i => clk100_i,
+      sys_rstn_i   => sys_rstn_i,
+      sys_step_i   => btn_i(0),
+      sys_mode_i   => sw_i(0),
+      vga_clk_o    => vga_clk,
+      vga_rst_o    => vga_rst,
+      cpu_clk_o    => cpu_clk,
+      cpu_rst_o    => cpu_rst,
+      eth_clk_o    => eth_clk,
+      eth_rst_o    => eth_rst
    );
 
-   inst_step_debounce : entity work.debounce
-   port map (
-      clk_i => clk100_i,
-      in_i  => btn_i(0),
-      out_o => clk_step
-   );
-
-   inst_mode_debounce : entity work.debounce
-   port map (
-      clk_i => clk100_i,
-      in_i  => sw_i(0),
-      out_o => clk_mode
-   );
-
-
-   ------------------------------
-   -- Generate clocks
-   ------------------------------
-
-   gen_clocks : if G_SIMULATION = false generate
-      -- Generate clocks
-      inst_clk_wiz_0 : entity work.clk_wiz_0
-      port map
-      (
-         clk_in1 => clk100_i,
-         eth_clk => eth_clk,
-         vga_clk => vga_clk,
-         cpu_clk => cpu_clk
-      );
-
-      clk_mode_inv <= not clk_mode;
-
-      -- Note: For some reason, synthesis fails if I0 and I1 are swapped.
-      inst_bufgmux : BUFGCTRL
-      port map (
-         IGNORE0 => '0',
-         IGNORE1 => '0',
-         S0      => '1',
-         S1      => '1',
-         I1      => cpu_clk,
-         I0      => clk_step,
-         CE0     => clk_mode,
-         CE1     => clk_mode_inv,
-         O       => cpu_clk_stepped
-      );
-   end generate gen_clocks;
-
-   gen_no_clocks : if G_SIMULATION = true generate
-      vga_clk <= clk100_i;
-      cpu_clk <= clk100_i;
-      eth_clk <= clk100_i;
-      cpu_clk_stepped <= cpu_clk when clk_mode = '0' else clk_step;
-   end generate gen_no_clocks;
- 
- 
-   ------------------------------
-   -- Generate reset
-   ------------------------------
-
-   p_cpu_rst : process (cpu_clk)
-   begin
-      if rising_edge(cpu_clk) then
-         cpu_rst <= not sys_rstn_debounce;     -- Synchronize and invert polarity.
-      end if;
-   end process p_cpu_rst;
- 
-   p_eth_rst : process (eth_clk)
-   begin
-      if rising_edge(eth_clk) then
-         eth_rst <= not sys_rstn_debounce;     -- Synchronize and invert polarity.
-      end if;
-   end process p_eth_rst;
- 
-   p_vga_rst : process (vga_clk)
-   begin
-      if rising_edge(vga_clk) then
-         vga_rst <= not sys_rstn_debounce;     -- Synchronize and invert polarity.
-      end if;
-   end process p_vga_rst;
- 
 
    ------------------------------
    -- Read SMI from PHY
@@ -234,6 +153,10 @@ begin
             when others =>
                null;
          end case;
+
+         if eth_rst = '1' then
+            mac_smi_rden <= '0';
+         end if;
       end if;
    end process proc_smi;
 
@@ -265,10 +188,7 @@ begin
             pl_ena <= '1';
          end if;
 
-         vga_rst_d  <= vga_rst;
-         vga_rst_d2 <= vga_rst_d;
-
-         if vga_rst_d2 = '1' then
+         if vga_rst = '1' then
             pl_sof   <= '0';
             pl_eof   <= '0';
             pl_ena   <= '0';
@@ -311,7 +231,7 @@ begin
    )
    port map (
       clk50_i      => eth_clk,
-      rst_i        => '0',
+      rst_i        => eth_rst,
       -- SMI interface
       smi_ready_o  => mac_smi_ready,
       smi_phy_i    => mac_smi_phy,
@@ -335,8 +255,8 @@ begin
       eth_intn_i   => eth_intn_i,
       eth_mdio_io  => eth_mdio_io,
       eth_mdc_o    => eth_mdc_o,
-      eth_rstn_o   => eth_rstn,
-      eth_refclk_o => eth_refclk 
+      eth_rstn_o   => eth_rstn_o,
+      eth_refclk_o => eth_refclk_o
    );
 
 
@@ -354,7 +274,7 @@ begin
    )
    port map (
       vga_clk_i   => vga_clk,
-      cpu_clk_i   => cpu_clk_stepped,
+      cpu_clk_i   => cpu_clk,
       cpu_rst_i   => cpu_rst,
       --
       ps2_clk_i   => ps2_clk_i,
@@ -371,13 +291,7 @@ begin
    );
 
  
-   led_o(15 downto 3) <= (others => '0');
-   led_o(0) <= led;
-   led_o(1) <= eth_rstn;
-   led_o(2) <= eth_refclk;
-
-   eth_rstn_o   <= eth_rstn;
-   eth_refclk_o <= eth_refclk;
+   led_o(15 downto 0) <= (others => '0');
 
    vga_hs_o  <= vga_hs;
    vga_vs_o  <= vga_vs;

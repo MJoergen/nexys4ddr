@@ -3,16 +3,15 @@ TOP = nexys4ddr
 
 # Platform specific files
 SRC    = src/nexys4ddr/nexys4ddr.vhd
+SRC   += src/nexys4ddr/clk_rst.vhd
 SRC   += src/nexys4ddr/ethernet/mac.vhd
 SRC   += src/nexys4ddr/ethernet/smi.vhd
-SRC   += src/nexys4ddr/ethernet/reset.vhd
 SRC   += src/nexys4ddr/ethernet/fifo_alt.vhd
 SRC   += src/nexys4ddr/ethernet/encap.vhd
 SRC   += src/nexys4ddr/ethernet/ethernet.vhd
 SRC   += src/nexys4ddr/clk_wiz_0.vhd
 SRC   += src/nexys4ddr/clk_wiz_0_clk_wiz.vhd
 SRC   += src/nexys4ddr/debounce.vhd
-#SRC   += src/nexys4ddr/clk_rst.vhd
 TB_SRC = src/nexys4ddr/$(testbench).vhd
 XDC    = src/nexys4ddr/$(TOP).xdc
 
