@@ -166,6 +166,8 @@ begin
          case fsm_state is
             when IDLE_ST =>
                mac_empty_o <= '1';
+               mac_sof     <= '0';
+               mac_eof     <= '0';
                if mac_ctrl_empty = '0' then   -- We now have a complete frame, so lets build the header
                   frm_len   <= mac_ctrl_out;
                   mac_ctrl_rden <= '1';
