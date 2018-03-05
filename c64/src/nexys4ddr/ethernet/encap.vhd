@@ -42,16 +42,16 @@ architecture Structural of encap is
 
    -- Payload fifo output @ mac_clk_i
    signal mac_data_out    : std_logic_vector(7 downto 0);
-   signal mac_data_rden   : std_logic;
+   signal mac_data_rden   : std_logic := '0';
    signal mac_data_empty  : std_logic;
 
    -- Ctrl fifo input @ pl_clk_i
    signal pl_ctrl_in     : std_logic_vector(15 downto 0);
-   signal pl_ctrl_wren   : std_logic;
+   signal pl_ctrl_wren   : std_logic := '0';
 
    -- Ctrl fifo output @ mac_clk_i
    signal mac_ctrl_out    : std_logic_vector(15 downto 0);
-   signal mac_ctrl_rden   : std_logic;
+   signal mac_ctrl_rden   : std_logic := '0';
    signal mac_ctrl_empty  : std_logic;
 
    type t_fsm_state is (IDLE_ST, CHKSUM_ST, HDR_ST, PL_ST);
