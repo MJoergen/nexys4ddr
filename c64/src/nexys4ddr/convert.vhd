@@ -63,28 +63,38 @@ begin
    proc_tx_vga : process (vga_clk_i)
    begin
       if rising_edge(vga_clk_i) then
-         vga_data  <= vga_col_i;
+         vga_ena   <= '0';
          vga_sof   <= '0';
          vga_eof   <= '0';
-         vga_ena   <= '0';
+         vga_data  <= vga_col_i;
+
+         if (vga_vcount_i >= 0 and vga_vcount_i <= 479) and
+            (vga_hcount_i >= 0 and vga_hcount_i <= 639) and
+            (vga_ready = '1') then
+
+            vga_ena <= '1';
+         end if;
 
          if vga_vcount_i(0) = '0' and vga_hcount_i = 0 then
             vga_sof <= '1';
          end if;
+
          if vga_vcount_i(0) = '1' and vga_hcount_i = 639 then
             vga_eof <= '1';
-            vga_ready <= '1';
          end if;
-         if (vga_vcount_i(0) >= '0' and vga_vcount_i(0) <= '1') and 
-            (vga_hcount_i >= 0 and vga_hcount_i <= 639 and
-            vga_ready = '1') then
-            vga_ena <= '1';
+
+         if vga_vcount_i = 480 and vga_hcount_i = 0 then
+            vga_ena   <= '1';
+            vga_sof   <= '1';
+            vga_eof   <= '1';
+            vga_data  <= X"00";
+            vga_ready <= '1';
          end if;
 
          if vga_rst_i = '1' then
+            vga_ena   <= '0';
             vga_sof   <= '0';
             vga_eof   <= '0';
-            vga_ena   <= '0';
             vga_ready <= '0';
          end if;
       end if;
