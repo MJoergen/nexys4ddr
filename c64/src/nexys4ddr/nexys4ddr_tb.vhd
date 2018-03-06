@@ -70,7 +70,7 @@ begin
    -- Instantiate DUT
    inst_nexys4ddr : entity work.nexys4ddr
    generic map (
-      G_RESET_SIZE => 10,
+      G_RESET_SIZE => 8,
       G_SIMULATION => true
    )
    port map (

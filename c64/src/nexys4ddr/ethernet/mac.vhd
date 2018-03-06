@@ -84,18 +84,13 @@ architecture Structural of mac is
 
 begin
 
-   -- Calculate CRC
-   proc_crc : process (clk50_i)
-   begin
-      if falling_edge(clk50_i) then
-      end if;
-   end process proc_crc;
-
    -- Generate MAC framing
    proc_mac : process (clk50_i)
       variable crc_v : std_logic_vector(31 downto 0);
    begin
       if falling_edge(clk50_i) then
+
+         -- Calculate CRC
          if crc_enable = '1' then   -- Consume two bits of data
             crc_v := crc;
             for i in 0 to 1 loop
@@ -111,7 +106,6 @@ begin
          end if;
 
          rden_o     <= '0';
-
          twobit_cnt <= twobit_cnt + 1;
          cur_byte   <= "00" & cur_byte(7 downto 2);
 
