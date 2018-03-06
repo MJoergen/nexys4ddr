@@ -73,17 +73,17 @@ begin
             (vga_ready = '1') then
 
             vga_ena <= '1';
+
+            if vga_vcount_i(2 downto 0) = "000" and vga_hcount_i = 0 then
+               vga_sof <= '1';
+            end if;
+
+            if vga_vcount_i(2 downto 0) = "111" and vga_hcount_i = 639 then
+               vga_eof <= '1';
+            end if;
          end if;
 
-         if vga_vcount_i(0) = '0' and vga_hcount_i = 0 then
-            vga_sof <= '1';
-         end if;
-
-         if vga_vcount_i(0) = '1' and vga_hcount_i = 639 then
-            vga_eof <= '1';
-         end if;
-
-         if vga_vcount_i = 480 and vga_hcount_i = 0 then
+         if vga_vcount_i = X"07FC" and vga_hcount_i = 0 then
             vga_ena   <= '1';
             vga_sof   <= '1';
             vga_eof   <= '1';
