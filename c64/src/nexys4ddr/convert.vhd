@@ -16,8 +16,8 @@ entity convert is
       vga_clk_i    : in  std_logic;
       vga_rst_i    : in  std_logic;
       vga_col_i    : in  std_logic_vector(7 downto 0);
-      vga_hs_i     : in  std_logic;
-      vga_vs_i     : in  std_logic;
+      vga_hs_i     : in  std_logic;    -- Not used
+      vga_vs_i     : in  std_logic;    -- Not used
       vga_hcount_i : in  std_logic_vector(10 downto 0);
       vga_vcount_i : in  std_logic_vector(10 downto 0);
 
@@ -33,11 +33,24 @@ end convert;
 
 architecture Structural of convert is
 
-   -- VGA input
+   -- Packet with VGA data
    signal vga_ena    : std_logic := '0';
    signal vga_sof    : std_logic;
    signal vga_eof    : std_logic;
    signal vga_data   : std_logic_vector(7 downto 0);
+   signal vga_line   : std_logic_vector(7 downto 0);  -- Valid at SOF
+
+   -- Pipeline
+   signal vga_ena_d  : std_logic := '0';
+   signal vga_sof_d  : std_logic;
+   signal vga_eof_d  : std_logic;
+   signal vga_data_d : std_logic_vector(7 downto 0);
+ 
+   -- Packet with VGA data, including VGA line number
+   signal vga_pkg_ena  : std_logic := '0';
+   signal vga_pkg_sof  : std_logic;
+   signal vga_pkg_eof  : std_logic;
+   signal vga_pkg_data : std_logic_vector(7 downto 0);
  
    -- Compressed data
    signal vga_comp_ena    : std_logic := '0';
@@ -52,67 +65,110 @@ architecture Structural of convert is
    signal eth_empty : std_logic := '0';
    signal eth_rden  : std_logic := '0';
 
-   signal vga_ready : std_logic := '0';
-
 begin
 
-   ------------------------------
-   -- Transmit VGA data
-   ------------------------------
+   -----------------------------------------------
+   -- Generate packet with color data for 8 lines.
+   -- Total of 640*8 = 5120 bytes.
+   ------------------.----------------------------
 
-   proc_tx_vga : process (vga_clk_i)
+   proc_packet : process (vga_clk_i)
    begin
       if rising_edge(vga_clk_i) then
-         vga_ena   <= '0';
-         vga_sof   <= '0';
-         vga_eof   <= '0';
-         vga_data  <= vga_col_i;
+         vga_ena  <= '0';
+         vga_sof  <= '0';
+         vga_eof  <= '0';
+         vga_data <= vga_col_i;
+         vga_line <= vga_vcount_i(10 downto 3);
 
          if (vga_vcount_i >= 0 and vga_vcount_i <= 479) and
-            (vga_hcount_i >= 0 and vga_hcount_i <= 639) and
-            (vga_ready = '1') then
+            (vga_hcount_i >= 0 and vga_hcount_i <= 639) then
 
             vga_ena <= '1';
-
             if vga_vcount_i(2 downto 0) = "000" and vga_hcount_i = 0 then
                vga_sof <= '1';
             end if;
-
             if vga_vcount_i(2 downto 0) = "111" and vga_hcount_i = 639 then
                vga_eof <= '1';
             end if;
          end if;
 
-         if vga_vcount_i = X"07FC" and vga_hcount_i = 0 then
-            vga_ena   <= '1';
-            vga_sof   <= '1';
-            vga_eof   <= '1';
-            vga_data  <= X"00";
-            vga_ready <= '1';
+         if vga_rst_i = '1' then
+            vga_ena <= '0';
+            vga_sof <= '0';
+            vga_eof <= '0';
+         end if;
+      end if;
+   end process proc_packet;
+
+
+   -----------------------------------------------
+   -- Insert VGA line number
+   ------------------.----------------------------
+
+   proc_delay : process (vga_clk_i)
+   begin
+      if rising_edge(vga_clk_i) then
+         vga_ena_d  <= vga_ena;
+         vga_sof_d  <= vga_sof;
+         vga_eof_d  <= vga_eof;
+         vga_data_d <= vga_data;
+
+         if vga_rst_i = '1' then
+            vga_ena_d <= '0';
+            vga_sof_d <= '0';
+            vga_eof_d <= '0';
+         end if;
+      end if;
+   end process proc_delay;
+
+   proc_insert : process (vga_clk_i)
+   begin
+      if rising_edge(vga_clk_i) then
+
+         if vga_ena = '1' and vga_sof = '1' then
+            vga_pkg_ena  <= vga_ena;
+            vga_pkg_sof  <= vga_sof;
+            vga_pkg_eof  <= vga_eof;
+            vga_pkg_data <= vga_line;
+         else
+            vga_pkg_ena  <= vga_ena_d;
+            vga_pkg_sof  <= vga_sof_d;
+            vga_pkg_eof  <= vga_eof_d;
+            vga_pkg_data <= vga_data_d;
          end if;
 
          if vga_rst_i = '1' then
-            vga_ena   <= '0';
-            vga_sof   <= '0';
-            vga_eof   <= '0';
-            vga_ready <= '0';
+            vga_pkg_ena <= '0';
+            vga_pkg_sof <= '0';
+            vga_pkg_eof <= '0';
          end if;
       end if;
-   end process proc_tx_vga;
+   end process proc_insert;
+
+
+   ------------------------------
+   -- Compress packet
+   ------------------------------
 
    inst_compress : entity work.compress
    port map (
       clk_i       => vga_clk_i,
       rst_i       => vga_rst_i,
-      in_ena_i    => vga_ena,
-      in_sof_i    => vga_sof,
-      in_eof_i    => vga_eof,
-      in_data_i   => vga_data,
+      in_ena_i    => vga_pkg_ena,
+      in_sof_i    => vga_pkg_sof,
+      in_eof_i    => vga_pkg_eof,
+      in_data_i   => vga_pkg_data,
       out_ena_o   => vga_comp_ena,
       out_sof_o   => vga_comp_sof,
       out_eof_o   => vga_comp_eof,
       out_data_o  => vga_comp_data
    );
+
+
+   ---------------------------------------
+   -- Encapsulate packet in Ethernet frame
+   ---------------------------------------
 
    inst_encap : entity work.encap
    port map (
@@ -124,9 +180,9 @@ begin
       pl_data_i      => vga_comp_data,
       ctrl_mac_dst_i => X"F46D04D7F3CA",
       ctrl_mac_src_i => X"F46D04112233",
-      ctrl_ip_dst_i  => X"C0A8012B",
-      ctrl_ip_src_i  => X"C0A8012E",
-      ctrl_udp_dst_i => X"1234",
+      ctrl_ip_dst_i  => X"C0A8012B",      -- 192.168.1.43
+      ctrl_ip_src_i  => X"C0A8012E",      -- 192.168.1.46
+      ctrl_udp_dst_i => X"1234",          -- Port 4660
       ctrl_udp_src_i => X"2345",
       mac_clk_i      => eth_clk_i,
       mac_rst_i      => eth_rst_i,
