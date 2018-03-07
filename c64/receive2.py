@@ -6,7 +6,7 @@ import numpy
 # This file receives the compressed line data
 # and writes the decompressed data to separate files.
 
-UDP_IP   = "localhost"
+UDP_IP   = "192.168.1.43"
 UDP_PORT = 4660 
 
 sock = socket.socket(socket.AF_INET, # Internet
@@ -19,6 +19,8 @@ cur_frm = 0    # Current frame. Should increment 60 times a second.
 # First byte is the VGA line number (divided by 8), i.e. a value in the range 0-59.
 # Remaining 5120 bytes are 8 lines of 640 bytes.
 def write_frame(data):
+   global last_lin
+   global cur_frm
    lin_num = ord(data[0])
    assert (lin_num >= 0) and (lin_num <= 59)
    if lin_num < last_lin:
@@ -27,7 +29,7 @@ def write_frame(data):
 
    file_name = "frame_{:04d}_{:03d}.bin".format(cur_frm, lin_num)
    output_file = open(file_name, "wb")
-   output_file.write("".join(vals[1:]))
+   output_file.write("".join(data[1:]))
    output_file.close()
 
 # Array of received packet lengths
@@ -35,6 +37,7 @@ lens = []
 
 @atexit.register
 def goodbye():
+   global lens
    a = numpy.array(lens)
    print "Statistics of received packet lengths:"
    print "minimum: " + str(numpy.amin(a))
@@ -55,6 +58,6 @@ def decompress(data):
 # Expected bandwidth is 3600 packets pr. second.
 while True:
    data = sock.recv(4096)  # same buffer size as fifo in FPGA.
-   lens += len(data)
+   lens += [len(data)]
    write_frame(decompress(data))
 
