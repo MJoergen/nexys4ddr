@@ -34,7 +34,9 @@ entity encap is
       mac_sof_o   : out std_logic;
       mac_eof_o   : out std_logic;
       mac_empty_o : out std_logic;
-      mac_rden_i  : in  std_logic
+      mac_rden_i  : in  std_logic;
+
+      fifo_error_o : out std_logic
    );
 end encap;
 
@@ -80,15 +82,18 @@ begin
    generic map (
       G_WIDTH         => 8)
    port map (
-      wr_clk_i  => pl_clk_i,
-      wr_en_i   => pl_ena_i,
-      wr_data_i => pl_data_i,
+      wr_clk_i   => pl_clk_i,
+      wr_rst_i   => pl_rst_i,
+      wr_en_i    => pl_ena_i,
+      wr_data_i  => pl_data_i,
       --
       rd_clk_i   => mac_clk_i,
       rd_rst_i   => mac_rst_i,
       rd_en_i    => mac_data_rden,
       rd_data_o  => mac_data_out,
-      rd_empty_o => mac_data_empty
+      rd_empty_o => mac_data_empty,
+
+      error_o    => fifo_error_o
       );
 
    -- Count the number of bytes 
@@ -126,6 +131,7 @@ begin
       G_WIDTH         => 16)
    port map (
       wr_clk_i  => pl_clk_i,
+      wr_rst_i  => pl_rst_i,
       wr_en_i   => pl_ctrl_wren,
       wr_data_i => pl_ctrl_in,
       --

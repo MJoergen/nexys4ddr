@@ -66,6 +66,7 @@ begin
    )
    port map (
       wr_clk_i   => clk_i,
+      wr_rst_i   => rst_i,
       wr_en_i    => in_ena_i,
       wr_data_i  => fifo_in,
       --

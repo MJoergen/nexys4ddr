@@ -27,7 +27,9 @@ entity convert is
       eth_sof_o    : out std_logic;
       eth_eof_o    : out std_logic;
       eth_empty_o  : out std_logic;
-      eth_rden_i   : in  std_logic
+      eth_rden_i   : in  std_logic;
+
+      fifo_error_o : out std_logic
    );
 end convert;
 
@@ -134,7 +136,8 @@ begin
       mac_sof_o      => eth_sof_o,
       mac_eof_o      => eth_eof_o,
       mac_empty_o    => eth_empty_o,
-      mac_rden_i     => eth_rden_i
+      mac_rden_i     => eth_rden_i,
+      fifo_error_o   => fifo_error_o
    );
 
 end Structural;

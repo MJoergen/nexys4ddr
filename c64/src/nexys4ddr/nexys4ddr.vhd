@@ -97,6 +97,8 @@ architecture Structural of nexys4ddr is
 
    signal mac_smi_registers : std_logic_vector(32*16-1 downto 0) := (others => '0');
 
+   signal fifo_error : std_logic := '0';
+
 begin
 
    -----------------------------
@@ -176,7 +178,9 @@ begin
          eth_sof_o    => mac_tx_sof,
          eth_eof_o    => mac_tx_eof,
          eth_empty_o  => mac_tx_empty,
-         eth_rden_i   => mac_tx_rden  
+         eth_rden_i   => mac_tx_rden,
+
+         fifo_error_o => fifo_error
       );
 
 
@@ -250,7 +254,8 @@ begin
    );
 
  
-   led_o(15 downto 0) <= (others => '0');
+   led_o(15 downto 1) <= (others => '0');
+   led_o(0) <= fifo_error;
 
    vga_hs_o  <= vga_hs;
    vga_vs_o  <= vga_vs;
