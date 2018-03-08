@@ -130,12 +130,12 @@ begin
 
          if vga_ena = '1' and vga_sof = '1' then
             vga_pkg_ena  <= vga_ena;
-            vga_pkg_sof  <= vga_sof;
+            vga_pkg_sof  <= '1';
             vga_pkg_eof  <= vga_eof;
             vga_pkg_data <= vga_line;
          else
             vga_pkg_ena  <= vga_ena_d;
-            vga_pkg_sof  <= vga_sof_d;
+            vga_pkg_sof  <= '0';
             vga_pkg_eof  <= vga_eof_d;
             vga_pkg_data <= vga_data_d;
          end if;
