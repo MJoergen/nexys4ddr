@@ -1,11 +1,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 -- This is a simple run-length-encoding compression algorithm
 
 entity compress is
-
    port (
       clk_i       : in  std_logic;
       rst_i       : in  std_logic;
@@ -22,122 +22,159 @@ end compress;
 
 architecture Structural of compress is
 
-   signal fifo_in  : std_logic_vector(15 downto 0);
-   signal fifo_out : std_logic_vector(15 downto 0);
-   signal fifo_out_sof  : std_logic;
-   signal fifo_out_eof  : std_logic;
-   signal fifo_out_data : std_logic_vector(7 downto 0);
-   signal fifo_rden  : std_logic;
-   signal fifo_empty : std_logic;
+   signal in_sof_d  : std_logic;
+   signal in_eof_d  : std_logic;
+   signal in_data_d : std_logic_vector(7 downto 0);
 
-   -- State machine to control the MAC framing
-   type t_fsm_state is (IDLE_ST, COUNT_ST, WRITE_ST);
-   signal fsm_state : t_fsm_state := IDLE_ST;
-   signal fsm_sof : std_logic;
-   signal fsm_eof : std_logic;
-
-   signal cur_byte : std_logic_vector(7 downto 0);
-   signal cur_cnt  : std_logic_vector(7 downto 0);
+   signal fifo_wr_en     : std_logic;
+   signal fifo_wr_data   : std_logic_vector(31 downto 0);
+   signal fifo_rd_en     : std_logic;
+   signal fifo_rd_data   : std_logic_vector(15 downto 0);
+   signal fifo_rd_empty  : std_logic;
 
    signal out_ena   : std_logic;
    signal out_sof   : std_logic;
    signal out_eof   : std_logic;
+   signal out_eof_d : std_logic;
    signal out_data  : std_logic_vector(7 downto 0);
+
+   signal fsm_sof : std_logic;
+   signal fsm_eof : std_logic;
+   signal fsm_cnt : std_logic_vector(7 downto 0);
 
 begin
 
+   proc_delay : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if in_ena_i = '1' then
+            in_sof_d  <= in_sof_i;
+            in_eof_d  <= in_eof_i;
+            in_data_d <= in_data_i;
+         end if;
+      end if;
+   end process proc_delay;
+
+
+   proc_input : process (clk_i)
+      variable same_v : std_logic;
+      variable lst_v  : std_logic_vector(2 downto 0);
+   begin
+      if rising_edge(clk_i) then
+         fifo_wr_en   <= '0';
+         fifo_wr_data(31 downto 26) <= (others => '0');
+         fifo_wr_data(15 downto 10) <= (others => '0');
+         fifo_wr_data(9)            <= '0'; -- Never EOF on first byte
+         fifo_wr_data(24)           <= '0'; -- Never SOF on second byte
+
+         same_v := '0';
+         if in_data_d = in_data_i then
+            same_v := '1';
+         end if;
+
+         lst_v := in_sof_i & in_eof_i & same_v;
+
+         if in_ena_i = '1' then
+            case lst_v is
+               when "000" =>
+                  fifo_wr_data(7 downto 0)   <= in_data_d;
+                  fifo_wr_data(8)            <= fsm_sof;
+                  fifo_wr_data(23 downto 16) <= fsm_cnt;
+                  fifo_wr_data(25)           <= fsm_eof;
+                  fifo_wr_en <= '1';
+                  fsm_sof    <= '0';
+                  fsm_eof    <= '0';
+                  fsm_cnt    <= (others => '0');
+
+               when "001" =>
+                  fsm_cnt <= fsm_cnt + 1;
+
+               when "010" =>
+                  fifo_wr_data(7 downto 0)   <= in_data_d;
+                  fifo_wr_data(8)            <= fsm_sof;
+                  fifo_wr_data(23 downto 16) <= fsm_cnt;
+                  fifo_wr_data(25)           <= '0';
+                  fifo_wr_en <= '1';
+                  fsm_sof    <= '0';
+                  fsm_eof    <= '1';
+                  fsm_cnt    <= (others => '0');
+
+               when "011" =>
+                  fifo_wr_data(7 downto 0)   <= in_data_d;
+                  fifo_wr_data(8)            <= fsm_sof;
+                  fifo_wr_data(23 downto 16) <= fsm_cnt + 1;
+                  fifo_wr_data(25)           <= '1';
+                  fifo_wr_en <= '1';
+                  fsm_sof    <= '0';
+                  fsm_eof    <= '0';
+                  fsm_cnt    <= (others => '0');
+
+               when "100" | "101" =>
+                  fsm_cnt <= (others => '0');
+                  fsm_sof <= '1';
+                  fsm_eof <= '0';
+
+               when "110" | "111" =>
+                  fifo_wr_data(7 downto 0)   <= in_data_i;
+                  fifo_wr_data(8)            <= '1';
+                  fifo_wr_data(23 downto 16) <= (others => '0');
+                  fifo_wr_data(25)           <= '1';
+                  fifo_wr_en <= '1';
+
+               when others => null;
+            end case;
+
+            if fsm_eof = '1' then
+               fifo_wr_data(7 downto 0)   <= in_data_d;
+               fifo_wr_data(8)            <= '0';
+               fifo_wr_data(23 downto 16) <= (others => '0');
+               fifo_wr_data(25)           <= '1';
+               fifo_wr_en <= '1';
+               fsm_eof <= '0';
+            end if;
+
+         end if;
+      end if;
+   end process proc_input;
+
+
    -------------------------
-   -- Instantiate input FIFO
-   -- Note: This input fifo really doesn't need to be very big.
-   -- Just a few bytes will suffice.
+   -- Instantiate output FIFO
    -------------------------
 
-   fifo_in(15 downto 10) <= "000000";
-   fifo_in(9) <= in_sof_i;
-   fifo_in(8) <= in_eof_i;
-   fifo_in(7 downto 0) <= in_data_i;
-   fifo_out_sof  <= fifo_out(9);
-   fifo_out_eof  <= fifo_out(8);
-   fifo_out_data <= fifo_out(7 downto 0);
-
-   inst_fifo : entity work.fifo
+   inst_fifo : entity work.fifo_width_change
    generic map (
-      G_WIDTH => 16
-   )
+      G_WRPORT_SIZE => 32,
+      G_RDPORT_SIZE => 16
+      )
    port map (
       wr_clk_i   => clk_i,
       wr_rst_i   => rst_i,
-      wr_en_i    => in_ena_i,
-      wr_data_i  => fifo_in,
-      --
       rd_clk_i   => clk_i,
       rd_rst_i   => rst_i,
-      rd_en_i    => fifo_rden,
-      rd_data_o  => fifo_out,
-      rd_empty_o => fifo_empty 
-   );
 
-   proc_fsm : process (clk_i)
+      wr_en_i    => fifo_wr_en,
+      wr_data_i  => fifo_wr_data,
+      rd_en_i    => fifo_rd_en,
+      rd_data_o  => fifo_rd_data,
+      rd_empty_o => fifo_rd_empty
+      );
+
+   -- Read from fifo
+   fifo_rd_en <= '1' when fifo_rd_empty = '0' and (out_eof = '0' or out_eof_d = '1')
+                 else '0';
+
+   -- Drive output signals
+   proc_out : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         out_ena   <= '0';
-         out_sof   <= '0';
-         out_eof   <= '0';
-
-         case fsm_state is
-            when IDLE_ST =>
-               if fifo_empty = '0' then
-                  assert fifo_out_sof = '1' report "Expected SOF" severity failure;
-                  fsm_sof   <= '1';
-                  cur_byte  <= fifo_out_data;
-                  cur_cnt   <= (others => '0');
-                  fsm_state <= COUNT_ST;
-               end if;
-
-            when COUNT_ST =>
-               if fifo_empty = '0' then
-                  if cur_byte = fifo_out_data and 
-                     cur_cnt /= X"FF" and
-                     fifo_out_eof = '0' then
-
-                     cur_cnt   <= cur_cnt + 1;
-                  else
-                     out_ena   <= '1';
-                     out_sof   <= fsm_sof;
-                     out_eof   <= '0';
-                     out_data  <= cur_cnt;
-
-                     fsm_sof   <= '0';
-                     fsm_eof   <= fifo_out_eof;
-                     fsm_state <= WRITE_ST;
-                  end if;
-               end if;
-
-            when WRITE_ST =>
-               out_ena  <= '1';
-               out_sof  <= '0';
-               out_eof  <= fsm_eof;
-               out_data <= cur_byte;
-
-               cur_byte  <= fifo_out_data;
-               cur_cnt   <= (others => '0');
-               fsm_sof   <= '0';
-               if fsm_eof = '0' then
-                  fsm_state <= COUNT_ST;
-               else
-                  fsm_state <= IDLE_ST;
-               end if;
-
-         end case;
-
-         if rst_i = '1' then
-            out_ena   <= '0';
-            fsm_state <= IDLE_ST;
-         end if;
+         out_ena  <= fifo_rd_en;
+         out_sof  <= fifo_rd_data(8) and fifo_rd_en;
+         out_eof  <= fifo_rd_data(9) and fifo_rd_en;
+         out_data <= fifo_rd_data(7 downto 0);
+         out_eof_d <= out_eof;
       end if;
-   end process proc_fsm;
-
-   fifo_rden <= '1' when fsm_state = COUNT_ST and fifo_empty = '0' else '0';
+   end process proc_out;
 
    out_ena_o  <= out_ena;
    out_sof_o  <= out_sof;

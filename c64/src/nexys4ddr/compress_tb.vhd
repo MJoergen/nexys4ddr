@@ -25,20 +25,22 @@ architecture Structural of compress_tb is
    type t_dat is array (natural range <>) of std_logic_vector(11 downto 0);
    -- Bit 8 is SOF, bit 9 is EOF.
    constant dat_in : t_dat := (
+      X"187", X"087", X"287",
+      X"187", X"087", X"078", X"278",
       X"387",
       X"187", X"287",
       X"187", X"278",
-      X"187", X"087", X"287",
       X"187", X"087", X"278",
       X"187", X"078", X"278");
 
    constant dat_out : t_dat := (
-      X"187", X"201",
       X"187", X"202",
       X"187", X"001", X"078", X"201",
-      X"187", X"203",
-      X"187", X"002", X"078", X"201",
-      X"187", X"001", X"078", X"202");
+      X"187", X"200",
+      X"187", X"201",
+      X"187", X"000", X"078", X"200",
+      X"187", X"001", X"078", X"200",
+      X"187", X"000", X"078", X"201");
 
    signal idx_in   : integer := 0;
    signal idx_out  : integer := 0;
