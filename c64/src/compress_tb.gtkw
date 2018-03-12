@@ -1,0 +1,42 @@
+[*]
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Mon Mar 12 18:25:29 2018
+[*]
+[dumpfile] "/home/mike/git/nexys4ddr/c64/compress.ghw"
+[dumpfile_mtime] "Mon Mar 12 18:24:48 2018"
+[dumpfile_size] 300750
+[savefile] "/home/mike/git/nexys4ddr/c64/src/compress_tb.gtkw"
+[timestart] 0
+[size] 1457 886
+[pos] -1 -1
+*-26.133718 224900000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.compress_tb.
+[treeopen] top.compress_tb.inst_compress.
+[sst_width] 229
+[signals_width] 263
+[sst_expanded] 1
+[sst_vpaned_height] 238
+@28
+top.compress_tb.inst_compress.clk_i
+top.compress_tb.inst_compress.rst_i
+top.compress_tb.rst_done
+top.compress_tb.inst_compress.in_ena_i
+top.compress_tb.inst_compress.in_sof_i
+top.compress_tb.inst_compress.in_eof_i
+@22
+#{top.compress_tb.inst_compress.in_data_i[7:0]} top.compress_tb.inst_compress.in_data_i[7] top.compress_tb.inst_compress.in_data_i[6] top.compress_tb.inst_compress.in_data_i[5] top.compress_tb.inst_compress.in_data_i[4] top.compress_tb.inst_compress.in_data_i[3] top.compress_tb.inst_compress.in_data_i[2] top.compress_tb.inst_compress.in_data_i[1] top.compress_tb.inst_compress.in_data_i[0]
+@23
+#{top.compress_tb.inst_compress.fsm_cnt[7:0]} top.compress_tb.inst_compress.fsm_cnt[7] top.compress_tb.inst_compress.fsm_cnt[6] top.compress_tb.inst_compress.fsm_cnt[5] top.compress_tb.inst_compress.fsm_cnt[4] top.compress_tb.inst_compress.fsm_cnt[3] top.compress_tb.inst_compress.fsm_cnt[2] top.compress_tb.inst_compress.fsm_cnt[1] top.compress_tb.inst_compress.fsm_cnt[0]
+@28
+top.compress_tb.inst_compress.fifo_wr_en
+@22
+#{top.compress_tb.inst_compress.fifo_wr_data[31:0]} top.compress_tb.inst_compress.fifo_wr_data[31] top.compress_tb.inst_compress.fifo_wr_data[30] top.compress_tb.inst_compress.fifo_wr_data[29] top.compress_tb.inst_compress.fifo_wr_data[28] top.compress_tb.inst_compress.fifo_wr_data[27] top.compress_tb.inst_compress.fifo_wr_data[26] top.compress_tb.inst_compress.fifo_wr_data[25] top.compress_tb.inst_compress.fifo_wr_data[24] top.compress_tb.inst_compress.fifo_wr_data[23] top.compress_tb.inst_compress.fifo_wr_data[22] top.compress_tb.inst_compress.fifo_wr_data[21] top.compress_tb.inst_compress.fifo_wr_data[20] top.compress_tb.inst_compress.fifo_wr_data[19] top.compress_tb.inst_compress.fifo_wr_data[18] top.compress_tb.inst_compress.fifo_wr_data[17] top.compress_tb.inst_compress.fifo_wr_data[16] top.compress_tb.inst_compress.fifo_wr_data[15] top.compress_tb.inst_compress.fifo_wr_data[14] top.compress_tb.inst_compress.fifo_wr_data[13] top.compress_tb.inst_compress.fifo_wr_data[12] top.compress_tb.inst_compress.fifo_wr_data[11] top.compress_tb.inst_compress.fifo_wr_data[10] top.compress_tb.inst_compress.fifo_wr_data[9] top.compress_tb.inst_compress.fifo_wr_data[8] top.compress_tb.inst_compress.fifo_wr_data[7] top.compress_tb.inst_compress.fifo_wr_data[6] top.compress_tb.inst_compress.fifo_wr_data[5] top.compress_tb.inst_compress.fifo_wr_data[4] top.compress_tb.inst_compress.fifo_wr_data[3] top.compress_tb.inst_compress.fifo_wr_data[2] top.compress_tb.inst_compress.fifo_wr_data[1] top.compress_tb.inst_compress.fifo_wr_data[0]
+@28
+top.compress_tb.inst_compress.out_ena_o
+top.compress_tb.inst_compress.out_sof_o
+top.compress_tb.inst_compress.out_eof_o
+@22
+#{top.compress_tb.inst_compress.out_data_o[7:0]} top.compress_tb.inst_compress.out_data_o[7] top.compress_tb.inst_compress.out_data_o[6] top.compress_tb.inst_compress.out_data_o[5] top.compress_tb.inst_compress.out_data_o[4] top.compress_tb.inst_compress.out_data_o[3] top.compress_tb.inst_compress.out_data_o[2] top.compress_tb.inst_compress.out_data_o[1] top.compress_tb.inst_compress.out_data_o[0]
+[pattern_trace] 1
+[pattern_trace] 0
