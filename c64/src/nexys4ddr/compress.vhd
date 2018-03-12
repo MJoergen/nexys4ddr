@@ -70,6 +70,9 @@ begin
          same_v := '0';
          if in_data_d = in_data_i then
             same_v := '1';
+            if in_sof_i = '0' and in_eof_i = '0' and fsm_cnt = X"FF" then
+               same_v := '0';
+            end if;
          end if;
 
          lst_v := in_sof_i & in_eof_i & same_v;
@@ -134,6 +137,11 @@ begin
             end if;
 
          end if;
+
+         if rst_i = '1' then
+            fifo_wr_en <= '0';
+            fsm_cnt    <= (others => '0');
+         end if;
       end if;
    end process proc_input;
 
@@ -173,6 +181,13 @@ begin
          out_eof  <= fifo_rd_data(9) and fifo_rd_en;
          out_data <= fifo_rd_data(7 downto 0);
          out_eof_d <= out_eof;
+
+         if rst_i = '1' then
+            out_ena   <= '0';
+            out_sof   <= '0';
+            out_eof   <= '0';
+            out_eof_d <= '0';
+         end if;
       end if;
    end process proc_out;
 
