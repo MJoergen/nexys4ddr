@@ -3,6 +3,11 @@
 from PIL import Image
 import BinImagePlugin
 import StringIO
+import glob
 
-im = Image.open("frame_0070.bin")
-im.show()
+flist = glob.glob('frame_*.bin')
+for f in flist:
+    im = Image.open(f)
+    newf = f[:-3] + "png"
+    im.save(newf)
+
