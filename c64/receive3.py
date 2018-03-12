@@ -51,6 +51,7 @@ def process_data(data):
       err = True
 
    last_line = lin_num
+   print ".",
 
    # Store received data in frame buffer
    for i in range(8):
@@ -75,7 +76,7 @@ def decompress(data):
    assert (len(data) % 2) == 0
    vals = []
    for i in range(len(data)/2):
-       vals += [data[i*2+1]]*(1+ord(data[i*2]))
+       vals += [data[i*2]]*(1+ord(data[i*2+1]))
    assert len(vals) == (8*640 + 1)
    return vals
 

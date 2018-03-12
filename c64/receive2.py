@@ -29,7 +29,7 @@ def write_frame(data):
 
    file_name = "frame_{:04d}_{:03d}.bin".format(cur_frm, lin_num)
    output_file = open(file_name, "wb")
-   output_file.write("".join(data[1:]))
+   output_file.write("".join(data))
    output_file.close()
 
 # Array of received packet lengths
@@ -50,8 +50,8 @@ def decompress(data):
    assert (len(data) % 2) == 0
    vals = []
    for i in range(len(data)/2):
-       vals += [data[i*2+1]]*(1+ord(data[i*2]))
-   assert len(vals) == (8*640 + 1)
+       vals += [data[i*2]]*(1+ord(data[i*2+1]))
+   #assert len(vals) == (8*640 + 1)
    return vals
 
 # Process incoming packets.
