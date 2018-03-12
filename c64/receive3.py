@@ -77,8 +77,12 @@ def decompress(data):
    vals = []
    for i in range(len(data)/2):
        vals += [data[i*2]]*(1+ord(data[i*2+1]))
-   assert len(vals) == (8*640 + 1)
-   return vals
+   if len(vals) == (8*640 + 1):
+       return vals
+   print "data=", "".join(map("{:02x}".format, map(ord, data)))
+   print len(vals)
+   print "vals=", "".join(map("{:02x}".format, map(ord, vals)))
+   assert False
 
 # Process incoming packets.
 # Expected bandwidth is 3600 packets pr. second.
