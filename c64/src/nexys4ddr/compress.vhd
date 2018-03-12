@@ -70,7 +70,7 @@ begin
          same_v := '0';
          if in_data_d = in_data_i then
             same_v := '1';
-            if in_sof_i = '0' and in_eof_i = '0' and fsm_cnt = X"FF" then
+            if in_sof_i = '0' and fsm_cnt = X"FF" then
                same_v := '0';
             end if;
          end if;
@@ -126,16 +126,15 @@ begin
 
                when others => null;
             end case;
+         end if;
 
-            if fsm_eof = '1' then
-               fifo_wr_data(7 downto 0)   <= in_data_d;
-               fifo_wr_data(8)            <= '0';
-               fifo_wr_data(23 downto 16) <= (others => '0');
-               fifo_wr_data(25)           <= '1';
-               fifo_wr_en <= '1';
-               fsm_eof <= '0';
-            end if;
-
+         if fsm_eof = '1' then
+            fifo_wr_data(7 downto 0)   <= in_data_d;
+            fifo_wr_data(8)            <= '0';
+            fifo_wr_data(23 downto 16) <= (others => '0');
+            fifo_wr_data(25)           <= '1';
+            fifo_wr_en <= '1';
+            fsm_eof <= '0';
          end if;
 
          if rst_i = '1' then
