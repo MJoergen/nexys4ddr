@@ -63,5 +63,12 @@ VECTORS_AS  = src/prog/vectors.s
 
 stoptime = --stop-time=150us
 
+# The following is used for the compress.vhd unit test.
+#SRC    = src/nexys4ddr/compress3.vhd
+#SRC   += src/nexys4ddr/fifo_width_change.vhd
+#SRC   += src/nexys4ddr/ethernet/fifo_alt.vhd
+#TB_SRC = src/nexys4ddr/compress_tb.vhd
+#TOP = compress
+
 include ../xilinx.mk
 
