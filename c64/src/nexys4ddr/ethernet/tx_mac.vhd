@@ -43,32 +43,27 @@ use ieee.numeric_std.all;
 -- ensure that the setup and hold requirements are met, the nibbles are clocked
 -- out of the transceiver on the falling edge of XTAL1/CLKIN (REF_CLK). 
 
-entity mac is
+entity tx_mac is
 
    port (
-      clk50_i      : in    std_logic;        -- Must be 50 MHz
+      clk50_i      : in  std_logic;        -- Must be 50 MHz
 
       -- Pulling interface
-      data_i       : in    std_logic_vector(7 downto 0);
-      sof_i        : in    std_logic;
-      eof_i        : in    std_logic;
-      empty_i      : in    std_logic;
-      rden_o       : out   std_logic;
+      data_i       : in  std_logic_vector(7 downto 0);
+      sof_i        : in  std_logic;
+      eof_i        : in  std_logic;
+      empty_i      : in  std_logic;
+      rden_o       : out std_logic;
 
       -- Connected to PHY
-      eth_txd_o    : out   std_logic_vector(1 downto 0);
-      eth_txen_o   : out   std_logic;
-      eth_rxd_i    : in    std_logic_vector(1 downto 0);
-      eth_rxerr_i  : in    std_logic;
-      eth_crsdv_i  : in    std_logic;
-      eth_intn_i   : in    std_logic
+      eth_txd_o    : out std_logic_vector(1 downto 0);
+      eth_txen_o   : out std_logic
    );
-end mac;
+end tx_mac;
 
-architecture Structural of mac is
+architecture Structural of tx_mac is
 
    signal eth_txen   : std_logic := '0';
-   signal eth_mdc    : std_logic := '0';  -- Not used at the moment.
 
    -- State machine to control the MAC framing
    type t_fsm_state is (IDLE_ST, PRE1_ST, PRE2_ST, PAYLOAD_ST, LAST_ST, CRC_ST, IFG_ST);
@@ -163,18 +158,21 @@ begin
 
                when LAST_ST => 
                   byte_cnt   <= 4;
+                  -- CRC is transmitted MSB first.
                   cur_byte   <= not (crc_v(24) & crc_v(25) & crc_v(26) & crc_v(27) &
-                                     crc_v(28) & crc_v(29) & crc_v(30) & crc_v(31));      -- CRC is transmitted MSB first.
+                                     crc_v(28) & crc_v(29) & crc_v(30) & crc_v(31));
                   crc_reg    <= crc_v(23 downto 0) & X"00";
                   crc_enable <= '0';         -- This will reset the CRC.
                   fsm_state  <= CRC_ST;
 
                when CRC_ST =>
+                  -- CRC is transmitted MSB first.
                   cur_byte <= not (crc_reg(24) & crc_reg(25) & crc_reg(26) & crc_reg(27) &
-                                   crc_reg(28) & crc_reg(29) & crc_reg(30) & crc_reg(31));      -- CRC is transmitted MSB first.
+                                   crc_reg(28) & crc_reg(29) & crc_reg(30) & crc_reg(31));
                   crc_reg  <= crc_reg(23 downto 0) & X"00";
                   if byte_cnt = 1 then
-                     byte_cnt  <= 11;           -- Only 11 octets, because the next state is always the idle state.
+                     -- Only 11 octets, because the next state is always the idle state.
+                     byte_cnt  <= 11;
                      cur_byte  <= (others => '0');
                      fsm_state <= IFG_ST;
                      eth_txen  <= '0';
@@ -193,7 +191,6 @@ begin
          end if;
       end if;
    end process proc_mac;
-
 
    -- Drive output signals
    eth_txd_o    <= cur_byte(1 downto 0);
