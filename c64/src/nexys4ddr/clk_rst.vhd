@@ -6,19 +6,24 @@ library UNISIM;
 use UNISIM.Vcomponents.all;
 
 -- This file generates clocks and resets for the VGA, CPU, and Ethernet modules.
--- The Ethernet reset is asserted for approx 40 ms.
+
+-- Minimum reset assert time for the Ethernet PHY is 25 ms.
+-- At 50 MHz (= 20 ns pr clock cycle) this is approx 10^6 clock cycles.
+-- Therefore, for a real implementation, G_RESET_SIZE should be set to 22,
+-- corresponding to approx 2*10^6 clock cycles, i.e. 40 ms.
+
 -- The VGA and CPU resets are aaserted for approx 80 ms, to allow
 -- the Ethernet PHY to wake up from reset.
 
 entity clk_rst is
-
    generic (
-      G_RESET_SIZE : integer := 22;          -- Number of bits in reset counter.
-      G_SIMULATION : boolean := false
+      G_RESET_SIZE : integer;       -- Number of bits in reset counter.
+      G_SIMULATION : boolean        -- Set true to disable MMCM's, to 
+                                    -- speed up simulation time.
    );
    port (
-      -- Clock
-      sys_clk100_i : in  std_logic;   -- This pin is connected to an external 100 MHz crystal.
+      -- Clock. Connected to an external 100 MHz crystal.
+      sys_clk100_i : in  std_logic;
 
       -- Input switches and push buttons
       sys_rstn_i : in  std_logic;   -- Asserted low
@@ -37,11 +42,11 @@ end clk_rst;
 
 architecture Structural of clk_rst is
 
-   -- Synchronized and debounced input signals
-   signal clk_rstn : std_logic := '0';
-   signal clk_step : std_logic := '0';
-   signal clk_mode : std_logic := '0';
-   signal clk_mode_inv : std_logic := '1';
+   -- Debounced input signals (@ sys_clk100_i)
+   signal sys_rstn : std_logic := '0';
+   signal sys_step : std_logic := '0';
+   signal sys_mode : std_logic := '0';
+   signal sys_mode_inv : std_logic := '1';
 
    -- Clocks and Reset
    signal vga_clk   : std_logic := '0';
@@ -56,36 +61,34 @@ architecture Structural of clk_rst is
    signal ready : std_logic := '0';
    signal reset : std_logic := '1'; 
 
-   -- Minimum reset assert time is 25 ms. At 50 MHz (= 20 ns) this is approx 10^6 clock cycles.
-   -- Here we have 21 bits, corresponding to approx 2*10^6 clock cycles, i.e. 40 ms.
    -- Set initially to all-ones, to start the count down.
    signal reset_cnt : std_logic_vector(G_RESET_SIZE-1 downto 0) := (others => '1');
 
 begin
 
-   ------------------------------
-   -- Instantiate Debounce
-   ------------------------------
+   -------------------------
+   -- Debounce input signals
+   -------------------------
 
    inst_reset_debounce : entity work.debounce
    port map (
       clk_i => sys_clk100_i,
       in_i  => sys_rstn_i,
-      out_o => clk_rstn
+      out_o => sys_rstn
    );
 
    inst_step_debounce : entity work.debounce
    port map (
       clk_i => sys_clk100_i,
       in_i  => sys_step_i,
-      out_o => clk_step
+      out_o => sys_step
    );
 
    inst_mode_debounce : entity work.debounce
    port map (
       clk_i => sys_clk100_i,
       in_i  => sys_mode_i,
-      out_o => clk_mode
+      out_o => sys_mode
    );
 
 
@@ -104,7 +107,7 @@ begin
          cpu_clk => cpu_clk
       );
 
-      clk_mode_inv <= not clk_mode;
+      sys_mode_inv <= not sys_mode;
 
       -- Note: For some reason, synthesis fails if I0 and I1 are swapped.
       inst_bufgmux : BUFGCTRL
@@ -114,9 +117,9 @@ begin
          S0      => '1',
          S1      => '1',
          I1      => cpu_clk,
-         I0      => clk_step,
-         CE0     => clk_mode,
-         CE1     => clk_mode_inv,
+         I0      => sys_step,
+         CE0     => sys_mode,
+         CE1     => sys_mode_inv,
          O       => cpu_clk_stepped
       );
    end generate gen_clocks;
@@ -125,7 +128,7 @@ begin
       vga_clk <= sys_clk100_i;
       cpu_clk <= sys_clk100_i;
       eth_clk <= sys_clk100_i;
-      cpu_clk_stepped <= cpu_clk when clk_mode = '0' else clk_step;
+      cpu_clk_stepped <= cpu_clk when sys_mode = '0' else sys_step;
    end generate gen_no_clocks;
  
  
@@ -148,7 +151,7 @@ begin
 
          reset <= reset_cnt(reset_cnt'left);
 
-         if clk_rstn = '0' then
+         if sys_rstn = '0' then
             reset_cnt <= (others => '1');
             ready     <= '0';
             reset     <= '1';
