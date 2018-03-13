@@ -22,21 +22,22 @@ use ieee.numeric_std.all;
 entity smi is
 
    port (
-      clk50_i      : in    std_logic;        -- Must be 50 MHz
+      eth_clk_i   : in    std_logic;        -- Must be 50 MHz
+      eth_rst_i   : in    std_logic;
 
-      ready_o      : out   std_logic;
-      phy_i        : in    std_logic_vector(4 downto 0);
-      addr_i       : in    std_logic_vector(4 downto 0);
+      ready_o     : out   std_logic;
+      phy_i       : in    std_logic_vector(4 downto 0);
+      addr_i      : in    std_logic_vector(4 downto 0);
 
-      rden_i       : in    std_logic;
-      data_o       : out   std_logic_vector(15 downto 0);
+      rden_i      : in    std_logic;
+      data_o      : out   std_logic_vector(15 downto 0);
 
-      wren_i       : in    std_logic;
-      data_i       : in    std_logic_vector(15 downto 0);
+      wren_i      : in    std_logic;
+      data_i      : in    std_logic_vector(15 downto 0);
 
-      -- Connected to PHY
-      eth_mdio_io  : inout std_logic;
-      eth_mdc_o    : out   std_logic
+      -- Connectedto PHY
+      eth_mdio_io : inout std_logic;
+      eth_mdc_o   : out   std_logic
    );
 end smi;
 
@@ -64,9 +65,9 @@ architecture Structural of smi is
 
 begin
 
-   proc_fsm : process (clk50_i)
+   proc_fsm : process (eth_clk_i)
    begin
-      if rising_edge(clk50_i) then
+      if rising_edge(eth_clk_i) then
 
          clk_count <= clk_count + 1;
          if clk_count = 0 then   -- Change state after falling edge of SMI clock
@@ -137,6 +138,11 @@ begin
                   end if;
 
             end case;
+         end if;
+
+         if eth_rst_i = '1' then
+            fsm_state <= IDLE_ST;
+            clk_count <= (others => '0');
          end if;
       end if;
    end process proc_fsm;

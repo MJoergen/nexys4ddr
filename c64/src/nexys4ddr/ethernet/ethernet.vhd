@@ -84,7 +84,8 @@ begin
 
    inst_smi : entity work.smi
       port map (
-         clk50_i      => eth_clk_i,
+         eth_clk_i    => eth_clk_i,
+         eth_rst_i    => eth_rst_i,
          ready_o      => smi_ready, 
          phy_i        => smi_phy_i,
          addr_i       => smi_addr_i,
