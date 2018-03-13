@@ -2,14 +2,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
-library UNISIM;
-use UNISIM.Vcomponents.all;
-
 -- This is the top level wrapper for the NEXYS4DDR board.
 -- This is needed, because this design is meant to
 -- work on both the BASYS2 and the NEXYS4DDR boards.
 -- This file therefore contains all the stuff
--- peculiar to the NEXYS4DDR platform.
+-- particular to the NEXYS4DDR platform.
 
 entity nexys4ddr is
 
@@ -18,22 +15,22 @@ entity nexys4ddr is
       G_SIMULATION : boolean := false
    );
    port (
-      -- Clock
-      clk100_i   : in  std_logic;   -- This pin is connected to an external 100 MHz crystal.
+      -- Clock. Connected to an external 100 MHz crystal.
+      clk100_i     : in    std_logic;
 
-      -- Reset
-      sys_rstn_i : in  std_logic;   -- Asserted low
+      -- Reset. Asserted low.
+      sys_rstn_i   : in    std_logic;
 
       -- Input switches and push buttons
-      sw_i       : in  std_logic_vector(15 downto 0);
-      btn_i      : in  std_logic_vector(4 downto 0);
+      sw_i         : in    std_logic_vector(15 downto 0);
+      btn_i        : in    std_logic_vector(4 downto 0);
 
       -- Keyboard / mouse
-      ps2_clk_i  : in  std_logic;
-      ps2_data_i : in  std_logic;
+      ps2_clk_i    : in    std_logic;
+      ps2_data_i   : in    std_logic;
 
       -- Output LEDs
-      led_o      : out std_logic_vector(15 downto 0);
+      led_o        : out   std_logic_vector(15 downto 0);
 
       -- Connected to PHY
       eth_txd_o    : out   std_logic_vector(1 downto 0);
@@ -45,13 +42,12 @@ entity nexys4ddr is
       eth_mdio_io  : inout std_logic;
       eth_mdc_o    : out   std_logic;
       eth_rstn_o   : out   std_logic;
-      eth_refclk_o : out   std_logic;        -- Connected to XTAL1/CLKIN. Must be driven to 50 MHz.
-                                             -- All RMII signals are syunchronous to this clock.
+      eth_refclk_o : out   std_logic;
 
       -- Output to VGA monitor
-      vga_hs_o   : out std_logic;
-      vga_vs_o   : out std_logic;
-      vga_col_o  : out std_logic_vector(11 downto 0)
+      vga_hs_o     : out   std_logic;
+      vga_vs_o     : out   std_logic;
+      vga_col_o    : out   std_logic_vector(11 downto 0)
    );
 end nexys4ddr;
 
@@ -65,7 +61,7 @@ architecture Structural of nexys4ddr is
    signal eth_clk   : std_logic;
    signal eth_rst   : std_logic;
  
-   -- VGA color output
+   -- VGA output
    signal vga_col    : std_logic_vector(7 downto 0);
    signal vga_hs     : std_logic;
    signal vga_vs     : std_logic;
@@ -77,27 +73,36 @@ architecture Structural of nexys4ddr is
 
    -- Convert colour from 8-bit format to 12-bit format
    function col8to12(arg : std_logic_vector(7 downto 0)) return std_logic_vector is
+      type t_dat is array (natural range <>) of std_logic_vector(3 downto 0);
+
+      constant conv2_4 : t_dat :=
+         ("0000", "0101", "1010", "1111");
+
+      constant conv3_4 : t_dat :=
+         ("0000", "0010", "0100", "0110", "1001", "1011", "1101", "1111");
    begin
-      return arg(7 downto 5) & "0" & arg(4 downto 2) & "0" & arg(1 downto 0) & "00";
+      return conv3_4(conv_integer(arg(7 downto 5))) &
+             conv3_4(conv_integer(arg(4 downto 2))) &
+             conv2_4(conv_integer(arg(1 downto 0)));
    end function col8to12;
 
-   signal mac_tx_data  : std_logic_vector(7 downto 0) := X"AE";
-   signal mac_tx_sof   : std_logic := '1';
-   signal mac_tx_eof   : std_logic := '1';
-   signal mac_tx_empty : std_logic := '0';
-   signal mac_tx_rden  : std_logic := '0';
+   signal mac_tx_data  : std_logic_vector(7 downto 0);
+   signal mac_tx_sof   : std_logic;
+   signal mac_tx_eof   : std_logic;
+   signal mac_tx_empty : std_logic;
+   signal mac_tx_rden  : std_logic;
 
    signal mac_smi_ready    : std_logic;
-   signal mac_smi_phy      : std_logic_vector(4 downto 0) := "00001"; -- Constant.
-   signal mac_smi_addr     : std_logic_vector(4 downto 0) := "00000";
-   signal mac_smi_rden     : std_logic := '0';
+   constant mac_smi_phy    : std_logic_vector(4 downto 0) := "00001";
+   signal mac_smi_addr     : std_logic_vector(4 downto 0);
+   signal mac_smi_rden     : std_logic;
    signal mac_smi_data_out : std_logic_vector(15 downto 0);
-   signal mac_smi_wren     : std_logic := '0';
+   signal mac_smi_wren     : std_logic;
    signal mac_smi_data_in  : std_logic_vector(15 downto 0);
 
-   signal mac_smi_registers : std_logic_vector(32*16-1 downto 0) := (others => '0');
+   signal mac_smi_registers : std_logic_vector(32*16-1 downto 0);
 
-   signal fifo_error : std_logic := '0';
+   signal fifo_error : std_logic;
 
 begin
 
@@ -136,7 +141,9 @@ begin
          case state_v is
             when "10" => -- Start new read
                -- Store result.
-               mac_smi_registers(conv_integer(mac_smi_addr)*16 + 15 downto conv_integer(mac_smi_addr)*16) <= mac_smi_data_out;
+               mac_smi_registers(conv_integer(mac_smi_addr)*16 + 15 downto
+                  conv_integer(mac_smi_addr)*16) <= mac_smi_data_out;
+
                -- Start next read.
                mac_smi_addr <= mac_smi_addr + 1;
                mac_smi_rden <= '1';
@@ -158,9 +165,9 @@ begin
    end process proc_smi;
 
 
-   ------------------------------
+   -----------------------------------
    -- Instantiate VGA -> ETH converter
-   ------------------------------
+   -----------------------------------
 
    inst_convert : entity work.convert
       port map (
