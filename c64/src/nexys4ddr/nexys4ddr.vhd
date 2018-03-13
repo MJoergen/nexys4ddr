@@ -196,12 +196,9 @@ begin
    ------------------------------
 
    inst_ethernet : entity work.ethernet
-   generic map (
-      G_RESET_SIZE => G_RESET_SIZE
-   )
    port map (
-      clk50_i      => eth_clk,
-      rst_i        => eth_rst,
+      eth_clk_i    => eth_clk,
+      eth_rst_i    => eth_rst,
       -- SMI interface
       smi_ready_o  => mac_smi_ready,
       smi_phy_i    => mac_smi_phy,
