@@ -3,13 +3,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 
+-- This module provides the low-level interface to the LAN8720A Ethernet PHY.
+-- The PHY supports the RMII specification.
+
 entity ethernet is
-   generic (
-      G_RESET_SIZE : integer
-   );
    port (
-      clk50_i      : in    std_logic;        -- Must be 50 MHz
-      rst_i        : in    std_logic;
+      eth_clk_i    : in    std_logic;
+      eth_rst_i    : in    std_logic;
 
       -- SMI interface
       smi_ready_o  : out   std_logic;
@@ -27,6 +27,12 @@ entity ethernet is
       tx_empty_i   : in    std_logic;
       tx_rden_o    : out   std_logic;
 
+      -- Rx Pushing interface
+      rx_data_o    : out   std_logic_vector(7 downto 0);
+      rx_sof_o     : out   std_logic;
+      rx_eof_o     : out   std_logic;
+      rx_en_o      : out   std_logic;
+
       -- Connected to PHY
       eth_txd_o    : out   std_logic_vector(1 downto 0);
       eth_txen_o   : out   std_logic;
@@ -43,34 +49,42 @@ end ethernet;
 
 architecture Structural of ethernet is
 
-   signal ready          : std_logic;
    signal tx_empty_ready : std_logic;
    signal smi_ready      : std_logic;
 
 begin
 
-   tx_empty_ready <= tx_empty_i or rst_i;
-   smi_ready_o    <= smi_ready and not rst_i;
+   tx_empty_ready <= tx_empty_i or eth_rst_i;
+   smi_ready_o    <= smi_ready and not eth_rst_i;
 
-   inst_mac : entity work.mac
+   inst_rx_mac : entity work.rx_mac
       port map (
-         clk50_i      => clk50_i,
-         data_i       => tx_data_i,
-         sof_i        => tx_sof_i,
-         eof_i        => tx_eof_i,
-         empty_i      => tx_empty_ready,
-         rden_o       => tx_rden_o,
-         eth_txd_o    => eth_txd_o,
-         eth_txen_o   => eth_txen_o,
+         clk50_i      => eth_clk_i,
+         data_o       => rx_data_o,
+         sof_o        => rx_sof_o,
+         eof_o        => rx_eof_o,
+         en_o         => rx_en_o,
          eth_rxd_i    => eth_rxd_i,
          eth_rxerr_i  => eth_rxerr_i,
          eth_crsdv_i  => eth_crsdv_i,
          eth_intn_i   => eth_intn_i
       );
 
+   inst_tx_mac : entity work.tx_mac
+      port map (
+         clk50_i      => eth_clk_i,
+         data_i       => tx_data_i,
+         sof_i        => tx_sof_i,
+         eof_i        => tx_eof_i,
+         empty_i      => tx_empty_ready,
+         rden_o       => tx_rden_o,
+         eth_txd_o    => eth_txd_o,
+         eth_txen_o   => eth_txen_o
+      );
+
    inst_smi : entity work.smi
       port map (
-         clk50_i      => clk50_i,
+         clk50_i      => eth_clk_i,
          ready_o      => smi_ready, 
          phy_i        => smi_phy_i,
          addr_i       => smi_addr_i,
@@ -82,8 +96,8 @@ begin
          eth_mdc_o    => eth_mdc_o    
       );
 
-   eth_refclk_o <= clk50_i;
-   eth_rstn_o   <= not rst_i;
+   eth_refclk_o <= eth_clk_i;
+   eth_rstn_o   <= not eth_rst_i;
 
 end Structural;
 
