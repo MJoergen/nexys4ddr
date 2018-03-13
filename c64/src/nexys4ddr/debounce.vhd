@@ -7,7 +7,7 @@ use ieee.std_logic_unsigned.all;
 entity debounce is
 
    generic (
-              G_COUNT_MAX : integer := 25 -- 000 -- @ 25 MHz this is 1 millisecond.
+              G_COUNT_MAX : integer := 100000 -- @ 100 MHz this is 1 millisecond.
            );
    port (
            clk_i : in  std_logic;
@@ -25,6 +25,7 @@ architecture Structural of debounce is
 
 begin
 
+   -- Store previous value
    p_delay : process (clk_i)
    begin
       if rising_edge(clk_i) then
@@ -32,6 +33,7 @@ begin
       end if;
    end process p_delay;
 
+   -- Count down while input is stable
    p_counter : process (clk_i)
    begin
       if rising_edge(clk_i) then
@@ -39,12 +41,14 @@ begin
             counter <= counter - 1;
          end if;
 
-         if in_d /= in_i then    -- Look for any transitions on the input
+         -- Restart counter if any transitions on the input
+         if in_d /= in_i then
             counter <= G_COUNT_MAX;
          end if;
       end if;
    end process p_counter;
 
+   -- Store output when input is stable
    p_stable : process (clk_i)
    begin
       if rising_edge(clk_i) then
