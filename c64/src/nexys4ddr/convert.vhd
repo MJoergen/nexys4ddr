@@ -55,12 +55,12 @@ architecture Structural of convert is
    signal vga_pkg_data : std_logic_vector(7 downto 0);
  
    -- Compressed data
-   signal vga_comp_ena    : std_logic := '0';
-   signal vga_comp_sof    : std_logic;
-   signal vga_comp_eof    : std_logic;
-   signal vga_comp_data   : std_logic_vector(7 downto 0);
+   signal vga_comp_ena  : std_logic := '0';
+   signal vga_comp_sof  : std_logic;
+   signal vga_comp_eof  : std_logic;
+   signal vga_comp_data : std_logic_vector(7 downto 0);
  
-   -- Ethernet output
+   -- Output to MAC
    signal eth_data  : std_logic_vector(7 downto 0) := X"AE";
    signal eth_sof   : std_logic := '1';
    signal eth_eof   : std_logic := '1';
