@@ -1,7 +1,9 @@
 -- Description:
 -- This is an asymmetric FIFO, where the write port is wider than the read port.
 -- The ratio is defined as G_WRPORT_SIZE / G_RDPORT_SIZE, and must be a whole
--- number between 1 and 16 inclusive.
+-- number.
+--
+-- There is a separate read and write clock.
 --
 -- Endianness:
 -- Assume that the write side is 40 bits and the read side is 10 bits, i.e. the
@@ -19,35 +21,32 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
---use ieee.numeric_std.all;
 
 entity fifo_width_change is
    generic (
-      G_WRPORT_SIZE  : integer;                 -- Number of data bits on write port.
-      G_RDPORT_SIZE  : integer                  -- Number of data bits on read port.
+      G_WRPORT_SIZE : integer;     -- Number of data bits on write port.
+      G_RDPORT_SIZE : integer      -- Number of data bits on read port.
       );
    port (
-      wr_clk_i : in std_logic;
-      wr_rst_i : in std_logic;
-
-      rd_clk_i : in std_logic;
-      rd_rst_i : in std_logic;
-
       -- Write port
-      wr_en_i     : in  std_logic;                                    -- Data is valid
-      wr_data_i   : in  std_logic_vector(G_WRPORT_SIZE-1 downto 0);   -- Write data (little endian)
+      wr_clk_i   : in  std_logic;
+      wr_rst_i   : in  std_logic;
+      wr_en_i    : in  std_logic;
+      wr_data_i  : in  std_logic_vector(G_WRPORT_SIZE-1 downto 0);
 
       -- Read port
-      rd_en_i     : in  std_logic;                                   -- Consume data
-      rd_data_o   : out std_logic_vector(G_RDPORT_SIZE-1 downto 0);  -- Single chunk of data
-      rd_empty_o  : out std_logic                                    -- Empty
+      rd_clk_i   : in  std_logic;
+      rd_rst_i   : in  std_logic;
+      rd_en_i    : in  std_logic;
+      rd_data_o  : out std_logic_vector(G_RDPORT_SIZE-1 downto 0);
+      rd_empty_o : out std_logic
       );
 end entity fifo_width_change;
 
 architecture rtl of fifo_width_change is
 
    -- The ratio between the write and read side.
-   constant C_NUM_FIFOS : integer range 1 to 4 := G_WRPORT_SIZE / G_RDPORT_SIZE;
+   constant C_NUM_FIFOS : integer := G_WRPORT_SIZE / G_RDPORT_SIZE;
 
    -- Signals for the internal FIFOs
    signal fifo_rden  : std_logic_vector(C_NUM_FIFOS-1 downto 0);
@@ -84,12 +83,10 @@ begin
             );
    end generate enc_fifos;
 
+
    ------------------------
    -- Reading from the FIFO
    ------------------------
-
-   rd_data_o   <= fifo_data((rd_offset+1)*G_RDPORT_SIZE-1 downto rd_offset*G_RDPORT_SIZE);
-   rd_empty_o  <= fifo_empty(rd_offset);
 
    p_rd_offset : process (rd_clk_i)
    begin
@@ -111,6 +108,9 @@ begin
       fifo_rden(rd_offset) <= rd_en_i;
    end process p_enc_fifo_rden;
 
+   -- Drive output signals
+   rd_data_o   <= fifo_data((rd_offset+1)*G_RDPORT_SIZE-1 downto rd_offset*G_RDPORT_SIZE);
+   rd_empty_o  <= fifo_empty(rd_offset);
 
 end architecture rtl;
 
