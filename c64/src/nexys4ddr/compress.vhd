@@ -68,6 +68,7 @@ begin
          if rst_i = '1' then
             in_sof_d  <= '0';
             in_eof_d  <= '0';
+            in_data_d <= (others => '0');
          end if;
       end if;
    end process proc_delay;
@@ -166,6 +167,8 @@ begin
          if rst_i = '1' then
             fifo_wr_en <= '0';
             fsm_cnt    <= (others => '0');
+            fsm_sof    <= '0';
+            fsm_eof    <= '0';
          end if;
       end if;
    end process proc_input;
