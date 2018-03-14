@@ -74,7 +74,6 @@ architecture Structural of rx_mac is
    signal sof  : std_logic;
    signal eof  : std_logic;
    signal data : std_logic_vector(7 downto 0);
-   signal err  : std_logic := '0';
 
    signal dibit_cnt : integer range 0 to 3;
    signal byte_cnt  : integer range 0 to 11;
@@ -95,7 +94,7 @@ begin
    proc_fsm : process (eth_clk_i)
    begin
       if rising_edge(eth_clk_i) then
-         ena <= '0';
+         eof <= '0';
 
          if eth_crsdv_i = '1' then 
             data      <= eth_rxd_i & data(7 downto 2);
@@ -120,6 +119,7 @@ begin
                   end if;
 
                   if byte_cnt = 6 then
+                     byte_cnt  <= 0;
                      fsm_state <= PRE2_ST;
                   end if;
                end if;
@@ -141,8 +141,11 @@ begin
 
             when PAYLOAD_ST =>
                if dibit_cnt = 3 then
-                  byte_cnt <= byte_cnt + 1;
-                  ena      <= '1';
+                  sof <= '0';
+               end if;
+
+               if eth_crsdv_i = '0' then
+                  fsm_state <= IDLE_ST;
                end if;
 
          end case;
@@ -151,9 +154,25 @@ begin
             fsm_state <= IDLE_ST;
             dibit_cnt <= 0;
             byte_cnt  <= 0;
+            sof       <= '0';
+            eof       <= '0';
          end if;
       end if;
    end process proc_fsm;
+
+   ena <= '1' when fsm_state = PAYLOAD_ST and dibit_cnt = 3 else '0';
+
+   -- Drive output signals
+   proc_out : process (eth_clk_i)
+   begin
+      if rising_edge(eth_clk_i) then
+         ena_o  <= ena;
+         sof_o  <= ena and sof;
+         eof_o  <= ena and not eth_crsdv_i;
+         data_o <= data;
+         err_o  <= eth_rxerr_i;
+      end if;
+   end process proc_out;
 
 end Structural;
 
