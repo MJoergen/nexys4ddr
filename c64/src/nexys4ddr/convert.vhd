@@ -180,6 +180,7 @@ begin
       pl_sof_i       => vga_comp_sof,
       pl_eof_i       => vga_comp_eof,
       pl_data_i      => vga_comp_data,
+      pl_error_o     => fifo_error_o,
       ctrl_mac_dst_i => X"F46D04D7F3CA",
       ctrl_mac_src_i => X"F46D04112233",
       ctrl_ip_dst_i  => X"C0A8012B",      -- 192.168.1.43
@@ -192,8 +193,7 @@ begin
       mac_sof_o      => eth_sof_o,
       mac_eof_o      => eth_eof_o,
       mac_empty_o    => eth_empty_o,
-      mac_rden_i     => eth_rden_i,
-      fifo_error_o   => fifo_error_o
+      mac_rden_i     => eth_rden_i
    );
 
 end Structural;

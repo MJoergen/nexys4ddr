@@ -38,7 +38,7 @@ begin
 
    inst_debounce_clk : entity work.debounce 
    generic map (
-                  G_COUNT_MAX => 25  -- 1 microsecond
+                  G_SIMULATION => false
                )
    port map (
                clk_i => clk_i,
@@ -48,7 +48,7 @@ begin
 
    inst_debounce_data : entity work.debounce 
    generic map (
-                  G_COUNT_MAX => 25  -- 1 microsecond
+                  G_SIMULATION => false
                )
    port map (
                clk_i => clk_i,

@@ -72,14 +72,15 @@ begin
             wr_rst_i   => wr_rst_i,
             wr_en_i    => wr_en_i,
             wr_data_i  => wr_data_i((i+1)*G_RDPORT_SIZE-1 downto i*G_RDPORT_SIZE),
+            wr_error_o => fifo_error(i),
             --
             rd_clk_i   => rd_clk_i,
             rd_rst_i   => rd_rst_i,
             rd_en_i    => fifo_rden(i),
             rd_data_o  => fifo_data((i+1)*G_RDPORT_SIZE-1 downto i*G_RDPORT_SIZE),
             rd_empty_o => fifo_empty(i),
+            rd_error_o => open
             --
-            error_o    => fifo_error(i)
             );
    end generate enc_fifos;
 

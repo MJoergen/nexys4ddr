@@ -2,8 +2,13 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
-use ieee.std_logic_textio.all;
-use std.textio.all;
+
+-- This module performs the MAC/IP/UDP encapsulation of payload data.
+-- It calculates all headers, including CRC.
+-- Clock domain crossing is handled by FIFOs.
+-- The module operates in store-n-forward mode, because it needs the total
+-- length of the payload. This limits the maximum frame size to the size of the
+-- input fifo. Overflow of this input fifo is signalled in the pl_error_o signal.
 
 entity encap is
    port (
@@ -28,33 +33,32 @@ entity encap is
       pl_sof_i   : in  std_logic;
       pl_eof_i   : in  std_logic;
       pl_data_i  : in  std_logic_vector(7 downto 0);
+      pl_error_o : out std_logic;
 
       -- Mac interface @ mac_clk_i
       mac_data_o  : out std_logic_vector(7 downto 0);
       mac_sof_o   : out std_logic;
       mac_eof_o   : out std_logic;
       mac_empty_o : out std_logic;
-      mac_rden_i  : in  std_logic;
-
-      fifo_error_o : out std_logic
+      mac_rden_i  : in  std_logic
    );
 end encap;
 
 architecture Structural of encap is
 
    -- Payload fifo output @ mac_clk_i
-   signal mac_data_out    : std_logic_vector(7 downto 0);
-   signal mac_data_rden   : std_logic := '0';
-   signal mac_data_empty  : std_logic;
+   signal mac_data_out   : std_logic_vector(7 downto 0);
+   signal mac_data_rden  : std_logic := '0';
+   signal mac_data_empty : std_logic;
 
    -- Ctrl fifo input @ pl_clk_i
    signal pl_ctrl_in     : std_logic_vector(15 downto 0);
    signal pl_ctrl_wren   : std_logic := '0';
 
    -- Ctrl fifo output @ mac_clk_i
-   signal mac_ctrl_out    : std_logic_vector(15 downto 0);
-   signal mac_ctrl_rden   : std_logic := '0';
-   signal mac_ctrl_empty  : std_logic;
+   signal mac_ctrl_out   : std_logic_vector(15 downto 0);
+   signal mac_ctrl_rden  : std_logic := '0';
+   signal mac_ctrl_empty : std_logic;
 
    type t_fsm_state is (IDLE_ST, CHKSUM_ST, HDR_ST, PL_ST);
    signal fsm_state : t_fsm_state := IDLE_ST;
@@ -78,49 +82,46 @@ begin
 
    -- Instantiate the data fifo
    -- The data fifo contains the raw payload data.
+   -- This fifo must be large enough to contain an entire frame.
+   -- This fifo stores the entire frame, until the length has been calculated.
    inst_data_fifo : entity work.fifo
    generic map (
-      G_WIDTH         => 8)
+      G_WIDTH => 8
+      )
    port map (
-      wr_clk_i   => pl_clk_i,
-      wr_rst_i   => pl_rst_i,
-      wr_en_i    => pl_ena_i,
-      wr_data_i  => pl_data_i,
+      wr_clk_i    => pl_clk_i,
+      wr_rst_i    => pl_rst_i,
+      wr_en_i     => pl_ena_i,
+      wr_data_i   => pl_data_i,
+      wr_error_o  => pl_error_o,    -- Write to full fifo
       --
-      rd_clk_i   => mac_clk_i,
-      rd_rst_i   => mac_rst_i,
-      rd_en_i    => mac_data_rden,
-      rd_data_o  => mac_data_out,
-      rd_empty_o => mac_data_empty,
-
-      error_o    => fifo_error_o
+      rd_clk_i    => mac_clk_i,
+      rd_rst_i    => mac_rst_i,
+      rd_en_i     => mac_data_rden,
+      rd_data_o   => mac_data_out,
+      rd_empty_o  => mac_data_empty,
+      rd_error_o  => open           -- Read from empty fifo
       );
 
    -- Count the number of bytes 
    -- The ctrl fifo contains the number of payload bytes in each frame.
    pl_ctrl : process (pl_clk_i)
-      variable byte_cnt_v : std_logic_vector(15 downto 0);
    begin
       if rising_edge(pl_clk_i) then
          pl_ctrl_wren <= '0';
 
-         byte_cnt_v := byte_cnt;
-
          if pl_ena_i = '1' then
-            byte_cnt_v := byte_cnt_v + 1;
+            byte_cnt <= byte_cnt + 1;
 
             if pl_sof_i = '1' then
-               byte_cnt_v := X"0001";
+               byte_cnt <= X"0001";
             end if;
 
             if pl_eof_i = '1' then
                pl_ctrl_wren <= '1';
-               pl_ctrl_in   <= byte_cnt_v;
+               pl_ctrl_in   <= byte_cnt + 1;
             end if;
-
          end if;
-
-         byte_cnt <= byte_cnt_v;
       end if;
    end process pl_ctrl;
 
@@ -128,7 +129,7 @@ begin
    -- Instantiate the ctrl fifo
    inst_ctrl_fifo : entity work.fifo
    generic map (
-      G_WIDTH         => 16)
+      G_WIDTH => 16)
    port map (
       wr_clk_i  => pl_clk_i,
       wr_rst_i  => pl_rst_i,

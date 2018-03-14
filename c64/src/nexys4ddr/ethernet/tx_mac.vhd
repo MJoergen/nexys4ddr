@@ -46,7 +46,8 @@ use ieee.numeric_std.all;
 entity tx_mac is
 
    port (
-      clk50_i      : in  std_logic;        -- Must be 50 MHz
+      eth_clk_i    : in  std_logic;        -- Must be 50 MHz
+      eth_rst_i    : in  std_logic;
 
       -- Pulling interface
       data_i       : in  std_logic_vector(7 downto 0);
@@ -54,6 +55,7 @@ entity tx_mac is
       eof_i        : in  std_logic;
       empty_i      : in  std_logic;
       rden_o       : out std_logic;
+      err_o        : out std_logic;
 
       -- Connected to PHY
       eth_txd_o    : out std_logic_vector(1 downto 0);
@@ -63,7 +65,9 @@ end tx_mac;
 
 architecture Structural of tx_mac is
 
+   signal err        : std_logic := '0';
    signal eth_txen   : std_logic := '0';
+   signal rden       : std_logic := '0';
 
    -- State machine to control the MAC framing
    type t_fsm_state is (IDLE_ST, PRE1_ST, PRE2_ST, PAYLOAD_ST, LAST_ST, CRC_ST, IFG_ST);
@@ -80,10 +84,10 @@ architecture Structural of tx_mac is
 begin
 
    -- Generate MAC framing
-   proc_mac : process (clk50_i)
+   proc_mac : process (eth_clk_i)
       variable crc_v : std_logic_vector(31 downto 0);
    begin
-      if falling_edge(clk50_i) then
+      if falling_edge(eth_clk_i) then
 
          -- Calculate CRC
          if crc_enable = '1' then   -- Consume two bits of data
@@ -100,7 +104,7 @@ begin
             crc <= (others => '1');
          end if;
 
-         rden_o     <= '0';
+         rden       <= '0';
          twobit_cnt <= twobit_cnt + 1;
          cur_byte   <= "00" & cur_byte(7 downto 2);
 
@@ -110,6 +114,9 @@ begin
                   eth_txen <= '0';
                   cur_byte <= X"00";
                   if empty_i = '0' then
+                     if sof_i = '0' then
+                        err <= '1';
+                     end if;
                      assert sof_i = '1' report "Missing SOF" severity failure;
                      byte_cnt  <= 7;
                      cur_byte  <= X"55";
@@ -130,7 +137,7 @@ begin
                when PRE2_ST    =>
                   crc_enable <= '1';
                   cur_byte  <= data_i;
-                  rden_o    <= '1';
+                  rden      <= '1';
                   fsm_state <= PAYLOAD_ST;
 
                   -- Abort! Data not available yet.
@@ -138,12 +145,13 @@ begin
                      cur_byte  <= (others => '0');
                      fsm_state <= IFG_ST;
                      eth_txen  <= '0';
-                     rden_o    <= '0';
+                     rden      <= '0';
+                     err       <= '1';
                   end if;
 
                when PAYLOAD_ST =>
                   cur_byte <= data_i;
-                  rden_o   <= '1';
+                  rden     <= '1';
                   if eof_i = '1' then
                      fsm_state <= LAST_ST;
                   end if;
@@ -153,7 +161,8 @@ begin
                      cur_byte  <= (others => '0');
                      fsm_state <= IFG_ST;
                      eth_txen  <= '0';
-                     rden_o    <= '0';
+                     rden      <= '0';
+                     err       <= '1';
                   end if;
 
                when LAST_ST => 
@@ -189,12 +198,21 @@ begin
 
             end case;
          end if;
+
+         if eth_rst_i = '1' then
+            fsm_state  <= IDLE_ST;
+            err        <= '0';
+            twobit_cnt <= (others => '0');
+         end if;
       end if;
    end process proc_mac;
 
    -- Drive output signals
    eth_txd_o    <= cur_byte(1 downto 0);
    eth_txen_o   <= eth_txen;
+
+   rden_o <= rden;
+   err_o  <= err;
 
 end Structural;
 

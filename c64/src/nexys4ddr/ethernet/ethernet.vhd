@@ -72,7 +72,8 @@ begin
 
    inst_tx_mac : entity work.tx_mac
       port map (
-         clk50_i      => eth_clk_i,
+         eth_clk_i    => eth_clk_i,
+         eth_rst_i    => eth_rst_i,
          data_i       => tx_data_i,
          sof_i        => tx_sof_i,
          eof_i        => tx_eof_i,

@@ -71,6 +71,9 @@ begin
    -------------------------
 
    inst_reset_debounce : entity work.debounce
+   generic map (
+      G_SIMULATION => G_SIMULATION
+   )
    port map (
       clk_i => sys_clk100_i,
       in_i  => sys_rstn_i,
@@ -78,6 +81,9 @@ begin
    );
 
    inst_step_debounce : entity work.debounce
+   generic map (
+      G_SIMULATION => G_SIMULATION
+   )
    port map (
       clk_i => sys_clk100_i,
       in_i  => sys_step_i,
@@ -85,6 +91,9 @@ begin
    );
 
    inst_mode_debounce : entity work.debounce
+   generic map (
+      G_SIMULATION => G_SIMULATION
+   )
    port map (
       clk_i => sys_clk100_i,
       in_i  => sys_mode_i,
