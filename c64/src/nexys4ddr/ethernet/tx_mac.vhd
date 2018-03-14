@@ -3,7 +3,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 
--- This module connects to the LAN8720A Ethernet PHY. The PHY supports the RMII specification.
+-- This module sends transmit data to the LAN8720A Ethernet PHY.
+-- It automatically calculates the MAC CRC.
 --
 -- From the NEXYS 4 DDR schematic
 -- RXD0/MODE0   : External pull UP

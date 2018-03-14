@@ -63,7 +63,7 @@ begin
          data_o       => rx_data_o,
          sof_o        => rx_sof_o,
          eof_o        => rx_eof_o,
-         en_o         => rx_en_o,
+         ena_o        => rx_en_o,
          eth_rxd_i    => eth_rxd_i,
          eth_rxerr_i  => eth_rxerr_i,
          eth_crsdv_i  => eth_crsdv_i,

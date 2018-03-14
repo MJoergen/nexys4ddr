@@ -49,10 +49,11 @@ entity rx_mac is
       clk50_i     : in  std_logic;        -- Must be 50 MHz
 
       -- Pushing interface
-      data_o      : out std_logic_vector(7 downto 0);
+      ena_o       : out std_logic;
       sof_o       : out std_logic;
       eof_o       : out std_logic;
-      en_o        : out std_logic;
+      data_o      : out std_logic_vector(7 downto 0);
+      err_o       : out std_logic;
 
       -- Connectedto PHY
       eth_rxd_i   : in  std_logic_vector(1 downto 0);

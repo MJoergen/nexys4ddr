@@ -4,8 +4,8 @@ use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 
 -- This module performs the MAC/IP/UDP encapsulation of payload data.
--- It calculates all headers, including CRC.
--- Clock domain crossing is handled by FIFOs.
+-- It calculates all headers, including checksum.
+-- Clock domain crossing is handled by FIFOs on the input.
 -- The module operates in store-n-forward mode, because it needs the total
 -- length of the payload. This limits the maximum frame size to the size of the
 -- input fifo. Overflow of this input fifo is signalled in the pl_error_o signal.
@@ -46,11 +46,6 @@ end encap;
 
 architecture Structural of encap is
 
-   -- Payload fifo output @ mac_clk_i
-   signal mac_data_out   : std_logic_vector(7 downto 0);
-   signal mac_data_rden  : std_logic := '0';
-   signal mac_data_empty : std_logic;
-
    -- Ctrl fifo input @ pl_clk_i
    signal pl_ctrl_in     : std_logic_vector(15 downto 0);
    signal pl_ctrl_wren   : std_logic := '0';
@@ -59,6 +54,11 @@ architecture Structural of encap is
    signal mac_ctrl_out   : std_logic_vector(15 downto 0);
    signal mac_ctrl_rden  : std_logic := '0';
    signal mac_ctrl_empty : std_logic;
+
+   -- Payload fifo output @ mac_clk_i
+   signal mac_data_out   : std_logic_vector(7 downto 0);
+   signal mac_data_rden  : std_logic := '0';
+   signal mac_data_empty : std_logic;
 
    type t_fsm_state is (IDLE_ST, CHKSUM_ST, HDR_ST, PL_ST);
    signal fsm_state : t_fsm_state := IDLE_ST;
@@ -71,8 +71,9 @@ architecture Structural of encap is
    signal hdr_data : std_logic_vector(42*8-1 downto 0);
    signal hdr_len  : std_logic_vector(15 downto 0);
 
-   signal mac_sof : std_logic := '0';
-   signal mac_eof : std_logic := '0';
+   signal mac_empty : std_logic := '1';
+   signal mac_sof   : std_logic := '0';
+   signal mac_eof   : std_logic := '0';
 
 begin
 
@@ -125,22 +126,26 @@ begin
       end if;
    end process pl_ctrl;
 
-
    -- Instantiate the ctrl fifo
+   -- This fifo contains the calculated number of bytes in each frame.
+   -- Ignore overflow, because this fifo contains much less data than
+   -- the daat fifo.
    inst_ctrl_fifo : entity work.fifo
    generic map (
       G_WIDTH => 16)
    port map (
-      wr_clk_i  => pl_clk_i,
-      wr_rst_i  => pl_rst_i,
-      wr_en_i   => pl_ctrl_wren,
-      wr_data_i => pl_ctrl_in,
+      wr_clk_i   => pl_clk_i,
+      wr_rst_i   => pl_rst_i,
+      wr_en_i    => pl_ctrl_wren,
+      wr_data_i  => pl_ctrl_in,
+      wr_error_o => open,
       --
       rd_clk_i   => mac_clk_i,
       rd_rst_i   => mac_rst_i,
       rd_en_i    => mac_ctrl_rden,
       rd_data_o  => mac_ctrl_out,
-      rd_empty_o => mac_ctrl_empty
+      rd_empty_o => mac_ctrl_empty,
+      rd_error_o => open
       );
 
 
@@ -151,11 +156,13 @@ begin
 
    -- Generate MAC frame
    proc_mac : process (mac_clk_i)
+      -- Calculate the one-complement sum.
+      -- Used to calculate the checksum of the IP header.
       function chksum(arg : std_logic_vector) 
          return std_logic_vector is
          variable temp_v : std_logic_vector(31 downto 0) := (others => '0');
-         variable len_v : integer;
-         variable val_v : std_logic_vector(15 downto 0);
+         variable len_v  : integer;
+         variable val_v  : std_logic_vector(15 downto 0);
       begin
          len_v := arg'length;
          for i in 0 to len_v/16-1 loop
@@ -168,13 +175,13 @@ begin
 
    begin
       if falling_edge(mac_clk_i) then
-         mac_ctrl_rden   <= '0';
+         mac_ctrl_rden <= '0';
 
          case fsm_state is
             when IDLE_ST =>
-               mac_empty_o <= '1';
-               mac_sof     <= '0';
-               mac_eof     <= '0';
+               mac_empty <= '1'; -- Disable transmission
+               mac_sof   <= '0';
+               mac_eof   <= '0';
                if mac_ctrl_empty = '0' then   -- We now have a complete frame, so lets build the header
                   frm_len   <= mac_ctrl_out;
                   mac_ctrl_rden <= '1';
@@ -193,7 +200,7 @@ begin
                   hdr_data(22*8-1 downto 20*8) <= X"0000"; -- Fragmentation.
                   hdr_data(20*8-1 downto 19*8) <= X"FF";   -- TTL.
                   hdr_data(19*8-1 downto 18*8) <= X"11";   -- Protocol UDP.
-                  hdr_data(18*8-1 downto 16*8) <= X"0000"; -- IP header checksum.
+                  hdr_data(18*8-1 downto 16*8) <= X"0000"; -- IP header checksum. Must be set to zero here, before calculation.
                   hdr_data(16*8-1 downto 12*8) <= ctrl_ip_src_i;
                   hdr_data(12*8-1 downto  8*8) <= ctrl_ip_dst_i;
 
@@ -208,9 +215,9 @@ begin
 
             when CHKSUM_ST  =>
                hdr_data(18*8-1 downto 16*8) <= chksum(hdr_data(28*8-1 downto 8*8));
-               mac_empty_o <= '0';
-               mac_sof     <= '1';
-               mac_eof     <= '0';
+               mac_empty <= '0';  -- Start transmission
+               mac_sof   <= '1';
+               mac_eof   <= '0';
                fsm_state <= HDR_ST;
 
             when HDR_ST  =>
@@ -246,9 +253,10 @@ begin
    -- Drive output signals
    mac_data_rden <= '1' when mac_rden_i = '1' and fsm_state = PL_ST else '0';
 
-   mac_data_o <= hdr_data(42*8-1 downto 41*8) when fsm_state = HDR_ST else mac_data_out;
-   mac_sof_o  <= mac_sof;
-   mac_eof_o  <= mac_eof;
+   mac_empty_o <= mac_empty;
+   mac_sof_o   <= mac_sof;
+   mac_eof_o   <= mac_eof;
+   mac_data_o  <= hdr_data(42*8-1 downto 41*8) when fsm_state = HDR_ST else mac_data_out;
 
 end Structural;
 
