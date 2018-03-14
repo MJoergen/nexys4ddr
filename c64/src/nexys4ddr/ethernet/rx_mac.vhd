@@ -46,7 +46,8 @@ use ieee.numeric_std.all;
 entity rx_mac is
 
    port (
-      clk50_i     : in  std_logic;        -- Must be 50 MHz
+      eth_clk_i   : in  std_logic;        -- Must be 50 MHz
+      eth_rst_i   : in  std_logic;
 
       -- Pushing interface
       ena_o       : out std_logic;
@@ -65,9 +66,94 @@ end rx_mac;
 
 architecture Structural of rx_mac is
 
+   -- State machine to control the MAC framing
+   type t_fsm_state is (IDLE_ST, PRE1_ST, PRE2_ST, PAYLOAD_ST);
+   signal fsm_state : t_fsm_state := IDLE_ST;
+      
+   signal ena  : std_logic := '0';
+   signal sof  : std_logic;
+   signal eof  : std_logic;
+   signal data : std_logic_vector(7 downto 0);
+   signal err  : std_logic := '0';
+
+   signal dibit_cnt : integer range 0 to 3;
+   signal byte_cnt  : integer range 0 to 11;
 
 begin
 
+   proc_byte : process (eth_clk_i)
+   begin
+      if rising_edge(eth_clk_i) then
+         if eth_crsdv_i = '1' then 
+            data <= eth_rxd_i & data(7 downto 2);
+         end if;
+      end if;
+   end process proc_byte;
+
+
+   -- Generate MAC framing
+   proc_fsm : process (eth_clk_i)
+   begin
+      if rising_edge(eth_clk_i) then
+         ena <= '0';
+
+         if eth_crsdv_i = '1' then 
+            data      <= eth_rxd_i & data(7 downto 2);
+            dibit_cnt <= (dibit_cnt + 1) mod 4;
+         end if;
+
+         case fsm_state is
+            when IDLE_ST =>
+               if eth_crsdv_i = '1' then 
+                  fsm_state <= PRE1_ST;
+                  dibit_cnt <= 0;
+                  byte_cnt  <= 0;
+               end if;
+
+            when PRE1_ST =>
+               if dibit_cnt = 3 then
+                  byte_cnt <= byte_cnt + 1;
+                  if data /= X"55" then
+                     fsm_state <= IDLE_ST;
+                     dibit_cnt <= 0;
+                     byte_cnt  <= 0;
+                  end if;
+
+                  if byte_cnt = 6 then
+                     fsm_state <= PRE2_ST;
+                  end if;
+               end if;
+
+            when PRE2_ST =>
+               if dibit_cnt = 3 then
+                  byte_cnt <= byte_cnt + 1;
+                  if data /= X"D5" then
+                     fsm_state <= IDLE_ST;
+                     dibit_cnt <= 0;
+                     byte_cnt  <= 0;
+                  end if;
+
+                  if byte_cnt = 0 then
+                     fsm_state <= PAYLOAD_ST;
+                     sof       <= '1';
+                  end if;
+               end if;
+
+            when PAYLOAD_ST =>
+               if dibit_cnt = 3 then
+                  byte_cnt <= byte_cnt + 1;
+                  ena      <= '1';
+               end if;
+
+         end case;
+
+         if eth_rst_i = '1' then
+            fsm_state <= IDLE_ST;
+            dibit_cnt <= 0;
+            byte_cnt  <= 0;
+         end if;
+      end if;
+   end process proc_fsm;
 
 end Structural;
 
