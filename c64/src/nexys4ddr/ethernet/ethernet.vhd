@@ -59,7 +59,8 @@ begin
 
    inst_rx_mac : entity work.rx_mac
       port map (
-         clk50_i      => eth_clk_i,
+         eth_clk_i    => eth_clk_i,
+         eth_rst_i    => eth_rst_i,
          data_o       => rx_data_o,
          sof_o        => rx_sof_o,
          eof_o        => rx_eof_o,

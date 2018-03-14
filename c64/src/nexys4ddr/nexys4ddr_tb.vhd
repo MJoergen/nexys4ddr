@@ -97,6 +97,11 @@ begin
       btn_i      => btn
    );
 
+   eth_rxd   <= eth_txd;
+   eth_crsdv <= eth_txen;
+   eth_rxerr <= '0';
+   eth_intn  <= '1';
+
    test_running <= true, false after 1000 us;
    
 end Structural;
