@@ -92,6 +92,12 @@ architecture Structural of nexys4ddr is
    signal mac_tx_empty : std_logic;
    signal mac_tx_rden  : std_logic;
 
+   signal mac_rx_data  : std_logic_vector(7 downto 0);
+   signal mac_rx_sof   : std_logic;
+   signal mac_rx_eof   : std_logic;
+   signal mac_rx_en    : std_logic;
+   signal mac_rx_err   : std_logic;
+
    signal mac_smi_ready    : std_logic;
    constant mac_smi_phy    : std_logic_vector(4 downto 0) := "00001";
    signal mac_smi_addr     : std_logic_vector(4 downto 0);
@@ -214,6 +220,12 @@ begin
       tx_eof_i     => mac_tx_eof,
       tx_empty_i   => mac_tx_empty,
       tx_rden_o    => mac_tx_rden,
+      --
+      rx_data_o    => mac_rx_data,
+      rx_sof_o     => mac_rx_sof,
+      rx_eof_o     => mac_rx_eof,
+      rx_en_o      => mac_rx_en,
+      rx_err_o     => mac_rx_err,
       --
       eth_txd_o    => eth_txd_o,
       eth_txen_o   => eth_txen_o,

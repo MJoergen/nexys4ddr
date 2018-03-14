@@ -32,6 +32,7 @@ entity ethernet is
       rx_sof_o     : out   std_logic;
       rx_eof_o     : out   std_logic;
       rx_en_o      : out   std_logic;
+      rx_err_o     : out   std_logic;
 
       -- Connected to PHY
       eth_txd_o    : out   std_logic_vector(1 downto 0);
@@ -65,6 +66,7 @@ begin
          sof_o        => rx_sof_o,
          eof_o        => rx_eof_o,
          ena_o        => rx_en_o,
+         err_o        => rx_err_o,
          eth_rxd_i    => eth_rxd_i,
          eth_rxerr_i  => eth_rxerr_i,
          eth_crsdv_i  => eth_crsdv_i,
