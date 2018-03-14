@@ -160,6 +160,7 @@ begin
 
          if eth_rst = '1' then
             mac_smi_rden <= '0';
+            mac_smi_addr <= (others => '0');
          end if;
       end if;
    end process proc_smi;
