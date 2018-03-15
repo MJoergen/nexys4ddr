@@ -55,6 +55,7 @@ entity rx_mac is
       eof_o       : out std_logic;
       data_o      : out std_logic_vector(7 downto 0);
       err_o       : out std_logic;
+      crc_valid_o : out std_logic;
 
       -- Connectedto PHY
       eth_rxd_i   : in  std_logic_vector(1 downto 0);
@@ -84,11 +85,13 @@ begin
    -- Generate MAC framing
    proc_fsm : process (eth_clk_i)
       variable crc_v : std_logic_vector(31 downto 0);
+      variable newdata_v : std_logic_vector(7 downto 0);
    begin
       if rising_edge(eth_clk_i) then
 
          if eth_crsdv_i = '1' then 
-            data      <= eth_rxd_i & data(7 downto 2);
+            newdata_v := eth_rxd_i & data(7 downto 2);
+            data      <= newdata_v;
             dibit_cnt <= (dibit_cnt + 1) mod 4;
 
             -- Calculate CRC
@@ -119,8 +122,10 @@ begin
                   byte_cnt  <= 0;
                   dibit_cnt <= 0;
                   sof       <= '1';
-                  crc       <= (others => '0');
                   fsm_state <= PAYLOAD_ST;
+               end if;
+               if newdata_v = X"D5" then
+                  crc       <= (others => '1');
                end if;
 
             when PRE2_ST =>
@@ -152,12 +157,15 @@ begin
    proc_out : process (eth_clk_i)
    begin
       if rising_edge(eth_clk_i) then
-         ena_o  <= ena;
-         sof_o  <= ena and sof;
-         eof_o  <= ena and not eth_crsdv_i;
-         data_o <= data;
-         err_o  <= eth_rxerr_i;
-
+         ena_o       <= ena;
+         sof_o       <= ena and sof;
+         eof_o       <= ena and not eth_crsdv_i;
+         data_o      <= data;
+         err_o       <= eth_rxerr_i;
+         crc_valid_o <= '0';
+         if ena = '1' and eth_crsdv_i = '0' and crc = X"C704DD7B" then
+            crc_valid_o <= '1';
+         end if;
       end if;
    end process proc_out;
 
