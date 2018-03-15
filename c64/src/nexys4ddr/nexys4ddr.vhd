@@ -107,6 +107,8 @@ architecture Structural of nexys4ddr is
    signal mac_smi_data_in  : std_logic_vector(15 downto 0);
 
    signal mac_smi_registers : std_logic_vector(32*16-1 downto 0);
+   signal dat               : std_logic_vector(8*16-1 downto 0);
+   signal eth_debug         : std_logic_vector(32*16-1 downto 0);
 
    signal fifo_error : std_logic;
 
@@ -239,6 +241,21 @@ begin
       eth_refclk_o => eth_refclk_o
    );
 
+   proc_dat : process (eth_clk)
+   begin
+      if rising_edge(eth_clk) then
+         if mac_rx_en = '1' and dat(dat'left downto dat'left-7) = 0 then
+            dat <= dat(dat'left-8 downto 0) & mac_rx_data;
+         end if;
+         if mac_rx_en = '1' and mac_rx_sof = '1' then
+            dat <= (others => '0');
+            dat(7 downto 0) <= mac_rx_data;
+         end if;
+      end if;
+   end process proc_dat;
+
+   eth_debug(32*16-1 downto 8*16) <= (others => '0');
+   eth_debug( 8*16-1 downto 0*16) <= dat;
 
    ------------------------------
    -- Hack Computer!
@@ -260,7 +277,7 @@ begin
       ps2_clk_i   => ps2_clk_i,
       ps2_data_i  => ps2_data_i,
       --
-      eth_debug_i => mac_smi_registers,
+      eth_debug_i => eth_debug,
       led_o       => open,
       --
       vga_hs_o     => vga_hs,
