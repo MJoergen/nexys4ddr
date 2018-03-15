@@ -80,16 +80,6 @@ architecture Structural of rx_mac is
 
 begin
 
-   proc_byte : process (eth_clk_i)
-   begin
-      if rising_edge(eth_clk_i) then
-         if eth_crsdv_i = '1' then 
-            data <= eth_rxd_i & data(7 downto 2);
-         end if;
-      end if;
-   end process proc_byte;
-
-
    -- Generate MAC framing
    proc_fsm : process (eth_clk_i)
    begin
@@ -107,37 +97,20 @@ begin
                   fsm_state <= PRE1_ST;
                   dibit_cnt <= 0;
                   byte_cnt  <= 0;
+                  data      <= (others => '0');
                end if;
 
+            -- Synchronize
             when PRE1_ST =>
-               if dibit_cnt = 3 then
-                  byte_cnt <= byte_cnt + 1;
-                  if data /= X"55" then
-                     fsm_state <= IDLE_ST;
-                     dibit_cnt <= 0;
-                     byte_cnt  <= 0;
-                  end if;
-
-                  if byte_cnt = 6 then
-                     byte_cnt  <= 0;
-                     fsm_state <= PRE2_ST;
-                  end if;
+               if data = X"D5" then
+                  byte_cnt  <= 0;
+                  dibit_cnt <= 0;
+                  sof <= '1';
+                  fsm_state <= PAYLOAD_ST;
                end if;
 
             when PRE2_ST =>
-               if dibit_cnt = 3 then
-                  byte_cnt <= byte_cnt + 1;
-                  if data /= X"D5" then
-                     fsm_state <= IDLE_ST;
-                     dibit_cnt <= 0;
-                     byte_cnt  <= 0;
-                  end if;
-
-                  if byte_cnt = 0 then
-                     fsm_state <= PAYLOAD_ST;
-                     sof       <= '1';
-                  end if;
-               end if;
+               null;
 
             when PAYLOAD_ST =>
                if dibit_cnt = 3 then
