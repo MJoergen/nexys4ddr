@@ -92,11 +92,12 @@ architecture Structural of nexys4ddr is
    signal mac_tx_empty : std_logic;
    signal mac_tx_rden  : std_logic;
 
-   signal mac_rx_data  : std_logic_vector(7 downto 0);
-   signal mac_rx_sof   : std_logic;
-   signal mac_rx_eof   : std_logic;
-   signal mac_rx_en    : std_logic;
-   signal mac_rx_err   : std_logic;
+   signal mac_rx_data      : std_logic_vector(7 downto 0);
+   signal mac_rx_sof       : std_logic;
+   signal mac_rx_eof       : std_logic;
+   signal mac_rx_en        : std_logic;
+   signal mac_rx_err       : std_logic;
+   signal mac_rx_crc_valid : std_logic;
 
    signal mac_smi_ready    : std_logic;
    constant mac_smi_phy    : std_logic_vector(4 downto 0) := "00001";
@@ -111,6 +112,15 @@ architecture Structural of nexys4ddr is
    signal eth_debug         : std_logic_vector(32*16-1 downto 0);
 
    signal fifo_error : std_logic;
+
+   -- Payload interface @ cpu_clk
+   signal cpu_pl_ena   : std_logic;
+   signal cpu_pl_sof   : std_logic;
+   signal cpu_pl_eof   : std_logic;
+   signal cpu_pl_data  : std_logic_vector(7 downto 0);
+   signal cpu_pl_ovf   : std_logic;
+   signal cpu_pl_err   : std_logic;
+   signal cpu_pl_drop  : std_logic;
 
 begin
 
@@ -206,39 +216,40 @@ begin
 
    inst_ethernet : entity work.ethernet
    port map (
-      eth_clk_i    => eth_clk,
-      eth_rst_i    => eth_rst,
+      eth_clk_i      => eth_clk,
+      eth_rst_i      => eth_rst,
       -- SMI interface
-      smi_ready_o  => mac_smi_ready,
-      smi_phy_i    => mac_smi_phy,
-      smi_addr_i   => mac_smi_addr,
-      smi_rden_i   => mac_smi_rden,
-      smi_data_o   => mac_smi_data_out,
-      smi_wren_i   => mac_smi_wren,
-      smi_data_i   => mac_smi_data_in,
+      smi_ready_o    => mac_smi_ready,
+      smi_phy_i      => mac_smi_phy,
+      smi_addr_i     => mac_smi_addr,
+      smi_rden_i     => mac_smi_rden,
+      smi_data_o     => mac_smi_data_out,
+      smi_wren_i     => mac_smi_wren,
+      smi_data_i     => mac_smi_data_in,
       --
-      tx_data_i    => mac_tx_data,
-      tx_sof_i     => mac_tx_sof,
-      tx_eof_i     => mac_tx_eof,
-      tx_empty_i   => mac_tx_empty,
-      tx_rden_o    => mac_tx_rden,
+      tx_data_i      => mac_tx_data,
+      tx_sof_i       => mac_tx_sof,
+      tx_eof_i       => mac_tx_eof,
+      tx_empty_i     => mac_tx_empty,
+      tx_rden_o      => mac_tx_rden,
       --
-      rx_data_o    => mac_rx_data,
-      rx_sof_o     => mac_rx_sof,
-      rx_eof_o     => mac_rx_eof,
-      rx_en_o      => mac_rx_en,
-      rx_err_o     => mac_rx_err,
+      rx_data_o      => mac_rx_data,
+      rx_sof_o       => mac_rx_sof,
+      rx_eof_o       => mac_rx_eof,
+      rx_en_o        => mac_rx_en,
+      rx_err_o       => mac_rx_err,
+      rx_crc_valid_o => mac_rx_crc_valid,
       --
-      eth_txd_o    => eth_txd_o,
-      eth_txen_o   => eth_txen_o,
-      eth_rxd_i    => eth_rxd_i,
-      eth_rxerr_i  => eth_rxerr_i,
-      eth_crsdv_i  => eth_crsdv_i,
-      eth_intn_i   => eth_intn_i,
-      eth_mdio_io  => eth_mdio_io,
-      eth_mdc_o    => eth_mdc_o,
-      eth_rstn_o   => eth_rstn_o,
-      eth_refclk_o => eth_refclk_o
+      eth_txd_o      => eth_txd_o,
+      eth_txen_o     => eth_txen_o,
+      eth_rxd_i      => eth_rxd_i,
+      eth_rxerr_i    => eth_rxerr_i,
+      eth_crsdv_i    => eth_crsdv_i,
+      eth_intn_i     => eth_intn_i,
+      eth_mdio_io    => eth_mdio_io,
+      eth_mdc_o      => eth_mdc_o,
+      eth_rstn_o     => eth_rstn_o,
+      eth_refclk_o   => eth_refclk_o
    );
 
    proc_dat : process (eth_clk)
@@ -256,6 +267,40 @@ begin
 
    eth_debug(32*16-1 downto 8*16) <= (others => '0');
    eth_debug( 8*16-1 downto 0*16) <= dat;
+
+   -------------------
+   -- Ethernet receive
+   -------------------
+
+   inst_decap : entity work.decap
+   port map (
+      -- Ctrl interface. Assumed to be constant for now.
+      ctrl_mac_dst_i  => X"F46D04D7F3CA",
+      ctrl_ip_dst_i   => X"C0A8012B",      -- 192.168.1.43
+      ctrl_udp_dst_i  => X"1234",          -- Port 4660
+
+      -- Mac interface @ mac_clk_i
+      mac_clk_i       => eth_clk,
+      mac_rst_i       => eth_rst,
+      mac_ena_i       => mac_rx_en,
+      mac_sof_i       => mac_rx_sof,
+      mac_eof_i       => mac_rx_eof,
+      mac_data_i      => mac_rx_data,
+      mac_err_i       => mac_rx_err,
+      mac_crc_valid_i => mac_rx_crc_valid,
+
+      -- Payload interface @ pl_clk_i
+      pl_clk_i        => cpu_clk,  
+      pl_rst_i        => cpu_rst, 
+      pl_ena_o        => cpu_pl_ena,
+      pl_sof_o        => cpu_pl_sof,
+      pl_eof_o        => cpu_pl_eof,
+      pl_data_o       => cpu_pl_data,
+      pl_afull_i      => '0',
+      pl_ovf_o        => cpu_pl_ovf,
+      pl_err_o        => cpu_pl_err,
+      pl_drop_o       => cpu_pl_drop 
+   );
 
    ------------------------------
    -- Hack Computer!

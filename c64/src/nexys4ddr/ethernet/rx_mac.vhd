@@ -55,7 +55,7 @@ entity rx_mac is
       eof_o       : out std_logic;
       data_o      : out std_logic_vector(7 downto 0);
       err_o       : out std_logic;
-      crc_valid_o : out std_logic;
+      crc_valid_o : out std_logic;  -- Valid only at EOF.
 
       -- Connectedto PHY
       eth_rxd_i   : in  std_logic_vector(1 downto 0);

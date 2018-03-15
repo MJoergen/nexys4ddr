@@ -14,30 +14,31 @@ use ieee.numeric_std.all;
 entity decap is
    port (
       -- Ctrl interface. Assumed to be constant for now.
-      ctrl_mac_dst_i : in std_logic_vector(47 downto 0);
-      ctrl_ip_dst_i  : in std_logic_vector(31 downto 0);
-      ctrl_udp_dst_i : in std_logic_vector(15 downto 0);
+      ctrl_mac_dst_i  : in  std_logic_vector(47 downto 0);
+      ctrl_ip_dst_i   : in  std_logic_vector(31 downto 0);
+      ctrl_udp_dst_i  : in  std_logic_vector(15 downto 0);
 
       -- Mac interface @ mac_clk_i
-      mac_clk_i  : in  std_logic;
-      mac_rst_i  : in  std_logic;
-      mac_ena_i  : in  std_logic;
-      mac_sof_i  : in  std_logic;
-      mac_eof_i  : in  std_logic;
-      mac_data_i : in  std_logic_vector(7 downto 0);
-      mac_err_i  : in  std_logic_vector(7 downto 0);
+      mac_clk_i       : in  std_logic;
+      mac_rst_i       : in  std_logic;
+      mac_ena_i       : in  std_logic;
+      mac_sof_i       : in  std_logic;
+      mac_eof_i       : in  std_logic;
+      mac_data_i      : in  std_logic_vector(7 downto 0);
+      mac_err_i       : in  std_logic;
+      mac_crc_valid_i : in  std_logic;
 
       -- Payload interface @ pl_clk_i
-      pl_clk_i   : in  std_logic; 
-      pl_rst_i   : in  std_logic;
-      pl_ena_o   : out std_logic;
-      pl_sof_o   : out std_logic;
-      pl_eof_o   : out std_logic;
-      pl_data_o  : out std_logic_vector(7 downto 0);
-      pl_afull_i : in  std_logic;
-      pl_ovf_o   : out std_logic;
-      pl_err_o   : out std_logic;
-      pl_drop_o  : out std_logic
+      pl_clk_i        : in  std_logic; 
+      pl_rst_i        : in  std_logic;
+      pl_ena_o        : out std_logic;
+      pl_sof_o        : out std_logic;
+      pl_eof_o        : out std_logic;
+      pl_data_o       : out std_logic_vector(7 downto 0);
+      pl_afull_i      : in  std_logic;
+      pl_ovf_o        : out std_logic;
+      pl_err_o        : out std_logic;
+      pl_drop_o       : out std_logic
    );
 end decap;
 
@@ -55,13 +56,17 @@ architecture Structural of decap is
 
    signal pl_bytes  : std_logic_vector(15 downto 0);
 
-   type t_fsm_state is (IDLE_ST, HDR_ST, PL_ST);
+   type t_fsm_state is (IDLE_ST, MAC_HDR_ST, IP_HDR_ST);
    signal fsm_state : t_fsm_state := IDLE_ST;
 
    signal pl_ena   : std_logic := '0';
    signal pl_ovf   : std_logic;
    signal pl_err   : std_logic;
    signal pl_drop  : std_logic;
+
+   signal ctrl_mac_dst : std_logic_vector(47 downto 0);
+   signal ctrl_ip_dst  : std_logic_vector(31 downto 0);
+   signal ctrl_udp_dst : std_logic_vector(15 downto 0);
 
 begin
 
@@ -113,24 +118,37 @@ begin
          pl_ena  <= '0';
          pl_ovf  <= '0';
          pl_err  <= '0';
-         pl_drop <= '0';
 
          case fsm_state is
             when IDLE_ST =>
-               if pl_fifo_rden = '1' and pl_fifo_out_sof = '1' then
+               ctrl_mac_dst <= ctrl_mac_dst_i;
+               ctrl_ip_dst  <= ctrl_ip_dst_i;
+               ctrl_udp_dst <= ctrl_udp_dst_i;
+               pl_drop      <= '0';
+
+               if pl_fifo_empty = '0' and pl_fifo_out_sof = '1' then
                   pl_bytes  <= (others => '0');
-                  fsm_state <= HDR_ST;
+                  fsm_state <= MAC_HDR_ST;
                end if;
 
-            when HDR_ST =>
+            when MAC_HDR_ST =>
                if pl_fifo_rden = '1' then
                   pl_bytes <= pl_bytes + 1;
-                  if pl_bytes > 47 then
-                     fsm_state <= PL_ST;
+
+                  if pl_bytes < 6 then
+                     if pl_fifo_out_data /= ctrl_mac_dst(47 downto 40) then
+                        pl_drop <= '1';
+                     end if;
+
+                     ctrl_mac_dst <= ctrl_mac_dst(39 downto 0) & X"00";
+                  end if;
+
+                  if pl_bytes > 13 then
+                     fsm_state <= IP_HDR_ST;
                   end if;
                end if;
 
-            when PL_ST =>
+            when IP_HDR_ST =>
                null;
 
          end case;
@@ -145,8 +163,8 @@ begin
       end if;
    end process pl_fsm;
 
-   pl_fifo_rden <= '1' when (fsm_state = HDR_ST or fsm_state = PL_ST) and pl_afull_i = '0' else '0';
-   pl_ena       <= '1' when fsm_state = PL_ST and pl_afull_i = '0' else '0';
+   pl_fifo_rden <= '1' when (fsm_state = MAC_HDR_ST or fsm_state = IP_HDR_ST) and pl_afull_i = '0' else '0';
+   pl_ena       <= '1' when fsm_state = IP_HDR_ST and pl_afull_i = '0' else '0';
 
    -- Drive output signals
    pl_ena_o  <= pl_ena;
