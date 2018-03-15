@@ -72,23 +72,36 @@ architecture Structural of rx_mac is
       
    signal ena  : std_logic := '0';
    signal sof  : std_logic;
-   signal eof  : std_logic;
    signal data : std_logic_vector(7 downto 0);
 
    signal dibit_cnt : integer range 0 to 3;
    signal byte_cnt  : integer range 0 to 11;
 
+   signal crc : std_logic_vector(31 downto 0);
+
 begin
 
    -- Generate MAC framing
    proc_fsm : process (eth_clk_i)
+      variable crc_v : std_logic_vector(31 downto 0);
    begin
       if rising_edge(eth_clk_i) then
-         eof <= '0';
 
          if eth_crsdv_i = '1' then 
             data      <= eth_rxd_i & data(7 downto 2);
             dibit_cnt <= (dibit_cnt + 1) mod 4;
+
+            -- Calculate CRC
+            -- Consume two bits of data
+            crc_v := crc;
+            for i in 0 to 1 loop
+               if eth_rxd_i(i) = crc_v(31) then
+                  crc_v :=  crc_v(30 downto 0) & '0';
+               else
+                  crc_v := (crc_v(30 downto 0) & '0') xor x"04C11DB7";
+               end if;
+            end loop;
+            crc <= crc_v;
          end if;
 
          case fsm_state is
@@ -105,7 +118,8 @@ begin
                if data = X"D5" then
                   byte_cnt  <= 0;
                   dibit_cnt <= 0;
-                  sof <= '1';
+                  sof       <= '1';
+                  crc       <= (others => '0');
                   fsm_state <= PAYLOAD_ST;
                end if;
 
@@ -128,7 +142,6 @@ begin
             dibit_cnt <= 0;
             byte_cnt  <= 0;
             sof       <= '0';
-            eof       <= '0';
          end if;
       end if;
    end process proc_fsm;
@@ -144,6 +157,7 @@ begin
          eof_o  <= ena and not eth_crsdv_i;
          data_o <= data;
          err_o  <= eth_rxerr_i;
+
       end if;
    end process proc_out;
 
