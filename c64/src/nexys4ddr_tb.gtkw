@@ -1,13 +1,13 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Wed Mar 14 19:32:36 2018
+[*] Sat Mar 24 08:09:28 2018
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/c64/nexys4ddr.ghw"
-[dumpfile_mtime] "Wed Mar 14 19:29:33 2018"
-[dumpfile_size] 13779612
+[dumpfile_mtime] "Sat Mar 24 08:07:55 2018"
+[dumpfile_size] 14841562
 [savefile] "/home/mike/git/nexys4ddr/c64/src/nexys4ddr_tb.gtkw"
 [timestart] 110738100000
-[size] 1920 1103
+[size] 1920 1010
 [pos] -1 -1
 *-26.435658 111032000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
@@ -17,7 +17,7 @@
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.
 [sst_width] 348
-[signals_width] 226
+[signals_width] 324
 [sst_expanded] 1
 [sst_vpaned_height] 589
 @c00022
@@ -39,47 +39,22 @@ top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.vga_vcount_i[0]
 @22
 #{top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.vga_col_i[7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.vga_col_i[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.vga_col_i[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.vga_col_i[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.vga_col_i[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.vga_col_i[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.vga_col_i[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.vga_col_i[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.vga_col_i[0]
 @800200
--Compress
+-Rx MAC
 @28
-top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.clk_i
-top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.rst_i
-top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.in_ena_i
-top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.in_sof_i
-top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.in_eof_i
-@22
-#{top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.in_data_i[7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.in_data_i[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.in_data_i[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.in_data_i[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.in_data_i[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.in_data_i[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.in_data_i[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.in_data_i[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.in_data_i[0]
-@28
-top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.out_ena_o
-top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.out_sof_o
-top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.out_eof_o
-@22
-#{top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.out_data_o[7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.out_data_o[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.out_data_o[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.out_data_o[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.out_data_o[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.out_data_o[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.out_data_o[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.out_data_o[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_compress.out_data_o[0]
-@1000200
--Compress
-@800200
--Encap
-@28
-top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ena_i
-top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_sof_i
-top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_eof_i
-@22
-#{top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_data_i[7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_data_i[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_data_i[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_data_i[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_data_i[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_data_i[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_data_i[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_data_i[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_data_i[0]
-#{top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[15:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[15] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[14] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[13] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[12] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[11] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[10] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[9] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[8] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_convert.inst_encap.pl_ctrl_in[0]
-@1000200
--Encap
-@28
-#{top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.eth_txd_o[1:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.eth_txd_o[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.eth_txd_o[0]
 top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.eth_crsdv_i
 #{top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.eth_rxd_i[1:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.eth_rxd_i[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.eth_rxd_i[0]
 @420
 top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.fsm_state
-@421
 top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.byte_cnt
 @28
-top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.ena
-top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.sof
-top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.eof
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.ena_o
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.sof_o
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.eof_o
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.err_o
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.crc_valid_o
 @22
-#{top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.data[7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.data[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.data[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.data[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.data[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.data[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.data[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.data[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.data[0]
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.data_o[7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.data_o[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.data_o[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.data_o[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.data_o[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.data_o[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.data_o[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.data_o[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_rx_mac.data_o[0]
+@1000200
+-Rx MAC
 [pattern_trace] 1
 [pattern_trace] 0

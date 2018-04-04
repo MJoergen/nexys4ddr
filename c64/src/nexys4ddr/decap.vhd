@@ -50,13 +50,15 @@ architecture Structural of decap is
    signal pl_fifo_empty : std_logic;
    signal pl_fifo_rden  : std_logic := '0';
    signal pl_fifo_out   : std_logic_vector(15 downto 0);
-   signal pl_fifo_out_sof  : std_logic;
-   signal pl_fifo_out_eof  : std_logic;
-   signal pl_fifo_out_data : std_logic_vector(7 downto 0);
+   signal pl_fifo_out_sof       : std_logic;
+   signal pl_fifo_out_eof       : std_logic;
+   signal pl_fifo_out_err       : std_logic;
+   signal pl_fifo_out_crc_valid : std_logic;
+   signal pl_fifo_out_data      : std_logic_vector(7 downto 0);
 
    signal pl_bytes  : std_logic_vector(15 downto 0);
 
-   type t_fsm_state is (IDLE_ST, MAC_HDR_ST, IP_HDR_ST);
+   type t_fsm_state is (IDLE_ST, MAC_HDR_ST, IP_HDR_ST, UDP_HDR_ST, FWD_ST);
    signal fsm_state : t_fsm_state := IDLE_ST;
 
    signal pl_ena   : std_logic := '0';
@@ -64,6 +66,7 @@ architecture Structural of decap is
    signal pl_err   : std_logic;
    signal pl_drop  : std_logic;
 
+   -- Temporary storage. Instead of using a multiplexor.
    signal ctrl_mac_dst : std_logic_vector(47 downto 0);
    signal ctrl_ip_dst  : std_logic_vector(31 downto 0);
    signal ctrl_udp_dst : std_logic_vector(15 downto 0);
@@ -74,7 +77,9 @@ begin
    -- Clock domain mac_clk_i
    -------------------------
 
-   mac_fifo_in(15 downto 10) <= (others => '0');
+   mac_fifo_in(15 downto 12) <= (others => '0');
+   mac_fifo_in(11)           <= mac_crc_valid_i;
+   mac_fifo_in(10)           <= mac_err_i;
    mac_fifo_in(9)            <= mac_eof_i;
    mac_fifo_in(8)            <= mac_sof_i;
    mac_fifo_in(7 downto 0)   <= mac_data_i;
@@ -107,9 +112,11 @@ begin
 
 
    -- Extract data from input fifo
-   pl_fifo_out_sof  <= pl_fifo_out(8);
-   pl_fifo_out_eof  <= pl_fifo_out(9);
-   pl_fifo_out_data <= pl_fifo_out(7 downto 0);
+   pl_fifo_out_crc_valid <= pl_fifo_out(11);
+   pl_fifo_out_err       <= pl_fifo_out(10);
+   pl_fifo_out_sof       <= pl_fifo_out(8);
+   pl_fifo_out_eof       <= pl_fifo_out(9);
+   pl_fifo_out_data      <= pl_fifo_out(7 downto 0);
 
    -- Main state machine
    pl_fsm : process (pl_clk_i)
@@ -149,7 +156,42 @@ begin
                end if;
 
             when IP_HDR_ST =>
-               null;
+               if pl_fifo_rden = '1' then
+                  pl_bytes <= pl_bytes + 1;
+
+                  if pl_bytes < 6 then
+                     if pl_fifo_out_data /= ctrl_mac_dst(47 downto 40) then
+                        pl_drop <= '1';
+                     end if;
+
+                     ctrl_mac_dst <= ctrl_mac_dst(39 downto 0) & X"00";
+                  end if;
+
+                  if pl_bytes > 13 then
+                     fsm_state <= UDP_HDR_ST;
+                  end if;
+               end if;
+
+            when UDP_HDR_ST =>
+               if pl_fifo_rden = '1' then
+                  pl_bytes <= pl_bytes + 1;
+
+                  if pl_bytes < 6 then
+                     if pl_fifo_out_data /= ctrl_mac_dst(47 downto 40) then
+                        pl_drop <= '1';
+                     end if;
+
+                     ctrl_mac_dst <= ctrl_mac_dst(39 downto 0) & X"00";
+                  end if;
+
+                  if pl_bytes > 13 then
+                     fsm_state <= FWD_ST;
+                  end if;
+               end if;
+
+            when FWD_ST =>
+               if pl_fifo_rden = '1' then
+               end if;
 
          end case;
 
