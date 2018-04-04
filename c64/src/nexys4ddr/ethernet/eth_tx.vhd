@@ -44,7 +44,7 @@ use ieee.numeric_std.all;
 -- ensure that the setup and hold requirements are met, the nibbles are clocked
 -- out of the transceiver on the falling edge of XTAL1/CLKIN (REF_CLK). 
 
-entity tx_mac is
+entity eth_tx is
 
    port (
       eth_clk_i    : in  std_logic;        -- Must be 50 MHz
@@ -62,9 +62,9 @@ entity tx_mac is
       eth_txd_o    : out std_logic_vector(1 downto 0);
       eth_txen_o   : out std_logic
    );
-end tx_mac;
+end eth_tx;
 
-architecture Structural of tx_mac is
+architecture Structural of eth_tx is
 
    signal err        : std_logic := '0';
    signal eth_txen   : std_logic := '0';

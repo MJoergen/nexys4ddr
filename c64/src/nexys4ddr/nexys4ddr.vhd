@@ -193,7 +193,7 @@ begin
    -- Ethernet PHY
    ------------------------------
 
-   inst_ethernet : entity work.ethernet
+   inst_eth : entity work.eth
    port map (
       eth_clk_i      => eth_clk,
       eth_rst_i      => eth_rst,

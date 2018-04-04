@@ -25,7 +25,7 @@ use ieee.numeric_std.all;
 -- ensure that the setup and hold requirements are met, the nibbles are clocked
 -- out of the transceiver on the falling edge of XTAL1/CLKIN (REF_CLK). 
 
-entity rx_mac is
+entity eth_rx is
 
    port (
       eth_clk_i   : in  std_logic;        -- Must be 50 MHz
@@ -45,9 +45,9 @@ entity rx_mac is
       eth_crsdv_i : in  std_logic;
       eth_intn_i  : in  std_logic
    );
-end rx_mac;
+end eth_rx;
 
-architecture Structural of rx_mac is
+architecture Structural of eth_rx is
 
    -- State machine to control the MAC framing
    type t_fsm_state is (IDLE_ST, PRE1_ST, PRE2_ST, PAYLOAD_ST);

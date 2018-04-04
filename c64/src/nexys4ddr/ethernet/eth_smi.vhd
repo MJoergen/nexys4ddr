@@ -19,7 +19,7 @@ use ieee.numeric_std.all;
 --
 -- wren_i and rden_i are sampled only when ready=1.
 
-entity smi is
+entity eth_smi is
 
    port (
       eth_clk_i   : in    std_logic;        -- Must be 50 MHz
@@ -39,9 +39,9 @@ entity smi is
       eth_mdio_io : inout std_logic;
       eth_mdc_o   : out   std_logic
    );
-end smi;
+end eth_smi;
 
-architecture Structural of smi is
+architecture Structural of eth_smi is
 
    -- Output signals
    signal mdio  : std_logic := '1';

@@ -46,7 +46,7 @@ use ieee.numeric_std.all;
 -- ensure that the setup and hold requirements are met, the nibbles are clocked
 -- out of the transceiver on the falling edge of XTAL1/CLKIN (REF_CLK). 
 
-entity ethernet is
+entity eth is
    port (
       eth_clk_i      : in    std_logic;
       eth_rst_i      : in    std_logic;
@@ -87,9 +87,9 @@ entity ethernet is
       eth_rstn_o     : out   std_logic;
       eth_refclk_o   : out   std_logic
    );
-end ethernet;
+end eth;
 
-architecture Structural of ethernet is
+architecture Structural of eth is
 
    signal tx_empty_ready : std_logic;
    signal smi_ready      : std_logic;
@@ -99,7 +99,7 @@ begin
    tx_empty_ready <= tx_empty_i or eth_rst_i;
    smi_ready_o    <= smi_ready and not eth_rst_i;
 
-   inst_rx_mac : entity work.rx_mac
+   inst_eth_rx : entity work.eth_rx
       port map (
          eth_clk_i    => eth_clk_i,
          eth_rst_i    => eth_rst_i,
@@ -115,7 +115,7 @@ begin
          eth_intn_i   => eth_intn_i
       );
 
-   inst_tx_mac : entity work.tx_mac
+   inst_eth_tx : entity work.eth_tx
       port map (
          eth_clk_i    => eth_clk_i,
          eth_rst_i    => eth_rst_i,
@@ -128,7 +128,7 @@ begin
          eth_txen_o   => eth_txen_o
       );
 
-   inst_smi : entity work.smi
+   inst_eth_smi : entity work.eth_smi
       port map (
          eth_clk_i    => eth_clk_i,
          eth_rst_i    => eth_rst_i,
