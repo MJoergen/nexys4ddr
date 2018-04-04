@@ -7,6 +7,7 @@ SRC   += src/nexys4ddr/clk_rst.vhd
 SRC   += src/nexys4ddr/ethernet/tx_mac.vhd
 SRC   += src/nexys4ddr/ethernet/rx_mac.vhd
 SRC   += src/nexys4ddr/ethernet/smi.vhd
+SRC   += src/nexys4ddr/read_smi.vhd
 SRC   += src/nexys4ddr/fifo_alt.vhd
 SRC   += src/nexys4ddr/encap.vhd
 SRC   += src/nexys4ddr/decap.vhd

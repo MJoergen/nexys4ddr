@@ -86,28 +86,28 @@ architecture Structural of nexys4ddr is
              conv2_4(conv_integer(arg(1 downto 0)));
    end function col8to12;
 
-   signal mac_tx_data  : std_logic_vector(7 downto 0);
-   signal mac_tx_sof   : std_logic;
-   signal mac_tx_eof   : std_logic;
-   signal mac_tx_empty : std_logic;
-   signal mac_tx_rden  : std_logic;
+   signal eth_tx_data  : std_logic_vector(7 downto 0);
+   signal eth_tx_sof   : std_logic;
+   signal eth_tx_eof   : std_logic;
+   signal eth_tx_empty : std_logic;
+   signal eth_tx_rden  : std_logic;
 
-   signal mac_rx_data      : std_logic_vector(7 downto 0);
-   signal mac_rx_sof       : std_logic;
-   signal mac_rx_eof       : std_logic;
-   signal mac_rx_en        : std_logic;
-   signal mac_rx_err       : std_logic;
-   signal mac_rx_crc_valid : std_logic;
+   signal eth_rx_data      : std_logic_vector(7 downto 0);
+   signal eth_rx_sof       : std_logic;
+   signal eth_rx_eof       : std_logic;
+   signal eth_rx_en        : std_logic;
+   signal eth_rx_err       : std_logic;
+   signal eth_rx_crc_valid : std_logic;
 
-   signal mac_smi_ready    : std_logic;
-   constant mac_smi_phy    : std_logic_vector(4 downto 0) := "00001";
-   signal mac_smi_addr     : std_logic_vector(4 downto 0);
-   signal mac_smi_rden     : std_logic;
-   signal mac_smi_data_out : std_logic_vector(15 downto 0);
-   signal mac_smi_wren     : std_logic;
-   signal mac_smi_data_in  : std_logic_vector(15 downto 0);
+   signal eth_smi_ready    : std_logic;
+   constant eth_smi_phy    : std_logic_vector(4 downto 0) := "00001";
+   signal eth_smi_addr     : std_logic_vector(4 downto 0);
+   signal eth_smi_rden     : std_logic;
+   signal eth_smi_data_out : std_logic_vector(15 downto 0);
+   signal eth_smi_wren     : std_logic;
+   signal eth_smi_data_in  : std_logic_vector(15 downto 0);
 
-   signal mac_smi_registers : std_logic_vector(32*16-1 downto 0);
+   signal eth_smi_registers : std_logic_vector(32*16-1 downto 0);
    signal dat               : std_logic_vector(8*16-1 downto 0);
    signal eth_debug         : std_logic_vector(32*16-1 downto 0);
 
@@ -151,37 +151,16 @@ begin
    -- Read SMI from PHY
    ------------------------------
 
-   proc_smi : process (eth_clk)
-      variable state_v : std_logic_vector(1 downto 0);
-   begin
-      if rising_edge(eth_clk) then
-         state_v := mac_smi_ready & mac_smi_rden;
-         case state_v is
-            when "10" => -- Start new read
-               -- Store result.
-               mac_smi_registers(conv_integer(mac_smi_addr)*16 + 15 downto
-                  conv_integer(mac_smi_addr)*16) <= mac_smi_data_out;
-
-               -- Start next read.
-               mac_smi_addr <= mac_smi_addr + 1;
-               mac_smi_rden <= '1';
-
-            when "11" => -- Wait for acknowledge
-               null;
-            when "01" => -- Read acknowledged
-               mac_smi_rden <= '0';
-            when "00" => -- Wait for result
-               null;
-            when others =>
-               null;
-         end case;
-
-         if eth_rst = '1' then
-            mac_smi_rden <= '0';
-            mac_smi_addr <= (others => '0');
-         end if;
-      end if;
-   end process proc_smi;
+   inst_read_smi : entity work.read_smi
+   port map (
+      clk_i       => eth_clk,
+      rst_i       => eth_rst,
+      ready_i     => eth_smi_ready,
+      addr_o      => eth_smi_addr,
+      rden_o      => eth_smi_rden,
+      data_i      => eth_smi_data_out,
+      registers_o => eth_smi_registers 
+   );
 
 
    -----------------------------------
@@ -200,11 +179,11 @@ begin
 
          eth_clk_i    => eth_clk,
          eth_rst_i    => eth_rst,
-         eth_data_o   => mac_tx_data,
-         eth_sof_o    => mac_tx_sof,
-         eth_eof_o    => mac_tx_eof,
-         eth_empty_o  => mac_tx_empty,
-         eth_rden_i   => mac_tx_rden,
+         eth_data_o   => eth_tx_data,
+         eth_sof_o    => eth_tx_sof,
+         eth_eof_o    => eth_tx_eof,
+         eth_empty_o  => eth_tx_empty,
+         eth_rden_i   => eth_tx_rden,
 
          fifo_error_o => fifo_error
       );
@@ -219,26 +198,26 @@ begin
       eth_clk_i      => eth_clk,
       eth_rst_i      => eth_rst,
       -- SMI interface
-      smi_ready_o    => mac_smi_ready,
-      smi_phy_i      => mac_smi_phy,
-      smi_addr_i     => mac_smi_addr,
-      smi_rden_i     => mac_smi_rden,
-      smi_data_o     => mac_smi_data_out,
-      smi_wren_i     => mac_smi_wren,
-      smi_data_i     => mac_smi_data_in,
+      smi_ready_o    => eth_smi_ready,
+      smi_phy_i      => eth_smi_phy,
+      smi_addr_i     => eth_smi_addr,
+      smi_rden_i     => eth_smi_rden,
+      smi_data_o     => eth_smi_data_out,
+      smi_wren_i     => eth_smi_wren,
+      smi_data_i     => eth_smi_data_in,
       --
-      tx_data_i      => mac_tx_data,
-      tx_sof_i       => mac_tx_sof,
-      tx_eof_i       => mac_tx_eof,
-      tx_empty_i     => mac_tx_empty,
-      tx_rden_o      => mac_tx_rden,
+      tx_data_i      => eth_tx_data,
+      tx_sof_i       => eth_tx_sof,
+      tx_eof_i       => eth_tx_eof,
+      tx_empty_i     => eth_tx_empty,
+      tx_rden_o      => eth_tx_rden,
       --
-      rx_data_o      => mac_rx_data,
-      rx_sof_o       => mac_rx_sof,
-      rx_eof_o       => mac_rx_eof,
-      rx_en_o        => mac_rx_en,
-      rx_err_o       => mac_rx_err,
-      rx_crc_valid_o => mac_rx_crc_valid,
+      rx_data_o      => eth_rx_data,
+      rx_sof_o       => eth_rx_sof,
+      rx_eof_o       => eth_rx_eof,
+      rx_en_o        => eth_rx_en,
+      rx_err_o       => eth_rx_err,
+      rx_crc_valid_o => eth_rx_crc_valid,
       --
       eth_txd_o      => eth_txd_o,
       eth_txen_o     => eth_txen_o,
@@ -255,12 +234,12 @@ begin
    proc_dat : process (eth_clk)
    begin
       if rising_edge(eth_clk) then
-         if mac_rx_en = '1' and dat(dat'left downto dat'left-7) = 0 then
-            dat <= dat(dat'left-8 downto 0) & mac_rx_data;
+         if eth_rx_en = '1' and dat(dat'left downto dat'left-7) = 0 then
+            dat <= dat(dat'left-8 downto 0) & eth_rx_data;
          end if;
-         if mac_rx_en = '1' and mac_rx_sof = '1' then
+         if eth_rx_en = '1' and eth_rx_sof = '1' then
             dat <= (others => '0');
-            dat(7 downto 0) <= mac_rx_data;
+            dat(7 downto 0) <= eth_rx_data;
          end if;
       end if;
    end process proc_dat;
@@ -276,12 +255,12 @@ begin
    port map (
       eth_clk_i       => eth_clk,
       eth_rst_i       => eth_rst,
-      eth_ena_i       => mac_rx_en,
-      eth_sof_i       => mac_rx_sof,
-      eth_eof_i       => mac_rx_eof,
-      eth_err_i       => mac_rx_err,
-      eth_data_i      => mac_rx_data,
-      eth_crc_valid_i => mac_rx_crc_valid,
+      eth_ena_i       => eth_rx_en,
+      eth_sof_i       => eth_rx_sof,
+      eth_eof_i       => eth_rx_eof,
+      eth_err_i       => eth_rx_err,
+      eth_data_i      => eth_rx_data,
+      eth_crc_valid_i => eth_rx_crc_valid,
       pl_clk_i        => cpu_clk,  
       pl_rst_i        => cpu_rst, 
       pl_ena_o        => cpu_pl_ena,
