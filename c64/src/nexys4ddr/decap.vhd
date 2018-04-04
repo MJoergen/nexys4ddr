@@ -25,8 +25,6 @@ entity decap is
       mac_sof_i       : in  std_logic;
       mac_eof_i       : in  std_logic;
       mac_data_i      : in  std_logic_vector(7 downto 0);
-      mac_err_i       : in  std_logic;
-      mac_crc_valid_i : in  std_logic;
 
       -- Payload interface @ pl_clk_i
       pl_clk_i        : in  std_logic; 
@@ -52,8 +50,6 @@ architecture Structural of decap is
    signal pl_fifo_out   : std_logic_vector(15 downto 0);
    signal pl_fifo_out_sof       : std_logic;
    signal pl_fifo_out_eof       : std_logic;
-   signal pl_fifo_out_err       : std_logic;
-   signal pl_fifo_out_crc_valid : std_logic;
    signal pl_fifo_out_data      : std_logic_vector(7 downto 0);
 
    signal pl_bytes  : std_logic_vector(15 downto 0);
@@ -77,9 +73,7 @@ begin
    -- Clock domain mac_clk_i
    -------------------------
 
-   mac_fifo_in(15 downto 12) <= (others => '0');
-   mac_fifo_in(11)           <= mac_crc_valid_i;
-   mac_fifo_in(10)           <= mac_err_i;
+   mac_fifo_in(15 downto 10) <= (others => '0');
    mac_fifo_in(9)            <= mac_eof_i;
    mac_fifo_in(8)            <= mac_sof_i;
    mac_fifo_in(7 downto 0)   <= mac_data_i;
@@ -112,10 +106,8 @@ begin
 
 
    -- Extract data from input fifo
-   pl_fifo_out_crc_valid <= pl_fifo_out(11);
-   pl_fifo_out_err       <= pl_fifo_out(10);
-   pl_fifo_out_sof       <= pl_fifo_out(8);
    pl_fifo_out_eof       <= pl_fifo_out(9);
+   pl_fifo_out_sof       <= pl_fifo_out(8);
    pl_fifo_out_data      <= pl_fifo_out(7 downto 0);
 
    -- Main state machine
