@@ -23,7 +23,7 @@ entity strip_crc is
       rx_ena_i       : in  std_logic;
       rx_sof_i       : in  std_logic;
       rx_eof_i       : in  std_logic;
-      rx_err_i       : in  std_logic;
+      rx_err_i       : in  std_logic;     -- TBD: Not used.
       rx_data_i      : in  std_logic_vector(7 downto 0);
       rx_crc_valid_i : in  std_logic;    -- Only valid @ EOF
 
@@ -67,14 +67,20 @@ begin
             rx_buf(conv_integer(wrptr)) <= rx_data_i;
             wrptr <= wrptr + 1;
 
-            if (rx_eof_i = '1' and rx_crc_valid_i = '0') or
-                rx_err_i = '1' then
-               wrptr <= start_ptr;  -- Discard this frame.
+            if rx_eof_i = '1' then
+               if rx_crc_valid_i = '1' then
+                  -- Prepare for next frame (and strip CRC).
+                  start_ptr <= wrptr-3;
+                  wrptr     <= wrptr-3;
+               else
+                  wrptr <= start_ptr;  -- Discard this frame.
+               end if;
             end if;
+         end if;
 
-            if rx_sof_i = '1' then
-               start_ptr <= wrptr;
-            end if;
+         if rst_i = '1' then
+            start_ptr <= (others => '0');
+            wrptr <= (others => '0');
          end if;
       end if;
    end process proc_input;
@@ -87,9 +93,14 @@ begin
          out_sof <= '0';
          out_eof <= '0';
          out_data <= rx_buf(conv_integer(rdptr));
-         if rdptr /= wrptr then
+
+         if rdptr /= start_ptr then
             out_ena <= '1';
             rdptr <= rdptr + 1;
+         end if;
+
+         if rst_i = '1' then
+            rdptr <= (others => '0');
          end if;
       end if;
    end process proc_output;

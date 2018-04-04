@@ -271,36 +271,25 @@ begin
    -------------------
    -- Ethernet receive
    -------------------
-
-   inst_decap : entity work.decap
+   
+   inst_receive : entity work.receive
    port map (
-      -- Ctrl interface. Assumed to be constant for now.
-      ctrl_mac_dst_i  => X"F46D04D7F3CA",
-      ctrl_ip_dst_i   => X"C0A8012B",      -- 192.168.1.43
-      ctrl_udp_dst_i  => X"1234",          -- Port 4660
-
-      -- Mac interface @ mac_clk_i
-      mac_clk_i       => eth_clk,
-      mac_rst_i       => eth_rst,
-      mac_ena_i       => mac_rx_en,
-      mac_sof_i       => mac_rx_sof,
-      mac_eof_i       => mac_rx_eof,
-      mac_data_i      => mac_rx_data,
-      mac_err_i       => mac_rx_err,
-      mac_crc_valid_i => mac_rx_crc_valid,
-
-      -- Payload interface @ pl_clk_i
+      eth_clk_i       => eth_clk,
+      eth_rst_i       => eth_rst,
+      eth_ena_i       => mac_rx_en,
+      eth_sof_i       => mac_rx_sof,
+      eth_eof_i       => mac_rx_eof,
+      eth_err_i       => mac_rx_err,
+      eth_data_i      => mac_rx_data,
+      eth_crc_valid_i => mac_rx_crc_valid,
       pl_clk_i        => cpu_clk,  
       pl_rst_i        => cpu_rst, 
       pl_ena_o        => cpu_pl_ena,
       pl_sof_o        => cpu_pl_sof,
       pl_eof_o        => cpu_pl_eof,
-      pl_data_o       => cpu_pl_data,
-      pl_afull_i      => '0',
-      pl_ovf_o        => cpu_pl_ovf,
-      pl_err_o        => cpu_pl_err,
-      pl_drop_o       => cpu_pl_drop 
-   );
+      pl_data_o       => cpu_pl_data
+   ) ;
+
 
    ------------------------------
    -- Hack Computer!
