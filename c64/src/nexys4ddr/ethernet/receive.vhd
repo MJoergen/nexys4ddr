@@ -30,10 +30,9 @@ entity receive is
       -- Output interface
       pl_clk_i       : in  std_logic;
       pl_rst_i       : in  std_logic;
-      pl_ena_o       : out std_logic;
-      pl_sof_o       : out std_logic;
-      pl_eof_o       : out std_logic;
-      pl_data_o      : out std_logic_vector(7 downto 0)
+      pl_wr_addr_o   : out std_logic_vector(15 downto 0);
+      pl_wr_en_o     : out std_logic;
+      pl_wr_data_o   : out std_logic_vector(7 downto 0)
    );
 end receive;
 
@@ -43,6 +42,16 @@ architecture Structural of receive is
    signal eth_rx_sof  : std_logic;
    signal eth_rx_eof  : std_logic;
    signal eth_rx_data : std_logic_vector(7 downto 0);
+
+   signal pl_ena  : std_logic;
+   signal pl_sof  : std_logic;
+   signal pl_eof  : std_logic;
+   signal pl_data : std_logic_vector(7 downto 0);
+
+   signal pl_wr_addr   : std_logic_vector(15 downto 0);
+   signal pl_wr_addr_d : std_logic_vector(15 downto 0);
+   signal pl_wr_en     : std_logic;
+   signal pl_wr_data   : std_logic_vector(7 downto 0);
 
 begin
 
@@ -82,11 +91,41 @@ begin
       pl_clk_i        => pl_clk_i,  
       pl_rst_i        => pl_rst_i, 
       pl_afull_i      => '0',
-      pl_ena_o        => pl_ena_o,
-      pl_sof_o        => pl_sof_o,
-      pl_eof_o        => pl_eof_o,
-      pl_data_o       => pl_data_o
+      pl_ena_o        => pl_ena,
+      pl_sof_o        => pl_sof,
+      pl_eof_o        => pl_eof,
+      pl_data_o       => pl_data
    );
+
+
+   -- Convert packet to memory accesses.
+   -- First two bytes are address (in little-endian format)
+   process (pl_clk_i)
+   begin
+      if rising_edge(pl_clk_i) then
+         pl_wr_en <= '0';
+
+         if pl_ena = '1' then
+            if pl_sof = '1' then
+               pl_wr_addr( 7 downto 0) <= pl_data;
+               pl_wr_addr(15 downto 8) <= X"AA";
+            elsif pl_wr_addr(15 downto 8) = X"AA" then
+               pl_wr_addr(15 downto 8) <= pl_data;
+            else
+               pl_wr_en     <= '1';
+               pl_wr_data   <= pl_data;
+               pl_wr_addr   <= pl_wr_addr + 1;
+               pl_wr_addr_d <= pl_wr_addr;
+            end if;
+         end if;
+      end if;
+   end process;
+
+
+   -- Drive output signals
+   pl_wr_addr_o <= pl_wr_addr_d;
+   pl_wr_en_o   <= pl_wr_en;
+   pl_wr_data_o <= pl_wr_data;
 
 end Structural;
 

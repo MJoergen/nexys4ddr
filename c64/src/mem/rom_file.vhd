@@ -5,19 +5,27 @@ use ieee.std_logic_textio.all;
 use std.textio.all;
 
 -- This is a generic ROM instantiation from a text file.
+-- It has an optional write port.
+
 entity rom_file is
 
    generic (
               G_RD_CLK_RIS : boolean;     -- True, if read port synchronized to rising clock edge
+              G_WR_CLK_RIS : boolean := true;     -- True, if write port synchronized to rising clock edge
               G_ADDR_SIZE  : integer;     -- Number of bits in address
               G_DATA_SIZE  : integer;     -- Number of bits in data
               G_ROM_FILE   : string       -- Initial memory contents
    );
    port (
-      clk_i  : in  std_logic;
-      addr_i : in  std_logic_vector(G_ADDR_SIZE-1 downto 0);
-      rden_i : in  std_logic;
-      data_o : out std_logic_vector(G_DATA_SIZE-1 downto 0)
+      wr_clk_i  : in  std_logic := '0';
+      wr_addr_i : in  std_logic_vector(G_ADDR_SIZE-1 downto 0) := (others => '0');
+      wr_en_i   : in  std_logic := '0';
+      wr_data_i : in  std_logic_vector(G_DATA_SIZE-1 downto 0) := (others => '0');
+
+      rd_clk_i  : in  std_logic;
+      rd_addr_i : in  std_logic_vector(G_ADDR_SIZE-1 downto 0);
+      rd_en_i   : in  std_logic;
+      rd_data_o : out std_logic_vector(G_DATA_SIZE-1 downto 0)
    );
 
 end rom_file;
@@ -49,31 +57,53 @@ architecture Structural of rom_file is
 begin
 
    -- This must be a clocked process in order to synthesize as a Block RAM.
-   gen_rising : if G_RD_CLK_RIS = true generate
-      process (clk_i)
+   gen_rd_rising : if G_RD_CLK_RIS = true generate
+      process (rd_clk_i)
       begin
-         if rising_edge(clk_i) then
-            if rden_i = '1' then
-               data <= rom(conv_integer(addr_i));
+         if rising_edge(rd_clk_i) then
+            if rd_en_i = '1' then
+               data <= rom(conv_integer(rd_addr_i));
             end if;
          end if;
       end process;
-   end generate gen_rising;
+   end generate gen_rd_rising;
 
-   gen_falling : if G_RD_CLK_RIS = false generate
-      process (clk_i)
+   gen_wr_rising : if G_WR_CLK_RIS = true generate
+      process (wr_clk_i)
       begin
-         if falling_edge(clk_i) then
-            if rden_i = '1' then
-               data <= rom(conv_integer(addr_i));
+         if rising_edge(wr_clk_i) then
+            if wr_en_i = '1' then
+               rom(conv_integer(wr_addr_i)) <= wr_data_i;
             end if;
          end if;
       end process;
-   end generate gen_falling;
+   end generate gen_wr_rising;
+
+   gen_rd_falling : if G_RD_CLK_RIS = false generate
+      process (rd_clk_i)
+      begin
+         if falling_edge(rd_clk_i) then
+            if rd_en_i = '1' then
+               data <= rom(conv_integer(rd_addr_i));
+            end if;
+         end if;
+      end process;
+   end generate gen_rd_falling;
+
+   gen_wr_falling : if G_WR_CLK_RIS = false generate
+      process (wr_clk_i)
+      begin
+         if falling_edge(wr_clk_i) then
+            if wr_en_i = '1' then
+               rom(conv_integer(wr_addr_i)) <= wr_data_i;
+            end if;
+         end if;
+      end process;
+   end generate gen_wr_falling;
 
 
    -- Drive output signals
-   data_o <= data;
+   rd_data_o <= data;
 
 end Structural;
 

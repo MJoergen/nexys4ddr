@@ -177,10 +177,10 @@ begin
                   G_ROM_FILE   => G_FONT_FILE 
                )
    port map (
-               clk_i  => vga_clk_i,
-               addr_i => vga_char_font_addr,
-               rden_i => '1',
-               data_o => vga_char_font_data
+               rd_clk_i  => vga_clk_i,
+               rd_addr_i => vga_char_font_addr,
+               rd_en_i   => '1',
+               rd_data_o => vga_char_font_data
             );
 
 

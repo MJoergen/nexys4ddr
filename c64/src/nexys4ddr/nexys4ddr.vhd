@@ -90,11 +90,10 @@ architecture Structural of nexys4ddr is
    signal eth_debug         : std_logic_vector(511 downto 0) := (others => '0');
    signal fifo_error        : std_logic := '0';
 
-   -- Payload interface @ cpu_clk
-   signal cpu_pl_ena   : std_logic;
-   signal cpu_pl_sof   : std_logic;
-   signal cpu_pl_eof   : std_logic;
-   signal cpu_pl_data  : std_logic_vector(7 downto 0);
+   -- Memory data received from Ethernet @ cpu_clk
+   signal cpu_wr_addr : std_logic_vector(15 downto 0);
+   signal cpu_wr_en   : std_logic;
+   signal cpu_wr_data : std_logic_vector(7 downto 0);
 
 begin
 
@@ -147,10 +146,9 @@ begin
       vga_vcount_i        => vga_vcount,
       cpu_clk_i           => cpu_clk,
       cpu_rst_i           => cpu_rst,
-      cpu_ena_o           => cpu_pl_ena,
-      cpu_sof_o           => cpu_pl_sof,
-      cpu_eof_o           => cpu_pl_eof,
-      cpu_data_o          => cpu_pl_data,
+      cpu_wr_addr_o       => cpu_wr_addr,
+      cpu_wr_en_o         => cpu_wr_en,
+      cpu_wr_data_o       => cpu_wr_data,
       eth_smi_registers_o => eth_smi_registers 
    );
 
@@ -177,6 +175,10 @@ begin
       --
       eth_debug_i => eth_debug,
       led_o       => open,
+      --
+      cpu_pl_wr_addr_i => cpu_wr_addr,
+      cpu_pl_wr_en_i   => cpu_wr_en,
+      cpu_pl_wr_data_i => cpu_wr_data,
       --
       vga_hs_o     => vga_hs,
       vga_vs_o     => vga_vs,

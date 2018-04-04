@@ -43,6 +43,11 @@ entity hack is
       -- Debug info from Ethernet PHY
       eth_debug_i : in std_logic_vector(511 downto 0);
 
+      -- ROM data received from Ethernet
+      cpu_pl_wr_addr_i : in  std_logic_vector(15 downto 0);
+      cpu_pl_wr_en_i   : in  std_logic;
+      cpu_pl_wr_data_i : in  std_logic_vector(7 downto 0);
+
       -- Output to VGA monitor
       vga_hs_o     : out std_logic;
       vga_vs_o     : out std_logic;
@@ -166,16 +171,21 @@ begin
    inst_rom : entity work.rom_file
    generic map (
                   G_RD_CLK_RIS => false,        -- Read on falling clock edge
+                  G_WR_CLK_RIS => true,         -- Write on falling clock edge
                   G_ADDR_SIZE  => G_ROM_SIZE,
                   G_DATA_SIZE  => 8,
                   G_ROM_FILE   => G_ROM_FILE
    )
    port map (
-      clk_i  => cpu_clk_i,
-      addr_i => cpu_addr(G_ROM_SIZE-1 downto 0),
-      --
-      rden_i => cpu_rden_rom,
-      data_o => cpu_rddata_rom
+      rd_clk_i  => cpu_clk_i,
+      rd_addr_i => cpu_addr(G_ROM_SIZE-1 downto 0),
+      rd_en_i   => cpu_rden_rom,
+      rd_data_o => cpu_rddata_rom,
+
+      wr_clk_i  => cpu_clk_i,
+      wr_addr_i => cpu_pl_wr_addr_i(G_ROM_SIZE-1 downto 0),
+      wr_en_i   => cpu_pl_wr_en_i,
+      wr_data_i => cpu_pl_wr_data_i
    );
 
 

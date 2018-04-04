@@ -36,10 +36,9 @@ entity ethernet is
       -- Output to CPU
       cpu_clk_i           : in    std_logic;
       cpu_rst_i           : in    std_logic;
-      cpu_ena_o           : out   std_logic;
-      cpu_sof_o           : out   std_logic;
-      cpu_eof_o           : out   std_logic;
-      cpu_data_o          : out   std_logic_vector(7 downto 0);
+      cpu_wr_addr_o       : out   std_logic_vector(15 downto 0);
+      cpu_wr_en_o         : out   std_logic;
+      cpu_wr_data_o       : out   std_logic_vector(7 downto 0);
 
       -- Debug output
       eth_smi_registers_o : out   std_logic_vector(32*16-1 downto 0)
@@ -169,10 +168,9 @@ begin
       eth_crc_valid_i => eth_rx_crc_valid,
       pl_clk_i        => cpu_clk_i,  
       pl_rst_i        => cpu_rst_i, 
-      pl_ena_o        => cpu_ena_o,
-      pl_sof_o        => cpu_sof_o,
-      pl_eof_o        => cpu_eof_o,
-      pl_data_o       => cpu_data_o
+      pl_wr_addr_o    => cpu_wr_addr_o,
+      pl_wr_en_o      => cpu_wr_en_o,
+      pl_wr_data_o    => cpu_wr_data_o
    );
 
 end Structural;

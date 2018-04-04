@@ -170,10 +170,10 @@ begin
                   G_ROM_FILE   => "divmod13.txt"
                )
    port map (
-               clk_i  => clk_i,
-               addr_i => stage1.vcount(8 downto 1),
-               rden_i => '1',
-               data_o => stage2_divmod13
+               rd_clk_i  => clk_i,
+               rd_addr_i => stage1.vcount(8 downto 1),
+               rd_en_i   => '1',
+               rd_data_o => stage2_divmod13
             );
 
 
@@ -229,10 +229,10 @@ begin
                   G_ROM_FILE   => "opcodes.txt"
                )
    port map (
-               clk_i  => clk_i,
-               addr_i => stage3.inst_addr,
-               rden_i => '1',
-               data_o => stage4_inst_val
+               rd_clk_i  => clk_i,
+               rd_addr_i => stage3.inst_addr,
+               rd_en_i   => '1',
+               rd_data_o => stage4_inst_val
             );
 
 
