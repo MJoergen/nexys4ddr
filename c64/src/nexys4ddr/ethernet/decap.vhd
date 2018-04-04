@@ -48,20 +48,22 @@ architecture Structural of decap is
    signal pl_fifo_empty : std_logic;
    signal pl_fifo_rden  : std_logic := '0';
    signal pl_fifo_out   : std_logic_vector(15 downto 0);
-   signal pl_fifo_out_sof       : std_logic;
-   signal pl_fifo_out_eof       : std_logic;
-   signal pl_fifo_out_data      : std_logic_vector(7 downto 0);
+   signal pl_fifo_out_sof  : std_logic;
+   signal pl_fifo_out_eof  : std_logic;
+   signal pl_fifo_out_data : std_logic_vector(7 downto 0);
 
    signal pl_bytes  : std_logic_vector(15 downto 0);
 
    type t_fsm_state is (IDLE_ST, MAC_HDR_ST, IP_HDR_ST, UDP_HDR_ST, FWD_ST);
    signal fsm_state : t_fsm_state := IDLE_ST;
 
-   signal pl_ena   : std_logic := '0';
-   signal pl_sof   : std_logic;
-   signal pl_ovf   : std_logic;
-   signal pl_err   : std_logic;
-   signal pl_drop  : std_logic;
+   signal pl_ena  : std_logic := '0';
+   signal pl_sof  : std_logic;
+   signal pl_eof  : std_logic;
+   signal pl_data : std_logic_vector(7 downto 0);
+   signal pl_ovf  : std_logic;
+   signal pl_err  : std_logic;
+   signal pl_drop : std_logic;
 
    -- Temporary storage. Instead of using a multiplexor.
    signal ctrl_mac_dst : std_logic_vector(47 downto 0);
@@ -115,7 +117,10 @@ begin
    pl_fsm : process (pl_clk_i)
    begin
       if rising_edge(pl_clk_i) then
+         pl_ena  <= '0';
          pl_sof  <= '0';
+         pl_eof  <= '0';
+         pl_data <= (others => '0');
          pl_ovf  <= '0';
          pl_err  <= '0';
 
@@ -185,19 +190,23 @@ begin
                   if pl_bytes >= 8 then
                      pl_bytes  <= std_logic_vector(to_unsigned(1, 16));
                      fsm_state <= FWD_ST;
+                     pl_ena    <= '1';
                      pl_sof    <= '1';
+                     pl_data   <= pl_fifo_out_data;
                   end if;
                end if;
 
             when FWD_ST =>
                if pl_fifo_rden = '1' then
+                  pl_ena   <= '1';
+                  pl_data  <= pl_fifo_out_data;
                   if pl_fifo_out_eof = '1' then
                      fsm_state <= IDLE_ST;
+                     pl_eof <= '1';
                   end if;
                end if;
 
          end case;
-
 
          if pl_rst_i = '1' then
             fsm_state <= IDLE_ST;
@@ -207,13 +216,12 @@ begin
 
    pl_fifo_rden <= '1' when (fsm_state = MAC_HDR_ST or fsm_state = IP_HDR_ST or fsm_state = UDP_HDR_ST or fsm_state = FWD_ST)
                          and pl_afull_i = '0' else '0';
-   pl_ena       <= '1' when fsm_state = FWD_ST and pl_afull_i = '0' else '0';
 
    -- Drive output signals
    pl_ena_o  <= pl_ena;
    pl_sof_o  <= pl_sof;
-   pl_eof_o  <= pl_fifo_out_eof and pl_ena;
-   pl_data_o <= pl_fifo_out_data;
+   pl_eof_o  <= pl_eof;
+   pl_data_o <= pl_data;
    pl_ovf_o  <= pl_ovf;
    pl_err_o  <= pl_err;
    pl_drop_o <= pl_drop;
