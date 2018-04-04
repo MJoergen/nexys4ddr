@@ -58,6 +58,7 @@ architecture Structural of decap is
    signal fsm_state : t_fsm_state := IDLE_ST;
 
    signal pl_ena   : std_logic := '0';
+   signal pl_sof   : std_logic;
    signal pl_ovf   : std_logic;
    signal pl_err   : std_logic;
    signal pl_drop  : std_logic;
@@ -114,7 +115,7 @@ begin
    pl_fsm : process (pl_clk_i)
    begin
       if rising_edge(pl_clk_i) then
-         pl_ena  <= '0';
+         pl_sof  <= '0';
          pl_ovf  <= '0';
          pl_err  <= '0';
 
@@ -136,13 +137,15 @@ begin
 
                   if pl_bytes < 6 then
                      if pl_fifo_out_data /= ctrl_mac_dst(47 downto 40) then
-                        pl_drop <= '1';
+                        pl_drop   <= '1';
+                        fsm_state <= IDLE_ST;
                      end if;
 
                      ctrl_mac_dst <= ctrl_mac_dst(39 downto 0) & X"00";
                   end if;
 
-                  if pl_bytes > 13 then
+                  if pl_bytes >= 14 then
+                     pl_bytes  <= std_logic_vector(to_unsigned(1, 16));
                      fsm_state <= IP_HDR_ST;
                   end if;
                end if;
@@ -151,15 +154,17 @@ begin
                if pl_fifo_rden = '1' then
                   pl_bytes <= pl_bytes + 1;
 
-                  if pl_bytes < 6 then
-                     if pl_fifo_out_data /= ctrl_mac_dst(47 downto 40) then
-                        pl_drop <= '1';
+                  if pl_bytes >= 16 and pl_bytes < 20 then
+                     if pl_fifo_out_data /= ctrl_ip_dst(31 downto 24) then
+                        pl_drop   <= '1';
+                        fsm_state <= IDLE_ST;
                      end if;
 
-                     ctrl_mac_dst <= ctrl_mac_dst(39 downto 0) & X"00";
+                     ctrl_ip_dst <= ctrl_ip_dst(23 downto 0) & X"00";
                   end if;
 
-                  if pl_bytes > 13 then
+                  if pl_bytes >= 20 then
+                     pl_bytes  <= std_logic_vector(to_unsigned(1, 16));
                      fsm_state <= UDP_HDR_ST;
                   end if;
                end if;
@@ -168,28 +173,31 @@ begin
                if pl_fifo_rden = '1' then
                   pl_bytes <= pl_bytes + 1;
 
-                  if pl_bytes < 6 then
-                     if pl_fifo_out_data /= ctrl_mac_dst(47 downto 40) then
-                        pl_drop <= '1';
+                  if pl_bytes >= 2 and pl_bytes < 4 then
+                     if pl_fifo_out_data /= ctrl_udp_dst(15 downto 8) then
+                        pl_drop   <= '1';
+                        fsm_state <= IDLE_ST;
                      end if;
 
-                     ctrl_mac_dst <= ctrl_mac_dst(39 downto 0) & X"00";
+                     ctrl_udp_dst <= ctrl_udp_dst(7 downto 0) & X"00";
                   end if;
 
-                  if pl_bytes > 13 then
+                  if pl_bytes >= 8 then
+                     pl_bytes  <= std_logic_vector(to_unsigned(1, 16));
                      fsm_state <= FWD_ST;
+                     pl_sof    <= '1';
                   end if;
                end if;
 
             when FWD_ST =>
                if pl_fifo_rden = '1' then
+                  if pl_fifo_out_eof = '1' then
+                     fsm_state <= IDLE_ST;
+                  end if;
                end if;
 
          end case;
 
-         if pl_fifo_rden = '1' and pl_fifo_out_eof = '1' then
-            fsm_state <= IDLE_ST;
-         end if;
 
          if pl_rst_i = '1' then
             fsm_state <= IDLE_ST;
@@ -197,13 +205,14 @@ begin
       end if;
    end process pl_fsm;
 
-   pl_fifo_rden <= '1' when (fsm_state = MAC_HDR_ST or fsm_state = IP_HDR_ST) and pl_afull_i = '0' else '0';
-   pl_ena       <= '1' when fsm_state = IP_HDR_ST and pl_afull_i = '0' else '0';
+   pl_fifo_rden <= '1' when (fsm_state = MAC_HDR_ST or fsm_state = IP_HDR_ST or fsm_state = UDP_HDR_ST or fsm_state = FWD_ST)
+                         and pl_afull_i = '0' else '0';
+   pl_ena       <= '1' when fsm_state = FWD_ST and pl_afull_i = '0' else '0';
 
    -- Drive output signals
    pl_ena_o  <= pl_ena;
-   pl_sof_o  <= pl_fifo_out_sof;
-   pl_eof_o  <= pl_fifo_out_eof;
+   pl_sof_o  <= pl_sof;
+   pl_eof_o  <= pl_fifo_out_eof and pl_ena;
    pl_data_o <= pl_fifo_out_data;
    pl_ovf_o  <= pl_ovf;
    pl_err_o  <= pl_err;
