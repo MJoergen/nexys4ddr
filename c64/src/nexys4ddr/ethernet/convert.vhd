@@ -87,10 +87,10 @@ begin
             (vga_hcount_i >= 0 and vga_hcount_i <= 639) then
 
             vga_ena <= '1';
-            if vga_vcount_i(0 downto 0) = "0" and vga_hcount_i = 0 then
+            if vga_vcount_i(2 downto 0) = "000" and vga_hcount_i = 0 then
                vga_sof <= '1';
             end if;
-            if vga_vcount_i(0 downto 0) = "1" and vga_hcount_i = 639 then
+            if vga_vcount_i(2 downto 0) = "111" and vga_hcount_i = 639 then
                vga_eof <= '1';
             end if;
          end if;
