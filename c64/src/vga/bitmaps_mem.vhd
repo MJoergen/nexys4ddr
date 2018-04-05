@@ -17,7 +17,7 @@ entity bitmaps_mem is
       vga_data_o  : out std_logic_vector(15 downto 0);
 
       -- Write port @ cpu_clk_i
-      cpu_addr_i  : in  std_logic_vector( 8 downto 0);   -- 2 bits for sprite #, 4 bits for row, and 1 bit for left/right side.
+      cpu_addr_i  : in  std_logic_vector( 6 downto 0);   -- 2 bits for sprite #, 4 bits for row, and 1 bit for left/right side.
       cpu_wren_i  : in  std_logic;
       cpu_data_i  : in  std_logic_vector( 7 downto 0);
       --
@@ -48,8 +48,8 @@ architecture Behavioral of bitmaps_mem is
 
 begin
 
-   cpu_wren_hi <= '1' when (cpu_addr_i(0) = '1') and cpu_wren_i = '1' and cpu_addr_i(8 downto 7) = "00" else '0';
-   cpu_wren_lo <= '1' when (cpu_addr_i(0) = '0') and cpu_wren_i = '1' and cpu_addr_i(8 downto 7) = "00" else '0';
+   cpu_wren_hi <= '1' when (cpu_addr_i(0) = '1') and cpu_wren_i = '1' else '0';
+   cpu_wren_lo <= '1' when (cpu_addr_i(0) = '0') and cpu_wren_i = '1' else '0';
 
    inst_mem_hi : entity work.mem
    generic map (

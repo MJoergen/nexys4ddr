@@ -45,7 +45,8 @@ SRC += src/cpu/cpu_module.vhd
 # Memory
 SRC += src/mem/rom_file.vhd
 SRC += src/mem/mem.vhd
-SRC += src/mem/cs.vhd
+#SRC += src/mem/cs.vhd
+SRC += src/mem_module.vhd
 
 # Clock domain crossing
 SRC += src/cdc/cdcpulse.vhd

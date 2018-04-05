@@ -20,18 +20,26 @@ use ieee.std_logic_unsigned.all;
 entity hack is
 
    generic (
-      G_NEXYS4DDR  : boolean;          -- True, when using the Nexys4DDR board.
-      G_ROM_SIZE   : integer;          -- Number of bits in ROM address
-      G_RAM_SIZE   : integer;          -- Number of bits in RAM address
-      G_ROM_FILE   : string;           -- Contains the machine code
-      G_FONT_FILE  : string            -- Contains the character font
+      G_NEXYS4DDR : boolean;          -- True, when using the Nexys4DDR board.
+      G_ROM_SIZE  : integer;          -- Number of bits in ROM address
+      G_RAM_SIZE  : integer;          -- Number of bits in RAM address
+      G_DISP_SIZE : integer;          -- Number of bits in DISP address
+      G_FONT_SIZE : integer;          -- Number of bits in FONT address
+      G_MOB_SIZE  : integer;          -- Number of bits in MOB address
+      G_ROM_MASK  : std_logic_vector(15 downto 0);  -- Value of upper bits in ROM address
+      G_RAM_MASK  : std_logic_vector(15 downto 0);  -- Value of upper bits in RAM address
+      G_DISP_MASK : std_logic_vector(15 downto 0);  -- Value of upper bits in DISP address
+      G_FONT_MASK : std_logic_vector(15 downto 0);  -- Value of upper bits in FONT address
+      G_MOB_MASK  : std_logic_vector(15 downto 0);  -- Value of upper bits in MOB address
+      G_ROM_FILE  : string;           -- Contains the contents of the ROM memory.
+      G_FONT_FILE : string            -- Contains the contents of the FONT memory.
    );
    port (
       -- Clocks and resets
       cpu_clk_i  : in  std_logic;
       vga_clk_i  : in  std_logic;   -- 25 MHz for a 640x480 display.
       cpu_rst_i  : in  std_logic;
-      -- The VGA port does not need a reset.
+      vga_rst_i  : in  std_logic;
 
       -- Keyboard / mouse
       ps2_clk_i  : in  std_logic;
@@ -64,16 +72,6 @@ architecture Structural of hack is
    -- CPU clock domain
    -------------------
 
-   -- Address Decoding
-   signal cpu_cs_rom   : std_logic;
-   signal cpu_cs_vga   : std_logic;
-   signal cpu_cs_ram   : std_logic;
-   signal cpu_wren_vga : std_logic;
-   signal cpu_rden_vga : std_logic;
-   signal cpu_wren_ram : std_logic;
-   signal cpu_rden_ram : std_logic;
-   signal cpu_rden_rom : std_logic;
-
    -- Signals connected to the CPU.
    signal cpu_addr    : std_logic_vector(15 downto 0);
    signal cpu_wren    : std_logic;
@@ -83,6 +81,15 @@ architecture Structural of hack is
    signal cpu_irq_vga : std_logic;
    signal cpu_debug   : std_logic_vector(127 downto 0);
    signal cpu_invalid : std_logic;
+   signal cpu_wait    : std_logic;
+
+   -- Signals connected to the VGA.
+   signal vga_font_addr : std_logic_vector(11 downto 0);
+   signal vga_font_data : std_logic_vector( 7 downto 0);
+   signal vga_disp_addr : std_logic_vector( 9 downto 0);
+   signal vga_disp_data : std_logic_vector( 7 downto 0);
+   signal vga_mob_addr  : std_logic_vector( 5 downto 0);
+   signal vga_mob_data  : std_logic_vector(15 downto 0);
 
    -- Signals driven by other blocks
    signal cpu_rddata_rom : std_logic_vector(7 downto 0);
@@ -97,34 +104,46 @@ architecture Structural of hack is
 begin
 
    -------------------------------
-   -- Instantiate Address Decoding
+   -- Instantiate memory
    -------------------------------
 
-   -- The RAM is placed at address 0x0000 and upwards.
-   -- The ROM is placed at address 0xFFFF and downwards.
-   -- The VGA is placed at address 0x8000 - 0x87FF
-   inst_cs : entity work.cs
+   inst_mem : entity work.mem_module
    generic map (
-      G_ROM_SIZE => G_ROM_SIZE,
-      G_RAM_SIZE => G_RAM_SIZE
+      G_NEXYS4DDR => G_NEXYS4DDR,
+      G_ROM_SIZE  => G_ROM_SIZE,
+      G_RAM_SIZE  => G_RAM_SIZE,
+      G_DISP_SIZE => G_DISP_SIZE,
+      G_FONT_SIZE => G_FONT_SIZE,
+      G_MOB_SIZE  => G_MOB_SIZE,
+      G_ROM_MASK  => G_ROM_MASK,
+      G_RAM_MASK  => G_RAM_MASK,
+      G_DISP_MASK => G_DISP_MASK,
+      G_FONT_MASK => G_FONT_MASK,
+      G_MOB_MASK  => G_MOB_MASK,
+      G_ROM_FILE  => G_ROM_FILE,
+      G_FONT_FILE => G_FONT_FILE 
    )
    port map (
-      addr_i => cpu_addr,
-      rom_o  => cpu_cs_rom,
-      vga_o  => cpu_cs_vga,
-      ram_o  => cpu_cs_ram
-   );
+      -- Port A (Write and Read)
+      a_clk_i  => cpu_clk_i,
+      a_rst_i  => cpu_rst_i,
+      a_addr_i => cpu_addr,
+      a_wren_i => cpu_wren,
+      a_data_i => cpu_wrdata,
+      a_rden_i => cpu_rden,
+      a_data_o => cpu_rddata,
+      a_wait_o => cpu_wait,
 
-   cpu_wren_vga <= cpu_wren and cpu_cs_vga;
-   cpu_rden_vga <= cpu_rden and cpu_cs_vga;
-   cpu_wren_ram <= cpu_wren and cpu_cs_ram; 
-   cpu_rden_ram <= cpu_rden and cpu_cs_ram; 
-   cpu_rden_rom <= cpu_rden and cpu_cs_rom; 
-
-   cpu_rddata <= cpu_rddata_rom when cpu_rden_rom = '1' else
-                 cpu_rddata_ram when cpu_rden_ram = '1' else
-                 cpu_rddata_vga when cpu_rden_vga = '1' else
-                 (others => '0');
+      -- Port B (Read only)
+      b_clk_i       => vga_clk_i,
+      b_rst_i       => vga_rst_i,
+      b_disp_addr_i => vga_disp_addr,
+      b_disp_data_o => vga_disp_data,
+      b_font_addr_i => vga_font_addr,
+      b_font_data_o => vga_font_data,
+      b_mob_addr_i  => vga_mob_addr,
+      b_mob_data_o  => vga_mob_data
+  );
 
 
    -------------------------
@@ -137,80 +156,23 @@ begin
                   G_FONT_FILE => G_FONT_FILE
                )
    port map (
-      -- VGA Port
-      vga_clk_i    => vga_clk_i,
-      vga_hs_o     => vga_hs_o,
-      vga_vs_o     => vga_vs_o,
-      vga_col_o    => vga_col_o,
-      vga_hcount_o => vga_hcount_o,
-      vga_vcount_o => vga_vcount_o,
+      clk_i       => vga_clk_i,
+      rst_i       => vga_rst_i,
+      hs_o        => vga_hs_o,
+      vs_o        => vga_vs_o,
+      col_o       => vga_col_o,
+      hcount_o    => vga_hcount_o,
+      vcount_o    => vga_vcount_o,
+      font_addr_o => vga_font_addr,
+      font_data_i => vga_font_data,
+      disp_addr_o => vga_disp_addr,
+      disp_data_i => vga_disp_data,
+      mob_addr_o  => vga_mob_addr,
+      mob_data_i  => vga_mob_data,
 
-      -- CPU Port
-      cpu_clk_i      => cpu_clk_i,
-      cpu_rst_i      => cpu_rst_i,
-      cpu_addr_i     => cpu_addr(10 downto 0),   -- 11 bit = 0x0800 size.
-      cpu_rden_i     => cpu_rden_vga,
-      cpu_data_o     => cpu_rddata_vga,
-      cpu_wren_i     => cpu_wren_vga,
-      cpu_data_i     => cpu_wrdata,
-      cpu_irq_o      => cpu_irq_vga,
-      cpu_status_i   => cpu_debug,
-      cpu_key_rden_o => cpu_key_rden,
-      cpu_key_val_i  => cpu_key_val,
-      cpu_keyboard_debug_i => cpu_keyboard_debug,
-
-      eth_debug_i    => eth_debug_i,
-      debug_o        => open
+      eth_debug_i     => eth_debug_i,
+      debug_o         => open
    );
-
-
-   ------------------------------
-   -- Instantiate ROM
-   ------------------------------
-
-   inst_rom : entity work.rom_file
-   generic map (
-                  G_RD_CLK_RIS => false,        -- Read on falling clock edge
-                  G_WR_CLK_RIS => true,         -- Write on falling clock edge
-                  G_ADDR_SIZE  => G_ROM_SIZE,
-                  G_DATA_SIZE  => 8,
-                  G_ROM_FILE   => G_ROM_FILE
-   )
-   port map (
-      rd_clk_i  => cpu_clk_i,
-      rd_addr_i => cpu_addr(G_ROM_SIZE-1 downto 0),
-      rd_en_i   => cpu_rden_rom,
-      rd_data_o => cpu_rddata_rom,
-
-      wr_clk_i  => cpu_clk_i,
-      wr_addr_i => cpu_pl_wr_addr_i(G_ROM_SIZE-1 downto 0),
-      wr_en_i   => cpu_pl_wr_en_i,
-      wr_data_i => cpu_pl_wr_data_i
-   );
-
-
-   ------------------------------
-   -- Instantiate RAM
-   ------------------------------
-
-   inst_ram : entity work.mem
-   generic map (
-      G_ADDR_SIZE  => G_RAM_SIZE,
-      G_DATA_SIZE  => 8
-   )
-   port map (
-      a_clk_i    => cpu_clk_i,
-      a_addr_i   => cpu_addr(G_RAM_SIZE-1 downto 0),
-      --
-      a_wren_i   => cpu_wren_ram,
-      a_wrdata_i => cpu_wrdata,
-      --
-      a_rden_i   => cpu_rden_ram,
-      a_rddata_o => cpu_rddata_ram
-
-      -- Port B is not used
-   );
-
 
    ------------------------------
    -- Instantiate CPU

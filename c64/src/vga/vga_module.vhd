@@ -27,33 +27,21 @@ entity vga_module is
       G_FONT_FILE : string
    );
    port (
-      -- VGA port @ vga_clk_i
-      vga_clk_i  : in  std_logic;
-      --
-      vga_hs_o     : out std_logic; 
-      vga_vs_o     : out std_logic;
-      vga_col_o    : out std_logic_vector(7 downto 0);
-      vga_hcount_o : out std_logic_vector(10 downto 0);
-      vga_vcount_o : out std_logic_vector(10 downto 0);
+      clk_i  : in  std_logic;
+      rst_i  : in  std_logic;
+      hs_o     : out std_logic; 
+      vs_o     : out std_logic;
+      col_o    : out std_logic_vector(7 downto 0);
+      hcount_o : out std_logic_vector(10 downto 0);
+      vcount_o : out std_logic_vector(10 downto 0);
+      font_addr_o : out std_logic_vector(11 downto 0);
+      font_data_i : in  std_logic_vector( 7 downto 0);
+      disp_addr_o : out std_logic_vector( 9 downto 0);
+      disp_data_i : in  std_logic_vector( 7 downto 0);
+      mob_addr_o  : out std_logic_vector( 5 downto 0);
+      mob_data_i  : in  std_logic_vector(15 downto 0);
 
-      -- CPU port @ cpu_clk_i
-      cpu_clk_i    : in  std_logic;
-      cpu_rst_i    : in  std_logic;
-      --
-      cpu_addr_i   : in  std_logic_vector(10 downto 0);
-      cpu_rden_i   : in  std_logic;
-      cpu_data_o   : out std_logic_vector(7 downto 0);
-      --
-      cpu_wren_i   : in  std_logic;
-      cpu_data_i   : in  std_logic_vector(7 downto 0);
-      --
-      cpu_irq_o      : out std_logic;
-      cpu_status_i   : in  std_logic_vector(127 downto 0);
-      cpu_key_rden_o : out std_logic;
-      cpu_key_val_i  : in  std_logic_vector(7 downto 0);
-      cpu_keyboard_debug_i : in  std_logic_vector(69 downto 0);
       eth_debug_i  : in std_logic_vector(511 downto 0);
-
       debug_o      : out std_logic_vector(7 downto 0)
    );
 end vga_module;
@@ -65,88 +53,42 @@ architecture Structural of vga_module is
    constant FRAME_HEIGHT : natural := 480;
 
    -- Signals driven by the Sync block
-   signal vga_sync_hs     : std_logic; 
-   signal vga_sync_vs     : std_logic;
-   signal vga_sync_hcount : std_logic_vector(10 downto 0);
-   signal vga_sync_vcount : std_logic_vector(10 downto 0);
-   signal vga_sync_blank  : std_logic;
+   signal sync_hs     : std_logic; 
+   signal sync_vs     : std_logic;
+   signal sync_hcount : std_logic_vector(10 downto 0);
+   signal sync_vcount : std_logic_vector(10 downto 0);
+   signal sync_blank  : std_logic;
 
    -- Signals driven by the Character Display block
-   signal vga_char_hs     : std_logic; 
-   signal vga_char_vs     : std_logic;
-   signal vga_char_hcount : std_logic_vector(10 downto 0);
-   signal vga_char_vcount : std_logic_vector(10 downto 0);
-   signal vga_char_col    : std_logic_vector( 7 downto 0);
+   signal char_hs     : std_logic; 
+   signal char_vs     : std_logic;
+   signal char_hcount : std_logic_vector(10 downto 0);
+   signal char_vcount : std_logic_vector(10 downto 0);
+   signal char_col    : std_logic_vector( 7 downto 0);
    --
-   signal vga_char_font_addr : std_logic_vector(11 downto 0);
-   signal vga_char_font_data : std_logic_vector( 7 downto 0);
+   signal char_font_addr : std_logic_vector(11 downto 0);
+   signal char_font_data : std_logic_vector( 7 downto 0);
    --
-   signal vga_char_disp_addr : std_logic_vector( 9 downto 0);
-   signal vga_char_disp_data : std_logic_vector( 7 downto 0);
+   signal char_disp_addr : std_logic_vector( 9 downto 0);
+   signal char_disp_data : std_logic_vector( 7 downto 0);
 
    -- Signals driven by the Sprite Display block
-   signal vga_sprite_hs     : std_logic; 
-   signal vga_sprite_vs     : std_logic;
-   signal vga_sprite_hcount : std_logic_vector(10 downto 0);
-   signal vga_sprite_vcount : std_logic_vector(10 downto 0);
-   signal vga_sprite_col    : std_logic_vector( 7 downto 0);
+   signal sprite_hs     : std_logic; 
+   signal sprite_vs     : std_logic;
+   signal sprite_hcount : std_logic_vector(10 downto 0);
+   signal sprite_vcount : std_logic_vector(10 downto 0);
+   signal sprite_col    : std_logic_vector( 7 downto 0);
 
    -- Signals driven by the Sprite Bitmap block
-   signal vga_bitmap_addr   : std_logic_vector( 5 downto 0);
-   signal vga_bitmap_data   : std_logic_vector(15 downto 0);
-
-   -- Signals related to the CPU port
-   signal cpu_cs_chars     : std_logic;
-   signal cpu_wren_chars   : std_logic;
-   signal cpu_rden_chars   : std_logic;
-   signal cpu_rddata_chars : std_logic_vector(7 downto 0);
-
-   signal cpu_cs_bitmaps     : std_logic;
-   signal cpu_wren_bitmaps   : std_logic;
-   signal cpu_rden_bitmaps   : std_logic;
-   signal cpu_rddata_bitmaps : std_logic_vector(7 downto 0);
-
-   signal cpu_cs_conf_stat     : std_logic;
-   signal cpu_wren_conf_stat   : std_logic;
-   signal cpu_rden_conf_stat   : std_logic;
-   signal cpu_rddata_conf_stat : std_logic_vector(7 downto 0);
+   signal bitmap_addr   : std_logic_vector( 5 downto 0);
+   signal bitmap_data   : std_logic_vector(15 downto 0);
 
    -- Clock domain crossing
-   signal vga_config : std_logic_vector(128*8-1 downto 0);
-   signal vga_sync   : std_logic;
-   signal cpu_config : std_logic_vector(128*8-1 downto 0);
-   signal cpu_sync   : std_logic;
-   signal vga_status : std_logic_vector(127 downto 0);
-   signal vga_keyboard_debug : std_logic_vector(69 downto 0);
+   signal config : std_logic_vector(128*8-1 downto 0) := (others => '0');
+   signal status : std_logic_vector(127 downto 0) := (others => '0');
+   signal keyboard_debug : std_logic_vector(69 downto 0) := (others => '0');
 
 begin
-
-   --=====================================================
-   -- CPU Clock Domain
-   --=====================================================
-
-   --------------------------------------
-   -- Address decoding
-   -- 0x0000 - 0x03FF : Chars Memory
-   -- 0x0400 - 0x05FF : Bitmap Memory
-   -- 0x0600 - 0x07FF : Config and Status
-   --------------------------------------
-
-   cpu_cs_chars     <= '1' when cpu_addr_i(10)          = '0'  else '0';
-   cpu_cs_bitmaps   <= '1' when cpu_addr_i(10 downto 9) = "10" else '0';
-   cpu_cs_conf_stat <= '1' when cpu_addr_i(10 downto 9) = "11" else '0';
-
-   cpu_wren_chars     <= cpu_wren_i and cpu_cs_chars;
-   cpu_rden_chars     <= cpu_rden_i and cpu_cs_chars;
-   cpu_wren_bitmaps   <= cpu_wren_i and cpu_cs_bitmaps;
-   cpu_rden_bitmaps   <= cpu_rden_i and cpu_cs_bitmaps;
-   cpu_wren_conf_stat <= cpu_wren_i and cpu_cs_conf_stat;
-   cpu_rden_conf_stat <= cpu_rden_i and cpu_cs_conf_stat;
-
-
-   --=====================================================
-   -- VGA Clock Domain
-   --=====================================================
 
    -----------------------------
    -- Instantiate the Sync block
@@ -155,61 +97,13 @@ begin
    -- This generates the VGA timing signals
    inst_vga_sync : entity work.sync
    port map (
-      clk_i    => vga_clk_i,
+      clk_i    => clk_i,
 
-      hs_o     => vga_sync_hs,
-      vs_o     => vga_sync_vs,
-      hcount_o => vga_sync_hcount,
-      vcount_o => vga_sync_vcount,
-      blank_o  => vga_sync_blank
-   );
-
-
-   ---------------------------------------
-   -- Instantiate the Character Font block 
-   ---------------------------------------
-
-   inst_vga_font : entity work.rom_file
-   generic map (
-                  G_RD_CLK_RIS => true,
-                  G_ADDR_SIZE  => 12,
-                  G_DATA_SIZE  => 8,
-                  G_ROM_FILE   => G_FONT_FILE 
-               )
-   port map (
-               rd_clk_i  => vga_clk_i,
-               rd_addr_i => vga_char_font_addr,
-               rd_en_i   => '1',
-               rd_data_o => vga_char_font_data
-            );
-
-
-   --------------------------------------------
-   -- Instantiate the Character Display memory
-   --------------------------------------------
-
-   inst_vga_char_disp_mem : entity work.mem
-   generic map (
-                  G_ADDR_SIZE => 10,  -- Size = 0x0400
-                  G_DATA_SIZE => 8,
-                  G_INIT_VAL  => 32   -- 0x20 = space
-               )
-   port map (
-      -- Port A @ cpu_clk_i
-      a_clk_i    => cpu_clk_i,
-      a_addr_i   => cpu_addr_i(9 downto 0),
-      --
-      a_wren_i   => cpu_wren_chars,
-      a_wrdata_i => cpu_data_i,
-      --
-      a_rden_i   => cpu_rden_chars,
-      a_rddata_o => cpu_rddata_chars,
-
-      -- Port B @ vga_clk_i
-      b_clk_i   => vga_clk_i,
-      b_addr_i  => vga_char_disp_addr,
-      b_rden_i  => '1',
-      b_data_o  => vga_char_disp_data
+      hs_o     => sync_hs,
+      vs_o     => sync_vs,
+      hcount_o => sync_hcount,
+      vcount_o => sync_vcount,
+      blank_o  => sync_blank
    );
 
 
@@ -220,51 +114,30 @@ begin
    -- This controls the display
    inst_vga_chars : entity work.chars
    port map (
-      clk_i       => vga_clk_i,
+      clk_i       => clk_i,
 
-      hcount_i    => vga_sync_hcount,
-      vcount_i    => vga_sync_vcount,
-      hsync_i     => vga_sync_hs,
-      vsync_i     => vga_sync_vs,
-      blank_i     => vga_sync_blank,
+      hcount_i    => sync_hcount,
+      vcount_i    => sync_vcount,
+      hsync_i     => sync_hs,
+      vsync_i     => sync_vs,
+      blank_i     => sync_blank,
 
-      config_i    => vga_config,
-      status_i    => vga_status,
-      keyboard_i  => vga_keyboard_debug,
+      config_i    => config,
+      status_i    => status,
+      keyboard_i  => keyboard_debug,
       eth_debug_i => eth_debug_i,
 
-      disp_addr_o => vga_char_disp_addr,
-      disp_data_i => vga_char_disp_data,
+      disp_addr_o => disp_addr_o,
+      disp_data_i => disp_data_i,
 
-      font_addr_o => vga_char_font_addr,
-      font_data_i => vga_char_font_data,
+      font_addr_o => font_addr_o,
+      font_data_i => font_data_i,
 
-      hcount_o    => vga_char_hcount,
-      vcount_o    => vga_char_vcount,
-      hsync_o     => vga_char_hs,
-      vsync_o     => vga_char_vs,
-      col_o       => vga_char_col
-   );
-
-
-   ---------------------------------------
-   -- Instantiate the Sprite Bitmap memory
-   ---------------------------------------
-
-   inst_bitmaps_mem : entity work.bitmaps_mem
-   port map (
-      -- Read port @ vga_clk_i
-      vga_clk_i   => vga_clk_i,
-      vga_addr_i  => vga_bitmap_addr,
-      vga_data_o  => vga_bitmap_data,
-
-      -- Write port @ cpu_clk_i
-      cpu_clk_i   => cpu_clk_i,
-      cpu_addr_i  => cpu_addr_i(8 downto 0),
-      cpu_wren_i  => cpu_wren_bitmaps,
-      cpu_data_i  => cpu_data_i,
-      cpu_rden_i  => cpu_rden_bitmaps,
-      cpu_data_o  => cpu_rddata_bitmaps
+      hcount_o    => char_hcount,
+      vcount_o    => char_vcount,
+      hsync_o     => char_hs,
+      vsync_o     => char_vs,
+      col_o       => char_col
    );
 
 
@@ -274,147 +147,36 @@ begin
 
    inst_vga_sprites : entity work.sprites
    port map (
-      clk_i         => vga_clk_i,
+      clk_i         => clk_i,
 
-      hcount_i      => vga_char_hcount,
-      vcount_i      => vga_char_vcount,
-      hs_i          => vga_char_hs,
-      vs_i          => vga_char_vs,
-      col_i         => vga_char_col,
+      hcount_i      => char_hcount,
+      vcount_i      => char_vcount,
+      hs_i          => char_hs,
+      vs_i          => char_vs,
+      col_i         => char_col,
 
-      config_i      => vga_config,
-      bitmap_addr_o => vga_bitmap_addr,
-      bitmap_data_i => vga_bitmap_data,
+      config_i      => config,
+      bitmap_addr_o => mob_addr_o,
+      bitmap_data_i => mob_data_i,
 
-      hcount_o      => vga_sprite_hcount,
-      vcount_o      => vga_sprite_vcount,
-      hs_o          => vga_sprite_hs,
-      vs_o          => vga_sprite_vs,
-      col_o         => vga_sprite_col
+      hcount_o      => sprite_hcount,
+      vcount_o      => sprite_vcount,
+      hs_o          => sprite_hs,
+      vs_o          => sprite_vs,
+      col_o         => sprite_col
    );
 
-   debug_o <=  vga_config(23 downto 16);
+   debug_o <=  config(23 downto 16);
 
    -----------------------
    -- Drive output signals
    -----------------------
 
-   vga_hs_o     <= vga_sprite_hs;
-   vga_vs_o     <= vga_sprite_vs;
-   vga_col_o    <= vga_sprite_col;
-   vga_hcount_o <= vga_sprite_hcount;
-   vga_vcount_o <= vga_sprite_vcount;
-
-
-   --=====================================================
-   -- CPU and VGA Clock Domain Crossing
-   --=====================================================
-
-   -- Generate IRQ at end of a particular line, i.e. 60 times pr. second.
-   -- This is a single clock pulse.
-   vga_sync <= '1' when vga_char_hcount = FRAME_WIDTH and
-               vga_char_vcount(10 downto 0) = (vga_config(65*8 + 7 downto 65*8) & "1") else '0';
-
-
-   -- Synchronize Sync pulse
-   -- from VGA to CPU clock domain.
-   inst_cdc_sync : entity work.cdcpulse
-   port map (
-      -- The sender
-      rx_clk_i => vga_clk_i,
-      rx_in_i  => vga_sync,
-
-      -- The receiver
-      tx_clk_i => cpu_clk_i,
-      tx_out_o => cpu_sync
-   );
-
-   -- Synchronize CPU status information
-   -- from CPU to VGA clock domain.
-   inst_cdc_status : entity work.cdcvector
-   generic map (
-      G_NEXYS4DDR => G_NEXYS4DDR,
-      G_SIZE      => 128
-   )
-   port map (
-      -- The sender
-      rx_clk_i => cpu_clk_i,
-      rx_in_i  => cpu_status_i,
-
-      -- The receiver
-      tx_clk_i => vga_clk_i,
-      tx_out_o => vga_status
-   );
-
-   -- Synchronize keyboard fifo
-   -- from CPU to VGA clock domain.
-   inst_cdc_keyboard : entity work.cdcvector
-   generic map (
-      G_NEXYS4DDR => G_NEXYS4DDR,
-      G_SIZE      => 70
-   )
-   port map (
-      -- The sender
-      rx_clk_i => cpu_clk_i,
-      rx_in_i  => cpu_keyboard_debug_i,
-
-      -- The receiver
-      tx_clk_i => vga_clk_i,
-      tx_out_o => vga_keyboard_debug
-   );
-
-
-   -- Synchronize Sprite configuration data
-   -- from CPU to VGA clock domain.
-   inst_cdc_config : entity work.cdcvector
-   generic map (
-      G_NEXYS4DDR => G_NEXYS4DDR,
-      G_SIZE      => 128*8
-   )
-   port map (
-      -- The sender
-      rx_clk_i => cpu_clk_i,
-      rx_in_i  => cpu_config,
-
-      -- The receiver
-      tx_clk_i => vga_clk_i,
-      tx_out_o => vga_config
-   );
-
-
-   ---------------------------------------------
-   -- Instantiate the Configure and Status block
-   ---------------------------------------------
-
-   inst_conf_stat : entity work.conf_stat
-   port map (
-      clk_i   => cpu_clk_i,
-      rst_i   => cpu_rst_i,
-      addr_i  => cpu_addr_i(8 downto 0),
-      --
-      wren_i  => cpu_wren_conf_stat,
-      data_i  => cpu_data_i,
-      --
-      rden_i  => cpu_rden_conf_stat,
-      data_o  => cpu_rddata_conf_stat,
-      --
-      config_o => cpu_config,
-      --
-      sync_i     => cpu_sync,
-      irq_o      => cpu_irq_o,
-      key_rden_o => cpu_key_rden_o,
-      key_val_i  => cpu_key_val_i  
-   );
-
-
-   -----------------------------------
-   -- Drive output signals to CPU port
-   -----------------------------------
-
-   cpu_data_o <= cpu_rddata_chars     when cpu_rden_chars     = '1' else
-                 cpu_rddata_bitmaps   when cpu_rden_bitmaps   = '1' else
-                 cpu_rddata_conf_stat when cpu_rden_conf_stat = '1' else
-                 (others => '0');
+   hs_o     <= sprite_hs;
+   vs_o     <= sprite_vs;
+   col_o    <= sprite_col;
+   hcount_o <= sprite_hcount;
+   vcount_o <= sprite_vcount;
 
 end Structural;
 

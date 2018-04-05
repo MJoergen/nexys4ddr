@@ -162,11 +162,20 @@ begin
       G_NEXYS4DDR  => true,              -- True, when using the Nexys4DDR board.
       G_ROM_SIZE   => 11,                -- Number of bits in ROM address
       G_RAM_SIZE   => 11,                -- Number of bits in RAM address
+      G_DISP_SIZE  => 10,                -- Number of bits in DISP address
+      G_FONT_SIZE  => 12,                -- Number of bits in FONT address
+      G_MOB_SIZE   => 7,                 -- Number of bits in MOB address
+      G_ROM_MASK   => X"F800",
+      G_RAM_MASK   => X"0000",
+      G_DISP_MASK  => X"8000",
+      G_FONT_MASK  => X"9000",
+      G_MOB_MASK   => X"A000",
       G_ROM_FILE   => "rom.txt",         -- Contains the machine code
       G_FONT_FILE  => "ProggyClean.txt"  -- Contains the character font
    )
    port map (
       vga_clk_i   => vga_clk,
+      vga_rst_i   => vga_rst,
       cpu_clk_i   => cpu_clk,
       cpu_rst_i   => cpu_rst,
       --
