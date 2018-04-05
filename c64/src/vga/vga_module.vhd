@@ -22,10 +22,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
 entity vga_module is
-   generic (
-      G_NEXYS4DDR : boolean;             -- True, when using the Nexys4DDR board.
-      G_FONT_FILE : string
-   );
    port (
       clk_i       : in  std_logic;
       rst_i       : in  std_logic;
@@ -40,6 +36,8 @@ entity vga_module is
       disp_data_i : in  std_logic_vector(  7 downto 0);
       mob_addr_o  : out std_logic_vector(  5 downto 0);
       mob_data_i  : in  std_logic_vector( 15 downto 0);
+      config_i    : in  std_logic_vector(128*8-1 downto 0);
+      status_i    : in  std_logic_vector(127 downto 0);  -- This signal may be asynchronuous.
       debug_i     : in  std_logic_vector(511 downto 0);
       debug_o     : out std_logic_vector(  7 downto 0)
    );
@@ -64,12 +62,6 @@ architecture Structural of vga_module is
    signal char_hcount : std_logic_vector(10 downto 0);
    signal char_vcount : std_logic_vector(10 downto 0);
    signal char_col    : std_logic_vector( 7 downto 0);
-   --
-   signal char_font_addr : std_logic_vector(11 downto 0);
-   signal char_font_data : std_logic_vector( 7 downto 0);
-   --
-   signal char_disp_addr : std_logic_vector( 9 downto 0);
-   signal char_disp_data : std_logic_vector( 7 downto 0);
 
    -- Signals driven by the Sprite Display block
    signal sprite_hs     : std_logic; 
@@ -77,15 +69,6 @@ architecture Structural of vga_module is
    signal sprite_hcount : std_logic_vector(10 downto 0);
    signal sprite_vcount : std_logic_vector(10 downto 0);
    signal sprite_col    : std_logic_vector( 7 downto 0);
-
-   -- Signals driven by the Sprite Bitmap block
-   signal bitmap_addr   : std_logic_vector( 5 downto 0);
-   signal bitmap_data   : std_logic_vector(15 downto 0);
-
-   -- Clock domain crossing
-   signal config : std_logic_vector(128*8-1 downto 0) := (others => '0');
-   signal status : std_logic_vector(127 downto 0) := (others => '0');
-   signal keyboard_debug : std_logic_vector(69 downto 0) := (others => '0');
 
 begin
 
@@ -121,9 +104,8 @@ begin
       vsync_i     => sync_vs,
       blank_i     => sync_blank,
 
-      config_i    => config,
-      status_i    => status,
-      keyboard_i  => keyboard_debug,
+      config_i    => config_i,
+      status_i    => status_i,
       debug_i     => debug_i,
 
       disp_addr_o => disp_addr_o,
@@ -154,7 +136,7 @@ begin
       vs_i          => char_vs,
       col_i         => char_col,
 
-      config_i      => config,
+      config_i      => config_i,
       bitmap_addr_o => mob_addr_o,
       bitmap_data_i => mob_data_i,
 
@@ -165,7 +147,7 @@ begin
       col_o         => sprite_col
    );
 
-   debug_o <=  config(23 downto 16);
+   debug_o <= config_i(23 downto 16);
 
    -----------------------
    -- Drive output signals

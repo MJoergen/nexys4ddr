@@ -165,11 +165,13 @@ begin
       G_DISP_SIZE => 10,                 -- Number of bits in DISP address
       G_FONT_SIZE => 12,                 -- Number of bits in FONT address
       G_MOB_SIZE  => 7,                  -- Number of bits in MOB address
+      G_CONF_SIZE => 7,                  -- Number of bits in CONF address
       G_ROM_MASK  => X"F800",            -- Last address 0xFFFF
       G_RAM_MASK  => X"0000",            -- Last address 0x07FF
       G_DISP_MASK => X"8000",            -- Last address 0x83FF
       G_MOB_MASK  => X"8400",            -- Last address 0x847F
       G_FONT_MASK => X"9000",            -- Last address 0x9FFF
+      G_CONF_MASK => X"8600",            -- Last address 0x867F
       G_ROM_FILE  => "rom.txt",          -- Contains the machine code
       G_FONT_FILE => "ProggyClean.txt"   -- Contains the character font
    )

@@ -29,7 +29,7 @@ entity cpu_module is
       invalid_o : out std_logic;
 
       -- Debug (to show on the VGA)
-      debug_o : out std_logic_vector(127 downto 0)
+      status_o : out std_logic_vector(127 downto 0)
    );
 end cpu_module;
 
@@ -324,14 +324,14 @@ begin
    wren_o <= ctl_mem_wrdata(2);
 
    -- Debug output
-   debug_o( 15 downto   0) <= addr;                                     -- "ADDR"
-   debug_o( 31 downto  16) <= "0000000" & ctl_mem_wrdata(2) & data;     -- "WR_DATA"
-   debug_o( 47 downto  32) <= "0000000" & ctl_mem_rden & data_i;        -- "RD_DATA"
-   debug_o( 63 downto  48) <= reg_pc;                                   -- "PC"
-   debug_o( 79 downto  64) <= "00000" & ctl_debug;                      -- "INST"
-   debug_o( 95 downto  80) <= reg_sr & regs_debug(7 downto 0);          -- "SR_A"
-   debug_o(111 downto  96) <= regs_debug(23 downto 8);                  -- "X_Y"
-   debug_o(127 downto 112) <= X"01" & reg_sp;                           -- "SP"
+   status_o( 15 downto   0) <= addr;                                     -- "ADDR"
+   status_o( 31 downto  16) <= "0000000" & ctl_mem_wrdata(2) & data;     -- "WR_DATA"
+   status_o( 47 downto  32) <= "0000000" & ctl_mem_rden & data_i;        -- "RD_DATA"
+   status_o( 63 downto  48) <= reg_pc;                                   -- "PC"
+   status_o( 79 downto  64) <= "00000" & ctl_debug;                      -- "INST"
+   status_o( 95 downto  80) <= reg_sr & regs_debug(7 downto 0);          -- "SR_A"
+   status_o(111 downto  96) <= regs_debug(23 downto 8);                  -- "X_Y"
+   status_o(127 downto 112) <= X"01" & reg_sp;                           -- "SP"
 
 end Structural;
 

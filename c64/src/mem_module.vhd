@@ -18,11 +18,13 @@ entity mem_module is
       G_DISP_SIZE : integer;          -- Number of bits in DISP address
       G_FONT_SIZE : integer;          -- Number of bits in FONT address
       G_MOB_SIZE  : integer;          -- Number of bits in MOB address
+      G_CONF_SIZE : integer;          -- Number of bits in CONF address
       G_ROM_MASK  : std_logic_vector(15 downto 0);  -- Value of upper bits in ROM address
       G_RAM_MASK  : std_logic_vector(15 downto 0);  -- Value of upper bits in RAM address
       G_DISP_MASK : std_logic_vector(15 downto 0);  -- Value of upper bits in DISP address
       G_FONT_MASK : std_logic_vector(15 downto 0);  -- Value of upper bits in FONT address
       G_MOB_MASK  : std_logic_vector(15 downto 0);  -- Value of upper bits in MOB address
+      G_CONF_MASK : std_logic_vector(15 downto 0);  -- Value of upper bits in CONF address
       G_ROM_FILE  : string;           -- Contains the contents of the ROM memory.
       G_FONT_FILE : string            -- Contains the contents of the FONT memory.
    );
@@ -45,9 +47,9 @@ entity mem_module is
       b_font_addr_i : in  std_logic_vector(G_FONT_SIZE-1 downto 0);
       b_font_data_o : out std_logic_vector(7 downto 0);
       b_mob_addr_i  : in  std_logic_vector(G_MOB_SIZE-2 downto 0);
-      b_mob_data_o  : out std_logic_vector(15 downto 0)
+      b_mob_data_o  : out std_logic_vector(15 downto 0);
+      b_config_o    : out std_logic_vector(128*8-1 downto 0)
   );
-
 end mem_module;
 
 architecture Structural of mem_module is
@@ -82,7 +84,14 @@ architecture Structural of mem_module is
    signal a_mob_rd_en    : std_logic;
    signal a_mob_rd_data  : std_logic_vector(7 downto 0);
 
+   signal a_conf_cs      : std_logic;
+   signal a_conf_wr_en   : std_logic;
+   signal a_conf_rd_en   : std_logic;
+   signal a_conf_rd_data : std_logic_vector(7 downto 0);
+
    signal a_rden_d       : std_logic;
+
+   signal config : std_logic_vector(128*8-1 downto 0) := (others => '0');
 
 begin
 
@@ -222,29 +231,54 @@ begin
    a_ram_cs  <= '1' when a_addr_i(15 downto G_RAM_SIZE)  = G_RAM_MASK( 15 downto G_RAM_SIZE)  else '0';
    a_disp_cs <= '1' when a_addr_i(15 downto G_DISP_SIZE) = G_DISP_MASK(15 downto G_DISP_SIZE) else '0';
    a_font_cs <= '1' when a_addr_i(15 downto G_FONT_SIZE) = G_FONT_MASK(15 downto G_FONT_SIZE) else '0';
-   a_mob_cs  <= '1' when a_addr_i(15 downto G_MOB_SIZE)  = G_MOB_MASK( 15 downto G_MOB_SIZE) else '0';
+   a_mob_cs  <= '1' when a_addr_i(15 downto G_MOB_SIZE)  = G_MOB_MASK( 15 downto G_MOB_SIZE)  else '0';
+   a_conf_cs <= '1' when a_addr_i(15 downto G_CONF_SIZE) = G_CONF_MASK(15 downto G_CONF_SIZE) else '0';
 
    a_rom_wr_en  <= a_wren_i and a_rom_cs;
    a_ram_wr_en  <= a_wren_i and a_ram_cs;
    a_disp_wr_en <= a_wren_i and a_disp_cs;
    a_font_wr_en <= a_wren_i and a_font_cs;
    a_mob_wr_en  <= a_wren_i and a_mob_cs;
+   a_conf_wr_en <= a_wren_i and a_conf_cs;
 
    a_rom_rd_en  <= a_rden_i and a_rom_cs;
    a_ram_rd_en  <= a_rden_i and a_ram_cs;
    a_disp_rd_en <= a_rden_i and a_disp_cs;
    a_font_rd_en <= a_rden_i and a_font_cs;
    a_mob_rd_en  <= a_rden_i and a_mob_cs;
+   a_conf_rd_en <= a_rden_i and a_conf_cs;
 
    a_data_o <= a_rom_rd_data  when a_rom_rd_en = '1' else
                a_ram_rd_data  when a_ram_rd_en = '1' else
                a_disp_rd_data when a_disp_rd_en = '1' else
                a_font_rd_data when a_font_rd_en = '1' else
                a_mob_rd_data  when a_mob_rd_en = '1' else
+               a_conf_rd_data when a_conf_rd_en = '1' else
                (others => '0');
 
    a_wait_o <= a_rden_d when a_disp_rd_en = '1' or a_font_rd_en = '1' or a_mob_rd_en = '1' else
                '0';
+
+   process (a_clk_i)
+      variable addr_v : integer range 0 to 2**G_CONF_SIZE-1;
+   begin
+      if rising_edge(a_clk_i) then
+         addr_v := conv_integer(a_addr_i(G_CONF_SIZE-1 downto 0));
+         if a_conf_wr_en = '1' then
+            config(addr_v*8+7 downto addr_v*8) <= a_data_i;
+         end if;
+         if a_conf_rd_en = '1' then
+            a_conf_rd_data <= config(addr_v*8+7 downto addr_v*8);
+         end if;
+      end if;
+   end process;
+
+   process (b_clk_i)
+   begin
+      if rising_edge(b_clk_i) then
+         b_config_o <= config;
+      end if;
+   end process;
 
 end Structural;
 

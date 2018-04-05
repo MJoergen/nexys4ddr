@@ -23,11 +23,13 @@ entity hack is
       G_DISP_SIZE : integer;          -- Number of bits in DISP address
       G_FONT_SIZE : integer;          -- Number of bits in FONT address
       G_MOB_SIZE  : integer;          -- Number of bits in MOB address
+      G_CONF_SIZE : integer;          -- Number of bits in CONF address
       G_ROM_MASK  : std_logic_vector(15 downto 0);  -- Value of upper bits in ROM address
       G_RAM_MASK  : std_logic_vector(15 downto 0);  -- Value of upper bits in RAM address
       G_DISP_MASK : std_logic_vector(15 downto 0);  -- Value of upper bits in DISP address
       G_FONT_MASK : std_logic_vector(15 downto 0);  -- Value of upper bits in FONT address
       G_MOB_MASK  : std_logic_vector(15 downto 0);  -- Value of upper bits in MOB address
+      G_CONF_MASK : std_logic_vector(15 downto 0);  -- Value of upper bits in CONF address
       G_ROM_FILE  : string;           -- Contains the contents of the ROM memory.
       G_FONT_FILE : string            -- Contains the contents of the FONT memory.
    );
@@ -68,7 +70,7 @@ architecture Structural of hack is
    signal cpu_rden    : std_logic;
    signal cpu_rddata  : std_logic_vector(7 downto 0);
    signal cpu_irq_vga : std_logic;
-   signal cpu_debug   : std_logic_vector(127 downto 0);
+   signal cpu_status  : std_logic_vector(127 downto 0);
    signal cpu_invalid : std_logic;
    signal cpu_wait    : std_logic;
 
@@ -79,6 +81,7 @@ architecture Structural of hack is
    signal vga_disp_data : std_logic_vector( 7 downto 0);
    signal vga_mob_addr  : std_logic_vector( 5 downto 0);
    signal vga_mob_data  : std_logic_vector(15 downto 0);
+   signal vga_config    : std_logic_vector(128*8-1 downto 0);
 
    -- Signals connected to the keyboard
    signal cpu_key_rden : std_logic;
@@ -101,7 +104,7 @@ begin
       data_o    => cpu_wrdata,
       irq_i     => cpu_irq_vga,
       invalid_o => cpu_invalid,
-      debug_o   => cpu_debug 
+      status_o  => cpu_status
    );
 
 
@@ -110,10 +113,6 @@ begin
    -------------------------
 
    inst_vga_module : entity work.vga_module
-   generic map (
-      G_NEXYS4DDR => G_NEXYS4DDR,
-      G_FONT_FILE => G_FONT_FILE
-   )
    port map (
       clk_i       => vga_clk_i,
       rst_i       => vga_rst_i,
@@ -128,7 +127,9 @@ begin
       disp_data_i => vga_disp_data,
       mob_addr_o  => vga_mob_addr,
       mob_data_i  => vga_mob_data,
+      config_i    => vga_config,
       debug_i     => vga_debug_i,
+      status_i    => cpu_status,    -- This signal may be asynchronous
       debug_o     => open
    );
 
@@ -145,11 +146,13 @@ begin
       G_DISP_SIZE => G_DISP_SIZE,
       G_FONT_SIZE => G_FONT_SIZE,
       G_MOB_SIZE  => G_MOB_SIZE,
+      G_CONF_SIZE => G_CONF_SIZE,
       G_ROM_MASK  => G_ROM_MASK,
       G_RAM_MASK  => G_RAM_MASK,
       G_DISP_MASK => G_DISP_MASK,
       G_FONT_MASK => G_FONT_MASK,
       G_MOB_MASK  => G_MOB_MASK,
+      G_CONF_MASK => G_CONF_MASK,
       G_ROM_FILE  => G_ROM_FILE,
       G_FONT_FILE => G_FONT_FILE 
    )
@@ -172,7 +175,8 @@ begin
       b_font_addr_i => vga_font_addr,
       b_font_data_o => vga_font_data,
       b_mob_addr_i  => vga_mob_addr,
-      b_mob_data_o  => vga_mob_data
+      b_mob_data_o  => vga_mob_data,
+      b_config_o    => vga_config
   );
 
 
