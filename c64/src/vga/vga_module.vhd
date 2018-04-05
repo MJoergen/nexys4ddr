@@ -27,22 +27,21 @@ entity vga_module is
       G_FONT_FILE : string
    );
    port (
-      clk_i  : in  std_logic;
-      rst_i  : in  std_logic;
-      hs_o     : out std_logic; 
-      vs_o     : out std_logic;
-      col_o    : out std_logic_vector(7 downto 0);
-      hcount_o : out std_logic_vector(10 downto 0);
-      vcount_o : out std_logic_vector(10 downto 0);
-      font_addr_o : out std_logic_vector(11 downto 0);
-      font_data_i : in  std_logic_vector( 7 downto 0);
-      disp_addr_o : out std_logic_vector( 9 downto 0);
-      disp_data_i : in  std_logic_vector( 7 downto 0);
-      mob_addr_o  : out std_logic_vector( 5 downto 0);
-      mob_data_i  : in  std_logic_vector(15 downto 0);
-
-      eth_debug_i  : in std_logic_vector(511 downto 0);
-      debug_o      : out std_logic_vector(7 downto 0)
+      clk_i       : in  std_logic;
+      rst_i       : in  std_logic;
+      hs_o        : out std_logic; 
+      vs_o        : out std_logic;
+      col_o       : out std_logic_vector(  7 downto 0);
+      hcount_o    : out std_logic_vector( 10 downto 0);
+      vcount_o    : out std_logic_vector( 10 downto 0);
+      font_addr_o : out std_logic_vector( 11 downto 0);
+      font_data_i : in  std_logic_vector(  7 downto 0);
+      disp_addr_o : out std_logic_vector(  9 downto 0);
+      disp_data_i : in  std_logic_vector(  7 downto 0);
+      mob_addr_o  : out std_logic_vector(  5 downto 0);
+      mob_data_i  : in  std_logic_vector( 15 downto 0);
+      debug_i     : in  std_logic_vector(511 downto 0);
+      debug_o     : out std_logic_vector(  7 downto 0)
    );
 end vga_module;
 
@@ -125,7 +124,7 @@ begin
       config_i    => config,
       status_i    => status,
       keyboard_i  => keyboard_debug,
-      eth_debug_i => eth_debug_i,
+      debug_i     => debug_i,
 
       disp_addr_o => disp_addr_o,
       disp_data_i => disp_data_i,

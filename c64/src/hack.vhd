@@ -5,13 +5,10 @@ use ieee.std_logic_unsigned.all;
 -- This is the top level instance of this "computer".
 -- It consists of four blocks:
 -- 1) The CPU controlling everything
--- 2) The ROM (containing the machine code)
--- 3) The VGA module (memory mapped)
--- 4) The RAM
+-- 2) The VGA module
+-- 3) The memory module (containing ROM and RAM)
+-- 4) The Keyboard module (PS2 interface)
 -- 
--- The ROM, VGA, and RAM all respond upon read on the falling clock edge. This
--- "imitates" an asynchronous memory interface.
---
 -- A note on naming convention: Since this design uses two asynchronuous clock
 -- domains, all signal names are prefixed with the corresponding clock
 -- domain, i.e. cpu_ or vga_. Signals without this prefix are considered asynchronous
@@ -36,41 +33,33 @@ entity hack is
    );
    port (
       -- Clocks and resets
-      cpu_clk_i  : in  std_logic;
-      vga_clk_i  : in  std_logic;   -- 25 MHz for a 640x480 display.
-      cpu_rst_i  : in  std_logic;
-      vga_rst_i  : in  std_logic;
-
-      -- Keyboard / mouse
-      ps2_clk_i  : in  std_logic;
-      ps2_data_i : in  std_logic;
-
-      -- Output LEDs
-      led_o      : out std_logic_vector( 7 downto 0);
-
-      -- Debug info from Ethernet PHY
-      eth_debug_i : in std_logic_vector(511 downto 0);
-
+      cpu_clk_i     : in  std_logic;
+      cpu_rst_i     : in  std_logic;
       -- ROM data received from Ethernet
-      cpu_pl_wr_addr_i : in  std_logic_vector(15 downto 0);
-      cpu_pl_wr_en_i   : in  std_logic;
-      cpu_pl_wr_data_i : in  std_logic_vector(7 downto 0);
+      cpu_wr_addr_i : in  std_logic_vector(15 downto 0);
+      cpu_wr_en_i   : in  std_logic;
+      cpu_wr_data_i : in  std_logic_vector( 7 downto 0);
+      -- Output LEDs
+      cpu_led_o     : out std_logic_vector( 7 downto 0);
 
+      vga_clk_i    : in  std_logic;
+      vga_rst_i    : in  std_logic;
+      -- Debug info
+      vga_debug_i  : in std_logic_vector(511 downto 0);
       -- Output to VGA monitor
       vga_hs_o     : out std_logic;
       vga_vs_o     : out std_logic;
       vga_col_o    : out std_logic_vector( 7 downto 0);
       vga_hcount_o : out std_logic_vector(10 downto 0);
-      vga_vcount_o : out std_logic_vector(10 downto 0)
-  );
+      vga_vcount_o : out std_logic_vector(10 downto 0);
 
+      -- Keyboard / mouse
+      ps2_clk_i  : in  std_logic;
+      ps2_data_i : in  std_logic
+   );
 end hack;
 
 architecture Structural of hack is
-
-   -------------------
-   -- CPU clock domain
-   -------------------
 
    -- Signals connected to the CPU.
    signal cpu_addr    : std_logic_vector(15 downto 0);
@@ -91,17 +80,58 @@ architecture Structural of hack is
    signal vga_mob_addr  : std_logic_vector( 5 downto 0);
    signal vga_mob_data  : std_logic_vector(15 downto 0);
 
-   -- Signals driven by other blocks
-   signal cpu_rddata_rom : std_logic_vector(7 downto 0);
-   signal cpu_rddata_ram : std_logic_vector(7 downto 0);
-   signal cpu_rddata_vga : std_logic_vector(7 downto 0);
-
    -- Signals connected to the keyboard
    signal cpu_key_rden : std_logic;
    signal cpu_key_val  : std_logic_vector(7 downto 0);
-   signal cpu_keyboard_debug : std_logic_vector(69 downto 0);
 
 begin
+
+   ------------------------------
+   -- Instantiate CPU
+   ------------------------------
+
+   inst_cpu : entity work.cpu_module
+   port map (
+      clk_i     => cpu_clk_i,
+      rst_i     => cpu_rst_i,
+      addr_o    => cpu_addr,
+      rden_o    => cpu_rden,
+      data_i    => cpu_rddata,
+      wren_o    => cpu_wren,
+      data_o    => cpu_wrdata,
+      irq_i     => cpu_irq_vga,
+      invalid_o => cpu_invalid,
+      debug_o   => cpu_debug 
+   );
+
+
+   -------------------------
+   -- Instantiate VGA module
+   -------------------------
+
+   inst_vga_module : entity work.vga_module
+   generic map (
+      G_NEXYS4DDR => G_NEXYS4DDR,
+      G_FONT_FILE => G_FONT_FILE
+   )
+   port map (
+      clk_i       => vga_clk_i,
+      rst_i       => vga_rst_i,
+      hs_o        => vga_hs_o,
+      vs_o        => vga_vs_o,
+      col_o       => vga_col_o,
+      hcount_o    => vga_hcount_o,
+      vcount_o    => vga_vcount_o,
+      font_addr_o => vga_font_addr,
+      font_data_i => vga_font_data,
+      disp_addr_o => vga_disp_addr,
+      disp_data_i => vga_disp_data,
+      mob_addr_o  => vga_mob_addr,
+      mob_data_i  => vga_mob_data,
+      debug_i     => vga_debug_i,
+      debug_o     => open
+   );
+
 
    -------------------------------
    -- Instantiate memory
@@ -146,74 +176,21 @@ begin
   );
 
 
-   -------------------------
-   -- Instantiate VGA module
-   -------------------------
-
-   inst_vga_module : entity work.vga_module
-   generic map (
-                  G_NEXYS4DDR => G_NEXYS4DDR,
-                  G_FONT_FILE => G_FONT_FILE
-               )
-   port map (
-      clk_i       => vga_clk_i,
-      rst_i       => vga_rst_i,
-      hs_o        => vga_hs_o,
-      vs_o        => vga_vs_o,
-      col_o       => vga_col_o,
-      hcount_o    => vga_hcount_o,
-      vcount_o    => vga_vcount_o,
-      font_addr_o => vga_font_addr,
-      font_data_i => vga_font_data,
-      disp_addr_o => vga_disp_addr,
-      disp_data_i => vga_disp_data,
-      mob_addr_o  => vga_mob_addr,
-      mob_data_i  => vga_mob_data,
-
-      eth_debug_i     => eth_debug_i,
-      debug_o         => open
-   );
-
-   ------------------------------
-   -- Instantiate CPU
-   ------------------------------
-
-   inst_cpu : entity work.cpu_module
-   port map (
-      clk_i   => cpu_clk_i,
-      rst_i   => cpu_rst_i,
-
-      addr_o  => cpu_addr,
-
-      rden_o  => cpu_rden,
-      data_i  => cpu_rddata,
-
-      wren_o  => cpu_wren,
-      data_o  => cpu_wrdata,
-
-      irq_i   => cpu_irq_vga,
-      invalid_o => cpu_invalid,
-      debug_o => cpu_debug 
-   );
-
-
    ---------------------------
    -- Instantiate the keyboard
    ---------------------------
    inst_keyboard : entity work.keyboard
    port map (
-      clk_i      => cpu_clk_i,
-      rst_i      => cpu_rst_i,
-
       ps2_clk_i  => ps2_clk_i,
       ps2_data_i => ps2_data_i,
-
+      clk_i      => cpu_clk_i,
+      rst_i      => cpu_rst_i,
       rden_i     => cpu_key_rden,
       val_o      => cpu_key_val,
-      debug_o    => cpu_keyboard_debug
+      debug_o    => open
    );
 
-   led_o <= (others => cpu_invalid);
+   cpu_led_o <= (others => cpu_invalid);
 
 end Structural;
 
