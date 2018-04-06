@@ -1,21 +1,22 @@
-------------------------------------------------------------
--- This is the top level of the VGA driver
--- It consists of three main blocks:
--- * Sync    : Generates the Hsync and Vsync signals
--- * Chars   : Generates a 40x18 character display
--- * Sprites : Generates 4 sprites
--- There are a number of additional blocks, dealing mainly
--- with the Clock Crossing between VGA and CPU clock domains.
+---------------------------------------------------------------------------------
+-- This is the top level VGA module, and generates a 640 x 480 pixel screen.
 --
--- A note on naming convention: Since this module uses two asynchronuous clock
--- domains, all signal names are prefixed with the corresponding clock domain,
--- i.e. cpu_ or vga_.
+-- The screen contains (in the following order, from background to foreground):
+-- * 40x18 character display, taken from external 1K memory.
+-- * Overlay of debug information, see below.
+-- * Four 16x16 MOB's (aka sprites).
 --
--- Memory Map:
--- 0x8000 - 0x83FF : Chars Memory
--- 0x8400 - 0x85FF : Bitmap Memory
--- 0x8600 - 0x87FF : Config and Status
-------------------------------------------------------------
+-- The debug information comes from the following inputs:
+-- * status_i : This shows the internal CPU state, including registers, current
+--              instruction, etc. A total of 8 rows of 4 hex characters.
+-- * debug_i  : This shows another 8 rows of 4 hex characters.
+--
+-- Configuration information is provided in the config_i signal, and includes
+-- * Foreground text colour
+-- * Background text colour
+-- * Horizontal pixel shift
+-- * MOB configuration
+----------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -25,30 +26,31 @@ entity vga_module is
    port (
       clk_i       : in  std_logic;
       rst_i       : in  std_logic;
+      --
       hs_o        : out std_logic; 
       vs_o        : out std_logic;
       col_o       : out std_logic_vector(  7 downto 0);
       hcount_o    : out std_logic_vector( 10 downto 0);
       vcount_o    : out std_logic_vector( 10 downto 0);
+      --
       font_addr_o : out std_logic_vector( 11 downto 0);
       font_data_i : in  std_logic_vector(  7 downto 0);
       disp_addr_o : out std_logic_vector(  9 downto 0);
       disp_data_i : in  std_logic_vector(  7 downto 0);
       mob_addr_o  : out std_logic_vector(  5 downto 0);
       mob_data_i  : in  std_logic_vector( 15 downto 0);
+      --
       config_i    : in  std_logic_vector(128*8-1 downto 0);
-      status_i    : in  std_logic_vector(127 downto 0);  -- This signal may be asynchronuous.
-      debug_i     : in  std_logic_vector(511 downto 0);
-      debug_o     : out std_logic_vector(  7 downto 0)
+      --
+      -- The following signals are synchronized within this module,
+      -- and need therefore not be synchronous to the clock domain.
+      async_status_i : in  std_logic_vector(127 downto 0);
+      async_debug_i  : in  std_logic_vector(127 downto 0)
    );
 end vga_module;
 
 architecture Structural of vga_module is
    
-   -- These must be the same as defined in src/vga/sync.vhd
-   constant FRAME_WIDTH  : natural := 640;
-   constant FRAME_HEIGHT : natural := 480;
-
    -- Signals driven by the Sync block
    signal sync_hs     : std_logic; 
    signal sync_vs     : std_logic;
@@ -105,8 +107,8 @@ begin
       blank_i     => sync_blank,
 
       config_i    => config_i,
-      status_i    => status_i,
-      debug_i     => debug_i,
+      status_i    => async_status_i,
+      debug_i     => async_debug_i,
 
       disp_addr_o => disp_addr_o,
       disp_data_i => disp_data_i,
@@ -137,6 +139,7 @@ begin
       col_i         => char_col,
 
       config_i      => config_i,
+
       bitmap_addr_o => mob_addr_o,
       bitmap_data_i => mob_data_i,
 
@@ -146,8 +149,6 @@ begin
       vs_o          => sprite_vs,
       col_o         => sprite_col
    );
-
-   debug_o <= config_i(23 downto 16);
 
    -----------------------
    -- Drive output signals

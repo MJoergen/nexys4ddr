@@ -222,26 +222,22 @@ begin
    -- Instantiate the CONF memory
    ---------------------------------------
 
-   conf_a_proc : process (a_clk_i)
-      variable addr_v : integer range 0 to 2**G_CONF_SIZE-1;
-   begin
-      if rising_edge(a_clk_i) then
-         addr_v := conv_integer(a_addr_i(G_CONF_SIZE-1 downto 0));
-         if a_conf_wr_en = '1' then
-            config(addr_v*8+7 downto addr_v*8) <= a_data_i;
-         end if;
-         if a_conf_rd_en = '1' then
-            a_conf_rd_data <= config(addr_v*8+7 downto addr_v*8);
-         end if;
-      end if;
-   end process conf_a_proc;
-
-   conf_b_proc : process (b_clk_i)
-   begin
-      if rising_edge(b_clk_i) then
-         b_config_o <= config;
-      end if;
-   end process conf_b_proc;
+   inst_conf_mem : entity work.conf_mem
+   generic map (
+      G_CONF_SIZE => G_CONF_SIZE 
+   )
+   port map (
+      a_clk_i     => a_clk_i,
+      a_rst_i     => a_rst_i,
+      a_addr_i    => a_addr_i,
+      a_data_i    => a_data_i,
+      a_wr_en_i   => a_conf_wr_en,
+      a_rd_en_i   => a_conf_rd_en,
+      a_rd_data_o => a_conf_rd_data,
+      b_clk_i     => b_clk_i,
+      b_rst_i     => b_rst_i,
+      b_config_o  => b_config_o  
+  );
 
 
    -------------------------------

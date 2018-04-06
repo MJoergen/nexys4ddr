@@ -71,7 +71,7 @@ begin
    inst_nexys4ddr : entity work.nexys4ddr
    generic map (
       G_RESET_SIZE => 8,
-      G_SIMULATION => true
+      G_SIMULATION => false -- true
    )
    port map (
       clk100_i   => clk100,

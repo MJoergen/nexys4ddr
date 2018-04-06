@@ -47,7 +47,7 @@ entity hack is
       vga_clk_i    : in  std_logic;
       vga_rst_i    : in  std_logic;
       -- Debug info
-      vga_debug_i  : in std_logic_vector(511 downto 0);
+      vga_debug_i  : in std_logic_vector(127 downto 0);
       -- Output to VGA monitor
       vga_hs_o     : out std_logic;
       vga_vs_o     : out std_logic;
@@ -69,7 +69,7 @@ architecture Structural of hack is
    signal cpu_wrdata  : std_logic_vector(7 downto 0);
    signal cpu_rden    : std_logic;
    signal cpu_rddata  : std_logic_vector(7 downto 0);
-   signal cpu_irq_vga : std_logic;
+   signal cpu_irq     : std_logic;
    signal cpu_status  : std_logic_vector(127 downto 0);
    signal cpu_invalid : std_logic;
    signal cpu_wait    : std_logic;
@@ -102,7 +102,7 @@ begin
       data_i    => cpu_rddata,
       wren_o    => cpu_wren,
       data_o    => cpu_wrdata,
-      irq_i     => cpu_irq_vga,
+      irq_i     => cpu_irq,
       invalid_o => cpu_invalid,
       status_o  => cpu_status
    );
@@ -114,23 +114,22 @@ begin
 
    inst_vga_module : entity work.vga_module
    port map (
-      clk_i       => vga_clk_i,
-      rst_i       => vga_rst_i,
-      hs_o        => vga_hs_o,
-      vs_o        => vga_vs_o,
-      col_o       => vga_col_o,
-      hcount_o    => vga_hcount_o,
-      vcount_o    => vga_vcount_o,
-      font_addr_o => vga_font_addr,
-      font_data_i => vga_font_data,
-      disp_addr_o => vga_disp_addr,
-      disp_data_i => vga_disp_data,
-      mob_addr_o  => vga_mob_addr,
-      mob_data_i  => vga_mob_data,
-      config_i    => vga_config,
-      debug_i     => vga_debug_i,
-      status_i    => cpu_status,    -- This signal may be asynchronous
-      debug_o     => open
+      clk_i          => vga_clk_i,
+      rst_i          => vga_rst_i,
+      hs_o           => vga_hs_o,
+      vs_o           => vga_vs_o,
+      col_o          => vga_col_o,
+      hcount_o       => vga_hcount_o,
+      vcount_o       => vga_vcount_o,
+      font_addr_o    => vga_font_addr,
+      font_data_i    => vga_font_data,
+      disp_addr_o    => vga_disp_addr,
+      disp_data_i    => vga_disp_data,
+      mob_addr_o     => vga_mob_addr,
+      mob_data_i     => vga_mob_data,
+      config_i       => vga_config,
+      async_debug_i  => vga_debug_i,
+      async_status_i => cpu_status
    );
 
 

@@ -44,6 +44,7 @@ SRC += src/cpu/cpu_module.vhd
 # Memory
 SRC += src/mem/rom_file.vhd
 SRC += src/mem/mem.vhd
+SRC += src/mem/conf_mem.vhd
 SRC += src/mem/bitmaps_mem.vhd
 SRC += src/mem/mem_module.vhd
 

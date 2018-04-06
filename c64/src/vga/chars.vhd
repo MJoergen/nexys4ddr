@@ -1,8 +1,23 @@
 ---------------------------------------------------------------------------------
 -- This generates a 320 x 234 pixel screen, consisting of 8 x 13 pixel characters.
 -- This corresponds to 40 x 18 characters.
--- The character memory consists of 40x18 = 720 bytes. They are placed in a 10->8 RAM.
--- The font memory is placed in a 12->8 ROM.
+-- This module requires a 1K character memory consisting of 40x18 = 720 bytes,
+-- and a 4K font memory.
+--
+-- The screen contains (in the following order, from background to foreground):
+-- * 40x18 character display, taken from external 1K memory.
+-- * Overlay of debug information, see below.
+-- * Four 16x16 MOB's (aka sprites).
+--
+-- The debug information comes from the following inputs:
+-- * status_i : This shows the internal CPU state, including registers, current
+--              instruction, etc. A total of 8 rows of 16 bits.
+-- * debug_i  : This shows another 8 rows of 16 bits.
+--
+-- Configuration information is provided in the config_i signal, and includes
+-- * Foreground text colour
+-- * Background text colour
+-- * Horizontal pixel shift
 --
 -- In order to calculate the character and pixel row, the y coordinate must
 -- be divided by 13. This is handled by an 8->9 ROM, where the address is the 
@@ -28,7 +43,7 @@ entity chars is
 
       config_i    : in  std_logic_vector(128*8-1 downto 0);
       status_i    : in  std_logic_vector(127 downto 0);
-      debug_i     : in  std_logic_vector(511 downto 0);
+      debug_i     : in  std_logic_vector(127 downto 0);
 
       disp_addr_o : out std_logic_vector( 9 downto 0);
       disp_data_i : in  std_logic_vector( 7 downto 0);
@@ -72,7 +87,7 @@ architecture Behavioral of chars is
       vcount    : std_logic_vector( 10 downto 0);  -- valid in all stages
       blank     : std_logic;                       -- valid in all stages
       status    : std_logic_vector(127 downto 0);  -- Valid in stage 1
-      debug     : std_logic_vector(511 downto 0);
+      debug     : std_logic_vector(127 downto 0);
       char_x    : std_logic_vector(  5 downto 0);  -- valid in stage 2 (0 - 39)
       char_y    : std_logic_vector(  4 downto 0);  -- valid in stage 2 (0 - 17)
       pix_x     : std_logic_vector(  2 downto 0);  -- valid in stage 2 (0 - 7)
@@ -146,9 +161,9 @@ begin
          stage1.vcount <= stage0.vcount - 6;
          stage1.blank  <= stage0.blank;
          if stage0.vcount < 6 or stage0.vcount >= 13*18*2 + 6 then
-            stage1.blank     <= '1';
-            stage1.status    <= status_i;
-            stage1.debug     <= debug_i;
+            stage1.blank  <= '1';
+            stage1.status <= status_i;
+            stage1.debug  <= debug_i;
          end if;
       end if;
    end process p_stage1;
