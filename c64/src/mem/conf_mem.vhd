@@ -74,12 +74,15 @@ begin
       a_rd_data_o <= (others => '0');  -- Default value to avoid latch.
       a_kb_rden_o <= '0';              -- Default value to avoid latch.
       if a_rd_en_i = '1' then
-         if addr_v = C_KBD then
-            a_rd_data_o <= a_kb_val_i;
-            a_kb_rden_o <= '1';
-         else
-            a_rd_data_o <= config(addr_v*8+7 downto addr_v*8);
-         end if;
+         case addr_v is
+            when C_KBD =>
+               a_rd_data_o <= a_kb_val_i;
+               a_kb_rden_o <= '1';
+            when C_IRQ_STAT =>
+               a_rd_data_o(0) <= irq;
+            when others =>
+               a_rd_data_o <= config(addr_v*8+7 downto addr_v*8);
+         end case;
       end if;
    end process;
 
