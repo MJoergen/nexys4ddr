@@ -81,7 +81,8 @@ architecture Structural of hack is
    signal vga_disp_data : std_logic_vector( 7 downto 0);
    signal vga_mob_addr  : std_logic_vector( 5 downto 0);
    signal vga_mob_data  : std_logic_vector(15 downto 0);
-   signal vga_config    : std_logic_vector(128*8-1 downto 0);
+   signal vga_config    : std_logic_vector(32*8-1 downto 0);
+   signal vga_irq       : std_logic;
 
    -- Signals connected to the keyboard
    signal cpu_key_rden : std_logic;
@@ -128,6 +129,7 @@ begin
       mob_addr_o     => vga_mob_addr,
       mob_data_i     => vga_mob_data,
       config_i       => vga_config,
+      irq_o          => vga_irq,
       async_debug_i  => vga_debug_i,
       async_status_i => cpu_status
    );
@@ -165,6 +167,7 @@ begin
       a_rden_i => cpu_rden,
       a_data_o => cpu_rddata,
       a_wait_o => cpu_wait,
+      a_irq_o  => cpu_irq,
 
       -- Port B (Read only)
       b_clk_i       => vga_clk_i,
@@ -175,7 +178,8 @@ begin
       b_font_data_o => vga_font_data,
       b_mob_addr_i  => vga_mob_addr,
       b_mob_data_o  => vga_mob_data,
-      b_config_o    => vga_config
+      b_config_o    => vga_config,
+      b_irq_i       => vga_irq
   );
 
 

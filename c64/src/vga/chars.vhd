@@ -3,27 +3,25 @@
 -- This corresponds to 40 x 18 characters.
 -- This module requires a 1K character memory consisting of 40x18 = 720 bytes,
 -- and a 4K font memory.
---
--- The screen contains (in the following order, from background to foreground):
--- * 40x18 character display, taken from external 1K memory.
--- * Overlay of debug information, see below.
--- * Four 16x16 MOB's (aka sprites).
---
--- The debug information comes from the following inputs:
--- * status_i : This shows the internal CPU state, including registers, current
---              instruction, etc. A total of 8 rows of 16 bits.
--- * debug_i  : This shows another 8 rows of 16 bits.
---
--- Configuration information is provided in the config_i signal, and includes
--- * Foreground text colour
--- * Background text colour
--- * Horizontal pixel shift
+-- Additionally, it requires a ROM containg nmemonics for all 256 opcodes.
 --
 -- In order to calculate the character and pixel row, the y coordinate must
 -- be divided by 13. This is handled by an 8->9 ROM, where the address is the 
 -- y coordinate (pixel 0 to 233) and the data is 5 bits of quotient (character row 0
 -- to 17) and 4 bits of remainder (pixel row 0 to 12).
 -- The address into the character memory is then calculated as 40*row + col.
+--
+-- Configuration information is provided in the config_i signal, and includes
+-- * 0x00-0x07 X-position (2 bytes pr MOB)
+-- * 0x08-0x0B Y-position (1 byte pr MOB)
+-- * 0x0C-0x0F Color      (1 byte pr MOB)
+-- * 0x10-0x13 Enable     (1 byte pr MOB)
+-- * 0x18 Foreground text colour
+-- * 0x19 Background text colour
+-- * 0x1A Horizontal pixel shift
+-- * 0x1B Y-line interrupt
+-- * 0x1C IRQ status
+-- * 0x1D IRQ mask
 ----------------------------------------------------------------------------------
 
 library ieee;
@@ -41,7 +39,7 @@ entity chars is
       vsync_i     : in  std_logic;
       blank_i     : in  std_logic;
 
-      config_i    : in  std_logic_vector(128*8-1 downto 0);
+      config_i    : in  std_logic_vector(32*8-1 downto 0);
       status_i    : in  std_logic_vector(127 downto 0);
       debug_i     : in  std_logic_vector(127 downto 0);
 
@@ -60,6 +58,10 @@ entity chars is
 end chars;
 
 architecture Behavioral of chars is
+
+   constant C_FCOL   : integer := 24;
+   constant C_BCOL   : integer := 25;
+   constant C_XSHIFT : integer := 26;
 
    constant C_DEBUG_POSX : integer := 10;
    constant C_DEBUG_POSY : integer :=  5;
@@ -154,7 +156,7 @@ begin
       variable x_scroll_v : std_logic_vector(7 downto 0);
    begin
       if rising_edge(clk_i) then
-         x_scroll_v := "0000" & config_i(67*8 + 3 downto 67*8);
+         x_scroll_v := "0000" & config_i(C_XSHIFT*8 + 3 downto C_XSHIFT*8);
          stage1.hsync  <= stage0.hsync;
          stage1.vsync  <= stage0.vsync;
          stage1.hcount <= stage0.hcount - x_scroll_v;
@@ -374,9 +376,9 @@ begin
          stage8 <= stage7;
 
          if stage7.pix = '1' then
-            stage8.col <= config_i(80*8 + 7 downto 80*8);
+            stage8.col <= config_i(C_FCOL*8 + 7 downto C_FCOL*8);
          else
-            stage8.col <= config_i(81*8 + 7 downto 81*8);
+            stage8.col <= config_i(C_BCOL*8 + 7 downto C_BCOL*8);
          end if;
 
          if stage7.blank = '1' then
@@ -384,7 +386,7 @@ begin
          end if;
 
          -- Undo effects of horizontal scrolling.
-         stage8.hcount <= stage7.hcount + ("0000" & config_i(67*8 + 3 downto 67*8));
+         stage8.hcount <= stage7.hcount + ("0000" & config_i(C_XSHIFT*8 + 3 downto C_XSHIFT*8));
 
       end if;
    end process p_stage8;

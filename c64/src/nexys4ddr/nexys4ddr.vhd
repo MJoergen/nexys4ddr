@@ -87,7 +87,6 @@ architecture Structural of nexys4ddr is
    end function col8to12;
 
    signal eth_smi_registers : std_logic_vector(32*16-1 downto 0);
-   signal vga_debug         : std_logic_vector(127 downto 0) := (others => '0');
    signal fifo_error        : std_logic := '0';
 
    -- Memory data received from Ethernet @ cpu_clk
@@ -165,13 +164,13 @@ begin
       G_DISP_SIZE => 10,                 -- Number of bits in DISP address
       G_FONT_SIZE => 12,                 -- Number of bits in FONT address
       G_MOB_SIZE  => 7,                  -- Number of bits in MOB address
-      G_CONF_SIZE => 7,                  -- Number of bits in CONF address
-      G_ROM_MASK  => X"F800",            -- Last address 0xFFFF
+      G_CONF_SIZE => 5,                  -- Number of bits in CONF address
       G_RAM_MASK  => X"0000",            -- Last address 0x07FF
       G_DISP_MASK => X"8000",            -- Last address 0x83FF
       G_MOB_MASK  => X"8400",            -- Last address 0x847F
+      G_CONF_MASK => X"8600",            -- Last address 0x861F
       G_FONT_MASK => X"9000",            -- Last address 0x9FFF
-      G_CONF_MASK => X"8600",            -- Last address 0x867F
+      G_ROM_MASK  => X"F800",            -- Last address 0xFFFF
       G_ROM_FILE  => "rom.txt",          -- Contains the machine code
       G_FONT_FILE => "ProggyClean.txt"   -- Contains the character font
    )
@@ -190,7 +189,7 @@ begin
       vga_col_o    => vga_col,
       vga_hcount_o => vga_hcount,
       vga_vcount_o => vga_vcount,
-      vga_debug_i  => vga_debug,
+      vga_debug_i  => eth_smi_registers(127 downto 0),
       --
       ps2_clk_i  => ps2_clk_i,
       ps2_data_i => ps2_data_i

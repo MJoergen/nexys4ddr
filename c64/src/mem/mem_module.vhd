@@ -45,6 +45,7 @@ entity mem_module is
       a_rden_i : in  std_logic;
       a_data_o : out std_logic_vector( 7 downto 0);
       a_wait_o : out std_logic;
+      a_irq_o  : out std_logic;
 
       -- Port B (Read only)
       b_clk_i       : in  std_logic;
@@ -55,7 +56,8 @@ entity mem_module is
       b_font_data_o : out std_logic_vector(7 downto 0);
       b_mob_addr_i  : in  std_logic_vector(G_MOB_SIZE-2 downto 0);
       b_mob_data_o  : out std_logic_vector(15 downto 0);
-      b_config_o    : out std_logic_vector(128*8-1 downto 0)
+      b_config_o    : out std_logic_vector(32*8-1 downto 0);
+      b_irq_i       : in  std_logic
   );
 end mem_module;
 
@@ -96,8 +98,6 @@ architecture Structural of mem_module is
    signal a_conf_rd_data : std_logic_vector(7 downto 0);
 
    signal a_rden_d       : std_logic;
-
-   signal config : std_logic_vector(128*8-1 downto 0) := (others => '0');
 
 begin
 
@@ -234,9 +234,11 @@ begin
       a_wr_en_i   => a_conf_wr_en,
       a_rd_en_i   => a_conf_rd_en,
       a_rd_data_o => a_conf_rd_data,
+      a_irq_o     => a_irq_o,
       b_clk_i     => b_clk_i,
       b_rst_i     => b_rst_i,
-      b_config_o  => b_config_o  
+      b_config_o  => b_config_o,
+      b_irq_i     => b_irq_i
   );
 
 

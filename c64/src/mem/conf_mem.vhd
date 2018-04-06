@@ -2,16 +2,18 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
--- This module contains all the memory and memory-mapped IO accessible by the
--- CPU.
--- Port A is connected to the CPU (and the Ethernet module).  Some memory (RAM
--- and ROM and CONF) have zero latency, i.e. value is ready upon next clock
--- cycle.  Other memory (DISP and FONT and MOB) have a one cycle read delay on
--- port A, where a_wait_o is asserted. This is because the VGA module needs to
--- read this memory, and hence uses an additional read port of the BRAM.
--- Port B is connected to the GPU. No address decoding is done, because reads
--- occur simultaneously, the DISP and FONT and MOB memories must all be
--- readable on the same clock cycle.
+-- This stores the configuration and status information
+-- Configuration information is provided in the config_o signal, and includes
+-- * 0x00-0x07 X-position (2 bytes pr MOB)
+-- * 0x08-0x0B Y-position (1 byte pr MOB)
+-- * 0x0C-0x0F Color      (1 byte pr MOB)
+-- * 0x10-0x13 Enable     (1 byte pr MOB)
+-- * 0x18 Foreground text colour
+-- * 0x19 Background text colour
+-- * 0x1A Horizontal pixel shift
+-- * 0x1B Y-line interrupt
+-- * 0x1C IRQ status
+-- * 0x1D IRQ mask
 
 entity conf_mem is
 
@@ -26,16 +28,20 @@ entity conf_mem is
       a_wr_en_i   : in  std_logic;
       a_rd_en_i   : in  std_logic;
       a_rd_data_o : out std_logic_vector(7 downto 0);
+      a_irq_o     : out std_logic;
       --
       b_clk_i     : in  std_logic;
       b_rst_i     : in  std_logic;
-      b_config_o  : out std_logic_vector(2**(G_CONF_SIZE+3)-1 downto 0)
+      b_config_o  : out std_logic_vector(2**(G_CONF_SIZE+3)-1 downto 0);
+      b_irq_i     : in  std_logic
   );
 end conf_mem;
 
 architecture Structural of conf_mem is
 
-   signal config : std_logic_vector(2**(G_CONF_SIZE+3)-1 downto 0);
+   signal config : std_logic_vector(2**(G_CONF_SIZE+3)-1 downto 0) := (others => '0');
+
+   signal irq : std_logic := '0';
 
 begin
 
@@ -68,6 +74,33 @@ begin
          b_config_o <= config;
       end if;
    end process conf_b_proc;
+
+
+   ------------------------------------
+   -- Control the IRQ signal to the CPU
+   ------------------------------------
+
+   p_status : process (a_clk_i)
+   begin
+      if falling_edge(a_clk_i) then
+         
+         -- Special processing when reading from 0x8640
+         if conv_integer(a_addr_i(G_CONF_SIZE-1 downto 0)) = 27 and a_rd_en_i = '1' then
+            irq <= '0';
+         end if;
+
+         if b_irq_i = '1' and config(28*8) = '1' then  -- IRQ Mask
+            irq <= '1';
+         end if;
+
+         if a_rst_i = '1' then
+            irq <= '0';
+         end if;
+
+      end if;
+   end process p_status;
+
+   a_irq_o <= irq;
 
 end Structural;
 

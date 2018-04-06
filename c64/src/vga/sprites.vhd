@@ -2,6 +2,18 @@
 -- Description:  This generates sprites as an overlay.
 --               Only 4 sprites are supported to keep resource requirements at
 --               a minimum.
+--
+-- Configuration information is provided in the config_i signal, and includes
+-- * 0x00-0x07 X-position (2 bytes pr MOB)
+-- * 0x08-0x0B Y-position (1 byte pr MOB)
+-- * 0x0C-0x0F Color      (1 byte pr MOB)
+-- * 0x10-0x13 Enable     (1 byte pr MOB)
+-- * 0x18 Foreground text colour
+-- * 0x19 Background text colour
+-- * 0x1A Horizontal pixel shift
+-- * 0x1B Y-line interrupt
+-- * 0x1C IRQ status
+-- * 0x1D IRQ mask
 -----------------------------------------------------------------------------
 
 library ieee;
@@ -19,7 +31,7 @@ entity sprites is
       vs_i          : in  std_logic;
       col_i         : in  std_logic_vector( 7 downto 0);
 
-      config_i      : in  std_logic_vector(128*8-1 downto 0);
+      config_i      : in  std_logic_vector(32*8-1 downto 0);
 
       bitmap_addr_o : out std_logic_vector( 5 downto 0);
       bitmap_data_i : in  std_logic_vector(15 downto 0);
@@ -33,6 +45,11 @@ entity sprites is
 end sprites;
 
 architecture Behavioral of sprites is
+
+   constant C_XPOS : integer := 0;
+   constant C_YPOS : integer := 8;
+   constant C_COL  : integer := 12;
+   constant C_ENA  : integer := 16;
 
    -- This is the same value as defined in vga/sync.vhd
    constant H_MAX   : natural := 800;            -- H total period (pixels)
@@ -113,10 +130,10 @@ begin
             for i in 0 to 3 loop
 
                -- Decode sprite configuration data
-               posx_v   := config_i(16*8*i +  8 downto 16*8*i +  0);
-               posy_v   := config_i(16*8*i + 23 downto 16*8*i + 16);
-               color_v  := config_i(16*8*i + 31 downto 16*8*i + 24);
-               enable_v := config_i(16*8*i + 32);
+               posx_v   := config_i((C_XPOS+2*i)*8 + 8 downto (C_XPOS+2*i)*8);
+               posy_v   := config_i((C_YPOS+i)*8 + 7 downto (C_YPOS+i)*8);
+               color_v  := config_i((C_COL+i)*8 + 7 downto (C_COL+i)*8);
+               enable_v := config_i((C_ENA+i)*8);
 
                -- Get pixel row in this sprite
                pix_y_v := vcount1_v(10 downto 1) - ("00" & posy_v);
@@ -209,10 +226,11 @@ begin
          stage1.row_index_valid <= (others => '0');
 
          for i in 0 to 3 loop
-            posx_v   := config_i(16*8*i +  8 downto 16*8*i +  0);
-            posy_v   := config_i(16*8*i + 23 downto 16*8*i + 16);
-            color_v  := config_i(16*8*i + 31 downto 16*8*i + 24);
-            enable_v := config_i(16*8*i + 32);
+            -- Decode sprite configuration data
+            posx_v   := config_i((C_XPOS+2*i)*8 + 8 downto (C_XPOS+2*i)*8);
+            posy_v   := config_i((C_YPOS+i)*8 + 7 downto (C_YPOS+i)*8);
+            color_v  := config_i((C_COL+i)*8 + 7 downto (C_COL+i)*8);
+            enable_v := config_i((C_ENA+i)*8);
 
             pix_x_v := stage0.hcount(10 downto 1) - ("0" & posx_v);
             stage1.col_index(4*(i+1)-1 downto 4*i) <= pix_x_v(3 downto 0);
@@ -267,10 +285,12 @@ begin
          stage3 <= stage2;
 
          for i in 3 downto 0 loop
-            posx_v   := config_i(16*8*i +  8 downto 16*8*i +  0);
-            posy_v   := config_i(16*8*i + 23 downto 16*8*i + 16);
-            color_v  := config_i(16*8*i + 31 downto 16*8*i + 24);
-            enable_v := config_i(16*8*i + 32);
+            -- Decode sprite configuration data
+            posx_v   := config_i((C_XPOS+2*i)*8 + 8 downto (C_XPOS+2*i)*8);
+            posy_v   := config_i((C_YPOS+i)*8 + 7 downto (C_YPOS+i)*8);
+            color_v  := config_i((C_COL+i)*8 + 7 downto (C_COL+i)*8);
+            enable_v := config_i((C_ENA+i)*8);
+
             if stage2.pix(i) = '1' then
                stage3.col <= color_v;
             end if;

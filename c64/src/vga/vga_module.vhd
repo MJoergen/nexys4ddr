@@ -12,10 +12,19 @@
 -- * debug_i  : This shows another 8 rows of 4 hex characters.
 --
 -- Configuration information is provided in the config_i signal, and includes
--- * Foreground text colour
--- * Background text colour
--- * Horizontal pixel shift
--- * MOB configuration
+-- * 0x00-0x07 X-position (2 bytes pr MOB)
+-- * 0x08-0x0B Y-position (1 byte pr MOB)
+-- * 0x0C-0x0F Color      (1 byte pr MOB)
+-- * 0x10-0x13 Enable     (1 byte pr MOB)
+-- * 0x18 Foreground text colour
+-- * 0x19 Background text colour
+-- * 0x1A Horizontal pixel shift
+-- * 0x1B Y-line interrupt
+-- * 0x1C IRQ status
+-- * 0x1D IRQ mask
+--
+-- Interrupt is level-asserted, whenever the current line number matches the
+-- value of 0x1B.
 ----------------------------------------------------------------------------------
 
 library ieee;
@@ -40,7 +49,8 @@ entity vga_module is
       mob_addr_o  : out std_logic_vector(  5 downto 0);
       mob_data_i  : in  std_logic_vector( 15 downto 0);
       --
-      config_i    : in  std_logic_vector(128*8-1 downto 0);
+      config_i    : in  std_logic_vector(32*8-1 downto 0);
+      irq_o       : out std_logic;
       --
       -- The following signals are synchronized within this module,
       -- and need therefore not be synchronous to the clock domain.
@@ -107,6 +117,7 @@ begin
       blank_i     => sync_blank,
 
       config_i    => config_i,
+
       status_i    => async_status_i,
       debug_i     => async_debug_i,
 
@@ -159,6 +170,9 @@ begin
    col_o    <= sprite_col;
    hcount_o <= sprite_hcount;
    vcount_o <= sprite_vcount;
+
+   -- Generate interrupt
+   irq_o <= '1' when sprite_vcount(8 downto 1) = config_i(27*8+7 downto 27*8) else '0';
 
 end Structural;
 

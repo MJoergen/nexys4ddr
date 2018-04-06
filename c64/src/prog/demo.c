@@ -398,8 +398,8 @@ void __fastcall__ reset(void)
 
    smult_init();
    circle_init();
-   clearScreen();
-   initScreen();
+   //clearScreen();
+   //initScreen();
 
    // Configure text color
    __asm__("LDA #%b", COL_LIGHT);
