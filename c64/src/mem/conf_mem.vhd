@@ -14,6 +14,7 @@ use ieee.std_logic_unsigned.all;
 -- * 0x1B Y-line interrupt
 -- * 0x1C IRQ status
 -- * 0x1D IRQ mask
+-- * 0x1E Keyboard
 
 entity conf_mem is
 
@@ -24,11 +25,13 @@ entity conf_mem is
       a_clk_i     : in  std_logic;
       a_rst_i     : in  std_logic;
       a_addr_i    : in  std_logic_vector(15 downto 0);
-      a_data_i    : in  std_logic_vector(7 downto 0);
       a_wr_en_i   : in  std_logic;
+      a_wr_data_i : in  std_logic_vector(7 downto 0);
       a_rd_en_i   : in  std_logic;
       a_rd_data_o : out std_logic_vector(7 downto 0);
       a_irq_o     : out std_logic;
+      a_kb_rden_o : out std_logic;
+      a_kb_val_i  : in  std_logic_vector( 7 downto 0);
       --
       b_clk_i     : in  std_logic;
       b_rst_i     : in  std_logic;
@@ -43,6 +46,10 @@ architecture Structural of conf_mem is
 
    signal irq : std_logic := '0';
 
+   constant C_IRQ_STAT : integer := 28;
+   constant C_IRQ_MASK : integer := 29;
+   constant C_KBD      : integer := 30;
+
 begin
 
    --------------
@@ -55,13 +62,26 @@ begin
       if rising_edge(a_clk_i) then
          addr_v := conv_integer(a_addr_i(G_CONF_SIZE-1 downto 0));
          if a_wr_en_i = '1' then
-            config(addr_v*8+7 downto addr_v*8) <= a_data_i;
-         end if;
-         if a_rd_en_i = '1' then
-            a_rd_data_o <= config(addr_v*8+7 downto addr_v*8);
+            config(addr_v*8+7 downto addr_v*8) <= a_wr_data_i;
          end if;
       end if;
    end process conf_a_proc;
+
+   process (a_addr_i, a_rd_en_i, config, a_kb_val_i)
+      variable addr_v : integer range 0 to 2**G_CONF_SIZE-1;
+   begin
+      addr_v := conv_integer(a_addr_i(G_CONF_SIZE-1 downto 0));
+      a_rd_data_o <= (others => '0');  -- Default value to avoid latch.
+      a_kb_rden_o <= '0';              -- Default value to avoid latch.
+      if a_rd_en_i = '1' then
+         if addr_v = C_KBD then
+            a_rd_data_o <= a_kb_val_i;
+            a_kb_rden_o <= '1';
+         else
+            a_rd_data_o <= config(addr_v*8+7 downto addr_v*8);
+         end if;
+      end if;
+   end process;
 
 
    --------------
@@ -85,11 +105,11 @@ begin
       if falling_edge(a_clk_i) then
          
          -- Special processing when reading from 0x8640
-         if conv_integer(a_addr_i(G_CONF_SIZE-1 downto 0)) = 27 and a_rd_en_i = '1' then
+         if conv_integer(a_addr_i(G_CONF_SIZE-1 downto 0)) = C_IRQ_STAT and a_rd_en_i = '1' then
             irq <= '0';
          end if;
 
-         if b_irq_i = '1' and config(28*8) = '1' then  -- IRQ Mask
+         if b_irq_i = '1' and config(C_IRQ_MASK*8) = '1' then  -- IRQ Mask
             irq <= '1';
          end if;
 

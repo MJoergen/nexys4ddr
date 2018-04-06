@@ -37,15 +37,17 @@ entity mem_module is
    );
    port (
       -- Port A (Write and Read)
-      a_clk_i  : in  std_logic;
-      a_rst_i  : in  std_logic;
-      a_addr_i : in  std_logic_vector(15 downto 0);
-      a_wren_i : in  std_logic;
-      a_data_i : in  std_logic_vector( 7 downto 0);
-      a_rden_i : in  std_logic;
-      a_data_o : out std_logic_vector( 7 downto 0);
-      a_wait_o : out std_logic;
-      a_irq_o  : out std_logic;
+      a_clk_i     : in  std_logic;
+      a_rst_i     : in  std_logic;
+      a_addr_i    : in  std_logic_vector(15 downto 0);
+      a_wren_i    : in  std_logic;
+      a_data_i    : in  std_logic_vector( 7 downto 0);
+      a_rden_i    : in  std_logic;
+      a_data_o    : out std_logic_vector( 7 downto 0);
+      a_wait_o    : out std_logic;
+      a_irq_o     : out std_logic;
+      a_kb_rden_o : out std_logic;
+      a_kb_val_i  : in  std_logic_vector( 7 downto 0);
 
       -- Port B (Read only)
       b_clk_i       : in  std_logic;
@@ -230,11 +232,13 @@ begin
       a_clk_i     => a_clk_i,
       a_rst_i     => a_rst_i,
       a_addr_i    => a_addr_i,
-      a_data_i    => a_data_i,
       a_wr_en_i   => a_conf_wr_en,
+      a_wr_data_i => a_data_i,
       a_rd_en_i   => a_conf_rd_en,
       a_rd_data_o => a_conf_rd_data,
       a_irq_o     => a_irq_o,
+      a_kb_rden_o => a_kb_rden_o,
+      a_kb_val_i  => a_kb_val_i,
       b_clk_i     => b_clk_i,
       b_rst_i     => b_rst_i,
       b_config_o  => b_config_o,

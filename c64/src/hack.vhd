@@ -159,15 +159,17 @@ begin
    )
    port map (
       -- Port A (Write and Read)
-      a_clk_i  => cpu_clk_i,
-      a_rst_i  => cpu_rst_i,
-      a_addr_i => cpu_addr,
-      a_wren_i => cpu_wren,
-      a_data_i => cpu_wrdata,
-      a_rden_i => cpu_rden,
-      a_data_o => cpu_rddata,
-      a_wait_o => cpu_wait,
-      a_irq_o  => cpu_irq,
+      a_clk_i     => cpu_clk_i,
+      a_rst_i     => cpu_rst_i,
+      a_addr_i    => cpu_addr,
+      a_wren_i    => cpu_wren,
+      a_data_i    => cpu_wrdata,
+      a_rden_i    => cpu_rden,
+      a_data_o    => cpu_rddata,
+      a_wait_o    => cpu_wait,
+      a_irq_o     => cpu_irq,
+      a_kb_rden_o => cpu_key_rden,
+      a_kb_val_i  => cpu_key_val,
 
       -- Port B (Read only)
       b_clk_i       => vga_clk_i,

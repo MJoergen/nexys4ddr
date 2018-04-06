@@ -172,7 +172,7 @@ begin
    vcount_o <= sprite_vcount;
 
    -- Generate interrupt
-   irq_o <= '1' when sprite_vcount(8 downto 1) = config_i(27*8+7 downto 27*8) else '0';
+   irq_o <= '1' when sprite_vcount(8 downto 0) = (config_i(27*8+7 downto 27*8) & '0') and sprite_hcount = (8 downto 1 => '0') else '0';
 
 end Structural;
 
