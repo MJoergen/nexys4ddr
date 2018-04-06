@@ -2,29 +2,36 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
--- This module contains all the memory accessible by the CPU.
--- Port A is connected to the CPU (and the Ethernet module).
--- Some memory (RAM and ROM) have zero latency, i.e. value is ready upon next clock cycle.
--- Other memory (DISP and FONT) have a one cycle read delay on port A, where a_wait_o is asserted.
--- Port B is connected to the GPU. No address decoding is done, because reads occur simultaneously,
--- the DISP and FONT memories must be readable on the same clock cycle.
+-- This module contains all the memory and memory-mapped IO accessible by the
+-- CPU.
+-- Port A is connected to the CPU (and the Ethernet module).  Some memory (RAM
+-- and ROM and CONF) have zero latency, i.e. value is ready upon next clock
+-- cycle.  Other memory (DISP and FONT and MOB) have a one cycle read delay on
+-- port A, where a_wait_o is asserted. This is because the VGA module needs to
+-- read this memory, and hence uses an additional read port of the BRAM.
+-- Port B is connected to the GPU. No address decoding is done, because reads
+-- occur simultaneously, the DISP and FONT and MOB memories must all be
+-- readable on the same clock cycle.
 
 entity mem_module is
 
    generic (
       G_NEXYS4DDR : boolean;          -- True, when using the Nexys4DDR board.
+      --
       G_ROM_SIZE  : integer;          -- Number of bits in ROM address
       G_RAM_SIZE  : integer;          -- Number of bits in RAM address
       G_DISP_SIZE : integer;          -- Number of bits in DISP address
       G_FONT_SIZE : integer;          -- Number of bits in FONT address
       G_MOB_SIZE  : integer;          -- Number of bits in MOB address
       G_CONF_SIZE : integer;          -- Number of bits in CONF address
+      --
       G_ROM_MASK  : std_logic_vector(15 downto 0);  -- Value of upper bits in ROM address
       G_RAM_MASK  : std_logic_vector(15 downto 0);  -- Value of upper bits in RAM address
       G_DISP_MASK : std_logic_vector(15 downto 0);  -- Value of upper bits in DISP address
       G_FONT_MASK : std_logic_vector(15 downto 0);  -- Value of upper bits in FONT address
       G_MOB_MASK  : std_logic_vector(15 downto 0);  -- Value of upper bits in MOB address
       G_CONF_MASK : std_logic_vector(15 downto 0);  -- Value of upper bits in CONF address
+      --
       G_ROM_FILE  : string;           -- Contains the contents of the ROM memory.
       G_FONT_FILE : string            -- Contains the contents of the FONT memory.
    );
@@ -58,7 +65,6 @@ architecture Structural of mem_module is
    -- Port A
    -------------------
 
-   -- Address Decoding
    signal a_rom_cs       : std_logic;
    signal a_rom_wr_en    : std_logic;
    signal a_rom_rd_en    : std_logic;
@@ -95,25 +101,14 @@ architecture Structural of mem_module is
 
 begin
 
-   process (a_clk_i)
-   begin
-      if rising_edge(a_clk_i) then
-         a_rden_d <= a_rden_i;
-
-         if a_rst_i = '1' then
-            a_rden_d <= '0';
-         end if;
-      end if;
-   end process;
-
    ------------------------------
    -- Instantiate ROM
    ------------------------------
 
    inst_rom : entity work.rom_file
    generic map (
-      G_RD_CLK_RIS => false,        -- Read on falling clock edge
       G_WR_CLK_RIS => true,         -- Write on rising clock edge
+      G_RD_CLK_RIS => false,        -- Read on falling clock edge
       G_ADDR_SIZE  => G_ROM_SIZE,
       G_DATA_SIZE  => 8,
       G_ROM_FILE   => G_ROM_FILE
@@ -182,8 +177,8 @@ begin
 
    inst_font : entity work.rom_file
    generic map (
-      G_RD_CLK_RIS => true,
-      G_WR_CLK_RIS => true,
+      G_WR_CLK_RIS => true,         -- Write on rising clock edge
+      G_RD_CLK_RIS => true,         -- Read on rising clock edge
       G_ADDR_SIZE  => G_FONT_SIZE,
       G_DATA_SIZE  => 8,
       G_ROM_FILE   => G_FONT_FILE 
@@ -223,6 +218,32 @@ begin
    );
 
 
+   ---------------------------------------
+   -- Instantiate the CONF memory
+   ---------------------------------------
+
+   conf_a_proc : process (a_clk_i)
+      variable addr_v : integer range 0 to 2**G_CONF_SIZE-1;
+   begin
+      if rising_edge(a_clk_i) then
+         addr_v := conv_integer(a_addr_i(G_CONF_SIZE-1 downto 0));
+         if a_conf_wr_en = '1' then
+            config(addr_v*8+7 downto addr_v*8) <= a_data_i;
+         end if;
+         if a_conf_rd_en = '1' then
+            a_conf_rd_data <= config(addr_v*8+7 downto addr_v*8);
+         end if;
+      end if;
+   end process conf_a_proc;
+
+   conf_b_proc : process (b_clk_i)
+   begin
+      if rising_edge(b_clk_i) then
+         b_config_o <= config;
+      end if;
+   end process conf_b_proc;
+
+
    -------------------------------
    -- Instantiate Address Decoding
    -------------------------------
@@ -256,29 +277,24 @@ begin
                a_conf_rd_data when a_conf_rd_en = '1' else
                (others => '0');
 
-   a_wait_o <= a_rden_d when a_disp_rd_en = '1' or a_font_rd_en = '1' or a_mob_rd_en = '1' else
-               '0';
+
+   -------------------------------
+   -- Insert wait states
+   -------------------------------
 
    process (a_clk_i)
-      variable addr_v : integer range 0 to 2**G_CONF_SIZE-1;
    begin
       if rising_edge(a_clk_i) then
-         addr_v := conv_integer(a_addr_i(G_CONF_SIZE-1 downto 0));
-         if a_conf_wr_en = '1' then
-            config(addr_v*8+7 downto addr_v*8) <= a_data_i;
-         end if;
-         if a_conf_rd_en = '1' then
-            a_conf_rd_data <= config(addr_v*8+7 downto addr_v*8);
+         a_rden_d <= a_rden_i;
+
+         if a_rst_i = '1' then
+            a_rden_d <= '0';
          end if;
       end if;
    end process;
 
-   process (b_clk_i)
-   begin
-      if rising_edge(b_clk_i) then
-         b_config_o <= config;
-      end if;
-   end process;
+   a_wait_o <= a_rden_d when a_disp_rd_en = '1' or a_font_rd_en = '1' or a_mob_rd_en = '1' else
+               '0';
 
 end Structural;
 
