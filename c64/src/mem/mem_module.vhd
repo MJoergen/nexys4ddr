@@ -288,15 +288,17 @@ begin
    begin
       if rising_edge(a_clk_i) then
          a_rden_d <= a_rden_i;
+         a_wait_o <= '0';
+
+         if a_disp_rd_en = '1' or a_font_rd_en = '1' or a_mob_rd_en = '1' then
+            a_wait_o <= '1';
+         end if;
 
          if a_rst_i = '1' then
             a_rden_d <= '0';
          end if;
       end if;
    end process;
-
-   a_wait_o <= a_rden_d when a_disp_rd_en = '1' or a_font_rd_en = '1' or a_mob_rd_en = '1' else
-               '0';
 
 end Structural;
 

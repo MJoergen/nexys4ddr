@@ -74,6 +74,12 @@ architecture Structural of hack is
    signal cpu_invalid : std_logic;
    signal cpu_wait    : std_logic;
 
+   -- Signals connected to the MEM
+   signal mem_addr    : std_logic_vector(15 downto 0);
+   signal mem_wren    : std_logic;
+   signal mem_wrdata  : std_logic_vector(7 downto 0);
+   signal mem_wait    : std_logic;
+
    -- Signals connected to the VGA.
    signal vga_font_addr : std_logic_vector(11 downto 0);
    signal vga_font_data : std_logic_vector( 7 downto 0);
@@ -104,6 +110,7 @@ begin
       wren_o    => cpu_wren,
       data_o    => cpu_wrdata,
       irq_i     => cpu_irq,
+      wait_i    => mem_wait,
       invalid_o => cpu_invalid,
       status_o  => cpu_status
    );
@@ -134,6 +141,21 @@ begin
       async_status_i => cpu_status
    );
 
+   process (cpu_addr, cpu_wren, cpu_wrdata, cpu_wait, cpu_wr_addr_i, cpu_wr_en_i, cpu_wr_data_i)
+   begin
+      mem_addr   <= cpu_addr;
+      mem_wren   <= cpu_wren;
+      mem_wrdata <= cpu_wrdata;
+      mem_wait   <= cpu_wait;
+
+      if cpu_wr_en_i = '1' then
+         mem_addr   <= cpu_wr_addr_i;
+         mem_wren   <= cpu_wr_en_i;
+         mem_wrdata <= cpu_wr_data_i;
+         mem_wait   <= '1';
+      end if;
+   end process;
+
 
    -------------------------------
    -- Instantiate memory
@@ -161,9 +183,9 @@ begin
       -- Port A (Write and Read)
       a_clk_i     => cpu_clk_i,
       a_rst_i     => cpu_rst_i,
-      a_addr_i    => cpu_addr,
-      a_wren_i    => cpu_wren,
-      a_data_i    => cpu_wrdata,
+      a_addr_i    => mem_addr,
+      a_wren_i    => mem_wren,
+      a_data_i    => mem_wrdata,
       a_rden_i    => cpu_rden,
       a_data_o    => cpu_rddata,
       a_wait_o    => cpu_wait,

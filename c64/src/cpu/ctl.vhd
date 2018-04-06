@@ -15,6 +15,7 @@ entity ctl is
    port (
       clk_i  : in  std_logic;
       rst_i  : in  std_logic;
+      wait_i : in  std_logic;
       irq_i  : in  std_logic;
       data_i : in  std_logic_vector( 7 downto 0);
 
@@ -2502,18 +2503,20 @@ begin
    p_cnt : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         cnt_r <= cnt_r + 1;
+         if wait_i = '0' then
+            cnt_r <= cnt_r + 1;
 
-         if last = '1' then
-            cnt_r <= (others => '0');
+            if last = '1' then
+               cnt_r <= (others => '0');
 
-            if irq_i = '1' then
-               cnt_r <= "001";
+               if irq_i = '1' then
+                  cnt_r <= "001";
+               end if;
             end if;
-         end if;
 
-         if rst_i = '1' then
-            cnt_r <= "100";
+            if rst_i = '1' then
+               cnt_r <= "100";
+            end if;
          end if;
       end if;
    end process p_cnt;
@@ -2555,9 +2558,14 @@ begin
    end process p_irq_reset;
 
    -- Combinatorial process
-   process (cnt_r, inst_r)
+   process (cnt_r, inst_r, wait_i)
    begin
       ctl <= micro_op_rom(conv_integer(inst_r & cnt_r));
+      if wait_i = '1' then
+         ctl(27 downto  0) <= (others => '0');
+         ctl(45 downto 44) <= (others => '0');
+         ctl(41 downto 40) <= (others => '0');
+      end if;
    end process;
 
    -- Drive output signals
@@ -2583,7 +2591,6 @@ begin
    last            <= ctl(42);
    invalid         <= ctl(43);
    wr_hold_addr2_o <= ctl(45 downto 44);
-
 
 end architecture Structural;
 

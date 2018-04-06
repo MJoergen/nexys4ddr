@@ -19,6 +19,7 @@ entity cpu_module is
       --
       rden_o : out std_logic;
       data_i : in  std_logic_vector(7 downto 0);
+      wait_i : in  std_logic;
       --
       wren_o : out std_logic;
       data_o : out std_logic_vector(7 downto 0);
@@ -104,6 +105,7 @@ begin
    port map (
                clk_i           => clk_i,
                rst_i           => rst_i,
+               wait_i          => wait_i,
                irq_i           => irq_masked,
                data_i          => data_i,
                wr_reg_o        => ctl_wr_reg,
