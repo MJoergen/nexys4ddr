@@ -28,7 +28,6 @@ XDC    = src/nexys4ddr/$(TOP).xdc
 SRC += src/hack.vhd
 
 # VGA driver
-SRC += src/vga/bitmaps_mem.vhd
 SRC += src/vga/conf_stat.vhd
 SRC += src/vga/sync.vhd
 SRC += src/vga/chars.vhd
@@ -45,8 +44,8 @@ SRC += src/cpu/cpu_module.vhd
 # Memory
 SRC += src/mem/rom_file.vhd
 SRC += src/mem/mem.vhd
-#SRC += src/mem/cs.vhd
-SRC += src/mem_module.vhd
+SRC += src/mem/bitmaps_mem.vhd
+SRC += src/mem/mem_module.vhd
 
 # Clock domain crossing
 SRC += src/cdc/cdcpulse.vhd
