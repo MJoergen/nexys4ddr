@@ -1,7 +1,11 @@
 // This contains definitions of the memory map of the VGA controller
-// 0x8000 - 0x83FF : Chars Memory
-// 0x8400 - 0x847F : Bitmap Memory
-// 0x8600 - 0x861F : Config and Status
+
+#define MEM_RAM  0x0000 // - 0x07FF
+#define MEM_DISP 0x8000 // - 0x83FF
+#define MEM_MOB  0x8400 // - 0x847F
+#define MEM_CONF 0x8600 // - 0x861F
+#define MEM_FONT 0x9000 // - 0x9FFF
+#define MEM_ROM  0xF800 // - 0xFFFF
 
 // The VGA screen contains 40 x 18 characters and is located at 0x8000.
 #define VGA_ADDR_SCREEN          0x8000

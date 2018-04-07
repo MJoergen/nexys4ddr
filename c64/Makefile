@@ -65,11 +65,12 @@ PROG_SRC   += src/prog/smult.c
 #PROG_SRC    = src/prog/text.c
 #PROG_SRC    = src/prog/circle.c
 #PROG_SRC    = src/prog/cputest.c
+PROG_SRC    = src/prog/memtest.c
 #PROG_SRC    = src/prog/scroll.c
 LD_CFG      = src/prog/ld.cfg
 VECTORS_AS  = src/prog/vectors.s
 
-stoptime = --stop-time=150us
+stoptime = --stop-time=15us
 
 # The following is used for the compress.vhd unit test.
 #SRC    = src/nexys4ddr/compress.vhd
