@@ -108,8 +108,9 @@ architecture Structural of mem_module is
    signal a_rom_rd_en    : std_logic;
    signal a_rom_rd_data  : std_logic_vector(7 downto 0);
 
-   signal a_wait   : std_logic;
-   signal a_wait_d : std_logic;
+   signal a_wait    : std_logic;
+   signal a_wait_d  : std_logic;
+   signal a_kb_rden : std_logic;
 
 begin
 
@@ -196,7 +197,7 @@ begin
       a_rd_en_i   => a_conf_rd_en,
       a_rd_data_o => a_conf_rd_data,
       a_irq_o     => a_irq_o,
-      a_kb_rden_o => a_kb_rden_o,
+      a_kb_rden_o => a_kb_rden,
       a_kb_val_i  => a_kb_val_i,
       b_clk_i     => b_clk_i,
       b_rst_i     => b_rst_i,
@@ -311,6 +312,7 @@ begin
    a_wait_o <= '1' when a_wait = '1' and a_wait_d = '0' else
                '0';
 
+   a_kb_rden_o <= a_kb_rden and not a_wait;
 
 end Structural;
 
