@@ -30,6 +30,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 entity vga_module is
    port (
@@ -174,8 +175,8 @@ begin
    vcount_o <= sprite_vcount;
 
    -- Generate interrupt
-   irq_o <= '1' when sprite_vcount(8 downto 0) = (config_i(C_YINT*8+7 downto C_YINT*8) & '0')
-                 and sprite_hcount = (8 downto 1 => '0') else '0';
+   irq_o <= '1' when sprite_vcount(8 downto 0) = (config_i(C_YINT*8+7 downto C_YINT*8) & '1')
+                 and sprite_hcount = std_logic_vector(to_unsigned(656, 11)) else '0';
 
 end Structural;
 

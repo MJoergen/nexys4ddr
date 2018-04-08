@@ -7,8 +7,9 @@ use ieee.std_logic_unsigned.all;
 entity debounce is
 
    generic (
-              G_SIMULATION : boolean        -- Set true to disable MMCM's, to 
-                                            -- speed up simulation time.
+              G_SIMULATION : boolean;          -- Set true to disable MMCM's, to 
+                                               -- speed up simulation time.
+              G_COUNT_MAX : integer := 100000  -- @100 MHz this is 1 ms.
            );
    port (
            clk_i : in  std_logic;
@@ -20,8 +21,7 @@ end entity debounce;
 
 architecture Structural of debounce is
 
-   constant C_COUNT_MAX : integer := 100000; -- @100 MHz this is 1 ms.
-   signal counter : integer range 0 to C_COUNT_MAX;
+   signal counter : integer range 0 to G_COUNT_MAX;
    signal stable  : std_logic := '0';
    signal in_d    : std_logic := '0';
 
@@ -46,7 +46,7 @@ begin
 
             -- Restart counter if any transitions on the input
             if in_d /= in_i then
-               counter <= C_COUNT_MAX;
+               counter <= G_COUNT_MAX;
             end if;
          end if;
       end process p_counter;

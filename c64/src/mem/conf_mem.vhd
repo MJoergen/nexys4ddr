@@ -43,16 +43,19 @@ end conf_mem;
 
 architecture Structural of conf_mem is
 
-   signal config : std_logic_vector(2**(G_CONF_SIZE+3)-1 downto 0) := (others => '0');
-
-   signal irq : std_logic := '0';
-
    constant C_YLINE    : integer := 27;
    constant C_IRQ_STAT : integer := 28;
    constant C_IRQ_MASK : integer := 29;
    constant C_KBD      : integer := 30;
 
-   signal a_yline_d : std_logic_vector(7 downto 0);
+   signal a_config    : std_logic_vector(2**(G_CONF_SIZE+3)-1 downto 0) := (others => '0');
+   signal a_irq_latch : std_logic := '0';
+   signal a_yline_d   : std_logic_vector(7 downto 0);
+   signal a_irq_d     : std_logic;
+   signal a_rd_data   : std_logic_vector(7 downto 0);
+   signal a_kb_rden   : std_logic;
+
+   signal b_config    : std_logic_vector(2**(G_CONF_SIZE+3)-1 downto 0) := (others => '0');
 
 begin
 
@@ -60,45 +63,64 @@ begin
    -- Port A
    --------------
 
-   -- Synchronize
+   -- Synchronize from b_clk to a_clk
    proc_sync : process (a_clk_i)
    begin
       if rising_edge(a_clk_i) then
          a_yline_d <= b_yline_i;
+         a_irq_d   <= b_irq_i;
       end if;
    end process proc_sync;
 
-   conf_a_proc : process (a_clk_i)
+   proc_write : process (a_clk_i)
       variable addr_v : integer range 0 to 2**G_CONF_SIZE-1;
    begin
       if rising_edge(a_clk_i) then
          addr_v := conv_integer(a_addr_i(G_CONF_SIZE-1 downto 0));
          if a_wr_en_i = '1' then
-            config(addr_v*8+7 downto addr_v*8) <= a_wr_data_i;
+            a_config(addr_v*8+7 downto addr_v*8) <= a_wr_data_i;
          end if;
       end if;
-   end process conf_a_proc;
+   end process proc_write;
 
-   process (a_addr_i, a_rd_en_i, config, a_kb_val_i)
+   proc_read : process (a_clk_i)
       variable addr_v : integer range 0 to 2**G_CONF_SIZE-1;
    begin
-      addr_v := conv_integer(a_addr_i(G_CONF_SIZE-1 downto 0));
-      a_rd_data_o <= (others => '0');  -- Default value to avoid latch.
-      a_kb_rden_o <= '0';              -- Default value to avoid latch.
-      if a_rd_en_i = '1' then
-         case addr_v is
-            when C_YLINE =>
-               a_rd_data_o <= a_yline_d;
-            when C_KBD =>
-               a_rd_data_o <= a_kb_val_i;
-               a_kb_rden_o <= '1';
-            when C_IRQ_STAT =>
-               a_rd_data_o(0) <= irq;
-            when others =>
-               a_rd_data_o <= config(addr_v*8+7 downto addr_v*8);
-         end case;
+      if rising_edge(a_clk_i) then
+         addr_v := conv_integer(a_addr_i(G_CONF_SIZE-1 downto 0));
+
+         a_rd_data <= (others => '0');
+         a_kb_rden <= '0';
+
+         if a_rd_en_i = '1' then
+            case addr_v is
+               when C_YLINE =>
+                  a_rd_data <= a_yline_d;
+               when C_KBD =>
+                  a_rd_data <= a_kb_val_i;
+                  a_kb_rden <= '1';
+               when C_IRQ_STAT =>
+                  a_rd_data(0) <= a_irq_latch;
+                  a_irq_latch <= '0';
+               when others =>
+                  a_rd_data <= a_config(addr_v*8+7 downto addr_v*8);
+            end case;
+         end if;
+
+         if a_irq_d = '1' and a_config(C_IRQ_MASK*8) = '1' then  -- IRQ Mask
+            a_irq_latch <= '1';
+         end if;
+
+         if a_rst_i = '1' then
+            a_irq_latch <= '0';
+         end if;
       end if;
-   end process;
+   end process proc_read;
+
+   -- Drive output signals.
+   a_irq_o     <= a_irq_latch;
+   a_rd_data_o <= a_rd_data;
+   a_kb_rden_o <= a_kb_rden;
 
 
    --------------
@@ -108,36 +130,12 @@ begin
    conf_b_proc : process (b_clk_i)
    begin
       if rising_edge(b_clk_i) then
-         b_config_o <= config;
+         b_config <= a_config;
       end if;
    end process conf_b_proc;
 
-
-   ------------------------------------
-   -- Control the IRQ signal to the CPU
-   ------------------------------------
-
-   p_status : process (a_clk_i)
-   begin
-      if falling_edge(a_clk_i) then
-         
-         -- Special processing when reading from 0x8640
-         if conv_integer(a_addr_i(G_CONF_SIZE-1 downto 0)) = C_IRQ_STAT and a_rd_en_i = '1' then
-            irq <= '0';
-         end if;
-
-         if b_irq_i = '1' and config(C_IRQ_MASK*8) = '1' then  -- IRQ Mask
-            irq <= '1';
-         end if;
-
-         if a_rst_i = '1' then
-            irq <= '0';
-         end if;
-
-      end if;
-   end process p_status;
-
-   a_irq_o <= irq;
+   -- Drive output signals.
+   b_config_o <= b_config;
 
 end Structural;
 

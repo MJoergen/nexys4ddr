@@ -38,23 +38,25 @@ begin
 
    inst_debounce_clk : entity work.debounce 
    generic map (
-                  G_SIMULATION => false
-               )
+      G_SIMULATION => false,
+      G_COUNT_MAX  => 100
+   )
    port map (
-               clk_i => clk_i,
-               in_i  => ps2_clk_i,
-               out_o => ps2_clk_r
-            );
+      clk_i => clk_i,
+      in_i  => ps2_clk_i,
+      out_o => ps2_clk_r
+   );
 
    inst_debounce_data : entity work.debounce 
    generic map (
-                  G_SIMULATION => false
-               )
+      G_SIMULATION => false,
+      G_COUNT_MAX  => 100
+   )
    port map (
-               clk_i => clk_i,
-               in_i  => ps2_data_i,
-               out_o => ps2_data_r
-            );
+      clk_i => clk_i,
+      in_i  => ps2_data_i,
+      out_o => ps2_data_r
+   );
 
 
    -- For edge detection we need to store the previous value.
