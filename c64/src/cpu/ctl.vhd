@@ -2526,16 +2526,18 @@ begin
    p_inst : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if cnt_r = 0 then
-            inst_r <= data_i;
-         end if;
+         if wait_i = '0' then
+            if cnt_r = 0 then
+               inst_r <= data_i;
+            end if;
 
-         if last = '1' and irq_i = '1' then
-            inst_r <= X"00";
-         end if;
+            if last = '1' and irq_i = '1' then
+               inst_r <= X"00";
+            end if;
 
-         if rst_i = '1' then
-            inst_r <= X"00";
+            if rst_i = '1' then
+               inst_r <= X"00";
+            end if;
          end if;
       end if;
    end process p_inst;
