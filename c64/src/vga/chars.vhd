@@ -175,18 +175,25 @@ begin
    -- Stage 2 : Calculate the character and pixel coordinates
    ----------------------------------------------------------
 
-   i_divmod13_rom : entity work.rom_file
+   i_divmod13_rom : entity work.mem_file
    generic map (
-                  G_RD_CLK_RIS => true,
                   G_ADDR_SIZE  => 8,
                   G_DATA_SIZE  => 9,
-                  G_ROM_FILE   => "divmod13.txt"
+                  G_MEM_FILE   => "divmod13.txt"
                )
    port map (
-               rd_clk_i  => clk_i,
-               rd_addr_i => stage1.vcount(8 downto 1),
-               rd_en_i   => '1',
-               rd_data_o => stage2_divmod13
+               -- Port A not used
+               a_clk_i     => '0',
+               a_addr_i    => (others => '0'),
+               a_wr_en_i   => '0',
+               a_wr_data_i => (others => '0'),
+               a_rd_en_i   => '0',
+               a_rd_data_o => open,
+               --
+               b_clk_i     => clk_i,
+               b_addr_i    => stage1.vcount(8 downto 1),
+               b_rd_en_i   => '1',
+               b_rd_data_o => stage2_divmod13
             );
 
 
@@ -234,18 +241,25 @@ begin
    end process p_stage3;
 
 
-   i_opcodes_rom : entity work.rom_file
+   i_opcodes_rom : entity work.mem_file
    generic map (
-                  G_RD_CLK_RIS => true,
                   G_ADDR_SIZE  => 11,
                   G_DATA_SIZE  => 8,
-                  G_ROM_FILE   => "opcodes.txt"
+                  G_MEM_FILE   => "opcodes.txt"
                )
    port map (
-               rd_clk_i  => clk_i,
-               rd_addr_i => stage3.inst_addr,
-               rd_en_i   => '1',
-               rd_data_o => stage4_inst_val
+               -- Port A not used
+               a_clk_i     => '0',
+               a_addr_i    => (others => '0'),
+               a_wr_en_i   => '0',
+               a_wr_data_i => (others => '0'),
+               a_rd_en_i   => '0',
+               a_rd_data_o => open,
+               --
+               b_clk_i     => clk_i,
+               b_addr_i    => stage3.inst_addr,
+               b_rd_en_i   => '1',
+               b_rd_data_o => stage4_inst_val
             );
 
 

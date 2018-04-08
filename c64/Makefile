@@ -42,8 +42,10 @@ SRC += src/cpu/pc.vhd
 SRC += src/cpu/cpu_module.vhd
 
 # Memory
-SRC += src/mem/rom_file.vhd
+SRC += src/mem/mem_file.vhd
 SRC += src/mem/mem.vhd
+SRC += src/mem/dmem_file.vhd
+SRC += src/mem/dmem.vhd
 SRC += src/mem/conf_mem.vhd
 SRC += src/mem/bitmaps_mem.vhd
 SRC += src/mem/mem_module.vhd
@@ -70,7 +72,7 @@ PROG_SRC    = src/prog/memtest.c
 LD_CFG      = src/prog/ld.cfg
 VECTORS_AS  = src/prog/vectors.s
 
-stoptime = --stop-time=15us
+stoptime = --stop-time=5us
 
 # The following is used for the compress.vhd unit test.
 #SRC    = src/nexys4ddr/compress.vhd

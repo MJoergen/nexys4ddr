@@ -107,7 +107,8 @@ architecture Structural of mem_module is
    signal a_rom_rd_en    : std_logic;
    signal a_rom_rd_data  : std_logic_vector(7 downto 0);
 
-   signal a_wait : std_logic;
+   signal a_wait   : std_logic;
+   signal a_wait_d : std_logic;
 
 begin
 
@@ -115,20 +116,20 @@ begin
    -- Instantiate RAM
    ------------------------------
 
-   inst_ram : entity work.mem
+   inst_ram : entity work.dmem
    generic map (
       G_ADDR_SIZE  => G_RAM_SIZE,
-      G_DATA_SIZE  => 8
+      G_DATA_SIZE  => 8,
+      G_MEM_VAL    => 0    -- Initial value
    )
    port map (
-      a_clk_i    => a_clk_i,
-      a_addr_i   => a_addr_i(G_RAM_SIZE-1 downto 0),
-      a_rden_i   => a_ram_rd_en,
-      a_rddata_o => a_ram_rd_data,
-      a_wren_i   => a_ram_wr_en,
-      a_wrdata_i => a_data_i
-
-      -- Port B is not used
+      clk_i     => a_clk_i,
+      rst_i     => a_rst_i,
+      addr_i    => a_addr_i(G_RAM_SIZE-1 downto 0),
+      wr_en_i   => a_ram_wr_en,
+      wr_data_i => a_data_i,
+      rd_en_i   => a_ram_rd_en,
+      rd_data_o => a_ram_rd_data
    );
 
 
@@ -143,17 +144,17 @@ begin
       G_INIT_VAL  => 32   -- 0x20 = space
    )
    port map (
-      a_clk_i    => a_clk_i,
-      a_addr_i   => a_addr_i(G_DISP_SIZE-1 downto 0),
-      a_wren_i   => a_disp_wr_en,
-      a_wrdata_i => a_data_i,
-      a_rden_i   => a_disp_rd_en,
-      a_rddata_o => a_disp_rd_data,
+      a_clk_i     => a_clk_i,
+      a_addr_i    => a_addr_i(G_DISP_SIZE-1 downto 0),
+      a_wr_en_i   => a_disp_wr_en,
+      a_wr_data_i => a_data_i,
+      a_rd_en_i   => a_disp_rd_en,
+      a_rd_data_o => a_disp_rd_data,
 
-      b_clk_i    => b_clk_i,
-      b_addr_i   => b_disp_addr_i,
-      b_rden_i   => '1',
-      b_data_o   => b_disp_data_o
+      b_clk_i     => b_clk_i,
+      b_addr_i    => b_disp_addr_i,
+      b_rd_en_i   => '1',
+      b_rd_data_o => b_disp_data_o
    );
 
 
@@ -207,26 +208,24 @@ begin
    -- Instantiate the Character Font block 
    ---------------------------------------
 
-   inst_font : entity work.rom_file
+   inst_font : entity work.mem_file
    generic map (
-      G_WR_CLK_RIS => true,         -- Write on rising clock edge
-      G_RD_CLK_RIS => true,         -- Read on rising clock edge
       G_ADDR_SIZE  => G_FONT_SIZE,
       G_DATA_SIZE  => 8,
-      G_ROM_FILE   => G_FONT_FILE 
+      G_MEM_FILE   => G_FONT_FILE 
    )
    port map (
-      wr_clk_i     => a_clk_i,
-      wr_addr_i    => a_addr_i(G_FONT_SIZE-1 downto 0),
-      wr_en_i      => a_font_wr_en,
-      wr_data_i    => a_data_i,
+      a_clk_i     => a_clk_i,
+      a_addr_i    => a_addr_i(G_FONT_SIZE-1 downto 0),
+      a_wr_en_i   => a_font_wr_en,
+      a_wr_data_i => a_data_i,
+      a_rd_en_i   => a_font_rd_en,
+      a_rd_data_o => a_font_rd_data,
 
-      rd_clk_i     => b_clk_i,
-      rd_addr_i    => b_font_addr_i,
-      rd_en_i      => '1',
-      rd_data_o    => b_font_data_o
-      --a_rden_i    => a_font_rd_en,
-      --a_rddata_o  => a_font_rd_data,
+      b_clk_i     => b_clk_i,
+      b_addr_i    => b_font_addr_i,
+      b_rd_en_i   => '1',
+      b_rd_data_o => b_font_data_o
    );
 
 
@@ -234,21 +233,18 @@ begin
    -- Instantiate ROM
    ------------------------------
 
-   inst_rom : entity work.rom_file
+   inst_rom : entity work.dmem_file
    generic map (
-      G_WR_CLK_RIS => true,         -- Write on rising clock edge
-      G_RD_CLK_RIS => false,        -- Read on falling clock edge
       G_ADDR_SIZE  => G_ROM_SIZE,
       G_DATA_SIZE  => 8,
-      G_ROM_FILE   => G_ROM_FILE
+      G_MEM_FILE   => G_ROM_FILE
    )
    port map (
-      wr_clk_i  => a_clk_i,
-      wr_addr_i => a_addr_i(G_ROM_SIZE-1 downto 0),
+      clk_i     => a_clk_i,
+      rst_i     => a_rst_i,
+      addr_i    => a_addr_i(G_ROM_SIZE-1 downto 0),
       wr_en_i   => a_rom_wr_en,
       wr_data_i => a_data_i,
-      rd_clk_i  => a_clk_i,
-      rd_addr_i => a_addr_i(G_ROM_SIZE-1 downto 0),
       rd_en_i   => a_rom_rd_en,
       rd_data_o => a_rom_rd_data
    );
@@ -295,23 +291,24 @@ begin
    process (a_clk_i)
    begin
       if rising_edge(a_clk_i) then
-         a_wait <= '0';
-
-         if a_disp_rd_en = '1' or
-            a_mob_rd_en  = '1' or
-            a_conf_rd_en = '1' or
-            a_font_rd_en = '1' then
-
-            a_wait <= '1';
-         end if;
+         a_wait_d <= a_wait;
 
          if a_rst_i = '1' then
-            a_wait <= '0';
+            a_wait_d <= '0';
          end if;
       end if;
    end process;
 
-   a_wait_o <= a_wait;
+
+   a_wait <= '1' when a_disp_rd_en = '1' or
+                      a_mob_rd_en  = '1' or
+                      a_conf_rd_en = '1' or
+                      a_font_rd_en = '1' else
+             '0';
+
+   a_wait_o <= '1' when a_wait = '1' and a_wait_d = '0' else
+               '0';
+
 
 end Structural;
 

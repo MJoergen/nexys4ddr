@@ -58,18 +58,18 @@ begin
                )
    port map (
       -- Port A @ cpu_clk_i
-      a_clk_i    => cpu_clk_i,
-      a_addr_i   => cpu_addr_i(6 downto 1),
-      a_wren_i   => cpu_wren_hi,
-      a_wrdata_i => cpu_data_i,
-      a_rden_i   => cpu_rden_i,
-      a_rddata_o => cpu_data_hi,
+      a_clk_i     => cpu_clk_i,
+      a_addr_i    => cpu_addr_i(6 downto 1),
+      a_wr_en_i   => cpu_wren_hi,
+      a_wr_data_i => cpu_data_i,
+      a_rd_en_i   => cpu_rden_i,
+      a_rd_data_o => cpu_data_hi,
 
       -- Port B @ vga_clk_i
-      b_clk_i   => vga_clk_i,
-      b_addr_i  => vga_addr_i,
-      b_rden_i  => '1',
-      b_data_o  => vga_data_hi
+      b_clk_i     => vga_clk_i,
+      b_addr_i    => vga_addr_i,
+      b_rd_en_i   => '1',
+      b_rd_data_o => vga_data_hi
    );
 
    inst_mem_lo : entity work.mem
@@ -79,18 +79,18 @@ begin
                )
    port map (
       -- Port A @ cpu_clk_i
-      a_clk_i    => cpu_clk_i,
-      a_addr_i   => cpu_addr_i(6 downto 1),
-      a_wren_i   => cpu_wren_lo,
-      a_wrdata_i => cpu_data_i,
-      a_rden_i   => cpu_rden_i,
-      a_rddata_o => cpu_data_lo,
+      a_clk_i     => cpu_clk_i,
+      a_addr_i    => cpu_addr_i(6 downto 1),
+      a_wr_en_i   => cpu_wren_lo,
+      a_wr_data_i => cpu_data_i,
+      a_rd_en_i   => cpu_rden_i,
+      a_rd_data_o => cpu_data_lo,
 
       -- Port B @ vga_clk_i
-      b_clk_i   => vga_clk_i,
-      b_addr_i  => vga_addr_i,
-      b_rden_i  => '1',
-      b_data_o  => vga_data_lo
+      b_clk_i     => vga_clk_i,
+      b_addr_i    => vga_addr_i,
+      b_rd_en_i   => '1',
+      b_rd_data_o => vga_data_lo
    );
 
    vga_data_o <= reverse(vga_data_hi) & reverse(vga_data_lo);
