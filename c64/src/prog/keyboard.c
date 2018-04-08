@@ -1,11 +1,11 @@
+#include "memorymap.h"
+
 // This contains the keyboard driver
 // Currently, only a single function is visible:
 // void __fastcall__ readFromKeyboard(void);
 // This is a blocking call, i.e. it will not return to
 // the caller, until the user presses a key.
 // The function will handle shifted keys.
-
-#define VGA_KEY         0x8660
 
 // Keyboard scan codes
 #define KEYB_INITIALIZED  0xAAU

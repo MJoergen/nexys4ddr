@@ -31,10 +31,11 @@ entity conf_mem is
       a_rd_data_o : out std_logic_vector(7 downto 0);
       a_irq_o     : out std_logic;
       a_kb_rden_o : out std_logic;
-      a_kb_val_i  : in  std_logic_vector( 7 downto 0);
+      a_kb_val_i  : in  std_logic_vector(7 downto 0);
       --
       b_clk_i     : in  std_logic;
       b_rst_i     : in  std_logic;
+      b_yline_i   : in  std_logic_vector(7 downto 0);
       b_config_o  : out std_logic_vector(2**(G_CONF_SIZE+3)-1 downto 0);
       b_irq_i     : in  std_logic
   );
@@ -46,15 +47,26 @@ architecture Structural of conf_mem is
 
    signal irq : std_logic := '0';
 
+   constant C_YLINE    : integer := 27;
    constant C_IRQ_STAT : integer := 28;
    constant C_IRQ_MASK : integer := 29;
    constant C_KBD      : integer := 30;
+
+   signal a_yline_d : std_logic_vector(7 downto 0);
 
 begin
 
    --------------
    -- Port A
    --------------
+
+   -- Synchronize
+   proc_sync : process (a_clk_i)
+   begin
+      if rising_edge(a_clk_i) then
+         a_yline_d <= b_yline_i;
+      end if;
+   end process proc_sync;
 
    conf_a_proc : process (a_clk_i)
       variable addr_v : integer range 0 to 2**G_CONF_SIZE-1;
@@ -75,6 +87,8 @@ begin
       a_kb_rden_o <= '0';              -- Default value to avoid latch.
       if a_rd_en_i = '1' then
          case addr_v is
+            when C_YLINE =>
+               a_rd_data_o <= a_yline_d;
             when C_KBD =>
                a_rd_data_o <= a_kb_val_i;
                a_kb_rden_o <= '1';

@@ -67,6 +67,7 @@ entity mem_module is
       b_config_o    : out std_logic_vector((2**G_CONF_SIZE)*8-1 downto 0);
       b_font_addr_i : in  std_logic_vector(G_FONT_SIZE-1 downto 0);
       b_font_data_o : out std_logic_vector(7 downto 0);
+      b_yline_i     : in  std_logic_vector(7 downto 0);
       b_irq_i       : in  std_logic
   );
 end mem_module;
@@ -199,6 +200,7 @@ begin
       a_kb_val_i  => a_kb_val_i,
       b_clk_i     => b_clk_i,
       b_rst_i     => b_rst_i,
+      b_yline_i   => b_yline_i,
       b_config_o  => b_config_o,
       b_irq_i     => b_irq_i
    );

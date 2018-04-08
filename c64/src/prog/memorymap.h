@@ -48,3 +48,5 @@
 #define VGA_ADDR_IRQ             0x861C    // Bit 0 : Y-line interrupt
 #define VGA_ADDR_MASK            0x861D    // Bit 0 : Y-line interrupt
 
+#define VGA_KEY                  0x861E
+

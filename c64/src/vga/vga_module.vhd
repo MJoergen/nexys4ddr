@@ -82,6 +82,8 @@ architecture Structural of vga_module is
    signal sprite_vcount : std_logic_vector(10 downto 0);
    signal sprite_col    : std_logic_vector( 7 downto 0);
 
+   constant C_YINT : integer := 27;
+
 begin
 
    -----------------------------
@@ -172,7 +174,8 @@ begin
    vcount_o <= sprite_vcount;
 
    -- Generate interrupt
-   irq_o <= '1' when sprite_vcount(8 downto 0) = (config_i(27*8+7 downto 27*8) & '0') and sprite_hcount = (8 downto 1 => '0') else '0';
+   irq_o <= '1' when sprite_vcount(8 downto 0) = (config_i(C_YINT*8+7 downto C_YINT*8) & '0')
+                 and sprite_hcount = (8 downto 1 => '0') else '0';
 
 end Structural;
 

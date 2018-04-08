@@ -89,6 +89,11 @@ architecture Structural of hack is
    signal vga_mob_data  : std_logic_vector(15 downto 0);
    signal vga_config    : std_logic_vector(32*8-1 downto 0);
    signal vga_irq       : std_logic;
+   signal vga_hs        : std_logic;
+   signal vga_vs        : std_logic;
+   signal vga_col       : std_logic_vector( 7 downto 0);
+   signal vga_hcount    : std_logic_vector(10 downto 0);
+   signal vga_vcount    : std_logic_vector(10 downto 0);
 
    -- Signals connected to the keyboard
    signal cpu_key_rden : std_logic;
@@ -124,11 +129,11 @@ begin
    port map (
       clk_i          => vga_clk_i,
       rst_i          => vga_rst_i,
-      hs_o           => vga_hs_o,
-      vs_o           => vga_vs_o,
-      col_o          => vga_col_o,
-      hcount_o       => vga_hcount_o,
-      vcount_o       => vga_vcount_o,
+      hs_o           => vga_hs,
+      vs_o           => vga_vs,
+      col_o          => vga_col,
+      hcount_o       => vga_hcount,
+      vcount_o       => vga_vcount,
       font_addr_o    => vga_font_addr,
       font_data_i    => vga_font_data,
       disp_addr_o    => vga_disp_addr,
@@ -140,6 +145,14 @@ begin
       async_debug_i  => vga_debug_i,
       async_status_i => cpu_status
    );
+
+   vga_hs_o     <= vga_hs;
+   vga_vs_o     <= vga_vs;
+   vga_col_o    <= vga_col;
+   vga_hcount_o <= vga_hcount;
+   vga_vcount_o <= vga_vcount;
+
+
 
    process (cpu_addr, cpu_wren, cpu_wrdata, cpu_wait, cpu_wr_addr_i, cpu_wr_en_i, cpu_wr_data_i)
    begin
@@ -203,6 +216,7 @@ begin
       b_mob_addr_i  => vga_mob_addr,
       b_mob_data_o  => vga_mob_data,
       b_config_o    => vga_config,
+      b_yline_i     => vga_vcount(8 downto 1),
       b_irq_i       => vga_irq
   );
 
