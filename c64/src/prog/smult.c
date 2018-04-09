@@ -2,7 +2,7 @@
  * Multiply two signed 8-bit numbers
  * to get a signed 16-bit result
  *
- * The method used in a*b = (a+b)^2/4 - (a-b)^2/4.
+ * The method used is a*b = (a+b)^2/4 - (a-b)^2/4.
  * In other words a*b = f(a+b) - f(a-b), where f(x) = x^2/4.
  *
  * The fractional part of f(x) will either be 0 or 0.25. And the fractional part
