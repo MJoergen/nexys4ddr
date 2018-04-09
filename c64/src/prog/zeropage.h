@@ -17,3 +17,7 @@
 #define ZP_SMULT_X         0x21
 #define ZP_SMULT_T1        0x22
 #define ZP_SMULT_T2        0x23
+
+#define ZP_UMULT_A         0x30
+#define ZP_UMULT_X         0x31
+#define ZP_UMULT_C         0x32

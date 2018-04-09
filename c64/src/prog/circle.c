@@ -1,4 +1,3 @@
-#include "smult.h"
 /*
 Making an object travel in a circular orbit...
 
@@ -108,6 +107,7 @@ With ad-bc = 1 we see that the quadratic form is indeed invariant.
 
 #include "memorymap.h"
 #include "zeropage.h"
+#include "umult.h"
 
 // Entry point after CPU reset
 void __fastcall__ circle_init(void)
@@ -276,24 +276,40 @@ x_positive:
 //
 //   __asm__("RTS");
 
-//
-   __asm__("LDA %b", ZP_YHI);
-   __asm__("TAX");
+
+   // Multiply X by 2
+   __asm__("LDA %b", ZP_XLO);
+   __asm__("ROL A");    // Previous value of carry is irrelevant here.
+   __asm__("TAY");      // Store LSB
    __asm__("LDA %b", ZP_XHI);
-   __asm__("JSR %v", smult); // The two numbers are in A and X. The result has MSB in X and LSB in A.
-
-   __asm__("ROL A");          // Multiply by 4 (two bit shifts).
-   __asm__("TAY");
-   __asm__("TXA");
    __asm__("ROL A");
    __asm__("TAX");
 
-   __asm__("TYA");
-   __asm__("ROL A");
-   __asm__("TXA");
-   __asm__("ROL A");
+   // Optionally round X up
+   __asm__("TYA");      // Get LSB
+   __asm__("ROL A");    // Previous value of carry is irrelevant here.
+   __asm__("BCC %g", noRoundX);
+   __asm__("INX");
+noRoundX:
 
-   __asm__("CLC");
+   // Multiply Y by 2
+   __asm__("LDA %b", ZP_YLO);
+   __asm__("ROL A");    // Previous value of carry is irrelevant here.
+   __asm__("TAY");      // Store LSB
+   __asm__("LDA %b", ZP_YHI);
+   __asm__("ROL A");
+   __asm__("STA %b", ZP_TEMP);
+
+   // Optionally round Y up
+   __asm__("TYA");      // Get LSB
+   __asm__("ROL A");    // Previous value of carry is irrelevant here.
+   __asm__("LDA %b", ZP_TEMP);
+   __asm__("ADC #$00");
+
+   __asm__("JSR %v", umult); // The two numbers are in A and X. The result has MSB in X and LSB in A.
+
+   __asm__("ROL A");          // Move high bit of LSB into carry
+   __asm__("TXA");
    __asm__("ADC #$65");
    __asm__("STA %w", VGA_ADDR_SPRITE_0_Y); // Set Y coordinate of sprite 0
 

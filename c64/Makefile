@@ -62,8 +62,10 @@ SRC += src/keyboard/keyboard.vhd
 # Machine code
 PROG_SRC    = src/prog/demo.c
 PROG_SRC   += src/prog/keyboard.c
+#PROG_SRC   = src/prog/circle_test.c
 PROG_SRC   += src/prog/circle.c
 PROG_SRC   += src/prog/smult.c
+PROG_SRC   += src/prog/umult.c
 #PROG_SRC    = src/prog/text.c
 #PROG_SRC    = src/prog/circle.c
 #PROG_SRC    = src/prog/cputest.c

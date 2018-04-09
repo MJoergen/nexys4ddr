@@ -1,13 +1,13 @@
 [*]
-[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Mon Apr  9 05:22:19 2018
+[*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
+[*] Mon Apr  9 08:26:20 2018
 [*]
-[dumpfile] "/home/mike/git/nexys4ddr/c64/nexys4ddr.ghw"
-[dumpfile_mtime] "Mon Apr  9 05:18:53 2018"
-[dumpfile_size] 22602314
-[savefile] "/home/mike/git/nexys4ddr/c64/src/nexys4ddr_tb.gtkw"
+[dumpfile] "/home/mfj/git/nexys4ddr/c64/nexys4ddr.ghw"
+[dumpfile_mtime] "Mon Apr  9 08:25:29 2018"
+[dumpfile_size] 82271960
+[savefile] "/home/mfj/git/nexys4ddr/c64/src/nexys4ddr_tb.gtkw"
 [timestart] 178953000000
-[size] 1920 1010
+[size] 1855 1010
 [pos] 1905 0
 *-25.549603 179100000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
@@ -15,9 +15,9 @@
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.inst_ctl.
-[treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.
-[treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem.
+[treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_vga_module.
+[treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_vga_module.inst_vga_sprites.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_receive.
 [sst_width] 348
 [signals_width] 324
@@ -84,10 +84,10 @@ top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.a_irq_o
 @22
 #{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[16][7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[16][7] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[16][6] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[16][5] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[16][4] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[16][3] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[16][2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[16][1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[16][0]
 #{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[17][7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[17][7] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[17][6] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[17][5] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[17][4] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[17][3] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[17][2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[17][1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[17][0]
-@23
 #{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[18][7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[18][7] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[18][6] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[18][5] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[18][4] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[18][3] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[18][2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[18][1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[18][0]
-@22
 #{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[19][7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[19][7] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[19][6] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[19][5] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[19][4] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[19][3] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[19][2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[19][1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem[19][0]
+@23
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_vga_module.inst_vga_sprites.y0[7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_vga_module.inst_vga_sprites.y0[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_vga_module.inst_vga_sprites.y0[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_vga_module.inst_vga_sprites.y0[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_vga_module.inst_vga_sprites.y0[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_vga_module.inst_vga_sprites.y0[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_vga_module.inst_vga_sprites.y0[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_vga_module.inst_vga_sprites.y0[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_vga_module.inst_vga_sprites.y0[0]
 @800200
 -VGA
 @28
