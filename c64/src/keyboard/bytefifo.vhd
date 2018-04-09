@@ -79,6 +79,10 @@ begin
          if wren_i = '1' then
             fifo_r(wrptr_r*8 + 7 downto wrptr_r*8) <= val_i;
          end if;
+
+         if rst_i = '1' then
+            fifo_r <= (others => '0');
+         end if;
       end if;
    end process p_fifo;
 
