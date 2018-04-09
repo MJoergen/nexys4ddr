@@ -66,6 +66,11 @@ architecture Behavioral of sprites is
    signal bitmap_addr_d : std_logic_vector(5 downto 0) := (others => '0');
    signal bitmap_rows   : std_logic_vector(16*4-1 downto 0) := (others => '0');
 
+   signal y0 : std_logic_vector(7 downto 0);
+   signal y1 : std_logic_vector(7 downto 0);
+   signal y2 : std_logic_vector(7 downto 0);
+   signal y3 : std_logic_vector(7 downto 0);
+
    ----------------------------------------------------------------------
 
    -- Pipeline
@@ -103,6 +108,11 @@ architecture Behavioral of sprites is
    signal stage3 : t_stage := STAGE_DEFAULT;
 
 begin
+
+   y0 <= config_i( 8*8+7 downto  8*8);
+   y1 <= config_i( 9*8+7 downto  9*8);
+   y2 <= config_i(10*8+7 downto 10*8);
+   y3 <= config_i(11*8+7 downto 11*8);
 
    ------------------------------------------------------------------------
    -- Control reading sprite bitmaps from the BRAM.
