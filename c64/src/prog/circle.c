@@ -284,19 +284,31 @@ x_positive:
 
    // The following code incrementally calculates 4*X*Y
 
-   // Calculate X^2/4
+   // Calculate 2X
    __asm__("LDA %b", ZP_XLO);
-   __asm__("ROL A");    // Previous value of carry is not important
-   __asm__("LDA %b", ZP_XHI);
-   __asm__("ADC #$00");
-   __asm__("TAX");
-   __asm__("LDA $0600,X"); // LSB into Y
+   __asm__("ROL A");    // Move MSB into carry. Previous value of carry is not important
    __asm__("TAY");
+   __asm__("LDA %b", ZP_XHI);
+   __asm__("ROL A");
+   __asm__("BCC %g", noNegX);
+   __asm__("EOR #$FF");
+   __asm__("ADC #$00");
+noNegX:
+   __asm__("TAX");
+
+   __asm__("TYA");
+   __asm__("BPL %g", noIncX);
+   __asm__("INX");
+noIncX:
+
+   // Calculate (2X)^2/4
    __asm__("LDA $0700,X"); // MSB into X
    __asm__("TAX");
+   __asm__("LDA $0600,X"); // LSB into Y
+   //__asm__("TAY");
 
-   // Multiply by 16
-   __asm__("TYA");
+   // Multiply by 4
+   //__asm__("TYA");
    __asm__("ROL A");    // Previous value of carry is not important
    __asm__("TAY");
    __asm__("TXA");
@@ -305,47 +317,46 @@ x_positive:
 
    __asm__("TYA");
    __asm__("ROL A");    // Previous value of carry is not important
-   __asm__("TAY");
+   //__asm__("TAY");
    __asm__("TXA");
    __asm__("ROL A");
-   __asm__("TAX");
-
-   __asm__("TYA");
-   __asm__("ROL A");    // Previous value of carry is not important
-   __asm__("TAY");
-   __asm__("TXA");
-   __asm__("ROL A");
-   __asm__("TAX");
-
-   __asm__("TYA");
-   __asm__("ROL A");    // Previous value of carry is not important
-   __asm__("TAY");
-   __asm__("TXA");
-   __asm__("ROL A");
-   __asm__("TAX");
+   //__asm__("TAX");
 
    // Add to XY
-   __asm__("TXA");
-   __asm__("CLC");
+   //__asm__("TXA");
+   //__asm__("CLC");
    __asm__("ADC %b", ZP_XYLO);
    __asm__("STA %b", ZP_XYLO);
    __asm__("LDA %b", ZP_XYHI);
    __asm__("ADC #$00");
    __asm__("STA %b", ZP_XYHI);
 
-   // Calculate Y^2/4
+
+   // Calculate 2Y
    __asm__("LDA %b", ZP_YLO);
-   __asm__("ROL A");    // Previous value of carry is not important
-   __asm__("LDA %b", ZP_YHI);
-   __asm__("ADC #$00");
-   __asm__("TAX");
-   __asm__("LDA $0600,X"); // LSB into Y
+   __asm__("ROL A");    // Move MSB into carry. Previous value of carry is not important
    __asm__("TAY");
+   __asm__("LDA %b", ZP_YHI);
+   __asm__("ROL A");
+   __asm__("BCC %g", noNegY);
+   __asm__("EOR #$FF");
+   __asm__("ADC #$00");
+noNegY:
+   __asm__("TAX");
+
+   __asm__("TYA");
+   __asm__("BPL %g", noIncY);
+   __asm__("INX");
+noIncY:
+
+   // Calculate (2Y)^2/4
    __asm__("LDA $0700,X"); // MSB into X
    __asm__("TAX");
+   __asm__("LDA $0600,X"); // LSB into Y
+   //__asm__("TAY");
 
-   // Multiply by 16
-   __asm__("TYA");
+   // Multiply by 4
+   //__asm__("TYA");
    __asm__("ROL A");    // Previous value of carry is not important
    __asm__("TAY");
    __asm__("TXA");
@@ -354,27 +365,13 @@ x_positive:
 
    __asm__("TYA");
    __asm__("ROL A");    // Previous value of carry is not important
-   __asm__("TAY");
+   //__asm__("TAY");
    __asm__("TXA");
    __asm__("ROL A");
-   __asm__("TAX");
-
-   __asm__("TYA");
-   __asm__("ROL A");    // Previous value of carry is not important
-   __asm__("TAY");
-   __asm__("TXA");
-   __asm__("ROL A");
-   __asm__("TAX");
-
-   __asm__("TYA");
-   __asm__("ROL A");    // Previous value of carry is not important
-   __asm__("TAY");
-   __asm__("TXA");
-   __asm__("ROL A");
-   __asm__("TAX");
+   //__asm__("TAX");
 
    // Subtract XY
-   __asm__("TXA");
+   //__asm__("TXA");
    __asm__("EOR #$FF");          // Negate
    __asm__("SEC");
    __asm__("ADC %b", ZP_XYLO);
@@ -383,6 +380,7 @@ x_positive:
    __asm__("ADC #$FF");
    __asm__("STA %b", ZP_XYHI);
 
+   __asm__("CLC");
    __asm__("ADC #$65");
    __asm__("STA %w", VGA_ADDR_SPRITE_0_Y); // Set Y coordinate of sprite 0
 
