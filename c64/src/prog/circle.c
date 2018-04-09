@@ -264,17 +264,17 @@ x_positive:
    __asm__("ADC #$65");
    __asm__("STA %w", VGA_ADDR_SPRITE_0_X); // Set X coordinate of sprite 0
 
-// Uncomment below.
-   // Move YLO high bit into carry
-   __asm__("LDA %b", ZP_YLO);
-   __asm__("CLC");
-   __asm__("ADC %b", ZP_YLO);
-
-   __asm__("LDA %b", ZP_YHI);
-   __asm__("ADC #$65");
-   __asm__("STA %w", VGA_ADDR_SPRITE_0_Y); // Set Y coordinate of sprite 0
-
-   __asm__("RTS");
+//// Uncomment below.
+//   // Move YLO high bit into carry
+//   __asm__("LDA %b", ZP_YLO);
+//   __asm__("CLC");
+//   __asm__("ADC %b", ZP_YLO);
+//
+//   __asm__("LDA %b", ZP_YHI);
+//   __asm__("ADC #$65");
+//   __asm__("STA %w", VGA_ADDR_SPRITE_0_Y); // Set Y coordinate of sprite 0
+//
+//   __asm__("RTS");
 
 //
    __asm__("LDA %b", ZP_YHI);
