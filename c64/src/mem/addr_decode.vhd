@@ -60,6 +60,15 @@ begin
                   a_rd_data_i(47 downto 40) when a_rd_en(5) = '1' else    -- ROM
                   (others => '0');
 
+--   The below apparently is not any faster.
+--   a_rd_data_o <= 
+--      (a_rd_data_i( 7 downto  0) and (7 downto 0 => a_rd_en(0))) or     -- RAM
+--      (a_rd_data_i(15 downto  8) and (7 downto 0 => a_rd_en(1))) or     -- DISP
+--      (a_rd_data_i(23 downto 16) and (7 downto 0 => a_rd_en(2))) or     -- MOB
+--      (a_rd_data_i(31 downto 24) and (7 downto 0 => a_rd_en(3))) or     -- CONF
+--      (a_rd_data_i(39 downto 32) and (7 downto 0 => a_rd_en(4))) or     -- FONT
+--      (a_rd_data_i(47 downto 40) and (7 downto 0 => a_rd_en(5)));       -- ROM
+
    a_wr_en_o <= a_wr_en;
    a_rd_en_o <= a_rd_en;
 
