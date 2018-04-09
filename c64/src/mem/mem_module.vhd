@@ -82,11 +82,9 @@ architecture Structural of mem_module is
    signal a_wait_d  : std_logic;
    signal a_kb_rden : std_logic;
 
-   type t_rd_data is array (natural range <>) of std_logic_vector(7 downto 0);
-   signal a_cs      : std_logic_vector( 5 downto 0);
    signal a_wr_en   : std_logic_vector( 5 downto 0);
    signal a_rd_en   : std_logic_vector( 5 downto 0);
-   signal a_rd_data : t_rd_data(5 downto 0);
+   signal a_rd_data : std_logic_vector(47 downto 0);
 
 begin
 
@@ -107,7 +105,7 @@ begin
       wr_en_i   => a_wr_en(0),
       wr_data_i => a_data_i,
       rd_en_i   => a_rd_en(0),
-      rd_data_o => a_rd_data(0)
+      rd_data_o => a_rd_data(7 downto 0)
    );
 
 
@@ -127,7 +125,7 @@ begin
       a_wr_en_i   => a_wr_en(1),
       a_wr_data_i => a_data_i,
       a_rd_en_i   => a_rd_en(1),
-      a_rd_data_o => a_rd_data(1),
+      a_rd_data_o => a_rd_data(15 downto 8),
 
       b_clk_i     => b_clk_i,
       b_addr_i    => b_disp_addr_i,
@@ -147,7 +145,7 @@ begin
       cpu_wren_i  => a_wr_en(2),
       cpu_data_i  => a_data_i,
       cpu_rden_i  => a_rd_en(2),
-      cpu_data_o  => a_rd_data(2),
+      cpu_data_o  => a_rd_data(23 downto 16),
 
       -- Read port @ vga_clk_i
       vga_clk_i   => b_clk_i,
@@ -171,7 +169,7 @@ begin
       a_wr_en_i   => a_wr_en(3),
       a_wr_data_i => a_data_i,
       a_rd_en_i   => a_rd_en(3),
-      a_rd_data_o => a_rd_data(3),
+      a_rd_data_o => a_rd_data(31 downto 24),
       a_irq_o     => a_irq_o,
       a_kb_rden_o => a_kb_rden,
       a_kb_val_i  => a_kb_val_i,
@@ -199,7 +197,7 @@ begin
       a_wr_en_i   => a_wr_en(4),
       a_wr_data_i => a_data_i,
       a_rd_en_i   => a_rd_en(4),
-      a_rd_data_o => a_rd_data(4),
+      a_rd_data_o => a_rd_data(39 downto 32),
 
       b_clk_i     => b_clk_i,
       b_addr_i    => b_font_addr_i,
@@ -225,7 +223,7 @@ begin
       wr_en_i   => a_wr_en(5),
       wr_data_i => a_data_i,
       rd_en_i   => a_rd_en(5),
-      rd_data_o => a_rd_data(5)
+      rd_data_o => a_rd_data(47 downto 40)
    );
 
 
@@ -233,23 +231,30 @@ begin
    -- Instantiate Address Decoding
    -------------------------------
 
-   a_cs(0) <= '1' when a_addr_i(15 downto G_RAM_SIZE)  = G_RAM_MASK( 15 downto G_RAM_SIZE)  else '0';
-   a_cs(1) <= '1' when a_addr_i(15 downto G_DISP_SIZE) = G_DISP_MASK(15 downto G_DISP_SIZE) else '0';
-   a_cs(2) <= '1' when a_addr_i(15 downto G_MOB_SIZE)  = G_MOB_MASK( 15 downto G_MOB_SIZE)  else '0';
-   a_cs(3) <= '1' when a_addr_i(15 downto G_CONF_SIZE) = G_CONF_MASK(15 downto G_CONF_SIZE) else '0';
-   a_cs(4) <= '1' when a_addr_i(15 downto G_FONT_SIZE) = G_FONT_MASK(15 downto G_FONT_SIZE) else '0';
-   a_cs(5) <= '1' when a_addr_i(15 downto G_ROM_SIZE)  = G_ROM_MASK( 15 downto G_ROM_SIZE)  else '0';
-
-   a_wr_en <= a_cs and (5 downto 0 => a_wren_i);
-   a_rd_en <= a_cs and (5 downto 0 => a_rden_i);
-
-   a_data_o <= a_rd_data(0) when a_rd_en(0) = '1' else    -- RAM
-               a_rd_data(1) when a_rd_en(1) = '1' else    -- DISP
-               a_rd_data(2) when a_rd_en(2) = '1' else    -- MOB
-               a_rd_data(3) when a_rd_en(3) = '1' else    -- CONF
-               a_rd_data(4) when a_rd_en(4) = '1' else    -- FONT
-               a_rd_data(5) when a_rd_en(5) = '1' else    -- ROM
-               (others => '0');
+   inst_addr_decode : entity work.addr_decode
+   generic map (
+      G_RAM_SIZE  => G_RAM_SIZE,
+      G_DISP_SIZE => G_DISP_SIZE,
+      G_MOB_SIZE  => G_MOB_SIZE,
+      G_CONF_SIZE => G_CONF_SIZE,
+      G_FONT_SIZE => G_FONT_SIZE,
+      G_ROM_SIZE  => G_ROM_SIZE,
+      G_RAM_MASK  => G_RAM_MASK,
+      G_DISP_MASK => G_DISP_MASK,
+      G_MOB_MASK  => G_MOB_MASK,
+      G_CONF_MASK => G_CONF_MASK,
+      G_FONT_MASK => G_FONT_MASK,
+      G_ROM_MASK  => G_ROM_MASK  
+   )
+   port map (
+      a_addr_i    => a_addr_i,
+      a_wren_i    => a_wren_i,
+      a_rden_i    => a_rden_i,
+      a_rd_data_i => a_rd_data,
+      a_wr_en_o   => a_wr_en,
+      a_rd_en_o   => a_rd_en,
+      a_rd_data_o => a_data_o
+  );
 
 
    -------------------------------

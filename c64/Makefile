@@ -49,6 +49,7 @@ SRC += src/mem/dmem_file.vhd
 SRC += src/mem/dmem.vhd
 SRC += src/mem/conf_mem.vhd
 SRC += src/mem/bitmaps_mem.vhd
+SRC += src/mem/addr_decode.vhd
 SRC += src/mem/mem_module.vhd
 
 # Clock domain crossing
