@@ -103,6 +103,10 @@ y2 = c*x1 + d*x2
 c*y1^2 - b*y2^2 + (d-a)*y1*y2 = (ad-bc) * (c*x1^2 - b*x2^2 + (d-a)*x1*x2).
 With ad-bc = 1 we see that the quadratic form is indeed invariant.
 
+The figure-eight is achieved by replacing y with x*y. To calculate
+x*y we use the following approximate differential:
+d(x*y) = x*dy + y*dx = (x^2-y^2)*dt = (x^2/4 - y^2/4)*(4*dt)
+
 */
 
 #include "memorymap.h"
@@ -210,6 +214,8 @@ void __fastcall__ circle_init(void)
    __asm__("STA %b", ZP_XLO);
    __asm__("STA %b", ZP_YLO);
    __asm__("STA %b", ZP_YHI);
+   __asm__("STA %b", ZP_XYLO);
+   __asm__("STA %b", ZP_XYHI);
    __asm__("LDA #$60");
    __asm__("STA %b", ZP_XHI);
 
@@ -264,7 +270,7 @@ x_positive:
    __asm__("ADC #$65");
    __asm__("STA %w", VGA_ADDR_SPRITE_0_X); // Set X coordinate of sprite 0
 
-//// Uncomment below.
+//// Uncomment below to generate a circle.
 //   // Move YLO high bit into carry
 //   __asm__("LDA %b", ZP_YLO);
 //   __asm__("CLC");
@@ -276,40 +282,107 @@ x_positive:
 //
 //   __asm__("RTS");
 
+   // The following code incrementally calculates 4*X*Y
 
-   // Multiply X by 2
+   // Calculate X^2/4
    __asm__("LDA %b", ZP_XLO);
-   __asm__("ROL A");    // Previous value of carry is irrelevant here.
-   __asm__("TAY");      // Store LSB
+   __asm__("ROL A");    // Previous value of carry is not important
    __asm__("LDA %b", ZP_XHI);
+   __asm__("ADC #$00");
+   __asm__("TAX");
+   __asm__("LDA $0600,X"); // LSB into Y
+   __asm__("TAY");
+   __asm__("LDA $0700,X"); // MSB into X
+   __asm__("TAX");
+
+   // Multiply by 16
+   __asm__("TYA");
+   __asm__("ROL A");    // Previous value of carry is not important
+   __asm__("TAY");
+   __asm__("TXA");
    __asm__("ROL A");
    __asm__("TAX");
 
-   // Optionally round X up
-   __asm__("TYA");      // Get LSB
-   __asm__("ROL A");    // Previous value of carry is irrelevant here.
-   __asm__("BCC %g", noRoundX);
-   __asm__("INX");
-noRoundX:
-
-   // Multiply Y by 2
-   __asm__("LDA %b", ZP_YLO);
-   __asm__("ROL A");    // Previous value of carry is irrelevant here.
-   __asm__("TAY");      // Store LSB
-   __asm__("LDA %b", ZP_YHI);
-   __asm__("ROL A");
-   __asm__("STA %b", ZP_TEMP);
-
-   // Optionally round Y up
-   __asm__("TYA");      // Get LSB
-   __asm__("ROL A");    // Previous value of carry is irrelevant here.
-   __asm__("LDA %b", ZP_TEMP);
-   __asm__("ADC #$00");
-
-   __asm__("JSR %v", umult); // The two numbers are in A and X. The result has MSB in X and LSB in A.
-
-   __asm__("ROL A");          // Move high bit of LSB into carry
+   __asm__("TYA");
+   __asm__("ROL A");    // Previous value of carry is not important
+   __asm__("TAY");
    __asm__("TXA");
+   __asm__("ROL A");
+   __asm__("TAX");
+
+   __asm__("TYA");
+   __asm__("ROL A");    // Previous value of carry is not important
+   __asm__("TAY");
+   __asm__("TXA");
+   __asm__("ROL A");
+   __asm__("TAX");
+
+   __asm__("TYA");
+   __asm__("ROL A");    // Previous value of carry is not important
+   __asm__("TAY");
+   __asm__("TXA");
+   __asm__("ROL A");
+   __asm__("TAX");
+
+   // Add to XY
+   __asm__("TXA");
+   __asm__("CLC");
+   __asm__("ADC %b", ZP_XYLO);
+   __asm__("STA %b", ZP_XYLO);
+   __asm__("LDA %b", ZP_XYHI);
+   __asm__("ADC #$00");
+   __asm__("STA %b", ZP_XYHI);
+
+   // Calculate Y^2/4
+   __asm__("LDA %b", ZP_YLO);
+   __asm__("ROL A");    // Previous value of carry is not important
+   __asm__("LDA %b", ZP_YHI);
+   __asm__("ADC #$00");
+   __asm__("TAX");
+   __asm__("LDA $0600,X"); // LSB into Y
+   __asm__("TAY");
+   __asm__("LDA $0700,X"); // MSB into X
+   __asm__("TAX");
+
+   // Multiply by 16
+   __asm__("TYA");
+   __asm__("ROL A");    // Previous value of carry is not important
+   __asm__("TAY");
+   __asm__("TXA");
+   __asm__("ROL A");
+   __asm__("TAX");
+
+   __asm__("TYA");
+   __asm__("ROL A");    // Previous value of carry is not important
+   __asm__("TAY");
+   __asm__("TXA");
+   __asm__("ROL A");
+   __asm__("TAX");
+
+   __asm__("TYA");
+   __asm__("ROL A");    // Previous value of carry is not important
+   __asm__("TAY");
+   __asm__("TXA");
+   __asm__("ROL A");
+   __asm__("TAX");
+
+   __asm__("TYA");
+   __asm__("ROL A");    // Previous value of carry is not important
+   __asm__("TAY");
+   __asm__("TXA");
+   __asm__("ROL A");
+   __asm__("TAX");
+
+   // Subtract XY
+   __asm__("TXA");
+   __asm__("EOR #$FF");          // Negate
+   __asm__("SEC");
+   __asm__("ADC %b", ZP_XYLO);
+   __asm__("STA %b", ZP_XYLO);
+   __asm__("LDA %b", ZP_XYHI);
+   __asm__("ADC #$FF");
+   __asm__("STA %b", ZP_XYHI);
+
    __asm__("ADC #$65");
    __asm__("STA %w", VGA_ADDR_SPRITE_0_Y); // Set Y coordinate of sprite 0
 
