@@ -102,7 +102,7 @@ begin
    eth_rxerr <= '0';
    eth_intn  <= '1';
 
-   test_running <= true, false after 1000 us;
+   test_running <= true, false after 10000 us;
    
 end Structural;
 
