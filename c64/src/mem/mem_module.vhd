@@ -78,39 +78,15 @@ architecture Structural of mem_module is
    -- Port A
    -------------------
 
-   signal a_ram_cs       : std_logic;
-   signal a_ram_wr_en    : std_logic;
-   signal a_ram_rd_en    : std_logic;
-   signal a_ram_rd_data  : std_logic_vector(7 downto 0);
-
-   signal a_disp_cs      : std_logic;
-   signal a_disp_wr_en   : std_logic;
-   signal a_disp_rd_en   : std_logic;
-   signal a_disp_rd_data : std_logic_vector(7 downto 0);
-
-   signal a_mob_cs       : std_logic;
-   signal a_mob_wr_en    : std_logic;
-   signal a_mob_rd_en    : std_logic;
-   signal a_mob_rd_data  : std_logic_vector(7 downto 0);
-
-   signal a_conf_cs      : std_logic;
-   signal a_conf_wr_en   : std_logic;
-   signal a_conf_rd_en   : std_logic;
-   signal a_conf_rd_data : std_logic_vector(7 downto 0);
-
-   signal a_font_cs      : std_logic;
-   signal a_font_wr_en   : std_logic;
-   signal a_font_rd_en   : std_logic;
-   signal a_font_rd_data : std_logic_vector(7 downto 0);
-
-   signal a_rom_cs       : std_logic;
-   signal a_rom_wr_en    : std_logic;
-   signal a_rom_rd_en    : std_logic;
-   signal a_rom_rd_data  : std_logic_vector(7 downto 0);
-
    signal a_wait    : std_logic;
    signal a_wait_d  : std_logic;
    signal a_kb_rden : std_logic;
+
+   type t_rd_data is array (natural range <>) of std_logic_vector(7 downto 0);
+   signal a_cs      : std_logic_vector( 5 downto 0);
+   signal a_wr_en   : std_logic_vector( 5 downto 0);
+   signal a_rd_en   : std_logic_vector( 5 downto 0);
+   signal a_rd_data : t_rd_data(5 downto 0);
 
 begin
 
@@ -128,10 +104,10 @@ begin
       clk_i     => a_clk_i,
       rst_i     => a_rst_i,
       addr_i    => a_addr_i(G_RAM_SIZE-1 downto 0),
-      wr_en_i   => a_ram_wr_en,
+      wr_en_i   => a_wr_en(0),
       wr_data_i => a_data_i,
-      rd_en_i   => a_ram_rd_en,
-      rd_data_o => a_ram_rd_data
+      rd_en_i   => a_rd_en(0),
+      rd_data_o => a_rd_data(0)
    );
 
 
@@ -148,10 +124,10 @@ begin
    port map (
       a_clk_i     => a_clk_i,
       a_addr_i    => a_addr_i(G_DISP_SIZE-1 downto 0),
-      a_wr_en_i   => a_disp_wr_en,
+      a_wr_en_i   => a_wr_en(1),
       a_wr_data_i => a_data_i,
-      a_rd_en_i   => a_disp_rd_en,
-      a_rd_data_o => a_disp_rd_data,
+      a_rd_en_i   => a_rd_en(1),
+      a_rd_data_o => a_rd_data(1),
 
       b_clk_i     => b_clk_i,
       b_addr_i    => b_disp_addr_i,
@@ -168,10 +144,10 @@ begin
    port map (
       cpu_clk_i   => a_clk_i,
       cpu_addr_i  => a_addr_i(G_MOB_SIZE-1 downto 0),
-      cpu_wren_i  => a_mob_wr_en,
+      cpu_wren_i  => a_wr_en(2),
       cpu_data_i  => a_data_i,
-      cpu_rden_i  => a_mob_rd_en,
-      cpu_data_o  => a_mob_rd_data,
+      cpu_rden_i  => a_rd_en(2),
+      cpu_data_o  => a_rd_data(2),
 
       -- Read port @ vga_clk_i
       vga_clk_i   => b_clk_i,
@@ -192,10 +168,10 @@ begin
       a_clk_i     => a_clk_i,
       a_rst_i     => a_rst_i,
       a_addr_i    => a_addr_i,
-      a_wr_en_i   => a_conf_wr_en,
+      a_wr_en_i   => a_wr_en(3),
       a_wr_data_i => a_data_i,
-      a_rd_en_i   => a_conf_rd_en,
-      a_rd_data_o => a_conf_rd_data,
+      a_rd_en_i   => a_rd_en(3),
+      a_rd_data_o => a_rd_data(3),
       a_irq_o     => a_irq_o,
       a_kb_rden_o => a_kb_rden,
       a_kb_val_i  => a_kb_val_i,
@@ -220,10 +196,10 @@ begin
    port map (
       a_clk_i     => a_clk_i,
       a_addr_i    => a_addr_i(G_FONT_SIZE-1 downto 0),
-      a_wr_en_i   => a_font_wr_en,
+      a_wr_en_i   => a_wr_en(4),
       a_wr_data_i => a_data_i,
-      a_rd_en_i   => a_font_rd_en,
-      a_rd_data_o => a_font_rd_data,
+      a_rd_en_i   => a_rd_en(4),
+      a_rd_data_o => a_rd_data(4),
 
       b_clk_i     => b_clk_i,
       b_addr_i    => b_font_addr_i,
@@ -246,10 +222,10 @@ begin
       clk_i     => a_clk_i,
       rst_i     => a_rst_i,
       addr_i    => a_addr_i(G_ROM_SIZE-1 downto 0),
-      wr_en_i   => a_rom_wr_en,
+      wr_en_i   => a_wr_en(5),
       wr_data_i => a_data_i,
-      rd_en_i   => a_rom_rd_en,
-      rd_data_o => a_rom_rd_data
+      rd_en_i   => a_rd_en(5),
+      rd_data_o => a_rd_data(5)
    );
 
 
@@ -257,33 +233,22 @@ begin
    -- Instantiate Address Decoding
    -------------------------------
 
-   a_ram_cs  <= '1' when a_addr_i(15 downto G_RAM_SIZE)  = G_RAM_MASK( 15 downto G_RAM_SIZE)  else '0';
-   a_disp_cs <= '1' when a_addr_i(15 downto G_DISP_SIZE) = G_DISP_MASK(15 downto G_DISP_SIZE) else '0';
-   a_mob_cs  <= '1' when a_addr_i(15 downto G_MOB_SIZE)  = G_MOB_MASK( 15 downto G_MOB_SIZE)  else '0';
-   a_conf_cs <= '1' when a_addr_i(15 downto G_CONF_SIZE) = G_CONF_MASK(15 downto G_CONF_SIZE) else '0';
-   a_font_cs <= '1' when a_addr_i(15 downto G_FONT_SIZE) = G_FONT_MASK(15 downto G_FONT_SIZE) else '0';
-   a_rom_cs  <= '1' when a_addr_i(15 downto G_ROM_SIZE)  = G_ROM_MASK( 15 downto G_ROM_SIZE)  else '0';
+   a_cs(0) <= '1' when a_addr_i(15 downto G_RAM_SIZE)  = G_RAM_MASK( 15 downto G_RAM_SIZE)  else '0';
+   a_cs(1) <= '1' when a_addr_i(15 downto G_DISP_SIZE) = G_DISP_MASK(15 downto G_DISP_SIZE) else '0';
+   a_cs(2) <= '1' when a_addr_i(15 downto G_MOB_SIZE)  = G_MOB_MASK( 15 downto G_MOB_SIZE)  else '0';
+   a_cs(3) <= '1' when a_addr_i(15 downto G_CONF_SIZE) = G_CONF_MASK(15 downto G_CONF_SIZE) else '0';
+   a_cs(4) <= '1' when a_addr_i(15 downto G_FONT_SIZE) = G_FONT_MASK(15 downto G_FONT_SIZE) else '0';
+   a_cs(5) <= '1' when a_addr_i(15 downto G_ROM_SIZE)  = G_ROM_MASK( 15 downto G_ROM_SIZE)  else '0';
 
-   a_ram_wr_en  <= a_wren_i and a_ram_cs;
-   a_disp_wr_en <= a_wren_i and a_disp_cs;
-   a_mob_wr_en  <= a_wren_i and a_mob_cs;
-   a_conf_wr_en <= a_wren_i and a_conf_cs;
-   a_font_wr_en <= a_wren_i and a_font_cs;
-   a_rom_wr_en  <= a_wren_i and a_rom_cs;
+   a_wr_en <= a_cs and (5 downto 0 => a_wren_i);
+   a_rd_en <= a_cs and (5 downto 0 => a_rden_i);
 
-   a_ram_rd_en  <= a_rden_i and a_ram_cs;
-   a_disp_rd_en <= a_rden_i and a_disp_cs;
-   a_mob_rd_en  <= a_rden_i and a_mob_cs;
-   a_conf_rd_en <= a_rden_i and a_conf_cs;
-   a_font_rd_en <= a_rden_i and a_font_cs;
-   a_rom_rd_en  <= a_rden_i and a_rom_cs;
-
-   a_data_o <= a_ram_rd_data  when a_ram_rd_en  = '1' else
-               a_disp_rd_data when a_disp_rd_en = '1' else
-               a_mob_rd_data  when a_mob_rd_en  = '1' else
-               a_conf_rd_data when a_conf_rd_en = '1' else
-               a_font_rd_data when a_font_rd_en = '1' else
-               a_rom_rd_data  when a_rom_rd_en  = '1' else
+   a_data_o <= a_rd_data(0) when a_rd_en(0) = '1' else    -- RAM
+               a_rd_data(1) when a_rd_en(1) = '1' else    -- DISP
+               a_rd_data(2) when a_rd_en(2) = '1' else    -- MOB
+               a_rd_data(3) when a_rd_en(3) = '1' else    -- CONF
+               a_rd_data(4) when a_rd_en(4) = '1' else    -- FONT
+               a_rd_data(5) when a_rd_en(5) = '1' else    -- ROM
                (others => '0');
 
 
@@ -303,10 +268,10 @@ begin
    end process;
 
 
-   a_wait <= '1' when a_disp_rd_en = '1' or
-                      a_mob_rd_en  = '1' or
-                      a_conf_rd_en = '1' or
-                      a_font_rd_en = '1' else
+   a_wait <= '1' when a_rd_en(1) = '1' or    -- DISP
+                      a_rd_en(2) = '1' or    -- MOB
+                      a_rd_en(3) = '1' or    -- CONF
+                      a_rd_en(4) = '1' else  -- FONT
              '0';
 
    a_wait_o <= '1' when a_wait = '1' and a_wait_d = '0' else
