@@ -158,21 +158,25 @@ begin
    vga_vcount_o <= vga_vcount;
 
 
+   -------------------------------
+   -- Instantiate multiplexer
+   -------------------------------
 
-   process (cpu_addr, cpu_wren, cpu_wrdata, cpu_wait, cpu_wr_addr_i, cpu_wr_en_i, cpu_wr_data_i)
-   begin
-      mem_addr   <= cpu_addr;
-      mem_wren   <= cpu_wren;
-      mem_wrdata <= cpu_wrdata;
-      mem_wait   <= cpu_wait;
-
-      if cpu_wr_en_i = '1' then
-         mem_addr   <= cpu_wr_addr_i;
-         mem_wren   <= cpu_wr_en_i;
-         mem_wrdata <= cpu_wr_data_i;
-         mem_wait   <= '1';
-      end if;
-   end process;
+   inst_addr_mux : entity work.addr_mux
+   port map (
+      lo_addr_i     => cpu_addr,
+      lo_wr_en_i    => cpu_wren,
+      lo_wr_data_i  => cpu_wrdata,
+      lo_wait_i     => cpu_wait,
+      hi_addr_i     => cpu_wr_addr_i,
+      hi_wr_en_i    => cpu_wr_en_i,
+      hi_wr_data_i  => cpu_wr_data_i,
+      hi_wait_i     => '1',
+      res_addr_o    => mem_addr,
+      res_wr_en_o   => mem_wren,
+      res_wr_data_o => mem_wrdata,
+      res_wait_o    => mem_wait
+   );
 
 
    -------------------------------

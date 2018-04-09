@@ -25,6 +25,7 @@ TB_SRC = src/nexys4ddr/$(testbench).vhd
 XDC    = src/nexys4ddr/$(TOP).xdc
 
 # Top level module
+SRC += src/addr_mux.vhd
 SRC += src/hack.vhd
 
 # VGA driver
