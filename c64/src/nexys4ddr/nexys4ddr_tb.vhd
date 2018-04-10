@@ -14,8 +14,9 @@ end nexys4ddr_tb;
 architecture Structural of nexys4ddr_tb is
 
    -- Clock and reset
-   signal clk100  : std_logic;  -- 100 MHz
+   signal clk100   : std_logic := '0';  -- 100 MHz
    signal sys_rstn : std_logic := '0';
+   signal sys_rst  : std_logic := '1';
 
    -- VGA port
    signal vga_hs    : std_logic; 
@@ -40,6 +41,14 @@ architecture Structural of nexys4ddr_tb is
    -- Buttons
    signal btn       : std_logic_vector( 4 downto 0);
 
+   -- Keyboard
+   signal ps2_clk  : std_logic;
+   signal ps2_data : std_logic;
+
+   signal key_cnt   : std_logic_vector(14 downto 0) := (others => '0');
+   signal key_valid : std_logic;
+   signal key_data  : std_logic_vector(7 downto 0) := X"00";
+
    signal test_running : boolean := true;
 
 begin
@@ -58,14 +67,43 @@ begin
    -- Generate reset (asserted low)
    sys_rstn <= '0', '1' after 100 ns;
 
+   sys_rst <= not sys_rstn;
+
+   proc_ps2 : process (clk100)
+   begin
+      if rising_edge(clk100) then
+         key_valid <= '0';
+         key_cnt   <= key_cnt + 1;
+
+         if key_cnt = 0 then
+            key_valid <= '1';
+            key_data <= (key_data(6 downto 0) & key_data(7)) xor X"AB";
+         end if;
+
+         if sys_rst = '1' then
+            key_valid <= '0';
+            key_cnt   <= (others => '0');
+         end if;
+      end if;
+   end process proc_ps2;
 
    -- Generate input switches
    sw <= X"0000";
 
-
    -- Generate input buttons
    btn <= "00000";
 
+   -- Instantiate keyboard
+   inst_ps2_tb : entity work.ps2_tb
+   port map (
+      -- Clock
+      clk_i      => clk100,
+      rst_i      => sys_rst,
+      data_i     => key_data,
+      valid_i    => key_valid,
+      ps2_clk_o  => ps2_clk,
+      ps2_data_o => ps2_data 
+   );
 
    -- Instantiate DUT
    inst_nexys4ddr : entity work.nexys4ddr
@@ -91,8 +129,8 @@ begin
       eth_rstn_o   => eth_rstn,
       eth_refclk_o => eth_refclk,
 
-      ps2_clk_i  => '1',
-      ps2_data_i => '1',
+      ps2_clk_i  => ps2_clk,
+      ps2_data_i => ps2_data,
       sw_i       => sw,
       btn_i      => btn
    );

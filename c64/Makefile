@@ -15,18 +15,22 @@ SRC   += src/nexys4ddr/ethernet/strip_crc.vhd
 SRC   += src/nexys4ddr/ethernet/receive.vhd
 SRC   += src/nexys4ddr/ethernet/compress.vhd
 SRC   += src/nexys4ddr/ethernet/convert.vhd
+SRC   += src/nexys4ddr/ethernet/stat.vhd
 SRC   += src/nexys4ddr/ethernet/ethernet.vhd
 SRC   += src/nexys4ddr/fifo_alt.vhd
 SRC   += src/nexys4ddr/fifo_width_change.vhd
 SRC   += src/nexys4ddr/clk_wiz_0.vhd
 SRC   += src/nexys4ddr/clk_wiz_0_clk_wiz.vhd
 SRC   += src/nexys4ddr/debounce.vhd
-TB_SRC = src/nexys4ddr/$(testbench).vhd
 XDC    = src/nexys4ddr/$(TOP).xdc
 
 # Top level module
 SRC += src/addr_mux.vhd
 SRC += src/hack.vhd
+
+# Test bench
+TB_SRC  = src/nexys4ddr/$(testbench).vhd
+TB_SRC += src/keyboard/ps2_tb.vhd
 
 # VGA driver
 SRC += src/vga/conf_stat.vhd
@@ -68,6 +72,7 @@ PROG_SRC   += src/prog/keyboard.c
 PROG_SRC   += src/prog/circle.c
 PROG_SRC   += src/prog/smult.c
 PROG_SRC   += src/prog/umult.c
+#PROG_SRC   = src/prog/keyboard_test.c
 #PROG_SRC    = src/prog/text.c
 #PROG_SRC    = src/prog/circle.c
 #PROG_SRC    = src/prog/cputest.c

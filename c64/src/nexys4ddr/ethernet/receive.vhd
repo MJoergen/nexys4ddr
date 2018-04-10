@@ -32,7 +32,8 @@ entity receive is
       pl_rst_i       : in  std_logic;
       pl_wr_addr_o   : out std_logic_vector(15 downto 0);
       pl_wr_en_o     : out std_logic;
-      pl_wr_data_o   : out std_logic_vector(7 downto 0)
+      pl_wr_data_o   : out std_logic_vector(7 downto 0);
+      pl_drop_o      : out std_logic
    );
 end receive;
 
@@ -52,6 +53,8 @@ architecture Structural of receive is
    signal pl_wr_addr_d : std_logic_vector(15 downto 0);
    signal pl_wr_en     : std_logic;
    signal pl_wr_data   : std_logic_vector(7 downto 0);
+
+   signal pl_drop : std_logic;
 
 begin
 
@@ -94,7 +97,8 @@ begin
       pl_ena_o        => pl_ena,
       pl_sof_o        => pl_sof,
       pl_eof_o        => pl_eof,
-      pl_data_o       => pl_data
+      pl_data_o       => pl_data,
+      pl_drop_o       => pl_drop
    );
 
 
@@ -126,6 +130,7 @@ begin
    pl_wr_addr_o <= pl_wr_addr_d;
    pl_wr_en_o   <= pl_wr_en;
    pl_wr_data_o <= pl_wr_data;
+   pl_drop_o    <= pl_drop;
 
 end Structural;
 

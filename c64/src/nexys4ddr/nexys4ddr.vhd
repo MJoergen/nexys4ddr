@@ -67,6 +67,7 @@ architecture Structural of nexys4ddr is
    signal vga_vs     : std_logic;
    signal vga_hcount : std_logic_vector(10 downto 0);
    signal vga_vcount : std_logic_vector(10 downto 0);
+   signal vga_debug  : std_logic_vector(127 downto 0);
  
    -- LED output
    signal led : std_logic;
@@ -87,6 +88,7 @@ architecture Structural of nexys4ddr is
    end function col8to12;
 
    signal eth_smi_registers : std_logic_vector(32*16-1 downto 0);
+   signal eth_stat_debug    : std_logic_vector(4*16-1 downto 0);
    signal fifo_error        : std_logic := '0';
 
    -- Memory data received from Ethernet @ cpu_clk
@@ -148,7 +150,8 @@ begin
       cpu_wr_addr_o       => cpu_wr_addr,
       cpu_wr_en_o         => cpu_wr_en,
       cpu_wr_data_o       => cpu_wr_data,
-      eth_smi_registers_o => eth_smi_registers 
+      eth_smi_registers_o => eth_smi_registers,
+      eth_stat_debug_o    => eth_stat_debug
    );
 
 
@@ -189,7 +192,7 @@ begin
       vga_col_o    => vga_col,
       vga_hcount_o => vga_hcount,
       vga_vcount_o => vga_vcount,
-      vga_debug_i  => eth_smi_registers(127 downto 0),
+      vga_debug_i  => vga_debug,
       --
       ps2_clk_i  => ps2_clk_i,
       ps2_data_i => ps2_data_i
@@ -200,5 +203,9 @@ begin
    vga_col_o <= col8to12(vga_col);
    led_o(15 downto 8) <= (others => '0');
    
+--   vga_debug <= eth_smi_registers(127 downto 0);
+   vga_debug(4*16-1 downto 0)    <= eth_stat_debug;
+   vga_debug(8*16-1 downto 4*16) <= (others => '0');
+
 end Structural;
 

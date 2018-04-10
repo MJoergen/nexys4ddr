@@ -41,7 +41,8 @@ entity ethernet is
       cpu_wr_data_o       : out   std_logic_vector(7 downto 0);
 
       -- Debug output
-      eth_smi_registers_o : out   std_logic_vector(32*16-1 downto 0)
+      eth_smi_registers_o : out   std_logic_vector(32*16-1 downto 0);
+      eth_stat_debug_o    : out   std_logic_vector(4*16-1 downto 0)
    );
 end ethernet;
 
@@ -67,7 +68,32 @@ architecture Structural of ethernet is
    signal eth_rx_err        : std_logic;
    signal eth_rx_crc_valid  : std_logic;
 
+   signal cpu_drop          : std_logic;
+
+   signal stats_inc         : std_logic_vector( 3 downto 0);
+   signal stats_addr        : std_logic_vector( 7 downto 0);
+   signal stats_data        : std_logic_vector(15 downto 0);
+
 begin
+
+   stats_addr <= (others => '0');
+
+   ------------------------------
+   -- Instantiate statistics
+   ------------------------------
+
+   inst_stat : entity work.stat
+   generic map (
+      G_NUM => 4
+   )
+   port map (
+      clk_i   => eth_clk_i,
+      rst_i   => eth_rst_i,
+      inc_i   => stats_inc,
+      addr_i  => stats_addr,
+      data_o  => stats_data,
+      debug_o => eth_stat_debug_o
+   );
 
    ------------------------------
    -- Ethernet PHY
@@ -170,8 +196,18 @@ begin
       pl_rst_i        => cpu_rst_i, 
       pl_wr_addr_o    => cpu_wr_addr_o,
       pl_wr_en_o      => cpu_wr_en_o,
-      pl_wr_data_o    => cpu_wr_data_o
+      pl_wr_data_o    => cpu_wr_data_o,
+      pl_drop_o       => cpu_drop
    );
+
+   -- Layer 1 framing errors
+   stats_inc(0) <= eth_rx_en and eth_rx_err;
+   
+   -- Layer 1 CRC errors
+   stats_inc(1) <= eth_rx_en and eth_rx_eof and (not eth_rx_crc_valid);
+
+   -- Layer 1 successfull packets
+   stats_inc(2) <= eth_rx_en and eth_rx_eof and eth_rx_crc_valid;
 
 end Structural;
 
