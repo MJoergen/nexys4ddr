@@ -1,25 +1,25 @@
 [*]
 [*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
-[*] Tue Apr 10 05:59:22 2018
+[*] Tue Apr 10 07:23:05 2018
 [*]
 [dumpfile] "/home/mfj/git/nexys4ddr/c64/nexys4ddr.ghw"
-[dumpfile_mtime] "Tue Apr 10 05:56:29 2018"
-[dumpfile_size] 7800206
+[dumpfile_mtime] "Tue Apr 10 07:16:52 2018"
+[dumpfile_size] 14748965
 [savefile] "/home/mfj/git/nexys4ddr/c64/src/nexys4ddr_tb.gtkw"
-[timestart] 137603000000
+[timestart] 0
 [size] 1855 1010
 [pos] 1905 0
-*-25.608894 137750000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-34.608894 114785000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.nexys4ddr_tb.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.
-[treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.inst_ctl.
-[treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_vga_module.inst_vga_sprites.
-[treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_receive.
+[treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.
+[treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.
+[treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats.
 [treeopen] top.nexys4ddr_tb.inst_ps2_tb.
 [sst_width] 348
 [signals_width] 324
@@ -83,23 +83,6 @@ top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_irq_i
 top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.a_irq_o
 @1000200
 -Memory
-@28
-top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.ps2_clk_i
-top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.ps2_data_i
-top.nexys4ddr_tb.inst_ps2_tb.ps2_clk_o
-top.nexys4ddr_tb.inst_ps2_tb.ps2_data_o
-@22
-#{top.nexys4ddr_tb.inst_ps2_tb.clk_cnt[6:0]} top.nexys4ddr_tb.inst_ps2_tb.clk_cnt[6] top.nexys4ddr_tb.inst_ps2_tb.clk_cnt[5] top.nexys4ddr_tb.inst_ps2_tb.clk_cnt[4] top.nexys4ddr_tb.inst_ps2_tb.clk_cnt[3] top.nexys4ddr_tb.inst_ps2_tb.clk_cnt[2] top.nexys4ddr_tb.inst_ps2_tb.clk_cnt[1] top.nexys4ddr_tb.inst_ps2_tb.clk_cnt[0]
-@28
-top.nexys4ddr_tb.inst_ps2_tb.valid_i
-@22
-#{top.nexys4ddr_tb.inst_ps2_tb.data_i[7:0]} top.nexys4ddr_tb.inst_ps2_tb.data_i[7] top.nexys4ddr_tb.inst_ps2_tb.data_i[6] top.nexys4ddr_tb.inst_ps2_tb.data_i[5] top.nexys4ddr_tb.inst_ps2_tb.data_i[4] top.nexys4ddr_tb.inst_ps2_tb.data_i[3] top.nexys4ddr_tb.inst_ps2_tb.data_i[2] top.nexys4ddr_tb.inst_ps2_tb.data_i[1] top.nexys4ddr_tb.inst_ps2_tb.data_i[0]
-#{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[0]
-@28
-top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_ps2.ps2_clk_r
-top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_ps2.ps2_data_r
-@420
-top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_ps2.cnt
 @c00200
 -VGA
 @28
@@ -141,7 +124,7 @@ top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_rom.wr_en_i
 top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_rom.rd_en_i
 @1401200
 -ROM
-@800200
+@c00200
 -Keyboard
 @28
 top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.ps2_clk_i
@@ -151,11 +134,103 @@ top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.rden_i
 #{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[0]
 @28
 top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.rdptr_r
-@29
 top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.wrptr_r
 @22
 #{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[63:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[63] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[62] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[61] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[60] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[59] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[58] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[57] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[56] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[55] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[54] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[53] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[52] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[51] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[50] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[49] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[48] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[47] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[46] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[45] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[44] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[43] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[42] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[41] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[40] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[39] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[38] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[37] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[36] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[35] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[34] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[33] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[32] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[31] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[30] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[29] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[28] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[27] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[26] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[25] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[24] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[23] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[22] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[21] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[20] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[19] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[18] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[17] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[16] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[15] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[14] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[13] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[12] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[11] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[10] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[9] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[8] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[0]
-@1000200
+@1401200
 -Keyboard
+@22
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[0][15:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[0][15] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[0][14] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[0][13] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[0][12] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[0][11] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[0][10] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[0][9] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[0][8] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[0][7] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[0][6] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[0][5] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[0][4] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[0][3] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[0][2] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[0][1] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[0][0]
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[1][15:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[1][15] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[1][14] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[1][13] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[1][12] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[1][11] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[1][10] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[1][9] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[1][8] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[1][7] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[1][6] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[1][5] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[1][4] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[1][3] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[1][2] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[1][1] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[1][0]
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[2][15:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[2][15] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[2][14] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[2][13] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[2][12] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[2][11] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[2][10] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[2][9] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[2][8] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[2][7] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[2][6] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[2][5] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[2][4] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[2][3] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[2][2] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[2][1] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[2][0]
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[3][15:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[3][15] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[3][14] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[3][13] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[3][12] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[3][11] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[3][10] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[3][9] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[3][8] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[3][7] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[3][6] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[3][5] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[3][4] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[3][3] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[3][2] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[3][1] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.i_stats[3][0]
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.inc_i[3:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.inc_i[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.inc_i[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.inc_i[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.inc_i[0]
+@c00022
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[63:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[63] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[62] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[61] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[60] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[59] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[58] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[57] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[56] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[55] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[54] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[53] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[52] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[51] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[50] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[49] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[48] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[47] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[46] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[45] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[44] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[43] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[42] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[41] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[40] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[39] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[38] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[37] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[36] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[35] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[34] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[33] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[32] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[31] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[30] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[29] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[28] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[27] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[26] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[25] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[24] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[23] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[22] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[21] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[20] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[19] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[18] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[17] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[16] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[15] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[14] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[13] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[12] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[11] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[10] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[9] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[8] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[0]
+@28
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[63]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[62]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[61]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[60]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[59]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[58]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[57]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[56]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[55]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[54]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[53]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[52]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[51]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[50]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[49]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[48]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[47]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[46]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[45]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[44]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[43]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[42]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[41]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[40]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[39]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[38]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[37]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[36]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[35]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[34]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[33]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[32]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[31]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[30]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[29]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[28]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[27]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[26]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[25]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[24]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[23]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[22]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[21]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[20]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[19]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[18]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[17]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[16]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[15]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[14]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[13]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[12]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[11]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[10]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[9]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[8]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[7]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[6]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[5]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[4]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[3]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[2]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[1]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.debug_o[0]
+@1401200
+-group_end
+@800023
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.clks_i[3:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.clks_i[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.clks_i[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.clks_i[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.clks_i[0]
+@29
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.clks_i[3]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.clks_i[2]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.clks_i[1]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.clks_i[0]
+@1001201
+-group_end
+@800022
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.rsts_i[3:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.rsts_i[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.rsts_i[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.rsts_i[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.rsts_i[0]
+@28
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.rsts_i[3]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.rsts_i[2]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.rsts_i[1]
+top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.rsts_i[0]
+@1001200
+-group_end
 [pattern_trace] 1
 [pattern_trace] 0

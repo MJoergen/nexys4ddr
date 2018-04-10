@@ -70,6 +70,8 @@ architecture Structural of ethernet is
 
    signal cpu_drop          : std_logic;
 
+   signal stats_clk         : std_logic_vector( 3 downto 0);
+   signal stats_rst         : std_logic_vector( 3 downto 0);
    signal stats_inc         : std_logic_vector( 3 downto 0);
    signal stats_addr        : std_logic_vector( 7 downto 0);
    signal stats_data        : std_logic_vector(15 downto 0);
@@ -90,6 +92,8 @@ begin
       clk_i   => eth_clk_i,
       rst_i   => eth_rst_i,
       inc_i   => stats_inc,
+      clks_i  => stats_clk,
+      rsts_i  => stats_rst,
       addr_i  => stats_addr,
       data_o  => stats_data,
       debug_o => eth_stat_debug_o
@@ -201,13 +205,24 @@ begin
    );
 
    -- Layer 1 framing errors
+   stats_clk(0) <= eth_clk_i;
+   stats_rst(0) <= eth_rst_i;
    stats_inc(0) <= eth_rx_en and eth_rx_err;
    
    -- Layer 1 CRC errors
+   stats_clk(1) <= eth_clk_i;
+   stats_rst(1) <= eth_rst_i;
    stats_inc(1) <= eth_rx_en and eth_rx_eof and (not eth_rx_crc_valid);
 
    -- Layer 1 successfull packets
+   stats_clk(2) <= eth_clk_i;
+   stats_rst(2) <= eth_rst_i;
    stats_inc(2) <= eth_rx_en and eth_rx_eof and eth_rx_crc_valid;
+
+   -- Layer 2 drop (e.g. wrong MAC address)
+   stats_clk(3) <= cpu_clk_i;
+   stats_rst(3) <= cpu_rst_i;
+   stats_inc(3) <= cpu_drop;
 
 end Structural;
 

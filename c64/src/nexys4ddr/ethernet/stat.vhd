@@ -11,6 +11,8 @@ entity stat is
       clk_i   : in  std_logic;
       rst_i   : in  std_logic;
       inc_i   : in  std_logic_vector(G_NUM-1 downto 0);
+      clks_i  : in  std_logic_vector(G_NUM-1 downto 0);
+      rsts_i  : in  std_logic_vector(G_NUM-1 downto 0);
       addr_i  : in  std_logic_vector( 7 downto 0);
       data_o  : out std_logic_vector(15 downto 0);
       debug_o : out std_logic_vector(16*G_NUM-1 downto 0)
@@ -29,20 +31,21 @@ begin
       debug_o(16*i+15 downto 16*i) <= i_stats(i);
    end generate gen_debug;
 
-   proc_count : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         for i in 0 to G_NUM-1 loop
+   gen_count : for i in 0 to G_NUM-1 generate
+      proc_count : process (clks_i(i))
+      begin
+         if rising_edge(clks_i(i)) then
             if inc_i(i) = '1' then
                i_stats(i) <= i_stats(i) + 1;
             end if;
-         end loop;
 
-         if rst_i = '1' then
-            i_stats <= (others => (others => '0'));
+            if rsts_i(i) = '1' then
+               i_stats(i) <= (others => '0');
+            end if;
          end if;
-      end if;
-   end process proc_count;
+      end process proc_count;
+   end generate gen_count;
+
 
    proc_read : process (clk_i)
    begin
