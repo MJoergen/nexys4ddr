@@ -16,7 +16,6 @@ architecture Structural of nexys4ddr_tb is
    -- Clock and reset
    signal clk100   : std_logic := '0';  -- 100 MHz
    signal sys_rstn : std_logic := '0';
-   signal sys_rst  : std_logic := '1';
 
    -- VGA port
    signal vga_hs    : std_logic; 
@@ -45,7 +44,8 @@ architecture Structural of nexys4ddr_tb is
    signal ps2_clk  : std_logic;
    signal ps2_data : std_logic;
 
-   signal key_cnt   : std_logic_vector(14 downto 0) := (others => '0');
+   signal key_rst   : std_logic := '1';
+   signal key_cnt   : std_logic_vector(11 downto 0) := (others => '0');
    signal key_valid : std_logic;
    signal key_data  : std_logic_vector(7 downto 0) := X"00";
 
@@ -67,20 +67,23 @@ begin
    -- Generate reset (asserted low)
    sys_rstn <= '0', '1' after 100 ns;
 
-   sys_rst <= not sys_rstn;
+   key_rst <= '1', '0' after 10 us;
 
    proc_ps2 : process (clk100)
    begin
       if rising_edge(clk100) then
          key_valid <= '0';
          key_cnt   <= key_cnt + 1;
+         if key_cnt = X"CCC" then
+            key_cnt <= (others => '0');
+         end if;
 
          if key_cnt = 0 then
             key_valid <= '1';
             key_data <= (key_data(6 downto 0) & key_data(7)) xor X"AB";
          end if;
 
-         if sys_rst = '1' then
+         if key_rst = '1' then
             key_valid <= '0';
             key_cnt   <= (others => '0');
          end if;
@@ -98,7 +101,7 @@ begin
    port map (
       -- Clock
       clk_i      => clk100,
-      rst_i      => sys_rst,
+      rst_i      => key_rst,
       data_i     => key_data,
       valid_i    => key_valid,
       ps2_clk_o  => ps2_clk,
