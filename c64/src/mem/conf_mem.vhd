@@ -53,7 +53,6 @@ architecture Structural of conf_mem is
    signal a_yline_d   : std_logic_vector(7 downto 0);
    signal a_irq_d     : std_logic;
    signal a_rd_data   : std_logic_vector(7 downto 0);
-   signal a_kb_rden   : std_logic;
 
    signal b_config    : std_logic_vector(2**(G_CONF_SIZE+3)-1 downto 0) := (others => '0');
 
@@ -90,7 +89,6 @@ begin
          addr_v := conv_integer(a_addr_i(G_CONF_SIZE-1 downto 0));
 
          a_rd_data <= (others => '0');
-         a_kb_rden <= '0';
 
          if a_rd_en_i = '1' then
             case addr_v is
@@ -98,7 +96,6 @@ begin
                   a_rd_data <= a_yline_d;
                when C_KBD =>
                   a_rd_data <= a_kb_val_i;
-                  a_kb_rden <= '1';
                when C_IRQ_STAT =>
                   a_rd_data(0) <= a_irq_latch;
                   a_irq_latch <= '0';
@@ -120,7 +117,8 @@ begin
    -- Drive output signals.
    a_irq_o     <= a_irq_latch;
    a_rd_data_o <= a_rd_data;
-   a_kb_rden_o <= a_kb_rden;
+   a_kb_rden_o <= '1' when a_rd_en_i = '1' and a_addr_i(G_CONF_SIZE-1 downto 0) = C_KBD
+                  else '0';
 
 
    --------------

@@ -1,22 +1,22 @@
 [*]
-[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Tue Apr 10 04:53:52 2018
+[*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
+[*] Tue Apr 10 05:59:22 2018
 [*]
-[dumpfile] "/home/mike/git/nexys4ddr/c64/nexys4ddr.ghw"
-[dumpfile_mtime] "Tue Apr 10 04:51:56 2018"
-[dumpfile_size] 5741359
-[savefile] "/home/mike/git/nexys4ddr/c64/src/nexys4ddr_tb.gtkw"
-[timestart] 0
-[size] 1920 1010
+[dumpfile] "/home/mfj/git/nexys4ddr/c64/nexys4ddr.ghw"
+[dumpfile_mtime] "Tue Apr 10 05:56:29 2018"
+[dumpfile_size] 7800206
+[savefile] "/home/mfj/git/nexys4ddr/c64/src/nexys4ddr_tb.gtkw"
+[timestart] 137603000000
+[size] 1855 1010
 [pos] 1905 0
-*-33.608894 9830000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-25.608894 137750000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.nexys4ddr_tb.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.inst_ctl.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.
-[treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_ps2.
+[treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_vga_module.inst_vga_sprites.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_receive.
@@ -98,7 +98,7 @@ top.nexys4ddr_tb.inst_ps2_tb.valid_i
 @28
 top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_ps2.ps2_clk_r
 top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_ps2.ps2_data_r
-@421
+@420
 top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_ps2.cnt
 @c00200
 -VGA
@@ -141,5 +141,21 @@ top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_rom.wr_en_i
 top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_rom.rd_en_i
 @1401200
 -ROM
+@800200
+-Keyboard
+@28
+top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.ps2_clk_i
+top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.ps2_data_i
+top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.rden_i
+@22
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.val_o[0]
+@28
+top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.rdptr_r
+@29
+top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.wrptr_r
+@22
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[63:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[63] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[62] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[61] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[60] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[59] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[58] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[57] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[56] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[55] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[54] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[53] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[52] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[51] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[50] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[49] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[48] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[47] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[46] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[45] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[44] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[43] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[42] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[41] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[40] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[39] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[38] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[37] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[36] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[35] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[34] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[33] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[32] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[31] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[30] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[29] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[28] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[27] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[26] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[25] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[24] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[23] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[22] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[21] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[20] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[19] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[18] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[17] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[16] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[15] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[14] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[13] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[12] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[11] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[10] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[9] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[8] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.fifo_r[0]
+@1000200
+-Keyboard
 [pattern_trace] 1
 [pattern_trace] 0

@@ -282,7 +282,7 @@ begin
    a_wait_o <= '1' when a_wait = '1' and a_wait_d = '0' else
                '0';
 
-   a_kb_rden_o <= a_kb_rden and not a_wait;
+   a_kb_rden_o <= a_kb_rden and not a_wait_d;
 
 end Structural;
 
