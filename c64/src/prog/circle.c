@@ -39,67 +39,10 @@ x0^2 + y0^2 - x0*y0*dt = constant
 
 In particular, the orbit is closed.
 
-
-Another way to look at it, is to rewrite the transformation with a matrix.
-First we have:
-y1 = y0 + (x0 - y0*dt) * dt
-   = dt*x0 + (1-dt^2)*y0
-Therefore, the matrix is
-+----+--------+
-|  1 |    -dt |
-+----+--------+
-| dt | 1-dt^2 |
-+----+--------+
-Since the determinant of this matrix is 1, and the trace is 2-dt^2, i.e. less than 2,
-then we conclude that the eigenvalues are complex conjugate on the unit circle.
-
-The two eigenvalues are therefore l_12 = cos(v) +/- i*sin(v), and we must have
-2*cos(v) = 2-dt^2, This shows that: dt^2 = 2*(1-cos(v)) = (2*sin(v/2))^2. In other words:
-dt = 2*sin(v/2).
-
-
-Let w = (1, a)^T be an eigenvector. Then we calculate:
-A*w = (1 - a*dt, dt + a*(1-dt^2))^T.
-Equation this with (1-a*dt)*w gives:
-(1-a*dt)*a = dt + a*(1-dt^2)
--a^2*dt = dt - a*dt^2
--a^2 = 1 - a*dt
-
-Insert here a = i+b*dt we get:
-1 - b^2*dt^2 - 2ib*dt = 1 - (i+b*dt)*dt
--b^2*dt^2 - 2ib*dt = -i*dt - b*dt^2
--b^2*dt - 2ib = -i - b*dt
-Letting dt=0 gives
-2ib=i
-i.e. b=1/2
-Therefore, one eigenvalue is
-w = (1, i+dt/2)^T,
-to first order in dt.
-
-The exact eigenvector is:
-w = (1, dt/2 + i*sqrt(4-dt^2)/2)^T.
-
-Now 4-dt^2 = 4*cos^2(v/2). Therefore, the eigenvector can be written as:
-w = (1, sin(v/2) + i*cos(v/2))^T.
-
-
-In general, if a 2x2 linear transformation A has determinant 1, i.e.
-+---+---+
-| a | b |
-+---+---+
-| c | d |
-+---+---+
-with a*d - b*c = 1, then there is an associated invariant quadratic form with
-
-+---------+---------+
-| c       | (d-a)/2 |
-+---------+---------+
-| (d-a)/2 | -b      |
-+---------+---------+
-
-In other words, if
+In general, if:
 y1 = a*x1 + b*x2
 y2 = c*x1 + d*x2
+then:
 c*y1^2 - b*y2^2 + (d-a)*y1*y2 = (ad-bc) * (c*x1^2 - b*x2^2 + (d-a)*x1*x2).
 With ad-bc = 1 we see that the quadratic form is indeed invariant.
 
@@ -210,14 +153,14 @@ void __fastcall__ circle_init(void)
    __asm__("STA %w", VGA_ADDR_SPRITE_0_X_MSB);
 
    // Reset coordinates
-   __asm__("LDA #$00");
-   __asm__("STA %b", ZP_XLO);
-   __asm__("STA %b", ZP_YLO);
-   __asm__("STA %b", ZP_YHI);
-   __asm__("STA %b", ZP_XYLO);
-   __asm__("STA %b", ZP_XYHI);
    __asm__("LDA #$60");
    __asm__("STA %b", ZP_XHI);
+   __asm__("LDA #$00");
+   __asm__("STA %b", ZP_XLO);
+   __asm__("STA %b", ZP_YHI);
+   __asm__("STA %b", ZP_YLO);
+   __asm__("STA %b", ZP_XYHI);
+   __asm__("STA %b", ZP_XYLO);
 
 } // end of circle_init
 
@@ -263,9 +206,7 @@ x_positive:
 
    // Move XLO high bit into carry
    __asm__("LDA %b", ZP_XLO);
-   __asm__("CLC");
-   __asm__("ADC %b", ZP_XLO);
-
+   __asm__("ROL A");
    __asm__("LDA %b", ZP_XHI);
    __asm__("ADC #$65");
    __asm__("STA %w", VGA_ADDR_SPRITE_0_X); // Set X coordinate of sprite 0
@@ -273,9 +214,7 @@ x_positive:
 //// Uncomment below to generate a circle.
 //   // Move YLO high bit into carry
 //   __asm__("LDA %b", ZP_YLO);
-//   __asm__("CLC");
-//   __asm__("ADC %b", ZP_YLO);
-//
+//   __asm__("ROL A");
 //   __asm__("LDA %b", ZP_YHI);
 //   __asm__("ADC #$65");
 //   __asm__("STA %w", VGA_ADDR_SPRITE_0_Y); // Set Y coordinate of sprite 0
