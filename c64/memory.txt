@@ -1,0 +1,24 @@
+This file contains an overview of the BRAM usage.
+
+mem_module:
+-- RAM  : 1 BRAM
+-- DISP : 1 BRAM
+-- MOB  : 0 BRAM
+-- CONF : 0 BRAM
+-- FONT : 2 BRAM
+-- ROM  : 1 BRAM
+
+VGA:
+-- divmod13 : 1 BRAM
+-- opcodes  : 1 BRAM
+
+The above totals 7 BRAM
+
+Ethernet:
+-- compress  : 4 BRAM
+-- encap     : 4 BRAM
+-- decap     : 2 BRAM
+-- strip_crc : 3 BRAM
+
+Ethernet only is 13 BRAM.
+
