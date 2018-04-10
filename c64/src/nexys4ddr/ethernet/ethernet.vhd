@@ -42,7 +42,7 @@ entity ethernet is
 
       -- Debug output
       eth_smi_registers_o : out   std_logic_vector(32*16-1 downto 0);
-      eth_stat_debug_o    : out   std_logic_vector(4*16-1 downto 0)
+      eth_stat_debug_o    : out   std_logic_vector(6*16-1 downto 0)
    );
 end ethernet;
 
@@ -68,11 +68,13 @@ architecture Structural of ethernet is
    signal eth_rx_err        : std_logic;
    signal eth_rx_crc_valid  : std_logic;
 
-   signal cpu_drop          : std_logic;
+   signal cpu_drop_mac      : std_logic;
+   signal cpu_drop_ip       : std_logic;
+   signal cpu_drop_udp      : std_logic;
 
-   signal stats_clk         : std_logic_vector( 3 downto 0);
-   signal stats_rst         : std_logic_vector( 3 downto 0);
-   signal stats_inc         : std_logic_vector( 3 downto 0);
+   signal stats_clk         : std_logic_vector( 5 downto 0);
+   signal stats_rst         : std_logic_vector( 5 downto 0);
+   signal stats_inc         : std_logic_vector( 5 downto 0);
    signal stats_addr        : std_logic_vector( 7 downto 0);
    signal stats_data        : std_logic_vector(15 downto 0);
 
@@ -86,7 +88,7 @@ begin
 
    inst_stat : entity work.stat
    generic map (
-      G_NUM => 4
+      G_NUM => 6
    )
    port map (
       clk_i   => eth_clk_i,
@@ -201,7 +203,9 @@ begin
       pl_wr_addr_o    => cpu_wr_addr_o,
       pl_wr_en_o      => cpu_wr_en_o,
       pl_wr_data_o    => cpu_wr_data_o,
-      pl_drop_o       => cpu_drop
+      pl_drop_mac_o   => cpu_drop_mac,
+      pl_drop_ip_o    => cpu_drop_ip,
+      pl_drop_udp_o   => cpu_drop_udp
    );
 
    -- Layer 1 framing errors
@@ -219,10 +223,20 @@ begin
    stats_rst(2) <= eth_rst_i;
    stats_inc(2) <= eth_rx_en and eth_rx_eof and eth_rx_crc_valid;
 
-   -- Layer 2 drop (e.g. wrong MAC address)
+   -- Layer 2 drop (wrong MAC address)
    stats_clk(3) <= cpu_clk_i;
    stats_rst(3) <= cpu_rst_i;
-   stats_inc(3) <= cpu_drop;
+   stats_inc(3) <= cpu_drop_mac;
+
+   -- Layer 2 drop (wrong IP address)
+   stats_clk(4) <= cpu_clk_i;
+   stats_rst(4) <= cpu_rst_i;
+   stats_inc(4) <= cpu_drop_ip;
+
+   -- Layer 2 drop (wrong UDP port)
+   stats_clk(5) <= cpu_clk_i;
+   stats_rst(5) <= cpu_rst_i;
+   stats_inc(5) <= cpu_drop_udp;
 
 end Structural;
 

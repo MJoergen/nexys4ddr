@@ -36,7 +36,9 @@ entity decap is
       pl_afull_i      : in  std_logic;
       pl_ovf_o        : out std_logic;
       pl_err_o        : out std_logic;
-      pl_drop_o       : out std_logic
+      pl_drop_mac_o   : out std_logic;
+      pl_drop_ip_o    : out std_logic;
+      pl_drop_udp_o   : out std_logic
    );
 end decap;
 
@@ -63,7 +65,9 @@ architecture Structural of decap is
    signal pl_data : std_logic_vector(7 downto 0);
    signal pl_ovf  : std_logic;
    signal pl_err  : std_logic;
-   signal pl_drop : std_logic;
+   signal pl_drop_mac : std_logic;
+   signal pl_drop_ip  : std_logic;
+   signal pl_drop_udp : std_logic;
 
    -- Temporary storage. Instead of using a multiplexor.
    signal ctrl_mac_dst : std_logic_vector(47 downto 0);
@@ -129,7 +133,9 @@ begin
                ctrl_mac_dst <= ctrl_mac_dst_i;
                ctrl_ip_dst  <= ctrl_ip_dst_i;
                ctrl_udp_dst <= ctrl_udp_dst_i;
-               pl_drop      <= '0';
+               pl_drop_mac  <= '0';
+               pl_drop_ip   <= '0';
+               pl_drop_udp  <= '0';
 
                if pl_fifo_empty = '0' and pl_fifo_out_sof = '1' then
                   pl_bytes  <= (others => '0');
@@ -142,8 +148,8 @@ begin
 
                   if pl_bytes < 6 then
                      if pl_fifo_out_data /= ctrl_mac_dst(47 downto 40) then
-                        pl_drop   <= '1';
-                        fsm_state <= IDLE_ST;
+                        pl_drop_mac <= '1';
+                        fsm_state   <= IDLE_ST;
                      end if;
 
                      ctrl_mac_dst <= ctrl_mac_dst(39 downto 0) & X"00";
@@ -161,8 +167,8 @@ begin
 
                   if pl_bytes >= 16 and pl_bytes < 20 then
                      if pl_fifo_out_data /= ctrl_ip_dst(31 downto 24) then
-                        pl_drop   <= '1';
-                        fsm_state <= IDLE_ST;
+                        pl_drop_ip <= '1';
+                        fsm_state  <= IDLE_ST;
                      end if;
 
                      ctrl_ip_dst <= ctrl_ip_dst(23 downto 0) & X"00";
@@ -180,8 +186,8 @@ begin
 
                   if pl_bytes >= 2 and pl_bytes < 4 then
                      if pl_fifo_out_data /= ctrl_udp_dst(15 downto 8) then
-                        pl_drop   <= '1';
-                        fsm_state <= IDLE_ST;
+                        pl_drop_udp <= '1';
+                        fsm_state   <= IDLE_ST;
                      end if;
 
                      ctrl_udp_dst <= ctrl_udp_dst(7 downto 0) & X"00";
@@ -224,7 +230,9 @@ begin
    pl_data_o <= pl_data;
    pl_ovf_o  <= pl_ovf;
    pl_err_o  <= pl_err;
-   pl_drop_o <= pl_drop;
+   pl_drop_mac_o <= pl_drop_mac;
+   pl_drop_ip_o  <= pl_drop_ip;
+   pl_drop_udp_o <= pl_drop_udp;
 
 end Structural;
 
