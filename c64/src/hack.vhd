@@ -103,8 +103,10 @@ architecture Structural of hack is
 
 begin
 
-   vga_debug(127 downto 70) <= (others => '0');
-   vga_debug( 69 downto  0) <= cpu_key_debug;
+--   vga_debug(127 downto 70) <= (others => '0');
+--   vga_debug( 69 downto  0) <= cpu_key_debug;
+
+   vga_debug <= vga_debug_i;
 
    ------------------------------
    -- Instantiate CPU
