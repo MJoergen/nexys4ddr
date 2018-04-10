@@ -44,7 +44,7 @@ begin
             ps2_clk <= not ps2_clk;
          end if;
 
-         if rst_i = '1' then
+         if rst_i = '1' or valid_i = '1' then
             clk_cnt <= (others => '0');
             ps2_clk <= '1';
          end if;
