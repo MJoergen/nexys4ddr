@@ -2,9 +2,9 @@
 
 import socket
 
-UDP_IP = "10.100.2.196"
-UDP_PORT = 5005
-MESSAGE = "Hello, World!"
+UDP_IP = "192.168.1.46"
+UDP_PORT = 9029
+MESSAGE = chr(80) + chr(128) + "Hvad skal jeg nu skrive ????"
 
 sock = socket.socket(socket.AF_INET, # Internet
                    socket.SOCK_DGRAM) # UDP
