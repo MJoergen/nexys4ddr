@@ -82,9 +82,9 @@ begin
    inst_decap : entity work.decap
    port map (
       -- Ctrl interface. Assumed to be constant for now.
-      ctrl_mac_dst_i  => X"F46D04D7F3CA",
-      ctrl_ip_dst_i   => X"C0A8012B",      -- 192.168.1.43
-      ctrl_udp_dst_i  => X"1234",          -- Port 4660
+      ctrl_mac_dst_i  => X"F46D04112233",
+      ctrl_ip_dst_i   => X"C0A8012E",      -- 192.168.1.46
+      ctrl_udp_dst_i  => X"2345",
 
       -- Mac interface @ eth_clk_i
       mac_clk_i       => eth_clk_i,

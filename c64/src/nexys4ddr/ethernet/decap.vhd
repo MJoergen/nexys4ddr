@@ -56,7 +56,7 @@ architecture Structural of decap is
 
    signal pl_bytes  : std_logic_vector(15 downto 0);
 
-   type t_fsm_state is (IDLE_ST, MAC_HDR_ST, IP_HDR_ST, UDP_HDR_ST, FWD_ST);
+   type t_fsm_state is (IDLE_ST, MAC_HDR_ST, IP_HDR_ST, UDP_HDR_ST, FWD_ST, DISC_ST);
    signal fsm_state : t_fsm_state := IDLE_ST;
 
    signal pl_ena  : std_logic := '0';
@@ -127,15 +127,15 @@ begin
          pl_data <= (others => '0');
          pl_ovf  <= '0';
          pl_err  <= '0';
+         pl_drop_mac  <= '0';
+         pl_drop_ip   <= '0';
+         pl_drop_udp  <= '0';
 
          case fsm_state is
             when IDLE_ST =>
                ctrl_mac_dst <= ctrl_mac_dst_i;
                ctrl_ip_dst  <= ctrl_ip_dst_i;
                ctrl_udp_dst <= ctrl_udp_dst_i;
-               pl_drop_mac  <= '0';
-               pl_drop_ip   <= '0';
-               pl_drop_udp  <= '0';
 
                if pl_fifo_empty = '0' and pl_fifo_out_sof = '1' then
                   pl_bytes  <= (others => '0');
@@ -149,7 +149,7 @@ begin
                   if pl_bytes < 6 then
                      if pl_fifo_out_data /= ctrl_mac_dst(47 downto 40) then
                         pl_drop_mac <= '1';
-                        fsm_state   <= IDLE_ST;
+                        fsm_state   <= DISC_ST;
                      end if;
 
                      ctrl_mac_dst <= ctrl_mac_dst(39 downto 0) & X"00";
@@ -168,7 +168,7 @@ begin
                   if pl_bytes >= 16 and pl_bytes < 20 then
                      if pl_fifo_out_data /= ctrl_ip_dst(31 downto 24) then
                         pl_drop_ip <= '1';
-                        fsm_state  <= IDLE_ST;
+                        fsm_state  <= DISC_ST;
                      end if;
 
                      ctrl_ip_dst <= ctrl_ip_dst(23 downto 0) & X"00";
@@ -187,7 +187,7 @@ begin
                   if pl_bytes >= 2 and pl_bytes < 4 then
                      if pl_fifo_out_data /= ctrl_udp_dst(15 downto 8) then
                         pl_drop_udp <= '1';
-                        fsm_state   <= IDLE_ST;
+                        fsm_state   <= DISC_ST;
                      end if;
 
                      ctrl_udp_dst <= ctrl_udp_dst(7 downto 0) & X"00";
@@ -212,6 +212,13 @@ begin
                   end if;
                end if;
 
+            when DISC_ST =>
+               if pl_fifo_rden = '1' then
+                  if pl_fifo_out_eof = '1' then
+                     fsm_state <= IDLE_ST;
+                  end if;
+               end if;
+
          end case;
 
          if pl_rst_i = '1' then
@@ -220,7 +227,11 @@ begin
       end if;
    end process pl_fsm;
 
-   pl_fifo_rden <= '1' when (fsm_state = MAC_HDR_ST or fsm_state = IP_HDR_ST or fsm_state = UDP_HDR_ST or fsm_state = FWD_ST)
+   pl_fifo_rden <= '1' when (fsm_state = MAC_HDR_ST or
+                             fsm_state = IP_HDR_ST or
+                             fsm_state = UDP_HDR_ST or
+                             fsm_state = FWD_ST or
+                             fsm_state = DISC_ST)
                          and pl_afull_i = '0' else '0';
 
    -- Drive output signals
