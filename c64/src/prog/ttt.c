@@ -151,7 +151,7 @@ loop:
    // Place "X" at the position
    __asm__("LDA #$00"); 
    __asm__("TAY"); 
-   __asm__("LDA #$%b", 'X'); 
+   __asm__("LDA #%b", 'X'); 
    __asm__("STA (%b),Y", ZP_SCREEN_POS_HI); 
    __asm__("INY"); 
    __asm__("INY"); 
@@ -160,21 +160,21 @@ loop:
 
    __asm__("LDA #$29"); 
    __asm__("TAY"); 
-   __asm__("LDA #$%b", 'X'); 
+   __asm__("LDA #%b", 'X'); 
    __asm__("STA (%b),Y", ZP_SCREEN_POS_HI); 
    __asm__("INY"); 
    __asm__("STA (%b),Y", ZP_SCREEN_POS_HI); 
 
    __asm__("LDA #$51"); 
    __asm__("TAY"); 
-   __asm__("LDA #$%b", 'X'); 
+   __asm__("LDA #%b", 'X'); 
    __asm__("STA (%b),Y", ZP_SCREEN_POS_HI); 
    __asm__("INY"); 
    __asm__("STA (%b),Y", ZP_SCREEN_POS_HI); 
 
    __asm__("LDA #$78"); 
    __asm__("TAY"); 
-   __asm__("LDA #$%b", 'X'); 
+   __asm__("LDA #%b", 'X'); 
    __asm__("STA (%b),Y", ZP_SCREEN_POS_HI); 
    __asm__("INY"); 
    __asm__("INY"); 
