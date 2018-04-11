@@ -92,10 +92,11 @@ architecture Structural of nexys4ddr is
    signal fifo_error        : std_logic := '0';
 
    -- Memory data received from Ethernet @ cpu_clk
-   signal cpu_wr_addr : std_logic_vector(15 downto 0);
-   signal cpu_wr_en   : std_logic;
-   signal cpu_wr_data : std_logic_vector(7 downto 0);
-   signal cpu_reset   : std_logic;
+   signal cpu_wr_addr  : std_logic_vector(15 downto 0);
+   signal cpu_wr_en    : std_logic;
+   signal cpu_wr_data  : std_logic_vector(7 downto 0);
+   signal cpu_reset    : std_logic;
+   signal cpu_hack_rst : std_logic;
 
 begin
 
@@ -158,6 +159,8 @@ begin
    );
 
 
+   cpu_hack_rst <= cpu_rst or cpu_reset;
+
    ------------------------------
    -- Hack Computer!
    ------------------------------
@@ -182,7 +185,7 @@ begin
    )
    port map (
       cpu_clk_i     => cpu_clk,
-      cpu_rst_i     => cpu_rst or cpu_reset,
+      cpu_rst_i     => cpu_hack_rst,
       cpu_wr_addr_i => cpu_wr_addr,
       cpu_wr_en_i   => cpu_wr_en,
       cpu_wr_data_i => cpu_wr_data,
