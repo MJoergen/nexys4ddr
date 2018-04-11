@@ -47,7 +47,7 @@ architecture Structural of nexys4ddr_tb is
    signal key_rst   : std_logic := '1';
    signal key_cnt   : std_logic_vector(11 downto 0) := (others => '0');
    signal key_valid : std_logic;
-   signal key_data  : std_logic_vector(7 downto 0) := X"00";
+   signal key_data  : std_logic_vector(7 downto 0);
 
    signal test_running : boolean := true;
 
@@ -80,12 +80,13 @@ begin
 
          if key_cnt = 0 then
             key_valid <= '1';
-            key_data <= (key_data(6 downto 0) & key_data(7)) xor X"AB";
+            key_data <= key_data + 1;
          end if;
 
          if key_rst = '1' then
             key_valid <= '0';
             key_cnt   <= (others => '0');
+            key_data  <= X"3C";
          end if;
       end if;
    end process proc_ps2;
