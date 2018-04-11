@@ -91,7 +91,7 @@ begin
    end process proc_ps2;
 
    -- Generate input switches
-   sw <= X"0000";
+   sw <= X"0100";
 
    -- Generate input buttons
    btn <= "00000";
