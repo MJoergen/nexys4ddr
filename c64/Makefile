@@ -33,7 +33,6 @@ TB_SRC  = src/nexys4ddr/$(testbench).vhd
 TB_SRC += src/keyboard/ps2_tb.vhd
 
 # VGA driver
-SRC += src/vga/conf_stat.vhd
 SRC += src/vga/sync.vhd
 SRC += src/vga/chars.vhd
 SRC += src/vga/sprites.vhd
@@ -78,6 +77,10 @@ PROG_SRC   += src/prog/umult.c
 #PROG_SRC    = src/prog/cputest.c
 #PROG_SRC    = src/prog/memtest.c
 #PROG_SRC    = src/prog/scroll.c
+
+#PROG_SRC    = src/prog/ttt.c
+#PROG_SRC   += src/prog/keyboard.c
+
 LD_CFG      = src/prog/ld.cfg
 VECTORS_AS  = src/prog/vectors.s
 
