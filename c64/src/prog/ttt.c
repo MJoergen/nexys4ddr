@@ -132,9 +132,9 @@ loop:
 
    // Check if valid key pressed
    __asm__("CMP #$30");
-   __asm__("BCS %g", loop);
-   __asm__("CMP #$3A");
    __asm__("BCC %g", loop);
+   __asm__("CMP #$3A");
+   __asm__("BCS %g", loop);
 
    // Convert into range 0-8
    __asm__("SEC");
@@ -152,34 +152,34 @@ loop:
    __asm__("LDA #$00"); 
    __asm__("TAY"); 
    __asm__("LDA #%b", 'X'); 
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_HI); 
+   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO); 
    __asm__("INY"); 
    __asm__("INY"); 
    __asm__("INY"); 
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_HI); 
+   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO); 
 
    __asm__("LDA #$29"); 
    __asm__("TAY"); 
    __asm__("LDA #%b", 'X'); 
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_HI); 
+   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO); 
    __asm__("INY"); 
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_HI); 
+   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO); 
 
    __asm__("LDA #$51"); 
    __asm__("TAY"); 
    __asm__("LDA #%b", 'X'); 
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_HI); 
+   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO); 
    __asm__("INY"); 
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_HI); 
+   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO); 
 
    __asm__("LDA #$78"); 
    __asm__("TAY"); 
    __asm__("LDA #%b", 'X'); 
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_HI); 
+   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO); 
    __asm__("INY"); 
    __asm__("INY"); 
    __asm__("INY"); 
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_HI); 
+   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO); 
 
    goto loop;  // Just do an endless loop.
 } // end of reset
