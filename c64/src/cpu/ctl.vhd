@@ -15,6 +15,7 @@ entity ctl is
    port (
       clk_i  : in  std_logic;
       rst_i  : in  std_logic;
+      step_i : in  std_logic;
       wait_i : in  std_logic;
       irq_i  : in  std_logic;
       data_i : in  std_logic_vector( 7 downto 0);
@@ -2503,7 +2504,7 @@ begin
    p_cnt : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if wait_i = '0' then
+         if wait_i = '0' and step_i = '1' then
             cnt_r <= cnt_r + 1;
 
             if last = '1' then
@@ -2513,10 +2514,10 @@ begin
                   cnt_r <= "001";
                end if;
             end if;
+         end if;
 
-            if rst_i = '1' then
-               cnt_r <= "100";
-            end if;
+         if rst_i = '1' then
+            cnt_r <= "100";
          end if;
       end if;
    end process p_cnt;
@@ -2534,10 +2535,10 @@ begin
             if last = '1' and irq_i = '1' then
                inst_r <= X"00";
             end if;
+         end if;
 
-            if rst_i = '1' then
-               inst_r <= X"00";
-            end if;
+         if rst_i = '1' then
+            inst_r <= X"00";
          end if;
       end if;
    end process p_inst;
@@ -2547,7 +2548,7 @@ begin
    p_irq_reset : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if last = '1' then
+         if last = '1' and step_i = '1' then
             irq_l <= irq_i;
             rst_l <= irq_i;
          end if;
@@ -2560,10 +2561,10 @@ begin
    end process p_irq_reset;
 
    -- Combinatorial process
-   process (cnt_r, inst_r, wait_i)
+   process (cnt_r, inst_r, wait_i, step_i)
    begin
       ctl <= micro_op_rom(conv_integer(inst_r & cnt_r));
-      if wait_i = '1' then
+      if wait_i = '1' or step_i = '0' then
          ctl(27 downto  0) <= (others => '0');
          ctl(45 downto 44) <= (others => '0');
          ctl(41 downto 40) <= (others => '0');

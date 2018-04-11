@@ -35,6 +35,7 @@ entity clk_rst is
       vga_rst_o  : out std_logic;
       cpu_clk_o  : out std_logic;
       cpu_rst_o  : out std_logic;
+      cpu_step_o : out std_logic;
       eth_clk_o  : out std_logic;
       eth_rst_o  : out std_logic
    );
@@ -46,17 +47,17 @@ architecture Structural of clk_rst is
    signal sys_rstn : std_logic := '0';
    signal sys_step : std_logic := '0';
    signal sys_mode : std_logic := '0';
-   signal sys_mode_inv : std_logic := '1';
 
    -- Clocks and Reset
    signal vga_clk   : std_logic := '0';
    signal vga_rst   : std_logic := '1';
    signal cpu_clk   : std_logic := '0';
    signal cpu_rst   : std_logic := '1';
+   signal cpu_step  : std_logic := '1';
    signal eth_clk   : std_logic := '0';
    signal eth_rst   : std_logic := '1';
 
-   signal cpu_clk_stepped : std_logic := '0';
+   signal sys_step_d : std_logic := '0';
  
    signal ready : std_logic := '0';
    signal reset : std_logic := '1'; 
@@ -106,7 +107,6 @@ begin
    ------------------------------
 
    gen_clocks : if G_SIMULATION = false generate
-      -- Generate clocks
       inst_clk_wiz_0 : entity work.clk_wiz_0
       port map
       (
@@ -115,30 +115,29 @@ begin
          vga_clk => vga_clk,
          cpu_clk => cpu_clk
       );
-
-      sys_mode_inv <= not sys_mode;
-
-      -- Note: For some reason, synthesis fails if I0 and I1 are swapped.
-      inst_bufgmux : BUFGCTRL
-      port map (
-         IGNORE0 => '0',
-         IGNORE1 => '0',
-         S0      => '1',
-         S1      => '1',
-         I1      => cpu_clk,
-         I0      => sys_step,
-         CE0     => sys_mode,
-         CE1     => sys_mode_inv,
-         O       => cpu_clk_stepped
-      );
    end generate gen_clocks;
 
    gen_no_clocks : if G_SIMULATION = true generate
       vga_clk <= sys_clk100_i;
       cpu_clk <= sys_clk100_i;
       eth_clk <= sys_clk100_i;
-      cpu_clk_stepped <= cpu_clk when sys_mode = '0' else sys_step;
    end generate gen_no_clocks;
+
+
+   ------------------------------
+   -- Generate single-step
+   ------------------------------
+
+   process (cpu_clk)
+   begin
+      if rising_edge(cpu_clk) then
+         cpu_step <= '1';
+         if sys_mode = '1' then
+            cpu_step <= sys_step and not sys_step_d;
+         end if;
+         sys_step_d <= sys_step;
+      end if;
+   end process;
  
  
    ------------------------------
@@ -193,12 +192,13 @@ begin
  
 
    -- Drive output signals
-   vga_clk_o <= vga_clk;
-   vga_rst_o <= vga_rst;
-   cpu_clk_o <= cpu_clk;
-   cpu_rst_o <= cpu_rst;
-   eth_clk_o <= eth_clk;
-   eth_rst_o <= eth_rst;
+   vga_clk_o  <= vga_clk;
+   vga_rst_o  <= vga_rst;
+   cpu_clk_o  <= cpu_clk;
+   cpu_rst_o  <= cpu_rst;
+   eth_clk_o  <= eth_clk;
+   eth_rst_o  <= eth_rst;
+   cpu_step_o <= cpu_step;
    
 end Structural;
 

@@ -37,6 +37,7 @@ entity hack is
       -- Clocks and resets
       cpu_clk_i     : in  std_logic;
       cpu_rst_i     : in  std_logic;
+      cpu_step_i    : in  std_logic;
       -- ROM data received from Ethernet
       cpu_wr_addr_i : in  std_logic_vector(15 downto 0) := (others => '0');
       cpu_wr_en_i   : in  std_logic                     := '0';
@@ -111,6 +112,7 @@ begin
    port map (
       clk_i     => cpu_clk_i,
       rst_i     => cpu_rst_i,
+      step_i    => cpu_step_i,
       addr_o    => cpu_addr,
       rden_o    => cpu_rden,
       data_i    => cpu_rddata,

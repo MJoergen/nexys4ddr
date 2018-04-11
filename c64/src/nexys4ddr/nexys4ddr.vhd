@@ -58,6 +58,7 @@ architecture Structural of nexys4ddr is
    signal vga_rst   : std_logic;
    signal cpu_clk   : std_logic;
    signal cpu_rst   : std_logic;
+   signal cpu_step  : std_logic;
    signal eth_clk   : std_logic;
    signal eth_rst   : std_logic;
  
@@ -118,6 +119,7 @@ begin
       vga_rst_o    => vga_rst,
       cpu_clk_o    => cpu_clk,
       cpu_rst_o    => cpu_rst,
+      cpu_step_o   => cpu_step,
       eth_clk_o    => eth_clk,
       eth_rst_o    => eth_rst
    );
@@ -186,6 +188,7 @@ begin
    port map (
       cpu_clk_i     => cpu_clk,
       cpu_rst_i     => cpu_hack_rst,
+      cpu_step_i    => cpu_step,
       cpu_wr_addr_i => cpu_wr_addr,
       cpu_wr_en_i   => cpu_wr_en,
       cpu_wr_data_i => cpu_wr_data,

@@ -93,9 +93,18 @@ begin
 
    -- Generate input switches
    sw <= X"0100";
+   -- sw <= X"0101"; -- Used for testing single-step.
 
    -- Generate input buttons
-   btn <= "00000";
+   btn_gen : process
+   begin
+      if not test_running then
+         wait;
+      end if;
+
+      btn <= "00000", "00001" after 100 ns;
+      wait for 200 ns;
+   end process btn_gen;
 
    -- Instantiate keyboard
    inst_ps2_tb : entity work.ps2_tb

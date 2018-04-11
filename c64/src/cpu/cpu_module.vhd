@@ -11,8 +11,9 @@ use ieee.std_logic_unsigned.all;
 entity cpu_module is
    port (
       -- Clock
-      clk_i : in  std_logic;
-      rst_i : in  std_logic;
+      clk_i  : in  std_logic;
+      rst_i  : in  std_logic;
+      step_i : in  std_logic;
 
       -- Memory and I/O interface
       addr_o : out std_logic_vector(15 downto 0);
@@ -105,6 +106,7 @@ begin
    port map (
                clk_i           => clk_i,
                rst_i           => rst_i,
+               step_i          => step_i,
                wait_i          => wait_i,
                irq_i           => irq_masked,
                data_i          => data_i,
