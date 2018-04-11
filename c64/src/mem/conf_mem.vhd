@@ -48,13 +48,16 @@ architecture Structural of conf_mem is
    constant C_IRQ_MASK : integer := 29;
    constant C_KBD      : integer := 30;
 
-   signal a_config    : std_logic_vector(2**(G_CONF_SIZE+3)-1 downto 0) := (others => '0');
+   signal a_config    : std_logic_vector(2**(G_CONF_SIZE+3)-1 downto 0) := (
+      24*8+7 downto 24*8 => '1',
+      25*8+7 downto 25*8 => '0',
+      others => '0');
    signal a_irq_latch : std_logic := '0';
    signal a_yline_d   : std_logic_vector(7 downto 0);
    signal a_irq_d     : std_logic;
    signal a_rd_data   : std_logic_vector(7 downto 0);
 
-   signal b_config    : std_logic_vector(2**(G_CONF_SIZE+3)-1 downto 0) := (others => '0');
+   signal b_config    : std_logic_vector(2**(G_CONF_SIZE+3)-1 downto 0);
 
 begin
 
