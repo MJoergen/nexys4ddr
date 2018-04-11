@@ -40,6 +40,8 @@ entity chars is
       blank_i     : in  std_logic;
 
       config_i    : in  std_logic_vector(32*8-1 downto 0);
+
+      overlay_i   : in  std_logic;
       status_i    : in  std_logic_vector(127 downto 0);
       debug_i     : in  std_logic_vector(127 downto 0);
 
@@ -311,37 +313,39 @@ begin
          stage5 <= stage4;
          stage5.font_addr <= stage4_char_val & stage4.pix_y;
 
-         if stage4.char_y >= C_DEBUG_POSY   and stage4.char_y < C_DEBUG_POSY+8 and
-            stage4.char_x >= C_DEBUG_POSX+9 and stage4.char_x < C_DEBUG_POSX+13 then
-            char_val_v := stage4.nibble + X"30";
-            if stage4.nibble > 9 then
-               char_val_v := stage4.nibble + X"41" - X"0A";
+         if overlay_i = '1' then
+            if stage4.char_y >= C_DEBUG_POSY   and stage4.char_y < C_DEBUG_POSY+8 and
+               stage4.char_x >= C_DEBUG_POSX+9 and stage4.char_x < C_DEBUG_POSX+13 then
+               char_val_v := stage4.nibble + X"30";
+               if stage4.nibble > 9 then
+                  char_val_v := stage4.nibble + X"41" - X"0A";
+               end if;
+               stage5.font_addr <= char_val_v & stage4.pix_y;
             end if;
-            stage5.font_addr <= char_val_v & stage4.pix_y;
-         end if;
 
-         if stage4.char_y >= C_DEBUG_POSY   and stage4.char_y < C_DEBUG_POSY+8 and
-            stage4.char_x >= C_DEBUG_POSX+16 and stage4.char_x < C_DEBUG_POSX+20 then
-            char_val_v := stage4.nibble + X"30";
-            if stage4.nibble > 9 then
-               char_val_v := stage4.nibble + X"41" - X"0A";
+            if stage4.char_y >= C_DEBUG_POSY   and stage4.char_y < C_DEBUG_POSY+8 and
+               stage4.char_x >= C_DEBUG_POSX+16 and stage4.char_x < C_DEBUG_POSX+20 then
+               char_val_v := stage4.nibble + X"30";
+               if stage4.nibble > 9 then
+                  char_val_v := stage4.nibble + X"41" - X"0A";
+               end if;
+               stage5.font_addr <= char_val_v & stage4.pix_y;
             end if;
-            stage5.font_addr <= char_val_v & stage4.pix_y;
-         end if;
 
-         if stage4.char_y >= C_DEBUG_POSY and stage4.char_y < C_DEBUG_POSY+8 and
-            stage4.char_x >= C_DEBUG_POSX and stage4.char_x < C_DEBUG_POSX+8 then
-            row_v := conv_integer(stage4.char_y - C_DEBUG_POSY);
-            col_v := conv_integer(stage4.char_x - C_DEBUG_POSX);
-            char_val_v := conv_std_logic_vector(character'pos(C_NAMES(row_v)(col_v)), 8);
-            stage5.font_addr <= char_val_v & stage4.pix_y;
-         end if;
+            if stage4.char_y >= C_DEBUG_POSY and stage4.char_y < C_DEBUG_POSY+8 and
+               stage4.char_x >= C_DEBUG_POSX and stage4.char_x < C_DEBUG_POSX+8 then
+               row_v := conv_integer(stage4.char_y - C_DEBUG_POSY);
+               col_v := conv_integer(stage4.char_x - C_DEBUG_POSX);
+               char_val_v := conv_std_logic_vector(character'pos(C_NAMES(row_v)(col_v)), 8);
+               stage5.font_addr <= char_val_v & stage4.pix_y;
+            end if;
 
-         -- INST
-         if stage4.char_y = C_DEBUG_POSY+C_INST_NUM and
-            stage4.char_x >= C_DEBUG_POSX and stage4.char_x < C_DEBUG_POSX+8 then
+            -- INST
+            if stage4.char_y = C_DEBUG_POSY+C_INST_NUM and
+               stage4.char_x >= C_DEBUG_POSX and stage4.char_x < C_DEBUG_POSX+8 then
 
-            stage5.font_addr <= stage4_inst_val & stage4.pix_y;
+               stage5.font_addr <= stage4_inst_val & stage4.pix_y;
+            end if;
          end if;
 
       end if;

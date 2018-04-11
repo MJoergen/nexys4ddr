@@ -55,6 +55,7 @@ entity vga_module is
       --
       -- The following signals are synchronized within this module,
       -- and need therefore not be synchronous to the clock domain.
+      overlay_i      : in  std_logic;
       async_status_i : in  std_logic_vector(127 downto 0);
       async_debug_i  : in  std_logic_vector(127 downto 0)
    );
@@ -121,6 +122,7 @@ begin
 
       config_i    => config_i,
 
+      overlay_i   => overlay_i,
       status_i    => async_status_i,
       debug_i     => async_debug_i,
 
