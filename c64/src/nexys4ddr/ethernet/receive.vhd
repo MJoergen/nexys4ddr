@@ -119,35 +119,40 @@ begin
          pl_wr_en <= '0';
 
          if pl_ena = '1' then
-            if pl_sof = '1' then
-               pl_cnt <= (0 => '1', others => '0');
-               pl_wr_addr( 7 downto 0) <= pl_data;
-            end if;
+            case pl_cnt is
+               when "00" => 
+                  if pl_sof = '1' then
+                     pl_wr_addr( 7 downto 0) <= pl_data;
+                     pl_cnt <= "01";
+                  end if;
 
-            if pl_cnt = 1 then
-               pl_wr_addr(15 downto 8) <= pl_data;
-               pl_cnt <= pl_cnt + 1;
-            end if;
+               when "01" => 
+                  pl_wr_addr(15 downto 8) <= pl_data;
+                  pl_cnt <= "10";
 
-            if pl_cnt = 2 then
-               pl_reset <= pl_data;
-               pl_cnt <= pl_cnt + 1;
-            end if;
+               when "10" => 
+                  pl_reset <= pl_data;
+                  pl_cnt <= "11";
 
-            if pl_cnt > 2 then
-               pl_wr_en     <= '1';
-               pl_wr_data   <= pl_data;
-               pl_wr_addr   <= pl_wr_addr + 1;
-               pl_wr_addr_d <= pl_wr_addr;
-            end if;
+               when "11" => 
+                  pl_wr_en     <= '1';
+                  pl_wr_data   <= pl_data;
+                  pl_wr_addr   <= pl_wr_addr + 1;
+                  pl_wr_addr_d <= pl_wr_addr;
 
-            if pl_eof = '1' then
-               pl_reset(0) <= pl_reset(1);
-            end if;
+                  if pl_eof = '1' then
+                     pl_reset(0) <= pl_reset(1);
+                     pl_cnt <= "00";
+                  end if;
+
+               when others =>
+                  null;
+            end case;
          end if;
 
          if pl_rst_i = '1' then
             pl_reset <= (others => '0');
+            pl_cnt <= "00";
          end if;
       end if;
    end process;
