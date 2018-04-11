@@ -76,7 +76,7 @@ begin
 
          if ps2_clk_d = '1' and ps2_clk_r = '0' then
             case cnt is
-               when  0 => null;
+               when  0 => null;  -- Ignore start bit
                when  1 => data(0) <= ps2_data_r;
                when  2 => data(1) <= ps2_data_r;
                when  3 => data(2) <= ps2_data_r;
@@ -85,8 +85,8 @@ begin
                when  6 => data(5) <= ps2_data_r;
                when  7 => data(6) <= ps2_data_r;
                when  8 => data(7) <= ps2_data_r;
-               when  9 => valid <= '1';
-               when 10 => null;
+               when  9 => null;  -- Ignore parity bit
+               when 10 => valid <= '1';
             end case;
          end if;
       end if;
