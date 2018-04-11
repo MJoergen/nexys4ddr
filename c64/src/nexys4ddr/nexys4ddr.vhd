@@ -95,6 +95,7 @@ architecture Structural of nexys4ddr is
    signal cpu_wr_addr : std_logic_vector(15 downto 0);
    signal cpu_wr_en   : std_logic;
    signal cpu_wr_data : std_logic_vector(7 downto 0);
+   signal cpu_reset   : std_logic;
 
 begin
 
@@ -145,11 +146,13 @@ begin
       vga_vs_i            => vga_vs,
       vga_hcount_i        => vga_hcount,
       vga_vcount_i        => vga_vcount,
+      vga_transmit_i      => sw_i(8),
       cpu_clk_i           => cpu_clk,
       cpu_rst_i           => cpu_rst,
       cpu_wr_addr_o       => cpu_wr_addr,
       cpu_wr_en_o         => cpu_wr_en,
       cpu_wr_data_o       => cpu_wr_data,
+      cpu_reset_o         => cpu_reset,
       eth_smi_registers_o => eth_smi_registers,
       eth_stat_debug_o    => eth_stat_debug
    );
@@ -179,23 +182,24 @@ begin
    )
    port map (
       cpu_clk_i     => cpu_clk,
-      cpu_rst_i     => cpu_rst,
+      cpu_rst_i     => cpu_rst or cpu_reset,
       cpu_wr_addr_i => cpu_wr_addr,
       cpu_wr_en_i   => cpu_wr_en,
       cpu_wr_data_i => cpu_wr_data,
       cpu_led_o     => led_o(7 downto 0),
       --
-      vga_clk_i    => vga_clk,
-      vga_rst_i    => vga_rst,
-      vga_hs_o     => vga_hs,
-      vga_vs_o     => vga_vs,
-      vga_col_o    => vga_col,
-      vga_hcount_o => vga_hcount,
-      vga_vcount_o => vga_vcount,
-      vga_debug_i  => vga_debug,
+      vga_clk_i     => vga_clk,
+      vga_rst_i     => vga_rst,
+      vga_hs_o      => vga_hs,
+      vga_vs_o      => vga_vs,
+      vga_col_o     => vga_col,
+      vga_hcount_o  => vga_hcount,
+      vga_vcount_o  => vga_vcount,
+      vga_overlay_i => sw_i(1),
+      vga_debug_i   => vga_debug,
       --
-      ps2_clk_i  => ps2_clk_i,
-      ps2_data_i => ps2_data_i
+      ps2_clk_i     => ps2_clk_i,
+      ps2_data_i    => ps2_data_i
    );
  
    vga_hs_o  <= vga_hs;

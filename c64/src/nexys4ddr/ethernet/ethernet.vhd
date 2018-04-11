@@ -32,6 +32,7 @@ entity ethernet is
       vga_vs_i            : in    std_logic;
       vga_hcount_i        : in    std_logic_vector(10 downto 0);
       vga_vcount_i        : in    std_logic_vector(10 downto 0);
+      vga_transmit_i      : in    std_logic;
 
       -- Output to CPU
       cpu_clk_i           : in    std_logic;
@@ -39,6 +40,7 @@ entity ethernet is
       cpu_wr_addr_o       : out   std_logic_vector(15 downto 0);
       cpu_wr_en_o         : out   std_logic;
       cpu_wr_data_o       : out   std_logic_vector(7 downto 0);
+      cpu_reset_o         : out   std_logic;
 
       -- Debug output
       eth_smi_registers_o : out   std_logic_vector(32*16-1 downto 0);
@@ -166,21 +168,22 @@ begin
 
    inst_convert : entity work.convert
       port map (
-         vga_clk_i    => vga_clk_i,
-         vga_rst_i    => vga_rst_i,
-         vga_col_i    => vga_col_i,
-         vga_hs_i     => vga_hs_i,
-         vga_vs_i     => vga_vs_i,
-         vga_hcount_i => vga_hcount_i,
-         vga_vcount_i => vga_vcount_i,
+         vga_clk_i      => vga_clk_i,
+         vga_rst_i      => vga_rst_i,
+         vga_col_i      => vga_col_i,
+         vga_hs_i       => vga_hs_i,
+         vga_vs_i       => vga_vs_i,
+         vga_hcount_i   => vga_hcount_i,
+         vga_vcount_i   => vga_vcount_i,
+         vga_transmit_i => vga_transmit_i,
 
-         eth_clk_i    => eth_clk_i,
-         eth_rst_i    => eth_rst_i,
-         eth_data_o   => eth_tx_data,
-         eth_sof_o    => eth_tx_sof,
-         eth_eof_o    => eth_tx_eof,
-         eth_empty_o  => eth_tx_empty,
-         eth_rden_i   => eth_tx_rden
+         eth_clk_i      => eth_clk_i,
+         eth_rst_i      => eth_rst_i,
+         eth_data_o     => eth_tx_data,
+         eth_sof_o      => eth_tx_sof,
+         eth_eof_o      => eth_tx_eof,
+         eth_empty_o    => eth_tx_empty,
+         eth_rden_i     => eth_tx_rden
       );
 
 
@@ -203,6 +206,7 @@ begin
       pl_wr_addr_o    => cpu_wr_addr_o,
       pl_wr_en_o      => cpu_wr_en_o,
       pl_wr_data_o    => cpu_wr_data_o,
+      pl_reset_o      => cpu_reset_o,
       pl_drop_mac_o   => cpu_drop_mac,
       pl_drop_ip_o    => cpu_drop_ip,
       pl_drop_udp_o   => cpu_drop_udp

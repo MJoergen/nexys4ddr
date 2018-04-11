@@ -13,34 +13,36 @@ use ieee.std_logic_unsigned.all;
 entity convert is
 
    port (
-      vga_clk_i    : in  std_logic;
-      vga_rst_i    : in  std_logic;
-      vga_col_i    : in  std_logic_vector(7 downto 0);
-      vga_hs_i     : in  std_logic;    -- Not used
-      vga_vs_i     : in  std_logic;    -- Not used
-      vga_hcount_i : in  std_logic_vector(10 downto 0);
-      vga_vcount_i : in  std_logic_vector(10 downto 0);
+      vga_clk_i      : in  std_logic;
+      vga_rst_i      : in  std_logic;
+      vga_col_i      : in  std_logic_vector(7 downto 0);
+      vga_hs_i       : in  std_logic;    -- Not used
+      vga_vs_i       : in  std_logic;    -- Not used
+      vga_hcount_i   : in  std_logic_vector(10 downto 0);
+      vga_vcount_i   : in  std_logic_vector(10 downto 0);
+      vga_transmit_i : in  std_logic;
 
-      eth_clk_i    : in  std_logic;
-      eth_rst_i    : in  std_logic;
-      eth_data_o   : out std_logic_vector(7 downto 0);
-      eth_sof_o    : out std_logic;
-      eth_eof_o    : out std_logic;
-      eth_empty_o  : out std_logic;
-      eth_rden_i   : in  std_logic;
+      eth_clk_i      : in  std_logic;
+      eth_rst_i      : in  std_logic;
+      eth_data_o     : out std_logic_vector(7 downto 0);
+      eth_sof_o      : out std_logic;
+      eth_eof_o      : out std_logic;
+      eth_empty_o    : out std_logic;
+      eth_rden_i     : in  std_logic;
 
-      fifo_error_o : out std_logic
+      fifo_error_o   : out std_logic
    );
 end convert;
 
 architecture Structural of convert is
 
    -- Packet with VGA data
-   signal vga_ena    : std_logic := '0';
-   signal vga_sof    : std_logic;
-   signal vga_eof    : std_logic;
-   signal vga_data   : std_logic_vector(7 downto 0);
-   signal vga_line   : std_logic_vector(7 downto 0);  -- Valid at SOF
+   signal vga_transmit : std_logic := '0';
+   signal vga_ena      : std_logic := '0';
+   signal vga_sof      : std_logic;
+   signal vga_eof      : std_logic;
+   signal vga_data     : std_logic_vector(7 downto 0);
+   signal vga_line     : std_logic_vector(7 downto 0);  -- Valid at SOF
 
    -- Pipeline
    signal vga_ena_d  : std_logic := '0';
@@ -84,7 +86,8 @@ begin
          vga_line <= vga_vcount_i(10 downto 3);
 
          if (vga_vcount_i >= 0 and vga_vcount_i <= 479) and
-            (vga_hcount_i >= 0 and vga_hcount_i <= 639) then
+            (vga_hcount_i >= 0 and vga_hcount_i <= 639) and
+            vga_transmit = '1' then
 
             vga_ena <= '1';
             if vga_vcount_i(2 downto 0) = "000" and vga_hcount_i = 0 then
@@ -93,6 +96,11 @@ begin
             if vga_vcount_i(2 downto 0) = "111" and vga_hcount_i = 639 then
                vga_eof <= '1';
             end if;
+         end if;
+
+         -- Only sample 'transmit' at end of a frame
+         if (vga_vcount_i >= 480) then
+            vga_transmit <= vga_transmit_i;
          end if;
 
          if vga_rst_i = '1' then

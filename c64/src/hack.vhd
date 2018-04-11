@@ -44,20 +44,21 @@ entity hack is
       -- Output LEDs
       cpu_led_o     : out std_logic_vector( 7 downto 0);
 
-      vga_clk_i    : in  std_logic;
-      vga_rst_i    : in  std_logic;
+      vga_clk_i     : in  std_logic;
+      vga_rst_i     : in  std_logic;
       -- Debug info
-      vga_debug_i  : in std_logic_vector(127 downto 0);
+      vga_overlay_i : in std_logic;
+      vga_debug_i   : in std_logic_vector(127 downto 0);
       -- Output to VGA monitor
-      vga_hs_o     : out std_logic;
-      vga_vs_o     : out std_logic;
-      vga_col_o    : out std_logic_vector( 7 downto 0);
-      vga_hcount_o : out std_logic_vector(10 downto 0);
-      vga_vcount_o : out std_logic_vector(10 downto 0);
+      vga_hs_o      : out std_logic;
+      vga_vs_o      : out std_logic;
+      vga_col_o     : out std_logic_vector( 7 downto 0);
+      vga_hcount_o  : out std_logic_vector(10 downto 0);
+      vga_vcount_o  : out std_logic_vector(10 downto 0);
 
       -- Keyboard / mouse
-      ps2_clk_i  : in  std_logic;
-      ps2_data_i : in  std_logic
+      ps2_clk_i     : in  std_logic;
+      ps2_data_i    : in  std_logic
    );
 end hack;
 
@@ -94,7 +95,6 @@ architecture Structural of hack is
    signal vga_col       : std_logic_vector( 7 downto 0);
    signal vga_hcount    : std_logic_vector(10 downto 0);
    signal vga_vcount    : std_logic_vector(10 downto 0);
-   signal vga_debug     : std_logic_vector(127 downto 0);
 
    -- Signals connected to the keyboard
    signal cpu_key_rden  : std_logic;
@@ -102,11 +102,6 @@ architecture Structural of hack is
    signal cpu_key_debug : std_logic_vector(69 downto 0);
 
 begin
-
---   vga_debug(127 downto 70) <= (others => '0');
---   vga_debug( 69 downto  0) <= cpu_key_debug;
-
-   vga_debug <= vga_debug_i;
 
    ------------------------------
    -- Instantiate CPU
@@ -149,7 +144,8 @@ begin
       mob_data_i     => vga_mob_data,
       config_i       => vga_config,
       irq_o          => vga_irq,
-      async_debug_i  => vga_debug,
+      overlay_i      => vga_overlay_i,
+      async_debug_i  => vga_debug_i,
       async_status_i => cpu_status
    );
 

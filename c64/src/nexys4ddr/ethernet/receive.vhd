@@ -33,6 +33,7 @@ entity receive is
       pl_wr_addr_o   : out std_logic_vector(15 downto 0);
       pl_wr_en_o     : out std_logic;
       pl_wr_data_o   : out std_logic_vector(7 downto 0);
+      pl_reset_o     : out std_logic;
       pl_drop_mac_o  : out std_logic;
       pl_drop_ip_o   : out std_logic;
       pl_drop_udp_o  : out std_logic
@@ -51,6 +52,8 @@ architecture Structural of receive is
    signal pl_eof  : std_logic;
    signal pl_data : std_logic_vector(7 downto 0);
 
+   signal pl_cnt       : std_logic_vector(1 downto 0);
+   signal pl_reset     : std_logic_vector(7 downto 0);
    signal pl_wr_addr   : std_logic_vector(15 downto 0);
    signal pl_wr_addr_d : std_logic_vector(15 downto 0);
    signal pl_wr_en     : std_logic;
@@ -117,15 +120,29 @@ begin
 
          if pl_ena = '1' then
             if pl_sof = '1' then
+               pl_cnt <= (0 => '1', others => '0');
                pl_wr_addr( 7 downto 0) <= pl_data;
-               pl_wr_addr(15 downto 8) <= X"AA";
-            elsif pl_wr_addr(15 downto 8) = X"AA" then
+            end if;
+
+            if pl_cnt = 1 then
                pl_wr_addr(15 downto 8) <= pl_data;
-            else
+               pl_cnt <= pl_cnt + 1;
+            end if;
+
+            if pl_cnt = 2 then
+               pl_reset <= pl_data;
+               pl_cnt <= pl_cnt + 1;
+            end if;
+
+            if pl_cnt > 2 then
                pl_wr_en     <= '1';
                pl_wr_data   <= pl_data;
                pl_wr_addr   <= pl_wr_addr + 1;
                pl_wr_addr_d <= pl_wr_addr;
+            end if;
+
+            if pl_eof = '1' then
+               pl_reset(0) <= pl_reset(1);
             end if;
          end if;
       end if;
@@ -136,6 +153,7 @@ begin
    pl_wr_addr_o  <= pl_wr_addr_d;
    pl_wr_en_o    <= pl_wr_en;
    pl_wr_data_o  <= pl_wr_data;
+   pl_reset_o    <= pl_reset(0);
    pl_drop_mac_o <= pl_drop_mac;
    pl_drop_ip_o  <= pl_drop_ip;
    pl_drop_udp_o <= pl_drop_udp;
