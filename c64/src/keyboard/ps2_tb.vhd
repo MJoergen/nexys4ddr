@@ -27,11 +27,11 @@ architecture Structural of ps2_tb is
 
    signal clk_cnt  : std_logic_vector(6 downto 0);
 
-   signal cnt    : integer range 0 to 10 := 0;
+   signal cnt    : integer range 0 to 11 := 0;
 
    signal ps2_clk   : std_logic;
    signal ps2_clk_d : std_logic;
-   signal ps2_data  : std_logic;
+   signal ps2_data  : std_logic := '0';
 
 begin
 
@@ -68,7 +68,7 @@ begin
          end if;
 
          if ps2_clk_d = '0' and ps2_clk = '1' and cnt > 0 then
-            if cnt <= 9 then
+            if cnt <= 10 then
                cnt <= cnt + 1;
             else
                cnt <= 0;
@@ -98,6 +98,7 @@ begin
                when  8 => ps2_data <= data_i(7);
                when  9 => ps2_data <= '1';      -- Parity bit (ignore)
                when 10 => ps2_data <= '1';      -- Stop bit
+               when 11 => ps2_data <= '1';      -- ???
             end case;
          end if;
       end if;
