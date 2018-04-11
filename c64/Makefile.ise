@@ -7,10 +7,10 @@ ucf_file = $(SRC_DIR)/basys2/basys2.ucf
 
 # Platform specific files
 vfiles  = $(SRC_DIR)/basys2/basys2.vhd # Top level
-vfiles += $(SRC_DIR)/basys2/clk_rst.vhd
 vfiles += $(SRC_DIR)/basys2/debounce.vhd
 
 # Top level module
+vfiles += $(SRC_DIR)/addr_mux.vhd
 vfiles += $(SRC_DIR)/hack.vhd
 
 # VGA driver
