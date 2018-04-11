@@ -35,42 +35,51 @@ end basys2;
 
 architecture Structural of basys2 is
 
-   signal cpu_rst : std_logic := '1';
+   signal rst : std_logic := '1';
 
 begin
 
    -- Generate synchronous CPU reset
-   p_cpu_rst : process (clk25_i)
+   p_rst : process (clk25_i)
    begin
       if rising_edge(clk25_i) then
-         cpu_rst <= btn_i(3);     -- Synchronize input
+         rst <= btn_i(3);     -- Synchronize input
       end if;
-   end process p_cpu_rst;
+   end process p_rst;
 
    inst_dut : entity work.hack 
    generic map (
-      G_NEXYS4DDR  => false,             -- True, when using the Nexys4DDR board.
-      G_ROM_SIZE   => 11,                -- Number of bits in ROM address
-      G_RAM_SIZE   => 11,                -- Number of bits in RAM address
-      G_ROM_FILE   => "rom.txt",         -- Contains the machine code
-      G_FONT_FILE  => "ProggyClean.txt"  -- Contains the character font
+      G_NEXYS4DDR => true,               -- True, when using the Nexys4DDR board.
+      G_ROM_SIZE  => 11,                 -- Number of bits in ROM address
+      G_RAM_SIZE  => 11,                 -- Number of bits in RAM address
+      G_DISP_SIZE => 10,                 -- Number of bits in DISP address
+      G_FONT_SIZE => 12,                 -- Number of bits in FONT address
+      G_MOB_SIZE  => 7,                  -- Number of bits in MOB address
+      G_CONF_SIZE => 5,                  -- Number of bits in CONF address
+      G_RAM_MASK  => X"0000",            -- Last address 0x07FF
+      G_DISP_MASK => X"8000",            -- Last address 0x83FF
+      G_MOB_MASK  => X"8400",            -- Last address 0x847F
+      G_CONF_MASK => X"8600",            -- Last address 0x861F
+      G_FONT_MASK => X"9000",            -- Last address 0x9FFF
+      G_ROM_MASK  => X"F800",            -- Last address 0xFFFF
+      G_ROM_FILE  => "rom.txt",          -- Contains the machine code
+      G_FONT_FILE => "ProggyClean.txt"   -- Contains the character font
    )
    port map (
-      vga_clk_i  => clk25_i,
-      cpu_clk_i  => clk25_i,
-      cpu_rst_i  => cpu_rst,
+      cpu_clk_i     => clk25_i,
+      cpu_rst_i     => rst,
+      cpu_led_o     => led_o,
       --
-      mode_i     => sw_i(0),
-      step_i     => btn_i(0),
+      vga_clk_i     => clk25_i,
+      vga_rst_i     => rst,
+      vga_hs_o      => vga_hs_o,
+      vga_vs_o      => vga_vs_o,
+      vga_col_o     => vga_col_o,
+      vga_overlay_i => sw_i(1),
+      vga_debug_i   => (others => '0'),
       --
-      ps2_clk_i  => ps2_clk_i,
-      ps2_data_i => ps2_data_i,
-      --
-      led_o      => led_o,
-      --
-      vga_hs_o   => vga_hs_o,
-      vga_vs_o   => vga_vs_o,
-      vga_col_o  => vga_col_o
+      ps2_clk_i     => ps2_clk_i,
+      ps2_data_i    => ps2_data_i
   );
 
 end Structural;
