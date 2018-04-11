@@ -23,3 +23,8 @@
 #define ZP_UMULT_A         0x30
 #define ZP_UMULT_X         0x31
 #define ZP_UMULT_C         0x32
+
+#define ZP_SRC_LO          0x40
+#define ZP_SRC_HI          0x41
+#define ZP_DST_LO          0x42
+#define ZP_DST_HI          0x43
