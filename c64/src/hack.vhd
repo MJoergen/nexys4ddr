@@ -38,9 +38,9 @@ entity hack is
       cpu_clk_i     : in  std_logic;
       cpu_rst_i     : in  std_logic;
       -- ROM data received from Ethernet
-      cpu_wr_addr_i : in  std_logic_vector(15 downto 0);
-      cpu_wr_en_i   : in  std_logic;
-      cpu_wr_data_i : in  std_logic_vector( 7 downto 0);
+      cpu_wr_addr_i : in  std_logic_vector(15 downto 0) := (others => '0');
+      cpu_wr_en_i   : in  std_logic                     := '0';
+      cpu_wr_data_i : in  std_logic_vector( 7 downto 0) := (others => '0');
       -- Output LEDs
       cpu_led_o     : out std_logic_vector( 7 downto 0);
 
