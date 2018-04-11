@@ -145,6 +145,10 @@ begin
                pl_reset(0) <= pl_reset(1);
             end if;
          end if;
+
+         if pl_rst_i = '1' then
+            pl_reset <= (others => '0');
+         end if;
       end if;
    end process;
 
