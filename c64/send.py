@@ -1,11 +1,42 @@
 #!/usr/bin/env python
 
 import socket
+import argparse
 
-UDP_IP = "192.168.1.46"
-UDP_PORT = 9029
-MESSAGE = chr(80) + chr(128) + chr(0) + "Hvad skal jeg nu skrive ????"
+parser = argparse.ArgumentParser(description='Process some integers.')
+parser.add_argument('--filename', default='rom.bin')
+parser.add_argument('--address',  default='0xF800')
+parser.add_argument('--ip',       default='192.168.1.46')
+parser.add_argument('--port',     default='9029')
+parser.add_argument('--reset',    default=3)
+args = parser.parse_args()
+
+print "Using the following parameters:"
+print "filename :", args.filename
+print "address  :", args.address
+print "ip       :", args.ip
+print "port     :", args.port
+print "reset    :", args.reset
+
+input_file = open(args.filename, "rb")
+data = input_file.read()
+input_file.close()
+
+print "file length =", len(data)
+
+assert len(data) == 2048
+
+addr_lo = int(args.address, 16) & 0xFF
+addr_hi = int(args.address, 16) / 256
+
+print addr_lo
+print addr_hi
+
+message1 = chr(addr_lo) + chr(addr_hi) + chr(3) + data[0:1024]
+message2 = chr(addr_lo) + chr(addr_hi + 4) + chr(1) + data[1024:2048]
 
 sock = socket.socket(socket.AF_INET, # Internet
                    socket.SOCK_DGRAM) # UDP
-sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
+sock.sendto(message1, (args.ip, int(args.port)))
+sock.sendto(message2, (args.ip, int(args.port)))
+
