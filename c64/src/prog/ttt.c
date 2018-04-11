@@ -45,7 +45,7 @@ loop:
    __asm__("BNE %g", loop);
 } // end of copyLine
 
-static const char *strings[16] = {
+static const char * const strings[16] = {
    "+----+----+----+",
    "|    |    |    |",
    "| 11 | 22 | 33 |",
@@ -115,6 +115,8 @@ static const short squares[9] = {
 static void __fastcall__ drawX(void)
 {
    // Find address of position on screen
+   __asm__("CLC");
+   __asm__("ROL A");  // Multiply by 2
    __asm__("TAX");
    __asm__("LDA %v,X", squares);
    __asm__("STA %b", ZP_SCREEN_POS_LO);
@@ -161,6 +163,8 @@ static void __fastcall__ drawX(void)
 static void __fastcall__ drawO(void)
 {
    // Find address of position on screen
+   __asm__("CLC");
+   __asm__("ROL A");  // Multiply by 2
    __asm__("TAX");
    __asm__("LDA %v,X", squares);
    __asm__("STA %b", ZP_SCREEN_POS_LO);
@@ -253,7 +257,12 @@ loop:
    __asm__("SEC");
    __asm__("SBC #$31");
 
+   // Check whether square is already occupied
    __asm__("TAX");
+   __asm__("LDA %v,X", pieces);
+   __asm__("BNE %g", loop);
+
+   // Place new piece in square
    __asm__("LDA #%b", 'X');
    __asm__("STA %v,X", pieces);
    __asm__("TXA");
