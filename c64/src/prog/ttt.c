@@ -237,7 +237,7 @@ void __fastcall__ reset(void)
    __asm__("LDA #%b", COL_DARK);
    __asm__("STA %w",  VGA_ADDR_BGCOL);
 
-   //clearScreen();
+   clearScreen();
    initScreen();
 
 loop:
