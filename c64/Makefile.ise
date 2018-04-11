@@ -5,17 +5,15 @@ top_module = basys2
 
 ucf_file = $(SRC_DIR)/basys2/basys2.ucf
 
-# List of sources files
+# Platform specific files
 vfiles  = $(SRC_DIR)/basys2/basys2.vhd # Top level
+vfiles += $(SRC_DIR)/basys2/clk_rst.vhd
+vfiles += $(SRC_DIR)/basys2/debounce.vhd
+
+# Top level module
 vfiles += $(SRC_DIR)/hack.vhd
 
-# Clocks
-vfiles += $(SRC_DIR)/clock/clk_rst.vhd
-vfiles += $(SRC_DIR)/clock/debounce.vhd
-
 # VGA driver
-vfiles += $(SRC_DIR)/vga/bitmaps_mem.vhd
-vfiles += $(SRC_DIR)/vga/conf_stat.vhd
 vfiles += $(SRC_DIR)/vga/sync.vhd
 vfiles += $(SRC_DIR)/vga/chars.vhd
 vfiles += $(SRC_DIR)/vga/sprites.vhd
@@ -29,9 +27,14 @@ vfiles += $(SRC_DIR)/cpu/pc.vhd
 vfiles += $(SRC_DIR)/cpu/cpu_module.vhd
 
 # Memory
-vfiles += $(SRC_DIR)/mem/rom_file.vhd
+vfiles += $(SRC_DIR)/mem/mem_file.vhd
 vfiles += $(SRC_DIR)/mem/mem.vhd
-vfiles += $(SRC_DIR)/mem/cs.vhd
+vfiles += $(SRC_DIR)/mem/dmem_file.vhd
+vfiles += $(SRC_DIR)/mem/dmem.vhd
+vfiles += $(SRC_DIR)/mem/conf_mem.vhd
+vfiles += $(SRC_DIR)/mem/bitmaps_mem.vhd
+vfiles += $(SRC_DIR)/mem/addr_decode.vhd
+vfiles += $(SRC_DIR)/mem/mem_module.vhd
 
 # Clock domain crossing
 vfiles += $(SRC_DIR)/cdc/cdcpulse.vhd
