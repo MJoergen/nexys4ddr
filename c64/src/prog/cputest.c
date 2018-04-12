@@ -46,6 +46,7 @@
 // 65 ADC d
 // 45 EOR d
 // 2A ROL A
+// DD CMP a,X
 
 // To come soon:
 // A0 LDY #
@@ -826,6 +827,27 @@ noError23:
    __asm__("BNE %g", error23);
    __asm__("BMI %g", error23);
    __asm__("BCC %g", error23);
+
+   // Now we test CMP a,X
+   __asm__("LDA #$24");
+   __asm__("STA $0246");
+   __asm__("LDA #$11");
+   __asm__("TAX");
+   __asm__("LDA #$24");
+   __asm__("CMP $0235,X");
+   __asm__("BEQ %g", noError24);
+error24:
+   __asm__("JMP %g", error24);
+noError24:
+   __asm__("BMI %g", error24);
+   __asm__("BCC %g", error24);
+   __asm__("LDA #$11");
+   __asm__("DEX");
+   __asm__("CMP $0236,X");
+   __asm__("BEQ %g", error24);
+   __asm__("BPL %g", error24);
+   __asm__("BCS %g", error24);
+
 
    // Loop forever doing nothing
 here:
