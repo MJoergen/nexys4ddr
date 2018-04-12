@@ -8,6 +8,14 @@ use ieee.numeric_std.all;
 -- on the receive side, it writes data to the memory.
 
 entity ethernet is
+   generic (
+      G_DUT_MAC   : std_logic_vector(47 downto 0);
+      G_DUT_IP    : std_logic_vector(31 downto 0);
+      G_DUT_PORT  : std_logic_vector(15 downto 0);
+      G_HOST_MAC  : std_logic_vector(47 downto 0);
+      G_HOST_IP   : std_logic_vector(31 downto 0);
+      G_HOST_PORT : std_logic_vector(15 downto 0)
+   );
    port (
       eth_clk_i           : in  std_logic;
       eth_rst_i           : in  std_logic;
@@ -167,6 +175,14 @@ begin
    -----------------------------------
 
    inst_convert : entity work.convert
+      generic map (
+         G_DUT_MAC   => G_DUT_MAC,
+         G_DUT_IP    => G_DUT_IP,
+         G_DUT_PORT  => G_DUT_PORT,
+         G_HOST_MAC  => G_HOST_MAC,
+         G_HOST_IP   => G_HOST_IP,
+         G_HOST_PORT => G_HOST_PORT
+      )
       port map (
          vga_clk_i      => vga_clk_i,
          vga_rst_i      => vga_rst_i,
@@ -192,6 +208,11 @@ begin
    -----------------------------------
    
    inst_receive : entity work.receive
+   generic map (
+      G_DUT_MAC  => G_DUT_MAC,
+      G_DUT_IP   => G_DUT_IP,
+      G_DUT_PORT => G_DUT_PORT
+   )
    port map (
       eth_clk_i       => eth_clk_i,
       eth_rst_i       => eth_rst_i,

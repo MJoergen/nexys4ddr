@@ -16,6 +16,11 @@ use ieee.numeric_std.all;
 -- There is no flow control.
 
 entity receive is
+   generic (
+      G_DUT_MAC  : std_logic_vector(47 downto 0);
+      G_DUT_IP   : std_logic_vector(31 downto 0);
+      G_DUT_PORT : std_logic_vector(15 downto 0)
+   );
    port (
       -- Input interface
       eth_clk_i       : in  std_logic;
@@ -85,9 +90,9 @@ begin
    inst_decap : entity work.decap
    port map (
       -- Ctrl interface. Assumed to be constant for now.
-      ctrl_mac_dst_i  => X"F46D04112233",
-      ctrl_ip_dst_i   => X"C0A8012E",      -- 192.168.1.46
-      ctrl_udp_dst_i  => X"2345",
+      ctrl_mac_dst_i  => G_DUT_MAC,
+      ctrl_ip_dst_i   => G_DUT_IP,
+      ctrl_udp_dst_i  => G_DUT_PORT,
 
       -- Mac interface @ eth_clk_i
       mac_clk_i       => eth_clk_i,

@@ -12,6 +12,14 @@ use ieee.std_logic_unsigned.all;
 
 entity convert is
 
+   generic (
+      G_DUT_MAC   : std_logic_vector(47 downto 0);
+      G_DUT_IP    : std_logic_vector(31 downto 0);
+      G_DUT_PORT  : std_logic_vector(15 downto 0);
+      G_HOST_MAC  : std_logic_vector(47 downto 0);
+      G_HOST_IP   : std_logic_vector(31 downto 0);
+      G_HOST_PORT : std_logic_vector(15 downto 0)
+   );
    port (
       vga_clk_i      : in  std_logic;
       vga_rst_i      : in  std_logic;
@@ -189,12 +197,12 @@ begin
       pl_eof_i       => vga_comp_eof,
       pl_data_i      => vga_comp_data,
       pl_error_o     => fifo_error_o,
-      ctrl_mac_dst_i => X"F46D04D7F3CA",
-      ctrl_mac_src_i => X"F46D04112233",
-      ctrl_ip_dst_i  => X"C0A8012B",      -- 192.168.1.43
-      ctrl_ip_src_i  => X"C0A8012E",      -- 192.168.1.46
-      ctrl_udp_dst_i => X"1234",          -- Port 4660
-      ctrl_udp_src_i => X"2345",
+      ctrl_mac_dst_i => G_HOST_MAC,
+      ctrl_mac_src_i => G_DUT_MAC,
+      ctrl_ip_dst_i  => G_HOST_IP,
+      ctrl_ip_src_i  => G_DUT_IP,
+      ctrl_udp_dst_i => G_HOST_PORT,
+      ctrl_udp_src_i => G_DUT_PORT,
       mac_clk_i      => eth_clk_i,
       mac_rst_i      => eth_rst_i,
       mac_data_o     => eth_data_o,

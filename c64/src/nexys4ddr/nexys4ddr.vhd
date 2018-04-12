@@ -12,7 +12,13 @@ entity nexys4ddr is
 
    generic (
       G_RESET_SIZE : integer := 22;          -- Number of bits in reset counter.
-      G_SIMULATION : boolean := false
+      G_SIMULATION : boolean := false;
+      G_DUT_MAC    : std_logic_vector(47 downto 0) := X"F46D04112233";
+      G_DUT_IP     : std_logic_vector(31 downto 0) := X"C0A8012E";      -- 192.168.1.46
+      G_DUT_PORT   : std_logic_vector(15 downto 0) := X"2345";          -- Port 9029
+      G_HOST_MAC   : std_logic_vector(47 downto 0) := X"F46D04D7F3CA";
+      G_HOST_IP    : std_logic_vector(31 downto 0) := X"C0A8012B";      -- 192.168.1.43
+      G_HOST_PORT  : std_logic_vector(15 downto 0) := X"1234"           -- Port 4660
    );
    port (
       -- Clock. Connected to an external 100 MHz crystal.
@@ -129,6 +135,14 @@ begin
    -- Ethernet port wrapper
    ------------------------------
    inst_ethernet : entity work.ethernet
+   generic map (
+      G_DUT_MAC   => G_DUT_MAC,
+      G_DUT_IP    => G_DUT_IP,
+      G_DUT_PORT  => G_DUT_PORT,
+      G_HOST_MAC  => G_HOST_MAC,
+      G_HOST_IP   => G_HOST_IP,
+      G_HOST_PORT => G_HOST_PORT
+   )
    port map (
       eth_clk_i           => eth_clk,
       eth_rst_i           => eth_rst,

@@ -122,7 +122,10 @@ begin
    inst_nexys4ddr : entity work.nexys4ddr
    generic map (
       G_RESET_SIZE => 8,
-      G_SIMULATION => true
+      G_SIMULATION => true,
+      G_HOST_MAC   => X"F46D04112233",
+      G_HOST_IP    => X"C0A8012E",
+      G_HOST_PORT  => X"2345"
    )
    port map (
       clk100_i   => clk100,
