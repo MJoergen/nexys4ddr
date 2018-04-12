@@ -374,11 +374,13 @@ loop:
    // Check if a new game is requested
    __asm__("CMP #%b", 'N');
    __asm__("BEQ %g", new);
+   __asm__("CMP #%b", 'n');
+   __asm__("BEQ %g", new);
 
    // If game over, no more pieces may be placed.
    __asm__("TAX");
    __asm__("LDA %v", gameOver);
-   __asm__("BNE %g", new);
+   __asm__("BNE %g", loop);
    __asm__("TXA");
 
    // Check if a digit was pressed
@@ -404,6 +406,7 @@ loop:
 
    __asm__("LDA #%b", 'X');
    checkEnd();
+   __asm__("TAX");
    __asm__("STA %v", gameOver);
    __asm__("BNE %g", writeEnd);
 
@@ -417,6 +420,7 @@ loop:
 
    __asm__("LDA #%b", 'O');
    checkEnd();
+   __asm__("TAX");
    __asm__("STA %v", gameOver);
    __asm__("BNE %g", writeEnd);
 
