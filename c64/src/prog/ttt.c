@@ -9,6 +9,40 @@
 #define COL_DARK        0x44   // 010_001_00
 #define COL_BLACK       0x00   // 000_000_00
 
+// Variables
+static char pieces[9];
+static int gameOver;
+
+// Constants
+static const char * const strings[16] = {
+   "+----+----+----+",
+   "|    |    |    |",
+   "| 11 | 22 | 33 |",
+   "| 11 | 22 | 33 |",
+   "|    |    |    |",
+   "+----+----+----+",
+   "|    |    |    |",
+   "| 44 | 55 | 66 |",
+   "| 44 | 55 | 66 |",
+   "|    |    |    |",
+   "+----+----+----+",
+   "|    |    |    |",
+   "| 77 | 88 | 99 |",
+   "| 77 | 88 | 99 |",
+   "|    |    |    |",
+   "+----+----+----+"};
+static const short squares[9] = {
+   MEM_DISP +  1*40 +  1,
+   MEM_DISP +  1*40 +  6,
+   MEM_DISP +  1*40 + 11,
+   MEM_DISP +  6*40 +  1,
+   MEM_DISP +  6*40 +  6,
+   MEM_DISP +  6*40 + 11,
+   MEM_DISP + 11*40 +  1,
+   MEM_DISP + 11*40 +  6,
+   MEM_DISP + 11*40 + 11};
+
+
 // Forward declarations.
 void __fastcall__ readFromKeyboard(void);
 
@@ -44,24 +78,6 @@ loop:
    __asm__("TYA");
    __asm__("BNE %g", loop);
 } // end of copyLine
-
-static const char * const strings[16] = {
-   "+----+----+----+",
-   "|    |    |    |",
-   "| 11 | 22 | 33 |",
-   "| 11 | 22 | 33 |",
-   "|    |    |    |",
-   "+----+----+----+",
-   "|    |    |    |",
-   "| 44 | 55 | 66 |",
-   "| 44 | 55 | 66 |",
-   "|    |    |    |",
-   "+----+----+----+",
-   "|    |    |    |",
-   "| 77 | 88 | 99 |",
-   "| 77 | 88 | 99 |",
-   "|    |    |    |",
-   "+----+----+----+"};
 
 static void __fastcall__ initScreen(void)
 {
@@ -99,17 +115,6 @@ loop:
    __asm__("BNE %g", loop);
 
 } // end of initScreen
-
-static const short squares[9] = {
-   MEM_DISP +  1*40 +  1,
-   MEM_DISP +  1*40 +  6,
-   MEM_DISP +  1*40 + 11,
-   MEM_DISP +  6*40 +  1,
-   MEM_DISP +  6*40 +  6,
-   MEM_DISP +  6*40 + 11,
-   MEM_DISP + 11*40 +  1,
-   MEM_DISP + 11*40 +  6,
-   MEM_DISP + 11*40 + 11};
 
 // Draw an 'X' at the desired position
 static void __fastcall__ drawX(void)
@@ -207,9 +212,22 @@ static void __fastcall__ drawO(void)
 
 } // end of drawO
 
-static char pieces[9] = {0, 0, 0,
-                         0, 0, 0,
-                         0, 0, 0};
+// Resets game to start
+static void __fastcall__ newGame(void)
+{
+   __asm__("LDX #$00");
+
+loop:
+   __asm__("LDA #$00");
+   __asm__("STA %v,X", pieces);
+   __asm__("INX");
+   __asm__("TXA");
+   __asm__("CMP #$09");
+   __asm__("BNE %g", loop);
+
+   __asm__("LDA #$00");
+   __asm__("STA %v", gameOver);
+} // end of newGame
 
 // Figure out where to place the next piece
 static void __fastcall__ findO(void)
@@ -228,6 +246,109 @@ exit:
    __asm__("TXA");
 } // end of findO
 
+// Checks if player in 'A' has won the game.
+void __fastcall__ checkEnd(void)
+{
+   __asm__("LDX #$00");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow1);
+   __asm__("LDX #$01");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow1);
+   __asm__("LDX #$02");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow1);
+   __asm__("RTS");   // Player 'A' has won.
+nextRow1:
+
+   __asm__("LDX #$03");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow2);
+   __asm__("LDX #$04");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow2);
+   __asm__("LDX #$05");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow2);
+   __asm__("RTS");   // Player 'A' has won.
+nextRow2:
+
+   __asm__("LDX #$06");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow3);
+   __asm__("LDX #$07");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow3);
+   __asm__("LDX #$08");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow3);
+   __asm__("RTS");   // Player 'A' has won.
+nextRow3:
+
+   __asm__("LDX #$00");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow4);
+   __asm__("LDX #$03");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow4);
+   __asm__("LDX #$06");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow4);
+   __asm__("RTS");   // Player 'A' has won.
+nextRow4:
+
+   __asm__("LDX #$01");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow5);
+   __asm__("LDX #$04");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow5);
+   __asm__("LDX #$07");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow5);
+   __asm__("RTS");   // Player 'A' has won.
+nextRow5:
+
+   __asm__("LDX #$02");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow6);
+   __asm__("LDX #$05");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow6);
+   __asm__("LDX #$08");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow6);
+   __asm__("RTS");   // Player 'A' has won.
+nextRow6:
+
+   __asm__("LDX #$02");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow7);
+   __asm__("LDX #$04");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow7);
+   __asm__("LDX #$06");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow7);
+   __asm__("RTS");   // Player 'A' has won.
+nextRow7:
+
+   __asm__("LDX #$00");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow8);
+   __asm__("LDX #$04");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow8);
+   __asm__("LDX #$08");
+   __asm__("CMP %v,X", pieces);
+   __asm__("BNE %g", nextRow8);
+   __asm__("RTS");   // Player 'A' has won.
+nextRow8:
+
+   __asm__("LDA #$00"); // Return zero => game not finished.
+
+} // end of checkEnd
+
 // Entry point after CPU reset
 void __fastcall__ reset(void)
 {
@@ -241,12 +362,24 @@ void __fastcall__ reset(void)
    __asm__("LDA #%b", COL_DARK);
    __asm__("STA %w",  VGA_ADDR_BGCOL);
 
+new:
    clearScreen();
    initScreen();
+   newGame();
 
 loop:
    // This is a blocking call; it won't return until a valid keypress is detected.
    readFromKeyboard();
+
+   // Check if a new game is requested
+   __asm__("CMP #%b", 'N');
+   __asm__("BEQ %g", new);
+
+   // If game over, no more pieces may be placed.
+   __asm__("TAX");
+   __asm__("LDA %v", gameOver);
+   __asm__("BNE %g", new);
+   __asm__("TXA");
 
    // Check if a digit was pressed
    __asm__("CMP #$30");
@@ -269,6 +402,11 @@ loop:
    __asm__("TXA");
    drawX();
 
+   __asm__("LDA #%b", 'X');
+   checkEnd();
+   __asm__("STA %v", gameOver);
+   __asm__("BNE %g", loop);
+
    findO();
 
    __asm__("TAX");
@@ -276,6 +414,11 @@ loop:
    __asm__("STA %v,X", pieces);
    __asm__("TXA");
    drawO();
+
+   __asm__("LDA #%b", 'O');
+   checkEnd();
+   __asm__("STA %v", gameOver);
+   __asm__("BNE %g", loop);
 
    goto loop;  // Just do an endless loop.
 } // end of reset
