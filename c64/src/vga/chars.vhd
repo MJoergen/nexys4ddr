@@ -48,6 +48,9 @@ entity chars is
       disp_addr_o : out std_logic_vector( 9 downto 0);
       disp_data_i : in  std_logic_vector( 7 downto 0);
 
+      col_addr_o  : out std_logic_vector( 9 downto 0);
+      col_data_i  : in  std_logic_vector( 7 downto 0);
+
       font_addr_o : out std_logic_vector(11 downto 0);
       font_data_i : in  std_logic_vector( 7 downto 0);
 
@@ -98,6 +101,7 @@ architecture Behavioral of chars is
       pix_y     : std_logic_vector(  3 downto 0);  -- valid in stage 2 (0 - 12)
       char_addr : std_logic_vector(  9 downto 0);
       inst_addr : std_logic_vector( 10 downto 0);
+      char_col  : std_logic_vector(  7 downto 0);
       nibble    : std_logic_vector(  3 downto 0);
       font_addr : std_logic_vector( 11 downto 0);
       pix       : std_logic;
@@ -118,6 +122,7 @@ architecture Behavioral of chars is
       pix_y     => (others => '0'),
       char_addr => (others => '0'),
       inst_addr => (others => '0'),
+      char_col  => (others => '0'),
       nibble    => (others => '0'),
       font_addr => (others => '0'),
       pix       => '0',
@@ -136,6 +141,7 @@ architecture Behavioral of chars is
 
    signal stage2_divmod13  : std_logic_vector(8 downto 0);
    signal stage4_char_val  : std_logic_vector(7 downto 0);
+   signal stage4_char_col  : std_logic_vector(7 downto 0);
    signal stage4_inst_val  : std_logic_vector(7 downto 0);
    signal stage6_row       : std_logic_vector(7 downto 0);
      
@@ -271,7 +277,9 @@ begin
    ----------------------------------------------------------
 
    disp_addr_o     <= stage3.char_addr;
+   col_addr_o      <= stage3.char_addr;
    stage4_char_val <= disp_data_i;
+   stage4_char_col <= col_data_i;
 
    -- Propagate remaining signals.
    p_stage4 : process (clk_i) is
@@ -312,6 +320,7 @@ begin
       if rising_edge(clk_i) then
          stage5 <= stage4;
          stage5.font_addr <= stage4_char_val & stage4.pix_y;
+         stage5.char_col  <= stage4_char_col;
 
          if overlay_i = '1' then
             if stage4.char_y >= C_DEBUG_POSY   and stage4.char_y < C_DEBUG_POSY+8 and
@@ -394,7 +403,8 @@ begin
          stage8 <= stage7;
 
          if stage7.pix = '1' then
-            stage8.col <= config_i(C_FCOL*8 + 7 downto C_FCOL*8);
+            --stage8.col <= config_i(C_FCOL*8 + 7 downto C_FCOL*8);
+            stage8.col <= stage7.char_col;
          else
             stage8.col <= config_i(C_BCOL*8 + 7 downto C_BCOL*8);
          end if;

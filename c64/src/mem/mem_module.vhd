@@ -15,6 +15,7 @@ use ieee.std_logic_unsigned.all;
 --
 -- RAM  : Read on falling clock edge. No wait state.
 -- DISP : Read on rising clock edge. 1 wait state.
+-- COL  : Read on rising clock edge. 1 wait state.
 -- MOB  : Read on rising clock edge. 1 wait state.
 -- CONF : Read on rising clock edge. 1 wait state.
 -- FONT : Read on rising clock edge. 1 wait state.
@@ -27,6 +28,7 @@ entity mem_module is
       --
       G_RAM_SIZE  : integer;          -- Number of bits in RAM address
       G_DISP_SIZE : integer;          -- Number of bits in DISP address
+      G_COL_SIZE  : integer;          -- Number of bits in COL address
       G_MOB_SIZE  : integer;          -- Number of bits in MOB address
       G_CONF_SIZE : integer;          -- Number of bits in CONF address
       G_FONT_SIZE : integer;          -- Number of bits in FONT address
@@ -34,6 +36,7 @@ entity mem_module is
       --
       G_RAM_MASK  : std_logic_vector(15 downto 0);  -- Value of upper bits in RAM address
       G_DISP_MASK : std_logic_vector(15 downto 0);  -- Value of upper bits in DISP address
+      G_COL_MASK  : std_logic_vector(15 downto 0);  -- Value of upper bits in COL address
       G_MOB_MASK  : std_logic_vector(15 downto 0);  -- Value of upper bits in MOB address
       G_CONF_MASK : std_logic_vector(15 downto 0);  -- Value of upper bits in CONF address
       G_FONT_MASK : std_logic_vector(15 downto 0);  -- Value of upper bits in FONT address
@@ -62,6 +65,8 @@ entity mem_module is
       b_rst_i       : in  std_logic;
       b_disp_addr_i : in  std_logic_vector(G_DISP_SIZE-1 downto 0);
       b_disp_data_o : out std_logic_vector(7 downto 0);
+      b_col_addr_i  : in  std_logic_vector(G_COL_SIZE-1 downto 0);
+      b_col_data_o  : out std_logic_vector(7 downto 0);
       b_mob_addr_i  : in  std_logic_vector(G_MOB_SIZE-2 downto 0);
       b_mob_data_o  : out std_logic_vector(15 downto 0);
       b_config_o    : out std_logic_vector((2**G_CONF_SIZE)*8-1 downto 0);
@@ -82,9 +87,9 @@ architecture Structural of mem_module is
    signal a_wait_d  : std_logic;
    signal a_kb_rden : std_logic;
 
-   signal a_wr_en   : std_logic_vector( 5 downto 0);
-   signal a_rd_en   : std_logic_vector( 5 downto 0);
-   signal a_rd_data : std_logic_vector(47 downto 0);
+   signal a_wr_en   : std_logic_vector( 6 downto 0);
+   signal a_rd_en   : std_logic_vector( 6 downto 0);
+   signal a_rd_data : std_logic_vector(55 downto 0);
 
 begin
 
@@ -131,6 +136,31 @@ begin
       b_addr_i    => b_disp_addr_i,
       b_rd_en_i   => '1',
       b_rd_data_o => b_disp_data_o
+   );
+
+
+   --------------------------------------------
+   -- Instantiate the Character Colour memory
+   --------------------------------------------
+
+   inst_col : entity work.mem
+   generic map (
+      G_ADDR_SIZE => G_COL_SIZE,
+      G_DATA_SIZE => 8,
+      G_INIT_VAL  => 88
+   )
+   port map (
+      a_clk_i     => a_clk_i,
+      a_addr_i    => a_addr_i(G_COL_SIZE-1 downto 0),
+      a_wr_en_i   => a_wr_en(6),
+      a_wr_data_i => a_data_i,
+      a_rd_en_i   => a_rd_en(6),
+      a_rd_data_o => a_rd_data(55 downto 48),
+
+      b_clk_i     => b_clk_i,
+      b_addr_i    => b_col_addr_i,
+      b_rd_en_i   => '1',
+      b_rd_data_o => b_col_data_o
    );
 
 
@@ -235,12 +265,14 @@ begin
    generic map (
       G_RAM_SIZE  => G_RAM_SIZE,
       G_DISP_SIZE => G_DISP_SIZE,
+      G_COL_SIZE  => G_COL_SIZE,
       G_MOB_SIZE  => G_MOB_SIZE,
       G_CONF_SIZE => G_CONF_SIZE,
       G_FONT_SIZE => G_FONT_SIZE,
       G_ROM_SIZE  => G_ROM_SIZE,
       G_RAM_MASK  => G_RAM_MASK,
       G_DISP_MASK => G_DISP_MASK,
+      G_COL_MASK  => G_COL_MASK,
       G_MOB_MASK  => G_MOB_MASK,
       G_CONF_MASK => G_CONF_MASK,
       G_FONT_MASK => G_FONT_MASK,
@@ -276,7 +308,8 @@ begin
    a_wait <= '1' when a_rd_en(1) = '1' or    -- DISP
                       a_rd_en(2) = '1' or    -- MOB
                       a_rd_en(3) = '1' or    -- CONF
-                      a_rd_en(4) = '1' else  -- FONT
+                      a_rd_en(4) = '1' or    -- FONT
+                      a_rd_en(6) = '1' else  -- COL
              '0';
 
    a_wait_o <= '1' when a_wait = '1' and a_wait_d = '0' else

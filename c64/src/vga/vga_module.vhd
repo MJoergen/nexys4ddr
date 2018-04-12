@@ -47,6 +47,8 @@ entity vga_module is
       font_data_i : in  std_logic_vector(  7 downto 0);
       disp_addr_o : out std_logic_vector(  9 downto 0);
       disp_data_i : in  std_logic_vector(  7 downto 0);
+      col_addr_o  : out std_logic_vector(  9 downto 0);
+      col_data_i  : in  std_logic_vector(  7 downto 0);
       mob_addr_o  : out std_logic_vector(  5 downto 0);
       mob_data_i  : in  std_logic_vector( 15 downto 0);
       --
@@ -128,6 +130,9 @@ begin
 
       disp_addr_o => disp_addr_o,
       disp_data_i => disp_data_i,
+
+      col_addr_o  => col_addr_o,
+      col_data_i  => col_data_i,
 
       font_addr_o => font_addr_o,
       font_data_i => font_data_i,

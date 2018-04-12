@@ -2,6 +2,7 @@
 
 #define MEM_RAM  0x0000 // - 0x07FF
 #define MEM_DISP 0x8000 // - 0x83FF
+#define MEM_COL  0x8800 // - 0x8BFF
 #define MEM_MOB  0x8400 // - 0x847F
 #define MEM_CONF 0x8600 // - 0x861F
 #define MEM_FONT 0x9000 // - 0x9FFF

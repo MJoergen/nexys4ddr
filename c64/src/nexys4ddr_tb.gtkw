@@ -1,22 +1,22 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Wed Apr 11 19:21:56 2018
+[*] Thu Apr 12 17:37:58 2018
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/c64/nexys4ddr.ghw"
-[dumpfile_mtime] "Wed Apr 11 19:19:55 2018"
-[dumpfile_size] 1575287
+[dumpfile_mtime] "Thu Apr 12 17:37:13 2018"
+[dumpfile_size] 14838576
 [savefile] "/home/mike/git/nexys4ddr/c64/src/nexys4ddr_tb.gtkw"
-[timestart] 2566800000
-[size] 1920 1103
+[timestart] 0
+[size] 1920 1010
 [pos] 1905 0
-*-25.874191 2719300000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-34.549603 2719300000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.nexys4ddr_tb.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.
-[treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.inst_ctl.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_keyboard.inst_bytefifo.
+[treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.inst_ram.i_dmem.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_vga_module.inst_vga_sprites.
 [treeopen] top.nexys4ddr_tb.inst_nexys4ddr.inst_ethernet.inst_stat.
@@ -75,6 +75,10 @@ top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_rst_i
 @22
 #{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_disp_addr_i[9:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_disp_addr_i[9] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_disp_addr_i[8] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_disp_addr_i[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_disp_addr_i[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_disp_addr_i[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_disp_addr_i[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_disp_addr_i[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_disp_addr_i[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_disp_addr_i[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_disp_addr_i[0]
 #{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_disp_data_o[7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_disp_data_o[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_disp_data_o[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_disp_data_o[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_disp_data_o[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_disp_data_o[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_disp_data_o[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_disp_data_o[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_disp_data_o[0]
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_col_addr_i[9:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_col_addr_i[9] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_col_addr_i[8] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_col_addr_i[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_col_addr_i[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_col_addr_i[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_col_addr_i[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_col_addr_i[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_col_addr_i[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_col_addr_i[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_col_addr_i[0]
+@23
+#{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_col_data_o[7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_col_data_o[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_col_data_o[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_col_data_o[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_col_data_o[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_col_data_o[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_col_data_o[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_col_data_o[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_col_data_o[0]
+@22
 #{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_font_addr_i[11:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_font_addr_i[11] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_font_addr_i[10] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_font_addr_i[9] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_font_addr_i[8] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_font_addr_i[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_font_addr_i[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_font_addr_i[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_font_addr_i[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_font_addr_i[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_font_addr_i[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_font_addr_i[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_font_addr_i[0]
 #{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_font_data_o[7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_font_data_o[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_font_data_o[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_font_data_o[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_font_data_o[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_font_data_o[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_font_data_o[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_font_data_o[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_font_data_o[0]
 #{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_mob_addr_i[5:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_mob_addr_i[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_mob_addr_i[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_mob_addr_i[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_mob_addr_i[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_mob_addr_i[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_mem.b_mob_addr_i[0]
@@ -112,7 +116,7 @@ top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.wait_i
 #{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.reg_sr[7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.reg_sr[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.reg_sr[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.reg_sr[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.reg_sr[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.reg_sr[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.reg_sr[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.reg_sr[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.reg_sr[0]
 #{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.reg_sp[7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.reg_sp[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.reg_sp[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.reg_sp[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.reg_sp[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.reg_sp[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.reg_sp[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.reg_sp[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.reg_sp[0]
 #{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.inst_ctl.inst_r[7:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.inst_ctl.inst_r[7] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.inst_ctl.inst_r[6] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.inst_ctl.inst_r[5] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.inst_ctl.inst_r[4] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.inst_ctl.inst_r[3] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.inst_ctl.inst_r[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.inst_ctl.inst_r[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.inst_ctl.inst_r[0]
-@29
+@28
 #{top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.inst_ctl.cnt_r[2:0]} top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.inst_ctl.cnt_r[2] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.inst_ctl.cnt_r[1] top.nexys4ddr_tb.inst_nexys4ddr.inst_dut.inst_cpu.inst_ctl.cnt_r[0]
 @1000200
 -CPU

@@ -21,12 +21,14 @@ entity hack is
       G_ROM_SIZE  : integer;          -- Number of bits in ROM address
       G_RAM_SIZE  : integer;          -- Number of bits in RAM address
       G_DISP_SIZE : integer;          -- Number of bits in DISP address
+      G_COL_SIZE  : integer;          -- Number of bits in COL address
       G_FONT_SIZE : integer;          -- Number of bits in FONT address
       G_MOB_SIZE  : integer;          -- Number of bits in MOB address
       G_CONF_SIZE : integer;          -- Number of bits in CONF address
       G_ROM_MASK  : std_logic_vector(15 downto 0);  -- Value of upper bits in ROM address
       G_RAM_MASK  : std_logic_vector(15 downto 0);  -- Value of upper bits in RAM address
       G_DISP_MASK : std_logic_vector(15 downto 0);  -- Value of upper bits in DISP address
+      G_COL_MASK  : std_logic_vector(15 downto 0);  -- Value of upper bits in COL address
       G_FONT_MASK : std_logic_vector(15 downto 0);  -- Value of upper bits in FONT address
       G_MOB_MASK  : std_logic_vector(15 downto 0);  -- Value of upper bits in MOB address
       G_CONF_MASK : std_logic_vector(15 downto 0);  -- Value of upper bits in CONF address
@@ -87,6 +89,8 @@ architecture Structural of hack is
    signal vga_font_data : std_logic_vector( 7 downto 0);
    signal vga_disp_addr : std_logic_vector( 9 downto 0);
    signal vga_disp_data : std_logic_vector( 7 downto 0);
+   signal vga_col_addr  : std_logic_vector( 9 downto 0);
+   signal vga_col_data  : std_logic_vector( 7 downto 0);
    signal vga_mob_addr  : std_logic_vector( 5 downto 0);
    signal vga_mob_data  : std_logic_vector(15 downto 0);
    signal vga_config    : std_logic_vector(32*8-1 downto 0);
@@ -140,6 +144,8 @@ begin
       vcount_o       => vga_vcount,
       font_addr_o    => vga_font_addr,
       font_data_i    => vga_font_data,
+      col_addr_o     => vga_col_addr,
+      col_data_i     => vga_col_data,
       disp_addr_o    => vga_disp_addr,
       disp_data_i    => vga_disp_data,
       mob_addr_o     => vga_mob_addr,
@@ -189,12 +195,14 @@ begin
       G_ROM_SIZE  => G_ROM_SIZE,
       G_RAM_SIZE  => G_RAM_SIZE,
       G_DISP_SIZE => G_DISP_SIZE,
+      G_COL_SIZE  => G_COL_SIZE,
       G_FONT_SIZE => G_FONT_SIZE,
       G_MOB_SIZE  => G_MOB_SIZE,
       G_CONF_SIZE => G_CONF_SIZE,
       G_ROM_MASK  => G_ROM_MASK,
       G_RAM_MASK  => G_RAM_MASK,
       G_DISP_MASK => G_DISP_MASK,
+      G_COL_MASK  => G_COL_MASK,
       G_FONT_MASK => G_FONT_MASK,
       G_MOB_MASK  => G_MOB_MASK,
       G_CONF_MASK => G_CONF_MASK,
@@ -220,6 +228,8 @@ begin
       b_rst_i       => vga_rst_i,
       b_disp_addr_i => vga_disp_addr,
       b_disp_data_o => vga_disp_data,
+      b_col_addr_i  => vga_col_addr,
+      b_col_data_o  => vga_col_data,
       b_font_addr_i => vga_font_addr,
       b_font_data_o => vga_font_data,
       b_mob_addr_i  => vga_mob_addr,
