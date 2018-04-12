@@ -405,7 +405,7 @@ loop:
    __asm__("LDA #%b", 'X');
    checkEnd();
    __asm__("STA %v", gameOver);
-   __asm__("BNE %g", loop);
+   __asm__("BNE %g", writeEnd);
 
    findO();
 
@@ -418,9 +418,15 @@ loop:
    __asm__("LDA #%b", 'O');
    checkEnd();
    __asm__("STA %v", gameOver);
-   __asm__("BNE %g", loop);
+   __asm__("BNE %g", writeEnd);
 
    goto loop;  // Just do an endless loop.
+
+writeEnd:
+   __asm__("LDA %v", gameOver);
+   __asm__("STA %w", MEM_DISP);
+   __asm__("JMP %g", loop);
+ 
 } // end of reset
 
 // Maskable interrupt
