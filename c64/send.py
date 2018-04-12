@@ -2,10 +2,12 @@
 
 import socket
 import argparse
+import dnet
 
 parser = argparse.ArgumentParser(description='Process some integers.')
 parser.add_argument('--filename', default='rom.bin')
 parser.add_argument('--address',  default='0xF800')
+parser.add_argument('--mac',      default='F4:6D:04:11:22:33')
 parser.add_argument('--ip',       default='192.168.1.46')
 parser.add_argument('--port',     default='9029')
 parser.add_argument('--reset',    default=3)
@@ -14,9 +16,16 @@ args = parser.parse_args()
 print "Using the following parameters:"
 print "filename :", args.filename
 print "address  :", args.address
+print "mac      :", args.mac
 print "ip       :", args.ip
 print "port     :", args.port
 print "reset    :", args.reset
+
+# Setup ARP (this requires root privilege)
+arp = dnet.arp()
+pa = dnet.addr(args.ip)
+ha = dnet.addr(args.mac)
+arp.add(pa, ha)
 
 input_file = open(args.filename, "rb")
 data = input_file.read()
