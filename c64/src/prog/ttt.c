@@ -245,9 +245,10 @@ void __fastcall__ reset(void)
    initScreen();
 
 loop:
-   __asm__("JSR %v", readFromKeyboard);      // This is a blocking call; it won't return until a valid keypress is detected.
+   // This is a blocking call; it won't return until a valid keypress is detected.
+   readFromKeyboard();
 
-   // Check if valid key pressed
+   // Check if a digit was pressed
    __asm__("CMP #$30");
    __asm__("BCC %g", loop);
    __asm__("CMP #$3A");
