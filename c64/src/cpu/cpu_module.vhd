@@ -192,34 +192,28 @@ begin
 
 
    -- Memory address hold register
-   p_mem_addr_reg : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         case ctl_wr_hold_addr is
-            when "01" => mem_addr_reg( 7 downto 0) <= data_i;           -- Used during zero-page addressing mode
-                         mem_addr_reg(15 downto 8) <= (others => '0');
-            when "10" => mem_addr_reg(15 downto 8) <= data_i;           -- Used during absolute addressing modes
-            when "11" => mem_addr_reg <= mem_addr_reg + regs_rd_data;   -- Used during indirect addressing
-            when others => null;
-         end case;
-      end if;
-   end process p_mem_addr_reg;
+   inst_addr : entity work.addr
+   port map (
+      -- Clock
+      clk_i   => clk_i,
+      rst_i   => rst_i,
+      wr_i    => ctl_wr_hold_addr,
+      data_i  => data_i,
+      regs_i  => regs_rd_data,
+      addr_o  => mem_addr_reg
+   );
 
    -- Second memory address hold register
-   p_mem_addr2_reg : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         case ctl_wr_hold_addr2 is
-            when "01" => mem_addr2_reg( 7 downto 0) <= data_i;                 -- Used during zero-page addressing mode
-                         mem_addr2_reg(15 downto 8) <= (others => '0');
-            when "10" => mem_addr2_reg( 7 downto 0) <= data_i + regs_rd_data;  -- Used during zero-page addressing mode
-                         mem_addr2_reg(15 downto 8) <= (others => '0');
-            when "11" => mem_addr2_reg( 7 downto 0) <= mem_addr2_reg( 7 downto 0) + 1;
-            when others => null;
-         end case;
-      end if;
-   end process p_mem_addr2_reg;
-
+   inst_addr2 : entity work.addr2
+   port map (
+      -- Clock
+      clk_i   => clk_i,
+      rst_i   => rst_i,
+      wr_i    => ctl_wr_hold_addr2,
+      data_i  => data_i,
+      regs_i  => regs_rd_data,
+      addr_o  => mem_addr2_reg
+   );
 
    -- Status register
    inst_sr : entity work.sr
