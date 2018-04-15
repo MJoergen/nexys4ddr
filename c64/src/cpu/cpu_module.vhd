@@ -174,22 +174,14 @@ begin
    );
 
    -- Stack pointer
-   p_sp : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         case ctl_wr_sp is
-            when "01" => reg_sp <= regs_rd_data;
-            when "10" => reg_sp <= reg_sp - 1;
-            when "11" => reg_sp <= reg_sp + 1;
-            when others => null;
-         end case;
-
-         if rst_i = '1' then
-            reg_sp <= X"FF";
-         end if;
-      end if;
-   end process p_sp;
-
+   inst_sp : entity work.sp
+   port map (
+      clk_i  => clk_i,
+      rst_i  => rst_i,
+      wr_i   => ctl_wr_sp,
+      regs_i => regs_rd_data,
+      sp_o   => reg_sp
+   );
 
    -- Memory address hold register
    inst_addr : entity work.addr
