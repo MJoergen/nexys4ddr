@@ -81,6 +81,18 @@ begin
          addr_v := conv_integer(a_addr_i(G_CONF_SIZE-1 downto 0));
          if a_wr_en_i = '1' then
             a_config(addr_v*8+7 downto addr_v*8) <= a_wr_data_i;
+
+            if addr_v = C_IRQ_STAT then
+               a_irq_latch <= a_irq_latch and not a_wr_data_i(0);
+            end if;
+         end if;
+
+         if a_irq_d = '1' and a_config(C_IRQ_MASK*8) = '1' then  -- IRQ Mask
+            a_irq_latch <= '1';
+         end if;
+
+         if a_rst_i = '1' then
+            a_irq_latch <= '0';
          end if;
       end if;
    end process proc_write;
@@ -101,18 +113,9 @@ begin
                   a_rd_data <= a_kb_val_i;
                when C_IRQ_STAT =>
                   a_rd_data(0) <= a_irq_latch;
-                  a_irq_latch <= '0';
                when others =>
                   a_rd_data <= a_config(addr_v*8+7 downto addr_v*8);
             end case;
-         end if;
-
-         if a_irq_d = '1' and a_config(C_IRQ_MASK*8) = '1' then  -- IRQ Mask
-            a_irq_latch <= '1';
-         end if;
-
-         if a_rst_i = '1' then
-            a_irq_latch <= '0';
          end if;
       end if;
    end process proc_read;

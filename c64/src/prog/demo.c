@@ -117,7 +117,8 @@ void __fastcall__ irq(void)
    __asm__("TYA");
    __asm__("STA %v", irqY);    // Store Y register
 
-   __asm__("LDA %w", VGA_ADDR_IRQ);  // Clear IRQ assertion.
+   __asm__("LDA %w", VGA_ADDR_IRQ);  // Read IRQ status
+   __asm__("STA %w", VGA_ADDR_IRQ);  // Clear IRQ assertion.
 
    __asm__("LDA %w", VGA_ADDR_YLINE);
    __asm__("CMP #%b", YPOS_LINE1);
