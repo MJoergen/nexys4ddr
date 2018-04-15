@@ -161,40 +161,17 @@ begin
 
 
    -- Program Counter register
-   p_pc : process (clk_i)
-      function sign_extend(arg : std_logic_vector(7 downto 0))
-      return std_logic_vector is
-         variable res : std_logic_vector(15 downto 0);
-      begin
-         res := (others => arg(7)); -- Copy sign bit to all bits.
-         res(7 downto 0) := arg;
-         return res;
-      end function sign_extend;
-   begin
-      if rising_edge(clk_i) then
-         case ctl_wr_pc(1 downto 0) is
-            when "01" =>
-               reg_pc <= mem_addr_reg;                            -- Used during JSR
-            when "10" =>
-               reg_pc <= data_i & mem_addr_reg(7 downto 0);       -- Used during jump absolute
-            when "11" =>
-               reg_pc <= reg_pc + 1;                              -- Used during instruction fetch
-               if ctl_wr_pc(2) = '1' then
-                  if (ctl_wr_pc(5 downto 3) = "000" and reg_sr(7) = '0') or
-                  (ctl_wr_pc(5 downto 3) = "001" and reg_sr(7) = '1') or
-                  (ctl_wr_pc(5 downto 3) = "010" and reg_sr(6) = '0') or
-                  (ctl_wr_pc(5 downto 3) = "011" and reg_sr(6) = '1') or
-                  (ctl_wr_pc(5 downto 3) = "100" and reg_sr(0) = '0') or
-                  (ctl_wr_pc(5 downto 3) = "101" and reg_sr(0) = '1') or
-                  (ctl_wr_pc(5 downto 3) = "110" and reg_sr(1) = '0') or
-                  (ctl_wr_pc(5 downto 3) = "111" and reg_sr(1) = '1') then
-                     reg_pc <= reg_pc + 1 + sign_extend(data_i);  -- Used during branch relative
-                  end if;
-               end if;
-            when others => null;
-         end case;
-      end if;
-   end process p_pc;
+   inst_pc : entity work.pc
+   port map (
+      -- Clock
+      clk_i   => clk_i,
+      rst_i   => rst_i,
+      wr_pc_i => ctl_wr_pc,
+      sr_i    => reg_sr,
+      data_i  => data_i,
+      addr_i  => mem_addr_reg,
+      pc_o    => reg_pc
+   );
 
    -- Stack pointer
    p_sp : process (clk_i)
@@ -245,55 +222,28 @@ begin
 
 
    -- Status register
-   p_sr : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if ctl_wr_szcv(3) = '1' then
-            reg_sr(7) <= alu_s;
-         end if;
+   inst_sr : entity work.sr
+   port map (
+      -- Clock
+      clk_i      => clk_i,
+      rst_i      => rst_i,
 
-         if ctl_wr_szcv(2) = '1' then
-            reg_sr(1) <= alu_z;
-         end if;
+      wr_szcv_i  => ctl_wr_szcv,
+      alu_s_i    => alu_s,
+      alu_z_i    => alu_z,
+      alu_c_i    => alu_c,
+      alu_v_i    => alu_v,
+      wr_b_i     => ctl_wr_b,
+      wr_c_i     => ctl_wr_c,
+      wr_i_i     => ctl_wr_i,
+      wr_d_i     => ctl_wr_d,
 
-         if ctl_wr_szcv(1) = '1' then
-            reg_sr(0) <= alu_c;
-         end if;
+      wr_sr_i    => ctl_wr_sr,
+      data_i     => data_i,
+      reg_i      => regs_rd_data,
 
-         if ctl_wr_szcv(0) = '1' then
-            reg_sr(6) <= alu_v;
-         end if;
-
-         if ctl_wr_b(1) = '1' then
-            reg_sr(4) <= ctl_wr_b(0);
-         end if;
-
-         if ctl_wr_c(1) = '1' then
-            reg_sr(0) <= ctl_wr_c(0);
-         end if;
-
-         if ctl_wr_i(1) = '1' then
-            reg_sr(2) <= ctl_wr_i(0);
-         end if;
-
-         if ctl_wr_d(1) = '1' then
-            reg_sr(3) <= ctl_wr_d(0);
-         end if;
-
-         if ctl_wr_sr(1) = '1' then
-            if ctl_wr_sr(0) = '1' then
-               reg_sr <= data_i;          -- Used during RTI
-            else
-               reg_sr <= regs_rd_data;    -- Not currently used ????
-            end if;
-         end if;
-
-         if rst_i = '1' then
-            reg_sr <= X"04";              -- Interrupts are disabled after reset.
-         end if;
-      end if;
-   end process p_sr;
-
+      sr_o       => reg_sr
+   );
  
    -- Select memory address
    addr <= reg_pc                           when ctl_mem_addr = "0000" else    -- Used during instruction fetch

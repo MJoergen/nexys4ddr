@@ -43,6 +43,7 @@ SRC += src/cpu/regs.vhd
 SRC += src/cpu/ctl.vhd
 SRC += src/cpu/alu.vhd
 SRC += src/cpu/pc.vhd
+SRC += src/cpu/sr.vhd
 SRC += src/cpu/cpu_module.vhd
 
 # Memory
