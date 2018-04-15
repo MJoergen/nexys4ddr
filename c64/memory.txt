@@ -3,6 +3,7 @@ This file contains an overview of the BRAM usage.
 mem_module:
 -- RAM  : 1 BRAM
 -- DISP : 1 BRAM
+-- COL  : 1 BRAM
 -- MOB  : 0 BRAM
 -- CONF : 0 BRAM
 -- FONT : 2 BRAM
@@ -12,7 +13,7 @@ VGA:
 -- divmod13 : 1 BRAM
 -- opcodes  : 1 BRAM
 
-The above totals 7 BRAM
+The above totals 8 BRAM
 
 Ethernet:
 -- compress  : 4 BRAM
