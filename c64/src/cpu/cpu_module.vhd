@@ -97,6 +97,9 @@ architecture Structural of cpu_module is
    signal addr : std_logic_vector(15 downto 0);
    signal data : std_logic_vector( 7 downto 0);
 
+   signal wr_mask : std_logic_vector(7 downto 0);
+   signal wr_data : std_logic_vector(7 downto 0);
+
 begin
 
    irq_masked <= irq_i and not reg_sr(2);
@@ -207,6 +210,25 @@ begin
       addr_o  => mem_addr2_reg
    );
 
+
+   wr_mask(7) <= ctl_wr_szcv(3);
+   wr_mask(6) <= ctl_wr_szcv(0);
+   wr_mask(5) <= '0';
+   wr_mask(4) <= ctl_wr_b(1);
+   wr_mask(3) <= ctl_wr_d(1);
+   wr_mask(2) <= ctl_wr_i(1);
+   wr_mask(1) <= ctl_wr_szcv(2);
+   wr_mask(0) <= ctl_wr_szcv(1) or ctl_wr_c(1);
+
+   wr_data(7) <= alu_s;
+   wr_data(6) <= alu_v;
+   wr_data(5) <= '0';
+   wr_data(4) <= ctl_wr_b(0);
+   wr_data(3) <= ctl_wr_d(0);
+   wr_data(2) <= ctl_wr_i(0);
+   wr_data(1) <= alu_z;
+   wr_data(0) <= (alu_c and ctl_wr_szcv(1)) or (ctl_wr_c(0) and ctl_wr_c(1));
+
    -- Status register
    inst_sr : entity work.sr
    port map (
@@ -214,15 +236,8 @@ begin
       clk_i      => clk_i,
       rst_i      => rst_i,
 
-      wr_szcv_i  => ctl_wr_szcv,
-      alu_s_i    => alu_s,
-      alu_z_i    => alu_z,
-      alu_c_i    => alu_c,
-      alu_v_i    => alu_v,
-      wr_b_i     => ctl_wr_b,
-      wr_c_i     => ctl_wr_c,
-      wr_i_i     => ctl_wr_i,
-      wr_d_i     => ctl_wr_d,
+      wr_mask_i  => wr_mask,
+      wr_data_i  => wr_data,
 
       wr_sr_i    => ctl_wr_sr,
       data_i     => data_i,
