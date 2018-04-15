@@ -18,8 +18,9 @@ Well, even though I'm a senior FPGA developer, I've never done anything like
 this before. Thus, this is a learning projekt for me.  It is simple enough to
 be do-able, and yet useful enough to be interesting.
 
-I've chosen the 6502 because I used it extensively, when I had a C-64 several decades ago.
-There is excellent material available - see secion below on resources.
+I've chosen the 6502 because I used it extensively, when I had a C-64 several
+decades ago.  There is excellent material available - see secion below on
+resources.
 
 
 ## Design
@@ -27,6 +28,7 @@ The computer consists of the following parts:
 * 6502 CPU
 * Memory (RAM and ROM)
 * VGA driver
+* Keyboard interface
 
 The following picture shows the block diagram
 
@@ -35,6 +37,11 @@ The following picture shows the block diagram
 Note that the dotted line indicates separation between two asynchronous clock
 domains. The VGA runs at 25 MHz  (determined by the video mode - 640x480 @ 60
 Hz), whereas the CPU runs at a different frequency.
+
+The only part with multiple clock domains is isolated to be the memory. This is
+a great simplification, because the FPGA supports True Dual Port memory. What
+this means is that the VHDL designer clock crossing is almost entirely handled
+by the tools (Vivado and ISE).
 
 ### The 6502 processor
 This is an 8-bit processor with 16-bit address bus.  Memory is accessed in
@@ -73,7 +80,6 @@ The following block diagram shows the architecture of the VGA module.
 
 ![VGA Module](img/VGA_Module.png "")
 
-Notice again the dotted line separating the two clock domains.
 
 
 
