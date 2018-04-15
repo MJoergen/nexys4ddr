@@ -77,7 +77,7 @@ loop:
    __asm__("STA (%b),Y", ZP_DST_LO);
    __asm__("TYA");
    __asm__("BNE %g", loop);
-} // end of copyLine
+} // end of my_memcpy
 
 static void __fastcall__ initScreen(void)
 {
