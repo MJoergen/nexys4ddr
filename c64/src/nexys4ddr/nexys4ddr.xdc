@@ -7,14 +7,24 @@
 set_property CFGBVS VCCO [current_design]
 set_property CONFIG_VOLTAGE 3.3 [current_design]
 
+
+####################
+# Timing constraints
+####################
+
 # Clock signal
 set_property -dict { PACKAGE_PIN E3    IOSTANDARD LVCMOS33 } [get_ports { clk100_i }]; #IO_L12P_T1_MRCC_35 Sch=clk100mhz
 create_clock -add -name clk100_pin -period 10.00 -waveform {0 5} [get_ports {clk100_i}];  # 100 MHz
 
 # Isolate the VGA clock from the rest of the design.
-set_clock_groups -asynchronous -group { get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKFBOUT]
-                                        get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKOUT1] }
+set_false_path -from [get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKOUT1] ]
+set_false_path -to   [get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKOUT1] ]
 
+
+
+####################
+# Pin locations
+####################
 
 ##Switches
 
