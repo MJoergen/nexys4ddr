@@ -4,10 +4,10 @@
 --               a minimum.
 --
 -- Configuration information is provided in the config_i signal, and includes
--- * 0x00-0x07 X-position (2 bytes pr MOB)
--- * 0x08-0x0B Y-position (1 byte pr MOB)
--- * 0x0C-0x0F Color      (1 byte pr MOB)
--- * 0x10-0x13 Enable     (1 byte pr MOB)
+-- * 0x00-0x07 X-position  (2 bytes pr MOB)
+-- * 0x08-0x0B Y-position
+-- * 0x0C-0x0F Color
+-- * 0x10-0x13 Enable (bit 0) & Magnify (bits 2-1)
 -- * 0x18 Foreground text colour
 -- * 0x19 Background text colour
 -- * 0x1A Horizontal pixel shift
@@ -66,11 +66,6 @@ architecture Behavioral of sprites is
    signal bitmap_addr_d : std_logic_vector(5 downto 0) := (others => '0');
    signal bitmap_rows   : std_logic_vector(16*4-1 downto 0) := (others => '0');
 
-   signal y0 : std_logic_vector(7 downto 0);
-   signal y1 : std_logic_vector(7 downto 0);
-   signal y2 : std_logic_vector(7 downto 0);
-   signal y3 : std_logic_vector(7 downto 0);
-
    ----------------------------------------------------------------------
 
    -- Pipeline
@@ -107,12 +102,32 @@ architecture Behavioral of sprites is
    signal stage2 : t_stage := STAGE_DEFAULT;
    signal stage3 : t_stage := STAGE_DEFAULT;
 
+   type t_posx    is array(natural range <>) of std_logic_vector(8 downto 0);
+   type t_posy    is array(natural range <>) of std_logic_vector(7 downto 0);
+   type t_color   is array(natural range <>) of std_logic_vector(7 downto 0);
+   type t_enable  is array(natural range <>) of std_logic;
+   type t_magnify is array(natural range <>) of std_logic_vector(1 downto 0);
+
+   signal posx_s    : t_posx(3 downto 0);
+   signal posy_s    : t_posy(3 downto 0);
+   signal color_s   : t_color(3 downto 0);
+   signal enable_s  : t_enable(3 downto 0);
+   signal magnify_s : t_magnify(3 downto 0);
+
 begin
 
-   y0 <= config_i( 8*8+7 downto  8*8);
-   y1 <= config_i( 9*8+7 downto  9*8);
-   y2 <= config_i(10*8+7 downto 10*8);
-   y3 <= config_i(11*8+7 downto 11*8);
+   ------------------------------------------------------------------------
+   -- Decode configuration data
+   ------------------------------------------------------------------------
+
+   gen_config : for i in 0 to 3 generate
+      posx_s(i)    <= config_i((C_XPOS+2*i)*8 + 8 downto (C_XPOS+2*i)*8);
+      posy_s(i)    <= config_i((C_YPOS+i)*8 + 7 downto (C_YPOS+i)*8);
+      color_s(i)   <= config_i((C_COL+i)*8 + 7 downto (C_COL+i)*8);
+      enable_s(i)  <= config_i((C_ENA+i)*8);
+      magnify_s(i) <= config_i((C_ENA+i)*8 + 2 downto (C_ENA+i)*8 + 1);
+   end generate gen_config;
+
 
    ------------------------------------------------------------------------
    -- Control reading sprite bitmaps from the BRAM.
@@ -122,12 +137,6 @@ begin
 
    p_fsm : process (clk_i)
       variable vcount1_v : std_logic_vector(10 downto 0);
-
-      variable posx_v    : std_logic_vector( 8 downto 0);
-      variable posy_v    : std_logic_vector( 7 downto 0);
-      variable color_v   : std_logic_vector( 7 downto 0);
-      variable enable_v  : std_logic;
-
       variable pix_y_v : std_logic_vector( 9 downto 0);
    begin
       if rising_edge(clk_i) then
@@ -139,18 +148,12 @@ begin
             -- Loop over all sprites.
             for i in 0 to 3 loop
 
-               -- Decode sprite configuration data
-               posx_v   := config_i((C_XPOS+2*i)*8 + 8 downto (C_XPOS+2*i)*8);
-               posy_v   := config_i((C_YPOS+i)*8 + 7 downto (C_YPOS+i)*8);
-               color_v  := config_i((C_COL+i)*8 + 7 downto (C_COL+i)*8);
-               enable_v := config_i((C_ENA+i)*8);
-
                -- Get pixel row in this sprite
-               pix_y_v := vcount1_v(10 downto 1) - ("00" & posy_v);
+               pix_y_v := vcount1_v(10 downto 1) - ("00" & posy_s(i));
 
                fsm_rden(i) <= '0';
                if pix_y_v <= 15 then
-                  fsm_rden(i) <= enable_v;
+                  fsm_rden(i) <= enable_s(i);
                end if;
                fsm_addr(4*(i+1)-1 downto 4*i) <= pix_y_v(3 downto 0);
             end loop;
@@ -222,10 +225,6 @@ begin
    ----------------------------------------
 
    p_stage1 : process (clk_i)
-      variable posx_v   : std_logic_vector(8 downto 0);
-      variable posy_v   : std_logic_vector(7 downto 0);
-      variable color_v  : std_logic_vector(7 downto 0);
-      variable enable_v : std_logic;
       variable pix_x_v : std_logic_vector(9 downto 0);
       variable pix_y_v : std_logic_vector(9 downto 0);
    begin
@@ -236,22 +235,16 @@ begin
          stage1.row_index_valid <= (others => '0');
 
          for i in 0 to 3 loop
-            -- Decode sprite configuration data
-            posx_v   := config_i((C_XPOS+2*i)*8 + 8 downto (C_XPOS+2*i)*8);
-            posy_v   := config_i((C_YPOS+i)*8 + 7 downto (C_YPOS+i)*8);
-            color_v  := config_i((C_COL+i)*8 + 7 downto (C_COL+i)*8);
-            enable_v := config_i((C_ENA+i)*8);
-
-            pix_x_v := stage0.hcount(10 downto 1) - ("0" & posx_v);
+            pix_x_v := stage0.hcount(10 downto 1) - ("0" & posx_s(i));
             stage1.col_index(4*(i+1)-1 downto 4*i) <= pix_x_v(3 downto 0);
             if pix_x_v <= 15 then
-               stage1.col_index_valid(i) <= enable_v;
+               stage1.col_index_valid(i) <= enable_s(i);
             end if;
 
-            pix_y_v := stage0.vcount(10 downto 1) - ("00" & posy_v);
+            pix_y_v := stage0.vcount(10 downto 1) - ("00" & posy_s(i));
             stage1.row_index(4*(i+1)-1 downto 4*i) <= pix_y_v(3 downto 0);
             if pix_y_v <= 15 then
-               stage1.row_index_valid(i) <= enable_v;
+               stage1.row_index_valid(i) <= enable_s(i);
             end if;
          end loop;
 
@@ -286,23 +279,13 @@ begin
    ----------------------------------------
 
    p_stage3 : process (clk_i)
-      variable posx_v   : std_logic_vector(8 downto 0);
-      variable posy_v   : std_logic_vector(7 downto 0);
-      variable color_v  : std_logic_vector(7 downto 0);
-      variable enable_v : std_logic;
    begin
       if rising_edge(clk_i) then
          stage3 <= stage2;
 
          for i in 3 downto 0 loop
-            -- Decode sprite configuration data
-            posx_v   := config_i((C_XPOS+2*i)*8 + 8 downto (C_XPOS+2*i)*8);
-            posy_v   := config_i((C_YPOS+i)*8 + 7 downto (C_YPOS+i)*8);
-            color_v  := config_i((C_COL+i)*8 + 7 downto (C_COL+i)*8);
-            enable_v := config_i((C_ENA+i)*8);
-
             if stage2.pix(i) = '1' then
-               stage3.col <= color_v;
+               stage3.col <= color_s(i);
             end if;
          end loop;
 
