@@ -61,6 +61,7 @@ SRC += src/mem/mem_module.vhd
 
 # Clock domain crossing
 SRC += src/cdc/cdcpulse.vhd
+SRC += src/cdc/cdc.vhd
 SRC += src/cdc/cdcvector.vhd
 
 # Keyboard

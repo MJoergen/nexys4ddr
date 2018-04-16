@@ -190,6 +190,7 @@ begin
 
    inst_conf_mem : entity work.conf_mem
    generic map (
+      G_NEXYS4DDR => G_NEXYS4DDR,
       G_CONF_SIZE => G_CONF_SIZE 
    )
    port map (
