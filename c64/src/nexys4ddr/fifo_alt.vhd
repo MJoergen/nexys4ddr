@@ -44,7 +44,7 @@ architecture behavioral of fifo is
 
 begin  -- architecture behavioral
 
-   -- Global reset. Common for read and write port.
+   -- Global asynchronous reset. Common for read and write port.
    rst <= wr_rst_i or rd_rst_i;
 
    -- Prepare input data
