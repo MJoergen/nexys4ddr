@@ -37,10 +37,10 @@
 #define VGA_ADDR_SPRITE_2_COL    0x860E    // Color (RRRGGGBB)
 #define VGA_ADDR_SPRITE_3_COL    0x860F    // Color (RRRGGGBB)
 
-#define VGA_ADDR_SPRITE_0_ENA    0x8610    // Bit 0 : Enabled
-#define VGA_ADDR_SPRITE_1_ENA    0x8611    // Bit 0 : Enabled
-#define VGA_ADDR_SPRITE_2_ENA    0x8612    // Bit 0 : Enabled
-#define VGA_ADDR_SPRITE_3_ENA    0x8613    // Bit 0 : Enabled
+#define VGA_ADDR_SPRITE_0_ENA    0x8610    // 0:Enabled, 2-1:Magnify
+#define VGA_ADDR_SPRITE_1_ENA    0x8611    // 0:Enabled, 2-1:Magnify
+#define VGA_ADDR_SPRITE_2_ENA    0x8612    // 0:Enabled, 2-1:Magnify
+#define VGA_ADDR_SPRITE_3_ENA    0x8613    // 0:Enabled, 2-1:Magnify
 
 #define VGA_ADDR_FGCOL           0x8618    // Character foreground colour
 #define VGA_ADDR_BGCOL           0x8619    // Character background colour
