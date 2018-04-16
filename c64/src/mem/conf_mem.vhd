@@ -19,6 +19,7 @@ use ieee.std_logic_unsigned.all;
 entity conf_mem is
 
    generic (
+      G_NEXYS4DDR : boolean;          -- True, when using the Nexys4DDR board.
       G_CONF_SIZE : integer           -- Number of bits in CONF address
    );
    port (
@@ -61,18 +62,49 @@ architecture Structural of conf_mem is
 
 begin
 
+   ----------------------------------
+   -- Clock synchronizers
+   ----------------------------------
+   inst_cdc_irq : entity work.cdc
+   generic map (
+      G_NEXYS4DDR => G_NEXYS4DDR
+   )
+   port map (
+      rx_clk_i => b_clk_i,
+      rx_in_i  => b_irq_i,
+      tx_clk_i => a_clk_i,
+      tx_out_o => a_irq_d
+   );
+
+   inst_cdcvector_yline : entity work.cdcvector
+   generic map (
+      G_NEXYS4DDR => G_NEXYS4DDR,
+      G_SIZE      => 8
+   )
+   port map (
+      rx_clk_i => b_clk_i,
+      rx_in_i  => b_yline_i,
+      tx_clk_i => a_clk_i,
+      tx_out_o => a_yline_d
+   );
+
+   inst_cdcvector_config : entity work.cdcvector
+   generic map (
+      G_NEXYS4DDR => G_NEXYS4DDR,
+      G_SIZE      => 2**(G_CONF_SIZE+3)
+   )
+   port map (
+      rx_clk_i => a_clk_i,
+      rx_in_i  => a_config,
+      tx_clk_i => b_clk_i,
+      tx_out_o => b_config
+   );
+
+
    --------------
    -- Port A
    --------------
 
-   -- Synchronize from b_clk to a_clk
-   proc_sync : process (a_clk_i)
-   begin
-      if rising_edge(a_clk_i) then
-         a_yline_d <= b_yline_i;
-         a_irq_d   <= b_irq_i;
-      end if;
-   end process proc_sync;
 
    proc_write : process (a_clk_i)
       variable addr_v : integer range 0 to 2**G_CONF_SIZE-1;
@@ -130,14 +162,6 @@ begin
    --------------
    -- Port B
    --------------
-
-   -- Synchronize from a_clk to b_clk
-   conf_b_proc : process (b_clk_i)
-   begin
-      if rising_edge(b_clk_i) then
-         b_config <= a_config;
-      end if;
-   end process conf_b_proc;
 
    -- Drive output signals.
    b_config_o <= b_config;

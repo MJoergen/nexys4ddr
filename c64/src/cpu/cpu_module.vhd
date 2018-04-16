@@ -100,6 +100,8 @@ architecture Structural of cpu_module is
    signal wr_mask : std_logic_vector(7 downto 0);
    signal wr_data : std_logic_vector(7 downto 0);
 
+   signal status : std_logic_vector(127 downto 0);
+
 begin
 
    irq_masked <= irq_i and not reg_sr(2);
@@ -268,25 +270,31 @@ begin
            reg_sr              when ctl_mem_wrdata(1 downto 0) = "11" else     -- Used during IRQ
            (others => '0');
 
+   -- Debug output
+   p_status : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         status( 15 downto   0) <= addr;                                     -- "ADDR"
+         status( 31 downto  16) <= "0000000" & ctl_mem_wrdata(2) & data;     -- "WR_DATA"
+         status( 47 downto  32) <= "0000000" & ctl_mem_rden & data_i;        -- "RD_DATA"
+         status( 63 downto  48) <= reg_pc;                                   -- "PC"
+         status( 79 downto  64) <= "00000" & ctl_debug;                      -- "INST"
+         status( 95 downto  80) <= reg_sr & regs_debug(7 downto 0);          -- "SR_A"
+         status(111 downto  96) <= regs_debug(23 downto 8);                  -- "X_Y"
+         status(127 downto 112) <= X"01" & reg_sp;                           -- "SP"
+      end if;
+   end process p_status;
+
 
    -----------------------
    -- Drive output signals
    -----------------------
 
-   addr_o <= addr;
-   data_o <= data;
-   rden_o <= ctl_mem_rden;
-   wren_o <= ctl_mem_wrdata(2);
-
-   -- Debug output
-   status_o( 15 downto   0) <= addr;                                     -- "ADDR"
-   status_o( 31 downto  16) <= "0000000" & ctl_mem_wrdata(2) & data;     -- "WR_DATA"
-   status_o( 47 downto  32) <= "0000000" & ctl_mem_rden & data_i;        -- "RD_DATA"
-   status_o( 63 downto  48) <= reg_pc;                                   -- "PC"
-   status_o( 79 downto  64) <= "00000" & ctl_debug;                      -- "INST"
-   status_o( 95 downto  80) <= reg_sr & regs_debug(7 downto 0);          -- "SR_A"
-   status_o(111 downto  96) <= regs_debug(23 downto 8);                  -- "X_Y"
-   status_o(127 downto 112) <= X"01" & reg_sp;                           -- "SP"
+   addr_o   <= addr;
+   data_o   <= data;
+   rden_o   <= ctl_mem_rden;
+   wren_o   <= ctl_mem_wrdata(2);
+   status_o <= status;
 
 end Structural;
 

@@ -2,31 +2,30 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
--- This module synchronizes a vector
+-- This module synchronizes a single bit
 
-entity cdcvector is
+entity cdc is
 
    generic (
-              G_NEXYS4DDR : boolean;             -- True, when using the Nexys4DDR board.
-              G_SIZE      : integer := 1
+              G_NEXYS4DDR : boolean              -- True, when using the Nexys4DDR board.
            );
    port (
            -- The sender
            rx_clk_i : in  std_logic;
-           rx_in_i  : in  std_logic_vector(G_SIZE-1 downto 0);
+           rx_in_i  : in  std_logic;
 
            -- The receiver
            tx_clk_i : in  std_logic;
-           tx_out_o : out std_logic_vector(G_SIZE-1 downto 0)
+           tx_out_o : out std_logic
         );
 
-end entity cdcvector;
+end entity cdc;
 
-architecture Structural of cdcvector is
+architecture Structural of cdc is
 
-   signal rx_in_s    : std_logic_vector(G_SIZE-1 downto 0) := (others => '0');
-   signal tx_in_s    : std_logic_vector(G_SIZE-1 downto 0) := (others => '0');
-   signal tx_in_d_s  : std_logic_vector(G_SIZE-1 downto 0) := (others => '0');
+   signal rx_in_s    : std_logic := '0';
+   signal tx_in_s    : std_logic := '0';
+   signal tx_in_d_s  : std_logic := '0';
 
    attribute ASYNC_REG : string;
    attribute ASYNC_REG of tx_in_s   : signal is "TRUE";
