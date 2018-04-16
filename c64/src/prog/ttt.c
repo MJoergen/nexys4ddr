@@ -192,7 +192,7 @@ void __fastcall__ reset(void)
    __asm__("STA %w",  VGA_ADDR_BGCOL);
 
 new:
-   clearScreen();
+   //clearScreen();
    vga_init();
    newGame();
 

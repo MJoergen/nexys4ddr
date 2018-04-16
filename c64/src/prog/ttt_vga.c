@@ -92,6 +92,8 @@ void __fastcall__ vga_init(void)
    __asm__("STA %b", ZP_SRC_LO);
    __asm__("LDA #>%v", bitmap_board);
    __asm__("STA %b", ZP_SRC_HI);
+   __asm__("LDA #$20");
+   __asm__("TAY");
    my_memcpy();
 
    __asm__("LDA #<%w", BOARD_XPOS);
@@ -104,6 +106,21 @@ void __fastcall__ vga_init(void)
    __asm__("STA %w", VGA_ADDR_SPRITE_0_COL);
    __asm__("LDA #$05"); // Magnification = x4
    __asm__("STA %w", VGA_ADDR_SPRITE_0_ENA);
+
+   __asm__("LDA #<%w", BOARD_XPOS+4);
+   __asm__("STA %w", VGA_ADDR_SPRITE_1_X);
+   __asm__("LDA #>%w", BOARD_XPOS+4);
+   __asm__("STA %w", VGA_ADDR_SPRITE_1_X_MSB);
+
+   __asm__("LDA #<%w", BOARD_XPOS+24);
+   __asm__("STA %w", VGA_ADDR_SPRITE_2_X);
+   __asm__("LDA #>%w", BOARD_XPOS+24);
+   __asm__("STA %w", VGA_ADDR_SPRITE_2_X_MSB);
+
+   __asm__("LDA #<%w", BOARD_XPOS+44);
+   __asm__("STA %w", VGA_ADDR_SPRITE_3_X);
+   __asm__("LDA #>%w", BOARD_XPOS+44);
+   __asm__("STA %w", VGA_ADDR_SPRITE_3_X_MSB);
 
    __asm__("LDA #%b", BOARD_YPOS);
    __asm__("STA %w", VGA_ADDR_YLINE); // The line number for interrupt
@@ -120,21 +137,27 @@ void __fastcall__ vga_irq(void)
    __asm__("LDA %w", VGA_ADDR_YLINE); // The line number for interrupt
    __asm__("CMP #%b", BOARD_YPOS);
    __asm__("BEQ %g", row1);
-   __asm__("CMP #%b", BOARD_YPOS);
+   __asm__("CMP #%b", BOARD_YPOS+20);
    __asm__("BEQ %g", row2);
-   __asm__("CMP #%b", BOARD_YPOS);
+   __asm__("CMP #%b", BOARD_YPOS+40);
    __asm__("BEQ %g", row3);
    __asm__("RTS");
 
 row1:
+   __asm__("LDA #%b", BOARD_YPOS+20);
+   __asm__("STA %w", VGA_ADDR_YLINE);
    __asm__("LDX #$00");
    __asm__("JMP %g", row);
 
 row2:
+   __asm__("LDA #%b", BOARD_YPOS+40);
+   __asm__("STA %w", VGA_ADDR_YLINE);
    __asm__("LDX #$03");
    __asm__("JMP %g", row);
 
 row3:
+   __asm__("LDA #%b", BOARD_YPOS);
+   __asm__("STA %w", VGA_ADDR_YLINE);
    __asm__("LDX #$06");
 
 row:
@@ -165,6 +188,8 @@ col1enable:
    __asm__("STA %b", ZP_DST_LO);
    __asm__("LDA #>%w", VGA_ADDR_SPRITE_1_BITMAP);
    __asm__("STA %b", ZP_DST_HI);
+   __asm__("LDA #$20");
+   __asm__("TAY");
    my_memcpy();
    __asm__("LDA #$01");
    __asm__("STA %w", VGA_ADDR_SPRITE_1_ENA);
@@ -198,11 +223,12 @@ col2enable:
    __asm__("STA %b", ZP_DST_LO);
    __asm__("LDA #>%w", VGA_ADDR_SPRITE_2_BITMAP);
    __asm__("STA %b", ZP_DST_HI);
+   __asm__("LDA #$20");
+   __asm__("TAY");
    my_memcpy();
    __asm__("LDA #$01");
    __asm__("STA %w", VGA_ADDR_SPRITE_2_ENA);
 
-   
 col3:
    __asm__("INX");
    __asm__("LDA %v,X", pieces);
@@ -232,6 +258,8 @@ col3enable:
    __asm__("STA %b", ZP_DST_LO);
    __asm__("LDA #>%w", VGA_ADDR_SPRITE_3_BITMAP);
    __asm__("STA %b", ZP_DST_HI);
+   __asm__("LDA #$20");
+   __asm__("TAY");
    my_memcpy();
    __asm__("LDA #$01");
    __asm__("STA %w", VGA_ADDR_SPRITE_3_ENA);
