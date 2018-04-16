@@ -4,47 +4,19 @@
 
 #include "memorymap.h"
 #include "zeropage.h"   // Variables to be stored in the zero-page.
+#include "keyboard.h"
+#include "ttt_vga.h"
 
-#define COL_LIGHT       0x6F   // 011_011_11
-#define COL_DARK        0x44   // 010_001_00
+#define COL_WHITE       0xFF   // 111_111_11
+#define COL_LIGHT       0x6E   // 011_011_10
+#define COL_DARK        0x24   // 001_001_00
 #define COL_BLACK       0x00   // 000_000_00
 
-// Variables
-static char pieces[9];
+// Global variables
+char pieces[9];
+
+// Local variables
 static int gameOver;
-
-// Constants
-static const char * const strings[16] = {
-   "+----+----+----+",
-   "|    |    |    |",
-   "| 11 | 22 | 33 |",
-   "| 11 | 22 | 33 |",
-   "|    |    |    |",
-   "+----+----+----+",
-   "|    |    |    |",
-   "| 44 | 55 | 66 |",
-   "| 44 | 55 | 66 |",
-   "|    |    |    |",
-   "+----+----+----+",
-   "|    |    |    |",
-   "| 77 | 88 | 99 |",
-   "| 77 | 88 | 99 |",
-   "|    |    |    |",
-   "+----+----+----+"};
-static const short squares[9] = {
-   MEM_DISP +  1*40 +  1,
-   MEM_DISP +  1*40 +  6,
-   MEM_DISP +  1*40 + 11,
-   MEM_DISP +  6*40 +  1,
-   MEM_DISP +  6*40 +  6,
-   MEM_DISP +  6*40 + 11,
-   MEM_DISP + 11*40 +  1,
-   MEM_DISP + 11*40 +  6,
-   MEM_DISP + 11*40 + 11};
-
-
-// Forward declarations.
-void __fastcall__ readFromKeyboard(void);
 
 static void __fastcall__ clearScreen(void)
 {
@@ -68,149 +40,6 @@ clear:
    __asm__("BNE %g", clear);
    __asm__("RTS");
 } // end of clearScreen
-
-static void __fastcall__ my_memcpy(void)
-{
-loop:
-   __asm__("DEY");
-   __asm__("LDA (%b),Y", ZP_SRC_LO);
-   __asm__("STA (%b),Y", ZP_DST_LO);
-   __asm__("TYA");
-   __asm__("BNE %g", loop);
-} // end of my_memcpy
-
-static void __fastcall__ initScreen(void)
-{
-   __asm__("LDA #$00");
-   __asm__("STA %b", ZP_DST_LO);
-   __asm__("LDA #$80");
-   __asm__("STA %b", ZP_DST_HI);
-
-   __asm__("LDA #$00");
-   __asm__("TAX");
-
-loop:
-   __asm__("LDA %v,X", strings);
-   __asm__("STA %b", ZP_SRC_LO);
-   __asm__("INX");
-   __asm__("LDA %v,X", strings);
-   __asm__("STA %b", ZP_SRC_HI);
-   __asm__("INX");
-
-   __asm__("LDA #$10");
-   __asm__("TAY");
-
-   my_memcpy();
-
-   __asm__("LDA %b", ZP_DST_LO);
-   __asm__("CLC");
-   __asm__("ADC #$28");
-   __asm__("STA %b", ZP_DST_LO);
-   __asm__("LDA %b", ZP_DST_HI);
-   __asm__("ADC #$00");
-   __asm__("STA %b", ZP_DST_HI);
-
-   __asm__("TXA");
-   __asm__("CMP #$20");
-   __asm__("BNE %g", loop);
-
-} // end of initScreen
-
-// Draw an 'X' at the desired position
-static void __fastcall__ drawX(void)
-{
-   // Find address of position on screen
-   __asm__("CLC");
-   __asm__("ROL A");  // Multiply by 2
-   __asm__("TAX");
-   __asm__("LDA %v,X", squares);
-   __asm__("STA %b", ZP_SCREEN_POS_LO);
-   __asm__("INX");
-   __asm__("LDA %v,X", squares);
-   __asm__("STA %b", ZP_SCREEN_POS_HI);
-
-   // Place "X" at the position
-   __asm__("LDA #$00");
-   __asm__("TAY");
-   __asm__("LDA #%b", 'X');
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO);
-   __asm__("INY");
-   __asm__("INY");
-   __asm__("INY");
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO);
-
-   __asm__("LDA #$29");
-   __asm__("TAY");
-   __asm__("LDA #%b", 'X');
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO);
-   __asm__("INY");
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO);
-
-   __asm__("LDA #$51");
-   __asm__("TAY");
-   __asm__("LDA #%b", 'X');
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO);
-   __asm__("INY");
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO);
-
-   __asm__("LDA #$78");
-   __asm__("TAY");
-   __asm__("LDA #%b", 'X');
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO);
-   __asm__("INY");
-   __asm__("INY");
-   __asm__("INY");
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO);
-
-} // end of drawX
-
-// Draw an 'O' at the desired position
-static void __fastcall__ drawO(void)
-{
-   // Find address of position on screen
-   __asm__("CLC");
-   __asm__("ROL A");  // Multiply by 2
-   __asm__("TAX");
-   __asm__("LDA %v,X", squares);
-   __asm__("STA %b", ZP_SCREEN_POS_LO);
-   __asm__("INX");
-   __asm__("LDA %v,X", squares);
-   __asm__("STA %b", ZP_SCREEN_POS_HI);
-
-   // Place "O" at the position
-   __asm__("LDA #$01");
-   __asm__("TAY");
-   __asm__("LDA #%b", 'O');
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO);
-   __asm__("INY");
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO);
-
-   __asm__("LDA #$28");
-   __asm__("TAY");
-   __asm__("LDA #%b", 'O');
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO);
-   __asm__("INY");
-   __asm__("INY");
-   __asm__("INY");
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO);
-
-   __asm__("LDA #$50");
-   __asm__("TAY");
-   __asm__("LDA #%b", 'O');
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO);
-   __asm__("INY");
-   __asm__("INY");
-   __asm__("INY");
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO);
-
-   __asm__("LDA #$79");
-   __asm__("TAY");
-   __asm__("LDA #%b", 'O');
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO);
-   __asm__("INY");
-   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO);
-
-} // end of drawO
 
 // Resets game to start
 static void __fastcall__ newGame(void)
@@ -364,7 +193,7 @@ void __fastcall__ reset(void)
 
 new:
    clearScreen();
-   initScreen();
+   vga_init();
    newGame();
 
 loop:
@@ -402,7 +231,6 @@ loop:
    __asm__("LDA #%b", 'X');
    __asm__("STA %v,X", pieces);
    __asm__("TXA");
-   drawX();
 
    __asm__("LDA #%b", 'X');
    checkEnd();
@@ -416,7 +244,6 @@ loop:
    __asm__("LDA #%b", 'O');
    __asm__("STA %v,X", pieces);
    __asm__("TXA");
-   drawO();
 
    __asm__("LDA #%b", 'O');
    checkEnd();
@@ -436,6 +263,7 @@ writeEnd:
 // Maskable interrupt
 void __fastcall__ irq(void)
 {
+   vga_irq();
    // Not used.
    __asm__("RTI");
 } // end of irq
