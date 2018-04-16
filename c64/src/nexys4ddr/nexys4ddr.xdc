@@ -12,7 +12,8 @@ set_property -dict { PACKAGE_PIN E3    IOSTANDARD LVCMOS33 } [get_ports { clk100
 create_clock -add -name clk100_pin -period 10.00 -waveform {0 5} [get_ports {clk100_i}];  # 100 MHz
 
 # Isolate the VGA clock from the rest of the design.
-set_clock_groups -asynchronous -group {clkfbout_clk_wiz_0 vga_clk_wiz_0}
+set_clock_groups -asynchronous -group { get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKFBOUT]
+                                        get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKOUT1] }
 
 
 ##Switches
