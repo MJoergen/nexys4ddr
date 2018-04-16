@@ -283,9 +283,9 @@ begin
 
    -- Propagate remaining signals.
    p_stage4 : process (clk_i) is
-      variable char_x_v     : integer range 0 to 3;
+      variable char_x_v     : integer range 0 to 7;
       variable char_y_v     : integer range 0 to 7;
-      variable nibble_idx_v : integer range 0 to 31;
+      variable nibble_idx_v : integer range 0 to 63;
    begin
       if rising_edge(clk_i) then
          stage4 <= stage3;
