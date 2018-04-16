@@ -113,6 +113,7 @@ begin
 
    inst_clk_rst : entity work.clk_rst
    generic map (
+      G_NEXYS4DDR  => true,
       G_RESET_SIZE => G_RESET_SIZE,
       G_SIMULATION => G_SIMULATION
    )

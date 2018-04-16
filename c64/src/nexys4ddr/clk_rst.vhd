@@ -17,7 +17,8 @@ use UNISIM.Vcomponents.all;
 
 entity clk_rst is
    generic (
-      G_RESET_SIZE : integer;       -- Number of bits in reset counter.
+      G_NEXYS4DDR  : boolean;       -- True, when using the Nexys4DDR board.
+      G_RESET_SIZE : integer;       -- Number of bits in fast counter.
       G_SIMULATION : boolean        -- Set true to disable MMCM's, to 
                                     -- speed up simulation time.
    );
@@ -48,7 +49,7 @@ architecture Structural of clk_rst is
    signal sys_step : std_logic := '0';
    signal sys_mode : std_logic := '0';
 
-   -- Clocks and Reset
+   -- Clocks and fast
    signal vga_clk   : std_logic := '0';
    signal vga_rst   : std_logic := '1';
    signal cpu_clk   : std_logic := '0';
@@ -59,8 +60,10 @@ architecture Structural of clk_rst is
 
    signal sys_step_d : std_logic := '0';
  
-   signal ready : std_logic := '0';
-   signal reset : std_logic := '1'; 
+   -- 'fast' is deasserted after 40 ms.
+   -- 'slow' is deasserted after 80 ms.
+   signal slow : std_logic := '1';
+   signal fast : std_logic := '1'; 
 
    -- Set initially to all-ones, to start the count down.
    signal reset_cnt : std_logic_vector(G_RESET_SIZE-1 downto 0) := (others => '1');
@@ -141,55 +144,69 @@ begin
  
  
    ------------------------------
-   -- Generate reset
+   -- Generate fast
    ------------------------------
 
-   -- Generate the two signals 'reset' and 'ready'.
-   -- 'reset' is deasserted after 40 ms.
-   -- 'ready' is asserted after 80 ms.
+   -- Generate the two signals 'fast' and 'slow'.
+   -- 'fast' is deasserted after 40 ms.
+   -- 'slow' is deasserted after 80 ms.
    proc_reset : process (sys_clk100_i)
    begin
       if rising_edge(sys_clk100_i) then
          if reset_cnt /= 0 then
             reset_cnt <= reset_cnt - 1;
-            ready <= '0';
+            slow <= '1';
          else
-            ready <= '1';
+            slow <= '0';
          end if;
 
-         reset <= reset_cnt(reset_cnt'left);
+         fast <= reset_cnt(reset_cnt'left);
 
          if sys_rstn = '0' then
             reset_cnt <= (others => '1');
-            ready     <= '0';
-            reset     <= '1';
+            slow      <= '1';
+            fast      <= '1';
          end if;
       end if;
    end process proc_reset;
 
 
-   -- Synchronize resets
-   p_eth_rst : process (eth_clk)
-   begin
-      if rising_edge(eth_clk) then
-         eth_rst <= reset;
-      end if;
-   end process p_eth_rst;
- 
-   p_cpu_rst : process (cpu_clk)
-   begin
-      if rising_edge(cpu_clk) then
-         cpu_rst <= not ready;
-      end if;
-   end process p_cpu_rst;
- 
-   p_vga_rst : process (vga_clk)
-   begin
-      if rising_edge(vga_clk) then
-         vga_rst <= not ready;
-      end if;
-   end process p_vga_rst;
- 
+   ----------------------------------
+   -- Clock synchronizers
+   ----------------------------------
+   inst_cdc_eth : entity work.cdc
+   generic map (
+      G_NEXYS4DDR => G_NEXYS4DDR
+   )
+   port map (
+      rx_clk_i => sys_clk100_i,
+      rx_in_i  => fast,
+      tx_clk_i => eth_clk,
+      tx_out_o => eth_rst
+   );
+
+   inst_cdc_cpu : entity work.cdc
+   generic map (
+      G_NEXYS4DDR => G_NEXYS4DDR
+   )
+   port map (
+      rx_clk_i => sys_clk100_i,
+      rx_in_i  => slow,
+      tx_clk_i => cpu_clk,
+      tx_out_o => cpu_rst
+   );
+
+   inst_cdc_vga : entity work.cdc
+   generic map (
+      G_NEXYS4DDR => G_NEXYS4DDR
+   )
+   port map (
+      rx_clk_i => sys_clk100_i,
+      rx_in_i  => slow,
+      tx_clk_i => vga_clk,
+      tx_out_o => vga_rst
+   );
+
 
    -- Drive output signals
    vga_clk_o  <= vga_clk;
