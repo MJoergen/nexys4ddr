@@ -185,14 +185,8 @@ void __fastcall__ reset(void)
    __asm__("LDX #$FF");
    __asm__("TXS");                           // Reset stack pointer
 
-   // Configure text color
-   __asm__("LDA #%b", COL_LIGHT);
-   __asm__("STA %w",  VGA_ADDR_FGCOL);
-   __asm__("LDA #%b", COL_DARK);
-   __asm__("STA %w",  VGA_ADDR_BGCOL);
-
 new:
-   //clearScreen();
+   clearScreen();
    vga_init();
    newGame();
 

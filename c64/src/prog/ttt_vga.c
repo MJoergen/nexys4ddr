@@ -6,7 +6,7 @@
 #include "zeropage.h"   // Variables to be stored in the zero-page.
 #include "keyboard.h"
 
-#define COL_WHITE       0xFF   // 111_111_11
+#define COL_WHITE       0xFFU  // 111_111_11
 #define COL_LIGHT       0x6E   // 011_011_10
 #define COL_DARK        0x24   // 001_001_00
 #define COL_BLACK       0x00   // 000_000_00
@@ -49,7 +49,7 @@ static const char bitmap_O[32] = {
    0x7F, 0xFE,
    0x7F, 0xFE,
    0x3F, 0xFC,
-   0x7F, 0xFE,
+   0x3F, 0xFC,
    0x0F, 0xF0,
    0x01, 0x80};
 
@@ -83,6 +83,12 @@ loop:
 
 void __fastcall__ vga_init(void)
 {
+   // Configure text color
+   __asm__("LDA #%b", COL_LIGHT);
+   __asm__("STA %w",  VGA_ADDR_FGCOL);
+   __asm__("LDA #%b", COL_DARK);
+   __asm__("STA %w",  VGA_ADDR_BGCOL);
+
    // Configure sprite 0 as the playing board
    __asm__("LDA #<%w", VGA_ADDR_SPRITE_0_BITMAP);
    __asm__("STA %b", ZP_DST_LO);
@@ -100,9 +106,9 @@ void __fastcall__ vga_init(void)
    __asm__("STA %w", VGA_ADDR_SPRITE_0_X);
    __asm__("LDA #>%w", BOARD_XPOS);
    __asm__("STA %w", VGA_ADDR_SPRITE_0_X_MSB);
-   __asm__("LDA %b", BOARD_YPOS);
+   __asm__("LDA #%b", BOARD_YPOS);
    __asm__("STA %w", VGA_ADDR_SPRITE_0_Y);
-   __asm__("LDA %b", COL_LIGHT);
+   __asm__("LDA #%b", COL_LIGHT);
    __asm__("STA %w", VGA_ADDR_SPRITE_0_COL);
    __asm__("LDA #$05"); // Magnification = x4
    __asm__("STA %w", VGA_ADDR_SPRITE_0_ENA);
@@ -122,6 +128,11 @@ void __fastcall__ vga_init(void)
    __asm__("LDA #>%w", BOARD_XPOS+44);
    __asm__("STA %w", VGA_ADDR_SPRITE_3_X_MSB);
 
+   __asm__("LDA #%b", COL_WHITE);
+   __asm__("STA %w", VGA_ADDR_SPRITE_1_COL);
+   __asm__("STA %w", VGA_ADDR_SPRITE_2_COL);
+   __asm__("STA %w", VGA_ADDR_SPRITE_3_COL);
+
    __asm__("LDA #%b", BOARD_YPOS);
    __asm__("STA %w", VGA_ADDR_YLINE); // The line number for interrupt
    __asm__("LDA #$01");
@@ -134,6 +145,12 @@ void __fastcall__ vga_irq(void)
 {
    __asm__("LDA %w", VGA_ADDR_IRQ);
    __asm__("STA %w", VGA_ADDR_IRQ); // Clear latched IRQ
+   __asm__("LDA %w", VGA_ADDR_YLINE); // The line number for interrupt
+   __asm__("CLC");
+   __asm__("ADC #$04");
+   __asm__("STA %w", VGA_ADDR_SPRITE_1_Y);
+   __asm__("STA %w", VGA_ADDR_SPRITE_2_Y);
+   __asm__("STA %w", VGA_ADDR_SPRITE_3_Y);
    __asm__("LDA %w", VGA_ADDR_YLINE); // The line number for interrupt
    __asm__("CMP #%b", BOARD_YPOS);
    __asm__("BEQ %g", row1);
