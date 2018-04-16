@@ -131,6 +131,7 @@ begin
    -- Port B
    --------------
 
+   -- Synchronize from a_clk to b_clk
    conf_b_proc : process (b_clk_i)
    begin
       if rising_edge(b_clk_i) then
