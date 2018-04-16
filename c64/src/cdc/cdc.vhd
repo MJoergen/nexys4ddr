@@ -27,6 +27,10 @@ architecture Structural of cdc is
    signal tx_in_s    : std_logic := '0';
    signal tx_in_d_s  : std_logic := '0';
 
+   attribute ASYNC_REG : string;
+   attribute ASYNC_REG of tx_in_s   : signal is "TRUE";
+   attribute ASYNC_REG of tx_in_d_s : signal is "TRUE";
+
 begin
 
    gen_nexys4ddr : if G_NEXYS4DDR = true generate
