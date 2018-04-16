@@ -50,7 +50,9 @@ begin
    a_cs(3) <= '1' when a_addr_i(15 downto G_CONF_SIZE) = G_CONF_MASK(15 downto G_CONF_SIZE) else '0';
    a_cs(4) <= '1' when a_addr_i(15 downto G_FONT_SIZE) = G_FONT_MASK(15 downto G_FONT_SIZE) else '0';
    a_cs(5) <= '1' when a_addr_i(15 downto G_ROM_SIZE)  = G_ROM_MASK( 15 downto G_ROM_SIZE)  else '0';
-   a_cs(6) <= '1' when a_addr_i(15 downto G_COL_SIZE)  = G_COL_MASK( 15 downto G_COL_SIZE) else '0';
+   a_cs(6) <= '1' when a_addr_i(15 downto G_COL_SIZE)  = G_COL_MASK( 15 downto G_COL_SIZE)  else '0';
+
+   assert a_cs /= "0000000" report "Bus error" severity warning;
 
    a_wr_en <= a_cs and (6 downto 0 => a_wren_i);
    a_rd_en <= a_cs and (6 downto 0 => a_rden_i);
