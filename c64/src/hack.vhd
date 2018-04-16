@@ -100,6 +100,7 @@ architecture Structural of hack is
    signal vga_col       : std_logic_vector( 7 downto 0);
    signal vga_hcount    : std_logic_vector(10 downto 0);
    signal vga_vcount    : std_logic_vector(10 downto 0);
+   signal vga_debug     : std_logic_vector(255 downto 0);
 
    -- Signals connected to the keyboard
    signal cpu_key_rden  : std_logic;
@@ -153,9 +154,11 @@ begin
       config_i       => vga_config,
       irq_o          => vga_irq,
       overlay_i      => vga_overlay_i,
-      async_debug_i  => vga_debug_i,
+      async_debug_i  => vga_debug,
       async_status_i => cpu_status
    );
+
+   vga_debug <= vga_config(255 downto 0);
 
    vga_hs_o     <= vga_hs;
    vga_vs_o     <= vga_vs;

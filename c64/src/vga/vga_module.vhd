@@ -59,7 +59,7 @@ entity vga_module is
       -- and need therefore not be synchronous to the clock domain.
       overlay_i      : in  std_logic;
       async_status_i : in  std_logic_vector(127 downto 0);
-      async_debug_i  : in  std_logic_vector(127 downto 0)
+      async_debug_i  : in  std_logic_vector(255 downto 0)
    );
 end vga_module;
 

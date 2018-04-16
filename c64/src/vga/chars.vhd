@@ -43,7 +43,7 @@ entity chars is
 
       overlay_i   : in  std_logic;
       status_i    : in  std_logic_vector(127 downto 0);
-      debug_i     : in  std_logic_vector(127 downto 0);
+      debug_i     : in  std_logic_vector(255 downto 0);
 
       disp_addr_o : out std_logic_vector( 9 downto 0);
       disp_data_i : in  std_logic_vector( 7 downto 0);
@@ -94,7 +94,7 @@ architecture Behavioral of chars is
       vcount    : std_logic_vector( 10 downto 0);  -- valid in all stages
       blank     : std_logic;                       -- valid in all stages
       status    : std_logic_vector(127 downto 0);  -- Valid in stage 1
-      debug     : std_logic_vector(127 downto 0);
+      debug     : std_logic_vector(255 downto 0);
       char_x    : std_logic_vector(  5 downto 0);  -- valid in stage 2 (0 - 39)
       char_y    : std_logic_vector(  4 downto 0);  -- valid in stage 2 (0 - 17)
       pix_x     : std_logic_vector(  2 downto 0);  -- valid in stage 2 (0 - 7)
@@ -298,10 +298,10 @@ begin
          end if;
 
          if stage3.char_y >= C_DEBUG_POSY    and stage3.char_y < C_DEBUG_POSY+8 and
-            stage3.char_x >= C_DEBUG_POSX+16 and stage3.char_x < C_DEBUG_POSX+20 then
+            stage3.char_x >= C_DEBUG_POSX+16 and stage3.char_x < C_DEBUG_POSX+24 then
             char_x_v     := conv_integer(stage3.char_x - (C_DEBUG_POSX + 16));
             char_y_v     := conv_integer(stage3.char_y - C_DEBUG_POSY);
-            nibble_idx_v := char_y_v*4 + 3-char_x_v;
+            nibble_idx_v := char_y_v*8 + 7-char_x_v;
             stage4.nibble <= stage3.debug(nibble_idx_v*4 + 3 downto nibble_idx_v*4);
          end if;
       end if;
@@ -333,7 +333,7 @@ begin
             end if;
 
             if stage4.char_y >= C_DEBUG_POSY   and stage4.char_y < C_DEBUG_POSY+8 and
-               stage4.char_x >= C_DEBUG_POSX+16 and stage4.char_x < C_DEBUG_POSX+20 then
+               stage4.char_x >= C_DEBUG_POSX+16 and stage4.char_x < C_DEBUG_POSX+24 then
                char_val_v := stage4.nibble + X"30";
                if stage4.nibble > 9 then
                   char_val_v := stage4.nibble + X"41" - X"0A";

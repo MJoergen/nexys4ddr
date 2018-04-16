@@ -114,6 +114,22 @@ architecture Behavioral of sprites is
    signal enable_s  : t_enable(3 downto 0);
    signal magnify_s : t_magnify(3 downto 0);
 
+   function shift_left(arg : std_logic_vector; shift : integer) return std_logic_vector is
+      variable res_v : std_logic_vector(arg'length-1 downto 0);
+   begin
+      res_v := (others => '0');
+      res_v(arg'length-1 downto shift) := arg(arg'length-1-shift downto 0);
+      return res_v;
+   end function shift_left;
+
+   function shift_right(arg : std_logic_vector; shift : integer) return std_logic_vector is
+      variable res_v : std_logic_vector(arg'length-1 downto 0);
+   begin
+      res_v := (others => '0');
+      res_v(arg'length-1-shift downto 0) := arg(arg'length-1 downto shift);
+      return res_v;
+   end function shift_right;
+
 begin
 
    ------------------------------------------------------------------------
@@ -137,7 +153,7 @@ begin
 
    p_fsm : process (clk_i)
       variable vcount1_v : std_logic_vector(10 downto 0);
-      variable pix_y_v : std_logic_vector( 9 downto 0);
+      variable pix_y_v  : std_logic_vector( 9 downto 0);
    begin
       if rising_edge(clk_i) then
 
@@ -149,7 +165,8 @@ begin
             for i in 0 to 3 loop
 
                -- Get pixel row in this sprite
-               pix_y_v := vcount1_v(10 downto 1) - ("00" & posy_s(i));
+               pix_y_v := shift_right(vcount1_v(10 downto 1) - ("00" & posy_s(i)),
+                  conv_integer(magnify_s(i)));
 
                fsm_rden(i) <= '0';
                if pix_y_v <= 15 then
@@ -235,13 +252,15 @@ begin
          stage1.row_index_valid <= (others => '0');
 
          for i in 0 to 3 loop
-            pix_x_v := stage0.hcount(10 downto 1) - ("0" & posx_s(i));
+            pix_x_v := shift_right(stage0.hcount(10 downto 1) - ("0" & posx_s(i)),
+               conv_integer(magnify_s(i)));
             stage1.col_index(4*(i+1)-1 downto 4*i) <= pix_x_v(3 downto 0);
             if pix_x_v <= 15 then
                stage1.col_index_valid(i) <= enable_s(i);
             end if;
 
-            pix_y_v := stage0.vcount(10 downto 1) - ("00" & posy_s(i));
+            pix_y_v := shift_right(stage0.vcount(10 downto 1) - ("00" & posy_s(i)),
+               conv_integer(magnify_s(i)));
             stage1.row_index(4*(i+1)-1 downto 4*i) <= pix_y_v(3 downto 0);
             if pix_y_v <= 15 then
                stage1.row_index_valid(i) <= enable_s(i);
