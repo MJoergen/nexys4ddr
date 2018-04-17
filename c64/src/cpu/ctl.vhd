@@ -37,7 +37,7 @@ entity ctl is
       wr_c_o          : out std_logic_vector(1 downto 0);
       wr_hold_addr2_o : out std_logic_vector(1 downto 0);
 
-      invalid_o       : out std_logic;
+      invalid_o       : out std_logic_vector(7 downto 0);
       debug_o         : out std_logic_vector(10 downto 0)
    );
 end ctl;
@@ -48,7 +48,7 @@ architecture Structural of ctl is
    signal inst_r    : std_logic_vector(7 downto 0) := (others => '0');
    signal last      : std_logic;
    signal invalid   : std_logic;
-   signal invalid_r : std_logic := '0';
+   signal invalid_r : std_logic_vector(7 downto 0) := (others => '0');
 
    signal ctl       : std_logic_vector(45 downto 0);
    signal irq_l     : std_logic := '0';
@@ -2492,9 +2492,13 @@ begin
       if rising_edge(clk_i) then
          if rst_i = '0' then
             if invalid = '1' then
-               invalid_r <= '1';
+               invalid_r <= inst_r;
             end if;
             assert invalid = '0' report "Invalid opcode" severity failure;
+         end if;
+
+         if rst_i = '1' then
+            invalid_r <= (others => '0');
          end if;
       end if;
    end process p_assert;

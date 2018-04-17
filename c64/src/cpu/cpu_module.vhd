@@ -28,7 +28,7 @@ entity cpu_module is
       -- Interrupt
       irq_i  : in  std_logic;
 
-      invalid_o : out std_logic;
+      invalid_o : out std_logic_vector(7 downto 0);
 
       -- Debug (to show on the VGA)
       status_o : out std_logic_vector(127 downto 0)

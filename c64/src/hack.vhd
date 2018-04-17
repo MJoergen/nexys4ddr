@@ -51,7 +51,7 @@ entity hack is
       vga_rst_i     : in  std_logic;
       -- Debug info
       vga_overlay_i : in std_logic;
-      vga_debug_i   : in std_logic_vector(127 downto 0);
+      vga_debug_i   : in std_logic_vector(255 downto 0);
       -- Output to VGA monitor
       vga_hs_o      : out std_logic;
       vga_vs_o      : out std_logic;
@@ -75,7 +75,7 @@ architecture Structural of hack is
    signal cpu_rddata  : std_logic_vector(7 downto 0);
    signal cpu_irq     : std_logic;
    signal cpu_status  : std_logic_vector(127 downto 0);
-   signal cpu_invalid : std_logic;
+   signal cpu_invalid : std_logic_vector(7 downto 0);
    signal cpu_wait    : std_logic;
 
    -- Signals connected to the MEM
@@ -154,7 +154,7 @@ begin
       config_i       => vga_config,
       irq_o          => vga_irq,
       overlay_i      => vga_overlay_i,
-      async_debug_i  => vga_debug,
+      async_debug_i  => vga_debug_i,
       async_status_i => cpu_status
    );
 
@@ -257,7 +257,7 @@ begin
       debug_o    => cpu_key_debug
    );
 
-   cpu_led_o <= (others => cpu_invalid);
+   cpu_led_o <= cpu_invalid;
 
 end Structural;
 
