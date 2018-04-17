@@ -55,7 +55,7 @@ static void __fastcall__ clearLine(void)
    __asm__("LDA #%b", sizeof(win_str));
    __asm__("TAY");
    __asm__("LDA #$20");
-   my_memcpy();
+   my_memset();
 } // end of clearLine
 
 // Resets game to start
@@ -267,7 +267,7 @@ writeEnd:
    __asm__("TAY");
    my_memcpy();
    __asm__("LDA %v", gameOver);
-   __asm__("STA %w", VGA_ADDR_SCREEN + 8);
+   __asm__("STA %w", VGA_ADDR_SCREEN + 7);
    __asm__("JMP %g", loop);
 
 draw:
