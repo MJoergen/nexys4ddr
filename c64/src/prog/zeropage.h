@@ -7,6 +7,7 @@
 #define ZP_CURSOR_CHAR     0x04  // Character at cursor
 #define ZP_XSCROLL         0x05
 #define ZP_CNT             0x06
+#define ZP_AI              0x07
 
 #define ZP_XLO             0x10
 #define ZP_XHI             0x11
@@ -28,3 +29,4 @@
 #define ZP_SRC_HI          0x41
 #define ZP_DST_LO          0x42
 #define ZP_DST_HI          0x43
+

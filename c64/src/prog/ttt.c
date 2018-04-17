@@ -6,11 +6,15 @@
 #include "zeropage.h"   // Variables to be stored in the zero-page.
 #include "keyboard.h"
 #include "ttt_vga.h"
+#include "ttt_ai.h"
 
 #define COL_WHITE       0xFF   // 111_111_11
 #define COL_LIGHT       0x6E   // 011_011_10
 #define COL_DARK        0x24   // 001_001_00
 #define COL_BLACK       0x00   // 000_000_00
+
+// Constants
+const char win_str[] = "Player . won!";
 
 // Global variables
 char pieces[9];
@@ -21,9 +25,9 @@ static int gameOver;
 static void __fastcall__ clearScreen(void)
 {
    // Clear the screen
-   __asm__("LDA #$00");
+   __asm__("LDA #<%w", VGA_ADDR_SCREEN);
    __asm__("STA %b", ZP_SCREEN_POS_LO);
-   __asm__("LDA #$80");
+   __asm__("LDA #>%w", VGA_ADDR_SCREEN);
    __asm__("STA %b", ZP_SCREEN_POS_HI);
    __asm__("LDA #$00");
    __asm__("TAY");
@@ -41,39 +45,33 @@ clear:
    __asm__("RTS");
 } // end of clearScreen
 
+static void __fastcall__ clearLine(void)
+{
+   __asm__("LDA #<%w", VGA_ADDR_SCREEN);
+   __asm__("STA %b", ZP_DST_LO);
+   __asm__("LDA #>%w", VGA_ADDR_SCREEN);
+   __asm__("STA %b", ZP_DST_HI);
+   __asm__("LDA #%b", sizeof(win_str));
+   __asm__("TAY");
+   __asm__("LDA #$20");
+   my_memcpy();
+} // end of clearLine
+
 // Resets game to start
 static void __fastcall__ newGame(void)
 {
-   __asm__("LDX #$00");
-
-loop:
+   __asm__("LDA #<%v", pieces);
+   __asm__("STA %b", ZP_DST_LO);
+   __asm__("LDA #>%v", pieces);
+   __asm__("STA %b", ZP_DST_HI);
+   __asm__("LDA #$09");
+   __asm__("TAY");
    __asm__("LDA #$00");
-   __asm__("STA %v,X", pieces);
-   __asm__("INX");
-   __asm__("TXA");
-   __asm__("CMP #$09");
-   __asm__("BNE %g", loop);
+   my_memset();
 
    __asm__("LDA #$00");
    __asm__("STA %v", gameOver);
 } // end of newGame
-
-// Figure out where to place the next piece
-static void __fastcall__ findO(void)
-{
-   __asm__("LDX #$00");
-
-loop:
-   __asm__("LDA %v,X", pieces);
-   __asm__("BEQ %g", exit);
-   __asm__("INX");
-   __asm__("TXA");
-   __asm__("CMP #$09");
-   __asm__("BNE %g", loop);
-
-exit:
-   __asm__("TXA");
-} // end of findO
 
 // Checks if player in 'A' has won the game.
 void __fastcall__ checkEnd(void)
@@ -184,10 +182,13 @@ void __fastcall__ reset(void)
    __asm__("SEI");                           // Disable all interrupts
    __asm__("LDX #$FF");
    __asm__("TXS");                           // Reset stack pointer
+   ai_init();
 
 new:
-   clearScreen();
+   //clearScreen();
+   clearLine();
    vga_init();
+   ai_newgame();
    newGame();
 
 loop:
@@ -230,9 +231,11 @@ loop:
    checkEnd();
    __asm__("TAX");
    __asm__("STA %v", gameOver);
-   __asm__("BNE %g", writeEnd);
+   __asm__("BNE %g", update);
 
-   findO();
+   ai_findO();
+   __asm__("CMP #$09");
+   __asm__("BEQ %g", draw);
 
    __asm__("TAX");
    __asm__("LDA #%b", 'O');
@@ -247,10 +250,29 @@ loop:
 
    goto loop;  // Just do an endless loop.
 
+update:
+   ai_update();
+
 writeEnd:
+   __asm__("LDA #<%w", VGA_ADDR_SCREEN);
+   __asm__("STA %b", ZP_DST_LO);
+   __asm__("LDA #>%w", VGA_ADDR_SCREEN);
+   __asm__("STA %b", ZP_DST_HI);
+   __asm__("LDA #<%v", win_str);
+   __asm__("STA %b", ZP_SRC_LO);
+   __asm__("LDA #>%v", win_str);
+   __asm__("STA %b", ZP_SRC_HI);
+   __asm__("LDA #%b", sizeof(win_str));
+   __asm__("TAY");
+   my_memcpy();
    __asm__("LDA %v", gameOver);
    __asm__("STA %w", MEM_DISP);
+   __asm__("STA %w", VGA_ADDR_SCREEN + 8);
    __asm__("JMP %g", loop);
+
+draw:
+   __asm__("STA %v", gameOver);
+   goto loop;  // Just do an endless loop.
  
 } // end of reset
 

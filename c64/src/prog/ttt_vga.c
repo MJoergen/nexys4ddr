@@ -71,7 +71,7 @@ static const char bitmap_board[32] = {
    0x84, 0x21,
    0xff, 0xff};
 
-static void __fastcall__ my_memcpy(void)
+void __fastcall__ my_memcpy(void)
 {
 loop:
    __asm__("DEY");
@@ -80,6 +80,17 @@ loop:
    __asm__("TYA");
    __asm__("BNE %g", loop);
 } // end of my_memcpy
+
+void __fastcall__ my_memset(void)
+{
+   __asm__("TAX");
+loop:
+   __asm__("DEY");
+   __asm__("TXA");
+   __asm__("STA (%b),Y", ZP_DST_LO);
+   __asm__("TYA");
+   __asm__("BNE %g", loop);
+} // end of my_memset
 
 void __fastcall__ vga_init(void)
 {

@@ -85,6 +85,7 @@ PROG_SRC   += src/prog/umult.c
 
 PROG_SRC    = src/prog/ttt.c
 PROG_SRC   += src/prog/ttt_vga.c
+PROG_SRC   += src/prog/ttt_ai.c
 PROG_SRC   += src/prog/keyboard.c
 
 LD_CFG      = src/prog/ld.cfg
