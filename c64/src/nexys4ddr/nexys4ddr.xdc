@@ -16,25 +16,13 @@ set_property CONFIG_VOLTAGE 3.3 [current_design]
 set_property -dict { PACKAGE_PIN E3    IOSTANDARD LVCMOS33 } [get_ports { clk100_i }]; #IO_L12P_T1_MRCC_35 Sch=clk100mhz
 create_clock -add -name clk100_pin -period 10.00 -waveform {0 5} [get_ports {clk100_i}];  # 100 MHz
 
-# Isolate the VGA clock from the rest of the design.
-set_false_path -from [get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKOUT1] ] -to [get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKOUT2] ]
-set_false_path -from [get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKOUT1] ] -to [get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKOUT0] ]
-set_false_path -from [get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKOUT2] ] -to [get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKOUT1] ]
-set_false_path -from [get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKOUT0] ] -to [get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKOUT1] ]
-
-# Isolate the 100Mhz board clock from the rest of the design.
-set_false_path -from [get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKIN1] ] -to [get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKOUT0] ]
-set_false_path -from [get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKIN1] ] -to [get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKOUT1] ]
-set_false_path -from [get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKIN1] ] -to [get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKOUT2] ]
-
-# FIFOs have asynchronous reset.
-set_false_path -to [get_pins inst_ethernet/inst_convert/inst_encap/inst_ctrl_fifo/inst_FIFO18E1/RST]
-set_false_path -to [get_pins inst_ethernet/inst_convert/inst_encap/inst_data_fifo/inst_FIFO18E1/RST]
-set_false_path -to [get_pins inst_ethernet/inst_receive/inst_decap/inst_data_fifo/inst_FIFO18E1/RST]
-set_false_path -to [get_pins inst_ethernet/inst_receive/inst_strip_crc/inst_ctrl_fifo/inst_FIFO18E1/RST]
-set_false_path -to [get_pins inst_ethernet/inst_convert/inst_compress/inst_fifo/enc_fifos[0].inst_fifo/inst_FIFO18E1/RST]
-set_false_path -to [get_pins inst_ethernet/inst_convert/inst_compress/inst_fifo/enc_fifos[1].inst_fifo/inst_FIFO18E1/RST]
-
+# The three generated clocks are all independent of each other. Any signals between these clock domains
+# will have explicit synchronizers.
+set_clock_groups -asynchronous \
+   -group [get_clocks clk100_pin ] \
+   -group [get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKOUT0] ] \
+   -group [get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKOUT1] ] \
+   -group [get_clocks -of_objects [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKOUT2] ]
 
 
 ####################
