@@ -15,6 +15,7 @@
 
 // Constants
 const char win_str[] = "Player . won!";
+const char draw_str[] = "Well done!";
 
 // Global variables
 char pieces[9];
@@ -266,12 +267,24 @@ writeEnd:
    __asm__("TAY");
    my_memcpy();
    __asm__("LDA %v", gameOver);
-   __asm__("STA %w", MEM_DISP);
    __asm__("STA %w", VGA_ADDR_SCREEN + 8);
    __asm__("JMP %g", loop);
 
 draw:
    __asm__("STA %v", gameOver);
+
+   __asm__("LDA #<%w", VGA_ADDR_SCREEN);
+   __asm__("STA %b", ZP_DST_LO);
+   __asm__("LDA #>%w", VGA_ADDR_SCREEN);
+   __asm__("STA %b", ZP_DST_HI);
+   __asm__("LDA #<%v", win_str);
+   __asm__("STA %b", ZP_SRC_LO);
+   __asm__("LDA #>%v", win_str);
+   __asm__("STA %b", ZP_SRC_HI);
+   __asm__("LDA #%b", sizeof(draw_str));
+   __asm__("TAY");
+   my_memcpy();
+
    goto loop;  // Just do an endless loop.
  
 } // end of reset
