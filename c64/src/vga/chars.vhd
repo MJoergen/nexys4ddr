@@ -192,9 +192,9 @@ begin
    port map (
                -- Port A not used
                a_clk_i     => '0',
-               a_addr_i    => (others => '0'),
+               a_addr_i    => (7 downto 0 => '0'),
                a_wr_en_i   => '0',
-               a_wr_data_i => (others => '0'),
+               a_wr_data_i => (8 downto 0 => '0'),
                a_rd_en_i   => '0',
                a_rd_data_o => open,
                --
@@ -258,9 +258,9 @@ begin
    port map (
                -- Port A not used
                a_clk_i     => '0',
-               a_addr_i    => (others => '0'),
+               a_addr_i    => (10 downto 0 => '0'),
                a_wr_en_i   => '0',
-               a_wr_data_i => (others => '0'),
+               a_wr_data_i => (7 downto 0 => '0'),
                a_rd_en_i   => '0',
                a_rd_data_o => open,
                --
