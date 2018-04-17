@@ -3,7 +3,6 @@
 
 static char best[128];
 static char positions[5];
-static char num_pos;
 
 // External declaration
 extern char pieces[9];
@@ -40,7 +39,7 @@ void __fastcall__ ai_newgame(void)
    my_memset();
 
    __asm__("LDA #$00");
-   __asm__("STA %v", num_pos);
+   __asm__("STA %b", ZP_AI_NUMPOS);
 } // end of ai_newgame
 
 // Figure out where to place the next piece
@@ -49,21 +48,21 @@ void __fastcall__ ai_findO(void)
    // First compute the index
 
    __asm__("LDA #$00");
-   __asm__("STA %b", ZP_AI);
+   __asm__("STA %b", ZP_AI_TEMP);
    __asm__("LDX #$00");
 loop:
    __asm__("LDA %v,X", pieces);
    __asm__("CLC");
-   __asm__("ADC %b", ZP_AI);
+   __asm__("ADC %b", ZP_AI_TEMP);
    __asm__("ROL A");
-   __asm__("STA %b", ZP_AI);
+   __asm__("STA %b", ZP_AI_TEMP);
    __asm__("INX");
    __asm__("TXA");
    __asm__("CMP #$09");
    __asm__("BNE %g", loop);
 
    // Next look up the move
-   __asm__("LDA %b", ZP_AI);
+   __asm__("LDA %b", ZP_AI_TEMP);
    __asm__("TAX");
    __asm__("LDA %v,X", best);
    __asm__("TAX");
@@ -86,12 +85,12 @@ next:
 valid:
    __asm__("TXA");
    __asm__("TAY");
-   __asm__("LDA %v", num_pos);
+   __asm__("LDA %b", ZP_AI_NUMPOS);
    __asm__("TAX");
    __asm__("STA %v,X", positions);
    __asm__("INX");
    __asm__("TXA");
-   __asm__("STA %v", num_pos);
+   __asm__("STA %b", ZP_AI_NUMPOS);
 
    __asm__("TYA");
    __asm__("RTS");
@@ -105,8 +104,8 @@ end:
 void __fastcall__ ai_update(void)
 {
    __asm__("LDA #$00");
-   __asm__("STA %b", ZP_AI);
-   __asm__("CMP %v", num_pos);
+   __asm__("STA %b", ZP_AI_TEMP);
+   __asm__("CMP %b", ZP_AI_NUMPOS);
    __asm__("BEQ %g", end);
 
 loop:
@@ -118,11 +117,11 @@ loop:
    __asm__("ADC #$01");
    __asm__("STA %v,X", best);
 
-   __asm__("LDA %b", ZP_AI);
+   __asm__("LDA %b", ZP_AI_TEMP);
    __asm__("CLC");
    __asm__("ADC #$01");
-   __asm__("STA %b", ZP_AI);
-   __asm__("CMP %v", num_pos);
+   __asm__("STA %b", ZP_AI_TEMP);
+   __asm__("CMP %b", ZP_AI_NUMPOS);
    __asm__("BNE %g", loop);
 
 end:

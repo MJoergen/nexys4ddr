@@ -263,7 +263,7 @@ writeEnd:
    __asm__("STA %b", ZP_SRC_LO);
    __asm__("LDA #>%v", win_str);
    __asm__("STA %b", ZP_SRC_HI);
-   __asm__("LDA #%b", sizeof(win_str));
+   __asm__("LDA #%b", sizeof(win_str)-1);
    __asm__("TAY");
    my_memcpy();
    __asm__("LDA %v", gameOver);
@@ -277,11 +277,11 @@ draw:
    __asm__("STA %b", ZP_DST_LO);
    __asm__("LDA #>%w", VGA_ADDR_SCREEN);
    __asm__("STA %b", ZP_DST_HI);
-   __asm__("LDA #<%v", win_str);
+   __asm__("LDA #<%v", draw_str);
    __asm__("STA %b", ZP_SRC_LO);
-   __asm__("LDA #>%v", win_str);
+   __asm__("LDA #>%v", draw_str);
    __asm__("STA %b", ZP_SRC_HI);
-   __asm__("LDA #%b", sizeof(draw_str));
+   __asm__("LDA #%b", sizeof(draw_str)-1);
    __asm__("TAY");
    my_memcpy();
 
