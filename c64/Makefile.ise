@@ -24,6 +24,10 @@ vfiles += $(SRC_DIR)/cpu/regs.vhd
 vfiles += $(SRC_DIR)/cpu/ctl.vhd
 vfiles += $(SRC_DIR)/cpu/alu.vhd
 vfiles += $(SRC_DIR)/cpu/pc.vhd
+vfiles += $(SRC_DIR)/cpu/sr.vhd
+vfiles += $(SRC_DIR)/cpu/sp.vhd
+vfiles += $(SRC_DIR)/cpu/addr.vhd
+vfiles += $(SRC_DIR)/cpu/addr2.vhd
 vfiles += $(SRC_DIR)/cpu/cpu_module.vhd
 
 # Memory
@@ -39,6 +43,7 @@ vfiles += $(SRC_DIR)/mem/mem_module.vhd
 # Clock domain crossing
 vfiles += $(SRC_DIR)/cdc/cdcpulse.vhd
 vfiles += $(SRC_DIR)/cdc/cdcvector.vhd
+vfiles += $(SRC_DIR)/cdc/cdc.vhd
 
 # Keyboard
 vfiles += $(SRC_DIR)/keyboard/ps2.vhd
