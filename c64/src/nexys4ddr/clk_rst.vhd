@@ -54,11 +54,14 @@ architecture Structural of clk_rst is
    signal vga_rst   : std_logic := '1';
    signal cpu_clk   : std_logic := '0';
    signal cpu_rst   : std_logic := '1';
-   signal cpu_step  : std_logic := '1';
    signal eth_clk   : std_logic := '0';
    signal eth_rst   : std_logic := '1';
 
-   signal sys_step_d : std_logic := '0';
+   -- singlestep
+   signal cpu_mode     : std_logic := '0';
+   signal cpu_step     : std_logic := '0';
+   signal cpu_step_d   : std_logic := '0';
+   signal cpu_step_out : std_logic := '0';
  
    -- 'fast' is deasserted after 40 ms.
    -- 'slow' is deasserted after 80 ms.
@@ -128,23 +131,7 @@ begin
 
 
    ------------------------------
-   -- Generate single-step
-   ------------------------------
-
-   process (cpu_clk)
-   begin
-      if rising_edge(cpu_clk) then
-         cpu_step <= '1';
-         if sys_mode = '1' then
-            cpu_step <= sys_step and not sys_step_d;
-         end if;
-         sys_step_d <= sys_step;
-      end if;
-   end process;
- 
- 
-   ------------------------------
-   -- Generate fast
+   -- Generate reset
    ------------------------------
 
    -- Generate the two signals 'fast' and 'slow'.
@@ -174,7 +161,7 @@ begin
    ----------------------------------
    -- Clock synchronizers
    ----------------------------------
-   inst_cdc_eth : entity work.cdc
+   inst_cdc_eth_rst : entity work.cdc
    generic map (
       G_NEXYS4DDR => G_NEXYS4DDR
    )
@@ -185,7 +172,7 @@ begin
       tx_out_o => eth_rst
    );
 
-   inst_cdc_cpu : entity work.cdc
+   inst_cdc_cpu_rst : entity work.cdc
    generic map (
       G_NEXYS4DDR => G_NEXYS4DDR
    )
@@ -196,7 +183,7 @@ begin
       tx_out_o => cpu_rst
    );
 
-   inst_cdc_vga : entity work.cdc
+   inst_cdc_vga_rst : entity work.cdc
    generic map (
       G_NEXYS4DDR => G_NEXYS4DDR
    )
@@ -207,6 +194,50 @@ begin
       tx_out_o => vga_rst
    );
 
+   inst_cdc_cpu_step : entity work.cdc
+   generic map (
+      G_NEXYS4DDR => G_NEXYS4DDR
+   )
+   port map (
+      rx_clk_i => sys_clk100_i,
+      rx_in_i  => sys_step,
+      tx_clk_i => cpu_clk,
+      tx_out_o => cpu_step
+   );
+
+   inst_cdc_cpu_mode : entity work.cdc
+   generic map (
+      G_NEXYS4DDR => G_NEXYS4DDR
+   )
+   port map (
+      rx_clk_i => sys_clk100_i,
+      rx_in_i  => sys_mode,
+      tx_clk_i => cpu_clk,
+      tx_out_o => cpu_mode
+   );
+
+
+   ------------------------------
+   -- Generate single-step
+   ------------------------------
+
+   proc_cpu_step_d : process (cpu_clk)
+   begin
+      if rising_edge(cpu_clk) then
+         cpu_step_d <= cpu_step;
+      end if;
+   end process proc_cpu_step_d;
+ 
+   proc_cpu_step_out : process (cpu_clk)
+   begin
+      if rising_edge(cpu_clk) then
+         cpu_step_out <= '1';
+         if cpu_mode = '1' then
+            cpu_step_out <= cpu_step and not cpu_step_d;
+         end if;
+      end if;
+   end process proc_cpu_step_out;
+ 
 
    -- Drive output signals
    vga_clk_o  <= vga_clk;
@@ -215,7 +246,7 @@ begin
    cpu_rst_o  <= cpu_rst;
    eth_clk_o  <= eth_clk;
    eth_rst_o  <= eth_rst;
-   cpu_step_o <= cpu_step;
+   cpu_step_o <= cpu_step_out;
    
 end Structural;
 
