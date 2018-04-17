@@ -111,7 +111,8 @@ $(TCL) : $(SRC) Makefile rom.txt ram.txt
 	#echo "reportCriticalPaths \$$outputDir/post_synth_critpath_report.csv" >> $(TCL)
 	# Step 4
 	echo "# Step 4" >> $(TCL)
-	echo "opt_design" >> $(TCL)
+	echo "opt_design -verbose -remap -resynth_seq_area -muxf_remap" >> $(TCL)
+	echo "power_opt_design -verbose" >> $(TCL)
 	#echo "reportCriticalPaths \$$outputDir/post_opt_critpath_report.csv" >> $(TCL)
 	echo "place_design" >> $(TCL)
 	#echo "report_clock_utilization -file \$$outputDir/clock_util.rpt" >> $(TCL)
