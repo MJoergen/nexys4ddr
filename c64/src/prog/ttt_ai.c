@@ -1,7 +1,7 @@
 #include "zeropage.h"
 #include "ttt_vga.h"
 
-static char best[128];
+static char best[256];
 static char positions[5];
 
 // External declaration
@@ -67,44 +67,49 @@ loop:
    __asm__("LDA %v,X", best);
    __asm__("TAX");
 
-   // Check if move is valid
+   // Check if move in 'X' is valid
    __asm__("LDA #$09");
    __asm__("TAY");
 next:
    __asm__("DEY");
-   __asm__("BEQ %g", end);
+   __asm__("BMI %g", end);
    __asm__("LDA %v,X", pieces);
    __asm__("BEQ %g", valid);
    __asm__("INX");
    __asm__("TXA");
    __asm__("CMP #$09");
-   __asm__("BCS %g", next);
+   __asm__("BCC %g", next);
    __asm__("LDX #$00");
    __asm__("JMP %g", next);
 
 valid:
+   // Move 'X' to 'Y'
    __asm__("TXA");
    __asm__("TAY");
+
+   // Store current position
    __asm__("LDA %b", ZP_AI_NUMPOS);
    __asm__("TAX");
+   __asm__("LDA %b", ZP_AI_TEMP);
    __asm__("STA %v,X", positions);
    __asm__("INX");
    __asm__("TXA");
    __asm__("STA %b", ZP_AI_NUMPOS);
 
+   // Return chosen move in 'A'
    __asm__("TYA");
    __asm__("RTS");
 
 end:
    __asm__("LDA #$09");
    __asm__("RTS");
-
 } // end of ai_findO
 
+// Increment best moves for each position visited in this game
 void __fastcall__ ai_update(void)
 {
    __asm__("LDA #$00");
-   __asm__("STA %b", ZP_AI_TEMP);
+   __asm__("STA %b", ZP_AI_TEMP); // Index into positions[]
    __asm__("CMP %b", ZP_AI_NUMPOS);
    __asm__("BEQ %g", end);
 
