@@ -232,6 +232,7 @@ begin
                              fsm_state = UDP_HDR_ST or
                              fsm_state = FWD_ST or
                              fsm_state = DISC_ST)
+                         and pl_fifo_empty = '0'
                          and pl_afull_i = '0' else '0';
 
    -- Drive output signals
