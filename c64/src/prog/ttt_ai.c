@@ -1,5 +1,6 @@
 #include "zeropage.h"
 #include "ttt_vga.h"
+#include "memorymap.h"
 
 static char best[256];
 static char positions[5];
@@ -122,6 +123,12 @@ loop:
    __asm__("ADC #$01");
    __asm__("STA %v,X", best);
 
+   __asm__("CMP #$09");
+   __asm__("BCC %g", next);
+   __asm__("LDA #$00");
+   __asm__("STA %v,X", best);
+
+next:
    __asm__("LDA %b", ZP_AI_TEMP);
    __asm__("CLC");
    __asm__("ADC #$01");
