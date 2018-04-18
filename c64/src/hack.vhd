@@ -154,7 +154,7 @@ begin
       config_i       => vga_config,
       irq_o          => vga_irq,
       overlay_i      => vga_overlay_i(0),
-      async_debug_i  => vga_debug_i,
+      async_debug_i  => vga_debug,
       async_status_i => cpu_status
    );
 
