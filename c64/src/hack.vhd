@@ -50,7 +50,7 @@ entity hack is
       vga_clk_i     : in  std_logic;
       vga_rst_i     : in  std_logic;
       -- Debug info
-      vga_overlay_i : in std_logic;
+      vga_overlay_i : in std_logic_vector(1 downto 0);
       vga_debug_i   : in std_logic_vector(255 downto 0);
       -- Output to VGA monitor
       vga_hs_o      : out std_logic;
@@ -153,12 +153,13 @@ begin
       mob_data_i     => vga_mob_data,
       config_i       => vga_config,
       irq_o          => vga_irq,
-      overlay_i      => vga_overlay_i,
+      overlay_i      => vga_overlay_i(0),
       async_debug_i  => vga_debug_i,
       async_status_i => cpu_status
    );
 
-   vga_debug <= vga_config(255 downto 0);
+   vga_debug <= vga_config(255 downto 0) when vga_overlay_i(1) = '1' else
+                vga_debug_i;
 
    vga_hs_o     <= vga_hs;
    vga_vs_o     <= vga_vs;

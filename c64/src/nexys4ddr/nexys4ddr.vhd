@@ -96,6 +96,7 @@ architecture Structural of nexys4ddr is
 
    signal eth_smi_registers : std_logic_vector(32*16-1 downto 0);
    signal eth_stat_debug    : std_logic_vector(6*16-1 downto 0);
+   signal eth_debug         : std_logic_vector(255 downto 0);
    signal fifo_error        : std_logic := '0';
 
    -- Memory data received from Ethernet @ cpu_clk
@@ -218,7 +219,7 @@ begin
       vga_col_o     => vga_col,
       vga_hcount_o  => vga_hcount,
       vga_vcount_o  => vga_vcount,
-      vga_overlay_i => sw_i(1),
+      vga_overlay_i => sw_i(2 downto 1),
       vga_debug_i   => vga_debug,
       --
       ps2_clk_i     => ps2_clk_i,
@@ -229,10 +230,12 @@ begin
    vga_vs_o  <= vga_vs;
    vga_col_o <= col8to12(vga_col);
    led_o(15 downto 8) <= (others => '0');
+
+   eth_debug(6*16-1 downto 0)     <= eth_stat_debug;
+   eth_debug(16*16-1 downto 6*16) <= (others => '0');
    
---   vga_debug <= eth_smi_registers(127 downto 0);
-   vga_debug(6*16-1 downto 0)     <= eth_stat_debug;
-   vga_debug(16*16-1 downto 6*16) <= (others => '0');
+   vga_debug <= eth_smi_registers(255 downto 0) when sw_i(3) = '1' else
+                eth_debug;
 
 end Structural;
 
