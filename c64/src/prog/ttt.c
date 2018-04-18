@@ -186,7 +186,7 @@ void __fastcall__ reset(void)
    ai_init();
 
 new:
-   //clearScreen();
+   clearScreen();
    clearLine();
    vga_init();
    ai_newgame();
