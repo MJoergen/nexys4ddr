@@ -143,7 +143,7 @@ void __fastcall__ circle_init(void)
    // Configure sprite 0
    __asm__("LDA #$00");
    __asm__("STA %w", VGA_ADDR_SPRITE_0_X);
-   __asm__("LDA #$FF");
+   __asm__("LDA #$01");
    __asm__("STA %w", VGA_ADDR_SPRITE_0_ENA);
    __asm__("LDA #$E0"); // Red
    __asm__("STA %w", VGA_ADDR_SPRITE_0_COL);
@@ -151,6 +151,12 @@ void __fastcall__ circle_init(void)
    __asm__("STA %w", VGA_ADDR_SPRITE_0_Y);
    __asm__("LDA #$00");
    __asm__("STA %w", VGA_ADDR_SPRITE_0_X_MSB);
+
+   // Disable sprites 1 - 3
+   __asm__("LDA #$00");
+   __asm__("STA %w", VGA_ADDR_SPRITE_1_ENA);
+   __asm__("STA %w", VGA_ADDR_SPRITE_2_ENA);
+   __asm__("STA %w", VGA_ADDR_SPRITE_3_ENA);
 
    // Reset coordinates
    __asm__("LDA #$60");
