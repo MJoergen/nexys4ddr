@@ -41,14 +41,16 @@ begin
       end function sign_extend;
    begin
       if rising_edge(clk_i) then
-         case wr_pc_i(1 downto 0) is
-            when "01" =>
-               pc_r <= addr_i;                            -- Used during JSR
-            when "10" =>
-               pc_r <= data_i & addr_i(7 downto 0);       -- Used during jump absolute
-            when "11" =>
-               pc_r <= pc_r + 1;                              -- Used during instruction fetch
-               if wr_pc_i(2) = '1' then
+         if wr_pc_i(0) = '1' then
+            case wr_pc_i(2 downto 1) is
+               when "00" =>
+                  pc_r <= pc_r + 1;                          -- Used during instruction fetch
+               when "01" =>
+                  pc_r <= addr_i;                            -- Used during JSR
+               when "10" =>
+                  pc_r <= data_i & addr_i(7 downto 0);       -- Used during jump absolute
+               when "11" =>
+                  pc_r <= pc_r + 1;                          -- Used during branch conditional
                   if (wr_pc_i(5 downto 3) = "000" and sr_i(7) = '0') or
                      (wr_pc_i(5 downto 3) = "001" and sr_i(7) = '1') or
                      (wr_pc_i(5 downto 3) = "010" and sr_i(6) = '0') or
@@ -57,11 +59,11 @@ begin
                      (wr_pc_i(5 downto 3) = "101" and sr_i(0) = '1') or
                      (wr_pc_i(5 downto 3) = "110" and sr_i(1) = '0') or
                      (wr_pc_i(5 downto 3) = "111" and sr_i(1) = '1') then
-                     pc_r <= pc_r + 1 + sign_extend(data_i);  -- Used during branch relative
+                     pc_r <= pc_r + 1 + sign_extend(data_i);
                   end if;
-               end if;
-            when others => null;
-         end case;
+               when others => null;
+            end case;
+         end if;
       end if;
    end process p_pc;
 
