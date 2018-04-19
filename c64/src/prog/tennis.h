@@ -8,7 +8,7 @@
 #define WALL_YPOS       218U
 
 #define GRAVITY         1
-#define PLAYER_VEL      3
+#define PLAYER_VEL      1
 #define PLAYER_LEFT_MARGIN   0
-#define PLAYER_RIGHT_MARGIN  WALL_XPOS
+#define PLAYER_RIGHT_MARGIN  WALL_XPOS+6
 
