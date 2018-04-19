@@ -40,7 +40,8 @@ entity sprites is
       vcount_o      : out std_logic_vector(10 downto 0);
       hs_o          : out std_logic;
       vs_o          : out std_logic;
-      col_o         : out std_logic_vector( 7 downto 0)
+      col_o         : out std_logic_vector( 7 downto 0);
+      collision_o   : out std_logic_vector( 3 downto 0)
    );
 end sprites;
 
@@ -323,11 +324,12 @@ begin
    -- Drive output signals
    ----------------------------------------
 
-   hcount_o  <= stage3.hcount;
-   vcount_o  <= stage3.vcount;
-   hs_o      <= stage3.hs;
-   vs_o      <= stage3.vs;
-   col_o     <= stage3.col;
+   hcount_o    <= stage3.hcount;
+   vcount_o    <= stage3.vcount;
+   hs_o        <= stage3.hs;
+   vs_o        <= stage3.vs;
+   col_o       <= stage3.col;
+   collision_o <= stage3.collision;
 
 end Behavioral;
 

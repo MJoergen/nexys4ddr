@@ -73,7 +73,8 @@ entity mem_module is
       b_font_addr_i : in  std_logic_vector(G_FONT_SIZE-1 downto 0);
       b_font_data_o : out std_logic_vector(7 downto 0);
       b_vcount_i    : in  std_logic_vector(10 downto 0);
-      b_hcount_i    : in  std_logic_vector(10 downto 0)
+      b_hcount_i    : in  std_logic_vector(10 downto 0);
+      b_collision_i : in  std_logic_vector(3 downto 0)
   );
 end mem_module;
 
@@ -194,21 +195,22 @@ begin
       G_CONF_SIZE => G_CONF_SIZE 
    )
    port map (
-      a_clk_i     => a_clk_i,
-      a_rst_i     => a_rst_i,
-      a_addr_i    => a_addr_i,
-      a_wr_en_i   => a_wr_en(3),
-      a_wr_data_i => a_data_i,
-      a_rd_en_i   => a_rd_en(3),
-      a_rd_data_o => a_rd_data(31 downto 24),
-      a_irq_o     => a_irq_o,
-      a_kb_rden_o => a_kb_rden,
-      a_kb_val_i  => a_kb_val_i,
-      b_clk_i     => b_clk_i,
-      b_rst_i     => b_rst_i,
-      b_config_o  => b_config_o,
-      b_vcount_i  => b_vcount_i,
-      b_hcount_i  => b_hcount_i
+      a_clk_i       => a_clk_i,
+      a_rst_i       => a_rst_i,
+      a_addr_i      => a_addr_i,
+      a_wr_en_i     => a_wr_en(3),
+      a_wr_data_i   => a_data_i,
+      a_rd_en_i     => a_rd_en(3),
+      a_rd_data_o   => a_rd_data(31 downto 24),
+      a_irq_o       => a_irq_o,
+      a_kb_rden_o   => a_kb_rden,
+      a_kb_val_i    => a_kb_val_i,
+      b_clk_i       => b_clk_i,
+      b_rst_i       => b_rst_i,
+      b_config_o    => b_config_o,
+      b_vcount_i    => b_vcount_i,
+      b_hcount_i    => b_hcount_i,
+      b_collision_i => b_collision_i
    );
 
 

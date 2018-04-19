@@ -42,6 +42,7 @@ entity vga_module is
       col_o       : out std_logic_vector(  7 downto 0);
       hcount_o    : out std_logic_vector( 10 downto 0);
       vcount_o    : out std_logic_vector( 10 downto 0);
+      collision_o : out std_logic_vector(  3 downto 0);
       --
       font_addr_o : out std_logic_vector( 11 downto 0);
       font_data_i : in  std_logic_vector(  7 downto 0);
@@ -79,11 +80,12 @@ architecture Structural of vga_module is
    signal char_col    : std_logic_vector( 7 downto 0);
 
    -- Signals driven by the Sprite Display block
-   signal sprite_hs     : std_logic; 
-   signal sprite_vs     : std_logic;
-   signal sprite_hcount : std_logic_vector(10 downto 0);
-   signal sprite_vcount : std_logic_vector(10 downto 0);
-   signal sprite_col    : std_logic_vector( 7 downto 0);
+   signal sprite_hs        : std_logic; 
+   signal sprite_vs        : std_logic;
+   signal sprite_hcount    : std_logic_vector(10 downto 0);
+   signal sprite_vcount    : std_logic_vector(10 downto 0);
+   signal sprite_col       : std_logic_vector( 7 downto 0);
+   signal sprite_collision : std_logic_vector( 3 downto 0);
 
    constant C_YINT : integer := 27;
 
@@ -167,18 +169,20 @@ begin
       vcount_o      => sprite_vcount,
       hs_o          => sprite_hs,
       vs_o          => sprite_vs,
-      col_o         => sprite_col
+      col_o         => sprite_col,
+      collision_o   => sprite_collision
    );
 
    -----------------------
    -- Drive output signals
    -----------------------
 
-   hs_o     <= sprite_hs;
-   vs_o     <= sprite_vs;
-   col_o    <= sprite_col;
-   hcount_o <= sprite_hcount;
-   vcount_o <= sprite_vcount;
+   hs_o        <= sprite_hs;
+   vs_o        <= sprite_vs;
+   col_o       <= sprite_col;
+   hcount_o    <= sprite_hcount;
+   vcount_o    <= sprite_vcount;
+   collision_o <= sprite_collision;
 
 end Structural;
 

@@ -99,6 +99,7 @@ architecture Structural of hack is
    signal vga_col       : std_logic_vector( 7 downto 0);
    signal vga_hcount    : std_logic_vector(10 downto 0);
    signal vga_vcount    : std_logic_vector(10 downto 0);
+   signal vga_collision : std_logic_vector( 3 downto 0);
    signal vga_debug     : std_logic_vector(255 downto 0);
 
    -- Signals connected to the keyboard
@@ -142,6 +143,7 @@ begin
       col_o          => vga_col,
       hcount_o       => vga_hcount,
       vcount_o       => vga_vcount,
+      collision_o    => vga_collision,
       font_addr_o    => vga_font_addr,
       font_data_i    => vga_font_data,
       col_addr_o     => vga_col_addr,
@@ -237,6 +239,7 @@ begin
       b_mob_addr_i  => vga_mob_addr,
       b_mob_data_o  => vga_mob_data,
       b_config_o    => vga_config,
+      b_collision_i => vga_collision,
       b_vcount_i    => vga_vcount,
       b_hcount_i    => vga_hcount
   );
