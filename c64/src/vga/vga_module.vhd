@@ -53,7 +53,6 @@ entity vga_module is
       mob_data_i  : in  std_logic_vector( 15 downto 0);
       --
       config_i    : in  std_logic_vector(32*8-1 downto 0);
-      irq_o       : out std_logic;
       --
       -- The following signals are synchronized within this module,
       -- and need therefore not be synchronous to the clock domain.
@@ -180,10 +179,6 @@ begin
    col_o    <= sprite_col;
    hcount_o <= sprite_hcount;
    vcount_o <= sprite_vcount;
-
-   -- Generate interrupt
-   irq_o <= '1' when sprite_vcount(8 downto 0) = (config_i(C_YINT*8+7 downto C_YINT*8) & '1')
-                 and sprite_hcount = std_logic_vector(to_unsigned(656, 11)) else '0';
 
 end Structural;
 

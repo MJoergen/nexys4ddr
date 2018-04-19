@@ -1,6 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 -- This stores the configuration and status information
 -- Configuration information is provided in the config_o signal, and includes
@@ -36,26 +37,29 @@ entity conf_mem is
       --
       b_clk_i     : in  std_logic;
       b_rst_i     : in  std_logic;
-      b_yline_i   : in  std_logic_vector(7 downto 0);
-      b_config_o  : out std_logic_vector(2**(G_CONF_SIZE+3)-1 downto 0);
-      b_irq_i     : in  std_logic
+      b_vcount_i  : in  std_logic_vector(10 downto 0);
+      b_hcount_i  : in  std_logic_vector(10 downto 0);
+      b_config_o  : out std_logic_vector(2**(G_CONF_SIZE+3)-1 downto 0)
   );
 end conf_mem;
 
 architecture Structural of conf_mem is
 
+   constant C_FGCOL    : integer := 24;
+   constant C_BGCOL    : integer := 25;
    constant C_YLINE    : integer := 27;
    constant C_IRQ_STAT : integer := 28;
    constant C_IRQ_MASK : integer := 29;
    constant C_KBD      : integer := 30;
 
+   signal a_vcount    : std_logic_vector(10 downto 0);
+   signal a_hcount    : std_logic_vector(10 downto 0);
+   signal a_irq_s     : std_logic;
    signal a_config    : std_logic_vector(2**(G_CONF_SIZE+3)-1 downto 0) := (
-      24*8+7 downto 24*8 => '1',
-      25*8+7 downto 25*8 => '0',
+      C_FGCOL*8+7 downto C_FGCOL*8 => '1',
+      C_BGCOL*8+7 downto C_BGCOL*8 => '0',
       others => '0');
    signal a_irq_latch : std_logic := '0';
-   signal a_yline_d   : std_logic_vector(7 downto 0);
-   signal a_irq_d     : std_logic;
    signal a_rd_data   : std_logic_vector(7 downto 0);
 
    signal b_config    : std_logic_vector(2**(G_CONF_SIZE+3)-1 downto 0);
@@ -65,29 +69,33 @@ begin
    ----------------------------------
    -- Clock synchronizers
    ----------------------------------
-   inst_cdc_irq : entity work.cdc
-   generic map (
-      G_NEXYS4DDR => G_NEXYS4DDR
-   )
-   port map (
-      rx_clk_i => b_clk_i,
-      rx_in_i  => b_irq_i,
-      tx_clk_i => a_clk_i,
-      tx_out_o => a_irq_d
-   );
 
-   inst_cdcvector_yline : entity work.cdcvector
+   -- From @b_clk_i to @a_clk_i
+   inst_cdc_vcount : entity work.cdcvector
    generic map (
       G_NEXYS4DDR => G_NEXYS4DDR,
-      G_SIZE      => 8
+      G_SIZE      => 11
    )
    port map (
       rx_clk_i => b_clk_i,
-      rx_in_i  => b_yline_i,
+      rx_in_i  => b_vcount_i,
       tx_clk_i => a_clk_i,
-      tx_out_o => a_yline_d
+      tx_out_o => a_vcount
    );
 
+   inst_cdc_hcount : entity work.cdcvector
+   generic map (
+      G_NEXYS4DDR => G_NEXYS4DDR,
+      G_SIZE      => 11
+   )
+   port map (
+      rx_clk_i => b_clk_i,
+      rx_in_i  => b_hcount_i,
+      tx_clk_i => a_clk_i,
+      tx_out_o => a_hcount
+   );
+
+   -- From @a_clk_i to @b_clk_i
    inst_cdcvector_config : entity work.cdcvector
    generic map (
       G_NEXYS4DDR => G_NEXYS4DDR,
@@ -105,6 +113,10 @@ begin
    -- Port A
    --------------
 
+   -- Generate interrupt
+   a_irq_s <= '1' when a_vcount(8 downto 0) = (a_config(C_YLINE*8+7 downto C_YLINE*8) & '1')
+                   and a_hcount = std_logic_vector(to_unsigned(656, 11)) else '0';
+
 
    proc_write : process (a_clk_i)
       variable addr_v : integer range 0 to 2**G_CONF_SIZE-1;
@@ -119,7 +131,7 @@ begin
             end if;
          end if;
 
-         if a_irq_d = '1' and a_config(C_IRQ_MASK*8) = '1' then  -- IRQ Mask
+         if a_irq_s = '1' and a_config(C_IRQ_MASK*8) = '1' then  -- IRQ Mask
             a_irq_latch <= '1';
          end if;
 
@@ -139,9 +151,9 @@ begin
 
          if a_rd_en_i = '1' then
             case addr_v is
-               when C_YLINE =>
-                  a_rd_data <= a_yline_d;
-               when C_KBD =>
+               when C_YLINE    =>
+                  a_rd_data <= a_vcount(8 downto 1);
+               when C_KBD      =>
                   a_rd_data <= a_kb_val_i;
                when C_IRQ_STAT =>
                   a_rd_data(0) <= a_irq_latch;
@@ -156,7 +168,7 @@ begin
    a_irq_o     <= a_irq_latch;
    a_rd_data_o <= a_rd_data;
    a_kb_rden_o <= '1' when a_rd_en_i = '1' and a_addr_i(G_CONF_SIZE-1 downto 0) = C_KBD
-                  else '0';
+                  else '0';      -- Has to be combinatorial.
 
 
    --------------

@@ -94,7 +94,6 @@ architecture Structural of hack is
    signal vga_mob_addr  : std_logic_vector( 5 downto 0);
    signal vga_mob_data  : std_logic_vector(15 downto 0);
    signal vga_config    : std_logic_vector(32*8-1 downto 0);
-   signal vga_irq       : std_logic;
    signal vga_hs        : std_logic;
    signal vga_vs        : std_logic;
    signal vga_col       : std_logic_vector( 7 downto 0);
@@ -152,7 +151,6 @@ begin
       mob_addr_o     => vga_mob_addr,
       mob_data_i     => vga_mob_data,
       config_i       => vga_config,
-      irq_o          => vga_irq,
       overlay_i      => vga_overlay_i(0),
       async_debug_i  => vga_debug,
       async_status_i => cpu_status
@@ -239,8 +237,8 @@ begin
       b_mob_addr_i  => vga_mob_addr,
       b_mob_data_o  => vga_mob_data,
       b_config_o    => vga_config,
-      b_yline_i     => vga_vcount(8 downto 1),
-      b_irq_i       => vga_irq
+      b_vcount_i    => vga_vcount,
+      b_hcount_i    => vga_hcount
   );
 
 
