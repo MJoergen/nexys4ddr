@@ -120,6 +120,8 @@ static const unsigned char shifted[256] = {
 
 static unsigned char releaseMode = 0;
 static unsigned char shiftMode = 0;
+static unsigned char curKey = 0;
+static unsigned char skipNext = 0;
 
 // A little state machine to interpret the scan codes received
 // from the kayboard.
@@ -170,6 +172,46 @@ unsigned char readFromKeyboard(void)
    return normal[scanCode];
 } // end of readFromKeyboard
 #endif
+
+void __fastcall__ readCurrentKey(void)
+{
+   __asm__("LDA %w", VGA_KEY);   // Pop data from keyboard fifo
+   __asm__("BEQ %g", noChange);  // Keyboard fifo empty
+
+   // A byte from the keyboard fifo has now been popped.
+
+   __asm__("TAX");
+   __asm__("LDA %v", skipNext);
+   __asm__("BNE %g", noSkip);   // Just skip this one byte
+   __asm__("TXA");
+
+   __asm__("CMP #%b", KEYB_INITIALIZED);
+   __asm__("BEQ %g", noChange);     // We ignore the initialization code.
+   __asm__("CMP #%b", KEYB_EXTENDED);
+   __asm__("BEQ %g", skipByte);     // We ignore extended keys too.
+   __asm__("CMP #%b", KEYB_RELEASED);
+   __asm__("BEQ %g", release);
+
+   __asm__("STA %v", curKey);
+   __asm__("RTS");
+
+noSkip:
+   __asm__("LDA #$00");             // Only skip this one byte
+   __asm__("STA %v", skipNext);
+
+noChange:
+   __asm__("LDA %v", curKey);
+   __asm__("RTS");
+
+release:
+   __asm__("LDA #$00");
+   __asm__("STA %v", curKey);
+
+skipByte:
+   __asm__("LDA #$01");
+   __asm__("STA %v", skipNext);  // Skip next byte from keyboard fifo
+   __asm__("RTS");
+} // end of readCurrentKey
 
 void __fastcall__ readFromKeyboard(void)
 {
