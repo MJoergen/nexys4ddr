@@ -210,11 +210,9 @@ void __fastcall__ reset(void)
    __asm__("STA %w", VGA_ADDR_MASK); // Enable IRQ
    __asm__("CLI");
 
-wait_for_keyboard:
-   __asm__("LDA %w", VGA_KEY);
-   __asm__("BEQ %g", wait_for_keyboard);     // Wait until keyboard information ready
-
-   __asm__("JMP %g", wait_for_keyboard);
+   // Just busy wait here. Everything is processed during IRQ.
+loop:
+   __asm__("JMP %g", loop);
 } // end of reset
 
 // Maskable interrupt
