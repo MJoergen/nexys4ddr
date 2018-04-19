@@ -83,6 +83,29 @@ loop:
    __asm__("BNE %g", loop);
 } // end of my_memset
 
+static void __fastcall__ clearScreen(void)
+{
+   // Clear the screen
+   __asm__("LDA #$00");
+   __asm__("STA %b", ZP_SCREEN_POS_LO);
+   __asm__("LDA #$80");
+   __asm__("STA %b", ZP_SCREEN_POS_HI);
+   __asm__("LDA #$00");
+   __asm__("TAY");
+clear:
+   __asm__("LDA #$20");
+   __asm__("STA (%b),Y", ZP_SCREEN_POS_LO);
+   __asm__("INY");
+   __asm__("BNE %g", clear);
+   __asm__("LDA %b", ZP_SCREEN_POS_HI);
+   __asm__("CLC");
+   __asm__("ADC #$01");
+   __asm__("STA %b", ZP_SCREEN_POS_HI);
+   __asm__("CMP #$84");
+   __asm__("BNE %g", clear);
+   __asm__("RTS");
+} // end of clearScreen
+
 void __fastcall__ vga_init(void)
 {
    // Configure text color
@@ -199,6 +222,8 @@ void __fastcall__ reset(void)
    __asm__("LDX #$FF");
    __asm__("TXS");                           // Reset stack pointer
 
+   clearScreen();
+
    // Initialize ball position and velocity
    ball_reset();
 
@@ -221,6 +246,14 @@ void __fastcall__ irq(void)
    __asm__("LDA %w", VGA_ADDR_IRQ);  // Read IRQ status
    __asm__("STA %w", VGA_ADDR_IRQ);  // Clear IRQ assertion.
 
+   __asm__("LDA %w", VGA_COLL);  // Read collision status
+   __asm__("BEQ %g", noColl);
+   __asm__("CMP #$03");
+   __asm__("BNE %g", noColl);
+
+   // Collision between ball (0) and left player (1)
+
+noColl:
    ball_move();
    player_move();
 
