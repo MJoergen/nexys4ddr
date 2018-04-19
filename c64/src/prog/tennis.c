@@ -4,37 +4,9 @@
 
 #include "memorymap.h"
 #include "zeropage.h"   // Variables to be stored in the zero-page.
-#include "keyboard.h"
-
-#define COL_WHITE       0xFFU  // 111_111_11
-#define COL_RED         0xE0U  // 111_000_00
-#define COL_LIGHT       0x6E   // 011_011_10
-#define COL_DARK        0x24   // 001_001_00
-#define COL_BLACK       0x00   // 000_000_00
-
-#define WALL_XPOS       160U
-#define WALL_YPOS       220U
-
-#define GRAVITY         1
-#define PLAYER_VEL      3
-#define PLAYER_LEFT_MARGIN   0
-#define PLAYER_RIGHT_MARGIN  WALL_XPOS
-
-#define KEYB_SHIFT_LEFT   0x12
-#define KEYB_SHIFT_RIGHT  0x59
-
-/* Coordinates and velocities are stored in 16 bit numbers in fixed-point
- * representation, where the upper 9 bits are before the fixed-point, and the
- * lower 7 bits are after the fixed-point
- */
-static char ball_x_hi;
-static char ball_x_lo;
-static char ball_y_hi;
-static char ball_y_lo;
-static char ball_vx_hi;
-static char ball_vx_lo;
-static char ball_vy_hi;
-static char ball_vy_lo;
+#include "tennis.h"
+#include "tennis_ball.h"
+#include "tennis_player.h"
 
 static const char bitmap_ball[32] = {
    0x01, 0x80,
@@ -220,7 +192,6 @@ void __fastcall__ vga_init(void)
    __asm__("STA %w", VGA_ADDR_SPRITE_3_ENA);
 } // end of vga_init
 
-
 // Entry point after CPU reset
 void __fastcall__ reset(void)
 {
@@ -229,14 +200,7 @@ void __fastcall__ reset(void)
    __asm__("TXS");                           // Reset stack pointer
 
    // Initialize ball position and velocity
-   ball_x_hi  = WALL_XPOS/4;
-   ball_x_lo  = 0;
-   ball_y_hi  = WALL_YPOS/4;
-   ball_y_lo  = 0;
-   ball_vx_hi = 0;
-   ball_vx_lo = 0;
-   ball_vy_hi = 0;
-   ball_vy_lo = 0;
+   ball_reset();
 
    vga_init();
 
@@ -253,101 +217,23 @@ wait_for_keyboard:
    __asm__("JMP %g", wait_for_keyboard);
 } // end of reset
 
-static void __fastcall__ movePlayer(void)
-{
-   readCurrentKey();
-   __asm__("CMP #%b", KEYB_SHIFT_LEFT);
-   __asm__("BEQ %g", left);
-   __asm__("CMP #%b", KEYB_SHIFT_RIGHT);
-   __asm__("BEQ %g", right);
-   __asm__("RTS");
-
-left:
-   __asm__("LDA %w", VGA_ADDR_SPRITE_1_X);
-   __asm__("CMP #%b", PLAYER_LEFT_MARGIN + PLAYER_VEL);
-   __asm__("BCS %g", moveLeft);
-   __asm__("LDA #%b", PLAYER_LEFT_MARGIN + PLAYER_VEL);
-   
-moveLeft:
-   __asm__("SEC");
-   __asm__("SBC #%b", PLAYER_VEL);
-   __asm__("STA %w", VGA_ADDR_SPRITE_1_X);
-
-   __asm__("LDA %w", VGA_ADDR_SPRITE_1_X_MSB);
-   __asm__("SBC #$00");
-   __asm__("STA %w", VGA_ADDR_SPRITE_1_X_MSB);
-   __asm__("RTS");
-
-right:
-   __asm__("LDA %w", VGA_ADDR_SPRITE_1_X);
-   __asm__("CMP #%b", PLAYER_RIGHT_MARGIN - PLAYER_VEL - 16);
-   __asm__("BCC %g", moveRight);
-   __asm__("LDA #%b", PLAYER_RIGHT_MARGIN - PLAYER_VEL - 16);
-
-moveRight:
-   __asm__("CLC");
-   __asm__("ADC #%b", PLAYER_VEL);
-   __asm__("STA %w", VGA_ADDR_SPRITE_1_X);
-
-   __asm__("LDA %w", VGA_ADDR_SPRITE_1_X_MSB);
-   __asm__("ADC #$00");
-   __asm__("STA %w", VGA_ADDR_SPRITE_1_X_MSB);
-   __asm__("RTS");
-} // end of movePlayer
-
-static void __fastcall__ moveBall(void)
-{
-   // Update velocity
-   __asm__("LDA %v", ball_vy_lo);
-   __asm__("CLC");
-   __asm__("ADC #%b", GRAVITY);
-   __asm__("STA %v", ball_vy_lo);
-   __asm__("LDA %v", ball_vy_hi);
-   __asm__("ADC #$00");
-   __asm__("STA %v", ball_vy_hi);
-
-   // Update position
-   __asm__("LDA %v", ball_y_lo);
-   __asm__("CLC");
-   __asm__("ADC %v", ball_vy_lo);
-   __asm__("STA %v", ball_y_lo);
-   __asm__("LDA %v", ball_y_hi);
-   __asm__("ADC %v", ball_vy_hi);
-   __asm__("STA %v", ball_y_hi);
-
-   __asm__("LDA %v", ball_x_lo);
-   __asm__("CLC");
-   __asm__("ADC %v", ball_vx_lo);
-   __asm__("STA %v", ball_x_lo);
-   __asm__("LDA %v", ball_x_hi);
-   __asm__("ADC %v", ball_vx_hi);
-   __asm__("STA %v", ball_x_hi);
-
-   // Update VGA
-   __asm__("LDA %v", ball_x_lo);
-   __asm__("ROL A");
-   __asm__("LDA %v", ball_x_hi);
-   __asm__("ROL A");
-   __asm__("STA %w", VGA_ADDR_SPRITE_0_X);
-   __asm__("LDA #$00");
-   __asm__("ROL A");
-   __asm__("STA %w", VGA_ADDR_SPRITE_0_X_MSB);
-
-   __asm__("LDA %v", ball_y_lo);
-   __asm__("ROL A");
-   __asm__("LDA %v", ball_y_hi);
-   __asm__("ROL A");
-   __asm__("STA %w", VGA_ADDR_SPRITE_0_Y);
-} // end of moveBall
-
 // Maskable interrupt
 void __fastcall__ irq(void)
 {
-   moveBall();
+   __asm__("LDA %w", VGA_ADDR_IRQ);  // Read IRQ status
+   __asm__("STA %w", VGA_ADDR_IRQ);  // Clear IRQ assertion.
 
-   // Update VGA
+   ball_move();
+   player_move();
 
-   // Not used.
+   __asm__("LDA %w", VGA_ADDR_SPRITE_0_Y);
+   __asm__("CMP #%b", WALL_YPOS+16);
+   __asm__("BCC %g", end);
+
+   // Ball fell out of bottom of screen.
+   ball_reset();
+
+end:
    __asm__("RTI");
 } // end of irq
 

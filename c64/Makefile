@@ -89,6 +89,8 @@ PROG_SRC   += src/prog/umult.c
 #PROG_SRC   += src/prog/keyboard.c
 
 PROG_SRC    = src/prog/tennis.c
+PROG_SRC   += src/prog/tennis_ball.c
+PROG_SRC   += src/prog/tennis_player.c
 PROG_SRC   += src/prog/keyboard.c
 
 LD_CFG      = src/prog/ld.cfg

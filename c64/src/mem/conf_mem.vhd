@@ -165,6 +165,9 @@ begin
          a_irq_latch  <= a_irq_latch_v;
          a_coll_latch <= a_coll_latch_v;
 
+         a_config(C_IRQ_STAT*8+1  downto C_IRQ_STAT*8)  <= a_irq_latch_v;
+         a_config(C_COLLISION*8+3 downto C_COLLISION*8) <= a_coll_latch_v;
+
          if a_rst_i = '1' then
             a_irq_latch  <= (others => '0');
             a_coll_latch <= (others => '0');

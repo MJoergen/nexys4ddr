@@ -219,7 +219,7 @@ begin
       vga_col_o     => vga_col,
       vga_hcount_o  => vga_hcount,
       vga_vcount_o  => vga_vcount,
-      vga_overlay_i => sw_i(2 downto 1),
+      vga_overlay_i => sw_i(3 downto 1),
       vga_debug_i   => vga_debug,
       --
       ps2_clk_i     => ps2_clk_i,
@@ -234,7 +234,7 @@ begin
    eth_debug(6*16-1 downto 0)     <= eth_stat_debug;
    eth_debug(16*16-1 downto 6*16) <= (others => '0');
    
-   vga_debug <= eth_smi_registers(255 downto 0) when sw_i(3) = '1' else
+   vga_debug <= eth_smi_registers(255 downto 0) when sw_i(4) = '1' else
                 eth_debug;
 
 end Structural;
