@@ -848,6 +848,29 @@ noError24:
    __asm__("BPL %g", error24);
    __asm__("BCS %g", error24);
 
+   // Now we test ADC a
+   __asm__("LDA #$24");
+   __asm__("STA $0246");
+   __asm__("LDA #$11");
+   __asm__("CLC");
+   __asm__("ADC $0246");
+   __asm__("BCS %g", error25);
+   __asm__("BEQ %g", error25);
+   __asm__("BMI %g", error25);
+   __asm__("CMP #$35");
+   __asm__("BEQ %g", noError25);
+error25:
+   __asm__("JMP %g", error25);
+noError25:
+
+   __asm__("SEC");
+   __asm__("ADC $0246");
+   __asm__("BCS %g", error25);
+   __asm__("BEQ %g", error25);
+   __asm__("BMI %g", error25);
+   __asm__("CMP #$5A");
+   __asm__("BNE %g", error25);
+
 
    // Loop forever doing nothing
 here:
