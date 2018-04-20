@@ -16,7 +16,7 @@ static char ball_vy_lo;
 
 void __fastcall__ ball_reset(void)
 {
-   ball_x_hi  = WALL_XPOS/4;
+   ball_x_hi  = WALL_XPOS/4-3;
    ball_x_lo  = 0;
    ball_y_hi  = WALL_YPOS/4;
    ball_y_lo  = 0;
