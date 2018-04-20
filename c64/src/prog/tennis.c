@@ -276,8 +276,13 @@ void __fastcall__ irq(void)
    // * / requires one division
    // So a total of six multiplications and one division.
    //
-   // This requires in total four scalar multiplications, two for v*BP
-   // and two for dv.
+   // One way to organize the calculations is as follows:
+   // Let w be the new velocity, i.e. w = v+dv. Then
+   // w = A*v, where A11=-A22=(BPy^2-BPx^2)/(BPy^2+BPx^2) and A12=A21=(-2*BPx*BPy)/(BPy^2+BPx^2).
+   //
+   // This requires 7 multiplications and two divisions.
+   // A-I = -2*(BPx,BPy)^T*(BPx,BPy)
+   //
    //
    // Example:
    // CB = (0x4A, 0xD5)
@@ -289,6 +294,9 @@ void __fastcall__ irq(void)
    //
    // We then calculate v*BP = -13, and so:
    // dv = 13/128 * BP
+   //
+   // The matrix A is: 1/205 * ((133, -156), (-156, 133)), and so
+   // w = 1/205 * (-156, -133).
 
 noColl:
    ball_move();
