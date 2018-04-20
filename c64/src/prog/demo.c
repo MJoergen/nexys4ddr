@@ -14,6 +14,43 @@
 #define COL_DARK        0x44   // 010_001_00
 #define COL_BLACK       0x00   // 000_000_00
 
+// This provides a mapping from RGB to RGB, where each mapping only
+// changes the colour by a minimal amount.
+// Only exception is 0x03 -> 0x00 (i.e. blue to black).
+static const unsigned char trans[256] = {
+   0x04, 0x02, 0x06, 0x00, 0x08, 0x01, 0x0a, 0x03,
+   0x0c, 0x05, 0x0e, 0x07, 0x10, 0x09, 0x12, 0x0b,
+   0x14, 0x0d, 0x16, 0x0f, 0x18, 0x11, 0x1a, 0x13,
+   0x1c, 0x15, 0x1e, 0x17, 0x3c, 0x19, 0x3e, 0x1b,
+   0x40, 0x25, 0x42, 0x27, 0x20, 0x29, 0x22, 0x2b,
+   0x24, 0x2d, 0x26, 0x2f, 0x28, 0x31, 0x2a, 0x33,
+   0x2c, 0x35, 0x2e, 0x37, 0x30, 0x39, 0x32, 0x3b,
+   0x34, 0x3d, 0x36, 0x3f, 0x38, 0x1d, 0x3a, 0x1f,
+   0x44, 0x21, 0x46, 0x23, 0x48, 0x41, 0x4a, 0x43,
+   0x4c, 0x45, 0x4e, 0x47, 0x50, 0x49, 0x52, 0x4b,
+   0x54, 0x4d, 0x56, 0x4f, 0x58, 0x51, 0x5a, 0x53,
+   0x5c, 0x55, 0x5e, 0x57, 0x7c, 0x59, 0x7e, 0x5b,
+   0x80, 0x65, 0x82, 0x67, 0x60, 0x69, 0x62, 0x6b,
+   0x64, 0x6d, 0x66, 0x6f, 0x68, 0x71, 0x6a, 0x73,
+   0x6c, 0x75, 0x6e, 0x77, 0x70, 0x79, 0x72, 0x7b,
+   0x74, 0x7d, 0x76, 0x7f, 0x78, 0x5d, 0x7a, 0x5f,
+   0x84, 0x61, 0x86, 0x63, 0x88, 0x81, 0x8a, 0x83,
+   0x8c, 0x85, 0x8e, 0x87, 0x90, 0x89, 0x92, 0x8b,
+   0x94, 0x8d, 0x96, 0x8f, 0x98, 0x91, 0x9a, 0x93,
+   0x9c, 0x95, 0x9e, 0x97, 0xbc, 0x99, 0xbe, 0x9b,
+   0xc0, 0xa5, 0xc2, 0xa7, 0xa0, 0xa9, 0xa2, 0xab,
+   0xa4, 0xad, 0xa6, 0xaf, 0xa8, 0xb1, 0xaa, 0xb3,
+   0xac, 0xb5, 0xae, 0xb7, 0xb0, 0xb9, 0xb2, 0xbb,
+   0xb4, 0xbd, 0xb6, 0xbf, 0xb8, 0x9d, 0xba, 0x9f,
+   0xc4, 0xa1, 0xc6, 0xa3, 0xc8, 0xc1, 0xca, 0xc3,
+   0xcc, 0xc5, 0xce, 0xc7, 0xd0, 0xc9, 0xd2, 0xcb,
+   0xd4, 0xcd, 0xd6, 0xcf, 0xd8, 0xd1, 0xda, 0xd3,
+   0xdc, 0xd5, 0xde, 0xd7, 0xfc, 0xd9, 0xfe, 0xdb,
+   0xe1, 0xe5, 0xe3, 0xe7, 0xe0, 0xe9, 0xe2, 0xeb,
+   0xe4, 0xed, 0xe6, 0xef, 0xe8, 0xf1, 0xea, 0xf3,
+   0xec, 0xf5, 0xee, 0xf7, 0xf0, 0xf9, 0xf2, 0xfb,
+   0xf4, 0xfd, 0xf6, 0xff, 0xf8, 0xdd, 0xfa, 0xdf};
+
 // Forward declarations.
 void __fastcall__ readFromKeyboard(void);
 
@@ -104,6 +141,7 @@ static unsigned char irqA;
 static unsigned char irqX;
 static unsigned char irqY;
 static unsigned char irqCnt;
+static unsigned char irqBgStart;
 
 #define YPOS_LINE1 (1*13 - 1)
 #define YPOS_LINE2 (2*13 - 1)
@@ -111,36 +149,73 @@ static unsigned char irqCnt;
 // The interrupt service routine.
 void __fastcall__ irq(void)
 {
-   __asm__("STA %v", irqA);    // Store A register
+   // Store registers
+   __asm__("STA %v", irqA);
    __asm__("TXA");
-   __asm__("STA %v", irqX);    // Store X register
+   __asm__("STA %v", irqX);
    __asm__("TYA");
-   __asm__("STA %v", irqY);    // Store Y register
+   __asm__("STA %v", irqY);
 
-   __asm__("LDA %w", VGA_ADDR_IRQ);  // Read IRQ status
-   __asm__("STA %w", VGA_ADDR_IRQ);  // Clear IRQ assertion.
+   // Clear IRQ assertion
+   __asm__("LDA %w", VGA_ADDR_IRQ);
+   __asm__("STA %w", VGA_ADDR_IRQ);
 
+   // Update background colour
+   __asm__("LDA %w", VGA_ADDR_BGCOL);
+   __asm__("TAX");
+   __asm__("LDA %v,X", trans);
+   __asm__("STA %w", VGA_ADDR_BGCOL);
+
+   // Set interrupt to next line
    __asm__("LDA %w", VGA_ADDR_YLINE);
-   __asm__("CMP #%b", YPOS_LINE1);
-   __asm__("BNE %g", clearScroll);
-
-   __asm__("LDA %b", ZP_XSCROLL);      // Enable scroll of line 1
-   __asm__("STA %w", VGA_ADDR_XSCROLL);
-   __asm__("LDA #%b", YPOS_LINE2);  // Set interrupt at end of line 2
+   __asm__("CLC");
+   __asm__("ADC #$01");
    __asm__("STA %w", VGA_ADDR_YLINE);
+
+   // Check if end of screen
+   __asm__("CMP #%b", 241U);
+   __asm__("BEQ %g", bgRestart);
+
+   // Check if scrolling should be enabled
+   __asm__("CMP #%b", YPOS_LINE1+1);
+   __asm__("BEQ %g", scrollStart);
+
+   // Check if scrolling should be disabled
+   __asm__("CMP #%b", YPOS_LINE2+1);
+   __asm__("BEQ %g", scrollEnd);
+
+end_irq:
+   // Restore registers
+   __asm__("LDA %v", irqY);
+   __asm__("TAY");
+   __asm__("LDA %v", irqX);
+   __asm__("TAX");
+   __asm__("LDA %v", irqA);
+   __asm__("RTI");
+
+bgRestart:
+   __asm__("LDA %v", irqBgStart);
+   __asm__("STA %w", VGA_ADDR_BGCOL);
    __asm__("JMP %g", end_irq);
 
-clearScroll:
+scrollStart:
+   __asm__("LDA %b", ZP_XSCROLL);      // Enable scroll of line 1
+   __asm__("STA %w", VGA_ADDR_XSCROLL);
+   __asm__("JMP %g", end_irq);
+
+scrollEnd:
    __asm__("LDA #$00");             // Clear scroll
    __asm__("STA %w", VGA_ADDR_XSCROLL);
-   __asm__("LDA #%b", YPOS_LINE1);  // Set interrupt at end of line 1
-   __asm__("STA %w", VGA_ADDR_YLINE);
+
+   // Here is reached once every frame, i.e. 60 times pr. second.
 
    __asm__("LDA %b", ZP_CNT);
    __asm__("CLC");
    __asm__("ADC #$40");
    __asm__("STA %b", ZP_CNT);
    __asm__("BNE %g", circle); // Time to shift a pixel ?
+
+   // Here is reached 15 times pr. second.
 
    // Ok, we shift one pixel.
    __asm__("LDA %b", ZP_XSCROLL);
@@ -178,6 +253,16 @@ circle:
    __asm__("CLC");
    __asm__("ADC #$04");
    __asm__("STA %v", irqCnt);
+   __asm__("BNE %g", skipBgRestart);
+
+   // Here is reached approx. once pr. second
+   __asm__("LDA %v", irqBgStart);
+   __asm__("TAX");
+   __asm__("LDA %v,X", trans);
+   __asm__("STA %v", irqBgStart);
+
+skipBgRestart:
+   __asm__("LDA %v", irqCnt);
    __asm__("BPL %g", make_cursor);
 
    __asm__("LDX #$00"); 
@@ -190,14 +275,8 @@ make_cursor:
    __asm__("LDA #$00");        // Cursor character
    __asm__("STA (%b, X)", ZP_SCREEN_POS_LO); 
 
-end_irq:
-   __asm__("LDA %v", irqY);    // Restore Y
-   __asm__("TAY");
-   __asm__("LDA %v", irqX);    // Restore X
-   __asm__("TAX");
-   __asm__("LDA %v", irqA);    // Restore A
+   __asm__("JMP %g", end_irq);
 
-   __asm__("RTI");
 } // end of irq
 
 static void __fastcall__ updateBuffer(void)
@@ -292,104 +371,6 @@ normal:
 } // end of updateBuffer
 
 
-void __fastcall__ initScreen(void)
-{
-   __asm__("LDA #%b", 't');
-   __asm__("STA %w", VGA_ADDR_SCREEN+4*40);
-   __asm__("LDA #%b", 's');
-   __asm__("STA %w", VGA_ADDR_SCREEN+4*40+1);
-   __asm__("LDA #%b", 'l');
-   __asm__("STA %w", VGA_ADDR_SCREEN+4*40+2);
-   __asm__("LDA #%b", 'd');
-   __asm__("STA %w", VGA_ADDR_SCREEN+4*40+3);
-   __asm__("LDA #%b", 'k');
-   __asm__("STA %w", VGA_ADDR_SCREEN+4*40+4);
-   __asm__("LDA #%b", 'l');
-   __asm__("STA %w", VGA_ADDR_SCREEN+4*40+5);
-   __asm__("LDA #%b", 's');
-   __asm__("STA %w", VGA_ADDR_SCREEN+4*40+6);
-   __asm__("LDA #%b", 't');
-   __asm__("STA %w", VGA_ADDR_SCREEN+4*40+7);
-
-   __asm__("LDA #%b", 'b');
-   __asm__("STA %w", VGA_ADDR_SCREEN+5*40);
-   __asm__("STA %w", VGA_ADDR_SCREEN+5*40+1);
-   __asm__("STA %w", VGA_ADDR_SCREEN+5*40+2);
-   __asm__("STA %w", VGA_ADDR_SCREEN+5*40+3);
-   __asm__("STA %w", VGA_ADDR_SCREEN+5*40+4);
-   __asm__("STA %w", VGA_ADDR_SCREEN+5*40+5);
-   __asm__("STA %w", VGA_ADDR_SCREEN+5*40+6);
-   __asm__("STA %w", VGA_ADDR_SCREEN+5*40+7);
-
-   __asm__("LDA #%b", '.');
-   __asm__("STA %w", VGA_ADDR_SCREEN+6*40);
-   __asm__("STA %w", VGA_ADDR_SCREEN+6*40+1);
-   __asm__("STA %w", VGA_ADDR_SCREEN+6*40+2);
-   __asm__("STA %w", VGA_ADDR_SCREEN+6*40+3);
-   __asm__("STA %w", VGA_ADDR_SCREEN+6*40+4);
-   __asm__("STA %w", VGA_ADDR_SCREEN+6*40+5);
-   __asm__("STA %w", VGA_ADDR_SCREEN+6*40+6);
-   __asm__("STA %w", VGA_ADDR_SCREEN+6*40+7);
-
-   __asm__("LDA #%b", '.');
-   __asm__("STA %w", VGA_ADDR_SCREEN+7*40);
-   __asm__("STA %w", VGA_ADDR_SCREEN+7*40+1);
-   __asm__("STA %w", VGA_ADDR_SCREEN+7*40+2);
-   __asm__("STA %w", VGA_ADDR_SCREEN+7*40+3);
-   __asm__("STA %w", VGA_ADDR_SCREEN+7*40+4);
-   __asm__("STA %w", VGA_ADDR_SCREEN+7*40+5);
-   __asm__("STA %w", VGA_ADDR_SCREEN+7*40+6);
-   __asm__("STA %w", VGA_ADDR_SCREEN+7*40+7);
-
-   __asm__("LDA #%b", '.');
-   __asm__("STA %w", VGA_ADDR_SCREEN+8*40);
-   __asm__("STA %w", VGA_ADDR_SCREEN+8*40+1);
-   __asm__("STA %w", VGA_ADDR_SCREEN+8*40+2);
-   __asm__("STA %w", VGA_ADDR_SCREEN+8*40+3);
-   __asm__("STA %w", VGA_ADDR_SCREEN+8*40+4);
-   __asm__("STA %w", VGA_ADDR_SCREEN+8*40+5);
-   __asm__("STA %w", VGA_ADDR_SCREEN+8*40+6);
-   __asm__("STA %w", VGA_ADDR_SCREEN+8*40+7);
-
-   __asm__("LDA #%b", '.');
-   __asm__("STA %w", VGA_ADDR_SCREEN+9*40);
-   __asm__("STA %w", VGA_ADDR_SCREEN+9*40+1);
-   __asm__("STA %w", VGA_ADDR_SCREEN+9*40+2);
-   __asm__("STA %w", VGA_ADDR_SCREEN+9*40+3);
-   __asm__("STA %w", VGA_ADDR_SCREEN+9*40+4);
-   __asm__("STA %w", VGA_ADDR_SCREEN+9*40+5);
-   __asm__("STA %w", VGA_ADDR_SCREEN+9*40+6);
-   __asm__("STA %w", VGA_ADDR_SCREEN+9*40+7);
-
-   __asm__("LDA #%b", 'B');
-   __asm__("STA %w", VGA_ADDR_SCREEN+10*40);
-   __asm__("STA %w", VGA_ADDR_SCREEN+10*40+1);
-   __asm__("STA %w", VGA_ADDR_SCREEN+10*40+2);
-   __asm__("STA %w", VGA_ADDR_SCREEN+10*40+3);
-   __asm__("STA %w", VGA_ADDR_SCREEN+10*40+4);
-   __asm__("STA %w", VGA_ADDR_SCREEN+10*40+5);
-   __asm__("STA %w", VGA_ADDR_SCREEN+10*40+6);
-   __asm__("STA %w", VGA_ADDR_SCREEN+10*40+7);
-
-   __asm__("LDA #%b", 'T');
-   __asm__("STA %w", VGA_ADDR_SCREEN+11*40);
-   __asm__("LDA #%b", 'S');
-   __asm__("STA %w", VGA_ADDR_SCREEN+11*40+1);
-   __asm__("LDA #%b", 'L');
-   __asm__("STA %w", VGA_ADDR_SCREEN+11*40+2);
-   __asm__("LDA #%b", 'D');
-   __asm__("STA %w", VGA_ADDR_SCREEN+11*40+3);
-   __asm__("LDA #%b", 'K');
-   __asm__("STA %w", VGA_ADDR_SCREEN+11*40+4);
-   __asm__("LDA #%b", 'L');
-   __asm__("STA %w", VGA_ADDR_SCREEN+11*40+5);
-   __asm__("LDA #%b", 'S');
-   __asm__("STA %w", VGA_ADDR_SCREEN+11*40+6);
-   __asm__("LDA #%b", 'T');
-   __asm__("STA %w", VGA_ADDR_SCREEN+11*40+7);
-   __asm__("RTS"); 
-} // end of initScreen
-
 // Entry point after CPU reset
 void __fastcall__ reset(void)
 {
@@ -400,7 +381,6 @@ void __fastcall__ reset(void)
    smult_init();
    circle_init();
    clearScreen();
-   initScreen();
 
    // Configure text color
    __asm__("LDA #%b", COL_LIGHT);
