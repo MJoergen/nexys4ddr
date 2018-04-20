@@ -253,6 +253,45 @@ void __fastcall__ irq(void)
 
    // Collision between ball (0) and left player (1)
 
+   // Let CB be the centre of the ball, and
+   // let CP be the centre of the player, and
+   // let CC be the point of contact.
+   // Since the ball and the player both are circles of the
+   // same size, then CC is the midpoint between CB and CP.
+   // Let r be the vector from centre of ball to point of contact, i.e.
+   // r = CC - CB = (CP - CB)/2.
+   // Let v be the velocity vector of the ball, and 
+   // let dv be the change (acceleration) in this velocity vector.
+   // Then we must have that dv = k * r, for some scalar k.
+   // This is because the acceleration is perpendicular to the surface
+   // of the ball.
+   // Furthermore, we must have
+   // (v + dv/2)*r = 0, because incident angle = reflected angle.
+   // Multiplying out gives:
+   // v*r = - k*(r*r)/2, i.e.
+   // k = -2*(v*r)/(r*r).
+   // Now, since r is the radius of the ball, we have |r|=8. Therefore
+   // k = -(v*r)/32.
+   // k = -(v*(2r))/64.
+   // Here 2r = BP is used, because it is easier to calculate.
+   // So the final result is:
+   // dv = (k/2) * (2r) = -(v*BP)/128 * BP
+   // Here k should be positive. If k is negative, just ignore.
+   //
+   // This requires in total four scalar multiplications, two for v*BP
+   // and two for dv.
+   //
+   // Example:
+   // CB = (0x4A, 0xD5)
+   // CP = (0x50, 0xDA) + (0,8)
+   // v  = vertical = (0, +1)
+   //
+   // We calculate BP = (-6, -13). We should have |BP| = 16, but we only
+   // have |BP| = 14. That's ok :-)
+   //
+   // We then calculate v*BP = -13, and so:
+   // dv = 13/128 * BP
+
 noColl:
    ball_move();
    player_move();
