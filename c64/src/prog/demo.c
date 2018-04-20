@@ -103,7 +103,7 @@ static void __fastcall__ copyLine(void)
    __asm__("TAX"); 
 loop:
    __asm__("LDA %w,X", VGA_ADDR_SCREEN);        // Copy from line 0
-   __asm__("STA %w,X", VGA_ADDR_SCREEN+40);     // to line 1
+   __asm__("STA %w,X", VGA_ADDR_SCREEN+3*40);     // to line 3
    __asm__("DEX"); 
    __asm__("BPL %g", loop); 
    __asm__("RTS"); 
@@ -143,8 +143,8 @@ static unsigned char irqY;
 static unsigned char irqCnt;
 static unsigned char irqBgStart;
 
-#define YPOS_LINE1 (1*13 - 1)
-#define YPOS_LINE2 (2*13 - 1)
+#define YPOS_LINE1 (3*13 - 1)
+#define YPOS_LINE2 (4*13 - 1)
 
 // The interrupt service routine.
 void __fastcall__ irq(void)
@@ -238,10 +238,10 @@ skipTrans:
    __asm__("BNE %g", circle); // Time to shift a whole byte ?
 
    // Ok, we shift a whole byte.
-   __asm__("LDA %w", VGA_ADDR_SCREEN+40); // Keep left-most character
+   __asm__("LDA %w", VGA_ADDR_SCREEN+3*40); // Keep left-most character
    __asm__("TAY");
 
-   __asm__("LDA #%b", 40);
+   __asm__("LDA #%b", 3*40);
 more_scroll:
    __asm__("TAX");
    __asm__("LDA %w,X", VGA_ADDR_SCREEN+1);
@@ -249,12 +249,12 @@ more_scroll:
    __asm__("TXA");
    __asm__("CLC");
    __asm__("ADC #$01");
-   __asm__("CMP #%b", 79);
+   __asm__("CMP #%b", 4*40U-1);
    __asm__("BNE %g", more_scroll);
 
    // Wrap around
    __asm__("TYA");
-   __asm__("STA %w", VGA_ADDR_SCREEN+79);
+   __asm__("STA %w", VGA_ADDR_SCREEN+4*40-1);
 
 circle:
    circle_move();
