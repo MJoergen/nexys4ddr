@@ -97,6 +97,20 @@ rts:
    __asm__("RTS"); 
 } // end of clearLine
 
+
+static void __fastcall__ resetColorLine(void)
+{
+   __asm__("LDA #%b", 39);
+   __asm__("TAX");
+loop:
+   __asm__("LDA %v,X", trans);
+   __asm__("STA %w,X", MEM_COL+3*40);
+   __asm__("DEX");
+   __asm__("BPL %g", loop);
+
+} // end of resetColorLine
+
+
 static void __fastcall__ copyLine(void)
 {
    __asm__("LDA #$27"); 
@@ -256,6 +270,26 @@ more_scroll:
    __asm__("TYA");
    __asm__("STA %w", VGA_ADDR_SCREEN+4*40-1);
 
+
+   // Ok, we shift a whole byte.
+   __asm__("LDA %w", MEM_COL+3*40); // Keep left-most character
+   __asm__("TAY");
+
+   __asm__("LDA #%b", 3*40);
+more_scroll2:
+   __asm__("TAX");
+   __asm__("LDA %w,X", MEM_COL+1);
+   __asm__("STA %w,X", MEM_COL);
+   __asm__("TXA");
+   __asm__("CLC");
+   __asm__("ADC #$01");
+   __asm__("CMP #%b", 4*40U-1);
+   __asm__("BNE %g", more_scroll2);
+
+   // Wrap around
+   __asm__("TYA");
+   __asm__("STA %w", MEM_COL+4*40-1);
+
 circle:
    circle_move();
 
@@ -382,6 +416,7 @@ void __fastcall__ reset(void)
    smult_init();
    circle_init();
    clearScreen();
+   resetColorLine();
 
    // Configure text color
    __asm__("LDA #%b", COL_LIGHT);
