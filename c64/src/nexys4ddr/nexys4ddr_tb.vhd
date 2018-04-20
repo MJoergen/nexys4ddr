@@ -92,7 +92,8 @@ begin
    end process proc_ps2;
 
    -- Generate input switches
-   sw <= X"0100";
+   sw <= X"0000";
+   -- sw <= X"0100";
    -- sw <= X"0101"; -- Used for testing single-step.
 
    -- Generate input buttons
