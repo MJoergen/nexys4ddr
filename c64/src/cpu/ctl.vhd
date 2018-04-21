@@ -1122,8 +1122,8 @@ architecture Structural of ctl is
             C_INVALID,
             C_INVALID,
    -- 6A ROR A
-            C_INVALID,
-            C_INVALID,
+            C_READ_NEXT_BYTE,
+            C_WR_REG_ROR + C_WR_SR_C + C_WR_SR_S + C_WR_SR_Z + C_LAST,
             C_INVALID,
             C_INVALID,
             C_INVALID,

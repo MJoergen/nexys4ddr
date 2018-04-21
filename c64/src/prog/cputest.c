@@ -47,6 +47,8 @@
 // 45 EOR d
 // 2A ROL A
 // DD CMP a,X
+// 6D ADC a
+// 6A ROR A
 
 // To come soon:
 // A0 LDY #
