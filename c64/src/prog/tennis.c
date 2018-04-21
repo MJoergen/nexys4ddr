@@ -234,6 +234,11 @@ void __fastcall__ reset(void)
    // Initialize ball position and velocity
    ball_reset();
 
+   // Now we have A11 in 'A' and A12 in 'X'.
+   //__asm__("LDA #$58");
+   //__asm__("LDX #$A3");
+   //ball_rotate();
+
    vga_init();
 
    __asm__("LDA #%b", WALL_YPOS+16);
@@ -261,48 +266,6 @@ void __fastcall__ irq(void)
 
    // Collision between ball (0) and left player (1)
 
-   // Let CB be the centre of the ball, and
-   // let CP be the centre of the player, and
-   // let CC be the point of contact.
-   // Since the ball and the player both are circles of the
-   // same size, then CC is the midpoint between CB and CP.
-   //
-   // Let v be the velocity vector of the ball, and 
-   // let dv be the change (acceleration) in this velocity vector.
-   //
-   // Some algebra gives the following equation
-   // dv = (-2v*BP)/|BP|^2 * BP
-   //
-   // Note that v*BP must be negative, indicating that the ball
-   // is travelling into the player. If v*BP is positive, then
-   // no need to update v.
-   //
-   // One way to organize the calculations is as follows:
-   // Let w be the new velocity, i.e. w = v+dv. Then
-   // w = A*v, where A = I - 2*(BPx,BPy)^T*(BPx,BPy)/|BP|^2
-   //
-   // It is useful to rewrite the matrix A as:
-   // A11=-A22=(BPy^2-BPx^2)/(BPy^2+BPx^2) and A12=A21=(-2*BPx*BPy)/(BPy^2+BPx^2).
-   //
-   // The matrix A is found by table lookup. Therefore
-   // only 4 additional multiplications are necessary.
-   // This requires 7 multiplications and two divisions.
-   //
-   //
-   // Example:
-   // CB = (0x4A, 0xD5)
-   // CP = (0x50, 0xDA) + (0,8)
-   // v  = vertical = (0, +1)
-   //
-   // We calculate BP = (-6, -13). We should have |BP| = 16, but we only
-   // have |BP| = 14. That's ok :-)
-   //
-   // We then calculate v*BP = -13, and so:
-   // dv = 13/128 * BP
-   //
-   // The matrix A is: 1/205 * ((133, -156), (-156, 133)), and so
-   // w = 1/205 * (-156, -133).
-
    // Get players coordinates, and divide by 2.
    __asm__("LDA %w", VGA_ADDR_SPRITE_1_X_MSB);
    __asm__("ROR A");  // Move MSB to carry
@@ -316,18 +279,22 @@ void __fastcall__ irq(void)
 
    ball_bounce();
 
+#if 0
 loop:
-//   __asm__("LDA %b", ZP_BALL_T1);
-   __asm__("LDA %v", ball_vx_lo);
+   __asm__("LDA %b", ZP_BALL_T0);
+//   __asm__("LDA %v", ball_vx_lo);
    __asm__("STA %w", 0x8614);
-//   __asm__("LDA %b", ZP_BALL_T2);
-   __asm__("LDA %v", ball_vx_hi);
+   __asm__("LDA %b", ZP_BALL_T1);
+ //  __asm__("LDA %v", ball_vx_hi);
    __asm__("STA %w", 0x8615);
-   __asm__("LDA %v", ball_vy_lo);
+   __asm__("LDA %b", ZP_BALL_T2);
+//   __asm__("LDA %v", ball_vy_lo);
    __asm__("STA %w", 0x8616);
-   __asm__("LDA %v", ball_vy_hi);
+   __asm__("LDA %b", ZP_BALL_T3);
+//   __asm__("LDA %v", ball_vy_hi);
    __asm__("STA %w", 0x8617);
    __asm__("JMP %g", loop);
+#endif
 
 noColl:
    ball_move();
