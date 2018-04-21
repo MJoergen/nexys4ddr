@@ -49,6 +49,8 @@
 // DD CMP a,X
 // 6D ADC a
 // 6A ROR A
+// 0A ASL A
+// ED SBC a
 
 // To come soon:
 // A0 LDY #
@@ -873,6 +875,28 @@ noError25:
    __asm__("CMP #$5A");
    __asm__("BNE %g", error25);
 
+   // Now we test SBC a
+   __asm__("LDA #$21");
+   __asm__("STA $0246");
+   __asm__("LDA #$73");
+   __asm__("SEC");
+   __asm__("SBC $0246");
+   __asm__("BCC %g", error26);
+   __asm__("BEQ %g", error26);
+   __asm__("BMI %g", error26);
+   __asm__("CMP #$52");
+   __asm__("BEQ %g", noError26);
+error26:
+   __asm__("JMP %g", error26);
+noError26:
+
+   __asm__("CLC");
+   __asm__("SBC $0246");
+   __asm__("BCC %g", error26);
+   __asm__("BEQ %g", error26);
+   __asm__("BMI %g", error26);
+   __asm__("CMP #$30");
+   __asm__("BNE %g", error26);
 
    // Loop forever doing nothing
 here:
