@@ -7,6 +7,12 @@
 #include "tennis.h"
 #include "tennis_ball.h"
 #include "tennis_player.h"
+#include "smult.h"
+
+extern char ball_vx_lo;
+extern char ball_vx_hi;
+extern char ball_vy_lo;
+extern char ball_vy_hi;
 
 static const char bitmap_ball[32] = {
    0x01, 0x80,
@@ -27,14 +33,6 @@ static const char bitmap_ball[32] = {
    0x01, 0x80};
 
 static const char bitmap_player[32] = {
-   0x00, 0x00,
-   0x00, 0x00,
-   0x00, 0x00,
-   0x00, 0x00,
-   0x00, 0x00,
-   0x00, 0x00,
-   0x00, 0x00,
-   0x00, 0x00,
    0x01, 0x80,
    0x0F, 0xF0,
    0x3F, 0xFC,
@@ -42,7 +40,15 @@ static const char bitmap_player[32] = {
    0x7F, 0xFE,
    0x7F, 0xFE,
    0x7F, 0xFE,
-   0xFF, 0xFF};
+   0xFF, 0xFF,
+   0x00, 0x00,
+   0x00, 0x00,
+   0x00, 0x00,
+   0x00, 0x00,
+   0x00, 0x00,
+   0x00, 0x00,
+   0x00, 0x00,
+   0x00, 0x00};
 
 static const char bitmap_wall[32] = {
    0x03, 0xC0,
@@ -183,7 +189,7 @@ void __fastcall__ vga_init(void)
    __asm__("STA %w", VGA_ADDR_SPRITE_1_X);
    __asm__("LDA #>%w", WALL_XPOS/2);
    __asm__("STA %w", VGA_ADDR_SPRITE_1_X_MSB);
-   __asm__("LDA #%b", WALL_YPOS);
+   __asm__("LDA #%b", WALL_YPOS+8);
    __asm__("STA %w", VGA_ADDR_SPRITE_1_Y);
    __asm__("LDA #%b", COL_LIGHT);
    __asm__("STA %w", VGA_ADDR_SPRITE_1_COL);
@@ -195,7 +201,7 @@ void __fastcall__ vga_init(void)
    __asm__("STA %w", VGA_ADDR_SPRITE_2_X);
    __asm__("LDA #>%w", WALL_XPOS/2);
    __asm__("STA %w", VGA_ADDR_SPRITE_2_X_MSB);
-   __asm__("LDA #%b", WALL_YPOS);
+   __asm__("LDA #%b", WALL_YPOS+8);
    __asm__("STA %w", VGA_ADDR_SPRITE_2_Y);
    __asm__("LDA #%b", COL_LIGHT);
    __asm__("STA %w", VGA_ADDR_SPRITE_2_COL);
@@ -222,6 +228,7 @@ void __fastcall__ reset(void)
    __asm__("LDX #$FF");
    __asm__("TXS");                           // Reset stack pointer
 
+   smult_init();
    clearScreen();
 
    // Initialize ball position and velocity
@@ -247,6 +254,7 @@ void __fastcall__ irq(void)
    __asm__("STA %w", VGA_ADDR_IRQ);  // Clear IRQ assertion.
 
    __asm__("LDA %w", VGA_COLL);  // Read collision status
+   __asm__("STA %w", VGA_COLL);  // Clear collision status
    __asm__("BEQ %g", noColl);
    __asm__("CMP #$03");
    __asm__("BNE %g", noColl);
@@ -269,19 +277,16 @@ void __fastcall__ irq(void)
    // is travelling into the player. If v*BP is positive, then
    // no need to update v.
    //
-   // Algorithmic complexity:
-   // * v*BP requires two multiplications
-   // * |BP|^2 requires two multiplcations
-   // * * BP requires two multiplications
-   // * / requires one division
-   // So a total of six multiplications and one division.
-   //
    // One way to organize the calculations is as follows:
    // Let w be the new velocity, i.e. w = v+dv. Then
-   // w = A*v, where A11=-A22=(BPy^2-BPx^2)/(BPy^2+BPx^2) and A12=A21=(-2*BPx*BPy)/(BPy^2+BPx^2).
+   // w = A*v, where A = I - 2*(BPx,BPy)^T*(BPx,BPy)/|BP|^2
    //
+   // It is useful to rewrite the matrix A as:
+   // A11=-A22=(BPy^2-BPx^2)/(BPy^2+BPx^2) and A12=A21=(-2*BPx*BPy)/(BPy^2+BPx^2).
+   //
+   // The matrix A is found by table lookup. Therefore
+   // only 4 additional multiplications are necessary.
    // This requires 7 multiplications and two divisions.
-   // A-I = -2*(BPx,BPy)^T*(BPx,BPy)
    //
    //
    // Example:
@@ -297,6 +302,32 @@ void __fastcall__ irq(void)
    //
    // The matrix A is: 1/205 * ((133, -156), (-156, 133)), and so
    // w = 1/205 * (-156, -133).
+
+   // Get players coordinates, and divide by 2.
+   __asm__("LDA %w", VGA_ADDR_SPRITE_1_X_MSB);
+   __asm__("ROR A");  // Move MSB to carry
+   __asm__("LDA %w", VGA_ADDR_SPRITE_1_X);
+   __asm__("ROR A");
+   __asm__("TAX");
+
+   __asm__("LDA %w", VGA_ADDR_SPRITE_1_Y);
+   __asm__("CLC");
+   __asm__("ROR A");
+
+   ball_bounce();
+
+loop:
+//   __asm__("LDA %b", ZP_BALL_T1);
+   __asm__("LDA %v", ball_vx_lo);
+   __asm__("STA %w", 0x8614);
+//   __asm__("LDA %b", ZP_BALL_T2);
+   __asm__("LDA %v", ball_vx_hi);
+   __asm__("STA %w", 0x8615);
+   __asm__("LDA %v", ball_vy_lo);
+   __asm__("STA %w", 0x8616);
+   __asm__("LDA %v", ball_vy_hi);
+   __asm__("STA %w", 0x8617);
+   __asm__("JMP %g", loop);
 
 noColl:
    ball_move();
