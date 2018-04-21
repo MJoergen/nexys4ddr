@@ -16,7 +16,8 @@
 
 // This provides a mapping from RGB to RGB, where each mapping only
 // changes the colour by a minimal amount.
-// Only exception is 0x03 -> 0x00 (i.e. blue to black).
+// This is a 3D Hilbert Curve, adapted from
+// https://stackoverflow.com/questions/14519267/algorithm-for-generating-a-3d-hilbert-space-filling-curve-in-python
 static const unsigned char trans[256] = {
    0x01, 0x21, 0x06, 0x02, 0x08, 0x04, 0x26, 0x03,
    0x28, 0x0a, 0x2a, 0x07, 0x0d, 0x2d, 0x0f, 0x2f,
