@@ -25,6 +25,10 @@
 #define ZP_BALL_T1         0x25
 #define ZP_BALL_T2         0x26
 #define ZP_BALL_T3         0x27
+#define ZP_BALL_T4         0x28
+#define ZP_BALL_T5         0x29
+#define ZP_BALL_T6         0x2A
+#define ZP_BALL_T7         0x2B
 
 #define ZP_UMULT_A         0x30
 #define ZP_UMULT_X         0x31
