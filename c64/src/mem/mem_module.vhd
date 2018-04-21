@@ -148,7 +148,7 @@ begin
    generic map (
       G_ADDR_SIZE => G_COL_SIZE,
       G_DATA_SIZE => 8,
-      G_INIT_VAL  => 88
+      G_INIT_VAL  => 255
    )
    port map (
       a_clk_i     => a_clk_i,

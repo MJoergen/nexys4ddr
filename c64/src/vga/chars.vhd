@@ -286,6 +286,15 @@ begin
       variable char_x_v     : integer range 0 to 7;
       variable char_y_v     : integer range 0 to 7;
       variable nibble_idx_v : integer range 0 to 63;
+
+      function invert(arg : integer range 0 to 7) return integer is
+         type t_dat is array (natural range <>) of integer;
+
+         constant conv3_4 : t_dat :=
+            (1, 0, 3, 2, 5, 4, 7, 6);
+      begin
+         return conv3_4(arg);
+      end function invert;
    begin
       if rising_edge(clk_i) then
          stage4 <= stage3;
@@ -301,7 +310,7 @@ begin
             stage3.char_x >= C_DEBUG_POSX+16 and stage3.char_x < C_DEBUG_POSX+24 then
             char_x_v     := conv_integer(stage3.char_x - (C_DEBUG_POSX + 16));
             char_y_v     := conv_integer(stage3.char_y - C_DEBUG_POSY);
-            nibble_idx_v := char_y_v*8 + 7-char_x_v;
+            nibble_idx_v := char_y_v*8 + invert(char_x_v);
             stage4.nibble <= stage3.debug(nibble_idx_v*4 + 3 downto nibble_idx_v*4);
          end if;
       end if;

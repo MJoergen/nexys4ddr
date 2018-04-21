@@ -103,7 +103,8 @@ static void __fastcall__ resetColorLine(void)
    __asm__("LDA #%b", 39);
    __asm__("TAX");
 loop:
-   __asm__("LDA %v,X", trans);
+   __asm__("ROL A");
+   __asm__("ADC #$BA");
    __asm__("STA %w,X", MEM_COL+3*40);
    __asm__("DEX");
    __asm__("BPL %g", loop);
