@@ -75,6 +75,7 @@ architecture Structural of vga_module is
    -- Signals driven by the Character Display block
    signal char_hs     : std_logic; 
    signal char_vs     : std_logic;
+   signal char_blank  : std_logic;
    signal char_hcount : std_logic_vector(10 downto 0);
    signal char_vcount : std_logic_vector(10 downto 0);
    signal char_col    : std_logic_vector( 7 downto 0);
@@ -82,6 +83,7 @@ architecture Structural of vga_module is
    -- Signals driven by the Sprite Display block
    signal sprite_hs        : std_logic; 
    signal sprite_vs        : std_logic;
+   signal sprite_blank     : std_logic;
    signal sprite_hcount    : std_logic_vector(10 downto 0);
    signal sprite_vcount    : std_logic_vector(10 downto 0);
    signal sprite_col       : std_logic_vector( 7 downto 0);
@@ -142,6 +144,7 @@ begin
       vcount_o    => char_vcount,
       hsync_o     => char_hs,
       vsync_o     => char_vs,
+      blank_o     => char_blank,
       col_o       => char_col
    );
 
@@ -158,6 +161,7 @@ begin
       vcount_i      => char_vcount,
       hs_i          => char_hs,
       vs_i          => char_vs,
+      blank_i       => char_blank,
       col_i         => char_col,
 
       config_i      => config_i,
@@ -169,6 +173,7 @@ begin
       vcount_o      => sprite_vcount,
       hs_o          => sprite_hs,
       vs_o          => sprite_vs,
+      blank_o       => sprite_blank,
       col_o         => sprite_col,
       collision_o   => sprite_collision
    );
@@ -179,7 +184,7 @@ begin
 
    hs_o        <= sprite_hs;
    vs_o        <= sprite_vs;
-   col_o       <= sprite_col;
+   col_o       <= sprite_col when sprite_blank = '0' else (others => '0');
    hcount_o    <= sprite_hcount;
    vcount_o    <= sprite_vcount;
    collision_o <= sprite_collision;

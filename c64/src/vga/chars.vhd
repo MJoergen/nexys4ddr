@@ -58,6 +58,7 @@ entity chars is
       vcount_o    : out std_logic_vector(10 downto 0);
       hsync_o     : out std_logic;
       vsync_o     : out std_logic;
+      blank_o     : out std_logic;
       col_o       : out std_logic_vector( 7 downto 0)
    );
 end chars;
@@ -435,6 +436,7 @@ begin
    hsync_o  <= stage8.hsync;
    vsync_o  <= stage8.vsync;
    col_o    <= stage8.col;
+   blank_o  <= stage8.blank;
 
 end Behavioral;
 

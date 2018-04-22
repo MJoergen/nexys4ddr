@@ -29,6 +29,7 @@ entity sprites is
       vcount_i      : in  std_logic_vector(10 downto 0);
       hs_i          : in  std_logic;
       vs_i          : in  std_logic;
+      blank_i       : in  std_logic;
       col_i         : in  std_logic_vector( 7 downto 0);
 
       config_i      : in  std_logic_vector(32*8-1 downto 0);
@@ -40,6 +41,7 @@ entity sprites is
       vcount_o      : out std_logic_vector(10 downto 0);
       hs_o          : out std_logic;
       vs_o          : out std_logic;
+      blank_o       : out std_logic;
       col_o         : out std_logic_vector( 7 downto 0);
       collision_o   : out std_logic_vector( 3 downto 0)
    );
@@ -75,6 +77,7 @@ architecture Behavioral of sprites is
       vcount          : std_logic_vector(10 downto 0);     -- Valid in stage 0
       hs              : std_logic;                         -- Valid in stage 0
       vs              : std_logic;                         -- Valid in stage 0
+      blank           : std_logic;                         -- Valid in stage 0
       col             : std_logic_vector( 7 downto 0);     -- Valid in stage 0
       row_index       : std_logic_vector(4*4-1 downto 0);  -- Valid in stage 1 (0 - 15) for each sprite
       row_index_valid : std_logic_vector(3 downto 0);      -- Valid in stage 1
@@ -89,6 +92,7 @@ architecture Behavioral of sprites is
       vcount          => (others => '0'),
       hs              => '0',
       vs              => '0',
+      blank           => '0',
       col             => (others => '0'),
       row_index       => (others => '0'),
       row_index_valid => (others => '0'),
@@ -235,6 +239,7 @@ begin
    stage0.vcount <= vcount_i;
    stage0.hs     <= hs_i;
    stage0.vs     <= vs_i;
+   stage0.blank  <= blank_i;
    stage0.col    <= col_i;
 
 
@@ -243,8 +248,8 @@ begin
    ----------------------------------------
 
    p_stage1 : process (clk_i)
-      variable pix_x_v : std_logic_vector(9 downto 0);
-      variable pix_y_v : std_logic_vector(9 downto 0);
+      variable pix_x_v : std_logic_vector(8 downto 0);
+      variable pix_y_v : std_logic_vector(7 downto 0);
    begin
       if rising_edge(clk_i) then
          stage1 <= stage0;
@@ -253,14 +258,14 @@ begin
          stage1.row_index_valid <= (others => '0');
 
          for i in 0 to 3 loop
-            pix_x_v := shift_right(stage0.hcount(10 downto 1) - ("0" & posx_s(i)),
+            pix_x_v := shift_right(stage0.hcount(9 downto 1) - (posx_s(i)),
                conv_integer(magnify_s(i)));
             stage1.col_index(4*(i+1)-1 downto 4*i) <= pix_x_v(3 downto 0);
             if pix_x_v <= 15 then
                stage1.col_index_valid(i) <= enable_s(i);
             end if;
 
-            pix_y_v := shift_right(stage0.vcount(10 downto 1) - ("00" & posy_s(i)),
+            pix_y_v := shift_right(stage0.vcount(8 downto 1) - (posy_s(i)),
                conv_integer(magnify_s(i)));
             stage1.row_index(4*(i+1)-1 downto 4*i) <= pix_y_v(3 downto 0);
             if pix_y_v <= 15 then
@@ -328,6 +333,7 @@ begin
    vcount_o    <= stage3.vcount;
    hs_o        <= stage3.hs;
    vs_o        <= stage3.vs;
+   blank_o     <= stage3.blank;
    col_o       <= stage3.col;
    collision_o <= stage3.collision;
 
