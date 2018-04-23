@@ -16,13 +16,14 @@ void __fastcall__ ai_move(void)
    __asm__("BCS %g", moveLeft);
    // Shall we move right?
    __asm__("BNE %g", moveRight);
-return:
+
+ret:
    __asm__("RTS");
 
 moveLeft:
    // Can we move left?
    __asm__("CMP #%b", (AI_LEFT_MARGIN-AI_VEL)/2);
-   __asm__("BCC %g", return);
+   __asm__("BCC %g", ret);
 
    __asm__("LDA %w", VGA_ADDR_SPRITE_2_X);
    __asm__("SEC");
@@ -36,7 +37,7 @@ moveLeft:
 moveRight:
    // Can we move right?
    __asm__("CMP #%b", (AI_RIGHT_MARGIN+AI_VEL)/2);
-   __asm__("BCS %g", return);
+   __asm__("BCS %g", ret);
 
    __asm__("LDA %w", VGA_ADDR_SPRITE_2_X);
    __asm__("CLC");
