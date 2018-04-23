@@ -3,7 +3,7 @@ import socket
 import pprint
 
 UDP_IP = "192.168.1.43"
-UDP_PORT = 4660 
+UDP_PORT = 4660
 
 sock = socket.socket(socket.AF_INET, # Internet
                      socket.SOCK_DGRAM) # UDP

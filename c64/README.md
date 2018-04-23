@@ -7,7 +7,7 @@ The goal of this project is to build a 6502 based computer, complete with a (sim
 operating system. The success criteria is to be able to SSH to the computer
 via Ethernet.
 
-The computer is designed to run on both a BASYS2 board and 
+The computer is designed to run on both a BASYS2 board and
 a NEXYS4DDR board, both from Digilent.
 
 Of course, the ultimate goal is to have fun building stuff!
@@ -84,7 +84,7 @@ The following block diagram shows the architecture of the VGA module.
 
 
 ## Resources
-There is a complete toolchain (C-compiler, assembler, linker, etc) for the 6502 here: 
+There is a complete toolchain (C-compiler, assembler, linker, etc) for the 6502 here:
 [https://github.com/cc65/cc65](https://github.com/cc65/cc65). With this, it is possible
 to write programs in C, and have it compiled into 6502 machine code, that can be executed
 directly on the chip.
