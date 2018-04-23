@@ -11,4 +11,7 @@
 #define PLAYER_VEL      1
 #define PLAYER_LEFT_MARGIN   0
 #define PLAYER_RIGHT_MARGIN  WALL_XPOS+6
+#define AI_VEL          1
+#define AI_LEFT_MARGIN   WALL_XPOS+10
+#define AI_RIGHT_MARGIN  WALL_XPOS*2
 

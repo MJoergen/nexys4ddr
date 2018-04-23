@@ -7,6 +7,7 @@
 #include "tennis.h"
 #include "tennis_ball.h"
 #include "tennis_player.h"
+#include "tennis_ai.h"
 #include "smult.h"
 
 extern char ball_vx_lo;
@@ -252,19 +253,76 @@ loop:
    __asm__("JMP %g", loop);
 } // end of reset
 
+
 // Maskable interrupt
 void __fastcall__ irq(void)
 {
    __asm__("LDA %w", VGA_ADDR_IRQ);  // Read IRQ status
    __asm__("STA %w", VGA_ADDR_IRQ);  // Clear IRQ assertion.
 
-   __asm__("LDA %w", VGA_COLL);  // Read collision status
-   __asm__("STA %w", VGA_COLL);  // Clear collision status
-   __asm__("BEQ %g", noColl);
-   __asm__("CMP #$03");
-   __asm__("BNE %g", noColl);
+   // checkGameOver
+   __asm__("LDA %v", ball_y_hi);
+   __asm__("CMP #%b", WALL_YPOS/2+8);
+   __asm__("BCC %g", checkLeftBounce);
 
-   // Collision between ball (0) and left player (1)
+   // Game over: Ball fell out of bottom of screen.
+   ball_reset();
+
+checkLeftBounce:
+   __asm__("LDA %v", ball_x_hi);
+   // Are we past the left wall?
+   __asm__("BPL %g", checkRightBounce);
+
+   // Snap to left wall
+   __asm__("LDA #$00");
+   __asm__("STA %v", ball_x_lo);
+   __asm__("STA %v", ball_x_hi);
+
+   // Are we moving to the right?
+   __asm__("LDA %v", ball_vx_hi);
+   __asm__("BPL %g", checkRightBounce);
+
+   // Reflect
+   __asm__("LDA %v", ball_vx_lo);
+   __asm__("EOR #$FF");
+   __asm__("CLC");
+   __asm__("ADC #$01");
+   __asm__("STA %v", ball_vx_lo);
+   __asm__("LDA %v", ball_vx_hi);
+   __asm__("ADC #$00");
+   __asm__("STA %v", ball_vx_hi);
+   
+checkRightBounce:
+   __asm__("LDA %v", ball_x_hi);
+   // Are we past the right wall?
+   __asm__("CMP #%b", WALL_XPOS-8);
+   __asm__("BCC %g", checkCollisionPlayer);
+
+   // Snap to right wall
+   __asm__("LDA #$00");
+   __asm__("STA %v", ball_x_lo);
+   __asm__("LDA #%b", WALL_XPOS-8);
+   __asm__("STA %v", ball_x_hi);
+
+   // Are we moving to the left?
+   __asm__("LDA %v", ball_vx_hi);
+   __asm__("BMI %g", checkCollisionPlayer);
+
+   // Reflect
+   __asm__("LDA %v", ball_vx_lo);
+   __asm__("EOR #$FF");
+   __asm__("CLC");
+   __asm__("ADC #$01");
+   __asm__("STA %v", ball_vx_lo);
+   __asm__("LDA %v", ball_vx_hi);
+   __asm__("ADC #$00");
+   __asm__("STA %v", ball_vx_hi);
+
+checkCollisionPlayer:
+   __asm__("LDA %w", VGA_COLL);  // Read collision status
+   __asm__("AND #$03");
+   __asm__("CMP #$03");
+   __asm__("BNE %g", checkCollisionAi);
 
    // Get players coordinates, and divide by 2.
    __asm__("LDA %w", VGA_ADDR_SPRITE_1_X_MSB);
@@ -296,18 +354,34 @@ loop:
    __asm__("JMP %g", loop);
 #endif
 
-noColl:
+checkCollisionAi:
+   __asm__("LDA %w", VGA_COLL);  // Read collision status
+   __asm__("AND #$05");
+   __asm__("CMP #$05");
+   __asm__("BNE %g", update);
+
+   // Get AIs coordinates, and divide by 2.
+   __asm__("LDA %w", VGA_ADDR_SPRITE_2_X_MSB);
+   __asm__("ROR A");  // Move MSB to carry
+   __asm__("LDA %w", VGA_ADDR_SPRITE_2_X);
+   __asm__("ROR A");
+   __asm__("TAX");
+
+   __asm__("LDA %w", VGA_ADDR_SPRITE_2_Y);
+   __asm__("CLC");
+   __asm__("ROR A");
+
+   ball_bounce();
+
+update:
    ball_move();
    player_move();
+   ai_move();
 
-   __asm__("LDA %w", VGA_ADDR_SPRITE_0_Y);
-   __asm__("CMP #%b", WALL_YPOS+16);
-   __asm__("BCC %g", end);
+   // Clear collision status
+   __asm__("LDA %w", VGA_COLL);
+   __asm__("STA %w", VGA_COLL); 
 
-   // Ball fell out of bottom of screen.
-   ball_reset();
-
-end:
    __asm__("RTI");
 } // end of irq
 

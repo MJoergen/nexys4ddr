@@ -7,16 +7,14 @@
  * representation, where the upper 9 bits are before the fixed-point, and the
  * lower 7 bits are after the fixed-point
  */
-static char ball_x_lo;
-static char ball_x_hi;
-static char ball_y_lo;
-static char ball_y_hi;
+char ball_x_lo;
+char ball_x_hi;
+char ball_y_lo;
+char ball_y_hi;
 char ball_vx_lo;
 char ball_vx_hi;
 char ball_vy_lo;
 char ball_vy_hi;
-static char ball_a11;
-static char ball_a12;
 
 // These two arrays contain the matrix ((A11, A12), (A12, -A11)),
 // where A11 = ((y*y-x*x)*128)/(x*x+y*y)
@@ -344,5 +342,4 @@ void __fastcall__ ball_move(void)
    __asm__("ROL A");
    __asm__("STA %w", VGA_ADDR_SPRITE_0_Y);
 } // end of ball_move
-
 
