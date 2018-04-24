@@ -51,6 +51,7 @@
 // 6A ROR A
 // 0A ASL A
 // ED SBC a
+// CD CMP a
 
 // To come soon:
 // A0 LDY #
