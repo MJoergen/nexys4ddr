@@ -4,7 +4,8 @@
 #define COL_DARK        0x24   // 001_001_00
 #define COL_BLACK       0x00   // 000_000_00
 
-#define WALL_XPOS       160U
+#define SIZE_X          (320U)
+#define WALL_XPOS       (160U-8)
 #define WALL_YPOS       218U
 
 #define GRAVITY         1

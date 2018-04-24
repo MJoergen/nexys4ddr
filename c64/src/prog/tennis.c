@@ -270,8 +270,9 @@ void __fastcall__ irq(void)
 
 checkLeftBounce:
    __asm__("LDA %v", ball_x_hi);
+   __asm__("CMP #$D0");
    // Are we past the left wall?
-   __asm__("BPL %g", checkRightBounce);
+   __asm__("BCC %g", checkRightBounce);
 
    // Snap to left wall
    __asm__("LDA #$00");
@@ -289,19 +290,20 @@ checkLeftBounce:
    __asm__("ADC #$01");
    __asm__("STA %v", ball_vx_lo);
    __asm__("LDA %v", ball_vx_hi);
+   __asm__("EOR #$FF");
    __asm__("ADC #$00");
    __asm__("STA %v", ball_vx_hi);
    
 checkRightBounce:
    __asm__("LDA %v", ball_x_hi);
    // Are we past the right wall?
-   __asm__("CMP #%b", WALL_XPOS-8);
+   __asm__("CMP #%b", SIZE_X/2-8);
    __asm__("BCC %g", checkCollisionPlayer);
 
    // Snap to right wall
    __asm__("LDA #$00");
    __asm__("STA %v", ball_x_lo);
-   __asm__("LDA #%b", WALL_XPOS-8);
+   __asm__("LDA #%b", SIZE_X/2-8);
    __asm__("STA %v", ball_x_hi);
 
    // Are we moving to the left?
@@ -315,6 +317,7 @@ checkRightBounce:
    __asm__("ADC #$01");
    __asm__("STA %v", ball_vx_lo);
    __asm__("LDA %v", ball_vx_hi);
+   __asm__("EOR #$FF");
    __asm__("ADC #$00");
    __asm__("STA %v", ball_vx_hi);
 
@@ -374,9 +377,9 @@ checkCollisionAi:
    ball_bounce();
 
 update:
+   ai_move();
    ball_move();
    player_move();
-   ai_move();
 
    // Clear collision status
    __asm__("LDA %w", VGA_COLL);
