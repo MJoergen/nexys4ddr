@@ -114,79 +114,75 @@ void __fastcall__ ball_reset(void)
 // We assume that |vx| and |vy| are both less than 2.
 void __fastcall__ ball_rotate(void)
 {
-   __asm__("STA %b", ZP_BALL_T2);
+   __asm__("STA %b", ZP_BALL_T2);   // A11
    __asm__("TXA");
-   __asm__("STA %b", ZP_BALL_T3);
+   __asm__("STA %b", ZP_BALL_T3);   // A12
 
    // Convert velocity to signed 8-bit (fraction of 128)
    __asm__("LDA %v", ball_vx_hi);
    __asm__("ROL A");    // Move sign into carry
    __asm__("LDA %v", ball_vx_lo);
    __asm__("ROR A");
-   __asm__("STA %b", ZP_BALL_T0);
+   __asm__("STA %b", ZP_BALL_T0);   // Vx
    __asm__("LDA %v", ball_vy_hi);
    __asm__("ROL A");    // Move sign into carry
    __asm__("LDA %v", ball_vy_lo);
    __asm__("ROR A");
-   __asm__("STA %b", ZP_BALL_T1);
+   __asm__("STA %b", ZP_BALL_T1);   // Vy
 
    // Move A12 to 'X' and Vy to 'A'
-   __asm__("LDA %b", ZP_BALL_T3);
+   __asm__("LDA %b", ZP_BALL_T3);   // A12
    __asm__("TAX");
-   __asm__("LDA %b", ZP_BALL_T1);
+   __asm__("LDA %b", ZP_BALL_T1);   // Vy
    smult();
-   __asm__("STA %b", ZP_BALL_T4);
+   __asm__("STA %b", ZP_BALL_T4);   // Wx LSB
    __asm__("TXA");
-   __asm__("STA %b", ZP_BALL_T5);
+   __asm__("STA %b", ZP_BALL_T5);   // Wx MSB
 
    // Move A11 to 'X' and Vx to 'A'
-   __asm__("LDA %b", ZP_BALL_T2);
+   __asm__("LDA %b", ZP_BALL_T2);   // A11
    __asm__("TAX");
-   __asm__("LDA %b", ZP_BALL_T0);
+   __asm__("LDA %b", ZP_BALL_T0);   // Vx
    smult();
-   __asm__("ADC %b", ZP_BALL_T4);
+   __asm__("ADC %b", ZP_BALL_T4);   // Wx LSB
    __asm__("STA %b", ZP_BALL_T4);
    __asm__("TXA");
-   __asm__("ADC %b", ZP_BALL_T5);
+   __asm__("ADC %b", ZP_BALL_T5);   // Wx MSB
    __asm__("STA %b", ZP_BALL_T5);
 
    // Move A11 to 'X' and Vy to 'A'
-   __asm__("LDA %b", ZP_BALL_T2);
+   __asm__("LDA %b", ZP_BALL_T2);   // A11
    __asm__("TAX");
-   __asm__("LDA %b", ZP_BALL_T1);
+   __asm__("LDA %b", ZP_BALL_T1);   // Vy
    smult();
-   __asm__("STA %b", ZP_BALL_T6);
+   __asm__("STA %b", ZP_BALL_T6);   // Wy LSB
    __asm__("TXA");
-   __asm__("STA %b", ZP_BALL_T7);
+   __asm__("STA %b", ZP_BALL_T7);   // Wy MSB
 
    // Move A12 to 'X' and Vx to 'A'
-   __asm__("LDA %b", ZP_BALL_T3);
+   __asm__("LDA %b", ZP_BALL_T3);   // A12
    __asm__("TAX");
-   __asm__("LDA %b", ZP_BALL_T0);
+   __asm__("LDA %b", ZP_BALL_T0);   // Vx
    smult();
-   __asm__("SBC %b", ZP_BALL_T6);
+   __asm__("SBC %b", ZP_BALL_T6);   // Wy LSB
    __asm__("STA %b", ZP_BALL_T6);
    __asm__("TXA");
-   __asm__("SBC %b", ZP_BALL_T7);
+   __asm__("SBC %b", ZP_BALL_T7);   // Wy MSB
    __asm__("STA %b", ZP_BALL_T7);
-
-   // Convert to 9.7 bit representation
-   __asm__("LDA %b", ZP_BALL_T7);
-   __asm__("ROL A");  // Copy MSB to carry
-   __asm__("LDA #$00");
-   __asm__("SBC #$00");
-   __asm__("EOR #$FF"); // If carry was 1, then result is 0xFF, else 0x00
 
    // At this point we expect the ball to bounce up-ward now, so we
    // expect vy to be negative.
    // It can happen, (during multiple collisions), that vy is positive.
    // In this case, we just don't update anything.
-   __asm__("BEQ %g", skip);
 
+   __asm__("LDA %b", ZP_BALL_T7);   // Wy MSB
+   __asm__("BPL %g", skip);
+
+   // Convert to 9.7 bit representation
+   __asm__("LDA #$FF");
    __asm__("STA %v", ball_vy_hi);
-   __asm__("LDA %b", ZP_BALL_T6);
-   __asm__("ROL A");
    __asm__("LDA %b", ZP_BALL_T7);
+   __asm__("SBC #$01");
    __asm__("ROL A");
 
    // Multiply Vy by 2
@@ -198,8 +194,8 @@ void __fastcall__ ball_rotate(void)
 
    __asm__("LDA %b", ZP_BALL_T5);
    __asm__("ROL A");  // Copy MSB to carry
-   __asm__("LDA #$00");
-   __asm__("SBC #$00");
+   __asm__("LDA #$FF");
+   __asm__("ADC #$00");
    __asm__("EOR #$FF"); // If carry was 1, then result is 0xFF, else 0x00
    __asm__("STA %v", ball_vx_hi);
    __asm__("LDA %b", ZP_BALL_T4);
