@@ -162,6 +162,7 @@ release:
 skipByte:
    __asm__("LDA #$01");
    __asm__("STA %v", skipNext);  // Skip next byte from keyboard fifo
+   __asm__("LDA %v", curKey);
    __asm__("RTS");
 } // end of readCurrentKey
 
