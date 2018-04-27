@@ -52,6 +52,7 @@
 // 0A ASL A
 // ED SBC a
 // CD CMP a
+// 8E STX a
 
 // To come soon:
 // A0 LDY #
@@ -867,7 +868,6 @@ noError24:
 error25:
    __asm__("JMP %g", error25);
 noError25:
-
    __asm__("SEC");
    __asm__("ADC $0246");
    __asm__("BCS %g", error25);
@@ -890,7 +890,6 @@ noError25:
 error26:
    __asm__("JMP %g", error26);
 noError26:
-
    __asm__("CLC");
    __asm__("SBC $0246");
    __asm__("BCC %g", error26);
@@ -898,6 +897,16 @@ noError26:
    __asm__("BMI %g", error26);
    __asm__("CMP #$30");
    __asm__("BNE %g", error26);
+
+   // Now we test STX a
+   __asm__("LDA #$21");
+   __asm__("STA $0246");
+   __asm__("LDX #$32");
+   __asm__("STX $0246");
+   __asm__("LDA $0246");
+   __asm__("CMP #$32");
+error27:
+   __asm__("BNE %g", error27);
 
    // Loop forever doing nothing
 here:
