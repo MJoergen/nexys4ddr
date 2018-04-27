@@ -17,13 +17,16 @@ char positions[8];
 char curIndex;
 char curLine;
 
-char countLow;
-char countHigh;
+char countLo;
+char countHi;
 char solutions;
 
 char irqA;
 char irqX;
 char lastKey; 
+
+char tempLo;
+char tempHi;
 
 static void __fastcall__ clearScreen(void)
 {
@@ -131,46 +134,120 @@ dig2:
 } // end of printHex
 
 // Prints a value in register 'A' as a three-digit decimal number
-static void printDec()
+static void printOneByteDec()
 {
    __asm__("LDX #$30"); 
 doHundreds:
    __asm__("CMP #100"); 
-   __asm__("BCC %g", doTens); 
+   __asm__("BCC %g", storeHundreds); 
    __asm__("SBC #100"); 
    __asm__("INX"); 
    __asm__("JMP %g", doHundreds); 
+storeHundreds:
+   __asm__("STX %w", MEM_DISP+12); 
 
+   __asm__("LDX #$30"); 
 doTens:
-   __asm__("STA %w", MEM_DISP+10); 
+   __asm__("CMP #10"); 
+   __asm__("BCC %g", storeTens); 
+   __asm__("SBC #10"); 
+   __asm__("INX"); 
+   __asm__("JMP %g", doTens); 
+storeTens:
+   __asm__("STX %w", MEM_DISP+13); 
 
-   __asm__("CMP #100"); 
-   __asm__("BCS %g", atLeast100); 
-   __asm__("ROR A"); 
-   __asm__("ROR A"); 
-   __asm__("ROR A"); 
-   __asm__("ROR A"); 
-   __asm__("AND #$0F"); 
-   __asm__("CMP #$0A"); 
-   __asm__("BCC %g", dig); 
-   __asm__("CLC"); 
-   __asm__("ADC #$07"); 
-dig:
    __asm__("CLC"); 
    __asm__("ADC #$30"); 
-   __asm__("STA %w", MEM_DISP+10); 
+   __asm__("STA %w", MEM_DISP+14); 
 
-   __asm__("LDA %v", solutions); 
-   __asm__("AND #$0F"); 
-   __asm__("CMP #$0A"); 
-   __asm__("BCC %g", dig2); 
+} // end of printOneByteDec
+
+// Prints a two-byte value (MSB in register 'X' and LSB in register 'A') as a five-digit decimal number
+static void printTwoByteDec()
+{
+   __asm__("STA %v", tempLo); 
+   __asm__("STX %v", tempHi); 
+
+   __asm__("LDX #$30"); 
+doTenThousands:
+   __asm__("LDA %v", tempLo); 
+   __asm__("SEC"); 
+   __asm__("SBC #<%w", 10000); 
+   __asm__("STA %v", tempLo); 
+   __asm__("LDA %v", tempHi); 
+   __asm__("SBC #>%w", 10000); 
+   __asm__("STA %v", tempHi); 
+   __asm__("INX"); 
+   __asm__("BCS %g", doTenThousands); 
+   __asm__("DEX"); 
+   __asm__("STX %w", MEM_DISP+50); 
+   __asm__("LDA %v", tempLo); 
    __asm__("CLC"); 
-   __asm__("ADC #$07"); 
-dig2:
+   __asm__("ADC #<%w", 10000); 
+   __asm__("STA %v", tempLo); 
+   __asm__("LDA %v", tempHi); 
+   __asm__("ADC #>%w", 10000); 
+   __asm__("STA %v", tempHi); 
+
+   __asm__("LDX #$30"); 
+doThousands:
+   __asm__("LDA %v", tempLo); 
+   __asm__("SEC"); 
+   __asm__("SBC #<%w", 1000); 
+   __asm__("STA %v", tempLo); 
+   __asm__("LDA %v", tempHi); 
+   __asm__("SBC #>%w", 1000); 
+   __asm__("STA %v", tempHi); 
+   __asm__("INX"); 
+   __asm__("BCS %g", doThousands); 
+   __asm__("DEX"); 
+   __asm__("STX %w", MEM_DISP+51); 
+   __asm__("LDA %v", tempLo); 
+   __asm__("CLC"); 
+   __asm__("ADC #<%w", 1000); 
+   __asm__("STA %v", tempLo); 
+   __asm__("LDA %v", tempHi); 
+   __asm__("ADC #>%w", 1000); 
+   __asm__("STA %v", tempHi); 
+
+   __asm__("LDX #$30"); 
+doHundreds:
+   __asm__("LDA %v", tempLo); 
+   __asm__("SEC"); 
+   __asm__("SBC #<%w", 100); 
+   __asm__("STA %v", tempLo); 
+   __asm__("LDA %v", tempHi); 
+   __asm__("SBC #>%w", 100); 
+   __asm__("STA %v", tempHi); 
+   __asm__("INX"); 
+   __asm__("BCS %g", doHundreds); 
+   __asm__("DEX"); 
+   __asm__("STX %w", MEM_DISP+52); 
+   __asm__("LDA %v", tempLo); 
+   __asm__("CLC"); 
+   __asm__("ADC #<%w", 100); 
+   __asm__("STA %v", tempLo); 
+   __asm__("LDA %v", tempHi); 
+   __asm__("ADC #>%w", 100); 
+   __asm__("STA %v", tempHi); 
+
+   // At this point, tempHi is zero.
+   __asm__("LDA %v", tempLo); 
+   __asm__("LDX #$30"); 
+doTens:
+   __asm__("CMP #10"); 
+   __asm__("BCC %g", storeTens); 
+   __asm__("SBC #10"); 
+   __asm__("INX"); 
+   __asm__("JMP %g", doTens); 
+storeTens:
+   __asm__("STX %w", MEM_DISP+53); 
+
    __asm__("CLC"); 
    __asm__("ADC #$30"); 
-   __asm__("STA %w", MEM_DISP+11); 
-} // end of printDec
+   __asm__("STA %w", MEM_DISP+54); 
+
+} // end of printTwoByteDec
 
 static void updateBoard()
 {
@@ -263,7 +340,7 @@ found:
    __asm__("CLC"); 
    __asm__("ADC #$01"); 
    __asm__("STA %v", solutions); 
-   printCount();
+   printOneByteDec();
 //   __asm__("JMP %g", stop); 
    __asm__("RTS");
 } // end of updateBoard
@@ -292,8 +369,8 @@ loop:
    __asm__("BPL %g", loop);
    __asm__("LDA #$00");
    __asm__("STA %v", curIndex);
-   __asm__("STA %v", countLow);
-   __asm__("STA %v", countHigh);
+   __asm__("STA %v", countLo);
+   __asm__("STA %v", countHi);
    __asm__("STA %v", solutions);
 
    // Configure VGA interrupt
@@ -333,6 +410,19 @@ void __fastcall__ irq(void)
 
    printBoard();
    updateBoard();
+
+   __asm__("LDA %v", countLo); 
+   __asm__("CLC"); 
+   __asm__("ADC #$01"); 
+   __asm__("STA %v", countLo); 
+   __asm__("LDA %v", countHi); 
+   __asm__("ADC #$00"); 
+   __asm__("STA %v", countHi); 
+
+   __asm__("LDA %v", countHi); 
+   __asm__("TAX"); 
+   __asm__("LDA %v", countLo); 
+   printTwoByteDec();
 
    __asm__("LDA %v", irqA);                        // Restore register X
    __asm__("TAX");

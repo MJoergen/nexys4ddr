@@ -101,7 +101,7 @@ PROG_SRC   += src/prog/keyboard.c
 LD_CFG      = src/prog/ld.cfg
 VECTORS_AS  = src/prog/vectors.s
 
-stoptime = --stop-time=50us
+stoptime = --stop-time=30us
 
 # The following is used for the compress.vhd unit test.
 #SRC    = src/nexys4ddr/compress.vhd
