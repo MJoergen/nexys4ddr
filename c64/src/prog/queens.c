@@ -11,22 +11,113 @@
 #define COL_DARK        0x44   // 010_001_00
 #define COL_BLACK       0x00   // 000_000_00
 
+#define HELP_POS_X      3
+#define HELP_POS_Y      11
+
+#define KEY_STEP        0x1B   // 's'
+#define KEY_MODE        0x3A   // 'm'
+
+// Constants
+static const char strHelp1[] = "Press S to step.";
+static const char strHelp2[] = "Press M to change step mode.";
+static const char strMode[]  = "Current step mode is: ";
+static const char * const strModes[] = {
+   "Single.  ",
+   "Solution.",
+   "All.     ",
+   "Loop.    "};
+
 // Variables
 
-char positions[8];
-char curIndex;
-char curLine;
+static char positions[8];
+static char curIndex;
+static char curLine;
 
-char countLo;
-char countHi;
-char solutions;
+static char countLo;
+static char countHi;
+static char solutions;
+static char stepMode;
+#define STEP_MODE_SINGLE   0
+#define STEP_MODE_SOLUTION 1
+#define STEP_MODE_ALL      2
+#define STEP_MODE_LOOP     3
 
-char irqA;
-char irqX;
-char lastKey; 
+static char irqA;
+static char irqX;
+static char lastKey; 
 
-char tempLo;
-char tempHi;
+static char tempLo;
+static char tempHi;
+
+static void __fastcall__ my_memcpy(void)
+{
+loop:
+   __asm__("DEY");
+   __asm__("LDA (%b),Y", ZP_SRC_LO);
+   __asm__("STA (%b),Y", ZP_DST_LO);
+   __asm__("TYA");
+   __asm__("BNE %g", loop);
+} // end of my_memcpy
+
+static void __fastcall__ printHelp(void)
+{
+   __asm__("LDA #<%v", strHelp1);
+   __asm__("STA %w", ZP_SRC_LO);
+   __asm__("LDA #>%v", strHelp1);
+   __asm__("STA %w", ZP_SRC_HI);
+   __asm__("LDA #<%w", MEM_DISP + HELP_POS_Y*40 + HELP_POS_X);
+   __asm__("STA %w", ZP_DST_LO);
+   __asm__("LDA #>%w", MEM_DISP + HELP_POS_Y*40 + HELP_POS_X);
+   __asm__("STA %w", ZP_DST_HI);
+   __asm__("LDA #%b", sizeof(strHelp1)-1);
+   __asm__("TAY");
+   my_memcpy();
+
+   __asm__("LDA #<%v", strHelp2);
+   __asm__("STA %w", ZP_SRC_LO);
+   __asm__("LDA #>%v", strHelp2);
+   __asm__("STA %w", ZP_SRC_HI);
+   __asm__("LDA #<%w", MEM_DISP + (HELP_POS_Y+1)*40 + HELP_POS_X);
+   __asm__("STA %w", ZP_DST_LO);
+   __asm__("LDA #>%w", MEM_DISP + (HELP_POS_Y+1)*40 + HELP_POS_X);
+   __asm__("STA %w", ZP_DST_HI);
+   __asm__("LDA #%b", sizeof(strHelp2)-1);
+   __asm__("TAY");
+   my_memcpy();
+
+} // end of printHelp
+
+static void __fastcall__ printStepMode(void)
+{
+   __asm__("LDA #<%v", strMode);
+   __asm__("STA %w", ZP_SRC_LO);
+   __asm__("LDA #>%v", strMode);
+   __asm__("STA %w", ZP_SRC_HI);
+   __asm__("LDA #<%w", MEM_DISP + (HELP_POS_Y+2)*40 + HELP_POS_X);
+   __asm__("STA %w", ZP_DST_LO);
+   __asm__("LDA #>%w", MEM_DISP + (HELP_POS_Y+2)*40 + HELP_POS_X);
+   __asm__("STA %w", ZP_DST_HI);
+   __asm__("LDA #%b", sizeof(strMode)-1);
+   __asm__("TAY");
+   my_memcpy();
+
+   __asm__("LDA %v", stepMode);
+   __asm__("CLC");
+   __asm__("ROL A");
+   __asm__("TAX");
+   __asm__("LDA %v,X", strModes);
+   __asm__("STA %w", ZP_SRC_LO);
+   __asm__("INX");
+   __asm__("LDA %v,X", strModes);
+   __asm__("STA %w", ZP_SRC_HI);
+   __asm__("LDA #<%w", MEM_DISP + (HELP_POS_Y+2)*40 + HELP_POS_X + sizeof(strMode)-1);
+   __asm__("STA %w", ZP_DST_LO);
+   __asm__("LDA #>%w", MEM_DISP + (HELP_POS_Y+2)*40 + HELP_POS_X + sizeof(strMode)-1);
+   __asm__("STA %w", ZP_DST_HI);
+   __asm__("LDA #%b", 9);
+   __asm__("TAY");
+   my_memcpy();
+} // end of printStepMode
 
 static void __fastcall__ clearScreen(void)
 {
@@ -48,7 +139,6 @@ clear:
    __asm__("STA %b", ZP_SCREEN_POS_HI); 
    __asm__("CMP #$84"); 
    __asm__("BNE %g", clear); 
-   __asm__("RTS"); 
 } // end of clearScreen
 
 static void printBoard()
@@ -302,8 +392,15 @@ goBack:
    __asm__("SEC");
    __asm__("SBC #$01");
    __asm__("STA %v", curIndex);
-   __asm__("BMI %g", stop);
-   __asm__("JMP %g", next);
+   __asm__("BPL %g", next);
+
+   __asm__("LDA %v", stepMode);
+   __asm__("CMP #%b", STEP_MODE_ALL);
+   __asm__("BEQ %g", stop);
+
+   __asm__("LDA #$00");
+   __asm__("STA %v", curIndex);
+   __asm__("RTS");
 
 legal:
    __asm__("LDA %v", curIndex);
@@ -328,6 +425,9 @@ next:
    __asm__("BEQ %g", goBack);
 
 finished:
+   __asm__("LDA %v", stepMode);
+   __asm__("CMP #%b", STEP_MODE_SINGLE);
+   __asm__("BEQ %g", stop);
    __asm__("RTS");
 
 stop:
@@ -335,13 +435,18 @@ stop:
    __asm__("LDA #$00"); 
    __asm__("STA %w", VGA_ADDR_MASK);
    __asm__("RTS");
+
 found:
    __asm__("LDA %v", solutions); 
    __asm__("CLC"); 
    __asm__("ADC #$01"); 
    __asm__("STA %v", solutions); 
    printOneByteDec();
-//   __asm__("JMP %g", stop); 
+
+   __asm__("LDA %v", stepMode);
+   __asm__("CMP #%b", STEP_MODE_SOLUTION);
+   __asm__("BEQ %g", stop);
+
    __asm__("RTS");
 } // end of updateBoard
 
@@ -353,6 +458,8 @@ void __fastcall__ reset(void)
    __asm__("TXS");                           // Reset stack pointer
 
    clearScreen();
+   printHelp();
+   printStepMode();
 
    // Configure text color
    __asm__("LDA #%b", COL_LIGHT);
@@ -363,15 +470,17 @@ void __fastcall__ reset(void)
    // Clear the board
    __asm__("LDA #$00");
    __asm__("LDX #$07");
-loop:
+loop1:
    __asm__("STA %v,X", positions);
    __asm__("DEX");
-   __asm__("BPL %g", loop);
+   __asm__("BPL %g", loop1);
    __asm__("LDA #$00");
    __asm__("STA %v", curIndex);
    __asm__("STA %v", countLo);
    __asm__("STA %v", countHi);
    __asm__("STA %v", solutions);
+   __asm__("LDA #%b", STEP_MODE_SINGLE);
+   __asm__("STA %v", stepMode);
 
    // Configure VGA interrupt
    __asm__("LDA #$E0"); 
@@ -383,27 +492,47 @@ loop:
    __asm__("CLI"); 
 
    // Any key-press will re-enable interrupt.
-halt:
+loop:
    readCurrentKey();
    __asm__("BEQ %g", halt2); 
+
    __asm__("CMP %v", lastKey); 
-   __asm__("BEQ %g", halt); 
+   __asm__("BEQ %g", loop); 
    __asm__("STA %v", lastKey); 
+
+   __asm__("CMP #%b", KEY_STEP); 
+   __asm__("BEQ %g", step); 
+   __asm__("CMP #%b", KEY_MODE); 
+   __asm__("BNE %g", loop); 
+
+   // Change the stepping mode
+   __asm__("LDA %v", stepMode);
+   __asm__("CLC");
+   __asm__("ADC #$01"); 
+   __asm__("AND #$03"); 
+   __asm__("STA %v", stepMode);
+   printStepMode();
+   __asm__("JMP %g", loop); 
+
+step:
    __asm__("LDA #$01"); 
    __asm__("STA %w", VGA_ADDR_MASK);
-   __asm__("JMP %g", halt); 
+   __asm__("JMP %g", loop); 
 halt2:
    __asm__("STA %v", lastKey); 
-   __asm__("JMP %g", halt); 
+   __asm__("JMP %g", loop); 
 
 } // end of reset
+
+#define KEY_STEP        0x1B   // 's'
+#define KEY_MODE        0x3A   // 'm'
 
 // Maskable interrupt
 void __fastcall__ irq(void)
 {
    __asm__("STA %v", irqA);                        // Store register A
    __asm__("TXA");
-   __asm__("STA %v", irqA);                        // Store register X
+   __asm__("STA %v", irqX);                        // Store register X
 
    __asm__("LDA %w", VGA_ADDR_IRQ);
    __asm__("STA %w", VGA_ADDR_IRQ);                // Clear any pending IRQ
@@ -424,7 +553,7 @@ void __fastcall__ irq(void)
    __asm__("LDA %v", countLo); 
    printTwoByteDec();
 
-   __asm__("LDA %v", irqA);                        // Restore register X
+   __asm__("LDA %v", irqX);                        // Restore register X
    __asm__("TAX");
    __asm__("LDA %v", irqA);                        // Restore register A
    __asm__("RTI");
