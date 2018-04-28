@@ -44,7 +44,9 @@ end ctl;
 
 architecture Structural of ctl is
 
+   signal cnt_s     : std_logic_vector(2 downto 0) := (others => '0');
    signal cnt_r     : std_logic_vector(2 downto 0) := (others => '0');
+   signal inst_s    : std_logic_vector(7 downto 0) := (others => '0');
    signal inst_r    : std_logic_vector(7 downto 0) := (others => '0');
    signal last      : std_logic;
    signal invalid   : std_logic;
@@ -2503,49 +2505,37 @@ begin
       end if;
    end process p_assert;
 
+   -- Calculate new values of 'cnt' and 'inst'
+   cnt_s <= "100"     when rst_i = '1' else
+            "001"     when wait_i = '0' and step_i = '1' and last = '1' and irq_i = '1' else
+            "000"     when wait_i = '0' and step_i = '1' and last = '1' else
+            cnt_r + 1 when wait_i = '0' and step_i = '1' else
+            cnt_r;
 
-   -- Store the microinstruction counter
-   p_cnt : process (clk_i)
+   inst_s <= X"00"  when rst_i = '1' else
+             X"00"  when wait_i = '0' and last = '1' and irq_i = '1' else
+             data_i when wait_i = '0' and cnt_r = 0 else
+             inst_r;
+
+   -- Store the new values of 'cnt' and 'inst'
+   p_fsm : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if wait_i = '0' and step_i = '1' then
-            cnt_r <= cnt_r + 1;
-
-            if last = '1' then
-               cnt_r <= (others => '0');
-
-               if irq_i = '1' then
-                  cnt_r <= "001";
-               end if;
-            end if;
-         end if;
-
-         if rst_i = '1' then
-            cnt_r <= "100";
-         end if;
+         cnt_r  <= cnt_s;
+         inst_r <= inst_s;
       end if;
-   end process p_cnt;
+   end process p_fsm;
 
-
-   -- Store the current instruction
-   p_inst : process (clk_i)
+   -- Combinatorial process
+   process (cnt_r, inst_r, wait_i, step_i)
    begin
-      if rising_edge(clk_i) then
-         if wait_i = '0' then
-            if cnt_r = 0 then
-               inst_r <= data_i;
-            end if;
-
-            if last = '1' and irq_i = '1' then
-               inst_r <= X"00";
-            end if;
-         end if;
-
-         if rst_i = '1' then
-            inst_r <= X"00";
-         end if;
+      ctl <= micro_op_rom(conv_integer(inst_r & cnt_r));
+      if wait_i = '1' or step_i = '0' then
+         ctl(27 downto  0) <= (others => '0');
+         ctl(45 downto 44) <= (others => '0');
+         ctl(41 downto 40) <= (others => '0');
       end if;
-   end process p_inst;
+   end process;
 
 
    -- Latch reset and interrupt
@@ -2563,17 +2553,6 @@ begin
          end if;
       end if;
    end process p_irq_reset;
-
-   -- Combinatorial process
-   process (cnt_r, inst_r, wait_i, step_i)
-   begin
-      ctl <= micro_op_rom(conv_integer(inst_r & cnt_r));
-      if wait_i = '1' or step_i = '0' then
-         ctl(27 downto  0) <= (others => '0');
-         ctl(45 downto 44) <= (others => '0');
-         ctl(41 downto 40) <= (others => '0');
-      end if;
-   end process;
 
    -- Drive output signals
    debug_o( 7 downto 0) <= data_i when cnt_r = 0 else inst_r;
