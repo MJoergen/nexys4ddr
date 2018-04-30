@@ -1,0 +1,3 @@
+https://www.xilinx.com/support/download.html
+https://reference.digilentinc.com/_media/reference/programmable-logic/nexys-4-ddr/nexys-4-ddr_sch.pdf
+
