@@ -53,7 +53,7 @@ begin
    c <= sr_i(0);  -- Old value of carry bit
 
    -- Calculate the result
-   p_a : process (a_i, b_i, sr_i, func_i)
+   p_a : process (c, a_i, b_i, sr_i, func_i)
    begin
       a(8) <= c;  -- Default value
       case func_i is

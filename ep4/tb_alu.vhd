@@ -45,8 +45,8 @@ architecture Structural of tb_alu is
       -- Test of Zero and Sign (and carry unchanged)
       ALU_LDA & X"35" & X"00" & X"00" & X"00" & X"02",
       ALU_LDA & X"35" & X"00" & X"01" & X"00" & X"03",
-      ALU_LDA & X"35" & X"80" & X"00" & X"80" & X"00",
-      ALU_LDA & X"35" & X"80" & X"01" & X"80" & X"01",
+      ALU_LDA & X"35" & X"80" & X"00" & X"80" & X"80",
+      ALU_LDA & X"35" & X"80" & X"01" & X"80" & X"81",
 
       -- Test of ADC (carry)
       ALU_ADC & X"35" & X"26" & X"01" & X"5C" & X"00",
@@ -54,9 +54,9 @@ architecture Structural of tb_alu is
       ALU_ADC & X"35" & X"E6" & X"01" & X"1C" & X"01",
 
       -- Test of SBC (carry)
-      ALU_ADC & X"35" & X"26" & X"01" & X"0F" & X"01",
-      ALU_ADC & X"35" & X"E6" & X"00" & X"4E" & X"00",
-      ALU_ADC & X"35" & X"E6" & X"01" & X"4F" & X"00"
+      ALU_SBC & X"35" & X"26" & X"01" & X"0F" & X"01",
+      ALU_SBC & X"35" & X"E6" & X"00" & X"4E" & X"00",
+      ALU_SBC & X"35" & X"E6" & X"01" & X"4F" & X"00"
    );
 
    signal i : integer := 0;   -- Index into array of tests
@@ -70,6 +70,10 @@ begin
 
       assert a_exp  = a_out  report "Received A:  " & to_hstring(a_out)  & ", expected " & to_hstring(a_exp)  severity note;
       assert sr_exp = sr_out report "Received SR: " & to_hstring(sr_out) & ", expected " & to_hstring(sr_exp) severity note;
+
+      if i = tests'length-1 then
+         wait;
+      end if;
    end process;
 
    func   <= tests(i)(42 downto 40);
