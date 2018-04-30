@@ -17,5 +17,5 @@ set_property -dict { PACKAGE_PIN B12 IOSTANDARD LVCMOS33 } [get_ports { vga_vs_o
 set_property -dict { PACKAGE_PIN E3  IOSTANDARD LVCMOS33 } [get_ports { clk_i }];            # CLK100MHZ
 
 # Clock definition
-create_clock -add -name sys_clk -period 10.00 -waveform {0 5} [get_ports {clk_i}];                         # 100 MHz
+create_clock -name sys_clk -period 10.00 [get_ports {clk_i}];                         # 100 MHz
 
