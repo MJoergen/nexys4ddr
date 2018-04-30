@@ -1,7 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
-use ieee.numeric_std.all;
+use ieee.numeric_std_unsigned.all;
 
 -- This is the Arithmetic Logic Unit
 -- Inputs are:
@@ -56,6 +55,7 @@ begin
    -- Calculate the result
    p_a : process (a_i, b_i, sr_i, func_i)
    begin
+      a(8) <= c;  -- Default value
       case func_i is
          when "000" => -- ORA   SZ
             a(7 downto 0) <= a_i or b_i;
@@ -88,7 +88,7 @@ begin
    end process p_a;
 
    -- Calculate the new Status Register
-   p_sr : process (a_i, b_i, sr_i, func_i)
+   p_sr : process (a, a_i, b_i, sr_i, func_i)
    begin
       sr <= sr_i;  -- Keep the old value as default
 
