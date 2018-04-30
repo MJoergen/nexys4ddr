@@ -3,63 +3,140 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 
+-- This is the Arithmetic Logic Unit
+-- Inputs are:
+-- a_i     : From the accumulator (register 'A')
+-- b_i     : Operand from memory
+-- sr_i    : Current value of Status Register
+-- func_i  : Current ALU function (determined from instruction).
+-- Output are:
+-- a_o     : New value of accumulator
+-- sr_o    : New value of Status Register
+
+-- The Status Register contains: SV-BDIZC
+
 entity alu is
    port (
-      a_i     : in  std_logic_vector(7 downto 0);
-      b_i     : in  std_logic_vector(7 downto 0);
-      c_i     : in  std_logic;
-      alu_sel : in  std_logic_vector(2 downto 0);
-      r_o     : out std_logic_vector(7 downto 0);
-      svzc_o  : out std_logic_vector(3 downto 0)
+      a_i    : in  std_logic_vector(7 downto 0);
+      b_i    : in  std_logic_vector(7 downto 0);
+      sr_i   : in  std_logic_vector(7 downto 0);
+      func_i : in  std_logic_vector(2 downto 0);
+      a_o    : out std_logic_vector(7 downto 0);
+      sr_o   : out std_logic_vector(7 downto 0)
    );
 end alu;
 
 architecture Structural of alu is
 
-   signal r_ora : std_logic_vector(8 downto 0);
-   signal r_and : std_logic_vector(8 downto 0);
-   signal r_eor : std_logic_vector(8 downto 0);
-   signal r_adc : std_logic_vector(8 downto 0);
-   signal r_nop : std_logic_vector(8 downto 0);
-   signal r_lda : std_logic_vector(8 downto 0);
-   signal r_cmp : std_logic_vector(8 downto 0);
-   signal r_sbc : std_logic_vector(8 downto 0);
+   signal c : std_logic;                     -- Copy of the input carry signal
+   signal a : std_logic_vector(8 downto 0);  -- New value of carry and accumulator
+   signal sr : std_logic_vector(7 downto 0); -- New value of the Status Register
 
-   signal res   : std_logic_vector(8 downto 0);
+   -- The Status Register contains: SV-BDIZC
+   constant SR_S : integer := 7;
+   constant SR_V : integer := 6;
+   constant SR_Z : integer := 1;
+   constant SR_C : integer := 0;
 
-   signal r_s   : std_logic;
-   signal r_v   : std_logic;
-   signal r_z   : std_logic;
-   signal r_c   : std_logic;
+   -- An 8-input OR gate
+   function or_all(arg : std_logic_vector(7 downto 0)) return std_logic is
+      variable tmp_v : std_logic;
+   begin
+      tmp_v := arg(0);
+      for i in 1 to 7 loop
+         tmp_v := tmp_v or arg(i);
+      end loop;
+      return tmp_v;
+   end function or_all;
 
 begin
 
-   r_ora <= '0' & (a_i or b_i);
-   r_and <= '0' & (a_i and b_i);
-   r_eor <= '0' & (a_i xor b_i);
-   r_adc <= ('0' & a_i) + ('0' & b_i) + (X"00" & c_i);
-   r_nop <= (others => '0');
-   r_lda <= '0' & a_i;
-   r_cmp <= '0' & a_i;
-   r_sbc <= ('0' & a_i) + ('1' & not b_i) + (X"00" & c_i);
+   c <= sr_i(0);  -- Old value of carry bit
 
-   res <= r_ora when alu_sel = "000" else
-          r_and when alu_sel = "001" else
-          r_eor when alu_sel = "010" else
-          r_adc when alu_sel = "011" else
-          r_nop when alu_sel = "100" else
-          r_lda when alu_sel = "101" else
-          r_cmp when alu_sel = "110" else
-          r_sbc when alu_sel = "111";
+   -- Calculate the result
+   p_a : process (a_i, b_i, sr_i, func_i)
+   begin
+      case func_i is
+         when "000" => -- ORA   SZ
+            a <= a_i or b_i;
 
-   r_s <= res(7);
-   r_v <= '0';    -- TBD
-   r_z <= '1' when res = 0 else '0';
-   r_c <= res(8);
+         when "001" => -- AND   SZ
+            a <= a_i and b_i;
+
+         when "010" => -- EOR   SZ
+            a <= a_i xor b_i;
+
+         when "011" => -- ADC   SZCV
+            a <= ('0' & a_i) + ('0' & b_i) + (X"00" & c);
+
+         when "100" => -- STA
+            a <= a_i;
+
+         when "101" => -- LDA   SZ
+            a <= b_i;
+
+         when "110" => -- CMP   SZC
+            a <= a_i;
+
+         when "111" => -- SBC   SZCV
+            a <= ('0' & a_i) + ('0' & not b_i) + (X"00" & c);
+
+         when others =>
+            null;
+
+      end case;
+   end process p_a;
+
+   -- Calculate the new Status Register
+   p_sr : process (a_i, b_i, sr_i, func_i)
+   begin
+      sr <= sr_i;  -- Keep the old value as default
+
+      case func_i is
+         when "000" => -- ORA   SZ
+            sr(SR_S) <= a(7);
+            sr(SR_Z) <= not or_all(a(7 downto 0));
+
+         when "001" => -- AND   SZ
+            sr(SR_S) <= a(7);
+            sr(SR_Z) <= not or_all(a(7 downto 0));
+
+         when "010" => -- EOR   SZ
+            sr(SR_S) <= a(7);
+            sr(SR_Z) <= not or_all(a(7 downto 0));
+
+         when "011" => -- ADC   SZCV
+            sr(SR_S) <= a(7);
+            sr(SR_Z) <= not or_all(a(7 downto 0));
+            sr(SR_V) <= not(a_i(7) xor b_i(7)) and (a_i(7) xor a(7));
+            sr(SR_C) <= a(8);
+
+         when "100" => -- STA
+
+         when "101" => -- LDA   SZ
+            sr(SR_S) <= a(7);
+            sr(SR_Z) <= not or_all(a(7 downto 0));
+
+         when "110" => -- CMP   SZC
+            sr(SR_S) <= a(7);
+            sr(SR_Z) <= not or_all(a(7 downto 0));
+            sr(SR_C) <= a(8);
+
+         when "111" => -- SBC   SZCV
+            sr(SR_S) <= a(7);
+            sr(SR_Z) <= not or_all(a(7 downto 0));
+            sr(SR_V) <= (a_i(7) xor b_i(7)) and (a_i(7) xor a(7));
+            sr(SR_C) <= a(8);
+
+         when others =>
+            null;
+
+      end case;
+   end process p_sr;
 
    -- Drive output signals
-   r_o <= res(7 downto 0);
-   svzc_o <= r_s & r_v & r_z & r_c;
+   a_o  <= a;
+   sr_o <= sr;
 
 end Structural;
 
