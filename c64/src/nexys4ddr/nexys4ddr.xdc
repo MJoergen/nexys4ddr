@@ -14,7 +14,7 @@ set_property CONFIG_VOLTAGE 3.3 [current_design]
 
 # Clock signal
 set_property -dict { PACKAGE_PIN E3    IOSTANDARD LVCMOS33 } [get_ports { clk100_i }]; #IO_L12P_T1_MRCC_35 Sch=clk100mhz
-create_clock -add -name sys_clk -period 10.00 -waveform {0 5} [get_ports {clk100_i}];  # 100 MHz
+create_clock -name sys_clk -period 10.00 [get_ports {clk100_i}];  # 100 MHz
 
 # Rename eth_clk
 create_generated_clock -name eth_clk [get_pins inst_clk_rst/gen_clocks.inst_clk_wiz_0/U0/mmcm_adv_inst/CLKOUT0]
