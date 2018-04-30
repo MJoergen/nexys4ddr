@@ -58,25 +58,25 @@ begin
    begin
       case func_i is
          when "000" => -- ORA   SZ
-            a <= a_i or b_i;
+            a(7 downto 0) <= a_i or b_i;
 
          when "001" => -- AND   SZ
-            a <= a_i and b_i;
+            a(7 downto 0) <= a_i and b_i;
 
          when "010" => -- EOR   SZ
-            a <= a_i xor b_i;
+            a(7 downto 0) <= a_i xor b_i;
 
          when "011" => -- ADC   SZCV
             a <= ('0' & a_i) + ('0' & b_i) + (X"00" & c);
 
          when "100" => -- STA
-            a <= a_i;
+            a(7 downto 0) <= a_i;
 
          when "101" => -- LDA   SZ
-            a <= b_i;
+            a(7 downto 0) <= b_i;
 
          when "110" => -- CMP   SZC
-            a <= a_i;
+            a(7 downto 0) <= a_i;
 
          when "111" => -- SBC   SZCV
             a <= ('0' & a_i) + ('0' & not b_i) + (X"00" & c);
@@ -135,7 +135,7 @@ begin
    end process p_sr;
 
    -- Drive output signals
-   a_o  <= a;
+   a_o  <= a(7 downto 0);
    sr_o <= sr;
 
 end Structural;
