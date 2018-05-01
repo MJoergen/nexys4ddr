@@ -31,13 +31,6 @@ architecture Structural of vga is
    constant VS_START : integer := 490;
    constant VS_TIME  : integer := 2;
 
-   -- Define colours
-   constant COL_BLACK : std_logic_vector(7 downto 0) := B"000_000_00";
-   constant COL_WHITE : std_logic_vector(7 downto 0) := B"111_111_11";
-   constant COL_RED   : std_logic_vector(7 downto 0) := B"111_000_00";
-   constant COL_GREEN : std_logic_vector(7 downto 0) := B"000_111_00";
-   constant COL_BLUE  : std_logic_vector(7 downto 0) := B"000_000_11";
-
    -- Clock divider
    signal cnt : std_logic_vector(1 downto 0) := (others => '0');
    signal vga_clk : std_logic;
