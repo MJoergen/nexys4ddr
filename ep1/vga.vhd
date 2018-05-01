@@ -69,7 +69,7 @@ begin
 
 
    --------------------------------------------------
-   -- Genrate horizontal and vertical pixel counters
+   -- Generate horizontal and vertical pixel counters
    --------------------------------------------------
 
    p_pix_x : process (vga_clk)
@@ -98,7 +98,7 @@ begin
 
    
    --------------------------------------------------
-   -- Genrate horizontal and vertical sync signals
+   -- Generate horizontal and vertical sync signals
    --------------------------------------------------
 
    p_hs : process (vga_clk)
