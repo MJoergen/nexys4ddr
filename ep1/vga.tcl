@@ -4,5 +4,5 @@ read_xdc vga.xdc
 synth_design -top vga -part xc7a100tcsg324-1
 place_design
 route_design
-write_bitstream vga.bit
+write_bitstream -force vga.bit
 exit
