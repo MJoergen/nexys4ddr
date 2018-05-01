@@ -4,9 +4,5 @@ read_xdc comp.xdc
 synth_design -top comp -part xc7a100tcsg324-1 -flatten_hierarchy none
 place_design
 route_design
-write_bitstream comp.bit
-
-# The following line is optional
-write_checkpoint comp.dcp
-
-start_gui
+write_bitstream -force comp.bit
+exit

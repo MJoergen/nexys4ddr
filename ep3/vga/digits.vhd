@@ -93,11 +93,11 @@ begin
          col <= COL_DARK;
 
          if char_row = DIGITS_Y and
-            char_col >= DIGITS_X and char_col < DIGITS_X+8 then
+            char_col >= DIGITS_X and char_col < DIGITS_X+24 then
 
             -- Determine the bit value to show
-            char_num_v := conv_integer(char_col)-20;
-            digit_v := digits_i(7-char_num_v);
+            char_num_v := conv_integer(char_col)-DIGITS_X;
+            digit_v := digits_i(23-char_num_v);
 
             -- Determine the bitmap of this bit value
             bitmap_v := bitmaps(conv_integer((0 => digit_v)));
