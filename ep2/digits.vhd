@@ -96,7 +96,7 @@ begin
             char_col >= DIGITS_X and char_col < DIGITS_X+8 then
 
             -- Determine the bit value to show
-            char_num_v := conv_integer(char_col)-20;
+            char_num_v := conv_integer(char_col)-DIGITS_X;
             digit_v := digits_i(7-char_num_v);
 
             -- Determine the bitmap of this bit value
