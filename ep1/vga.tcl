@@ -5,3 +5,4 @@ synth_design -top vga -part xc7a100tcsg324-1
 place_design
 route_design
 write_bitstream vga.bit
+exit
