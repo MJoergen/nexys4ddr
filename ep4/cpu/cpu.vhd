@@ -8,38 +8,21 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
-entity cpu_module is
+entity cpu is
    port (
       -- Clock
       clk_i     : in  std_logic;
 
       -- Memory and I/O interface
+      wait_i    : in  std_logic;
       addr_o    : out std_logic_vector(15 downto 0);
       data_i    : in  std_logic_vector(7 downto 0);
       wren_o    : out std_logic;
       data_o    : out std_logic_vector(7 downto 0)
    );
-end cpu_module;
+end cpu;
 
-architecture Structural of cpu_module is
-
-   signal pc_sel    : std_logic_vector(1 downto 0);
-   signal a_sel     : std_logic_vector(1 downto 0);
-   signal sr_sel    : std_logic_vector(1 downto 0);
-   signal addr_sel  : std_logic_vector(1 downto 0);
-   signal data_sel  : std_logic_vector(1 downto 0);
-   signal lo_sel    : std_logic;
-   signal hi_sel    : std_logic;
-
-   signal pc_reg    : std_logic_vector(15 downto 0) := (others => '0');
-   signal a_reg     : std_logic_vector(7 downto 0);
-   signal sr_reg    : std_logic_vector(7 downto 0);
-   signal lo_reg    : std_logic_vector(7 downto 0);
-   signal hi_reg    : std_logic_vector(7 downto 0);
-
-   signal addr_s    : std_logic_vector(15 downto 0);
-   signal data_s    : std_logic_vector(7 downto 0);
-   signal wren_s    : std_logic;
+architecture Structural of cpu is
 
    constant PC_NOP   : std_logic_vector(1 downto 0) := "00";
    constant PC_INC   : std_logic_vector(1 downto 0) := "01";
@@ -63,12 +46,31 @@ architecture Structural of cpu_module is
    constant DATA_NOP : std_logic_vector(1 downto 0) := "00";
    constant DATA_A   : std_logic_vector(1 downto 0) := "01";
 
+   signal pc_sel    : std_logic_vector(1 downto 0);
+   signal a_sel     : std_logic_vector(1 downto 0);
+   signal sr_sel    : std_logic_vector(1 downto 0);
+   signal addr_sel  : std_logic_vector(1 downto 0);
+   signal data_sel  : std_logic_vector(1 downto 0);
+   signal lo_sel    : std_logic;
+   signal hi_sel    : std_logic;
+
+   signal pc_reg    : std_logic_vector(15 downto 0) := (others => '0');
+   signal a_reg     : std_logic_vector(7 downto 0);
+   signal sr_reg    : std_logic_vector(7 downto 0);
+   signal lo_reg    : std_logic_vector(7 downto 0);
+   signal hi_reg    : std_logic_vector(7 downto 0);
+
+   signal addr_s    : std_logic_vector(15 downto 0);
+   signal data_s    : std_logic_vector(7 downto 0);
+   signal wren_s    : std_logic;
+
 begin
 
    -- Instantiate the control logic
    inst_ctl : entity work.ctl
    port map (
       clk_i      => clk_i,
+      wait_i     => wait_i,
       data_i     => data_i,
       pc_sel_o   => pc_sel,
       a_sel_o    => a_sel,
@@ -82,23 +84,27 @@ begin
    p_pc_reg : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         case pc_sel is
-            when PC_NOP => null;
-            when PC_INC => pc_reg <= pc_reg + 1;
-            when PC_HL  => pc_reg <= hi_reg & lo_reg;
-            when others => null;
-         end case;
+         if wait_i = '0' then
+            case pc_sel is
+               when PC_NOP => null;
+               when PC_INC => pc_reg <= pc_reg + 1;
+               when PC_HL  => pc_reg <= hi_reg & lo_reg;
+               when others => null;
+            end case;
+         end if;
       end if;
    end process p_pc_reg;
 
    p_a_reg : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         case a_sel is
-            when A_NOP  => null;
-            when A_DATA => a_reg <= data_i;
-            when others => null;
-         end case;
+         if wait_i = '0' then
+            case a_sel is
+               when A_NOP  => null;
+               when A_DATA => a_reg <= data_i;
+               when others => null;
+            end case;
+         end if;
       end if;
    end process p_a_reg;
 
@@ -106,32 +112,38 @@ begin
    p_sr_reg : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         case sr_sel is
-            when SR_NOP => null;
-            when others => null;
-         end case;
+         if wait_i = '0' then
+            case sr_sel is
+               when SR_NOP => null;
+               when others => null;
+            end case;
+         end if;
       end if;
    end process p_sr_reg;
 
    p_lo_reg : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         case lo_sel is
-            when LO_NOP  => null;
-            when LO_DATA => lo_reg <= data_i;
-            when others  => null;
-         end case;
+         if wait_i = '0' then
+            case lo_sel is
+               when LO_NOP  => null;
+               when LO_DATA => lo_reg <= data_i;
+               when others  => null;
+            end case;
+         end if;
       end if;
    end process p_lo_reg;
 
    p_hi_reg : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         case hi_sel is
-            when HI_NOP  => null;
-            when HI_DATA => hi_reg <= data_i;
-            when others  => null;
-         end case;
+         if wait_i = '0' then
+            case hi_sel is
+               when HI_NOP  => null;
+               when HI_DATA => hi_reg <= data_i;
+               when others  => null;
+            end case;
+         end if;
       end if;
    end process p_hi_reg;
 

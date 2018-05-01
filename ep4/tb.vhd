@@ -30,18 +30,22 @@ begin
 
    -- Instantiate memory
    i_mem : entity work.mem
+   generic map (
+      G_ADDR_BITS => 4
+   )
    port map (
       clk_i  => clk,
-      addr_i => addr,
+      addr_i => addr(3 downto 0),
       wren_i => wren,
       data_i => data_cpu,
       data_o => data_mem
    );
 
    -- Instantiate CPU
-   i_cpu : entity work.cpu_module
+   i_cpu : entity work.cpu
    port map (
       clk_i  => clk,
+      wait_i => '0',
       addr_o => addr,
       data_i => data_mem,
       wren_o => wren,

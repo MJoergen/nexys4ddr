@@ -6,6 +6,7 @@ entity ctl is
    port (
       -- Clock
       clk_i      : in  std_logic;
+      wait_i     : in  std_logic;
       data_i     : in  std_logic_vector(7 downto 0);
       pc_sel_o   : out std_logic_vector(1 downto 0);
       a_sel_o    : out std_logic_vector(1 downto 0);
@@ -2608,9 +2609,11 @@ begin
    p_cnt : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         cnt_r <= cnt_r + 1;
-         if last_s = '1' then
-            cnt_r <= (others => '0');
+         if wait_i = '0' then
+            cnt_r <= cnt_r + 1;
+            if last_s = '1' then
+               cnt_r <= (others => '0');
+            end if;
          end if;
       end if;
    end process p_cnt;
@@ -2618,8 +2621,10 @@ begin
    p_inst : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if cnt_r = 0 then
-            inst_r <= data_i;
+         if wait_i = '0' then
+            if cnt_r = 0 then
+               inst_r <= data_i;
+            end if;
          end if;
       end if;
    end process p_inst;

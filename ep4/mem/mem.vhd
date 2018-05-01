@@ -4,9 +4,12 @@ use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 
 entity mem is
+   generic (
+      G_ADDR_BITS : integer
+   );
    port (
       clk_i  : in  std_logic;
-      addr_i : in  std_logic_vector(15 downto 0);
+      addr_i : in  std_logic_vector(G_ADDR_BITS-1 downto 0);
       wren_i : in  std_logic;
       data_i : in  std_logic_vector(7 downto 0);
       data_o : out std_logic_vector(7 downto 0)
@@ -15,9 +18,11 @@ end mem;
 
 architecture Structural of mem is
 
-   type t_mem is array (0 to 65535) of std_logic_vector(7 downto 0);
+   -- Just 2 kBytes of memory.
+   type mem_t is array (0 to 2**G_ADDR_BITS-1) of std_logic_vector(7 downto 0);
 
-   signal i_mem : t_mem := (
+   -- Initialize memory contents
+   signal mem : mem_t := (
       X"A9",   -- LDA #
       X"07",
 
@@ -39,22 +44,30 @@ architecture Structural of mem is
 
       others => X"00");
 
+   signal data : std_logic_vector(7 downto 0);
+
 begin
 
-   -----------------
-   -- Port A
-   -----------------
-
+   -- Write process
    process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wren_i = '1' then
-            i_mem(conv_integer(addr_i)) <= data_i;
+            mem(conv_integer(addr_i)) <= data_i;
          end if;
       end if;
    end process;
 
-   data_o <= i_mem(conv_integer(addr_i));
+   -- Read process
+   process (clk_i)
+   begin
+      if falling_edge(clk_i) then
+         data <= mem(conv_integer(addr_i));
+      end if;
+   end process;
+
+   -- Drive output signals
+   data_o <= data;
 
 end Structural;
 
