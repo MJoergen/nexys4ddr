@@ -1,4 +1,4 @@
 all:
-	ghdl -i --work=work --std=08 alu.vhd tb_alu.vhd
-	ghdl -m --std=08 tb_alu
-	ghdl -r tb_alu --assert-level=error --wave=tb_alu.ghw
+	ghdl -i --work=work cpu_module.vhd ctl.vhd mem.vhd  tb.vhd
+	ghdl -m --ieee=synopsys -fexplicit tb
+	ghdl -r tb --assert-level=error --wave=tb.ghw
