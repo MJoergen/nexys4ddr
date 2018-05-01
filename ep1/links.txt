@@ -1,3 +1,9 @@
-https://www.xilinx.com/support/download.html
-https://reference.digilentinc.com/_media/reference/programmable-logic/nexys-4-ddr/nexys-4-ddr_sch.pdf
+Vivado tool chain (from Xilinx): 
+   https://www.xilinx.com/support/download.html
+
+Schematic of the Nexys 4 DDR boaard (from Digilent):
+   https://reference.digilentinc.com/_media/reference/programmable-logic/nexys-4-ddr/nexys-4-ddr_sch.pdf
+
+Timing signals for VGA:
+   http://caxapa.ru/thumbs/361638/DMTv1r11.pdf
 

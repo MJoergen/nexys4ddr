@@ -2,9 +2,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 entity vga is
    port (
       clk_i     : in  std_logic;                      -- 100 MHz
@@ -18,7 +15,8 @@ end vga;
 architecture Structural of vga is
 
    -- Define constants used for 640x480 @ 60 Hz.
-   -- Requires a clock of approx 25.175 MHz.
+   -- Requires a clock of approx 25 MHz.
+   -- See http://caxapa.ru/thumbs/361638/DMTv1r11.pdf
    constant SIZE_X   : integer := 640;
    constant HS_FIRST : integer := 655;
    constant HS_LAST  : integer := 750;
@@ -28,59 +26,40 @@ architecture Structural of vga is
    constant VS_LAST  : integer := 490;
    constant COUNT_Y  : integer := 525;
 
+   -- Clock divider
+   signal cnt : std_logic_vector(1 downto 0) := (others => '0');
+   signal vga_clk : std_logic;
+
+   -- Pixel counters
    signal pix_x : std_logic_vector(9 downto 0);
    signal pix_y : std_logic_vector(9 downto 0);
 
+   -- Synchronization
    signal vga_hs  : std_logic;
    signal vga_vs  : std_logic;
+
+   -- Pixel colour
    signal vga_col : std_logic_vector(7 downto 0);
 
-   signal vga_clk : std_logic;
-
-   signal clk_fbin  : std_logic;
-   signal clk_fbout : std_logic;
-   signal clk_out0  : std_logic;
-
 begin
+   
+   --------------------------------------------------
+   -- Divide input clock by 4, from 100 MHz to 25 MHz
+   --------------------------------------------------
 
-   -- Instantiation of the MMCM PRIMITIVE
-   -- Generated clock will have frequency 10.125/40.25*100 MHz = 25.16 MHz
-   inst_mmcme2_adv : MMCME2_ADV
-   generic map (
-      CLKFBOUT_MULT_F      => 10.125,  -- Must be multiple of 0.125
-      CLKOUT0_DIVIDE_F     => 40.25,   -- Must be multiple of 0.125
-      CLKIN1_PERIOD        => 10.0)    -- 10 ns = 100 MHz.
-   port map (
-      -- Input clock control
-      CLKFBIN             => clk_fbin,
-      CLKIN1              => clk_i,
-      -- Output clocks
-      CLKFBOUT            => clk_fbout,
-      CLKOUT0             => clk_out0,
-      -- The rest are unused
-      CLKIN2              => '0',
-      CLKINSEL            => '1',
-      DADDR               => (others => '0'),
-      DCLK                => '0',
-      DEN                 => '0',
-      DI                  => (others => '0'),
-      DWE                 => '0',
-      PSCLK               => '0',
-      PSEN                => '0',
-      PSINCDEC            => '0',
-      PWRDWN              => '0',
-      RST                 => '0');
+   process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         cnt <= cnt + 1;
+      end if;
+   end process;
 
-   inst_clk_fbout_buf : BUFG
-   port map (
-      I => clk_fbout,
-      O => clk_fbin);
- 
-   inst_clk_out0_buf : BUFG
-   port map (
-      I => clk_out0,
-      O => vga_clk);
+   vga_clk <= cnt(1);
 
+
+   --------------------------------------------------
+   -- Genrate horizontal and vertical pixel counters
+   --------------------------------------------------
 
    p_pix_x : process (vga_clk)
    begin
@@ -106,6 +85,11 @@ begin
       end if;
    end process p_pix_y;
 
+   
+   --------------------------------------------------
+   -- Genrate horizontal and vertical sync signals
+   --------------------------------------------------
+
    p_hs : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
@@ -126,6 +110,11 @@ begin
       end if;
    end process p_vs;
 
+   
+   --------------------------------------------------
+   -- Genrate pixel colour
+   --------------------------------------------------
+
    p_col : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
@@ -137,6 +126,11 @@ begin
          end if;
       end if;
    end process p_col;
+
+
+   --------------------------------------------------
+   -- Drive output signals
+   --------------------------------------------------
 
    vga_hs_o  <= vga_hs;
    vga_vs_o  <= vga_vs;
