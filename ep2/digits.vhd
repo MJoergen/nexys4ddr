@@ -34,13 +34,13 @@ architecture Structural of digits is
    constant DIGITS_X : integer := 10;
    constant DIGITS_Y : integer := 15;
 
-   subtype bitmap is std_logic_vector(63 downto 0);
+   subtype bitmap_t is std_logic_vector(63 downto 0);
 
-   type bitmap_vector is array (natural range <>) of bitmap;
+   type bitmap_vector_t is array (natural range <>) of bitmap_t;
 
    -- Define bitmaps
    -- Taken from https://github.com/dhepper/font8x8/blob/master/font8x8_basic.h
-   constant bitmaps : bitmap_vector(0 to 1) := (
+   constant bitmaps : bitmap_vector_t(0 to 1) := (
       "01111100" &
       "11000110" &
       "11001110" &
@@ -84,7 +84,7 @@ begin
    p_vga_col : process (clk_i)
       variable char_num_v : integer;
       variable digit_v    : std_logic;
-      variable bitmap_v   : bitmap;
+      variable bitmap_v   : bitmap_t;
       variable pix_v      : std_logic;
    begin
       if rising_edge(clk_i) then
