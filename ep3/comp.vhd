@@ -72,8 +72,8 @@ begin
    -- Generate data to be shown on VGA
    --------------------------------------------------
 
-   digits(15 downto 0)  <= cpu_addr;
-   digits(23 downto 16) <= mem_data;
+   digits(23 downto 8) <= cpu_addr;
+   digits( 7 downto 0) <= mem_data;
 
 
    --------------------------------------------------
@@ -96,11 +96,11 @@ begin
    
    i_mem : entity work.mem
    generic map (
-      G_ADDR_BITS => 11    -- 2 kBytes
+      G_ADDR_BITS => 4  -- 16 bytes
    )
    port map (
       clk_i  => vga_clk,
-      addr_i => cpu_addr(10 downto 0),
+      addr_i => cpu_addr(3 downto 0),
       wren_i => cpu_wren,
       data_i => cpu_data,
       data_o => mem_data

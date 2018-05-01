@@ -23,12 +23,18 @@ architecture Structural of mem is
 
    -- Initialize memory contents
    signal mem : mem_t := (
-      X"AA",
-      X"BB",
-      X"CC",
-      X"DD",
-      X"EE",
-      X"FF",
+      X"A1",   -- Just some random data for now.
+      X"B2",
+      X"C3",
+      X"D4",
+      X"E5",
+      X"F6",
+      X"1A",
+      X"2B",
+      X"3C",
+      X"4D",
+      X"5E",
+      X"6F",
       others => X"00");
 
    signal data : std_logic_vector(7 downto 0);
