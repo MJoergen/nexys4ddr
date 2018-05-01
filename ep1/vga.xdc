@@ -1,3 +1,4 @@
+# This file is specific for the Nexys 4 DDR board.
 
 # Pin assignment
 set_property -dict { PACKAGE_PIN A4  IOSTANDARD LVCMOS33 } [get_ports { vga_col_o[7] }];     # VGA_R3
