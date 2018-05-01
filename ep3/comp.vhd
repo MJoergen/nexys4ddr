@@ -20,22 +20,22 @@ architecture Structural of comp is
    signal vga_cnt : std_logic_vector(1 downto 0) := (others => '0');
    signal vga_clk : std_logic;
 
-   -- Clock enable for CPU
+   -- CPU pause (wait)
    -- 25 bits corresponds to 25Mhz / 2^25 = 1 Hz approx.
-   signal cpu_cnt : std_logic_vector(24 downto 0) := (others => '0');
-   signal ce : std_logic;
+   signal cpu_cnt  : std_logic_vector(24 downto 0) := (others => '0');
+   signal cpu_wait : std_logic;
 
    -- VGA signals
-   signal vga_hs    : std_logic;
-   signal vga_vs    : std_logic;
-   signal vga_col   : std_logic_vector(7 downto 0);
-   signal digits    : std_logic_vector(23 downto 0);
+   signal vga_hs   : std_logic;
+   signal vga_vs   : std_logic;
+   signal vga_col  : std_logic_vector(7 downto 0);
+   signal digits   : std_logic_vector(23 downto 0);
 
    -- CPU signals
-   signal addr     : std_logic_vector(15 downto 0);
-   signal data_cpu : std_logic_vector(7 downto 0);
-   signal data_mem : std_logic_vector(7 downto 0);
-   signal wren     : std_logic;
+   signal cpu_addr : std_logic_vector(15 downto 0);
+   signal cpu_data : std_logic_vector(7 downto 0);
+   signal mem_data : std_logic_vector(7 downto 0);
+   signal cpu_wren : std_logic;
 
 begin
    
@@ -55,20 +55,6 @@ begin
 
    
    --------------------------------------------------
-   -- Divide VGA clock down.
-   --------------------------------------------------
-
-   process (vga_clk)
-   begin
-      if rising_edge(vga_clk) then
-         cpu_cnt <= cpu_cnt + sw_i + 1;
-      end if;
-   end process;
-
-   ce <= '1' when (cpu_cnt + sw_i + 1) < cpu_cnt else '0';
-
-   
-   --------------------------------------------------
    -- Generate VGA module
    --------------------------------------------------
 
@@ -82,9 +68,28 @@ begin
    );
 
 
-   digits(15 downto 0)  <= addr;
-   digits(23 downto 16) <= data_mem;
+   --------------------------------------------------
+   -- Generate data to be shown on VGA
+   --------------------------------------------------
 
+   digits(15 downto 0)  <= cpu_addr;
+   digits(23 downto 16) <= mem_data;
+
+
+   --------------------------------------------------
+   -- Generate CPU wait signal
+   --------------------------------------------------
+
+   process (vga_clk)
+   begin
+      if rising_edge(vga_clk) then
+         cpu_cnt <= cpu_cnt + sw_i + 1;
+      end if;
+   end process;
+
+   cpu_wait <= '0' when (cpu_cnt + sw_i + 1) < cpu_cnt else '1';
+
+   
    --------------------------------------------------
    -- Instantiate memory
    --------------------------------------------------
@@ -95,10 +100,10 @@ begin
    )
    port map (
       clk_i  => vga_clk,
-      addr_i => addr(10 downto 0),
-      wren_i => wren,
-      data_i => data_cpu,
-      data_o => data_mem
+      addr_i => cpu_addr(10 downto 0),
+      wren_i => cpu_wren,
+      data_i => cpu_data,
+      data_o => mem_data
    );
 
 
@@ -109,11 +114,11 @@ begin
    i_cpu : entity work.cpu
    port map (
       clk_i  => vga_clk,
-      ce_i   => ce,
-      addr_o => addr,
-      wren_o => wren,
-      data_o => data_cpu,
-      data_i => data_mem
+      wait_i => cpu_wait,
+      addr_o => cpu_addr,
+      wren_o => cpu_wren,
+      data_o => cpu_data,
+      data_i => mem_data
    );
 
 

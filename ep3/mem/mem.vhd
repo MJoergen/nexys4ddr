@@ -19,10 +19,10 @@ end mem;
 architecture Structural of mem is
 
    -- Just 2 kBytes of memory.
-   type t_mem is array (0 to 2**G_ADDR_BITS-1) of std_logic_vector(7 downto 0);
+   type mem_t is array (0 to 2**G_ADDR_BITS-1) of std_logic_vector(7 downto 0);
 
    -- Initialize memory contents
-   signal i_mem : t_mem := (
+   signal mem : mem_t := (
       X"AA",
       X"BB",
       X"CC",
@@ -31,20 +31,30 @@ architecture Structural of mem is
       X"FF",
       others => X"00");
 
+   signal data : std_logic_vector(7 downto 0);
+
 begin
 
-   -- The write process is clocked
+   -- Write process
    process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wren_i = '1' then
-            i_mem(conv_integer(addr_i)) <= data_i;
+            mem(conv_integer(addr_i)) <= data_i;
          end if;
       end if;
    end process;
 
-   -- The read process is combinatorial
-   data_o <= i_mem(conv_integer(addr_i));
+   -- Read process
+   process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         data <= mem(conv_integer(addr_i));
+      end if;
+   end process;
+
+   -- Drive output signals
+   data_o <= data;
 
 end Structural;
 
