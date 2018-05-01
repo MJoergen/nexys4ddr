@@ -2,9 +2,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 entity vga is
    port (
       clk_i     : in  std_logic;                      -- 100 MHz
@@ -20,99 +17,67 @@ end vga;
 architecture Structural of vga is
 
    -- Define constants used for 640x480 @ 60 Hz.
-   -- Requires a clock of approx 25.175 MHz.
-   constant SIZE_X   : integer := 640;
-   constant HS_FIRST : integer := 655;
-   constant HS_LAST  : integer := 750;
-   constant COUNT_X  : integer := 800;
-   constant SIZE_Y   : integer := 480;
-   constant VS_FIRST : integer := 489;
-   constant VS_LAST  : integer := 490;
-   constant COUNT_Y  : integer := 525;
+   -- Requires a clock of 25.175 MHz.
+   -- See page 17 in "VESA MONITOR TIMING STANDARD"
+   -- http://caxapa.ru/thumbs/361638/DMTv1r11.pdf
+   constant H_PIXELS : integer := 640;
+   constant V_PIXELS : integer := 480;
+   --
+   constant H_TOTAL  : integer := 800;
+   constant HS_START : integer := 656;
+   constant HS_TIME  : integer := 96;
+   --
+   constant V_TOTAL  : integer := 525;
+   constant VS_START : integer := 490;
+   constant VS_TIME  : integer := 2;
 
+   -- Define colours
+   constant COL_BLACK : std_logic_vector(7 downto 0) := B"000_000_00";
+   constant COL_WHITE : std_logic_vector(7 downto 0) := B"111_111_11";
+   constant COL_RED   : std_logic_vector(7 downto 0) := B"111_000_00";
+   constant COL_GREEN : std_logic_vector(7 downto 0) := B"000_111_00";
+   constant COL_BLUE  : std_logic_vector(7 downto 0) := B"000_000_11";
+
+   -- Clock divider
+   signal cnt : std_logic_vector(1 downto 0) := (others => '0');
+   signal vga_clk : std_logic;
+
+   -- Pixel counters
    signal pix_x : std_logic_vector(9 downto 0);
    signal pix_y : std_logic_vector(9 downto 0);
 
+   -- Synchronization
    signal vga_hs  : std_logic;
    signal vga_vs  : std_logic;
+
+   -- Pixel colour
    signal vga_col : std_logic_vector(7 downto 0);
 
-   signal vga_clk : std_logic;
-
-   signal clk_fbin  : std_logic;
-   signal clk_fbout : std_logic;
-   signal clk_out0  : std_logic;
-
-   constant zero : std_logic_vector(63 downto 0) :=
-      "01110000" &
-      "10001000" &
-      "10001000" &
-      "10001000" &
-      "10001000" &
-      "10001000" &
-      "01110000" &
-      "00000000";
-
-   constant one : std_logic_vector(63 downto 0) :=
-      "00010000" &
-      "00110000" &
-      "01010000" &
-      "00010000" &
-      "00010000" &
-      "00010000" &
-      "01111000" &
-      "00000000";
-
-   signal row : integer range 0 to 7;
-   signal col : integer range 0 to 7;
-   signal char_x : std_logic_vector(5 downto 0);
-   signal char_y : std_logic_vector(5 downto 0);
-
 begin
+   
+   --------------------------------------------------
+   -- Divide input clock by 4, from 100 MHz to 25 MHz
+   -- This is close enough to 25.175 MHz.
+   --------------------------------------------------
 
-   -- Instantiation of the MMCM PRIMITIVE
-   -- Generated clock will have frequency 10.125/40.25*100 MHz = 25.16 MHz
-   inst_mmcme2_adv : MMCME2_ADV
-   generic map (
-      CLKFBOUT_MULT_F      => 10.125,  -- Must be multiple of 0.125
-      CLKOUT0_DIVIDE_F     => 40.25,   -- Must be multiple of 0.125
-      CLKIN1_PERIOD        => 10.0)    -- 10 ns = 100 MHz.
-   port map (
-      -- Input clock control
-      CLKFBIN             => clk_fbin,
-      CLKIN1              => clk_i,
-      -- Output clocks
-      CLKFBOUT            => clk_fbout,
-      CLKOUT0             => clk_out0,
-      -- The rest are unused
-      CLKIN2              => '0',
-      CLKINSEL            => '1',
-      DADDR               => (others => '0'),
-      DCLK                => '0',
-      DEN                 => '0',
-      DI                  => (others => '0'),
-      DWE                 => '0',
-      PSCLK               => '0',
-      PSEN                => '0',
-      PSINCDEC            => '0',
-      PWRDWN              => '0',
-      RST                 => '0');
+   process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         cnt <= cnt + 1;
+      end if;
+   end process;
 
-   inst_clk_fbout_buf : BUFG
-   port map (
-      I => clk_fbout,
-      O => clk_fbin);
- 
-   inst_clk_out0_buf : BUFG
-   port map (
-      I => clk_out0,
-      O => vga_clk);
+   vga_clk <= cnt(1);
 
+
+   --------------------------------------------------
+   -- Generate horizontal and vertical pixel counters
+   --------------------------------------------------
 
    p_pix_x : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
-         if pix_x = COUNT_X-1 then
+         if pix_x = H_TOTAL-1 then
             pix_x <= (others => '0');
          else
             pix_x <= pix_x + 1;
@@ -123,8 +88,8 @@ begin
    p_pix_y : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
-         if pix_x = COUNT_X-1  then
-            if pix_y = COUNT_Y-1 then
+         if pix_x = H_TOTAL-1  then
+            if pix_y = V_TOTAL-1 then
                pix_y <= (others => '0');
             else
                pix_y <= pix_y + 1;
@@ -133,12 +98,17 @@ begin
       end if;
    end process p_pix_y;
 
+   
+   --------------------------------------------------
+   -- Generate horizontal and vertical sync signals
+   --------------------------------------------------
+
    p_hs : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
-         vga_hs <= '0';
-         if pix_x >= HS_FIRST and pix_x <= HS_LAST then
-            vga_hs <= '1';
+         vga_hs <= '1';
+         if pix_x >= HS_START and pix_x < HS_START+HS_TIME then
+            vga_hs <= '0';
          end if;
       end if;
    end process p_hs;
@@ -146,42 +116,31 @@ begin
    p_vs : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
-         vga_vs <= '0';
-         if pix_y >= VS_FIRST and pix_y <= VS_LAST then
-            vga_vs <= '1';
+         vga_vs <= '1';
+         if pix_y >= VS_START and pix_y < VS_START+VS_TIME then
+            vga_vs <= '0';
          end if;
       end if;
    end process p_vs;
 
-   char_x <= pix_x(9 downto 4);
-   char_y <= pix_y(9 downto 4);
-   col    <= 7 - conv_integer(pix_x(3 downto 1));
-   row    <= 7 - conv_integer(pix_y(3 downto 1));
+   
+   --------------------------------------------------
+   -- Generate pixel colour
+   --------------------------------------------------
 
-   p_col : process (vga_clk)
-      variable digit_v  : std_logic;
-      variable offset_v : integer;
-      variable pix_v    : std_logic;
-   begin
-      if rising_edge(vga_clk) then
-         vga_col <= (others => '0');
+   i_digits : entity work.digits
+   port map (
+      clk_i     => vga_clk,
+      pix_x_i   => pix_x,
+      pix_y_i   => pix_y,
+      digits_i  => sw_i,
+      vga_col_o => vga_col
+   );
 
-         if char_y = 15 and char_x >= 20 and char_x < 28 then
-            offset_v := conv_integer(char_x)-20;
-            digit_v := sw_i(7-offset_v);
 
-            if digit_v = '1' then
-               pix_v := one(row*8+col);
-            else
-               pix_v := zero(row*8+col);
-            end if;
-
-            if pix_v = '1' then
-               vga_col <= (others => '1');
-            end if;
-         end if;
-      end if;
-   end process p_col;
+   --------------------------------------------------
+   -- Drive output signals
+   --------------------------------------------------
 
    vga_hs_o  <= vga_hs;
    vga_vs_o  <= vga_vs;

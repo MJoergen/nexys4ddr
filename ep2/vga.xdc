@@ -1,7 +1,4 @@
-
-# Configuration Bank Voltage Select
-set_property CFGBVS VCCO [current_design]
-set_property CONFIG_VOLTAGE 3.3 [current_design]
+# This file is specific for the Nexys 4 DDR board.
 
 # Pin assignment
 set_property -dict { PACKAGE_PIN A4  IOSTANDARD LVCMOS33 } [get_ports { vga_col_o[7] }];     # VGA_R3
@@ -26,5 +23,10 @@ set_property -dict { PACKAGE_PIN U18 IOSTANDARD LVCMOS33 } [get_ports { sw_i[6] 
 set_property -dict { PACKAGE_PIN R13 IOSTANDARD LVCMOS33 } [get_ports { sw_i[7] }];          # SW7
 
 # Clock definition
-create_clock -add -name sys_clk -period 10.00 -waveform {0 5} [get_ports {clk_i}];                         # 100 MHz
+create_clock -name sys_clk -period 10.00 [get_ports {clk_i}];                          # 100 MHz
+create_generated_clock -name vga_clk -source [get_ports {clk_i}] -divide_by 4 [get_pins {cnt_reg[1]/Q}];   # 25 Mhz
+
+# Configuration Bank Voltage Select
+set_property CFGBVS VCCO [current_design]
+set_property CONFIG_VOLTAGE 3.3 [current_design]
 
