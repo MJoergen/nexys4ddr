@@ -15,16 +15,26 @@ end vga;
 architecture Structural of vga is
 
    -- Define constants used for 640x480 @ 60 Hz.
-   -- Requires a clock of approx 25 MHz.
-   -- See http://caxapa.ru/thumbs/361638/DMTv1r11.pdf
-   constant SIZE_X   : integer := 640;
-   constant HS_FIRST : integer := 655;
-   constant HS_LAST  : integer := 750;
-   constant COUNT_X  : integer := 800;
-   constant SIZE_Y   : integer := 480;
-   constant VS_FIRST : integer := 489;
-   constant VS_LAST  : integer := 490;
-   constant COUNT_Y  : integer := 525;
+   -- Requires a clock of 25.175 MHz.
+   -- See page 17 in "VESA MONITOR TIMING STANDARD"
+   -- http://caxapa.ru/thumbs/361638/DMTv1r11.pdf
+   constant H_PIXELS : integer := 640;
+   constant V_PIXELS : integer := 480;
+   --
+   constant H_TOTAL  : integer := 800;
+   constant HS_START : integer := 656;
+   constant HS_TIME  : integer := 96;
+   --
+   constant V_TOTAL  : integer := 525;
+   constant VS_START : integer := 490;
+   constant VS_TIME  : integer := 2;
+
+   -- Define colours
+   constant COL_BLACK : std_logic_vector(7 downto 0) := B"000_000_00";
+   constant COL_WHITE : std_logic_vector(7 downto 0) := B"111_111_11";
+   constant COL_RED   : std_logic_vector(7 downto 0) := B"111_000_00";
+   constant COL_GREEN : std_logic_vector(7 downto 0) := B"000_111_00";
+   constant COL_BLUE  : std_logic_vector(7 downto 0) := B"000_000_11";
 
    -- Clock divider
    signal cnt : std_logic_vector(1 downto 0) := (others => '0');
@@ -45,6 +55,7 @@ begin
    
    --------------------------------------------------
    -- Divide input clock by 4, from 100 MHz to 25 MHz
+   -- This is close enough to 25.175 MHz.
    --------------------------------------------------
 
    process (clk_i)
@@ -64,7 +75,7 @@ begin
    p_pix_x : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
-         if pix_x = COUNT_X-1 then
+         if pix_x = H_TOTAL-1 then
             pix_x <= (others => '0');
          else
             pix_x <= pix_x + 1;
@@ -75,8 +86,8 @@ begin
    p_pix_y : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
-         if pix_x = COUNT_X-1  then
-            if pix_y = COUNT_Y-1 then
+         if pix_x = H_TOTAL-1  then
+            if pix_y = V_TOTAL-1 then
                pix_y <= (others => '0');
             else
                pix_y <= pix_y + 1;
@@ -93,9 +104,9 @@ begin
    p_hs : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
-         vga_hs <= '0';
-         if pix_x >= HS_FIRST and pix_x <= HS_LAST then
-            vga_hs <= '1';
+         vga_hs <= '1';
+         if pix_x >= HS_START and pix_x < HS_START+HS_TIME then
+            vga_hs <= '0';
          end if;
       end if;
    end process p_hs;
@@ -103,26 +114,27 @@ begin
    p_vs : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
-         vga_vs <= '0';
-         if pix_y >= VS_FIRST and pix_y <= VS_LAST then
-            vga_vs <= '1';
+         vga_vs <= '1';
+         if pix_y >= VS_START and pix_y < VS_START+VS_TIME then
+            vga_vs <= '0';
          end if;
       end if;
    end process p_vs;
 
    
    --------------------------------------------------
-   -- Genrate pixel colour
+   -- Generate pixel colour
    --------------------------------------------------
 
    p_col : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
-         vga_col <= (others => '0');
+         vga_col <= COL_BLACK;
 
-         if pix_x < SIZE_X and pix_y < SIZE_Y then
-            vga_col(7 downto 4) <= pix_x(7 downto 4);
-            vga_col(3 downto 0) <= pix_y(7 downto 4);
+         if pix_x < H_PIXELS and pix_y < V_PIXELS then
+            if (pix_x(4) xor pix_y(4)) = '1' then
+               vga_col <= COL_WHITE;
+            end if;
          end if;
       end if;
    end process p_col;
