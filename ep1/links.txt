@@ -19,3 +19,5 @@ Computation Structures (from MIT):
 Timing signals for VGA:
    http://caxapa.ru/thumbs/361638/DMTv1r11.pdf
 
+Nexys 4 DDR hardware schematic diagram:
+   https://reference.digilentinc.com/_media/reference/programmable-logic/nexys-4-ddr/nexys-4-ddr_sch.pdf
