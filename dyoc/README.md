@@ -34,6 +34,7 @@ We will be designing and building these blocks roughly in the above order.
 ### CPU ###
 5. **"Datapath"**. Here the skeleton of the CPU datapath will be developed. Instructions implemented:  4/151.
 6. **"ALU"**. Here the Arithmetic and Logic Unit will be added to the CPU. Instructions implemented: ??/151.
+
 More to come soon...
 
 ## Prerequisites ##
