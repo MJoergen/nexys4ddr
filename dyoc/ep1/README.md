@@ -57,6 +57,14 @@ This clock divider is implemented in lines 56-68 of vga.vhd.
 The toolchain needs to know which pins on the FPGA to use, and for this we must refer to the
 [page 7](https://reference.digilentinc.com/_media/reference/programmable-logic/nexys-4-ddr/nexys-4-ddr_sch.pdf)
 on the hardware schematic diagram of the particular board used.
-The tootchain also need to know the clock frequencies used in the design. These are
+The tootchain also needs to know the clock frequencies used in the design. These are
 described in lines 18-20 in vga.xdc.
+
+## Build files
+Finally we write a small tcl-script, which is needed by the Vivado tool. And then
+there is a simple Makefile. You will of course need to updated line 1 in the Makefile
+with your particular Xilinx install location. The Makefile defines three targets:
+* vga.bit : This synthesizes (=compiles) the design and generates a binary file.
+* fpga    : This transfers the binary file to the FPGA and starts the FPGA.
+* clean   : This deletes all generated files and returns the directory to its original state.
 
