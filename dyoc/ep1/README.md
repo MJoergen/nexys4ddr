@@ -32,7 +32,7 @@ indicated as the black regions in the diagram below
 ![VGA timing](VGA_timing.png "VGA timing")
 The two narrow bands in the diagram shows the timing of the two synchronization signals, *hs* and *vs*.
 All the timing signals for this screen resolution is described on
-[page 17](http://caxapa.ru/thumbs/361638/DMTv1r11.pdf).
+[page 17](http://caxapa.ru/thumbs/361638/DMTv1r11.pdf) in the VESA monitor timing standard.
 
 ## Implementation (vga.vhd)
 In the VHDL code we will have two pixel counters, x and y, where y is positive down. They will count from 0 to 799
@@ -40,6 +40,6 @@ and 0 to 524 respectively.
 
 ## Constraints (vga.xdc)
 The toolchain needs to know which pins on the FPGA to use, and for this we must refer to the
-[hardware schematic diagram](https://reference.digilentinc.com/_media/reference/programmable-logic/nexys-4-ddr/nexys-4-ddr_sch.pdf)
-of the particular board used.
+[page 7](https://reference.digilentinc.com/_media/reference/programmable-logic/nexys-4-ddr/nexys-4-ddr_sch.pdf)
+on the hardware schematic diagram of the particular board used.
 
