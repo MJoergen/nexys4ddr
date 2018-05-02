@@ -29,7 +29,7 @@ The VGA monitor draws each line, starting from the top, and in each line draws o
 left to right.
 However, due to historical reasons, the timing actually corresponds to a larger area of in total 800x525 pixels,
 indicated as the black regions in the diagram below
-![VGA timing](VGA_Timing.png)
+![VGA timing](VGA_Timing.png "VGA timing")
 The two narrow bands in the diagram shows the timing of the two synchronization signals, *hs* and *vs*.
 All the timing signals for this screen resolution is described on
 [page 17](http://caxapa.ru/thumbs/361638/DMTv1r11.pdf).
