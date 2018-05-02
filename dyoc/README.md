@@ -56,9 +56,9 @@ Make sure that the FPGA board you buy has (at least) the following features:
 
 ### FPGA toolchain (software) ###
 
-You need a tool chain for the FPGA. There are three major FPGA vendor:
+You need a tool chain for programming the FPGA. There are three major FPGA vendors:
 * Xilinx
-* Intel (Altera)
+* Intel (formerly Altera)
 * Lattice
 
 The Nexys 4 DDR board uses a Xilinx FPGA, and the toolchain is called
