@@ -1,4 +1,4 @@
-# Design Your Own Computer -- Episode 1 : "Hello World"
+# Design Your Own Computer - Episode 1 : "Hello World"
 
 Welcome to this first episode of "Design Your Own Computer", where we draw a
 checker board pattern on the VGA output.
@@ -23,6 +23,7 @@ The computer we're building will be running on a FPGA board, and inside the FPGA
 * Memory (RAM and ROM)
 * 6502 CPU
 * Keyboard interface
+
 We will be designing and building these blocks roughly in the above order.
 
 ## Prerequisites
@@ -30,11 +31,11 @@ We will be designing and building these blocks roughly in the above order.
 ### FPGA board
 
 To get started you need an FPGA board. There are many possibilities, e.g.
-* [Nexys 4 DDR](https://reference.digilentinc.com/reference/programmable-logic/nexys-4-ddr/start) (from Digilent). This is the one I am using.
+* [Nexys 4 DDR](https://reference.digilentinc.com/reference/programmable-logic/nexys-4-ddr/start) (from Digilent). This is the one I am using (but somewhat an overkill for this project).
 * [Basys 3](https://reference.digilentinc.com/reference/programmable-logic/basys-3/start) (from Digilent). Less expensive.
-* [Go board](https://www.nandland.com/goboard/introduction.html]) (from Nandland). Even less expensive.
+* [Go board](https://www.nandland.com/goboard/introduction.html) (from Nandland). Even less expensive.
 
-Make sure that the FPGA board you buy has the following features:
+Make sure that the FPGA board you buy has (at least) the following features:
 * VGA connector
 * USB input connector (for keyboard)
 * Crystal oscillator
@@ -47,7 +48,7 @@ You need a tool chain for the FPGA. There are three major FPGA vendor:
 * Lattice
 
 The Nexys 4 DDR board uses a Xilinx FPGA, and the toolchain is called
-[Vivado](https://www.xilinx.com/support/download.html)
+[Vivado](https://www.xilinx.com/support/download.html).
 Use the Webpack edition, because it is free to use.
 
 ## Files generated in this series:
@@ -56,11 +57,11 @@ Use the Webpack edition, because it is free to use.
 * vga.tcl   : List of commands for Vivado
 * Makefile  : Overall project makefile
 
-## Learnings:
+## Key learnings in this episode:
 * Each signal may only be assigned values in one process. If more than one process
 is assigned to a signal, then the error "Multiple Driver" will result. This is
-because this essentially corresponds to a short-ciruit, and fortunately the toolchain
-prevents that :-)
+because this essentially corresponds to a short-ciruit within the FPGA, and
+fortunately the toolchain prevents that :-)
 
 ## Recommended additional information
 
@@ -68,7 +69,7 @@ I recommend watching the video series
 [Building an 8-bit breadboard computer!](https://www.youtube.com/playlist?list=PLowKtXNTBypGqImE405J2565dvjafglHU)
 by Ben Eater. He goes into great depth explaining the concepts and elements in
 a computer. The design we're building will be somewhat more elaborate and have
-more features. This is largely due to the possibilities of using FPGAs.
+more features. This is largely due to the many possibilities of using FPGAs.
 
 I also recommend watching (at least the first half of) the video series
 [Computation Structures](https://www.youtube.com/playlist?list=PLqAMlAbd8sIuiuk_yJeqCWWxe7jxWgswj)
@@ -83,7 +84,7 @@ language, e.g. C, C++, Java, or similar.
 ## About me
 
 I'm currently working as a professional FPGA developer, but have previously
-been teaching the subhects mathematics, physics, and programming in High School.
+been teaching the subjects mathematics, physics, and programming in High School.
 Before that I've worked for twelve years as a software developer.
 
 As a child I used to program in assembler on the Commodore 64. This "heritage"
