@@ -1,8 +1,8 @@
-# Design Your Own Computer
+# Design Your Own Computer #
 
 Welcome to this series where you will learn how to *Design Your Own Computer*!
 
-## Overview of series
+## Overview of series ##
 
 In the first few episodes we'll be focussing on the VGA output, essentially
 building a (small) GPU. The reason is that this will give us excellent 
@@ -15,7 +15,7 @@ I'll provide more links.
 
 Of course, the ultimate goal is to have fun building stuff!
 
-## Overall design
+## Overall design ##
 
 The computer we're building will be running on a FPGA board, and inside the FPGA there will be:
 * VGA interface (GPU)
@@ -25,19 +25,20 @@ The computer we're building will be running on a FPGA board, and inside the FPGA
 
 We will be designing and building these blocks roughly in the above order.
 
-## List of episodes:
-### VGA
+## List of episodes: ##
+### VGA ###
 1. "Hello World". Here you will generate a checkerboard pattern on the VGA output.
 2. "Getting text on the screen". Here you will learn how to display a string of binary digits on VGA.
 3. "Adding memory to the system". Here we will add memory to the system, and display accesses on VGA.
 4. "Adding hexadecimal output to VGA". Here we will implement a complete font and show data in hexadecimal format.
-### CPU
+### CPU ###
 5. "Datapath". Here the skeleton of the CPU datapath will be developed. Instructions implemented:  4/151.
 6. "ALU". Here the Arithmetic and Logic Unit will be added to the CPU. Instructions implemented: ??/151.
+More to come soon...
 
-## Prerequisites
+## Prerequisites ##
 
-### FPGA board
+### FPGA board ###
 
 To get started you need an FPGA board. There are many possibilities, e.g.
 * [Nexys 4 DDR](https://reference.digilentinc.com/reference/programmable-logic/nexys-4-ddr/start)
@@ -52,7 +53,7 @@ Make sure that the FPGA board you buy has (at least) the following features:
 * USB input connector (for keyboard)
 * Crystal oscillator
 
-### FPGA toolchain (software)
+### FPGA toolchain (software) ###
 
 You need a tool chain for the FPGA. There are three major FPGA vendor:
 * Xilinx
@@ -63,7 +64,7 @@ The Nexys 4 DDR board uses a Xilinx FPGA, and the toolchain is called
 [Vivado](https://www.xilinx.com/support/download.html).
 Use the Webpack edition, because it is free to use.
 
-## Recommended additional information
+## Recommended additional information ##
 
 I recommend watching the video series 
 [Building an 8-bit breadboard computer!](https://www.youtube.com/playlist?list=PLowKtXNTBypGqImE405J2565dvjafglHU)
@@ -81,7 +82,7 @@ gates and digital electronics.
 I will also assume you are comfortable in at least one other programming
 language, e.g. C, C++, Java, or similar.
 
-## About me
+## About me ##
 
 I'm currently working as a professional FPGA developer, but have previously
 been teaching the subjects mathematics, physics, and programming in High School.
