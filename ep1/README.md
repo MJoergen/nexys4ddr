@@ -31,9 +31,12 @@ We will be designing and building these blocks roughly in the above order.
 ### FPGA board
 
 To get started you need an FPGA board. There are many possibilities, e.g.
-* [Nexys 4 DDR](https://reference.digilentinc.com/reference/programmable-logic/nexys-4-ddr/start) (from Digilent). This is the one I am using (but somewhat an overkill for this project).
-* [Basys 3](https://reference.digilentinc.com/reference/programmable-logic/basys-3/start) (from Digilent). Less expensive.
-* [Go board](https://www.nandland.com/goboard/introduction.html) (from Nandland). Even less expensive.
+* [Nexys 4 DDR](https://reference.digilentinc.com/reference/programmable-logic/nexys-4-ddr/start)
+(from Digilent). This is the one I am using (but somewhat of an overkill for this project).
+* [Basys 3](https://reference.digilentinc.com/reference/programmable-logic/basys-3/start)
+(from Digilent). Less expensive.
+* [Go board](https://www.nandland.com/goboard/introduction.html)
+(from Nandland). Even less expensive.
 
 Make sure that the FPGA board you buy has (at least) the following features:
 * VGA connector
