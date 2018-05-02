@@ -1,4 +1,4 @@
-# Design Your Own Computer, Episode 2 : "Getting text on the screen"
+# Design Your Own Computer - Episode 2 : "Getting text on the screen"
 
 Welcome to the second episode of "Design Your Own Computer". In this
 episode we focus on getting actual text on the screen.

@@ -53,12 +53,12 @@ begin
    -- This is close enough to 25.175 MHz.
    --------------------------------------------------
 
-   process (clk_i)
+   p_cnt : process (clk_i)
    begin
       if rising_edge(clk_i) then
          cnt <= cnt + 1;
       end if;
-   end process;
+   end process p_cnt;
 
    vga_clk <= cnt(1);
 
@@ -96,25 +96,27 @@ begin
    -- Generate horizontal and vertical sync signals
    --------------------------------------------------
 
-   p_hs : process (vga_clk)
+   p_vga_hs : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
-         vga_hs <= '1';
          if pix_x >= HS_START and pix_x < HS_START+HS_TIME then
             vga_hs <= '0';
+         else
+            vga_hs <= '1';
          end if;
       end if;
-   end process p_hs;
+   end process p_vga_hs;
 
-   p_vs : process (vga_clk)
+   p_vga_vs : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
-         vga_vs <= '1';
          if pix_y >= VS_START and pix_y < VS_START+VS_TIME then
             vga_vs <= '0';
+         else
+            vga_vs <= '1';
          end if;
       end if;
-   end process p_vs;
+   end process p_vga_vs;
 
    
    --------------------------------------------------
