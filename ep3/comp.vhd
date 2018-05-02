@@ -31,11 +31,9 @@ architecture Structural of comp is
    signal vga_col  : std_logic_vector(7 downto 0);
    signal digits   : std_logic_vector(23 downto 0);
 
-   -- CPU signals
-   signal cpu_addr : std_logic_vector(15 downto 0);
-   signal cpu_data : std_logic_vector(7 downto 0);
-   signal mem_data : std_logic_vector(7 downto 0);
-   signal cpu_wren : std_logic;
+   -- Memory signals
+   signal addr : std_logic_vector(15 downto 0);
+   signal data : std_logic_vector(7 downto 0);
 
 begin
    
@@ -60,11 +58,11 @@ begin
 
    i_vga : entity work.vga
    port map (
-      clk_i    => vga_clk,
-      digits_i => digits,
-      hs_o     => vga_hs,
-      vs_o     => vga_vs,
-      col_o    => vga_col
+      clk_i     => vga_clk,
+      digits_i  => digits,
+      vga_hs_o  => vga_hs,
+      vga_vs_o  => vga_vs,
+      vga_col_o => vga_col
    );
 
 
@@ -72,8 +70,8 @@ begin
    -- Generate data to be shown on VGA
    --------------------------------------------------
 
-   digits(23 downto 8) <= cpu_addr;
-   digits( 7 downto 0) <= mem_data;
+   digits(23 downto 8) <= addr;
+   digits( 7 downto 0) <= data;
 
 
    --------------------------------------------------
@@ -100,26 +98,25 @@ begin
    )
    port map (
       clk_i  => vga_clk,
-      addr_i => cpu_addr(3 downto 0),
-      wren_i => cpu_wren,
-      data_i => cpu_data,
-      data_o => mem_data
+      addr_i => addr(3 downto 0),
+      data_o => data,
+      wren_i => '0',
+      data_i => (others => '0')
    );
 
 
    --------------------------------------------------
-   -- Instantiate CPU
+   -- Generate memory address
    --------------------------------------------------
    
-   i_cpu : entity work.cpu
-   port map (
-      clk_i  => vga_clk,
-      wait_i => cpu_wait,
-      addr_o => cpu_addr,
-      wren_o => cpu_wren,
-      data_o => cpu_data,
-      data_i => mem_data
-   );
+   p_addr : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if cpu_wait = '0' then
+            addr <= addr + 1;
+         end if;
+      end if;
+   end process p_addr;
 
 
    --------------------------------------------------
