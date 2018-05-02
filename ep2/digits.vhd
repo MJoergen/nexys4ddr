@@ -68,16 +68,20 @@ architecture Structural of digits is
    constant COL_BLUE  : std_logic_vector(7 downto 0) := B"000_000_11";
 
 
-   -- Character row and column
+   -- Character coordinates
    signal char_col : integer range 0 to H_TOTAL/16-1;
    signal char_row : integer range 0 to V_TOTAL/16-1;
 
+   -- Value of digit at current position
    signal digits_offset : integer range 0 to 7;
    signal digits_index  : integer range 0 to 7;
    signal digit         : std_logic;
 
+   -- Bitmap of digit at current position
+   signal bitmaps_index : integer range 0 to 1;
    signal bitmap        : bitmap_t;
 
+   -- Pixel at current position
    signal pix_col       : integer range 0 to 7;
    signal pix_row       : integer range 0 to 7;
    signal bitmap_index  : integer range 0 to 63;
@@ -89,33 +93,34 @@ architecture Structural of digits is
 begin
 
    --------------------------------------------------
-   -- Calculate character coordinates
+   -- Calculate character coordinates, within 40x30
    --------------------------------------------------
 
    char_col <= conv_integer(pix_x_i(9 downto 4));
    char_row <= conv_integer(pix_y_i(9 downto 4));
 
    --------------------------------------------------
-   -- Calculate value of digit at current position
+   -- Calculate value of digit at current position ('0' or '1')
    --------------------------------------------------
 
-   digits_offset <= char_col-DIGITS_CHAR_X;
-   digits_index  <= 7-digits_offset;
+   digits_offset <= char_col - DIGITS_CHAR_X;
+   digits_index  <= 7 - digits_offset;
    digit         <= digits_i(digits_index);
 
    --------------------------------------------------
-   -- Calculate bitmap of digit at current position
+   -- Calculate bitmap (64 bits) of digit at current position
    --------------------------------------------------
 
-   bitmap        <= bitmaps(conv_integer((0 => digit)));
+   bitmaps_index <= conv_integer((0 => digit));
+   bitmap        <= bitmaps(bitmaps_index);
 
    --------------------------------------------------
-   -- Calculate pixel at current position
+   -- Calculate pixel at current position ('0' or '1')
    --------------------------------------------------
 
    pix_col       <= 7 - conv_integer(pix_x_i(3 downto 1));
    pix_row       <= 7 - conv_integer(pix_y_i(3 downto 1));
-   bitmap_index  <= pix_row*8+pix_col;
+   bitmap_index  <= pix_row*8 + pix_col;
    pix           <= bitmap(bitmap_index);
 
 
@@ -127,7 +132,7 @@ begin
    begin
       if rising_edge(clk_i) then
 
-         -- Set the default background colour
+         -- Set the default screen background colour
          vga_col <= COL_BLACK;
 
          -- Are we within the borders of the text?
