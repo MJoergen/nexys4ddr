@@ -1,11 +1,11 @@
-# Design Your Own Computer, Episode 1 : "Hello World"
+# Design Your Own Computer -- Episode 1 : "Hello World"
 
 Welcome to this first episode of "Design Your Own Computer", where we draw a
 checker board pattern on the VGA output.
 
 ## Overview of series
 
-In the first few episode we'll be focussing on the VGA output, essentially
+In the first few episodes we'll be focussing on the VGA output, essentially
 building a (small) GPU. The reason is that this will give us excellent 
 possibilities later on to view the internal state of the CPU.
 
@@ -18,20 +18,21 @@ Of course, the ultimate goal is to have fun building stuff!
 
 ## Overall design
 
-The computer we're building will consist of the following parts:
-* 6502 CPU
+The computer we're building will be running on a FPGA board, and inside the FPGA there will be:
+* VGA interface (GPU)
 * Memory (RAM and ROM)
-* VGA driver
+* 6502 CPU
 * Keyboard interface
+We will be designing and building these blocks roughly in the above order.
 
 ## Prerequisites
 
 ### FPGA board
 
 To get started you need an FPGA board. There are many possibilities, e.g.
-* [https://reference.digilentinc.com/reference/programmable-logic/nexys-4-ddr/start](Nexys 4 DDR) (from Digilent). This is the one I am using.
-* [https://reference.digilentinc.com/reference/programmable-logic/basys-3/start](Basys 3) (from Digilent). Less expensive.
-* [https://www.nandland.com/goboard/introduction.html](Go board) (from Nandland). Even less expensive.
+* [Nexys 4 DDR](https://reference.digilentinc.com/reference/programmable-logic/nexys-4-ddr/start) (from Digilent). This is the one I am using.
+* [Basys 3](https://reference.digilentinc.com/reference/programmable-logic/basys-3/start) (from Digilent). Less expensive.
+* [Go board](https://www.nandland.com/goboard/introduction.html]) (from Nandland). Even less expensive.
 
 Make sure that the FPGA board you buy has the following features:
 * VGA connector
@@ -46,7 +47,7 @@ You need a tool chain for the FPGA. There are three major FPGA vendor:
 * Lattice
 
 The Nexys 4 DDR board uses a Xilinx FPGA, and the toolchain is called
-[https://www.xilinx.com/support/download.html](Vivado)
+[Vivado](https://www.xilinx.com/support/download.html)
 Use the Webpack edition, because it is free to use.
 
 ## Files generated in this series:
@@ -64,14 +65,14 @@ prevents that :-)
 ## Recommended additional information
 
 I recommend watching the video series 
-[https://www.youtube.com/playlist?list=PLowKtXNTBypGqImE405J2565dvjafglHU](Building
-an 8-bit breadboard computer!) by Ben Eater. He goes into great depth
-explaining the concepts and elements in a computer. The design we're building
-will be somewhat more elaborate and have more features. This is largely due to
-the possibilities of using FPGAs.
+[Building an 8-bit breadboard computer!](https://www.youtube.com/playlist?list=PLowKtXNTBypGqImE405J2565dvjafglHU)
+by Ben Eater. He goes into great depth explaining the concepts and elements in
+a computer. The design we're building will be somewhat more elaborate and have
+more features. This is largely due to the possibilities of using FPGAs.
 
 I also recommend watching (at least the first half of) the video series
-[https://www.youtube.com/playlist?list=PLqAMlAbd8sIuiuk_yJeqCWWxe7jxWgswj](Computation Structures) from MIT. These are university lectures explaining very clearly the concepts involved in digital design.
+[Computation Structures](https://www.youtube.com/playlist?list=PLqAMlAbd8sIuiuk_yJeqCWWxe7jxWgswj)
+from MIT. These are university lectures explaining very clearly the concepts involved in digital design.
 
 I will in this series assume you are at least a little familiar with logic
 gates and digital electronics.
