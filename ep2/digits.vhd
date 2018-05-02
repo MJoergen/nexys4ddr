@@ -16,31 +16,30 @@ end digits;
 
 architecture Structural of digits is
 
-   -- Define screen size
+   -- Define pixel counter range
+   constant H_TOTAL  : integer := 800;
+   constant V_TOTAL  : integer := 525;
+
+   -- Define visible screen size
    constant H_PIXELS : integer := 640;
    constant V_PIXELS : integer := 480;
 
-   -- Define colours
-   constant COL_BLACK : std_logic_vector(7 downto 0) := B"000_000_00";
-   constant COL_DARK  : std_logic_vector(7 downto 0) := B"001_001_01";
-   constant COL_WHITE : std_logic_vector(7 downto 0) := B"111_111_11";
-   constant COL_RED   : std_logic_vector(7 downto 0) := B"111_000_00";
-   constant COL_GREEN : std_logic_vector(7 downto 0) := B"000_111_00";
-   constant COL_BLUE  : std_logic_vector(7 downto 0) := B"000_000_11";
-
    -- Each character is 16x16 pixels, so the screen contains 40x30 characters.
 
-   -- Define positioning of digits
-   constant DIGITS_X : integer := 10;
-   constant DIGITS_Y : integer := 15;
+   -- Define positioning of first digit
+   constant DIGITS_CHAR_X : integer := 10;
+   constant DIGITS_CHAR_Y : integer := 15;
 
+   -- A single character bitmap is defined by 8x8 = 64 bits.
    subtype bitmap_t is std_logic_vector(63 downto 0);
 
+   -- The entire font is defined by an array bitmaps, one for each character.
    type bitmap_vector_t is array (natural range <>) of bitmap_t;
 
    -- Define bitmaps
    -- Taken from https://github.com/dhepper/font8x8/blob/master/font8x8_basic.h
-   constant bitmaps : bitmap_vector_t(0 to 1) := (
+   constant bitmaps : bitmap_vector_t := (
+      -- Digit 0
       "01111100" &
       "11000110" &
       "11001110" &
@@ -50,6 +49,7 @@ architecture Structural of digits is
       "01111100" &
       "00000000",
 
+      -- Digit 1
       "00110000" &
       "01110000" &
       "00110000" &
@@ -59,12 +59,29 @@ architecture Structural of digits is
       "11111100" &
       "00000000");
 
-   -- Character row and column
-   signal char_col : std_logic_vector(5 downto 0);
-   signal char_row : std_logic_vector(5 downto 0);
+   -- Define colours
+   constant COL_BLACK : std_logic_vector(7 downto 0) := B"000_000_00";
+   constant COL_DARK  : std_logic_vector(7 downto 0) := B"001_001_01";
+   constant COL_WHITE : std_logic_vector(7 downto 0) := B"111_111_11";
+   constant COL_RED   : std_logic_vector(7 downto 0) := B"111_000_00";
+   constant COL_GREEN : std_logic_vector(7 downto 0) := B"000_111_00";
+   constant COL_BLUE  : std_logic_vector(7 downto 0) := B"000_000_11";
 
-   signal pix_col : integer range 0 to 7;
-   signal pix_row : integer range 0 to 7;
+
+   -- Character row and column
+   signal char_col : integer range 0 to H_TOTAL/16-1;
+   signal char_row : integer range 0 to V_TOTAL/16-1;
+
+   signal digits_offset : integer range 0 to 7;
+   signal digits_index  : integer range 0 to 7;
+   signal digit         : std_logic;
+
+   signal bitmap        : bitmap_t;
+
+   signal pix_col       : integer range 0 to 7;
+   signal pix_row       : integer range 0 to 7;
+   signal bitmap_index  : integer range 0 to 63;
+   signal pix           : std_logic;
 
    -- Pixel colour
    signal vga_col : std_logic_vector(7 downto 0);
@@ -72,41 +89,55 @@ architecture Structural of digits is
 begin
 
    --------------------------------------------------
+   -- Calculate character coordinates
+   --------------------------------------------------
+
+   char_col <= conv_integer(pix_x_i(9 downto 4));
+   char_row <= conv_integer(pix_y_i(9 downto 4));
+
+   --------------------------------------------------
+   -- Calculate value of digit at current position
+   --------------------------------------------------
+
+   digits_offset <= char_col-DIGITS_CHAR_X;
+   digits_index  <= 7-digits_offset;
+   digit         <= digits_i(digits_index);
+
+   --------------------------------------------------
+   -- Calculate bitmap of digit at current position
+   --------------------------------------------------
+
+   bitmap        <= bitmaps(conv_integer((0 => digit)));
+
+   --------------------------------------------------
+   -- Calculate pixel at current position
+   --------------------------------------------------
+
+   pix_col       <= 7 - conv_integer(pix_x_i(3 downto 1));
+   pix_row       <= 7 - conv_integer(pix_y_i(3 downto 1));
+   bitmap_index  <= pix_row*8+pix_col;
+   pix           <= bitmap(bitmap_index);
+
+
+   --------------------------------------------------
    -- Generate pixel colour
    --------------------------------------------------
 
-   char_col <= pix_x_i(9 downto 4);
-   char_row <= pix_y_i(9 downto 4);
-
-   pix_col  <= 7 - conv_integer(pix_x_i(3 downto 1));
-   pix_row  <= 7 - conv_integer(pix_y_i(3 downto 1));
-
    p_vga_col : process (clk_i)
-      variable char_num_v : integer;
-      variable digit_v    : std_logic;
-      variable bitmap_v   : bitmap_t;
-      variable pix_v      : std_logic;
    begin
       if rising_edge(clk_i) then
 
          -- Set the default background colour
-         vga_col <= COL_DARK;
+         vga_col <= COL_BLACK;
 
-         if char_row = DIGITS_Y and
-            char_col >= DIGITS_X and char_col < DIGITS_X+8 then
+         -- Are we within the borders of the text?
+         if char_row = DIGITS_CHAR_Y and
+            char_col >= DIGITS_CHAR_X and char_col < DIGITS_CHAR_X+8 then
 
-            -- Determine the bit value to show
-            char_num_v := conv_integer(char_col)-DIGITS_X;
-            digit_v := digits_i(7-char_num_v);
-
-            -- Determine the bitmap of this bit value
-            bitmap_v := bitmaps(conv_integer((0 => digit_v)));
-
-            -- Determine the current pixel in the bitmap
-            pix_v := bitmap_v(pix_row*8+pix_col);
-
-            if pix_v = '1' then
+            if pix = '1' then
                vga_col <= COL_WHITE;
+            else
+               vga_col <= COL_DARK; -- Text background colour.
             end if;
          end if;
 
