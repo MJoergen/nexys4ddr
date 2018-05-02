@@ -61,9 +61,14 @@ The tootchain also needs to know the clock frequencies used in the design. These
 described in lines 18-20 in vga.xdc.
 
 ## Build files
-Finally we write a small tcl-script, which is needed by the Vivado tool. And then
-there is a simple Makefile. You will of course need to updated line 1 in the Makefile
-with your particular Xilinx install location. The Makefile defines three targets:
+Finally we write a small tcl-script, which is needed by the Vivado tool. Notice that
+in lines 2 and 3 we define all the sources files in the design, and in line 4 we specify
+the particular FPGA model numnber on the FPGA board. In the case of the Nexys 4 DDR it is
+an Artix 7 FPGA.
+
+And then there is a simple Makefile. You will of course need to updated line 1
+in the Makefile with your particular Xilinx install location. The Makefile
+defines three targets:
 * vga.bit : This synthesizes (=compiles) the design and generates a binary file.
 * fpga    : This transfers the binary file to the FPGA and starts the FPGA.
 * clean   : This deletes all generated files and returns the directory to its original state.
