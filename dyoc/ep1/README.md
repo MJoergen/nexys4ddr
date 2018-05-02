@@ -46,6 +46,10 @@ down. They will count from 0 to 799 and 0 to 524 respectively. These counters
 are generated in lines 71-97 in vga.vhd. And in lines 100-124 we generate the 
 two synchronization signals.
 
+## Colour pattern
+In this design we just start with a simple checkboard pattern. This can be achieved
+by a simple XOR of the x and y coordinates. This is done in lines 127-142 in vga,vhd.
+
 ## Clock input
 The VGA timing for this particular screen resolution requires a pixel clock of
 25 Mhz. However, the crytal oscillator on the FPGA board need not have this 
@@ -72,4 +76,9 @@ defines three targets:
 * vga.bit : This synthesizes (=compiles) the design and generates a binary file.
 * fpga    : This transfers the binary file to the FPGA and starts the FPGA.
 * clean   : This deletes all generated files and returns the directory to its original state.
+
+## Congratulations
+And that's it! You can now program the FPGA, and it should generate a nice checkboard pattern
+on the monitor. Now sit back and enjoy your succes, the fruits of your labour! In the next
+episode, we will expand on the design, adding simple text to the screen.
 
