@@ -53,7 +53,7 @@ Let's talk a bit about what is physically inside an FPGA. Most of the silicon
 area of an FPGA is used by combinatorial logic gates and by 1-bit memory cells
 (also known as registers or flip/flops).  The synthesis tool decides to use
 flip-flops when the design makes use a clocked processes. In other words, the
-synthesis tool regards the clocked process as a *tempplate* and based on this
+synthesis tool regards the clocked process as a *template* and based on this
 template it *infers* one or more flip-flops.
 
 Now, it is possible to build a RAM from only these basic building blocks, i.e.
@@ -63,28 +63,37 @@ silicon area is reserved for special purpose Block RAMs. The question is now
 how to make use of these? Well, again, the synthesis tool recognizes certain
 language templates.
 
-This language template is used in lines 46-62 in mem/mem.vhd. Notice the
-initialization of the memory contents in lines 25-39. In a later episode we'll
-learn how to initialize the memory from a separate file.
+This language template can be seen in lines 46-62 in mem/mem.vhd. Provided
+the dimensions (sizes of address and data bus) meet certain requirements, the
+synthesis tool will make use of Block RAM instead of ordinary general purpose
+logic gates and registers.
+
+Notice the initialization of the memory contents in lines 25-39. In a later
+episode we'll learn how to initialize the memory from a separate file.
 
 ## Expanding VGA output
 This is surprisingly easy. The number of bits has been changed in line 9 of
 vga/vga.vhd as well as line 11, lines 76-77, and line 107 of vga/digits.vhd.
 Furthermore, the position of the array on screen, given in line 30 of
-vga/digits.vhd, has been moved slightly.
+vga/digits.vhd, has been moved slightly. And that is it!
+
+It is somewhat cumbersome reading the output on the screen, because there
+is no separation between the address bus and the data bus. This will be
+fixed in a later episode.
 
 ## Timer
 Currently, the entire design runs at the same clock frequency as the VGA, i.e.
-25 MHz.  This means, that it is not possible to follow visually what is
+25 MHz.  At this speed it is not possible to follow visually what is
 happening. Therefore, we need to control the speed of the design. Not by
-slowing down the clock, but instead by having an extrea control signal that is
+slowing down the clock, but instead by having an extra control signal that is
 asserted only once every second, or so.
 
-Later on, we will indeed need a wait signal for the CPU, so we introduce it
+Since we later on will need a wait signal for the CPU, we decide introduce it
 here in lines 57-68 of comp.vhd. This is basically a 25-bit counter, which
 wraps around after 2^25 clock cycles, i.e. a little over one second. To control
 the speed, the counter increment is controlled by the slide switches, so the
-increment can be any value from 0 to 255.
+increment can be any value from 0 to 255. In this way, we can completely halt
+the execution as well as speed up the execution to roughly 200 Hz.
 
 ## Learnings:
 Using GENERICS to parametrize an entity (similar to templates in C++).
