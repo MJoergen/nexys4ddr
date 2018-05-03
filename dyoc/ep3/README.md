@@ -2,9 +2,9 @@
 
 Welcome to the third episode of "Design Your Own Computer". In this
 episode we will be accomplishing several tasks:
+* Reorganize the code into separate subdirectories.
 * Adding memory to the computer
 * Expanding the VGA output to show 24 bits (16 bits address and 8 bits data).
-* Reorganize the code into separate subdirectories.
 * Add a variable timer to slow down the speed.
 
 The computer can now read contents from the memory and display to the VGA. The
@@ -19,13 +19,72 @@ belonging in a separate directory:
 * cpu : 6502 CPU
 * kbd : Keyboard interface
 
-The VGA part of the computer is now split into two:
-* Generate pixel coordinates and synchronization signals.
-* Generate colour as a function of pixel coordinates.
+It therefore makes sense to start organizing the source code in a directory
+structure that reflects this design.
 
 The new file added is mem/mem.vhd.
 Furthermore, the original file vga.vhd is split into comp.vhd and vga/sync.vhd.
-The top level file is now called comp.vhd
+The top level file is now called comp.vhd. Again, the tcl-file and Makefile
+is updated too.
+
+The VGA part of the computer is now split into two:
+* vga/sync.vhd   : Generate pixel coordinates and synchronization signals.
+* vga/digits.vhd : Generate colour as a function of pixel coordinates.
+
+## What is memory?
+Essentially, a memory is an array of words. In our 8-bit system, each memory
+word is 8 bits, i.e. one byte. This means we can read or write one byte at a time.
+The memory is declared in lines 22-39 of mem/mem.vhd, together with initial
+contents at FPGA startup.  When using a memory, we therefore need to access a
+random (arbitrary) element of this large array. This is also known as a
+multiplexer.
+
+Notice the definition of the memory, given in lines 5-18 of mem/mem.vhd.
+The memory interface consists of an address bus, and a data bus. Even though
+the language (and the FPGA) supports bi-directional data ports, they are
+error prone to use, and I therefore prefer to keep the read data and the write
+data as two separate ports.
+
+It is nice to leave the memory size programmable. This is accomplished
+by the use of *generics* in VHDL. This is comparable to templates in C++.
+
+### What is in an FPGA?
+Let's talk a bit about what is physically inside an FPGA. Most of the silicon
+area of an FPGA is used by combinatorial logic gates and by 1-bit memory cells
+(also known as registers or flip/flops).  The synthesis tool decides to use
+flip-flops when the design makes use a clocked processes. In other words, the
+synthesis tool regards the clocked process as a *tempplate* and based on this
+template it *infers* one or more flip-flops.
+
+Now, it is possible to build a RAM from only these basic building blocks, i.e.
+flip-flops and combinatorial logic gates. However, large multiplexers use a lot
+of logic gates, and there are better ways, because inside the FPGA some of the
+silicon area is reserved for special purpose Block RAMs. The question is now
+how to make use of these? Well, again, the synthesis tool recognizes certain
+language templates.
+
+This language template is used in lines 46-62 in mem/mem.vhd. Notice the
+initialization of the memory contents in lines 25-39. In a later episode we'll
+learn how to initialize the memory from a separate file.
+
+## Expanding VGA output
+This is surprisingly easy. The number of bits has been changed in line 9 of
+vga/vga.vhd as well as line 11, lines 76-77, and line 107 of vga/digits.vhd.
+Furthermore, the position of the array on screen, given in line 30 of
+vga/digits.vhd, has been moved slightly.
+
+## Timer
+Currently, the entire design runs at the same clock frequency as the VGA, i.e.
+25 MHz.  This means, that it is not possible to follow visually what is
+happening. Therefore, we need to control the speed of the design. Not by
+slowing down the clock, but instead by having an extrea control signal that is
+asserted only once every second, or so.
+
+Later on, we will indeed need a wait signal for the CPU, so we introduce it
+here in lines 57-68 of comp.vhd. This is basically a 25-bit counter, which
+wraps around after 2^25 clock cycles, i.e. a little over one second. To control
+the speed, the counter increment is controlled by the slide switches, so the
+increment can be any value from 0 to 255.
 
 ## Learnings:
 Using GENERICS to parametrize an entity (similar to templates in C++).
