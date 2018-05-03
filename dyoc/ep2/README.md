@@ -22,7 +22,7 @@ digits.vhd files.
 
 Since powers of two are the easiest numbers to work with, and since this
 is an 8-bit computer, we'll be using an 8x8 font. I like to use a larger font
-so each symbol in the font will be scaled by a factor of 2, so it in total
+so each symbol on the screen will be scaled by a factor of 2, so it in total
 takes up 16x16 pixels of screen space. This makes the total number of 
 characters on the screen 640/16 = 40 horizontal and 480/16 = 30 vertical.
 I.e. this block can display 40x30 characters.
