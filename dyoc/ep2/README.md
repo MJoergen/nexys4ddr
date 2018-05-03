@@ -9,9 +9,9 @@ The VGA part of the computer is now split into two:
 * Generate pixel coordinates and synchronization signals.
 * Generate colour as a function of pixel coordinates.
 
-In other words, the process to generate colours is removed from vga.vhd, and instead
-we write a new file added is digits.vhd. We need to remember to update the tcl-file
-and the Makefile.
+In other words, the process to generate colours is removed from vga.vhd, and
+instead we write a new file digits.vhd. We need to remember to update the
+tcl-file and the Makefile.
 
 In lines 19-25 of digits.vgd we start by copying some of the constants we need.
 This violates the very good principle DRY (Don't Repeat Yourself). There are
@@ -27,16 +27,18 @@ takes up 16x16 pixels of screen space. This makes the total number of
 characters on the screen 640/16 = 40 horizontal and 480/16 = 30 vertical.
 I.e. this block can display 40x30 characters.
 
-For now, only two symbols will be defined ('0' and '1'). This is done in lines 
-33-60 in digits.vhd. In a later episode, we'll show how to load a font from a separate file.
+For now, only two symbols will be defined ('0' and '1'). This is done in lines
+33-60 in digits.vhd. In a later episode, we'll show how to load a font from a
+separate file.
 
 The position of the 8 binary digits is defined in lines 29-31 of digits.vhd.
 
-The way this display block works is that it takes the pixel coordinates (x,y) as input
-and calculates the pixel colour as output. This calculation is broken down into
+The way this display block works is that it takes the pixel coordinates (x,y)
+as input and calculates the pixel colour as output. This calculation is broken
+down into
 a number of smaller steps:
-* Which character row and coloumn (inside the 40x30 characters) are we currently at (determined from the input
-pixel coordinates).
+* Which character row and coloumn (inside the 40x30 characters) are we
+  currently at (determined from the input pixel coordinates).
 * Which character to display at this position (based on the input digits).
 * Fetch the bitmap associated with this particular character (from the font).
 * Extract the particular pixel in this bitmap to display now.
@@ -44,7 +46,7 @@ pixel coordinates).
 
 
 ## Learnings:
-Values assigned in a process are only stored at the end of the process. Sequential
-calculations must be performed in parallel, e.g. by using separate concurrent
-statements.
+Values assigned in a process are only stored at the end of the process.
+Sequential calculations must be performed in parallel, e.g. by using separate
+concurrent statements.
 
