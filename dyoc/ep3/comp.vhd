@@ -73,9 +73,9 @@ begin
    -- Generate memory address
    --------------------------------------------------
    
-   p_addr : process (clk_i)
+   p_addr : process (vga_clk)
    begin
-      if rising_edge(clk_i) then
+      if rising_edge(vga_clk) then
          if mem_wait = '0' then
             mem_addr <= mem_addr + 1;
          end if;
