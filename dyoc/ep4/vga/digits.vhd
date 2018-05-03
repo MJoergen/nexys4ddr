@@ -57,7 +57,7 @@ architecture Structural of digits is
    -- Value of digit at current position
    signal digits_offset : integer range 0 to 23;
    signal digits_index  : integer range 0 to 23;
-   signal digit         : std_logic;
+   signal nibble        : std_logic_vector(3 downto 0);
 
    -- Bitmap of digit at current position
    signal char          : std_logic_vector(7 downto 0);
@@ -87,15 +87,16 @@ begin
    --------------------------------------------------
 
    digits_offset <= char_col - DIGITS_CHAR_X;
-   digits_index  <= 23 - digits_offset;
-   digit         <= digits_i(digits_index);
+   digits_index  <= 5 - digits_offset;
+   nibble        <= digits_i(4*digits_index+3 downto 4*digits_index);
 
 
    --------------------------------------------------
    -- Calculate character to display at current position
    --------------------------------------------------
 
-   char <= ((0 => digit)) + X"30";
+   char <= nibble + X"30" when nibble < 10 else
+           nibble + X"41" - 10;
 
 
    --------------------------------------------------
@@ -116,7 +117,7 @@ begin
    -- Calculate pixel at current position ('0' or '1')
    --------------------------------------------------
 
-   pix_col       <= 7 - conv_integer(pix_x_i(3 downto 1));
+   pix_col       <= conv_integer(pix_x_i(3 downto 1));
    pix_row       <= 7 - conv_integer(pix_y_i(3 downto 1));
    bitmap_index  <= pix_row*8 + pix_col;
    pix           <= bitmap(bitmap_index);
@@ -135,7 +136,7 @@ begin
 
          -- Are we within the borders of the text?
          if char_row = DIGITS_CHAR_Y and
-            char_col >= DIGITS_CHAR_X and char_col < DIGITS_CHAR_X+8 then
+            char_col >= DIGITS_CHAR_X and char_col < DIGITS_CHAR_X+6 then
 
             if pix = '1' then
                vga_col <= COL_WHITE;
