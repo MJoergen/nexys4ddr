@@ -137,7 +137,7 @@ begin
 
          -- Are we within the borders of the text?
          if char_row = DIGITS_CHAR_Y and
-            char_col >= DIGITS_CHAR_X and char_col < DIGITS_CHAR_X+8 then
+            char_col >= DIGITS_CHAR_X and char_col < DIGITS_CHAR_X+24 then
 
             if pix = '1' then
                vga_col <= COL_WHITE;
