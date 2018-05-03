@@ -1,8 +1,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 entity digits is
+   generic (
+      G_FONT_FILE : string
+   );
    port (
       clk_i     : in  std_logic;
 
@@ -34,30 +38,8 @@ architecture Structural of digits is
    subtype bitmap_t is std_logic_vector(63 downto 0);
 
    -- The entire font is defined by an array bitmaps, one for each character.
-   type bitmap_vector_t is array (natural range <>) of bitmap_t;
+   type bitmap_vector_t is array (0 to 255) of bitmap_t;
 
-   -- Define bitmaps
-   -- Taken from https://github.com/dhepper/font8x8/blob/master/font8x8_basic.h
-   constant bitmaps : bitmap_vector_t := (
-      -- Digit 0
-      "01111100" &
-      "11000110" &
-      "11001110" &
-      "11011110" &
-      "11110110" &
-      "11100110" &
-      "01111100" &
-      "00000000",
-
-      -- Digit 1
-      "00110000" &
-      "01110000" &
-      "00110000" &
-      "00110000" &
-      "00110000" &
-      "00110000" &
-      "11111100" &
-      "00000000");
 
    -- Define colours
    constant COL_BLACK : std_logic_vector(7 downto 0) := B"000_000_00";
@@ -78,7 +60,7 @@ architecture Structural of digits is
    signal digit         : std_logic;
 
    -- Bitmap of digit at current position
-   signal bitmaps_index : integer range 0 to 1;
+   signal char          : std_logic_vector(7 downto 0);
    signal bitmap        : bitmap_t;
 
    -- Pixel at current position
@@ -99,6 +81,7 @@ begin
    char_col <= conv_integer(pix_x_i(9 downto 4));
    char_row <= conv_integer(pix_y_i(9 downto 4));
 
+
    --------------------------------------------------
    -- Calculate value of digit at current position ('0' or '1')
    --------------------------------------------------
@@ -107,12 +90,27 @@ begin
    digits_index  <= 23 - digits_offset;
    digit         <= digits_i(digits_index);
 
+
+   --------------------------------------------------
+   -- Calculate character to display at current position
+   --------------------------------------------------
+
+   char <= ((0 => digit)) + X"30";
+
+
    --------------------------------------------------
    -- Calculate bitmap (64 bits) of digit at current position
    --------------------------------------------------
 
-   bitmaps_index <= conv_integer((0 => digit));
-   bitmap        <= bitmaps(bitmaps_index);
+   i_font : entity work.font
+   generic map (
+      G_FONT_FILE => "font8x8.txt"
+   )
+   port map (
+      char_i   => char,
+      bitmap_o => bitmap
+   );
+
 
    --------------------------------------------------
    -- Calculate pixel at current position ('0' or '1')

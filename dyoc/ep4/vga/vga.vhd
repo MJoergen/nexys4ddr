@@ -44,6 +44,9 @@ begin
    --------------------------------------------------
 
    i_digits : entity work.digits
+   generic map (
+      G_FONT_FILE => "font8x8.txt"
+   )
    port map (
       clk_i     => clk_i,
       pix_x_i   => pix_x,

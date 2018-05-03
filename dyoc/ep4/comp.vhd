@@ -55,7 +55,7 @@ begin
 
    
    --------------------------------------------------
-   -- Generate CPU wait signal
+   -- Generate wait signal
    --------------------------------------------------
 
    process (vga_clk)
@@ -65,6 +65,7 @@ begin
       end if;
    end process;
 
+   -- Check for wrap around of counter.
    mem_wait <= '0' when (mem_wait_cnt + sw_i) < mem_wait_cnt else '1';
 
    
