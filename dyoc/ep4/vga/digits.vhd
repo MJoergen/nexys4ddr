@@ -37,9 +37,6 @@ architecture Structural of digits is
    -- A single character bitmap is defined by 8x8 = 64 bits.
    subtype bitmap_t is std_logic_vector(63 downto 0);
 
-   -- The entire font is defined by an array bitmaps, one for each character.
-   type bitmap_vector_t is array (0 to 255) of bitmap_t;
-
 
    -- Define colours
    constant COL_BLACK : std_logic_vector(7 downto 0) := B"000_000_00";
@@ -54,9 +51,9 @@ architecture Structural of digits is
    signal char_col : integer range 0 to H_TOTAL/16-1;
    signal char_row : integer range 0 to V_TOTAL/16-1;
 
-   -- Value of digit at current position
-   signal digits_offset : integer range 0 to 23;
-   signal digits_index  : integer range 0 to 23;
+   -- Value of nibble at current position
+   signal nibble_offset : integer range 0 to 5;
+   signal nibble_index  : integer range 0 to 5;
    signal nibble        : std_logic_vector(3 downto 0);
 
    -- Bitmap of digit at current position
@@ -86,9 +83,9 @@ begin
    -- Calculate value of digit at current position ('0' or '1')
    --------------------------------------------------
 
-   digits_offset <= char_col - DIGITS_CHAR_X;
-   digits_index  <= 5 - digits_offset;
-   nibble        <= digits_i(4*digits_index+3 downto 4*digits_index);
+   nibble_offset <= char_col - DIGITS_CHAR_X;
+   nibble_index  <= 5 - nibble_offset;
+   nibble        <= digits_i(4*nibble_index+3 downto 4*nibble_index);
 
 
    --------------------------------------------------
