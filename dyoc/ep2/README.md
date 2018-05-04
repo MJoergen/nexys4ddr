@@ -44,6 +44,10 @@ a number of smaller steps:
 * Extract the particular pixel in this bitmap to display now.
 * Choose colour based on this pixel.
 
+## Further changes
+The binary digits to be displayed on the screen are taken from the slide switches
+on the FPGA board. Therefore, thsse are added as inputs in line 9 of vga.vhd, and
+the corresponding pin locations are added to vga.xdc lines 18-25.
 
 ## Learnings:
 Values assigned in a process are only stored at the end of the process.
