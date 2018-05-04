@@ -4,12 +4,12 @@ use ieee.std_logic_unsigned.all;
 
 entity sync is
    port (
-      clk_i    : in  std_logic;
+      clk_i   : in  std_logic;
 
-      pix_x_o  : out std_logic_vector(9 downto 0);
-      pix_y_o  : out std_logic_vector(9 downto 0);
-      vga_hs_o : out std_logic;
-      vga_vs_o : out std_logic
+      pix_x_o : out std_logic_vector(9 downto 0);
+      pix_y_o : out std_logic_vector(9 downto 0);
+      hs_o    : out std_logic;
+      vs_o    : out std_logic
    );
 end sync;
 
@@ -31,12 +31,12 @@ architecture Structural of sync is
    constant VS_TIME  : integer := 2;
 
    -- Pixel counters
-   signal pix_x  : std_logic_vector(9 downto 0);
-   signal pix_y  : std_logic_vector(9 downto 0);
+   signal pix_x : std_logic_vector(9 downto 0);
+   signal pix_y : std_logic_vector(9 downto 0);
 
    -- Synchronization
-   signal vga_hs : std_logic;
-   signal vga_vs : std_logic;
+   signal hs    : std_logic;
+   signal vs    : std_logic;
 
 begin
    
@@ -73,37 +73,35 @@ begin
    -- Generate horizontal and vertical sync signals
    --------------------------------------------------
 
-   p_vga_hs : process (clk_i)
+   p_hs : process (clk_i)
    begin
       if rising_edge(clk_i) then
+         hs <= '1';
          if pix_x >= HS_START and pix_x < HS_START+HS_TIME then
-            vga_hs <= '0';
-         else
-            vga_hs <= '1';
+            hs <= '0';
          end if;
       end if;
-   end process p_vga_hs;
+   end process p_hs;
 
-   p_vga_vs : process (clk_i)
+   p_vs : process (clk_i)
    begin
       if rising_edge(clk_i) then
+         vs <= '1';
          if pix_y >= VS_START and pix_y < VS_START+VS_TIME then
-            vga_vs <= '0';
-         else
-            vga_vs <= '1';
+            vs <= '0';
          end if;
       end if;
-   end process p_vga_vs;
+   end process p_vs;
 
    
    --------------------------------------------------
    -- Drive output signals
    --------------------------------------------------
 
-   vga_hs_o <= vga_hs;
-   vga_vs_o <= vga_vs;
-   pix_x_o  <= pix_x;
-   pix_y_o  <= pix_y;
+   hs_o    <= hs;
+   vs_o    <= vs;
+   pix_x_o <= pix_x;
+   pix_y_o <= pix_y;
 
 end architecture Structural;
 

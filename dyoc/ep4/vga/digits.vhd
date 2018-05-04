@@ -37,9 +37,6 @@ architecture Structural of digits is
    -- A single character bitmap is defined by 8x8 = 64 bits.
    subtype bitmap_t is std_logic_vector(63 downto 0);
 
-   -- The entire font is defined by an array bitmaps, one for each character.
-   type bitmap_vector_t is array (0 to 255) of bitmap_t;
-
 
    -- Define colours
    constant COL_BLACK : std_logic_vector(7 downto 0) := B"000_000_00";
@@ -54,10 +51,10 @@ architecture Structural of digits is
    signal char_col : integer range 0 to H_TOTAL/16-1;
    signal char_row : integer range 0 to V_TOTAL/16-1;
 
-   -- Value of digit at current position
-   signal digits_offset : integer range 0 to 23;
-   signal digits_index  : integer range 0 to 23;
-   signal digit         : std_logic;
+   -- Value of nibble at current position
+   signal nibble_offset : integer range 0 to 5;
+   signal nibble_index  : integer range 0 to 5;
+   signal nibble        : std_logic_vector(3 downto 0);
 
    -- Bitmap of digit at current position
    signal char          : std_logic_vector(7 downto 0);
@@ -86,16 +83,17 @@ begin
    -- Calculate value of digit at current position ('0' or '1')
    --------------------------------------------------
 
-   digits_offset <= char_col - DIGITS_CHAR_X;
-   digits_index  <= 23 - digits_offset;
-   digit         <= digits_i(digits_index);
+   nibble_offset <= char_col - DIGITS_CHAR_X;
+   nibble_index  <= 5 - nibble_offset;
+   nibble        <= digits_i(4*nibble_index+3 downto 4*nibble_index);
 
 
    --------------------------------------------------
    -- Calculate character to display at current position
    --------------------------------------------------
 
-   char <= ((0 => digit)) + X"30";
+   char <= nibble + X"30" when nibble < 10 else
+           nibble + X"41" - 10;
 
 
    --------------------------------------------------
@@ -116,7 +114,7 @@ begin
    -- Calculate pixel at current position ('0' or '1')
    --------------------------------------------------
 
-   pix_col       <= 7 - conv_integer(pix_x_i(3 downto 1));
+   pix_col       <= conv_integer(pix_x_i(3 downto 1));
    pix_row       <= 7 - conv_integer(pix_y_i(3 downto 1));
    bitmap_index  <= pix_row*8 + pix_col;
    pix           <= bitmap(bitmap_index);
@@ -135,7 +133,7 @@ begin
 
          -- Are we within the borders of the text?
          if char_row = DIGITS_CHAR_Y and
-            char_col >= DIGITS_CHAR_X and char_col < DIGITS_CHAR_X+8 then
+            char_col >= DIGITS_CHAR_X and char_col < DIGITS_CHAR_X+6 then
 
             if pix = '1' then
                vga_col <= COL_WHITE;

@@ -6,8 +6,8 @@ episode we focus on displaying 8 binary digits on the screen.
 ## Overall design of VGA module
 
 The VGA part of the computer is now split into two:
-* Generate pixel coordinates and synchronization signals.
-* Generate colour as a function of pixel coordinates.
+* vga.vhd    : Generate pixel coordinates and synchronization signals.
+* digits.vhd : Generate colour as a function of pixel coordinates.
 
 In other words, the process to generate colours is removed from vga.vhd, and
 instead we write a new file digits.vhd. We need to remember to update the
@@ -28,10 +28,11 @@ characters on the screen 640/16 = 40 horizontal and 480/16 = 30 vertical.
 I.e. this block can display 40x30 characters.
 
 For now, only two symbols will be defined ('0' and '1'). This is done in lines
-33-60 in digits.vhd. In a later episode, we'll show how to load a font from a
-separate file.
+33-60 in digits.vhd. In a later episode, we'll show how to load an entire font
+from a separate file.
 
-The position of the 8 binary digits is defined in lines 29-31 of digits.vhd.
+The position on screen of the 8 binary digits is defined in lines 29-31 of
+digits.vhd.
 
 The way this display block works is that it takes the pixel coordinates (x,y)
 as input and calculates the pixel colour as output. This calculation is broken

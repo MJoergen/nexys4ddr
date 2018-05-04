@@ -4,24 +4,24 @@ use ieee.std_logic_unsigned.all;
 
 entity vga is
    port (
-      clk_i    : in  std_logic;
+      clk_i     : in  std_logic;
 
-      digits_i : in  std_logic_vector(23 downto 0);
+      digits_i  : in  std_logic_vector(23 downto 0);
 
-      hs_o     : out std_logic;
-      vs_o     : out std_logic;
-      col_o    : out std_logic_vector(7 downto 0)
+      vga_hs_o  : out std_logic;
+      vga_vs_o  : out std_logic;
+      vga_col_o : out std_logic_vector(7 downto 0)
    );
 end vga;
 
 architecture Structural of vga is
 
    -- VGA signals
-   signal pix_x  : std_logic_vector(9 downto 0);
-   signal pix_y  : std_logic_vector(9 downto 0);
-   signal hs     : std_logic;
-   signal vs     : std_logic;
-   signal col    : std_logic_vector(7 downto 0);
+   signal pix_x   : std_logic_vector(9 downto 0);
+   signal pix_y   : std_logic_vector(9 downto 0);
+   signal vga_hs  : std_logic;
+   signal vga_vs  : std_logic;
+   signal vga_col : std_logic_vector(7 downto 0);
 
 begin
    
@@ -31,11 +31,11 @@ begin
 
    i_sync : entity work.sync
    port map (
-      clk_i   => clk_i,
-      pix_x_o => pix_x,
-      pix_y_o => pix_y,
-      hs_o    => hs,
-      vs_o    => vs
+      clk_i    => clk_i,
+      pix_x_o  => pix_x,
+      pix_y_o  => pix_y,
+      vga_hs_o => vga_hs,
+      vga_vs_o => vga_vs
    );
 
    
@@ -44,12 +44,15 @@ begin
    --------------------------------------------------
 
    i_digits : entity work.digits
+   generic map (
+      G_FONT_FILE => "font8x8.txt"
+   )
    port map (
-      clk_i    => clk_i,
-      pix_x_i  => pix_x,
-      pix_y_i  => pix_y,
-      digits_i => digits_i,
-      col_o    => col
+      clk_i     => clk_i,
+      pix_x_i   => pix_x,
+      pix_y_i   => pix_y,
+      digits_i  => digits_i,
+      vga_col_o => vga_col
    );
 
 
@@ -57,9 +60,9 @@ begin
    -- Drive output signals
    --------------------------------------------------
 
-   hs_o  <= hs;
-   vs_o  <= vs;
-   col_o <= col;
+   vga_hs_o  <= vga_hs;
+   vga_vs_o  <= vga_vs;
+   vga_col_o <= vga_col;
 
 end architecture Structural;
 

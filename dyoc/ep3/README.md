@@ -3,7 +3,7 @@
 Welcome to the third episode of "Design Your Own Computer". In this
 episode we will be accomplishing several tasks:
 * Reorganize the code into separate subdirectories.
-* Adding memory to the computer
+* Adding memory to the computer.
 * Expanding the VGA output to show 24 bits (16 bits address and 8 bits data).
 * Add a variable timer to slow down the speed.
 
@@ -45,8 +45,9 @@ the language (and the FPGA) supports bi-directional data ports, they are
 error prone to use, and I therefore prefer to keep the read data and the write
 data as two separate ports.
 
-It is nice to leave the memory size programmable. This is accomplished
-by the use of *generics* in VHDL. This is comparable to templates in C++.
+It is nice to leave the memory size programmable. This is accomplished by the
+use of *generics* in VHDL, see lines 6-10 in mem/mem.vhd. This is comparable to
+templates in C++.
 
 ### What is in an FPGA?
 Let's talk a bit about what is physically inside an FPGA. Most of the silicon
@@ -73,9 +74,9 @@ episode we'll learn how to initialize the memory from a separate file.
 
 ## Expanding VGA output
 This is surprisingly easy. The number of bits has been changed in line 9 of
-vga/vga.vhd as well as line 11, lines 76-77, and line 107 of vga/digits.vhd.
-Furthermore, the position of the array on screen, given in line 30 of
-vga/digits.vhd, has been moved slightly. And that is it!
+vga/vga.vhd as well as line 11, lines 76-77, line 107, and line 140 of
+vga/digits.vhd.  Furthermore, the position of the array on screen, given in
+line 30 of vga/digits.vhd, has been moved slightly. And that is it!
 
 It is somewhat cumbersome reading the output on the screen, because there
 is no separation between the address bus and the data bus. This will be
@@ -88,12 +89,12 @@ happening. Therefore, we need to control the speed of the design. Not by
 slowing down the clock, but instead by having an extra control signal that is
 asserted only once every second, or so.
 
-Since we later on will need a wait signal for the CPU, we decide introduce it
-here in lines 57-68 of comp.vhd. This is basically a 25-bit counter, which
-wraps around after 2^25 clock cycles, i.e. a little over one second. To control
-the speed, the counter increment is controlled by the slide switches, so the
-increment can be any value from 0 to 255. In this way, we can completely halt
-the execution as well as speed up the execution to roughly 200 Hz.
+Since we later on will need a wait signal for the CPU, we introduce it here in
+lines 57-69 of comp.vhd. This is basically a 25-bit counter, which wraps around
+after 2^25 clock cycles, i.e. a little over one second. To control the speed,
+the counter increment is controlled by the slide switches, so the increment can
+be any value from 0 to 255. In this way, we can completely halt the execution
+as well as speed up the execution to roughly 200 Hz.
 
 ## Learnings:
 Using GENERICS to parametrize an entity (similar to templates in C++).

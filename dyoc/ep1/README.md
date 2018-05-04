@@ -61,7 +61,7 @@ This clock divider is implemented in lines 56-68 of vga.vhd.
 The toolchain needs to know which pins on the FPGA to use, and for this we must refer to the
 [page 7](https://reference.digilentinc.com/_media/reference/programmable-logic/nexys-4-ddr/nexys-4-ddr_sch.pdf)
 on the hardware schematic diagram of the particular board used.
-The tootchain also needs to know the clock frequencies used in the design. These are
+The toolchain also needs to know the clock frequencies used in the design. These are
 described in lines 18-20 in vga.xdc.
 
 ## Build files
@@ -70,7 +70,7 @@ in lines 2 and 3 we define all the sources files in the design, and in line 4 we
 the particular FPGA model numnber on the FPGA board. In the case of the Nexys 4 DDR it is
 an Artix 7 FPGA.
 
-And then there is a simple Makefile. You will of course need to updated line 1
+And then there is a simple Makefile. You will of course need to update line 1
 in the Makefile with your particular Xilinx install location. The Makefile
 defines three targets:
 * vga.bit : This synthesizes (=compiles) the design and generates a binary file.
