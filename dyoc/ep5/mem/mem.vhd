@@ -24,18 +24,18 @@ architecture Structural of mem is
 
    -- Initialize memory contents
    signal mem : mem_t := (
-      X"A1",   -- Just some random data for now.
-      X"B2",
-      X"C3",
-      X"D4",
-      X"E5",
-      X"F6",
-      X"1A",
-      X"2B",
-      X"3C",
-      X"4D",
-      X"5E",
-      X"6F",
+      X"A9",   -- LDA #$01
+      X"01",
+      X"A9",   -- LDA #$10
+      X"10",
+      X"A9",   -- LDA #$03
+      X"03",
+      X"A9",   -- LDA #$30
+      X"30",
+      X"A9",   -- LDA #$07
+      X"07",
+      X"A9",   -- LDA #$70
+      X"70",
       others => X"00");
 
    -- Data read from memory.

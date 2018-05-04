@@ -12,7 +12,7 @@ entity digits is
 
       pix_x_i   : in  std_logic_vector(9 downto 0);
       pix_y_i   : in  std_logic_vector(9 downto 0);
-      digits_i  : in  std_logic_vector(23 downto 0);
+      digits_i  : in  std_logic_vector(47 downto 0);
 
       vga_col_o : out std_logic_vector(7 downto 0)
    );
@@ -52,8 +52,8 @@ architecture Structural of digits is
    signal char_row : integer range 0 to V_TOTAL/16-1;
 
    -- Value of nibble at current position
-   signal nibble_offset : integer range 0 to 5;
-   signal nibble_index  : integer range 0 to 5;
+   signal nibble_offset : integer range 0 to 11;
+   signal nibble_index  : integer range 0 to 11;
    signal nibble        : std_logic_vector(3 downto 0);
 
    -- Bitmap of digit at current position
@@ -84,7 +84,7 @@ begin
    --------------------------------------------------
 
    nibble_offset <= char_col - DIGITS_CHAR_X;
-   nibble_index  <= 5 - nibble_offset;
+   nibble_index  <= 11 - nibble_offset;
    nibble        <= digits_i(4*nibble_index+3 downto 4*nibble_index);
 
 
@@ -133,7 +133,7 @@ begin
 
          -- Are we within the borders of the text?
          if char_row = DIGITS_CHAR_Y and
-            char_col >= DIGITS_CHAR_X and char_col < DIGITS_CHAR_X+6 then
+            char_col >= DIGITS_CHAR_X and char_col < DIGITS_CHAR_X+12 then
 
             if pix = '1' then
                vga_col <= COL_WHITE;

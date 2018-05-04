@@ -25,17 +25,20 @@ architecture Structural of comp is
    signal mem_wait_cnt  : std_logic_vector(24 downto 0) := (others => '0');
    signal mem_wait      : std_logic;
 
-   -- Memory signals
-   signal mem_addr : std_logic_vector(15 downto 0);
-   signal mem_data : std_logic_vector(7 downto 0);
+   -- Data Path signals
+   signal cpu_addr  : std_logic_vector(15 downto 0);
+   signal mem_data  : std_logic_vector(7 downto 0);
+   signal cpu_data  : std_logic_vector(7 downto 0);
+   signal cpu_wren  : std_logic;
+   signal cpu_debug : std_logic_vector(39 downto 0);
 
    -- Input to VGA block
-   signal digits   : std_logic_vector(23 downto 0);
+   signal digits    : std_logic_vector(47 downto 0);
 
    -- Output from VGA block
-   signal vga_hs   : std_logic;
-   signal vga_vs   : std_logic;
-   signal vga_col  : std_logic_vector(7 downto 0);
+   signal vga_hs    : std_logic;
+   signal vga_vs    : std_logic;
+   signal vga_col   : std_logic_vector(7 downto 0);
 
 begin
    
@@ -70,18 +73,18 @@ begin
 
    
    --------------------------------------------------
-   -- Generate memory address
+   -- Instantiate CPU
    --------------------------------------------------
    
-   p_addr : process (vga_clk)
-   begin
-      if rising_edge(vga_clk) then
-         if mem_wait = '0' then
-            mem_addr <= mem_addr + 1;
-         end if;
-      end if;
-   end process p_addr;
-
+   i_cpu : entity work.cpu
+   port map (
+      clk_i   => vga_clk,
+      addr_o  => cpu_addr,
+      data_i  => mem_data,
+      wren_o  => cpu_wren,
+      data_o  => cpu_data,
+      debug_o => cpu_debug
+   );
 
    --------------------------------------------------
    -- Instantiate memory
@@ -93,10 +96,10 @@ begin
    )
    port map (
       clk_i  => vga_clk,
-      addr_i => mem_addr(3 downto 0),
+      addr_i => cpu_addr(3 downto 0),
       data_o => mem_data,
-      wren_i => '0',
-      data_i => (others => '0')
+      wren_i => cpu_wren,
+      data_i => cpu_data
    );
 
 
@@ -104,8 +107,8 @@ begin
    -- Generate data to be shown on VGA
    --------------------------------------------------
 
-   digits(23 downto 8) <= mem_addr;
-   digits( 7 downto 0) <= mem_data;
+   digits(47 downto 40) <= mem_data;
+   digits(39 downto  0) <= cpu_debug;
 
 
    --------------------------------------------------
