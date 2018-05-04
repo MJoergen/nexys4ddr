@@ -67,7 +67,7 @@ begin
    p_pc : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         pc <= pc + 1;
+         pc <= pc + 1;                 -- Increment program counter every clock cycle
       end if;
    end process p_pc;
 
@@ -91,7 +91,7 @@ begin
    begin
       if rising_edge(clk_i) then
          if last = '1' then
-            cnt <= (others => '0');
+            cnt <= (others => '0');    -- Reset counter at end of every instruction.
          else
             cnt <= cnt + 1;
          end if;
@@ -103,16 +103,16 @@ begin
    begin
       if rising_edge(clk_i) then
          if cnt = 0 then
-            ir <= data_i;
+            ir <= data_i;              -- Only load instruction register at beginning of instruction.
          end if;
       end if;
    end process p_ir;
 
    -- Generate Control Signals
-   a_sel <= '1' when cnt = 1 and ir = X"A9" else
+   a_sel <= '1' when cnt = 1 and ir = X"A9" else   -- Load 'A' register in second cycle of the "LDA #" instruction.
             '0';
 
-   last <= '1' when cnt = 1 and ir = X"A9" else
+   last <= '1' when cnt = 1 and ir = X"A9" else    -- The "LDA #" instruction only lasts two clock cycles.
            '0';
 
 end architecture structural;
