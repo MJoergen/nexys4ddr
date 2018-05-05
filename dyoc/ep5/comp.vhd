@@ -79,6 +79,7 @@ begin
    i_cpu : entity work.cpu
    port map (
       clk_i   => vga_clk,
+      wait_i  => mem_wait,
       addr_o  => cpu_addr,
       data_i  => mem_data,
       wren_o  => cpu_wren,
