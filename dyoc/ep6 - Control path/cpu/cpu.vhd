@@ -12,13 +12,18 @@ entity cpu is
       data_o  : out std_logic_vector(7 downto 0);
       wren_o  : out std_logic;
 
-      debug_o : out std_logic_vector(47 downto 0)
+      debug_o : out std_logic_vector(95 downto 0)
    );
 end entity cpu;
 
 architecture structural of cpu is
 
-   signal a_sel : std_logic;
+   signal ar_sel   : std_logic;
+   signal hi_sel   : std_logic;
+   signal lo_sel   : std_logic;
+   signal pc_sel   : std_logic_vector(1 downto 0);
+   signal addr_sel : std_logic_vector(1 downto 0);
+   signal data_sel : std_logic_vector(1 downto 0);
 
 begin
 
@@ -36,9 +41,14 @@ begin
       data_o  => data_o,
       wren_o  => wren_o,
 
-      a_sel_i => a_sel,
+      ar_sel_i   => ar_sel,
+      hi_sel_i   => hi_sel,
+      lo_sel_i   => lo_sel,
+      pc_sel_i   => pc_sel,
+      addr_sel_i => addr_sel,
+      data_sel_i => data_sel,
 
-      debug_o => debug_o(47 downto 16)
+      debug_o => debug_o(95 downto 16)
    );
 
 
@@ -53,7 +63,12 @@ begin
 
       data_i  => data_i,
 
-      a_sel_o => a_sel,
+      ar_sel_o   => ar_sel,
+      hi_sel_o   => hi_sel,
+      lo_sel_o   => lo_sel,
+      pc_sel_o   => pc_sel,
+      addr_sel_o => addr_sel,
+      data_sel_o => data_sel,
 
       debug_o => debug_o(15 downto 0)
    );

@@ -6,7 +6,7 @@ entity vga is
    port (
       clk_i     : in  std_logic;
 
-      digits_i  : in  std_logic_vector(47 downto 0);
+      digits_i  : in  std_logic_vector(95 downto 0);
 
       vga_hs_o  : out std_logic;
       vga_vs_o  : out std_logic;

@@ -26,16 +26,17 @@ architecture Structural of mem is
    signal mem : mem_t := (
       X"A9",   -- LDA #$01
       X"01",
-      X"A9",   -- LDA #$10
-      X"10",
-      X"A9",   -- LDA #$03
-      X"03",
-      X"A9",   -- LDA #$30
-      X"30",
-      X"A9",   -- LDA #$07
-      X"07",
-      X"A9",   -- LDA #$70
-      X"70",
+      X"8D",   -- STA $000F
+      X"0F",
+      X"00",
+      X"A9",   -- LDA #$02
+      X"02",
+      X"AD",   -- LDA $000F
+      X"0F",
+      X"00",
+      X"4C",   -- JMP $0002
+      X"02",
+      X"00",
       others => X"00");
 
    -- Data read from memory.

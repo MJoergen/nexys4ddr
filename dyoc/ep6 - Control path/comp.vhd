@@ -30,7 +30,7 @@ architecture Structural of comp is
    signal mem_data  : std_logic_vector(7 downto 0);
    signal cpu_data  : std_logic_vector(7 downto 0);
    signal cpu_wren  : std_logic;
-   signal cpu_debug : std_logic_vector(47 downto 0);
+   signal cpu_debug : std_logic_vector(95 downto 0);
 
    -- Output from VGA block
    signal vga_hs    : std_logic;
