@@ -12,7 +12,7 @@ entity cpu is
       data_o  : out std_logic_vector(7 downto 0);
       wren_o  : out std_logic;
 
-      debug_o : out std_logic_vector(39 downto 0)
+      debug_o : out std_logic_vector(47 downto 0)
    );
 end entity cpu;
 
@@ -38,7 +38,7 @@ begin
 
       a_sel_i => a_sel,
 
-      debug_o => debug_o(39 downto 16)
+      debug_o => debug_o(47 downto 16)
    );
 
 

@@ -30,10 +30,7 @@ architecture Structural of comp is
    signal mem_data  : std_logic_vector(7 downto 0);
    signal cpu_data  : std_logic_vector(7 downto 0);
    signal cpu_wren  : std_logic;
-   signal cpu_debug : std_logic_vector(39 downto 0);
-
-   -- Input to VGA block
-   signal digits    : std_logic_vector(47 downto 0);
+   signal cpu_debug : std_logic_vector(47 downto 0);
 
    -- Output from VGA block
    signal vga_hs    : std_logic;
@@ -105,21 +102,13 @@ begin
 
 
    --------------------------------------------------
-   -- Generate data to be shown on VGA
-   --------------------------------------------------
-
-   digits(47 downto 40) <= mem_data;
-   digits(39 downto  0) <= cpu_debug;
-
-
-   --------------------------------------------------
    -- Generate VGA module
    --------------------------------------------------
 
    i_vga : entity work.vga
    port map (
       clk_i     => vga_clk,
-      digits_i  => digits,
+      digits_i  => cpu_debug,
       vga_hs_o  => vga_hs,
       vga_vs_o  => vga_vs,
       vga_col_o => vga_col
