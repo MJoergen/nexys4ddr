@@ -38,7 +38,7 @@ architecture Structural of digits is
    constant TEXT_CHAR_Y   : integer := DIGITS_CHAR_Y;
 
    type txt_t is array (0 to 14) of character;
-   constant txt : txt_t := "DI AR" & "IR CN" & "  PC ";
+   constant txt : txt_t := "DI AR" & "  PC " & "IR CN";
 
    -- A single character bitmap is defined by 8x8 = 64 bits.
    subtype bitmap_t is std_logic_vector(63 downto 0);
