@@ -1,10 +1,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
-use ieee.numeric_std.all;
 
 entity mem is
    generic (
+      -- Number of bits in the address bus. The size of the memory will
+      -- be 2**G_ADDR_BITS bytes.
       G_ADDR_BITS : integer
    );
    port (
@@ -18,53 +19,47 @@ end mem;
 
 architecture Structural of mem is
 
-   -- Just 2 kBytes of memory.
+   -- This defines a type containing an array of bytes
    type mem_t is array (0 to 2**G_ADDR_BITS-1) of std_logic_vector(7 downto 0);
 
    -- Initialize memory contents
    signal mem : mem_t := (
-      X"A9",   -- LDA #
+      X"A9",   -- LDA #$01
+      X"01",
+      X"A9",   -- LDA #$10
+      X"10",
+      X"A9",   -- LDA #$03
+      X"03",
+      X"A9",   -- LDA #$30
+      X"30",
+      X"A9",   -- LDA #$07
       X"07",
-
-      X"AD",   -- LDA a
-      X"02",
-      X"00",
-
-      X"8D",   -- STA a
-      X"08",
-      X"00",
-
-      X"8D",   -- STA a
-      X"08",
-      X"00",
-
-      X"4C",   -- JMP a
-      X"02",
-      X"00",
-
+      X"A9",   -- LDA #$70
+      X"70",
       others => X"00");
 
+   -- Data read from memory.
    signal data : std_logic_vector(7 downto 0);
 
 begin
 
    -- Write process
-   process (clk_i)
+   p_mem : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wren_i = '1' then
             mem(conv_integer(addr_i)) <= data_i;
          end if;
       end if;
-   end process;
+   end process p_mem;
 
    -- Read process
-   process (clk_i)
+   p_data : process (clk_i)
    begin
-      if falling_edge(clk_i) then
+      if rising_edge(clk_i) then
          data <= mem(conv_integer(addr_i));
       end if;
-   end process;
+   end process p_data;
 
    -- Drive output signals
    data_o <= data;
