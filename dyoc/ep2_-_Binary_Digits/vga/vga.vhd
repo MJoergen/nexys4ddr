@@ -4,13 +4,13 @@ use ieee.std_logic_unsigned.all;
 
 entity vga is
    port (
-      clk_i     : in  std_logic;                      -- 100 MHz
+      clk_i     : in  std_logic;
 
       digits_i  : in  std_logic_vector(7 downto 0);
 
       vga_hs_o  : out std_logic;
       vga_vs_o  : out std_logic;
-      vga_col_o : out std_logic_vector(7 downto 0)    -- RRRGGGBB
+      vga_col_o : out std_logic_vector(7 downto 0)
    );
 end vga;
 
