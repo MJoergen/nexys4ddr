@@ -131,12 +131,15 @@ begin
    p_vga_col : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
-         vga_col <= COL_BLACK;   -- Default to black everywhere.
 
-         if pix_x < H_PIXELS and pix_y < V_PIXELS then
-            if (pix_x(4) xor pix_y(4)) = '1' then
-               vga_col <= COL_WHITE;
-            end if;
+         -- Generate checker board pattern
+         if (pix_x(4) xor pix_y(4)) = '1' then
+            vga_col <= COL_WHITE;
+         end if;
+
+         -- Make sure colour is black outside the visible area.
+         if pix_x >= H_PIXELS or pix_y >= V_PIXELS then
+            vga_col <= COL_BLACK;
          end if;
       end if;
    end process p_vga_col;

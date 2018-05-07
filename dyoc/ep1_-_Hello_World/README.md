@@ -33,22 +33,23 @@ to historical reasons, the timing actually corresponds to a larger area of in
 total 800x525 pixels, indicated as the black regions in the diagram below
 ![VGA timing](VGA_timing.png "VGA timing")
 It is essential that the colour output is exactly zero (black) when outside the
-visible region.  The two narrow bands in the diagram shows the timing of the
+visible region.  The two narrow bands in the diagram show the timing of the
 two synchronization signals, *hs* and *vs*.  All the timing signals for this
 screen resolution is described on
-[page 17](http://caxapa.ru/thumbs/361638/DMTv1r11.pdf)
+[pages 11 and 17](http://caxapa.ru/thumbs/361638/DMTv1r11.pdf)
 in the VESA monitor timing standard.
-The relevant timing parameters are defined in lines 17-30 in vga.vhd.
+The relevant timing parameters are defined in lines 17-30 in vga.vhd. I've tried
+to give the constants with names that are recognizable from the above VESA standard.
 
 ## Pixel counters
 In the VHDL code we will have two pixel counters, x and y, where y is positive
-down. They will count from 0 to 799 and 0 to 524 respectively. These counters
-are generated in lines 71-97 in vga.vhd. And in lines 100-124 we generate the 
-two synchronization signals.
+down. They will count from 0 to 799 in the x-direction and from 0 to 524 in the
+y-direction. These counters are generated in lines 71-97 in vga.vhd. And in
+lines 100-124 we generate the two synchronization signals.
 
 ## Colour pattern
 In this design we just start with a simple checkboard pattern. This can be achieved
-by a simple XOR of the x and y coordinates. This is done in lines 127-142 in vga,vhd.
+by a simple XOR of the x and y coordinates. This is done in lines 127-145 in vga,vhd.
 
 ## Clock input
 The VGA timing for this particular screen resolution requires a pixel clock of
@@ -61,17 +62,18 @@ This clock divider is implemented in lines 56-68 of vga.vhd.
 The toolchain needs to know which pins on the FPGA to use, and for this we must refer to the
 [page 7](https://reference.digilentinc.com/_media/reference/programmable-logic/nexys-4-ddr/nexys-4-ddr_sch.pdf)
 on the hardware schematic diagram of the particular board used.
-The toolchain also needs to know the clock frequencies used in the design. These are
-described in lines 18-20 in vga.xdc.
+All pin locations must be specified. They are defined in lines 5-16 in vga.xdc.
+The toolchain also needs to know the clock frequencies used in the design.
+These are described in lines 18-20 in vga.xdc.
 
 ## Build files
 Finally we write a small tcl-script, which is needed by the Vivado tool. Notice that
-in lines 2 and 3 we define all the sources files in the design, and in line 4 we specify
-the particular FPGA model numnber on the FPGA board. In the case of the Nexys 4 DDR it is
+in lines 2 and 3 we define all the source files in the design, and in line 4 we specify
+the particular FPGA model number on the FPGA board. In the case of the Nexys 4 DDR it is
 an Artix 7 FPGA.
 
 And then there is a simple Makefile. You will of course need to update line 1
-in the Makefile with your particular Xilinx install location. The Makefile
+in the Makefile with your particular Xilinx install location and version. The Makefile
 defines three targets:
 * vga.bit : This synthesizes (=compiles) the design and generates a binary file.
 * fpga    : This transfers the binary file to the FPGA and starts the FPGA.
@@ -79,6 +81,9 @@ defines three targets:
 
 ## Congratulations
 And that's it! You can now program the FPGA, and it should generate a nice checkboard pattern
-on the monitor. Now sit back and enjoy your succes, the fruits of your labour! In the next
-episode, we will expand on the design, adding simple text to the screen.
+on the monitor. Now sit back and enjoy your succes, the fruits of your labour!
+I strongly encourage you to play around with this design, and try to make other patterns on the screen.
+What happens if the VGA colour is not black outside the visible screen?
+
+In the next episode we will expand on the design and make it possible to display binary digits.
 
