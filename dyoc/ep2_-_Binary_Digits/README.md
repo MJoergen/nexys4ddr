@@ -34,7 +34,7 @@ For now, only two symbols will be defined ('0' and '1'). This is done in lines
 33-60 in digits.vhd. The font is copied from
 [another project](https://github.com/dhepper/font8x8/blob/master/font8x8_basic.h).
 I've converted the font data to binary in order to make the display of the font
-more visible in the source file.  In a later episode, we'll show how to load an
+more visible in the source file.  In a later episode, we'll see how to load an
 entire font from a separate file.
 
 The position on screen of the 8 binary digits is defined in lines 29-31 of
