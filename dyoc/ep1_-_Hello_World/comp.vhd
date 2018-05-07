@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
-entity vga is
+entity comp is
    port (
       clk_i     : in  std_logic;                      -- 100 MHz
 
@@ -10,9 +10,9 @@ entity vga is
       vga_vs_o  : out std_logic;
       vga_col_o : out std_logic_vector(7 downto 0)    -- RRRGGGBB
    );
-end vga;
+end comp;
 
-architecture Structural of vga is
+architecture Structural of comp is
 
    -- Define constants used for 640x480 @ 60 Hz.
    -- Requires a clock of 25.175 MHz.

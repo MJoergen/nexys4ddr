@@ -5,9 +5,9 @@ Welcome to this first episode of "Design Your Own Computer", where we draw a
 checker board pattern on the VGA output.
 
 ## Files generated in this series:
-* vga.vhd   : Main source file
-* vga.xdc   : Pin locations (specific for each FPGA board)
-* vga.tcl   : List of commands for Vivado
+* comp.vhd   : Main source file
+* comp.xdc   : Pin locations (specific for each FPGA board)
+* comp.tcl   : List of commands for Vivado
 * Makefile  : Overall project makefile
 
 ## Key learnings in this episode:
@@ -24,7 +24,7 @@ the board, in the form of a resistor network. In that way, the Nexys 4 DDR
 board supports four bits of information for each of the three colour channels,
 i.e. 12 colour bits.  However, since this is going to be an 8-bit computer, we
 will only use three bits for red and green, and two bits for blue. Values for
-some common colours are defined in lines 32-37 in vga.vhd.
+some common colours are defined in lines 32-37 in comp.vhd.
 
 ## VGA timing
 In this project we will work with a resolution of 640x480 pixels @ 60 Hz screen
@@ -39,33 +39,33 @@ two synchronization signals, *hs* and *vs*.  All the timing signals for this
 screen resolution is described on
 [pages 11 and 17](http://caxapa.ru/thumbs/361638/DMTv1r11.pdf)
 in the VESA monitor timing standard.
-The relevant timing parameters are defined in lines 17-30 in vga.vhd. I've tried
+The relevant timing parameters are defined in lines 17-30 in comp.vhd. I've tried
 to give the constants with names that are recognizable from the above VESA standard.
 
 ## Pixel counters
 In the VHDL code we will have two pixel counters, x and y, where y is positive
 down. They will count from 0 to 799 in the x-direction and from 0 to 524 in the
-y-direction. These counters are generated in lines 71-97 in vga.vhd. And in
+y-direction. These counters are generated in lines 71-97 in comp.vhd. And in
 lines 100-124 we generate the two synchronization signals.
 
 ## Colour pattern
 In this design we just start with a simple checkboard pattern. This can be achieved
-by a simple XOR of the x and y coordinates. This is done in lines 127-145 in vga,vhd.
+by a simple XOR of the x and y coordinates. This is done in lines 127-145 in comp.vhd.
 
 ## Clock input
 The VGA timing for this particular screen resolution requires a pixel clock of
 25 Mhz. However, the crytal oscillator on the FPGA board need not have this 
 precise frequency. On the Nexys 4 DDR board the oscillator has a frequency of 100
 MHz. This frequency can conveniently be divided by 4 using a simple 2-bit counter.
-This clock divider is implemented in lines 56-68 of vga.vhd.
+This clock divider is implemented in lines 56-68 of comp.vhd.
 
 ## Pin locations
 The toolchain needs to know which pins on the FPGA to use, and for this we must refer to the
 [page 7](https://reference.digilentinc.com/_media/reference/programmable-logic/nexys-4-ddr/nexys-4-ddr_sch.pdf)
 on the hardware schematic diagram of the particular board used.
-All pin locations must be specified. They are defined in lines 5-16 in vga.xdc.
+All pin locations must be specified. They are defined in lines 5-16 in comp.xdc.
 The toolchain also needs to know the clock frequencies used in the design.
-These are described in lines 18-20 in vga.xdc.
+These are described in lines 18-20 in comp.xdc.
 
 ## Build files
 Finally we write a small tcl-script, which is needed by the Vivado tool. Notice that
@@ -76,7 +76,7 @@ an Artix 7 FPGA.
 And then there is a simple Makefile. You will of course need to update line 1
 in the Makefile with your particular Xilinx install location and version. The Makefile
 defines three targets:
-* vga.bit : This synthesizes (=compiles) the design and generates a binary file.
+* comp.bit : This synthesizes (=compiles) the design and generates a binary file.
 * fpga    : This transfers the binary file to the FPGA and starts the FPGA.
 * clean   : This deletes all generated files and returns the directory to its original state.
 
