@@ -1,4 +1,5 @@
-# Design Your Own Computer - Episode 1 : "Hello World"
+# Design Your Own Computer
+# Episode 1 : "Hello World"
 
 Welcome to this first episode of "Design Your Own Computer", where we draw a
 checker board pattern on the VGA output.
