@@ -10,9 +10,9 @@ Before we proceed it is useful to organize the source code in smaller units,
 each with a single responsibility. So we will keep comp.vhd as the top level
 block describing the entire computer, but move any logic into smaller parts. So
 far we only have a VGA block, but eventually we'll have blocks for CPU, Memory,
-and Keyboard.
+and Keyboard. We will leave the clock divider in comp.vhd for now.
 
-The directory vga/ will contain three files:
+The directory vga will contain three files:
 * sync.vhd   : Generates the internal pixel counters
 * digits.vhd : Generates the colour and synchronization, as function of the internal
 pixel counters.
