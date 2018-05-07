@@ -61,6 +61,24 @@ therefore have to add the pin locations of these switches. This happens in
 lines 18-25 in vga.xdc.  Additionally, we have to add the signals to the top
 level entity declaration in line 9 of vga.vhd.
 
+## Timing
+Some words on the timing of the synchronization and colour signals. It is
+important that the timing specification in the VESA standard is followed. In
+our implementation both the synchronization signals and the colour signals are
+derived from (i.e. functions of) the pixel counters. So in lines 95-119 of
+vga.vhd the synchronization signals are driven in a clocked process. This means
+that the synchronization signals are delayed one clock cycle compared to the
+pixel counters. However, the same applies to the colour signals driven in lines
+128-156 of digits.vhd. Here too, the signals are delayed one clock cycle.
+All-in-all, since both the synchronization signals and the colour signals are
+delayed the same amount, they will be mutually consistent.
+
+Later, we'll add more clock cycle delays in the colour generation, and we must
+therefore ensure the same amount of delay in the synchronization signals.
+
+I highly encourage you to play around with the delay of either the
+synchronization signals or the colour signals to see what happens.
+
 ## Learnings:
 Values assigned in a process are only stored at the end of the process.
 Sequential calculations must be performed in parallel, e.g. by using separate
