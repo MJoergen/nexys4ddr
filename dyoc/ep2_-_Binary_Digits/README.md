@@ -1,4 +1,5 @@
-# Design Your Own Computer - Episode 2 : "Getting text on the screen"
+# Design Your Own Computer
+# Episode 2 : "Binary Digits"
 
 Welcome to the second episode of "Design Your Own Computer". In this
 episode we focus on displaying 8 binary digits on the screen.

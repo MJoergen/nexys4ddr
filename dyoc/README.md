@@ -28,7 +28,7 @@ We will be designing and building these blocks roughly in the above order.
 ## List of episodes: ##
 ### VGA ###
 1. [**"Hello World"**](ep1_-_Hello_World). Here you will generate a checkerboard pattern on the VGA output.
-2. [**"Getting text on the screen"**](ep2_-_Text_on_Screen). Here you will learn how to display a string of binary digits on VGA.
+2. [**"Binary Digits"**](ep2_-_Binary_Digits). Here you will learn how to display a string of binary digits on VGA.
 3. [**"Adding memory to the system"**](ep3_-_Memory). Here we will add memory to the system, and display accesses on VGA.
 4. [**"Adding hexadecimal output to VGA"**](ep4_-_Hexadecimal). Here we will implement a complete font and show data in hexadecimal format.
 ### CPU ###
