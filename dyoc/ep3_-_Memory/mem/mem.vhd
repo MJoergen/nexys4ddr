@@ -10,10 +10,18 @@ entity mem is
    );
    port (
       clk_i  : in  std_logic;
+
+      -- Current address selected.
       addr_i : in  std_logic_vector(G_ADDR_BITS-1 downto 0);
-      wren_i : in  std_logic;
+
+      -- Data contents at the selected address.
+      data_o : out std_logic_vector(7 downto 0);
+
+      -- New data to (optionally) be written to the selected address.
       data_i : in  std_logic_vector(7 downto 0);
-      data_o : out std_logic_vector(7 downto 0)
+
+      -- '1' indicates we wish to perform a write at the selected address.
+      wren_i : in  std_logic
    );
 end mem;
 

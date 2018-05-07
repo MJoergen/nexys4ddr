@@ -1,4 +1,5 @@
-# Design Your Own Computer - Episode 3 : "Adding memory to the system"
+# Design Your Own Computer
+# Episode 3 : "Adding memory to the system"
 
 Welcome to the third episode of "Design Your Own Computer". In this
 episode we will be accomplishing several tasks:
@@ -22,32 +23,33 @@ belonging in a separate directory:
 It therefore makes sense to start organizing the source code in a directory
 structure that reflects this design.
 
-The new file added is mem/mem.vhd.
-Furthermore, the original file vga.vhd is split into comp.vhd and vga/sync.vhd.
-The top level file is now called comp.vhd. Again, the tcl-file and Makefile
-is updated too.
+The new file added is mem/mem.vhd.  Furthermore, the original file vga.vhd is
+split into comp.vhd and vga/sync.vhd.  Again, the goal is that each file has
+only one responsibility.  The top level file is now called comp.vhd. Again, the
+tcl-file and Makefile is updated too.
 
-The VGA part of the computer is now split into two:
+The VGA part of the computer is now split into three source file:
 * vga/sync.vhd   : Generate pixel coordinates and synchronization signals.
 * vga/digits.vhd : Generate colour as a function of pixel coordinates.
+* vga/vga.vhd    : Combines the two other blocks in a single block.
 
 ## What is memory?
 Essentially, a memory is an array of words. In our 8-bit system, each memory
 word is 8 bits, i.e. one byte. This means we can read or write one byte at a time.
-The memory is declared in lines 22-39 of mem/mem.vhd, together with initial
+The memory is declared in lines 30-47 of mem/mem.vhd, together with initial
 contents at FPGA startup.  When using a memory, we therefore need to access a
 random (arbitrary) element of this large array. This is also known as a
 multiplexer.
 
-Notice the definition of the memory, given in lines 5-18 of mem/mem.vhd.
+Notice the definition of the memory block, given in lines 5-26 of mem/mem.vhd.
 The memory interface consists of an address bus, and a data bus. Even though
 the language (and the FPGA) supports bi-directional data ports, they are
 error prone to use, and I therefore prefer to keep the read data and the write
 data as two separate ports.
 
 It is nice to leave the memory size programmable. This is accomplished by the
-use of *generics* in VHDL, see lines 6-10 in mem/mem.vhd. This is comparable to
-templates in C++.
+use of *generics* in VHDL, see lines 6-10 in mem/mem.vhd. This is somewhat
+comparable to templates in C++.
 
 ### What is in an FPGA?
 Let's talk a bit about what is physically inside an FPGA. Most of the silicon
@@ -64,12 +66,12 @@ silicon area is reserved for special purpose Block RAMs. The question is now
 how to make use of these? Well, again, the synthesis tool recognizes certain
 language templates.
 
-This language template can be seen in lines 46-62 in mem/mem.vhd. Provided
+This language template can be seen in lines 54-70 in mem/mem.vhd. Provided
 the dimensions (sizes of address and data bus) meet certain requirements, the
-synthesis tool will make use of Block RAM instead of ordinary general purpose
-logic gates and registers.
+synthesis tool will make use of the special purpose Block RAM instead of
+ordinary general purpose logic gates and registers.
 
-Notice the initialization of the memory contents in lines 25-39. In a later
+Notice the initialization of the memory contents in lines 33-47. In a later
 episode we'll learn how to initialize the memory from a separate file.
 
 ## Expanding VGA output
