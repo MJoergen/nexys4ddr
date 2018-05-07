@@ -20,16 +20,8 @@ architecture Structural of vga is
    -- Requires a clock of 25.175 MHz.
    -- See page 17 in "VESA MONITOR TIMING STANDARD"
    -- http://caxapa.ru/thumbs/361638/DMTv1r11.pdf
-   constant H_PIXELS : integer := 640;
-   constant V_PIXELS : integer := 480;
-   --
    constant H_TOTAL  : integer := 800;
-   constant HS_START : integer := 656;
-   constant HS_TIME  : integer := 96;
-   --
    constant V_TOTAL  : integer := 525;
-   constant VS_START : integer := 490;
-   constant VS_TIME  : integer := 2;
 
    -- Clock divider
    signal cnt : std_logic_vector(1 downto 0) := (others => '0');
@@ -93,33 +85,6 @@ begin
 
    
    --------------------------------------------------
-   -- Generate horizontal and vertical sync signals
-   --------------------------------------------------
-
-   p_vga_hs : process (vga_clk)
-   begin
-      if rising_edge(vga_clk) then
-         if pix_x >= HS_START and pix_x < HS_START+HS_TIME then
-            vga_hs <= '0';
-         else
-            vga_hs <= '1';
-         end if;
-      end if;
-   end process p_vga_hs;
-
-   p_vga_vs : process (vga_clk)
-   begin
-      if rising_edge(vga_clk) then
-         if pix_y >= VS_START and pix_y < VS_START+VS_TIME then
-            vga_vs <= '0';
-         else
-            vga_vs <= '1';
-         end if;
-      end if;
-   end process p_vga_vs;
-
-   
-   --------------------------------------------------
    -- Generate pixel colour
    --------------------------------------------------
 
@@ -129,6 +94,8 @@ begin
       pix_x_i   => pix_x,
       pix_y_i   => pix_y,
       digits_i  => sw_i,
+      vga_hs_o  => vga_hs,
+      vga_vs_o  => vga_vs,
       vga_col_o => vga_col
    );
 

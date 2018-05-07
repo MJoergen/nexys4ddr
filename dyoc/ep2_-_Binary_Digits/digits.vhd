@@ -10,6 +10,8 @@ entity digits is
       pix_y_i   : in  std_logic_vector(9 downto 0);
       digits_i  : in  std_logic_vector(7 downto 0);
 
+      vga_hs_o  : out std_logic;
+      vga_vs_o  : out std_logic;
       vga_col_o : out std_logic_vector(7 downto 0)
    );
 end digits;
@@ -23,6 +25,12 @@ architecture Structural of digits is
    -- Define visible screen size
    constant H_PIXELS : integer := 640;
    constant V_PIXELS : integer := 480;
+
+   -- Define VGA timing constants
+   constant HS_START : integer := 656;
+   constant HS_TIME  : integer := 96;
+   constant VS_START : integer := 490;
+   constant VS_TIME  : integer := 2;
 
    -- Each character is 16x16 pixels, so the screen contains 40x30 characters.
 
@@ -91,6 +99,10 @@ architecture Structural of digits is
    -- Pixel colour
    signal vga_col : std_logic_vector(7 downto 0);
 
+   -- Synchronization
+   signal vga_hs  : std_logic;
+   signal vga_vs  : std_logic;
+
 begin
 
    --------------------------------------------------
@@ -157,10 +169,39 @@ begin
 
 
    --------------------------------------------------
+   -- Generate horizontal and vertical sync signals
+   --------------------------------------------------
+
+   p_vga_hs : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if pix_x_i >= HS_START and pix_x_i < HS_START+HS_TIME then
+            vga_hs <= '0';
+         else
+            vga_hs <= '1';
+         end if;
+      end if;
+   end process p_vga_hs;
+
+   p_vga_vs : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if pix_y_i >= VS_START and pix_y_i < VS_START+VS_TIME then
+            vga_vs <= '0';
+         else
+            vga_vs <= '1';
+         end if;
+      end if;
+   end process p_vga_vs;
+
+
+   --------------------------------------------------
    -- Drive output signals
    --------------------------------------------------
 
    vga_col_o <= vga_col;
+   vga_hs_o  <= vga_hs;
+   vga_vs_o  <= vga_vs;
 
 end architecture Structural;
 
