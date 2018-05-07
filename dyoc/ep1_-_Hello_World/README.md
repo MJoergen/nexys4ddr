@@ -82,6 +82,7 @@ defines three targets:
 ## Congratulations
 And that's it! You can now program the FPGA, and it should generate a nice checkboard pattern
 on the monitor. Now sit back and enjoy your succes, the fruits of your labour!
+
 I strongly encourage you to play around with this design, and try to make other patterns on the screen.
 What happens if the VGA colour is not black outside the visible screen?
 
