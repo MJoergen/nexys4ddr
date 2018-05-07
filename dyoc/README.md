@@ -1,6 +1,6 @@
 # Design Your Own Computer #
 
-Welcome to this series where you will learn how to *Design Your Own Computer*!
+Welcome to this series where you will learn how to *Design Your Own Computer* on an FPGA!
 
 ## Overview of series ##
 
@@ -17,7 +17,7 @@ Of course, the ultimate goal is to have fun building stuff!
 
 ## Overall design ##
 
-The computer we're building will be running on a FPGA board, and inside the FPGA there will be:
+The computer we're building will be running on an FPGA board, and inside the FPGA there will be:
 * VGA interface (GPU)
 * Memory (RAM and ROM)
 * 6502 CPU
@@ -27,14 +27,14 @@ We will be designing and building these blocks roughly in the above order.
 
 ## List of episodes: ##
 ### VGA ###
-1. [**"Hello World"**](ep1 - Hello World). Here you will generate a checkerboard pattern on the VGA output.
-2. [**"Getting text on the screen"**](ep2 - Text on Screen). Here you will learn how to display a string of binary digits on VGA.
-3. [**"Adding memory to the system"**](ep3 - Memory). Here we will add memory to the system, and display accesses on VGA.
-4. [**"Adding hexadecimal output to VGA"**](ep4 - Hexadecimal). Here we will implement a complete font and show data in hexadecimal format.
+1. [**"Hello World"**](ep1_-_Hello_World). Here you will generate a checkerboard pattern on the VGA output.
+2. [**"Getting text on the screen"**](ep2_-_Text_on_Screen). Here you will learn how to display a string of binary digits on VGA.
+3. [**"Adding memory to the system"**](ep3_-_Memory). Here we will add memory to the system, and display accesses on VGA.
+4. [**"Adding hexadecimal output to VGA"**](ep4_-_Hexadecimal). Here we will implement a complete font and show data in hexadecimal format.
 ### CPU ###
-5. [**"Datapath"**](ep5 - Datapath). Here the skeleton of the CPU datapath will be developed. Instructions implemented:  1/151.
-6. [**"Control logic"**](ep6 - Control path). The control logic will be greatly expanded. Instructions implemented:  4/151.
-7. [**"ALU"**](ep7 - ALU). Here the Arithmetic and Logic Unit will be added to the CPU. Instructions implemented: ??/151.
+5. [**"Datapath"**](ep5_-_Datapath). Here the skeleton of the CPU datapath will be developed. Instructions implemented:  1/151.
+6. [**"Control logic"**](ep6_-_Control path). The control logic will be greatly expanded. Instructions implemented:  4/151.
+7. [**"ALU"**](ep7_-_ALU). Here the Arithmetic and Logic Unit will be added to the CPU. Instructions implemented: ??/151.
 
 More to come soon...
 
