@@ -4,19 +4,27 @@
 Welcome to the second episode of "Design Your Own Computer". In this
 episode we focus on displaying 8 binary digits on the screen.
 
-## Overall design of VGA module
+## Overall design
 
-It is useful to organize the source code in several small files rather than one
-large file. Each small source file should have just a single functionality.
-Therefore, the VGA part of the computer is now split into two:
-* vga.vhd    : Generate pixel coordinates and synchronization signals.
-* digits.vhd : Generate colour as a function of pixel coordinates.
+Before we proceed it is useful to organize the source code in smaller units,
+each with a single responsibility. So we will keep comp.vhd as the top level
+block describing the entire computer, but move any logic into smaller parts. So
+far we only have a VGA block, but eventually we'll have blocks for CPU, Memory,
+and Keyboard.
 
-In other words, the process to generate colours is removed from vga.vhd, and
-instead we write a new file digits.vhd. We need to remember to update the
-tcl-file and the Makefile.
+The directory vga/ will contain three files:
+* sync.vhd   : Generates the internal pixel counters
+* digits.vhd : Generates the colour and synchronization, as function of the internal
+pixel counters.
+* vga.vhd    : Ties together the two files above.
 
-In lines 19-25 of digits.vgd we start by copying some of the constants we need.
+We need to remember to update the tcl-file and the Makefile.
+
+## Binary digits
+
+The new functionality will now be located in the file vga/digits.vhd.
+
+In lines 19-25 we start by copying some of the constants we need.
 This unfortunately violates the very good principle DRY (Don't Repeat
 Yourself). There are ways to avoid this in VHDL, but for now we'll just accept
 this small amount of duplicate code. But it does mean, that if you decide to
