@@ -33,8 +33,8 @@ We will be designing and building these blocks roughly in the above order.
 4. [**"Adding hexadecimal output to VGA"**](ep4_-_Hexadecimal). Here we will implement a complete font and show data in hexadecimal format.
 ### CPU ###
 5. [**"Datapath"**](ep5_-_Datapath). Here the skeleton of the CPU datapath will be developed. Instructions implemented:  1/151.
-6. [**"Control logic"**](ep6_-_Control_Logic). The control logic will be greatly expanded. Instructions implemented:  4/151.
-7. [**"Control logic"**](ep7_-_Control_Logic_2). The control logic will be greatly expanded. Instructions implemented:  4/151.
+6. [**"Load and Store"**](ep6_-_Load_And_Store). We will add instructions that load and store in memory. Instructions implemented:  4/151.
+7. [**"Control logic"**](ep7_-_Control_Logic). The control logic will be greatly expanded. Instructions implemented:  4/151.
 8. [**"ALU"**](ep8_-_ALU). Here the Arithmetic and Logic Unit will be added to the CPU. Instructions implemented: ??/151.
 
 More to come soon...
