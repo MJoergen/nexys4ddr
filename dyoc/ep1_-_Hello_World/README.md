@@ -53,7 +53,7 @@ The VGA timing for this particular screen resolution requires a pixel clock of
 (approximately) 25 Mhz. However, the crytal oscillator on the FPGA board need
 not have this precise frequency. On the Nexys 4 DDR board the oscillator has a
 frequency of 100 MHz. This frequency can conveniently be divided by 4 using a
-simple 2-bit counter.  This clock divider is implemented in lines 56-68 of
+simple 2-bit counter.  This clock divider is implemented in lines 62-74 of
 comp.vhd.
 
 There are ways to achieve clock rates that are rational multiples of the input clock
@@ -63,12 +63,12 @@ simple frequency divider.
 ## Pixel counters
 In the VHDL code we will have two pixel counters, x and y, where y is positive
 down. They will count from 0 to 799 in the x-direction and from 0 to 524 in the
-y-direction. These counters are generated in lines 71-97 in comp.vhd. And in
-lines 100-124 we generate the two synchronization signals.
+y-direction. These counters are generated in lines 77-103 in comp.vhd. And in
+lines 106-135 we generate the two synchronization signals.
 
 ## Colour pattern
 In this design we just start with a simple checkboard pattern. This can be achieved
-by a simple XOR of the x and y coordinates. This is done in lines 127-145 in comp.vhd.
+by a simple XOR of the x and y coordinates. This is done in lines 138-156 in comp.vhd.
 
 Notice how both the synchronization signals and the colour output are all functions
 of the current pixel coordinates. This is important and ensures that the relative
@@ -79,10 +79,11 @@ the VESA standard.
 The toolchain needs to know which pins on the FPGA to use, and for this we must refer to the
 [page 7](https://reference.digilentinc.com/_media/reference/programmable-logic/nexys-4-ddr/nexys-4-ddr_sch.pdf)
 on the hardware schematic diagram of the particular board used.
-All pin locations must be specified. They are defined in lines 5-16 in comp.xdc.
+All pin locations must be specified. They are defined in lines 5-16 in comp.xdc. The comments
+at the end of each line refers to the signal name used in the hardware schematic diagram.
+The corresponding signal names are defined in lines 7-11 in comp.vhd.
 The toolchain also needs to know the clock frequencies used in the design.
-These are described in lines 18-20 in comp.xdc. The corresponding signal names
-are defined in lines 7-11 in comp.vhd.
+These are described in lines 18-20 in comp.xdc.
 
 ## Build files
 Finally we write a small tcl-script, which is needed by the Vivado tool. Notice
