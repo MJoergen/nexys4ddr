@@ -24,6 +24,10 @@ the language (and the FPGA) supports bi-directional data ports, they are
 error prone to use, and I therefore prefer to keep the read data and the write
 data as two separate ports.
 
+With two separate ports it is possible to read from and write to the memory
+simultaneously. However, we will not be using that possibility in this design,
+because the 6502 CPU does not support that.
+
 It is nice to leave the memory size programmable. This is accomplished by the
 use of *generics* in VHDL, see lines 15-19 in mem/mem.vhd. This is somewhat
 comparable to templates in C++.
