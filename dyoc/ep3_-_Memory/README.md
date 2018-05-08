@@ -52,6 +52,11 @@ the dimensions (sizes of address and data bus) meet certain requirements, the
 synthesis tool will make use of the special purpose Block RAM instead of
 ordinary general purpose logic gates and registers.
 
+Note particularly that reading from memory must be inside a clocked process.
+This means that the data read is available on the following clock cycle, i.e.
+delayed one clock cycle. This will become important later on, when the CPU
+needs to interface to the memory.
+
 Notice the initialization of the memory contents in lines 42-56. In a later
 episode we'll learn how to initialize the memory from a separate file.
 
