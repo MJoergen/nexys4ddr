@@ -35,7 +35,7 @@ comparable to templates in C++.
 The memory is instantiated in lines 86-100 in comp.vhd, where the size of the
 memory is chosen. For now we just choose a small size make debugging easier.
 
-### What is in an FPGA?
+### What is inside an FPGA?
 Let's talk a bit about what is physically inside an FPGA. Most of the silicon
 area of an FPGA is used by combinatorial logic gates and by 1-bit memory cells
 (also known as registers or flip/flops).  The synthesis tool decides to use
