@@ -154,38 +154,6 @@ begin
    pix           <= bitmap(bitmap_index);
 
    --------------------------------------------------
-   -- Generate horizontal sync signal
-   --------------------------------------------------
-
-   p_vga_hs : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if pix_x_i >= HS_START and pix_x_i < HS_START+HS_TIME then
-            vga.hs <= '0';
-         else
-            vga.hs <= '1';
-         end if;
-      end if;
-   end process p_vga_hs;
-
-
-   --------------------------------------------------
-   -- Generate vertical sync signal
-   --------------------------------------------------
-
-   p_vga_vs : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if pix_y_i >= VS_START and pix_y_i < VS_START+VS_TIME then
-            vga.vs <= '0';
-         else
-            vga.vs <= '1';
-         end if;
-      end if;
-   end process p_vga_vs;
-
-   
-   --------------------------------------------------
    -- Generate pixel colour
    --------------------------------------------------
 
@@ -214,6 +182,36 @@ begin
 
       end if;
    end process p_vga_col;
+
+   --------------------------------------------------
+   -- Generate horizontal sync signal
+   --------------------------------------------------
+
+   p_vga_hs : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if pix_x_i >= HS_START and pix_x_i < HS_START+HS_TIME then
+            vga.hs <= '0';
+         else
+            vga.hs <= '1';
+         end if;
+      end if;
+   end process p_vga_hs;
+
+   --------------------------------------------------
+   -- Generate vertical sync signal
+   --------------------------------------------------
+
+   p_vga_vs : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if pix_y_i >= VS_START and pix_y_i < VS_START+VS_TIME then
+            vga.vs <= '0';
+         else
+            vga.vs <= '1';
+         end if;
+      end if;
+   end process p_vga_vs;
 
 
    --------------------------------------------------

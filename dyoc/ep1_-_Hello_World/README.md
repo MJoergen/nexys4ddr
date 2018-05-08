@@ -75,6 +75,24 @@ of the current pixel coordinates. This is important and ensures that the relativ
 timing between the colour signal and the synchronization signals matches that of
 the VESA standard.
 
+## Timing
+Some words on the timing of the synchronization and colour signals. It is
+important that the timing specification in the VESA standard is followed. In
+our implementation both the synchronization signals and the colour signals are
+derived from (i.e. functions of) the pixel counters. So in lines 106-135 of
+comp.vhd the synchronization signals are driven in a clocked process. This means
+that the synchronization signals are delayed one clock cycle compared to the
+pixel counters. However, the same applies to the colour signals driven in lines
+138-156. Here too, the signals are delayed one clock cycle.
+All-in-all, since both the synchronization signals and the colour signals are
+delayed the same amount, they will be mutually consistent.
+
+Later, we'll add more clock cycle delays in the colour generation, and we must
+therefore ensure the same amount of delay in the synchronization signals.
+
+I highly encourage you to play around with the delay of either the
+synchronization signals or the colour signals to see what happens.
+
 ## Pin locations
 The toolchain needs to know which pins on the FPGA to use, and for this we must refer to the
 [page 7](https://reference.digilentinc.com/_media/reference/programmable-logic/nexys-4-ddr/nexys-4-ddr_sch.pdf)
