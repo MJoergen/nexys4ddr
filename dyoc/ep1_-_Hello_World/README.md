@@ -4,7 +4,7 @@
 Welcome to this first episode of "Design Your Own Computer", where we draw a
 checker board pattern on the VGA output.
 
-## Files generated in this series:
+## Files written in this episode:
 * comp.vhd  : Main source file
 * comp.xdc  : Pin locations (specific for each FPGA board)
 * comp.tcl  : List of commands for Vivado
@@ -96,6 +96,13 @@ defines three targets:
 * comp.bit : This synthesizes (=compiles) the design and generates a binary file.
 * fpga     : This transfers the binary file to the FPGA and starts the FPGA.
 * clean    : This deletes all generated files and returns the directory to its original state.
+
+## Files generated
+When building the project, two files are generated:
+* comp.bit : This is the bit file to be programmed into the FPGA
+* comp.dcp : This is a Design Check Point, which contains the design in a
+  compiled format that can be opened in the Vivado tool for examination. We
+  will not be using this feature right now, but it can be useful for debugging.
 
 ## Congratulations
 And that's it! You can now program the FPGA, and it should generate a nice
