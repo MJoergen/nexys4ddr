@@ -13,19 +13,19 @@ speed of the timer can be controlled from the slide switches.
 ## What is memory?
 Essentially, a memory is an array of words. In our 8-bit system, each memory
 word is 8 bits, i.e. one byte. This means we can read or write one byte at a time.
-The memory is declared in lines 30-47 of mem/mem.vhd, together with initial
+The memory is declared in lines 39-56 of mem/mem.vhd, together with initial
 contents at FPGA startup.  When using a memory, we therefore need to access a
 random (arbitrary) element of this large array. This is also known as a
 multiplexer.
 
-Notice the definition of the memory block, given in lines 5-26 of mem/mem.vhd.
+Notice the definition of the memory block, given in lines 14-35 of mem/mem.vhd.
 The memory interface consists of an address bus, and a data bus. Even though
 the language (and the FPGA) supports bi-directional data ports, they are
 error prone to use, and I therefore prefer to keep the read data and the write
 data as two separate ports.
 
 It is nice to leave the memory size programmable. This is accomplished by the
-use of *generics* in VHDL, see lines 6-10 in mem/mem.vhd. This is somewhat
+use of *generics* in VHDL, see lines 15-19 in mem/mem.vhd. This is somewhat
 comparable to templates in C++.
 
 ### What is in an FPGA?
@@ -43,19 +43,19 @@ silicon area is reserved for special purpose Block RAMs. The question is now
 how to make use of these? Well, again, the synthesis tool recognizes certain
 language templates.
 
-This language template can be seen in lines 54-70 in mem/mem.vhd. Provided
+This language template can be seen in lines 63-79 in mem/mem.vhd. Provided
 the dimensions (sizes of address and data bus) meet certain requirements, the
 synthesis tool will make use of the special purpose Block RAM instead of
 ordinary general purpose logic gates and registers.
 
-Notice the initialization of the memory contents in lines 33-47. In a later
+Notice the initialization of the memory contents in lines 42-56. In a later
 episode we'll learn how to initialize the memory from a separate file.
 
 ## Expanding VGA output
 This is surprisingly easy. The number of bits has been changed in line 9 of
-vga/vga.vhd as well as line 11, lines 76-77, line 107, and line 140 of
+vga/vga.vhd as well as line 15, lines 91-92, line 122, and line 155 of
 vga/digits.vhd.  Furthermore, the position of the array on screen, given in
-line 30 of vga/digits.vhd, has been moved slightly. And that is it!
+line 45 of vga/digits.vhd, has been moved slightly. And that is it!
 
 It is somewhat cumbersome reading the output on the screen, because there
 is no separation between the address bus and the data bus. This will be

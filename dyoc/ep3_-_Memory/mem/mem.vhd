@@ -2,6 +2,15 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
+-- This module models a single-port synchronous RAM.
+-- Even though there are separate signals for data
+-- input and data output, simultaneous read and write
+-- will not be used in this design.
+--
+-- Data read is present on the following clock cycle,
+-- i.e. there is a delay of one clock cycle when reading
+-- from this memory.
+
 entity mem is
    generic (
       -- Number of bits in the address bus. The size of the memory will
