@@ -62,7 +62,7 @@ episode we'll learn how to initialize the memory from a separate file.
 
 ## Expanding VGA output
 This is surprisingly easy. The number of bits has been changed in line 9 of
-vga/vga.vhd as well as line 15, lines 91-92, line 122, and line 155 of
+vga/vga.vhd as well as line 15, lines 91-92, line 132, and line 165 of
 vga/digits.vhd.  Furthermore, the position of the array on screen, given in
 line 45 of vga/digits.vhd, has been moved slightly. And that is it!
 
