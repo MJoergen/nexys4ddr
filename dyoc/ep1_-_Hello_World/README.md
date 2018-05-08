@@ -5,10 +5,15 @@ Welcome to this first episode of "Design Your Own Computer", where we draw a
 checker board pattern on the VGA output.
 
 ## Files generated in this series:
-* comp.vhd   : Main source file
-* comp.xdc   : Pin locations (specific for each FPGA board)
-* comp.tcl   : List of commands for Vivado
+* comp.vhd  : Main source file
+* comp.xdc  : Pin locations (specific for each FPGA board)
+* comp.tcl  : List of commands for Vivado
 * Makefile  : Overall project makefile
+
+The above files constitute the bare necessities for a FPGA project. As this project
+grows we will add more source files. However, the comp.vhd will remain the "top level"
+source file, and the project name is "comp". This project name is referenced in
+line 4 of comp.tcl, and is defined in lines 5, 13, and 15 in the file comp.vhd.
 
 ## Key learnings in this episode:
 * Each signal may only be assigned values in one process. If more than one process
@@ -17,14 +22,15 @@ because this essentially corresponds to a short-ciruit within the FPGA, and
 fortunately the toolchain prevents that :-)
 
 ## VGA colour
-The colour to the monitor is in the form of three analog signals, one for
-each of the primary colours Red, Green, and Blue. Since the FPGA can only
-generate digital signals, a simple Digital-to-Analog converter is built into
-the board, in the form of a resistor network. In that way, the Nexys 4 DDR
-board supports four bits of information for each of the three colour channels,
-i.e. 12 colour bits.  However, since this is going to be an 8-bit computer, we
-will only use three bits for red and green, and two bits for blue. Values for
-some common colours are defined in lines 32-37 in comp.vhd.
+The colour to the monitor is in the form of three analog signals, one for each
+of the primary colours Red, Green, and Blue. Since the FPGA can only generate
+digital signals, a simple Digital-to-Analog converter is built into the board,
+in the form of a resistor network. In that way, the Nexys 4 DDR board supports
+four bits of resolution for each of the three colours, i.e. a total of 12
+colour bits.  However, since this is going to be an 8-bit computer, we will
+only use three bits for red and green, and two bits for blue, for a total of
+eitght bit. Values for some common colours are defined in lines 32-37 in
+comp.vhd.
 
 ## VGA timing
 In this project we will work with a resolution of 640x480 pixels @ 60 Hz screen
@@ -35,12 +41,24 @@ total 800x525 pixels, indicated as the black regions in the diagram below
 ![VGA timing](VGA_timing.png "VGA timing")
 It is essential that the colour output is exactly zero (black) when outside the
 visible region.  The two narrow bands in the diagram show the timing of the
-two synchronization signals, *hs* and *vs*.  All the timing signals for this
+two synchronization signals: *hs* and *vs*.  All the timing signals for this
 screen resolution is described on
 [pages 11 and 17](http://caxapa.ru/thumbs/361638/DMTv1r11.pdf)
 in the VESA monitor timing standard.
 The relevant timing parameters are defined in lines 17-30 in comp.vhd. I've tried
-to give the constants with names that are recognizable from the above VESA standard.
+to give the constants names that are recognizable from the above VESA standard.
+
+## Clock input
+The VGA timing for this particular screen resolution requires a pixel clock of
+(approximately) 25 Mhz. However, the crytal oscillator on the FPGA board need
+not have this precise frequency. On the Nexys 4 DDR board the oscillator has a
+frequency of 100 MHz. This frequency can conveniently be divided by 4 using a
+simple 2-bit counter.  This clock divider is implemented in lines 56-68 of
+comp.vhd.
+
+There are ways to achieve clock rates that are rational multiples of the input clock
+rate, but to keep this simple (and portable) we'll just stick with this
+simple frequency divider.
 
 ## Pixel counters
 In the VHDL code we will have two pixel counters, x and y, where y is positive
@@ -52,40 +70,37 @@ lines 100-124 we generate the two synchronization signals.
 In this design we just start with a simple checkboard pattern. This can be achieved
 by a simple XOR of the x and y coordinates. This is done in lines 127-145 in comp.vhd.
 
-## Clock input
-The VGA timing for this particular screen resolution requires a pixel clock of
-25 Mhz. However, the crytal oscillator on the FPGA board need not have this 
-precise frequency. On the Nexys 4 DDR board the oscillator has a frequency of 100
-MHz. This frequency can conveniently be divided by 4 using a simple 2-bit counter.
-This clock divider is implemented in lines 56-68 of comp.vhd.
-
 ## Pin locations
 The toolchain needs to know which pins on the FPGA to use, and for this we must refer to the
 [page 7](https://reference.digilentinc.com/_media/reference/programmable-logic/nexys-4-ddr/nexys-4-ddr_sch.pdf)
 on the hardware schematic diagram of the particular board used.
 All pin locations must be specified. They are defined in lines 5-16 in comp.xdc.
 The toolchain also needs to know the clock frequencies used in the design.
-These are described in lines 18-20 in comp.xdc.
+These are described in lines 18-20 in comp.xdc. The corresponding signal names
+are defined in lines 7-11 in comp.vhd.
 
 ## Build files
-Finally we write a small tcl-script, which is needed by the Vivado tool. Notice that
-in lines 2 and 3 we define all the source files in the design, and in line 4 we specify
-the particular FPGA model number on the FPGA board. In the case of the Nexys 4 DDR it is
-an Artix 7 FPGA.
+Finally we write a small tcl-script, which is needed by the Vivado tool. Notice
+that in lines 2 and 3 we define all the source files in the design, and in line
+4 we specify the particular FPGA model number on the FPGA board. In the case of
+the Nexys 4 DDR it is an Artix 7 FPGA.
 
 And then there is a simple Makefile. You will of course need to update line 1
 in the Makefile with your particular Xilinx install location and version. The Makefile
 defines three targets:
 * comp.bit : This synthesizes (=compiles) the design and generates a binary file.
-* fpga    : This transfers the binary file to the FPGA and starts the FPGA.
-* clean   : This deletes all generated files and returns the directory to its original state.
+* fpga     : This transfers the binary file to the FPGA and starts the FPGA.
+* clean    : This deletes all generated files and returns the directory to its original state.
 
 ## Congratulations
-And that's it! You can now program the FPGA, and it should generate a nice checkboard pattern
-on the monitor. Now sit back and enjoy your succes, the fruits of your labour!
+And that's it! You can now program the FPGA, and it should generate a nice
+checkboard pattern on the monitor. Now sit back and enjoy your succes, the
+fruits of your labour!
 
-I strongly encourage you to play around with this design, and try to make other patterns on the screen.
-What happens if the VGA colour is not black outside the visible screen?
+I strongly encourage you to play around with this design, and try to make other
+patterns on the screen.  What happens if the VGA colour is not black outside
+the visible screen?
 
-In the next episode we will expand on the design and make it possible to display binary digits.
+In the next episode we will expand on the design and make it possible to
+display binary digits.
 
