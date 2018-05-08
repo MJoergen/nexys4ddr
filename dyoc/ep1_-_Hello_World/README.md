@@ -70,6 +70,11 @@ lines 100-124 we generate the two synchronization signals.
 In this design we just start with a simple checkboard pattern. This can be achieved
 by a simple XOR of the x and y coordinates. This is done in lines 127-145 in comp.vhd.
 
+Notice how both the synchronization signals and the colour output are all functions
+of the current pixel coordinates. This is important and ensures that the relative
+timing between the colour signal and the synchronization signals matches that of
+the VESA standard.
+
 ## Pin locations
 The toolchain needs to know which pins on the FPGA to use, and for this we must refer to the
 [page 7](https://reference.digilentinc.com/_media/reference/programmable-logic/nexys-4-ddr/nexys-4-ddr_sch.pdf)

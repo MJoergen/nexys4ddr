@@ -44,12 +44,17 @@ architecture Structural of comp is
    signal pix_x : std_logic_vector(9 downto 0);
    signal pix_y : std_logic_vector(9 downto 0);
 
-   -- Synchronization
-   signal vga_hs  : std_logic;
-   signal vga_vs  : std_logic;
+   -- We group together all the VGA signals into a single record.
+   type t_vga is record
+      -- Synchronization
+      hs  : std_logic;
+      vs  : std_logic;
 
-   -- Pixel colour
-   signal vga_col : std_logic_vector(7 downto 0);
+      -- Pixel colour
+      col : std_logic_vector(7 downto 0);
+   end record t_vga;
+
+   signal vga : t_vga;
 
 begin
    
@@ -98,27 +103,32 @@ begin
 
    
    --------------------------------------------------
-   -- Generate horizontal and vertical sync signals
+   -- Generate horizontal sync signal
    --------------------------------------------------
 
    p_vga_hs : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
          if pix_x >= HS_START and pix_x < HS_START+HS_TIME then
-            vga_hs <= '0';
+            vga.hs <= '0';
          else
-            vga_hs <= '1';
+            vga.hs <= '1';
          end if;
       end if;
    end process p_vga_hs;
+
+
+   --------------------------------------------------
+   -- Generate vertical sync signal
+   --------------------------------------------------
 
    p_vga_vs : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
          if pix_y >= VS_START and pix_y < VS_START+VS_TIME then
-            vga_vs <= '0';
+            vga.vs <= '0';
          else
-            vga_vs <= '1';
+            vga.vs <= '1';
          end if;
       end if;
    end process p_vga_vs;
@@ -134,12 +144,12 @@ begin
 
          -- Generate checker board pattern
          if (pix_x(4) xor pix_y(4)) = '1' then
-            vga_col <= COL_WHITE;
+            vga.col <= COL_WHITE;
          end if;
 
          -- Make sure colour is black outside the visible area.
          if pix_x >= H_PIXELS or pix_y >= V_PIXELS then
-            vga_col <= COL_BLACK;
+            vga.col <= COL_BLACK;
          end if;
       end if;
    end process p_vga_col;
@@ -149,9 +159,9 @@ begin
    -- Drive output signals
    --------------------------------------------------
 
-   vga_hs_o  <= vga_hs;
-   vga_vs_o  <= vga_vs;
-   vga_col_o <= vga_col;
+   vga_hs_o  <= vga.hs;
+   vga_vs_o  <= vga.vs;
+   vga_col_o <= vga.col;
 
 end architecture Structural;
 
