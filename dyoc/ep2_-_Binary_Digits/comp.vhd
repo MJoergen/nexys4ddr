@@ -17,13 +17,8 @@ end comp;
 architecture Structural of comp is
 
    -- Clock divider for VGA
-   signal vga_cnt  : std_logic_vector(1 downto 0) := (others => '0');
-   signal vga_clk  : std_logic;
-
-   -- Output from VGA block
-   signal vga_hs   : std_logic;
-   signal vga_vs   : std_logic;
-   signal vga_col  : std_logic_vector(7 downto 0);
+   signal vga_cnt : std_logic_vector(1 downto 0) := (others => '0');
+   signal vga_clk : std_logic;
 
 begin
    
@@ -32,37 +27,28 @@ begin
    -- This is close enough to 25.175 MHz.
    --------------------------------------------------
 
-   process (clk_i)
+   p_vga_cnt : process (clk_i)
    begin
       if rising_edge(clk_i) then
          vga_cnt <= vga_cnt + 1;
       end if;
-   end process;
+   end process p_vga_cnt;
 
    vga_clk <= vga_cnt(1);
 
-   
+
    --------------------------------------------------
-   -- Generate VGA module
+   -- Instantiate VGA module
    --------------------------------------------------
 
    i_vga : entity work.vga
    port map (
       clk_i     => vga_clk,
       digits_i  => sw_i,
-      vga_hs_o  => vga_hs,
-      vga_vs_o  => vga_vs,
-      vga_col_o => vga_col
+      vga_hs_o  => vga_hs_o,
+      vga_vs_o  => vga_vs_o,
+      vga_col_o => vga_col_o
    );
-
-
-   --------------------------------------------------
-   -- Drive output signals
-   --------------------------------------------------
-
-   vga_hs_o  <= vga_hs;
-   vga_vs_o  <= vga_vs;
-   vga_col_o <= vga_col;
 
 end architecture Structural;
 
