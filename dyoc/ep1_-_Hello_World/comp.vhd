@@ -41,10 +41,18 @@ architecture Structural of comp is
    signal vga_clk : std_logic;
 
    -- Pixel counters
-   signal pix_x : std_logic_vector(9 downto 0);
-   signal pix_y : std_logic_vector(9 downto 0);
+   type t_pix is record
+      x : std_logic_vector(9 downto 0);
+      y : std_logic_vector(9 downto 0);
+   end record t_pix;
+
+   signal pix : t_pix := (
+      x => (others => '0'),
+      y => (others => '0')
+   );
 
    -- We group together all the VGA signals into a single record.
+   -- This will be especially useful in later episodes.
    type t_vga is record
       -- Synchronization
       hs  : std_logic;
@@ -80,10 +88,10 @@ begin
    p_pix_x : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
-         if pix_x = H_TOTAL-1 then
-            pix_x <= (others => '0');
+         if pix.x = H_TOTAL-1 then
+            pix.x <= (others => '0');
          else
-            pix_x <= pix_x + 1;
+            pix.x <= pix.x + 1;
          end if;
       end if;
    end process p_pix_x;
@@ -91,11 +99,11 @@ begin
    p_pix_y : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
-         if pix_x = H_TOTAL-1  then
-            if pix_y = V_TOTAL-1 then
-               pix_y <= (others => '0');
+         if pix.x = H_TOTAL-1  then
+            if pix.y = V_TOTAL-1 then
+               pix.y <= (others => '0');
             else
-               pix_y <= pix_y + 1;
+               pix.y <= pix.y + 1;
             end if;
          end if;
       end if;
@@ -109,7 +117,7 @@ begin
    p_vga_hs : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
-         if pix_x >= HS_START and pix_x < HS_START+HS_TIME then
+         if pix.x >= HS_START and pix.x < HS_START+HS_TIME then
             vga.hs <= '0';
          else
             vga.hs <= '1';
@@ -125,7 +133,7 @@ begin
    p_vga_vs : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
-         if pix_y >= VS_START and pix_y < VS_START+VS_TIME then
+         if pix.y >= VS_START and pix.y < VS_START+VS_TIME then
             vga.vs <= '0';
          else
             vga.vs <= '1';
@@ -143,12 +151,12 @@ begin
       if rising_edge(vga_clk) then
 
          -- Generate checker board pattern
-         if (pix_x(4) xor pix_y(4)) = '1' then
+         if (pix.x(4) xor pix.y(4)) = '1' then
             vga.col <= COL_WHITE;
          end if;
 
          -- Make sure colour is black outside the visible area.
-         if pix_x >= H_PIXELS or pix_y >= V_PIXELS then
+         if pix.x >= H_PIXELS or pix.y >= V_PIXELS then
             vga.col <= COL_BLACK;
          end if;
       end if;
