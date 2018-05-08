@@ -32,6 +32,9 @@ It is nice to leave the memory size programmable. This is accomplished by the
 use of *generics* in VHDL, see lines 15-19 in mem/mem.vhd. This is somewhat
 comparable to templates in C++.
 
+The memory is instantiated in lines 86-100 in comp.vhd, where the size of the
+memory is chosen. For now we just choose a small size make debugging easier.
+
 ### What is in an FPGA?
 Let's talk a bit about what is physically inside an FPGA. Most of the silicon
 area of an FPGA is used by combinatorial logic gates and by 1-bit memory cells
