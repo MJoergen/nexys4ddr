@@ -2,14 +2,23 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
+-- This module generates the VGA output signals based
+-- on the current pixel counters. The module ensures
+-- that the mutual relative timing between the
+-- synchronization signals and colour signal adheres
+-- to the VESA standard.
+
 entity digits is
    port (
       clk_i     : in  std_logic;
 
-      pix_x_i   : in  std_logic_vector(9 downto 0);
-      pix_y_i   : in  std_logic_vector(9 downto 0);
       digits_i  : in  std_logic_vector(23 downto 0);
 
+      pix_x_i   : in  std_logic_vector(9 downto 0);
+      pix_y_i   : in  std_logic_vector(9 downto 0);
+
+      vga_hs_o  : out std_logic;
+      vga_vs_o  : out std_logic;
       vga_col_o : out std_logic_vector(7 downto 0)
    );
 end digits;
@@ -23,6 +32,12 @@ architecture Structural of digits is
    -- Define visible screen size
    constant H_PIXELS : integer := 640;
    constant V_PIXELS : integer := 480;
+
+   -- Define VGA timing constants
+   constant HS_START : integer := 656;
+   constant HS_TIME  : integer := 96;
+   constant VS_START : integer := 490;
+   constant VS_TIME  : integer := 2;
 
    -- Each character is 16x16 pixels, so the screen contains 40x30 characters.
 
@@ -87,8 +102,18 @@ architecture Structural of digits is
    signal bitmap_index  : integer range 0 to 63;
    signal pix           : std_logic;
 
-   -- Pixel colour
-   signal vga_col : std_logic_vector(7 downto 0);
+   -- We group together all the VGA signals into a single record.
+   -- This will be especially useful in later episodes.
+   type t_vga is record
+      -- Synchronization
+      hs  : std_logic;
+      vs  : std_logic;
+
+      -- Pixel colour
+      col : std_logic_vector(7 downto 0);
+   end record t_vga;
+
+   signal vga : t_vga;
 
 begin
 
@@ -133,33 +158,66 @@ begin
       if rising_edge(clk_i) then
 
          -- Set the default screen background colour
-         vga_col <= COL_BLACK;
+         vga.col <= COL_BLACK;
 
          -- Are we within the borders of the text?
          if char_row = DIGITS_CHAR_Y and
             char_col >= DIGITS_CHAR_X and char_col < DIGITS_CHAR_X+24 then
 
             if pix = '1' then
-               vga_col <= COL_WHITE;
+               vga.col <= COL_WHITE;
             else
-               vga_col <= COL_DARK; -- Text background colour.
+               vga.col <= COL_DARK; -- Text background colour.
             end if;
          end if;
 
          -- Make sure colour is black outside visible screen
          if pix_x_i >= H_PIXELS or pix_y_i >= V_PIXELS then
-            vga_col <= COL_BLACK;
+            vga.col <= COL_BLACK;
          end if;
 
       end if;
    end process p_vga_col;
+
+   --------------------------------------------------
+   -- Generate horizontal sync signal
+   --------------------------------------------------
+
+   p_vga_hs : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if pix_x_i >= HS_START and pix_x_i < HS_START+HS_TIME then
+            vga.hs <= '0';
+         else
+            vga.hs <= '1';
+         end if;
+      end if;
+   end process p_vga_hs;
+
+   --------------------------------------------------
+   -- Generate vertical sync signal
+   --------------------------------------------------
+
+   p_vga_vs : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if pix_y_i >= VS_START and pix_y_i < VS_START+VS_TIME then
+            vga.vs <= '0';
+         else
+            vga.vs <= '1';
+         end if;
+      end if;
+   end process p_vga_vs;
 
 
    --------------------------------------------------
    -- Drive output signals
    --------------------------------------------------
 
-   vga_col_o <= vga_col;
+   vga_hs_o  <= vga.hs;
+   vga_vs_o  <= vga.vs;
+   vga_col_o <= vga.col;
+
 
 end architecture Structural;
 
