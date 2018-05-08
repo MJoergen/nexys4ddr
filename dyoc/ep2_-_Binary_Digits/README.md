@@ -1,15 +1,27 @@
 # Design Your Own Computer
 # Episode 2 : "Binary Digits"
 
-Welcome to the second episode of "Design Your Own Computer". In this
-episode we focus on displaying 8 binary digits on the screen.
+Welcome to the second episode of "Design Your Own Computer".
+In this episode we will be accomplishing several tasks:
+* Reorganize the code into separate subdirectories.
+* Display 8 binary digits on the screen.
 
-## Overall design
+The computer can now read the position of the slide switches
+and display as binary digits on the screen.
+
+## Overall design of the computer
+
+The computer we're building will in the end contain four separate parts, each
+belonging in a separate directory:
+* vga : VGA interface (GPU)
+* mem : Memory (RAM and ROM)
+* cpu : 6502 CPU
+* kbd : Keyboard interface
 
 Before we proceed it is useful to organize the source code in smaller units,
 each with a single responsibility. So we will keep comp.vhd as the top level
 block describing the entire computer, but move any logic into smaller parts. So
-far we only have a VGA block, but eventually we'll have blocks for CPU, Memory,
+far we only have a VGA block, but eventually we'll have blocks for Memory, CPU,
 and Keyboard. We will leave the clock divider in comp.vhd for now.
 
 The directory vga will contain two files:
