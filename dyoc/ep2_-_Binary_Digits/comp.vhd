@@ -2,6 +2,13 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
+-- This is the top level module. The ports on this entity
+-- are mapped directly to pins on the FPGA.
+
+-- In this version the design can display eight binary digits
+-- on the VGA output. The value of the binary digits are
+-- controlled by slide switches on the board.
+
 entity comp is
    port (
       clk_i     : in  std_logic;                      -- 100 MHz

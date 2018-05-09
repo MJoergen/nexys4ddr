@@ -2,6 +2,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
+-- This is the top level module. The ports on this entity
+-- are mapped directly to pins on the FPGA.
+
+-- In this version the design can generate a checker board
+-- pattern on the VGA output.
+
 entity comp is
    port (
       clk_i     : in  std_logic;                      -- 100 MHz

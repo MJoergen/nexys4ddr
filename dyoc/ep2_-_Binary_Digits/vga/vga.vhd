@@ -2,9 +2,18 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
+-- This module drives the VGA interface of the design.
+-- The screen resoltion generated is 640x480 @ 60 Hz,
+-- with 256 colours.
+-- This module expects an input clock rate of approximately
+-- 25.175 MHz. It will work with a clock rate of 25.0 MHz.
+--
+-- The VGA output displays the eight binary digits in the
+-- input signal digits_i.
+
 entity vga is
    port (
-      clk_i     : in  std_logic;
+      clk_i     : in  std_logic;    -- Expects 25.175 MHz
 
       digits_i  : in  std_logic_vector(7 downto 0);
 

@@ -2,6 +2,15 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
+-- This module models a single-port asynchronous RAM.
+-- Even though there are separate signals for data
+-- input and data output, simultaneous read and write
+-- will not be used in this design.
+--
+-- Data read is present half way through the same clock cycle.
+-- This is done by using a synchronous Block RAM, and reading
+-- on the *falling* edge of the clock cycle.
+
 entity mem is
    generic (
       -- Number of bits in the address bus. The size of the memory will
@@ -10,10 +19,19 @@ entity mem is
    );
    port (
       clk_i  : in  std_logic;
+
+      -- Current address selected.
       addr_i : in  std_logic_vector(G_ADDR_BITS-1 downto 0);
-      wren_i : in  std_logic;
+
+      -- Data contents at the selected address.
+      -- Valid in same clock cycle.
+      data_o : out std_logic_vector(7 downto 0);
+
+      -- New data to (optionally) be written to the selected address.
       data_i : in  std_logic_vector(7 downto 0);
-      data_o : out std_logic_vector(7 downto 0)
+
+      -- '1' indicates we wish to perform a write at the selected address.
+      wren_i : in  std_logic
    );
 end mem;
 
@@ -53,7 +71,9 @@ begin
       end if;
    end process p_mem;
 
-   -- Read process
+   -- Read process.
+   -- Triggered on the *falling* clock edge in order to mimick an asynchronous
+   -- memory.
    p_data : process (clk_i)
    begin
       if falling_edge(clk_i) then
