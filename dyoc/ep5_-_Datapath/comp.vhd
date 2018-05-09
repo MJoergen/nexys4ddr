@@ -109,7 +109,7 @@ begin
    )
    port map (
       clk_i  => vga_clk,
-      addr_i => cpu_addr(3 downto 0),
+      addr_i => cpu_addr(3 downto 0),  -- Only select the relevant address bits
       data_o => mem_data,
       wren_i => cpu_wren,
       data_i => cpu_data
