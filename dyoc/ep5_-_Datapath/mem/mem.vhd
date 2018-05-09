@@ -2,6 +2,15 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
+-- This module models a single-port asynchronous RAM.
+-- Even though there are separate signals for data
+-- input and data output, simultaneous read and write
+-- will not be used in this design.
+--
+-- Data read is present half way through the same clock cycle.
+-- This is done by using a synchronous Block RAM, and reading
+-- on the *falling* edge of the clock cycle.
+
 entity mem is
    generic (
       -- Number of bits in the address bus. The size of the memory will
@@ -10,10 +19,19 @@ entity mem is
    );
    port (
       clk_i  : in  std_logic;
+
+      -- Current address selected.
       addr_i : in  std_logic_vector(G_ADDR_BITS-1 downto 0);
-      wren_i : in  std_logic;
+
+      -- Data contents at the selected address.
+      -- Valid in same clock cycle.
+      data_o : out std_logic_vector(7 downto 0);
+
+      -- New data to (optionally) be written to the selected address.
       data_i : in  std_logic_vector(7 downto 0);
-      data_o : out std_logic_vector(7 downto 0)
+
+      -- '1' indicates we wish to perform a write at the selected address.
+      wren_i : in  std_logic
    );
 end mem;
 
@@ -24,18 +42,12 @@ architecture Structural of mem is
 
    -- Initialize memory contents
    signal mem : mem_t := (
-      X"A9",   -- LDA #$01
-      X"01",
-      X"A9",   -- LDA #$10
-      X"10",
-      X"A9",   -- LDA #$03
-      X"03",
-      X"A9",   -- LDA #$30
-      X"30",
-      X"A9",   -- LDA #$07
-      X"07",
-      X"A9",   -- LDA #$70
-      X"70",
+      X"A9", X"01",  -- LDA #$01
+      X"A9", X"10",  -- LDA #$10
+      X"A9", X"03",  -- LDA #$03
+      X"A9", X"30",  -- LDA #$30
+      X"A9", X"07",  -- LDA #$07
+      X"A9", X"70",  -- LDA #$70
       others => X"00");
 
    -- Data read from memory.
@@ -53,10 +65,12 @@ begin
       end if;
    end process p_mem;
 
-   -- Read process
+   -- Read process.
+   -- Triggered on the *falling* clock edge in order to mimick an asynchronous
+   -- memory.
    p_data : process (clk_i)
    begin
-      if rising_edge(clk_i) then
+      if falling_edge(clk_i) then
          data <= mem(conv_integer(addr_i));
       end if;
    end process p_data;

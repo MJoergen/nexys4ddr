@@ -103,10 +103,10 @@ begin
    )
    port map (
       clk_i  => vga_clk,
-      addr_i => mem_addr(3 downto 0),
+      addr_i => mem_addr(3 downto 0),  -- Only select the relevant address bits
       data_o => mem_data,
-      wren_i => '0',
-      data_i => (others => '0')
+      wren_i => '0',             -- Unused at the moment
+      data_i => (others => '0')  -- Unused at the moment
    );
 
 

@@ -13,7 +13,7 @@ use ieee.std_logic_unsigned.all;
 
 entity vga is
    port (
-      clk_i     : in  std_logic;
+      clk_i     : in  std_logic;    -- Expects 25.175 MHz
 
       digits_i  : in  std_logic_vector(23 downto 0);
 
