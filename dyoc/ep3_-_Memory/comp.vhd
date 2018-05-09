@@ -2,13 +2,15 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
--- This is the top level module. The ports on this entity
--- are mapped directly to pins on the FPGA.
-
--- In this version the design can display 24 binary digits
--- on the VGA output. The first 16 bits show the value
--- of the address bus connected to the internal memory.
--- The last 8 bits show the value read from the memory.
+-- This is the top level module. The ports on this entity are mapped directly
+-- to pins on the FPGA.
+--
+-- In this version the design can display 24 binary digits on the VGA output.
+-- The first 16 bits show the value of the address bus connected to the
+-- internal memory.  The last 8 bits show the value read from the memory.
+--
+-- The address bus increments automatically. The speed is controlled by the
+-- slide switches.
 
 entity comp is
    port (
