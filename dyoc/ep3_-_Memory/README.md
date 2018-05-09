@@ -63,6 +63,32 @@ needs to interface to the memory.
 Notice the initialization of the memory contents in lines 42-56. In a later
 episode we'll learn how to initialize the memory from a separate file.
 
+### Synchronous and asynchronous
+In most 8-bit processors it is assumed that the memory is asynchronous. This
+means that the memory block itself has no clock, but instead (on read)
+returns the data after a fixed (maximum) delay time (much less than a clock
+cycle). This means that the CPU can drive the address bus, and expect the 
+memory block to return the data on the same clock cycle.
+
+Synchronous memory, on the other hand, is controlled by a clock, and will
+first return the data on the following clock cycle.
+
+All Block RAMs in the FPGA are synchronous, but the 6502 CPU expects the memory
+to be asynchronous. If we connect synchronous memory to the CPU, this will
+impact the design of the CPU, because it will see the data from the memory as
+delayed one clock cycle, compared to asynchronous memory.
+
+We employ here a trick, where the synchronous Block RAM reads data on the
+*falling* edge of the clock. From the CPU's perspective, this is half way
+through the *same* clock cycle. In other words, using falling edge synchronous
+memory, the CPU just sees a memory that has a read latency of approximately
+half a clock cycle. As long as the clock frequency is not too high, this will
+work just fine.  Doing it this way allows us to keep to the existing memory bus
+architecture of the 6502 CPU.
+
+This trick is implemented in line 76 of mem/mem.vhd, where we use
+"falling\_edge" instead of "rising\_edge".
+
 ## Expanding VGA output
 This is surprisingly easy. The number of bits has been changed in line 9 of
 vga/vga.vhd as well as line 15, lines 91-92, line 132, and line 165 of
