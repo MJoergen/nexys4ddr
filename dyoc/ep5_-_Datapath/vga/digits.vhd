@@ -130,7 +130,7 @@ begin
                             char_col >= DIGITS_CHAR_X and char_col < DIGITS_CHAR_X+4 else
            char_txt    when char_row >= TEXT_CHAR_Y   and char_row < TEXT_CHAR_Y+3 and
                             char_col >= TEXT_CHAR_X   and char_col < TEXT_CHAR_X+5 else
-           X"20"; -- Space
+           X"20"; -- Fill the rest of the screen with spaces.
 
 
    --------------------------------------------------
@@ -165,19 +165,11 @@ begin
    begin
       if rising_edge(clk_i) then
 
-         -- Set the default screen background colour
-         vga.col <= COL_BLACK;
-
---         -- Are we within the borders of the text?
---         if char_row >= DIGITS_CHAR_Y and char_row < DIGITS_CHAR_Y+3 and
---            char_col >= DIGITS_CHAR_X and char_col < DIGITS_CHAR_X+4 then
-
-            if pix = '1' then
-               vga.col <= COL_WHITE;
-            else
-               vga.col <= COL_DARK; -- Text background colour.
-            end if;
---         end if;
+         if pix = '1' then
+            vga.col <= COL_WHITE;
+         else
+            vga.col <= COL_DARK; -- Text background colour.
+         end if;
 
          -- Make sure colour is black outside visible screen
          if pix_x_i >= H_PIXELS or pix_y_i >= V_PIXELS then
