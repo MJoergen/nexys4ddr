@@ -152,6 +152,8 @@ begin
          -- Generate checker board pattern
          if (pix_x(4) xor pix_y(4)) = '1' then
             vga.col <= COL_WHITE;
+         else
+            vga.col <= COL_BLACK;
          end if;
 
          -- Make sure colour is black outside the visible area.
