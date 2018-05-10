@@ -1,4 +1,4 @@
-# Design Your Own Computer - Episode 6 - "Expanding Control Logic"
+# Design Your Own Computer - Episode 6 - "Load and Store"
 
 Welcome to the sixth episode of "Design Your Own Computer". In this
 episode we will add three more instructions to the CPU: "LDA a", "STA a", and "JMP a".

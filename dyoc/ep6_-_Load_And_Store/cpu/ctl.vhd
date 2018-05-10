@@ -4,10 +4,10 @@ use ieee.std_logic_unsigned.all;
 
 entity ctl is
    port (
-      clk_i   : in  std_logic;
-      wait_i  : in  std_logic;
+      clk_i      : in  std_logic;
+      wait_i     : in  std_logic;
 
-      data_i  : in  std_logic_vector(7 downto 0);
+      data_i     : in  std_logic_vector(7 downto 0);
 
       ar_sel_o   : out std_logic;
       hi_sel_o   : out std_logic;
@@ -16,9 +16,9 @@ entity ctl is
       addr_sel_o : out std_logic_vector(1 downto 0);
       data_sel_o : out std_logic_vector(1 downto 0);
 
-      debug_o : out std_logic_vector(15 downto 0)
+      debug_o    : out std_logic_vector(15 downto 0)
    );
-end entity ctl;
+end ctl;
 
 architecture structural of ctl is
 
