@@ -16,7 +16,7 @@ entity cpu is
       wait_i  : in  std_logic;
 
       -- Debug output
-      debug_o : out std_logic_vector(95 downto 0)
+      debug_o : out std_logic_vector(111 downto 0)
    );
 end entity cpu;
 
@@ -52,7 +52,7 @@ begin
       addr_sel_i => addr_sel,
       data_sel_i => data_sel,
 
-      debug_o => debug_o(95 downto 16)
+      debug_o => debug_o(111 downto 32)
    );
 
 
@@ -74,7 +74,7 @@ begin
       addr_sel_o => addr_sel,
       data_sel_o => data_sel,
 
-      debug_o => debug_o(15 downto 0)
+      debug_o => debug_o(31 downto 0)
    );
 
 

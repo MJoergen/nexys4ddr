@@ -8,7 +8,7 @@ use ieee.std_logic_unsigned.all;
 -- This module expects an input clock rate of approximately
 -- 25.175 MHz. It will work with a clock rate of 25.0 MHz.
 --
--- The VGA output displays six rows of four hexadecimal digits (2 bytes)
+-- The VGA output displays seven rows of four hexadecimal digits (2 bytes)
 -- converted from the input signal digits_i.
 -- Additionally a short text description is shown in front of every row.
 
@@ -16,7 +16,7 @@ entity vga is
    port (
       clk_i     : in  std_logic;    -- Expects 25.175 MHz
 
-      digits_i  : in  std_logic_vector(95 downto 0);
+      digits_i  : in  std_logic_vector(111 downto 0);
 
       vga_hs_o  : out std_logic;
       vga_vs_o  : out std_logic;
