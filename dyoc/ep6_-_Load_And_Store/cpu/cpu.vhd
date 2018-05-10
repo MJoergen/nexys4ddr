@@ -5,13 +5,17 @@ use ieee.std_logic_unsigned.all;
 entity cpu is
    port (
       clk_i   : in  std_logic;
-      wait_i  : in  std_logic;
 
+      -- Memory interface
       addr_o  : out std_logic_vector(15 downto 0);
       data_i  : in  std_logic_vector(7 downto 0);
       data_o  : out std_logic_vector(7 downto 0);
       wren_o  : out std_logic;
+      -- The "wait_i" is '1' when the memory is not ready.
+      -- While this is so, the CPU just stands still, waiting.
+      wait_i  : in  std_logic;
 
+      -- Debug output
       debug_o : out std_logic_vector(95 downto 0)
    );
 end entity cpu;
