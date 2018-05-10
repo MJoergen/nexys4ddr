@@ -2,6 +2,26 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
+-- This is the top level module. The ports on this entity are mapped directly
+-- to pins on the FPGA.
+--
+-- In this version the design can execute four instructions:
+-- * LDA #
+-- * LDA a
+-- * STA a
+-- * JMP a
+--
+-- Additionally, the CPU registers are shown on the VGA display.
+-- The registers shown are:
+-- * WREN (1 byte) and DATA OUT (1 byte)
+-- * ADDR (2 bytes)
+-- * HI (1 byte) and LO (1 byte)
+-- * DATA IN (1 byte) and 'A' register (1 byte)
+-- * PC (2 bytes)
+-- * Instruction Register (1 byte) and Instruction Cycle Count (1 bytes)
+--
+-- The speed of the execution is controlled by the slide switches.
+
 entity comp is
    port (
       clk_i     : in  std_logic;                      -- 100 MHz
@@ -94,7 +114,7 @@ begin
    )
    port map (
       clk_i  => vga_clk,
-      addr_i => cpu_addr(3 downto 0),
+      addr_i => cpu_addr(3 downto 0),  -- Only select the relevant address bits
       data_o => mem_data,
       wren_i => cpu_wren,
       data_i => cpu_data
