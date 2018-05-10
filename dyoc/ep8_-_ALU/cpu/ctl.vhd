@@ -15,6 +15,8 @@ entity ctl is
       pc_sel_o   : out std_logic_vector(1 downto 0);
       addr_sel_o : out std_logic_vector(1 downto 0);
       data_sel_o : out std_logic_vector(1 downto 0);
+      alu_sel_o  : out std_logic_vector(2 downto 0);
+      sr_sel_o   : out std_logic;
 
       debug_o    : out std_logic_vector(31 downto 0)
    );
@@ -22,28 +24,39 @@ end ctl;
 
 architecture Structural of ctl is
 
-   subtype t_ctl is std_logic_vector(10 downto 0);
+   subtype t_ctl is std_logic_vector(14 downto 0);
    type t_rom is array(0 to 8*256-1) of t_ctl;
 
-   constant NOP     : t_ctl := B"0_0_00_00_00_0_0_0";
+   constant NOP     : t_ctl := B"0_000_0_0_00_00_00_0_0_0";
    --
-   constant AR_DATA : t_ctl := B"0_0_00_00_00_0_0_1";
+   constant AR_ALU  : t_ctl := B"0_000_0_0_00_00_00_0_0_1";
    --
-   constant HI_DATA : t_ctl := B"0_0_00_00_00_0_1_0";
+   constant HI_DATA : t_ctl := B"0_000_0_0_00_00_00_0_1_0";
    --
-   constant LO_DATA : t_ctl := B"0_0_00_00_00_1_0_0";
+   constant LO_DATA : t_ctl := B"0_000_0_0_00_00_00_1_0_0";
    --
-   constant PC_INC  : t_ctl := B"0_0_00_00_01_0_0_0";
-   constant PC_HL   : t_ctl := B"0_0_00_00_10_0_0_0";
+   constant PC_INC  : t_ctl := B"0_000_0_0_00_00_01_0_0_0";
+   constant PC_HL   : t_ctl := B"0_000_0_0_00_00_10_0_0_0";
    --
-   constant ADDR_PC : t_ctl := B"0_0_00_01_00_0_0_0";
-   constant ADDR_HL : t_ctl := B"0_0_00_10_00_0_0_0";
+   constant ADDR_PC : t_ctl := B"0_000_0_0_00_01_00_0_0_0";
+   constant ADDR_HL : t_ctl := B"0_000_0_0_00_10_00_0_0_0";
    --
-   constant DATA_AR : t_ctl := B"0_0_01_00_00_0_0_0";
+   constant DATA_AR : t_ctl := B"0_000_0_0_01_00_00_0_0_0";
    --
-   constant LAST    : t_ctl := B"0_1_00_00_00_0_0_0";
+   constant LAST    : t_ctl := B"0_000_0_1_00_00_00_0_0_0";
    --
-   constant INVALID : t_ctl := B"1_0_00_00_00_0_0_0";
+   constant INVALID : t_ctl := B"0_000_1_0_00_00_00_0_0_0";
+   --
+   constant ALU_ORA : t_ctl := B"0_000_0_0_00_00_00_0_0_0";
+   constant ALU_AND : t_ctl := B"0_001_0_0_00_00_00_0_0_0";
+   constant ALU_EOR : t_ctl := B"0_010_0_0_00_00_00_0_0_0";
+   constant ALU_ADC : t_ctl := B"0_011_0_0_00_00_00_0_0_0";
+   constant ALU_STA : t_ctl := B"0_100_0_0_00_00_00_0_0_0";
+   constant ALU_LDA : t_ctl := B"0_101_0_0_00_00_00_0_0_0";
+   constant ALU_CMP : t_ctl := B"0_110_0_0_00_00_00_0_0_0";
+   constant ALU_SBC : t_ctl := B"0_111_0_0_00_00_00_0_0_0";
+   --
+   constant SR_ALU  : t_ctl := B"1_000_0_0_00_00_00_0_0_0";
 
    -- Decode control signals
    signal ctl      : t_ctl;
@@ -55,6 +68,8 @@ architecture Structural of ctl is
    alias data_sel  : std_logic_vector(1 downto 0) is ctl(8 downto 7);
    alias last_s    : std_logic                    is ctl(9);
    alias invalid_s : std_logic                    is ctl(10);
+   alias alu_sel   : std_logic_vector(2 downto 0) is ctl(13 downto 11);
+   alias sr_sel    : std_logic                    is ctl(14);
 
    signal rom : t_rom := (
 
@@ -149,8 +164,8 @@ architecture Structural of ctl is
       INVALID,
 
 -- 09 ORA #
-      INVALID,
-      INVALID,
+      PC_INC + ADDR_PC,
+      PC_INC + ADDR_PC + ALU_ORA + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -189,10 +204,10 @@ architecture Structural of ctl is
       INVALID,
 
 -- 0D ORA a
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      PC_INC + ADDR_PC,
+      PC_INC + ADDR_PC + LO_DATA,
+      PC_INC + ADDR_PC + HI_DATA,
+      ADDR_HL + ALU_ORA + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -469,8 +484,8 @@ architecture Structural of ctl is
       INVALID,
 
 -- 29 AND #
-      INVALID,
-      INVALID,
+      PC_INC + ADDR_PC,
+      PC_INC + ADDR_PC + ALU_AND + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -509,10 +524,10 @@ architecture Structural of ctl is
       INVALID,
 
 -- 2D AND a
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      PC_INC + ADDR_PC,
+      PC_INC + ADDR_PC + LO_DATA,
+      PC_INC + ADDR_PC + HI_DATA,
+      ADDR_HL + ALU_AND + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -789,8 +804,8 @@ architecture Structural of ctl is
       INVALID,
 
 -- 49 EOR #
-      INVALID,
-      INVALID,
+      PC_INC + ADDR_PC,
+      PC_INC + ADDR_PC + ALU_EOR + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -829,10 +844,10 @@ architecture Structural of ctl is
       INVALID,
 
 -- 4D EOR a
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      PC_INC + ADDR_PC,
+      PC_INC + ADDR_PC + LO_DATA,
+      PC_INC + ADDR_PC + HI_DATA,
+      ADDR_HL + ALU_EOR + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1109,8 +1124,8 @@ architecture Structural of ctl is
       INVALID,
 
 -- 69 ADC #
-      INVALID,
-      INVALID,
+      PC_INC + ADDR_PC,
+      PC_INC + ADDR_PC + ALU_ADC + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1149,10 +1164,10 @@ architecture Structural of ctl is
       INVALID,
 
 -- 6D ADC a
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      PC_INC + ADDR_PC,
+      PC_INC + ADDR_PC + LO_DATA,
+      PC_INC + ADDR_PC + HI_DATA,
+      ADDR_HL + ALU_ADC + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1750,7 +1765,7 @@ architecture Structural of ctl is
 
 -- A9 LDA #
       PC_INC + ADDR_PC,
-      PC_INC + ADDR_PC + AR_DATA + LAST,
+      PC_INC + ADDR_PC + ALU_LDA + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1792,7 +1807,7 @@ architecture Structural of ctl is
       PC_INC + ADDR_PC,
       PC_INC + ADDR_PC + LO_DATA,
       PC_INC + ADDR_PC + HI_DATA,
-      ADDR_HL + AR_DATA + LAST,
+      ADDR_HL + ALU_LDA + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -2069,8 +2084,8 @@ architecture Structural of ctl is
       INVALID,
 
 -- C9 CMP #
-      INVALID,
-      INVALID,
+      PC_INC + ADDR_PC,
+      PC_INC + ADDR_PC + ALU_CMP + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -2109,10 +2124,10 @@ architecture Structural of ctl is
       INVALID,
 
 -- CD CMP a
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      PC_INC + ADDR_PC,
+      PC_INC + ADDR_PC + LO_DATA,
+      PC_INC + ADDR_PC + HI_DATA,
+      ADDR_HL + ALU_CMP + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -2389,8 +2404,8 @@ architecture Structural of ctl is
       INVALID,
 
 -- E9 SBC #
-      INVALID,
-      INVALID,
+      PC_INC + ADDR_PC,
+      PC_INC + ADDR_PC + ALU_SBC + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -2429,10 +2444,10 @@ architecture Structural of ctl is
       INVALID,
 
 -- ED SBC a
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      PC_INC + ADDR_PC,
+      PC_INC + ADDR_PC + LO_DATA,
+      PC_INC + ADDR_PC + HI_DATA,
+      ADDR_HL + ALU_SBC + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -2657,10 +2672,12 @@ begin
    pc_sel_o   <= pc_sel;
    addr_sel_o <= addr_sel;
    data_sel_o <= data_sel;
+   alu_sel_o  <= alu_sel;
+   sr_sel_o   <= sr_sel;
 
    -- Debug Output
-   debug_o(10 downto  0) <= ctl;    -- Two bytes
-   debug_o(15 downto 11) <= (others => '0');
+   debug_o(14 downto  0) <= ctl;    -- Two bytes
+   debug_o(15 downto 15) <= (others => '0');
    debug_o(18 downto 16) <= cnt;    -- One byte
    debug_o(23 downto 19) <= (others => '0');
    debug_o(31 downto 24) <= ir;     -- One byte

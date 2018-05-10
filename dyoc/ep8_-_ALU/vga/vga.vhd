@@ -16,7 +16,7 @@ entity vga is
    port (
       clk_i     : in  std_logic;    -- Expects 25.175 MHz
 
-      digits_i  : in  std_logic_vector(111 downto 0);
+      digits_i  : in  std_logic_vector(127 downto 0);
 
       vga_hs_o  : out std_logic;
       vga_vs_o  : out std_logic;

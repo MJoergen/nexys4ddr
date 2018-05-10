@@ -50,7 +50,7 @@ architecture Structural of comp is
    signal mem_data  : std_logic_vector(7 downto 0);
    signal cpu_data  : std_logic_vector(7 downto 0);
    signal cpu_wren  : std_logic;
-   signal cpu_debug : std_logic_vector(111 downto 0);
+   signal cpu_debug : std_logic_vector(127 downto 0);
 
    -- Output from VGA block
    signal vga_hs    : std_logic;
@@ -110,11 +110,11 @@ begin
    
    i_mem : entity work.mem
    generic map (
-      G_ADDR_BITS => 4  -- 16 bytes
+      G_ADDR_BITS => 8  -- 256 bytes
    )
    port map (
       clk_i  => vga_clk,
-      addr_i => cpu_addr(3 downto 0),  -- Only select the relevant address bits
+      addr_i => cpu_addr(7 downto 0),  -- Only select the relevant address bits
       data_o => mem_data,
       wren_i => cpu_wren,
       data_i => cpu_data

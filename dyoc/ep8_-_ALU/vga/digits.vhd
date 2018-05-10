@@ -12,7 +12,7 @@ entity digits is
 
       pix_x_i   : in  std_logic_vector(9 downto 0);
       pix_y_i   : in  std_logic_vector(9 downto 0);
-      digits_i  : in  std_logic_vector(111 downto 0);
+      digits_i  : in  std_logic_vector(127 downto 0);
 
       vga_hs_o  : out std_logic;
       vga_vs_o  : out std_logic;
@@ -45,8 +45,9 @@ architecture Structural of digits is
    constant TEXT_CHAR_X   : integer := 2;
    constant TEXT_CHAR_Y   : integer := DIGITS_CHAR_Y;
 
-   type txt_t is array (0 to 34) of character;
-   constant txt : txt_t := "W DA " & "ADDR " & "HI LO" & "DI AR" & "  PC " & "IR CN" & " CTL ";
+   type txt_t is array (0 to 39) of character;
+   constant txt : txt_t := "  SR " & "W DA " & "ADDR " & "HI LO" &
+                           "DI AR" & "  PC " & "IR CN" & " CTL ";
 
    -- A single character bitmap is defined by 8x8 = 64 bits.
    subtype bitmap_t is std_logic_vector(63 downto 0);
@@ -66,10 +67,10 @@ architecture Structural of digits is
    signal char_row : integer range 0 to V_TOTAL/16-1;
 
    -- Value of nibble at current position
-   signal nibble_offset : integer range 0 to 27;
-   signal nibble_index  : integer range 0 to 27;
+   signal nibble_offset : integer range 0 to 31;
+   signal nibble_index  : integer range 0 to 31;
    signal nibble        : std_logic_vector(3 downto 0);
-   signal txt_offset    : integer range 0 to 34;
+   signal txt_offset    : integer range 0 to 39;
 
    -- Bitmap of digit at current position
    signal char_nibble   : std_logic_vector(7 downto 0);
@@ -111,7 +112,7 @@ begin
    --------------------------------------------------
 
    nibble_offset <= (char_row - DIGITS_CHAR_Y)*4 + (char_col - DIGITS_CHAR_X);
-   nibble_index  <= 27 - nibble_offset;
+   nibble_index  <= 31 - nibble_offset;
    nibble        <= digits_i(4*nibble_index+3 downto 4*nibble_index);
    txt_offset    <= (char_row - TEXT_CHAR_Y)*5 + (char_col - TEXT_CHAR_X);
 
@@ -125,9 +126,9 @@ begin
 
    char_txt    <= std_logic_vector(to_unsigned(character'pos(txt(txt_offset)), 8));
 
-   char <= char_nibble when char_row >= DIGITS_CHAR_Y and char_row < DIGITS_CHAR_Y+7 and
+   char <= char_nibble when char_row >= DIGITS_CHAR_Y and char_row < DIGITS_CHAR_Y+8 and
                             char_col >= DIGITS_CHAR_X and char_col < DIGITS_CHAR_X+4 else
-           char_txt    when char_row >= TEXT_CHAR_Y   and char_row < TEXT_CHAR_Y+7 and
+           char_txt    when char_row >= TEXT_CHAR_Y   and char_row < TEXT_CHAR_Y+8 and
                             char_col >= TEXT_CHAR_X   and char_col < TEXT_CHAR_X+5 else
            X"20"; -- Space
 
