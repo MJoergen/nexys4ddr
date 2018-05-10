@@ -60,36 +60,36 @@ begin
    end process p_ir;
 
    -- Generate Control Signals
-   ar_sel_o <= '1' when (cnt = 1 and ir = X"A9") or   -- Load 'A' register in second cycle of the "LDA #" instruction.
-                        (cnt = 3 and ir = X"AD") else
+   ar_sel_o <= '1' when (cnt = 1 and ir = X"A9") or      -- LDA #
+                        (cnt = 3 and ir = X"AD") else    -- LDA a
                '0';
 
-   lo_sel_o <= '1' when (cnt = 1 and ir = X"AD") or
-                        (cnt = 1 and ir = X"8D") or
-                        (cnt = 1 and ir = X"4C") else
+   lo_sel_o <= '1' when (cnt = 1 and ir = X"AD") or      -- LDA a
+                        (cnt = 1 and ir = X"8D") or      -- STA a
+                        (cnt = 1 and ir = X"4C") else    -- JMP a
                '0';
 
-   hi_sel_o <= '1' when (cnt = 2 and ir = X"AD") or 
-                        (cnt = 2 and ir = X"8D") or
-                        (cnt = 2 and ir = X"4C") else
+   hi_sel_o <= '1' when (cnt = 2 and ir = X"AD") or      -- LDA a
+                        (cnt = 2 and ir = X"8D") or      -- STA a
+                        (cnt = 2 and ir = X"4C") else    -- JMP a
                '0';
 
-   pc_sel_o <= "00" when (cnt = 3 and ir = X"AD") or
-                         (cnt = 3 and ir = X"8D") else
-               "10" when (cnt = 3 and ir = X"4C") else
+   pc_sel_o <= "00" when (cnt = 3 and ir = X"AD") or     -- LDA a
+                         (cnt = 3 and ir = X"8D") else   -- STA a
+               "10" when (cnt = 3 and ir = X"4C") else   -- JMP a
                "01";
 
-   addr_sel_o <= "10" when (cnt = 3 and ir = X"AD") or 
-                           (cnt = 3 and ir = X"8D") else
+   addr_sel_o <= "10" when (cnt = 3 and ir = X"AD") or   -- LDA a
+                           (cnt = 3 and ir = X"8D") else -- STA a
                  "01";
 
-   data_sel_o <= "01" when cnt = 3 and ir = X"8D" else
+   data_sel_o <= "01" when cnt = 3 and ir = X"8D" else   -- STA a
                  "00";
-
-   last <= '1' when (cnt = 1 and ir = X"A9") or 
-                    (cnt = 3 and ir = X"AD") or
-                    (cnt = 3 and ir = X"8D") or
-                    (cnt = 3 and ir = X"4C") or
+   
+   last <= '1' when (cnt = 1 and ir = X"A9") or          -- LDA #
+                    (cnt = 3 and ir = X"AD") or          -- LDA a
+                    (cnt = 3 and ir = X"8D") or          -- STA a
+                    (cnt = 3 and ir = X"4C") or          -- JMP a
                     (cnt = 1 and ir = X"00") else
            '0';
 
