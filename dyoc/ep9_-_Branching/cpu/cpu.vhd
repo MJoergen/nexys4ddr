@@ -16,7 +16,7 @@ entity cpu is
       wait_i  : in  std_logic;
 
       -- Debug output
-      debug_o : out std_logic_vector(127 downto 0)
+      debug_o : out std_logic_vector(143 downto 0)
    );
 end entity cpu;
 
@@ -29,7 +29,7 @@ architecture structural of cpu is
    signal addr_sel : std_logic_vector(1 downto 0);
    signal data_sel : std_logic_vector(1 downto 0);
    signal alu_sel  : std_logic_vector(2 downto 0);
-   signal sr_sel   : std_logic;
+   signal sr_sel   : std_logic_vector(3 downto 0);
 
 begin
 
@@ -56,7 +56,7 @@ begin
       alu_sel_i  => alu_sel,
       sr_sel_i   => sr_sel,
 
-      debug_o => debug_o(127 downto 32)
+      debug_o => debug_o(143 downto 48)
    );
 
 
@@ -80,7 +80,7 @@ begin
       alu_sel_o  => alu_sel,
       sr_sel_o   => sr_sel,
 
-      debug_o => debug_o(31 downto 0)
+      debug_o => debug_o(47 downto 0)
    );
 
 

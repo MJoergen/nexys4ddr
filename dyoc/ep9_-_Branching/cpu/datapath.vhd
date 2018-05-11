@@ -21,7 +21,7 @@ entity datapath is
       addr_sel_i : in  std_logic_vector(1 downto 0);
       data_sel_i : in  std_logic_vector(1 downto 0);
       alu_sel_i  : in  std_logic_vector(2 downto 0);
-      sr_sel_i   : in  std_logic;
+      sr_sel_i   : in  std_logic_vector(3 downto 0);
 
       -- Debug output containing internal registers
       debug_o : out std_logic_vector(95 downto 0)
@@ -99,9 +99,18 @@ begin
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
-            if sr_sel_i = '1' then
-               sr <= alu_sr;
-            end if;
+            case sr_sel_i is
+               when "0000" => null;
+               when "0001" => sr <= alu_sr;
+               when "1000" => sr <= sr and X"FE";  -- CLC
+               when "1001" => sr <= sr or  X"01";  -- SEC
+               when "1010" => sr <= sr and X"FB";  -- CLI 
+               when "1011" => sr <= sr or  X"04";  -- SEI
+               when "1100" => sr <= sr and X"BF";  -- CLV
+               when "1110" => sr <= sr and X"F7";  -- CLD
+               when "1111" => sr <= sr or  X"08";  -- SED
+               when others => null;
+            end case;
          end if;
       end if;
    end process p_sr;

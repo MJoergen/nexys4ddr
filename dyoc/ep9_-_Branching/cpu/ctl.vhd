@@ -16,47 +16,54 @@ entity ctl is
       addr_sel_o : out std_logic_vector(1 downto 0);
       data_sel_o : out std_logic_vector(1 downto 0);
       alu_sel_o  : out std_logic_vector(2 downto 0);
-      sr_sel_o   : out std_logic;
+      sr_sel_o   : out std_logic_vector(3 downto 0);
 
-      debug_o    : out std_logic_vector(31 downto 0)
+      debug_o    : out std_logic_vector(47 downto 0)
    );
 end ctl;
 
 architecture Structural of ctl is
 
-   subtype t_ctl is std_logic_vector(14 downto 0);
+   subtype t_ctl is std_logic_vector(17 downto 0);
    type t_rom is array(0 to 8*256-1) of t_ctl;
 
-   constant NOP     : t_ctl := B"0_000_0_0_00_00_00_0_0_0";
+   constant NOP     : t_ctl := B"0000_000_0_0_00_00_00_0_0_0";
    --
-   constant AR_ALU  : t_ctl := B"0_000_0_0_00_00_00_0_0_1";
+   constant AR_ALU  : t_ctl := B"0000_000_0_0_00_00_00_0_0_1";
    --
-   constant HI_DATA : t_ctl := B"0_000_0_0_00_00_00_0_1_0";
+   constant HI_DATA : t_ctl := B"0000_000_0_0_00_00_00_0_1_0";
    --
-   constant LO_DATA : t_ctl := B"0_000_0_0_00_00_00_1_0_0";
+   constant LO_DATA : t_ctl := B"0000_000_0_0_00_00_00_1_0_0";
    --
-   constant PC_INC  : t_ctl := B"0_000_0_0_00_00_01_0_0_0";
-   constant PC_HL   : t_ctl := B"0_000_0_0_00_00_10_0_0_0";
+   constant PC_INC  : t_ctl := B"0000_000_0_0_00_00_01_0_0_0";
+   constant PC_HL   : t_ctl := B"0000_000_0_0_00_00_10_0_0_0";
    --
-   constant ADDR_PC : t_ctl := B"0_000_0_0_00_01_00_0_0_0";
-   constant ADDR_HL : t_ctl := B"0_000_0_0_00_10_00_0_0_0";
+   constant ADDR_PC : t_ctl := B"0000_000_0_0_00_01_00_0_0_0";
+   constant ADDR_HL : t_ctl := B"0000_000_0_0_00_10_00_0_0_0";
    --
-   constant DATA_AR : t_ctl := B"0_000_0_0_01_00_00_0_0_0";
+   constant DATA_AR : t_ctl := B"0000_000_0_0_01_00_00_0_0_0";
    --
-   constant LAST    : t_ctl := B"0_000_0_1_00_00_00_0_0_0";
+   constant LAST    : t_ctl := B"0000_000_0_1_00_00_00_0_0_0";
    --
-   constant INVALID : t_ctl := B"0_000_1_0_00_00_00_0_0_0";
+   constant INVALID : t_ctl := B"0000_000_1_0_00_00_00_0_0_0";
    --
-   constant ALU_ORA : t_ctl := B"0_000_0_0_00_00_00_0_0_0";
-   constant ALU_AND : t_ctl := B"0_001_0_0_00_00_00_0_0_0";
-   constant ALU_EOR : t_ctl := B"0_010_0_0_00_00_00_0_0_0";
-   constant ALU_ADC : t_ctl := B"0_011_0_0_00_00_00_0_0_0";
-   constant ALU_STA : t_ctl := B"0_100_0_0_00_00_00_0_0_0";
-   constant ALU_LDA : t_ctl := B"0_101_0_0_00_00_00_0_0_0";
-   constant ALU_CMP : t_ctl := B"0_110_0_0_00_00_00_0_0_0";
-   constant ALU_SBC : t_ctl := B"0_111_0_0_00_00_00_0_0_0";
+   constant ALU_ORA : t_ctl := B"0000_000_0_0_00_00_00_0_0_0";
+   constant ALU_AND : t_ctl := B"0000_001_0_0_00_00_00_0_0_0";
+   constant ALU_EOR : t_ctl := B"0000_010_0_0_00_00_00_0_0_0";
+   constant ALU_ADC : t_ctl := B"0000_011_0_0_00_00_00_0_0_0";
+   constant ALU_STA : t_ctl := B"0000_100_0_0_00_00_00_0_0_0";
+   constant ALU_LDA : t_ctl := B"0000_101_0_0_00_00_00_0_0_0";
+   constant ALU_CMP : t_ctl := B"0000_110_0_0_00_00_00_0_0_0";
+   constant ALU_SBC : t_ctl := B"0000_111_0_0_00_00_00_0_0_0";
    --
-   constant SR_ALU  : t_ctl := B"1_000_0_0_00_00_00_0_0_0";
+   constant SR_ALU  : t_ctl := B"0001_000_0_0_00_00_00_0_0_0";
+   constant SR_CLC  : t_ctl := B"1000_000_0_0_00_00_00_0_0_0";
+   constant SR_SEC  : t_ctl := B"1001_000_0_0_00_00_00_0_0_0";
+   constant SR_CLI  : t_ctl := B"1010_000_0_0_00_00_00_0_0_0";
+   constant SR_SEI  : t_ctl := B"1011_000_0_0_00_00_00_0_0_0";
+   constant SR_CLV  : t_ctl := B"1100_000_0_0_00_00_00_0_0_0";
+   constant SR_CLD  : t_ctl := B"1110_000_0_0_00_00_00_0_0_0";
+   constant SR_SED  : t_ctl := B"1111_000_0_0_00_00_00_0_0_0";
 
    -- Decode control signals
    signal ctl      : t_ctl;
@@ -69,7 +76,7 @@ architecture Structural of ctl is
    alias last_s    : std_logic                    is ctl(9);
    alias invalid_s : std_logic                    is ctl(10);
    alias alu_sel   : std_logic_vector(2 downto 0) is ctl(13 downto 11);
-   alias sr_sel    : std_logic                    is ctl(14);
+   alias sr_sel    : std_logic_vector(3 downto 0) is ctl(17 downto 14);
 
    signal rom : t_rom := (
 
@@ -314,8 +321,8 @@ architecture Structural of ctl is
       INVALID,
 
 -- 18 CLC
-      INVALID,
-      INVALID,
+      PC_INC + ADDR_PC,
+      SR_CLC + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -634,8 +641,8 @@ architecture Structural of ctl is
       INVALID,
 
 -- 38 SEC
-      INVALID,
-      INVALID,
+      PC_INC + ADDR_PC,
+      SR_SEC + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -954,8 +961,8 @@ architecture Structural of ctl is
       INVALID,
 
 -- 58 CLI
-      INVALID,
-      INVALID,
+      PC_INC + ADDR_PC,
+      SR_CLI + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1274,8 +1281,8 @@ architecture Structural of ctl is
       INVALID,
 
 -- 78 SEI
-      INVALID,
-      INVALID,
+      PC_INC + ADDR_PC,
+      SR_SEI + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1914,8 +1921,8 @@ architecture Structural of ctl is
       INVALID,
 
 -- B8 CLV
-      INVALID,
-      INVALID,
+      PC_INC + ADDR_PC,
+      SR_CLV + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -2234,8 +2241,8 @@ architecture Structural of ctl is
       INVALID,
 
 -- D8 CLD
-      INVALID,
-      INVALID,
+      PC_INC + ADDR_PC,
+      SR_CLD + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -2554,8 +2561,8 @@ architecture Structural of ctl is
       INVALID,
 
 -- F8 SED
-      INVALID,
-      INVALID,
+      PC_INC + ADDR_PC,
+      SR_SED + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -2676,11 +2683,11 @@ begin
    sr_sel_o   <= sr_sel;
 
    -- Debug Output
-   debug_o(14 downto  0) <= ctl;    -- Two bytes
-   debug_o(15 downto 15) <= (others => '0');
-   debug_o(18 downto 16) <= cnt;    -- One byte
-   debug_o(23 downto 19) <= (others => '0');
-   debug_o(31 downto 24) <= ir;     -- One byte
+   debug_o(17 downto  0) <= ctl;    -- Four bytes
+   debug_o(31 downto 18) <= (others => '0');
+   debug_o(34 downto 32) <= cnt;    -- One byte
+   debug_o(39 downto 35) <= (others => '0');
+   debug_o(47 downto 40) <= ir;     -- One byte
 
 end Structural;
 
