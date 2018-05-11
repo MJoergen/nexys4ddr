@@ -94,7 +94,7 @@ begin
       end if;
    end process p_ar;
 
-   -- 'S' register
+   -- Status register
    p_sr : process (clk_i)
    begin
       if rising_edge(clk_i) then

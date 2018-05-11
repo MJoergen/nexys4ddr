@@ -4,37 +4,31 @@ Welcome to the eigth episode of "Design Your Own Computer". In this episode
 we will add the Arithmetic and Logic Unit to the CPU.
 
 ## Instructions using the ALU
-A lot of instructions in the 6502 CPU use the ALU. For instance, looking at the
-following list:
-* 0D ORA a
-* 2D AND a
-* 4D EOR a
-* 6D ADC a
-* 8D STA a
-* AD LDA a
-* CD CMP a
-* ED SBC a
+A lot of instructions in the 6502 CPU use the ALU, for instance the following
+list:
+* 0D : ORA a
+* 2D : AND a
+* 4D : EOR a
+* 6D : ADC a
+* 8D : STA a
+* AD : LDA a
+* CD : CMP a
+* ED : SBC a
 
 There is a similar list of instructions taking an immediate operand:
-* 09 ORA #
-* 29 AND #
-* 49 EOR #
-* 69 ADC #
-* 89 Reserved
-* A9 LDA #
-* C9 CMP #
-* E9 SBC #
+* 09 : ORA #
+* 29 : AND #
+* 49 : EOR #
+* 69 : ADC #
+* 89 : Reserved
+* A9 : LDA #
+* C9 : CMP #
+* E9 : SBC #
 
 All these instructions take the 'A' register and the value read from memory,
 combines the two operands using some operation and writes the result to the 'A'
-register. The only exception is the "STA a" operation that writes the result to
+register. The only exception is the "STA" operation that writes the result to
 the memory address instead.
-
-## Changes to cpu/datapath.vhd
-
-We will implement those instructions by inserting the ALU in the path from
-data input to the 'A' register. In other words, instead of taking data from the
-memory input, it will take data from the ALU.
 
 ## Status register
 The CPU contains an 8-bit status register containing a number of flags. These
@@ -61,6 +55,21 @@ Not all ALU operations modify all the four flags. The list is as follows:
 * LDA : S,Z
 * CMP : S,Z,C
 * SBC : S,Z,C,V
+
+## Changes to cpu/datapath.vhd
+
+We will implement those instructions by inserting the ALU in the path from
+data input to the 'A' register. In other words, instead of taking data from the
+memory input, it will take data from the ALU.
+
+The Status Register is defined in lines 43-44 and controlled in lines
+97-107.
+
+The output from the ALU is routed to two new signals alu\_ar and alu\_sr
+defined in lines 33-35.
+
+The ALU itself is instantiated in lines 59-68, and it implemented in the
+file cpu/alu.vhd.
 
 ## Testing
 Note that the CPU has no way of adding two numbers *without* carry. So 
