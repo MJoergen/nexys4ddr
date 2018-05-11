@@ -1,0 +1,46 @@
+[*]
+[*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
+[*] Fri May 11 09:54:02 2018
+[*]
+[dumpfile] "/home/mfj/git/nexys4ddr/dyoc/ep9_-_Branching/tb.ghw"
+[dumpfile_mtime] "Fri May 11 09:53:48 2018"
+[dumpfile_size] 272292
+[savefile] "/home/mfj/git/nexys4ddr/dyoc/ep9_-_Branching/tb.gtkw"
+[timestart] 0
+[size] 1325 765
+[pos] 114 0
+*-24.920622 50000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.tb.
+[treeopen] top.tb.i_cpu.
+[treeopen] top.tb.i_cpu.inst_datapath.
+[treeopen] top.tb.i_mem.
+[treeopen] top.tb.i_mem.mem.
+[sst_width] 225
+[signals_width] 219
+[sst_expanded] 1
+[sst_vpaned_height] 218
+@28
+top.tb.clk
+@22
+#{top.tb.cpu_addr[15:0]} top.tb.cpu_addr[15] top.tb.cpu_addr[14] top.tb.cpu_addr[13] top.tb.cpu_addr[12] top.tb.cpu_addr[11] top.tb.cpu_addr[10] top.tb.cpu_addr[9] top.tb.cpu_addr[8] top.tb.cpu_addr[7] top.tb.cpu_addr[6] top.tb.cpu_addr[5] top.tb.cpu_addr[4] top.tb.cpu_addr[3] top.tb.cpu_addr[2] top.tb.cpu_addr[1] top.tb.cpu_addr[0]
+#{top.tb.mem_data[7:0]} top.tb.mem_data[7] top.tb.mem_data[6] top.tb.mem_data[5] top.tb.mem_data[4] top.tb.mem_data[3] top.tb.mem_data[2] top.tb.mem_data[1] top.tb.mem_data[0]
+@28
+top.tb.cpu_wren
+@22
+#{top.tb.cpu_data[7:0]} top.tb.cpu_data[7] top.tb.cpu_data[6] top.tb.cpu_data[5] top.tb.cpu_data[4] top.tb.cpu_data[3] top.tb.cpu_data[2] top.tb.cpu_data[1] top.tb.cpu_data[0]
+@800200
+-CPU
+@22
+#{top.tb.i_cpu.inst_datapath.ar[7:0]} top.tb.i_cpu.inst_datapath.ar[7] top.tb.i_cpu.inst_datapath.ar[6] top.tb.i_cpu.inst_datapath.ar[5] top.tb.i_cpu.inst_datapath.ar[4] top.tb.i_cpu.inst_datapath.ar[3] top.tb.i_cpu.inst_datapath.ar[2] top.tb.i_cpu.inst_datapath.ar[1] top.tb.i_cpu.inst_datapath.ar[0]
+@1000200
+-CPU
+@800200
+-Memory
+@22
+#{top.tb.i_mem.mem[254][7:0]} top.tb.i_mem.mem[254][7] top.tb.i_mem.mem[254][6] top.tb.i_mem.mem[254][5] top.tb.i_mem.mem[254][4] top.tb.i_mem.mem[254][3] top.tb.i_mem.mem[254][2] top.tb.i_mem.mem[254][1] top.tb.i_mem.mem[254][0]
+#{top.tb.i_mem.mem[255][7:0]} top.tb.i_mem.mem[255][7] top.tb.i_mem.mem[255][6] top.tb.i_mem.mem[255][5] top.tb.i_mem.mem[255][4] top.tb.i_mem.mem[255][3] top.tb.i_mem.mem[255][2] top.tb.i_mem.mem[255][1] top.tb.i_mem.mem[255][0]
+@1000200
+-Memory
+[pattern_trace] 1
+[pattern_trace] 0
