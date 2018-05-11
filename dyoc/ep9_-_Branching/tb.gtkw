@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
-[*] Fri May 11 09:42:47 2018
+[*] Fri May 11 09:54:02 2018
 [*]
 [dumpfile] "/home/mfj/git/nexys4ddr/dyoc/ep9_-_Branching/tb.ghw"
-[dumpfile_mtime] "Fri May 11 09:39:31 2018"
+[dumpfile_mtime] "Fri May 11 09:53:48 2018"
 [dumpfile_size] 272292
 [savefile] "/home/mfj/git/nexys4ddr/dyoc/ep9_-_Branching/tb.gtkw"
-[timestart] 2858000000
+[timestart] 0
 [size] 1325 765
-[pos] 114 -375
-*-26.920622 2992900000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] 114 0
+*-24.920622 50000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.tb.
 [treeopen] top.tb.i_cpu.

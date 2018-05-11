@@ -1,9 +1,10 @@
 # Design Your Own Computer - Episode 9 - "Branching"
 
 Welcome to the ninth episode of "Design Your Own Computer". In this episode
-we will perform the following two tasks:
+we will perform the following three tasks:
 * Add control of individual bits in the status register
 * Conditional jumps
+* Add support for simulation
 
 Instructions implemented in total : 31/151.
 
@@ -46,4 +47,16 @@ Stack Pointer, and subroutine calls.
 
 However, more urgent is to have an assembler. This is the topic of the next
 episode.
+
+## Simulation support
+By now it is becoming increasingly time consuming to build a bit file every
+time you want to test it. In the Makefile in lines 13-16 I've added a new
+target "sim" that will simulate the behaviour of the CPU and display a waveform.
+In order to use this feature, you need to install GHDL. If you're running Linux
+it may already be avaiable in your distribution, otherwise it can be found
+here: <https://github.com/ghdl/ghdl>.
+
+Furthermore, in order to display the waveform, you need the tool GTKWAVE found
+here <http://gtkwave.sourceforge.net/>. It too may already be available in your
+favourite Linux distribution.
 
