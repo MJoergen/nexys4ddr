@@ -27,24 +27,24 @@ We will be designing and building these blocks roughly in the above order.
 
 ## List of episodes: ##
 ### VGA ###
-1.  [**"Hello World"**](ep1_-_Hello_World). Here you will generate a
+1.  [**"Hello World"**](ep01_-_Hello_World). Here you will generate a
     checkerboard pattern on the VGA output.
-2.  [**"Binary Digits"**](ep2_-_Binary_Digits). Here you will learn how to
+2.  [**"Binary Digits"**](ep02_-_Binary_Digits). Here you will learn how to
     display a string of binary digits on VGA.
-3.  [**"Adding memory to the system"**](ep3_-_Memory). Here we will add memory
+3.  [**"Adding memory to the system"**](ep03_-_Memory). Here we will add memory
     to the system, and display accesses on VGA.
-4.  [**"Adding hexadecimal output to VGA"**](ep4_-_Hexadecimal). Here we will
+4.  [**"Adding hexadecimal output to VGA"**](ep04_-_Hexadecimal). Here we will
     implement a complete font and show data in hexadecimal format.
 ### CPU ###
-5.  [**"Datapath"**](ep5_-_Datapath). Here the skeleton of the CPU datapath
+5.  [**"Datapath"**](ep05_-_Datapath). Here the skeleton of the CPU datapath
     will be developed. Instructions implemented:  1/151.
-6.  [**"Load and Store"**](ep6_-_Load_And_Store). We will add instructions that
+6.  [**"Load and Store"**](ep06_-_Load_And_Store). We will add instructions that
     load and store in memory. Instructions implemented:  4/151.
-7.  [**"Control logic"**](ep7_-_Control_Logic). The control logic will be
+7.  [**"Control logic"**](ep07_-_Control_Logic). The control logic will be
     greatly expanded. Instructions implemented:  4/151.
-8.  [**"ALU"**](ep8_-_ALU). Here the Arithmetic and Logic Unit will be added to
+8.  [**"ALU"**](ep08_-_ALU). Here the Arithmetic and Logic Unit will be added to
     the CPU. Instructions implemented: 16/151.
-9.  [**"Branching"**](ep9_-_Branching). We add conditional jumps to allow
+9.  [**"Branching"**](ep09_-_Branching). We add conditional jumps to allow
     brancing.  Instructions implemented: 31/151.
 10. [**"Assembler"**](ep10_-_Assembler). Now we use an assembler to compile
     programs with.  Instructions implemented: 31/151.
