@@ -3,9 +3,11 @@
 Welcome to the eigth episode of "Design Your Own Computer". In this episode
 we will add the Arithmetic and Logic Unit to the CPU.
 
+Instructions implemented in total : 16/151.
+
 ## Instructions using the ALU
 A lot of instructions in the 6502 CPU use the ALU, for instance the following
-list:
+list all using absolute addressing:
 * 0D : ORA a
 * 2D : AND a
 * 4D : EOR a
@@ -29,6 +31,11 @@ All these instructions take the 'A' register and the value read from memory,
 combines the two operands using some operation and writes the result to the 'A'
 register. The only exception is the "STA" operation that writes the result to
 the memory address instead.
+
+The ALU is implemented in a separate file cpu/alu.vhd. It takes as input the
+two operands as well as the function code (which operation to perform) and
+outputs the result. The ALU is entirely combinatorial, and essentially consists
+of a large multiplexer selecting between the eight different operations.
 
 ## Status register
 The CPU contains an 8-bit status register containing a number of flags. These
@@ -58,9 +65,9 @@ Not all ALU operations modify all the four flags. The list is as follows:
 
 ## Changes to cpu/datapath.vhd
 
-We will implement those instructions by inserting the ALU in the path from
+We will implement the above instructions by inserting the ALU in the path from
 data input to the 'A' register. In other words, instead of taking data from the
-memory input, it will take data from the ALU.
+memory input, it will take data from the ALU. This changes the single line 91.
 
 The Status Register is defined in lines 43-44 and controlled in lines
 97-107.
@@ -68,13 +75,16 @@ The Status Register is defined in lines 43-44 and controlled in lines
 The output from the ALU is routed to two new signals alu\_ar and alu\_sr
 defined in lines 33-35.
 
-The ALU itself is instantiated in lines 59-68, and it implemented in the
-file cpu/alu.vhd.
+The ALU itself is instantiated in lines 59-68.
 
 ## Testing
-Note that the CPU has no way of adding two numbers *without* carry. So 
-instead some other means of clearing the carry flag is needed. For now,
-we'll do it by the sequence "LDA #0" followed by "ADC #0". These two
-instructions essentially move the carry flag to the 'A' register, and
-clearing the carry flag.
+Note that the CPU has no way of adding two numbers *without* carry. So instead
+some other means of clearing the carry flag is needed. For now, we'll do it by
+the sequence "LDA #0" followed by "ADC #0". These two instructions essentially
+move the carry flag to the 'A' register, and clears the carry flag.
+
+The program defined in lines 43-55 of mem/mem.vhd is a simple 8-bit counter.
+
+Note that the memory size has been increased from 16 bytes to 256 bytes. This
+was done in lines 115 and 119 in comp.vhd.
 
