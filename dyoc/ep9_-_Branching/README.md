@@ -53,7 +53,7 @@ By now it is becoming increasingly time consuming to build a bit file every
 time you want to test it. In the Makefile in lines 13-16 I've added a new
 target "sim" that will simulate the behaviour of the CPU and display a waveform.
 In order to use this feature, you need to install GHDL. If you're running Linux
-it may already be avaiable in your distribution, otherwise it can be found
+it may already be available in your distribution, otherwise it can be found
 here: <https://github.com/ghdl/ghdl>.
 
 Furthermore, in order to display the waveform, you need the tool GTKWAVE found
