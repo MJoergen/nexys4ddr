@@ -31,6 +31,7 @@ We will be designing and building these blocks roughly in the above order.
     checkerboard pattern on the VGA output.
 2.  [**"Binary Digits"**](ep02_-_Binary_Digits). Here you will learn how to
     display a string of binary digits on VGA.
+### Memory ###
 3.  [**"Adding memory to the system"**](ep03_-_Memory). Here we will add memory
     to the system, and display accesses on VGA.
 4.  [**"Adding hexadecimal output to VGA"**](ep04_-_Hexadecimal). Here we will
