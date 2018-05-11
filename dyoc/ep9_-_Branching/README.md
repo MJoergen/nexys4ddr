@@ -45,8 +45,8 @@ instructions available it quickly becomes very tedious. We definitely need
 more instructions. In the coming episodes we'll add Zero page addressing,
 Stack Pointer, and subroutine calls.
 
-However, more urgent is to have an assembler. This is the topic of the next
-episode.
+However, more urgent is to have an assembler, which will be the topic of the
+next episode.
 
 ## Simulation support
 By now it is becoming increasingly time consuming to build a bit file every
