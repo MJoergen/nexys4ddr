@@ -9,6 +9,8 @@ with the lower 8 bits first, and the upper 8 bits last. This is known as
 
 We will make a number of modifications to the datapath and the control logic.
 
+Instructions implemented in total : 4/151.
+
 ## Datapath
 
 In the following we will discuss the modifications necessary to cpu/datapath.vhd

@@ -4,6 +4,8 @@ Welcome to the seventh episode of "Design Your Own Computer". In this episode
 we will completely rewrite the Control Logic in a manner that is more readable
 and more suited for future expansion.
 
+Instructions implemented in total : 4/151.
+
 ## Control Logic
 Since the control signals are functions of the Instruction Register and of the
 Instruction Cycle Counter, it makes sense to implement them in a lookup-table,

@@ -6,6 +6,8 @@ CPU will consist of two parts:
 * The Data Path
 * The Control Logic
 
+Instructions implemented in total : 1/151.
+
 ## External Interfaces of the CPU
 The CPU will interface directly to the memory, so the ports of the 
 CPU will be a direct mirror image of the memory ports.
