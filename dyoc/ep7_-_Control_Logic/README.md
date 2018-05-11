@@ -27,6 +27,9 @@ Using these constants it becomes much easier to write the individual
 instructions.  For instance, the "LDA #" instruction is defined in lines
 1751-1759. Each line represents one clock cycle.
 
+Of course, typing in these two thousand lines of code is very tedious
+and repetetive, but the benefit is well worth it.
+
 For many instructions, it is just a matter of deciding the control signals
 necessary in each of the up to eight clock cycles. Occasionally, we'll need to
 add more control signals, and this entails modifying lines 25-57.
