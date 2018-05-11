@@ -46,7 +46,7 @@ We will be designing and building these blocks roughly in the above order.
     the CPU. Instructions implemented: 16/151.
 9.  [**"Branching"**](ep9_-_Branching). We add conditional jumps to allow
     brancing.  Instructions implemented: 31/151.
-10. [**"Assembler"**](ep10_-_Assembler). Now we use as assembler to compile
+10. [**"Assembler"**](ep10_-_Assembler). Now we use an assembler to compile
     programs with.  Instructions implemented: 31/151.
 11. [**"Zero Page"**](ep11_-_Zero_Page). We build on the datapath to support
     the zero-page addressing mode.  Instructions implemented: ??/151.
