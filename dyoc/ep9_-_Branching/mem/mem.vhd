@@ -42,14 +42,21 @@ architecture Structural of mem is
 
    -- Initialize memory contents
    signal mem : mem_t := (
-      X"A9", X"01",           -- LDA #$01
+      X"A9", X"0A",           -- LDA #$0A
       X"8D", X"FF", X"00",    -- STA $00FF
       X"A9", X"00",           -- LDA #$00
-      X"69", X"00",           -- ADC #$00
-      X"AD", X"FF", X"00",    -- LDA $00FF
-      X"69", X"01",           -- ADC #$01
-      X"8D", X"FF", X"00",    -- STA $00FF
-      X"4C", X"05", X"00",    -- JMP $0005
+      X"8D", X"FE", X"00",    -- STA $00FE
+      X"AD", X"FE", X"00",    -- LDA $00FE   <--+
+      X"18",                  -- CLC            |
+      X"6D", X"FF", X"00",    -- ADC $00FF      |
+      X"8D", X"FE", X"00",    -- STA $00FE      |
+      X"AD", X"FF", X"00",    -- LDA $00FF      |
+      X"38",                  -- SEC            |
+      X"E9", X"01",           -- SBC #$01       |
+      X"8D", X"FF", X"00",    -- STA $00FF      |
+      X"D0", X"EB",           -- BNE -----------+
+      X"AD", X"FE", X"00",    -- LDA $00FE
+      X"4C", X"22", X"00",    -- JMP $0022   <---
 
       others => X"00"
    );
