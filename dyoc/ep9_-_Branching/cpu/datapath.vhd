@@ -36,6 +36,7 @@ architecture structural of datapath is
    constant SR_I : integer := 2;
    constant SR_D : integer := 3;
    constant SR_B : integer := 4;
+   constant SR_R : integer := 5;    -- Bit 5 is reserved.
    constant SR_V : integer := 6;
    constant SR_S : integer := 7;
 
@@ -126,7 +127,7 @@ begin
       end if;
    end process p_ar;
 
-   -- 'S' register
+   -- Status register
    p_sr : process (clk_i)
    begin
       if rising_edge(clk_i) then
