@@ -61,7 +61,7 @@ architecture structural of datapath is
    signal ar : std_logic_vector(7 downto 0);
 
    -- Status register
-   signal sr : std_logic_vector(7 downto 0);
+   signal sr : std_logic_vector(7 downto 0) := (others => '0');
 
    -- Address Hi register
    signal hi : std_logic_vector(7 downto 0);
