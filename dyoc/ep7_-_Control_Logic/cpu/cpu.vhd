@@ -16,7 +16,8 @@ entity cpu is
       wait_i  : in  std_logic;
 
       -- Debug output
-      debug_o : out std_logic_vector(111 downto 0)
+      invalid_o : out std_logic_vector(7 downto 0);   -- First invalid instruction encountered
+      debug_o   : out std_logic_vector(111 downto 0)
    );
 end entity cpu;
 
@@ -74,7 +75,8 @@ begin
       addr_sel_o => addr_sel,
       data_sel_o => data_sel,
 
-      debug_o => debug_o(31 downto 0)
+      invalid_o => invalid_o,
+      debug_o   => debug_o(31 downto 0)
    );
 
 

@@ -16,6 +16,7 @@ entity ctl is
       addr_sel_o : out std_logic_vector(1 downto 0);
       data_sel_o : out std_logic_vector(1 downto 0);
 
+      invalid_o  : out std_logic_vector(7 downto 0);
       debug_o    : out std_logic_vector(31 downto 0)
    );
 end ctl;
@@ -819,9 +820,9 @@ architecture Structural of ctl is
       INVALID,
 
 -- 4C JMP a
-      PC_INC + ADDR_PC,
-      PC_INC + ADDR_PC + LO_DATA,
-      PC_INC + ADDR_PC + HI_DATA,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + LO_DATA,
+      ADDR_PC + PC_INC + HI_DATA,
       PC_HL + LAST,
       INVALID,
       INVALID,
@@ -1469,9 +1470,9 @@ architecture Structural of ctl is
       INVALID,
 
 -- 8D STA a
-      PC_INC + ADDR_PC,
-      PC_INC + ADDR_PC + LO_DATA,
-      PC_INC + ADDR_PC + HI_DATA,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + LO_DATA,
+      ADDR_PC + PC_INC + HI_DATA,
       ADDR_HL + DATA_AR + LAST,
       INVALID,
       INVALID,
@@ -1749,8 +1750,8 @@ architecture Structural of ctl is
       INVALID,
 
 -- A9 LDA #
-      PC_INC + ADDR_PC,
-      PC_INC + ADDR_PC + AR_DATA + LAST,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + AR_DATA + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1789,9 +1790,9 @@ architecture Structural of ctl is
       INVALID,
 
 -- AD LDA a
-      PC_INC + ADDR_PC,
-      PC_INC + ADDR_PC + LO_DATA,
-      PC_INC + ADDR_PC + HI_DATA,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + LO_DATA,
+      ADDR_PC + PC_INC + HI_DATA,
       ADDR_HL + AR_DATA + LAST,
       INVALID,
       INVALID,
@@ -2621,6 +2622,9 @@ architecture Structural of ctl is
    signal ir  : std_logic_vector(7 downto 0) := (others => '0');
    signal cnt : std_logic_vector(2 downto 0) := (others => '0');
 
+   -- Store the first invalid instruction encountered
+   signal invalid_inst : std_logic_vector(7 downto 0) := (others => '0');
+
 begin
 
    p_cnt : process (clk_i)
@@ -2646,8 +2650,21 @@ begin
       end if;
    end process p_inst;
 
+   p_invalid : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if wait_i = '0' then
+            if invalid_s = '1' then
+               if invalid_inst = X"00" then
+                  invalid_inst <= ir;
+               end if;
+            end if;
+         end if;
+      end if;
+   end process p_invalid;
+
    -- Combinatorial lookup in ROM
-   ctl <= PC_INC + ADDR_PC when cnt = 0 else
+   ctl <= ADDR_PC + PC_INC when cnt = 0 else
           rom(conv_integer(ir)*8 + conv_integer(cnt));
 
    -- Drive output signals
@@ -2659,6 +2676,7 @@ begin
    data_sel_o <= data_sel;
 
    -- Debug Output
+   invalid_o  <= invalid_inst;
    debug_o(10 downto  0) <= ctl;    -- Two bytes
    debug_o(15 downto 11) <= (others => '0');
    debug_o(18 downto 16) <= cnt;    -- One byte

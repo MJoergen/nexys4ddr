@@ -27,6 +27,7 @@ entity comp is
       clk_i     : in  std_logic;                      -- 100 MHz
 
       sw_i      : in  std_logic_vector(7 downto 0);
+      led_o     : out std_logic_vector(7 downto 0);
 
       vga_hs_o  : out std_logic;
       vga_vs_o  : out std_logic;
@@ -95,13 +96,14 @@ begin
    
    i_cpu : entity work.cpu
    port map (
-      clk_i   => vga_clk,
-      wait_i  => mem_wait,
-      addr_o  => cpu_addr,
-      data_i  => mem_data,
-      wren_o  => cpu_wren,
-      data_o  => cpu_data,
-      debug_o => cpu_debug
+      clk_i     => vga_clk,
+      wait_i    => mem_wait,
+      addr_o    => cpu_addr,
+      data_i    => mem_data,
+      wren_o    => cpu_wren,
+      data_o    => cpu_data,
+      invalid_o => led_o,
+      debug_o   => cpu_debug
    );
 
    --------------------------------------------------

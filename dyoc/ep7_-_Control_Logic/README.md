@@ -6,34 +6,49 @@ and more suited for future expansion.
 
 ## Control Logic
 Since the control signals are functions of the Instruction Register and of the
-Instruction Cycle Counter, it makes sense to implement them in a ROM.
+Instruction Cycle Counter, it makes sense to implement them in a lookup-table,
+essentially a ROM.
 
-Since an instruction never takes more than eight clock cycles we can easily
-calculate the address into this ROM and retrieve all control signals
-simultaneously.  This happens in line 2651. Line 2650 is necessary, because
-during the first clock cycle of the instruction, the Instruction Register has
-not yet been updated.  Since the first cycle is always an instruction fetch
-consisting of "read from program counter" and "increment program counter", we
-just hard code this value here.
+Since an instruction never takes more than eight clock cycles, we will combine
+the 8-bit instruction register with the 3-bit instruction cycle counter to
+generate an 11-bit address in a ROM. The data read from this ROM will then
+contain all the control signals for the CPU.  This lookup happens in line 2668.
+
+Line 2667 is necessary, because during the first clock cycle of the
+instruction, the Instruction Register has not yet been updated.  Since the
+first cycle is always an instruction fetch consisting of "read from program
+counter" and "increment program counter", we just hard code this value here.
 
 It is useful to define symbols for the values of the different multiplexers in
 the datapath. This is done in lines 28-46. The corresponding decoding of the
-ROM data into the individual control signals is done in lines 50-57. It is
+ROM data into the individual control signals is done in lines 48-57. It is
 important that these two sections of the source code are kept in sync. Any
 changes to one section will likely need corresponding changes to the other
-section.
+section. For this reason the two sections are placed next to each other in the
+source file.
 
 Using these constants it becomes much easier to write the individual
 instructions.  For instance, the "LDA #" instruction is defined in lines
 1751-1759. Each line represents one clock cycle.
 
-Of course, typing in these two thousand lines of code is very tedious
+Of course, typing in this table of over two thousand lines is very tedious
 and repetetive, but the benefit is well worth it.
 
-For many instructions, it is just a matter of deciding the control signals
-necessary in each of the up to eight clock cycles. Occasionally, we'll need to
-add more control signals, and this entails modifying lines 25-57.
+From now on, implementing a new instruction is just a matter of deciding the
+control signals necessary in each of the up to eight clock cycles.
+Occasionally, we'll need to add more control signals, and this entails
+modifying lines 25-57. There will be modifications to the datapath as well
+in the coming episodes.
 
 ## VGA modification
 We've added yet another line of debug output showing the current value of the 
 control signals.
+
+## LED output
+It is likely that at some point the CPU will attempt to execute an instruction
+that is not yet implemented. To help debugging these situations the LEDs are
+now connected up to display the OpCode of the invalid instruction.
+The control of the LEDs takes place in lines 2653-2664 of cpu/ctl.vhd.
+If ever the LEDs light up then the CPU has encountered an invalid instruction, and
+the LEDs show the OpCode encountered.
+
