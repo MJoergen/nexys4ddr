@@ -106,3 +106,28 @@ success:
    LDA #$FF
    JMP success
 
+
+;ALU_ORA & X"35" & X"26" & X"00" & X"37" & X"00",
+;ALU_AND & X"35" & X"26" & X"00" & X"24" & X"00",
+;ALU_EOR & X"35" & X"26" & X"00" & X"13" & X"00",
+;ALU_ADC & X"35" & X"26" & X"00" & X"5B" & X"00",
+;ALU_STA & X"35" & X"26" & X"00" & X"35" & X"00",
+;ALU_LDA & X"35" & X"26" & X"00" & X"26" & X"00",
+;ALU_CMP & X"35" & X"26" & X"00" & X"35" & X"00",
+;ALU_SBC & X"35" & X"26" & X"00" & X"0E" & X"01",
+;
+;-- Test of Zero and Sign (and carry unchanged)
+;ALU_LDA & X"35" & X"00" & X"00" & X"00" & X"02",
+;ALU_LDA & X"35" & X"00" & X"01" & X"00" & X"03",
+;ALU_LDA & X"35" & X"80" & X"00" & X"80" & X"80",
+;ALU_LDA & X"35" & X"80" & X"01" & X"80" & X"81",
+;
+;-- Test of ADC (carry)
+;ALU_ADC & X"35" & X"26" & X"01" & X"5C" & X"00",
+;ALU_ADC & X"35" & X"E6" & X"00" & X"1B" & X"01",
+;ALU_ADC & X"35" & X"E6" & X"01" & X"1C" & X"01",
+;
+;-- Test of SBC (carry)
+;ALU_SBC & X"35" & X"26" & X"01" & X"0F" & X"01",
+;ALU_SBC & X"35" & X"E6" & X"00" & X"4E" & X"00",
+;ALU_SBC & X"35" & X"E6" & X"01" & X"4F" & X"00"
