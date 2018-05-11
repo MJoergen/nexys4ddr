@@ -17,7 +17,7 @@ entity datapath is
       ar_sel_i   : in  std_logic;
       hi_sel_i   : in  std_logic;
       lo_sel_i   : in  std_logic;
-      pc_sel_i   : in  std_logic_vector(1 downto 0);
+      pc_sel_i   : in  std_logic_vector(4 downto 0);
       addr_sel_i : in  std_logic_vector(1 downto 0);
       data_sel_i : in  std_logic_vector(1 downto 0);
       alu_sel_i  : in  std_logic_vector(2 downto 0);
@@ -29,6 +29,25 @@ entity datapath is
 end entity datapath;
 
 architecture structural of datapath is
+
+   -- The Status Register contains: SV-BDIZC
+   constant SR_C : integer := 0;
+   constant SR_Z : integer := 1;
+   constant SR_I : integer := 2;
+   constant SR_D : integer := 3;
+   constant SR_B : integer := 4;
+   constant SR_V : integer := 6;
+   constant SR_S : integer := 7;
+
+   -- Convert signed 8-bit number to signed 16-bit number
+   function sign_extend(arg : std_logic_vector(7 downto 0))
+   return std_logic_vector is
+      variable res : std_logic_vector(15 downto 0);
+   begin
+      res := (others => arg(7)); -- Copy sign bit to all bits.
+      res(7 downto 0) := arg;
+      return res;
+   end function sign_extend;
 
    -- Output from ALU
    signal alu_ar : std_logic_vector(7 downto 0);
@@ -72,10 +91,23 @@ begin
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
-            case pc_sel_i is
+            case pc_sel_i(1 downto 0) is
                when "00" => null;
                when "01" => pc <= pc + 1;
                when "10" => pc <= hi & lo;
+               when "11" =>
+                  if (pc_sel_i(4 downto 2) = "000" and sr(SR_S) = '0') or     -- BPL
+                     (pc_sel_i(4 downto 2) = "001" and sr(SR_S) = '1') or     -- BMI
+                     (pc_sel_i(4 downto 2) = "010" and sr(SR_V) = '0') or     -- BVC
+                     (pc_sel_i(4 downto 2) = "011" and sr(SR_V) = '1') or     -- BVS
+                     (pc_sel_i(4 downto 2) = "100" and sr(SR_C) = '0') or     -- BCC
+                     (pc_sel_i(4 downto 2) = "101" and sr(SR_C) = '1') or     -- BCS
+                     (pc_sel_i(4 downto 2) = "110" and sr(SR_Z) = '0') or     -- BNE
+                     (pc_sel_i(4 downto 2) = "111" and sr(SR_Z) = '1') then   -- BEQ
+                     pc <= pc + 1 + sign_extend(data_i);
+                  else
+                     pc <= pc + 1;  -- If branch is not taken, just go to the next instruction.
+                  end if;
                when others => null;
             end case;
          end if;
@@ -102,13 +134,13 @@ begin
             case sr_sel_i is
                when "0000" => null;
                when "0001" => sr <= alu_sr;
-               when "1000" => sr <= sr and X"FE";  -- CLC
-               when "1001" => sr <= sr or  X"01";  -- SEC
-               when "1010" => sr <= sr and X"FB";  -- CLI 
-               when "1011" => sr <= sr or  X"04";  -- SEI
-               when "1100" => sr <= sr and X"BF";  -- CLV
-               when "1110" => sr <= sr and X"F7";  -- CLD
-               when "1111" => sr <= sr or  X"08";  -- SED
+               when "1000" => sr(SR_C) <= '0';  -- CLC
+               when "1001" => sr(SR_C) <= '1';  -- SEC
+               when "1010" => sr(SR_I) <= '0';  -- CLI 
+               when "1011" => sr(SR_I) <= '1';  -- SEI
+               when "1100" => sr(SR_V) <= '0';  -- CLV
+               when "1110" => sr(SR_D) <= '0';  -- CLD
+               when "1111" => sr(SR_D) <= '1';  -- SED
                when others => null;
             end case;
          end if;

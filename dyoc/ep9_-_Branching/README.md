@@ -3,7 +3,7 @@
 Welcome to the nineth episode of "Design Your Own Computer". In this episode
 we will perform the following two tasks:
 * Add control of individual bits in the status register
-* Conditional branching
+* Conditional jumps
 
 ## Controlling individual status bits
 The 6502 has a number of instructions to manipulate the
@@ -17,3 +17,10 @@ status register:
 * D8 CLD    (bit 3)
 * F8 SED    (bit 3)
 
+To implement these we need to add more inputs to the multiplexer connected to
+the status register. And we need to correspondingly expand the selector signal
+sr\_sel.
+
+## Conditional jumps
+All conditional jumps (branches) on the 6502 are relative to the current
+value of the Program Counter.
