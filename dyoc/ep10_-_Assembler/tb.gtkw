@@ -1,21 +1,19 @@
 [*]
 [*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
-[*] Fri May 11 11:45:03 2018
+[*] Fri May 11 13:37:58 2018
 [*]
 [dumpfile] "/home/mfj/git/nexys4ddr/dyoc/ep10_-_Assembler/tb.ghw"
-[dumpfile_mtime] "Fri May 11 11:44:48 2018"
-[dumpfile_size] 297534
+[dumpfile_mtime] "Fri May 11 13:37:34 2018"
+[dumpfile_size] 295042
 [savefile] "/home/mfj/git/nexys4ddr/dyoc/ep10_-_Assembler/tb.gtkw"
-[timestart] 0
+[timestart] 503200000
 [size] 1325 765
 [pos] 114 0
-*-24.920622 50000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-24.920622 579800000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.tb.
 [treeopen] top.tb.i_cpu.
 [treeopen] top.tb.i_cpu.inst_datapath.
-[treeopen] top.tb.i_mem.
-[treeopen] top.tb.i_mem.mem.
 [sst_width] 225
 [signals_width] 219
 [sst_expanded] 1
@@ -33,13 +31,14 @@ top.tb.cpu_wren
 -CPU
 @22
 #{top.tb.i_cpu.inst_datapath.ar[7:0]} top.tb.i_cpu.inst_datapath.ar[7] top.tb.i_cpu.inst_datapath.ar[6] top.tb.i_cpu.inst_datapath.ar[5] top.tb.i_cpu.inst_datapath.ar[4] top.tb.i_cpu.inst_datapath.ar[3] top.tb.i_cpu.inst_datapath.ar[2] top.tb.i_cpu.inst_datapath.ar[1] top.tb.i_cpu.inst_datapath.ar[0]
+@23
+#{top.tb.i_cpu.inst_datapath.sr[7:0]} top.tb.i_cpu.inst_datapath.sr[7] top.tb.i_cpu.inst_datapath.sr[6] top.tb.i_cpu.inst_datapath.sr[5] top.tb.i_cpu.inst_datapath.sr[4] top.tb.i_cpu.inst_datapath.sr[3] top.tb.i_cpu.inst_datapath.sr[2] top.tb.i_cpu.inst_datapath.sr[1] top.tb.i_cpu.inst_datapath.sr[0]
 @1000200
 -CPU
 @800200
 -Memory
-@23
-#{top.tb.i_mem.mem[1022][7:0]} top.tb.i_mem.mem[1022][7] top.tb.i_mem.mem[1022][6] top.tb.i_mem.mem[1022][5] top.tb.i_mem.mem[1022][4] top.tb.i_mem.mem[1022][3] top.tb.i_mem.mem[1022][2] top.tb.i_mem.mem[1022][1] top.tb.i_mem.mem[1022][0]
 @22
+#{top.tb.i_mem.mem[1022][7:0]} top.tb.i_mem.mem[1022][7] top.tb.i_mem.mem[1022][6] top.tb.i_mem.mem[1022][5] top.tb.i_mem.mem[1022][4] top.tb.i_mem.mem[1022][3] top.tb.i_mem.mem[1022][2] top.tb.i_mem.mem[1022][1] top.tb.i_mem.mem[1022][0]
 #{top.tb.i_mem.mem[1023][7:0]} top.tb.i_mem.mem[1023][7] top.tb.i_mem.mem[1023][6] top.tb.i_mem.mem[1023][5] top.tb.i_mem.mem[1023][4] top.tb.i_mem.mem[1023][3] top.tb.i_mem.mem[1023][2] top.tb.i_mem.mem[1023][1] top.tb.i_mem.mem[1023][0]
 @1000200
 -Memory
