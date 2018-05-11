@@ -45,7 +45,7 @@ We will be designing and building these blocks roughly in the above order.
 8.  [**"ALU"**](ep8_-_ALU). Here the Arithmetic and Logic Unit will be added to
     the CPU. Instructions implemented: 16/151.
 9.  [**"Branching"**](ep9_-_Branching). We add conditional jumps to allow brancing.
-    Instructions implemented: ??/151.
+    Instructions implemented: 31/151.
 10. [**"Assembler"**](ep10_-_Assembler). Now we use as assembler to compile programs with.
     Instructions implemented: ??/151.
 

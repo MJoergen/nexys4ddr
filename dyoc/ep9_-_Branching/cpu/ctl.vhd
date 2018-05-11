@@ -18,6 +18,7 @@ entity ctl is
       alu_sel_o  : out std_logic_vector(2 downto 0);
       sr_sel_o   : out std_logic_vector(3 downto 0);
 
+      invalid_o  : out std_logic_vector(7 downto 0);
       debug_o    : out std_logic_vector(47 downto 0)
    );
 end ctl;
@@ -2651,6 +2652,8 @@ architecture Structural of ctl is
    signal ir  : std_logic_vector(7 downto 0) := (others => '0');
    signal cnt : std_logic_vector(2 downto 0) := (others => '0');
 
+   signal invalid_inst : std_logic_vector(7 downto 0) := (others => '0');
+
 begin
 
    p_cnt : process (clk_i)
@@ -2676,6 +2679,19 @@ begin
       end if;
    end process p_inst;
 
+   p_invalid : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if wait_i = '0' then
+            if invalid_s = '1' then
+               if invalid_inst = X"00" then
+                  invalid_inst <= ir;
+               end if;
+            end if;
+         end if;
+      end if;
+   end process p_invalid;
+
    -- Combinatorial lookup in ROM
    ctl <= ADDR_PC + PC_INC when cnt = 0 else
           rom(conv_integer(ir)*8 + conv_integer(cnt));
@@ -2691,6 +2707,7 @@ begin
    sr_sel_o   <= sr_sel;
 
    -- Debug Output
+   invalid_o  <= invalid_inst;
    debug_o(20 downto  0) <= ctl;    -- Four bytes
    debug_o(31 downto 21) <= (others => '0');
    debug_o(34 downto 32) <= cnt;    -- One byte
