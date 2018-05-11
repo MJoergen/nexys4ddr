@@ -112,11 +112,11 @@ begin
    
    i_mem : entity work.mem
    generic map (
-      G_ADDR_BITS => 8  -- 256 bytes
+      G_ADDR_BITS => 10  -- 1024 bytes
    )
    port map (
       clk_i  => vga_clk,
-      addr_i => cpu_addr(7 downto 0),  -- Only select the relevant address bits
+      addr_i => cpu_addr(9 downto 0),  -- Only select the relevant address bits
       data_o => mem_data,
       wren_i => cpu_wren,
       data_i => cpu_data

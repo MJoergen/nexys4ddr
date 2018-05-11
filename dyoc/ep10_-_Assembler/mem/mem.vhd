@@ -1,6 +1,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
+use ieee.std_logic_textio.all;
+use std.textio.all;
 
 -- This module models a single-port asynchronous RAM.
 -- Even though there are separate signals for data
@@ -40,26 +43,24 @@ architecture Structural of mem is
    -- This defines a type containing an array of bytes
    type mem_t is array (0 to 2**G_ADDR_BITS-1) of std_logic_vector(7 downto 0);
 
-   -- Initialize memory contents
-   signal mem : mem_t := (
-      X"A9", X"0A",           -- LDA #$0A
-      X"8D", X"FF", X"00",    -- STA $00FF
-      X"A9", X"00",           -- LDA #$00
-      X"8D", X"FE", X"00",    -- STA $00FE
-      X"AD", X"FE", X"00",    -- LDA $00FE   <--+
-      X"18",                  -- CLC            |
-      X"6D", X"FF", X"00",    -- ADC $00FF      |
-      X"8D", X"FE", X"00",    -- STA $00FE      |
-      X"AD", X"FF", X"00",    -- LDA $00FF      |
-      X"38",                  -- SEC            |
-      X"E9", X"01",           -- SBC #$01       |
-      X"8D", X"FF", X"00",    -- STA $00FF      |
-      X"D0", X"EB",           -- BNE -----------+
-      X"AD", X"FE", X"00",    -- LDA $00FE
-      X"4C", X"22", X"00",    -- JMP $0022   <---
+   -- This reads the ROM contents from a text file
+   impure function InitRamFromFile(RamFileName : in string) return mem_t is
+      FILE RamFile : text is in RamFileName;
+      variable RamFileLine : line;
+      variable RAM : mem_t := (others => (others => '0'));
+   begin
+      for i in mem_t'range loop
+         readline (RamFile, RamFileLine);
+         hread (RamFileLine, RAM(i));
+         if endfile(RamFile) then
+            return RAM;
+         end if;
+      end loop;
+      return RAM;
+   end function;
 
-      others => X"00"
-   );
+   -- Initialize memory contents
+   signal mem : mem_t := InitRamFromFile("mem/mem.txt");
 
    -- Data read from memory.
    signal data : std_logic_vector(7 downto 0);
