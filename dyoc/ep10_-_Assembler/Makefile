@@ -4,7 +4,7 @@ SRC = comp.vhd vga/sync.vhd vga/font.vhd vga/digits.vhd vga/vga.vhd mem/mem.vhd 
 XDC = comp.xdc
 TB  = tb.vhd
 
-comp.bit: $(SRC) $(XDC) mem/mem.bin
+comp.bit: $(SRC) $(XDC) mem/mem.txt
 	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source comp.tcl"
 
 fpga: comp.bit
