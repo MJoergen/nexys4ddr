@@ -23,3 +23,6 @@ end:
    LDA sum
    JMP end
 
+.org $03FE
+tmp: .byte $00
+sum: .byte $00
