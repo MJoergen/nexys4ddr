@@ -1,30 +1,21 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
-use ieee.numeric_std.all;
-use ieee.std_logic_textio.all;
-use std.textio.all;
+--use ieee.numeric_std.all;
+--use ieee.std_logic_textio.all;
+--use std.textio.all;
 
--- This module models a single-port asynchronous RAM.
--- Even though there are separate signals for data
--- input and data output, simultaneous read and write
--- will not be used in this design.
---
--- Data read is present half way through the same clock cycle.
--- This is done by using a synchronous Block RAM, and reading
--- on the *falling* edge of the clock cycle.
+-- This module controls the memory map of the computer
+-- by instantiating the different memory components
+-- needed (RAM, ROM, etc), and by handling the necessary
+-- address decoding.
 
 entity mem is
-   generic (
-      -- Number of bits in the address bus. The size of the memory will
-      -- be 2**G_ADDR_BITS bytes.
-      G_ADDR_BITS : integer
-   );
    port (
       clk_i  : in  std_logic;
 
       -- Current address selected.
-      addr_i : in  std_logic_vector(G_ADDR_BITS-1 downto 0);
+      addr_i : in  std_logic_vector(15 downto 0);
 
       -- Data contents at the selected address.
       -- Valid in same clock cycle.
@@ -40,55 +31,55 @@ end mem;
 
 architecture Structural of mem is
 
-   -- This defines a type containing an array of bytes
-   type mem_t is array (0 to 2**G_ADDR_BITS-1) of std_logic_vector(7 downto 0);
-
-   -- This reads the ROM contents from a text file
-   impure function InitRamFromFile(RamFileName : in string) return mem_t is
-      FILE RamFile : text is in RamFileName;
-      variable RamFileLine : line;
-      variable RAM : mem_t := (others => (others => '0'));
-   begin
-      for i in mem_t'range loop
-         readline (RamFile, RamFileLine);
-         hread (RamFileLine, RAM(i));
-         if endfile(RamFile) then
-            return RAM;
-         end if;
-      end loop;
-      return RAM;
-   end function;
-
-   -- Initialize memory contents
-   signal mem : mem_t := InitRamFromFile("mem/mem.txt");
-
-   -- Data read from memory.
-   signal data : std_logic_vector(7 downto 0);
+   signal ram_wren : std_logic;
+   signal rom_data : std_logic_vector(7 downto 0);
+   signal ram_data : std_logic_vector(7 downto 0);
 
 begin
 
-   -- Write process
-   p_mem : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if wren_i = '1' then
-            mem(conv_integer(addr_i)) <= data_i;
-         end if;
-      end if;
-   end process p_mem;
+   ----------------------
+   -- Instantiate the ROM
+   ----------------------
 
-   -- Read process.
-   -- Triggered on the *falling* clock edge in order to mimick an asynchronous
-   -- memory.
-   p_data : process (clk_i)
-   begin
-      if falling_edge(clk_i) then
-         data <= mem(conv_integer(addr_i));
-      end if;
-   end process p_data;
+   i_rom : entity work.rom
+   generic map (
+      G_INIT_FILE => "mem/rom.txt",
+      G_ADDR_BITS => 11  -- 2K bytes
+   )
+   port map (
+      clk_i  => clk_i,
+      addr_i => addr_i(10 downto 0),
+      data_o => rom_data
+   );
+   
 
-   -- Drive output signals
-   data_o <= data;
+   ----------------------
+   -- Instantiate the RAM
+   ----------------------
 
+   i_ram : entity work.ram
+   generic map (
+      G_ADDR_BITS => 11  -- 2K bytes
+   )
+   port map (
+      clk_i  => clk_i,
+      addr_i => addr_i(10 downto 0),
+      data_o => ram_data,
+      data_i => data_i,
+      wren_i => ram_wren
+   );
+   
+
+   ----------------------
+   -- Address decoding
+   ----------------------
+
+   ram_wren <= wren_i when addr_i(15 downto 11) = "00000" else
+               '0';
+
+   data_o <= rom_data when addr_i(15 downto 11) = "11111" else
+             ram_data when addr_i(15 downto 11) = "00000" else
+             X"00";
+  
 end Structural;
 

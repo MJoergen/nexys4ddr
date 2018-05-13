@@ -55,7 +55,7 @@ architecture structural of datapath is
    signal alu_sr : std_logic_vector(7 downto 0);
    
    -- Program Counter
-   signal pc : std_logic_vector(15 downto 0) := (others => '0');
+   signal pc : std_logic_vector(15 downto 0) := X"F800";
 
    -- 'A' register
    signal ar : std_logic_vector(7 downto 0);
@@ -177,6 +177,7 @@ begin
    addr <= (others => '0') when addr_sel_i = "00" else
            pc              when addr_sel_i = "01" else
            hi & lo         when addr_sel_i = "10" else
+           X"00" & lo      when addr_sel_i = "11" else
            (others => '0');
 
    data <= (others => '0') when data_sel_i = "00" else

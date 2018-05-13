@@ -2,7 +2,11 @@
 
 .segment	"CODE"
 
-; Test S and Z when loading $00.
+; This is a self-verifying assembly program that will check for correct
+; functionality of the individual instructions.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Test 01 : Test flags S and Z when loading $00.
 ; Conditional branch forward
    LDA #$00
    BNE error1     ; Should not jump
@@ -16,7 +20,8 @@ noError1:
    JMP error1
 noError1a:
 
-; Test S and Z when loading $01.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Test 02 : Test flags S and Z when loading $FF.
 ; Conditional branch forward
    LDA #$FF
    BEQ error2     ; Should not jump
@@ -30,9 +35,11 @@ noError2:
    JMP error2
 noError2a:
 
-; Test C.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Test 03 : Test flag C.
 ; Conditional branch forward
    CLC
+   LDA #$FF
    BCS error3     ; Should not jump
    BCC noError3   ; Should jump
 error3:
@@ -40,11 +47,15 @@ error3:
    JMP error3
 noError3:
    SEC
+   LDA #$FF
    BCC error3     ; Should not jump
-   BCS noError4   ; Should jump
+   BCS noError3a  ; Should jump
    JMP error3
+noError3a:
 
-; Next we test conditional branching backward
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Test 04 : Test conditional branching backward
+   JMP noError4
 noError4c:
    LDA #$FF
    BNE noError4e  ; Should jump
@@ -68,7 +79,8 @@ error4d:
    JMP error4d
 noError4e:
 
-; Now we test compare
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Test 05 : Test compare
    SEC            ; Preset. Should be cleared in compare.
    LDA #$55
    CMP #$AA
@@ -102,32 +114,92 @@ noError5b:
    BEQ error5b    ; Should not jump
    BMI error5b    ; Should not jump
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Test 06 : Test ALU using immediate operands
+   LDA #$35
+   ORA #$26
+   CMP #$37
+   BEQ noError6a
+error6:
+   LDA #$06
+   JMP error6
+noError6a:
+
+   LDA #$35
+   AND #$26
+   CMP #$24
+   BNE error6
+
+   LDA #$35
+   EOR #$26
+   CMP #$13
+   BNE error6
+
+   LDA #$35
+   CLC
+   ADC #$26
+   CMP #$5B
+   BNE error6
+
+   LDA #$35
+   SEC
+   ADC #$26
+   CMP #$5C
+   BNE error6
+
+   LDA #$35
+   SEC
+   SBC #$26
+   CMP #$0F
+   BNE error6
+
+   LDA #$35
+   CLC
+   SBC #$26
+   CMP #$0E
+   BNE error6
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Test 07 : Test absolute addressing
+   LDA #$35
+   STA $07F0
+   LDA #$53
+   STA $07F1
+   LDA $07F0
+   CMP #$35
+   BEQ noError7
+error7:
+   LDA #$07
+   JMP error7
+noError7:
+   LDA $07F0
+   CLC
+   ADC $07F1
+   CMP #$88
+   BNE error7
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Test 08 : Test zero page addressing
+   LDA #$35
+   STA $F0
+   LDA #$53
+   STA $F1
+   LDA $F0
+   CMP #$35
+   BEQ noError8
+error8:
+   LDA #$08
+   JMP error8
+noError8:
+   LDA $F0
+   CLC
+   ADC $F1
+   CMP #$88
+   BNE error8
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; All tests very a success
 success:
    LDA #$FF
    JMP success
 
-
-;ALU_ORA & X"35" & X"26" & X"00" & X"37" & X"00",
-;ALU_AND & X"35" & X"26" & X"00" & X"24" & X"00",
-;ALU_EOR & X"35" & X"26" & X"00" & X"13" & X"00",
-;ALU_ADC & X"35" & X"26" & X"00" & X"5B" & X"00",
-;ALU_STA & X"35" & X"26" & X"00" & X"35" & X"00",
-;ALU_LDA & X"35" & X"26" & X"00" & X"26" & X"00",
-;ALU_CMP & X"35" & X"26" & X"00" & X"35" & X"00",
-;ALU_SBC & X"35" & X"26" & X"00" & X"0E" & X"01",
-;
-;-- Test of Zero and Sign (and carry unchanged)
-;ALU_LDA & X"35" & X"00" & X"00" & X"00" & X"02",
-;ALU_LDA & X"35" & X"00" & X"01" & X"00" & X"03",
-;ALU_LDA & X"35" & X"80" & X"00" & X"80" & X"80",
-;ALU_LDA & X"35" & X"80" & X"01" & X"80" & X"81",
-;
-;-- Test of ADC (carry)
-;ALU_ADC & X"35" & X"26" & X"01" & X"5C" & X"00",
-;ALU_ADC & X"35" & X"E6" & X"00" & X"1B" & X"01",
-;ALU_ADC & X"35" & X"E6" & X"01" & X"1C" & X"01",
-;
-;-- Test of SBC (carry)
-;ALU_SBC & X"35" & X"26" & X"01" & X"0F" & X"01",
-;ALU_SBC & X"35" & X"E6" & X"00" & X"4E" & X"00",
-;ALU_SBC & X"35" & X"E6" & X"01" & X"4F" & X"00"
