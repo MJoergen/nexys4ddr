@@ -50,7 +50,7 @@ We will be designing and building these blocks roughly in the above order.
 10. [**"Assembler"**](ep10_-_Assembler). Now we use an assembler to compile
     programs with.  Instructions implemented: 31/151.
 11. [**"Zero Page"**](ep11_-_Zero_Page). We build on the datapath to support
-    the zero-page addressing mode.  Instructions implemented: ??/151.
+    the zero-page addressing mode.  Instructions implemented: 39/151.
 12. [**"Stack Pointer"**](ep12_-_Stack_Pointer). We add the stack pointer and
     can now support subroutine calls.  Instructions implemented: ??/151.
 

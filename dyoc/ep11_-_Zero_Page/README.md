@@ -3,6 +3,8 @@
 Welcome to "Design Your Own Computer".  In this episode we will introduce the
 memory map of the CPU and add some more instructions.
 
+Instructions implemented in total : 39/151.
+
 ## Memory map
 So far we have had a single memory starting from address 0x0000, and the Program
 Counter has been initialized to 0x0000 upon startup. However, on the 6502

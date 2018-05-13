@@ -3,6 +3,8 @@
 Welcome to the tenth episode of "Design Your Own Computer".  In this episode we
 will make use of an assembler to generate the initial contents of the memory.
 
+Instructions implemented in total : 31/151.
+
 The assembler and linker are part of a toolchain for the 6502 CPU, which can be
 found here: <https://github.com/cc65/cc65>.
 
