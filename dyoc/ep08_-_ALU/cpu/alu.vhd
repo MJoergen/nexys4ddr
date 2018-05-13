@@ -29,9 +29,10 @@ end alu;
 
 architecture Structural of alu is
 
-   signal c  : std_logic;                    -- Copy of the input carry signal
-   signal a  : std_logic_vector(8 downto 0); -- New value of carry and accumulator
-   signal sr : std_logic_vector(7 downto 0); -- New value of the Status Register
+   signal c   : std_logic;                    -- Copy of the input carry signal
+   signal a   : std_logic_vector(8 downto 0); -- New value of carry and accumulator
+   signal sr  : std_logic_vector(7 downto 0); -- New value of the Status Register
+   signal cmp : std_logic_vector(8 downto 0); -- Temporary value used by CMP
 
    -- The Status Register contains: SV-BDIZC
    constant SR_S : integer := 7;
@@ -57,6 +58,7 @@ begin
    -- Calculate the result
    p_a : process (c, a_i, b_i, sr_i, func_i)
    begin
+      cmp <= (others => '0');
       a(8) <= c;  -- Default value
       case func_i is
          when "000" => -- ORA   SZ
@@ -79,6 +81,7 @@ begin
 
          when "110" => -- CMP   SZC
             a(7 downto 0) <= a_i;
+            cmp <= ('0' & a_i) + ('0' & not b_i) + (X"00" & '1');
 
          when "111" => -- SBC   SZCV
             a <= ('0' & a_i) + ('0' & not b_i) + (X"00" & c);
@@ -90,7 +93,7 @@ begin
    end process p_a;
 
    -- Calculate the new Status Register
-   p_sr : process (a, a_i, b_i, sr_i, func_i)
+   p_sr : process (a, cmp, a_i, b_i, sr_i, func_i)
    begin
       sr <= sr_i;  -- Keep the old value as default
 
@@ -120,9 +123,9 @@ begin
             sr(SR_Z) <= not or_all(a(7 downto 0));
 
          when "110" => -- CMP   SZC
-            sr(SR_S) <= a(7);
-            sr(SR_Z) <= not or_all(a(7 downto 0));
-            sr(SR_C) <= a(8);
+            sr(SR_S) <= cmp(7);
+            sr(SR_Z) <= not or_all(cmp(7 downto 0));
+            sr(SR_C) <= cmp(8);
 
          when "111" => -- SBC   SZCV
             sr(SR_S) <= a(7);
