@@ -21,3 +21,12 @@ the memory.
 The Xilinx tools require a text file, so the binary file is translated using
 the python script bin2hex.py. This generates a file mem/mem.txt, that can be
 loaded by the Xilinx tool as the initial contents of the memory.
+
+And that is it! Now you can write programs directly in assembly in the file
+mem/mem.s, and have the CPU execute the program. We are still a long way from
+writing programs in C, because the C-compiler will most likely make use
+of some of the many instructions we've not yet implemented.
+
+We still have some way to go before we can actually do anything interesting
+with this computer. In the next episode we'll add some more instructions and
+go into details about the memory map.
