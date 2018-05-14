@@ -1,12 +1,12 @@
 00 BRK b
 01 ORA (d,X)
 05 ORA d       Episode 11
-06 ASL d
+06 ASL d       Episode 13
 08 PHP         Episode 12 
 09 ORA #       Episode 08
-0A ASL A
+0A ASL A       Episode 13
 0D ORA a       Episode 08
-0E ASL a
+0E ASL a       Episode 13
 10 BPL r       Episode 09
 11 ORA (d),Y
 15 ORA d,X
@@ -17,15 +17,15 @@
 1E ASL a,X
 20 JSR a       Episode 12
 21 AND (d,X)
-24 BIT d
+24 BIT d       Episode 13
 25 AND d       Episode 11
-26 ROL d
+26 ROL d       Episode 13
 28 PLP         Episode 12
 29 AND #       Episode 08
-2A ROL A
-2C BIT a
+2A ROL A       Episode 13
+2C BIT a       Episode 13
 2D AND a       Episode 08
-2E ROL a
+2E ROL a       Episode 13
 30 BMI r       Episode 09
 31 AND (d),Y
 35 AND d,X
@@ -37,13 +37,13 @@
 40 RTI
 41 EOR (d,X)
 45 EOR d       Episode 11
-46 LSR d
+46 LSR d       Episode 13
 48 PHA         Episode 12
 49 EOR #       Episode 08
-4A LSR A
+4A LSR A       Episode 13
 4C JMP a       Episode 06
 4D EOR a       Episode 08
-4E LSR a
+4E LSR a       Episode 13
 50 BVC r       Episode 09
 51 EOR (d),Y
 55 EOR d,X
@@ -55,13 +55,13 @@
 60 RTS         Episode 12
 61 ADC (d,X)
 65 ADC d       Episode 11
-66 ROR d
+66 ROR d       Episode 13
 68 PLA         Episode 12
 69 ADC #       Episode 08
-6A ROR A
+6A ROR A       Episode 13
 6C JMP (a)
 6D ADC a       Episode 08
-6E ROR a
+6E ROR a       Episode 13
 70 BVS r       Episode 09
 71 ADC (d),Y
 75 ADC d,X
@@ -115,13 +115,13 @@ C0 CPY #
 C1 CMP (d,X)
 C4 CPY d
 C5 CMP d       Episode 11
-C6 DEC d
+C6 DEC d       Episode 13
 C8 INY
 C9 CMP #       Episode 08
 CA DEX
 CC CPY a
 CD CMP a       Episode 08
-CE DEC a
+CE DEC a       Episode 13
 D0 BNE r       Episode 09
 D1 CMP (d),Y
 D5 CMP d,X
@@ -134,13 +134,13 @@ E0 CPX #
 E1 SBC (d,X)
 E4 CPX d
 E5 SBC d       Episode 11
-E6 INC d
+E6 INC d       Episode 13
 E8 INX
 E9 SBC #       Episode 08
-EA NOP
+EA NOP         Episode 13
 EC CPX a
 ED SBC a       Episode 08
-EE INC a
+EE INC a       Episode 13
 F0 BEQ r       Episode 09
 F1 SBC (d),Y
 F5 SBC d,X

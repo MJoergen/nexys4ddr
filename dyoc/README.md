@@ -39,12 +39,12 @@ We will be designing and building these blocks roughly in the above order.
 ### CPU ###
 5.  [**"Datapath"**](ep05_-_Datapath). Here the skeleton of the CPU datapath
     will be developed. Instructions implemented:  1/151.
-6.  [**"Load and Store"**](ep06_-_Load_And_Store). We will add instructions that
-    load and store in memory. Instructions implemented:  4/151.
+6.  [**"Load and Store"**](ep06_-_Load_And_Store). We will add instructions
+    that load and store in memory. Instructions implemented:  4/151.
 7.  [**"Control logic"**](ep07_-_Control_Logic). The control logic will be
     greatly expanded. Instructions implemented:  4/151.
-8.  [**"ALU"**](ep08_-_ALU). Here the Arithmetic and Logic Unit will be added to
-    the CPU. Instructions implemented: 16/151.
+8.  [**"ALU"**](ep08_-_ALU). Here the Arithmetic and Logic Unit will be added
+    to the CPU. Instructions implemented: 16/151.
 9.  [**"Branching"**](ep09_-_Branching). We add conditional jumps to allow
     brancing.  Instructions implemented: 31/151.
 10. [**"Assembler"**](ep10_-_Assembler). Now we use an assembler to compile
@@ -53,6 +53,22 @@ We will be designing and building these blocks roughly in the above order.
     the zero-page addressing mode.  Instructions implemented: 39/151.
 12. [**"Stack Pointer"**](ep12_-_Stack_Pointer). We add the stack pointer and
     can now support subroutine calls.  Instructions implemented: 45/151.
+13. [**"More ALU"**](ep13_-_More_ALU). We expand the ALU and add several more
+    instructions.  Instructions implemented: 64/151.
+14. [**"Registers X and Y"**](ep14_-_Registers_X_and_Y). We add the two
+    remaining registers 'X' and 'Y'.  Instructions implemented: ??/151.
+15. [**"Indirect addressing"**](ep15_-_Indirect_Addressing). We finish (almost)
+    the CPU by adding support for indirect addressing modes. Instructions
+    implemented: ??/151.
+### VGA part 2 ###
+16. [**"Text display"**](ep16_-_Text_Display). We expand on the VGA module
+    by adding a screen memory to contain the text to be displayed.
+17. [**"Sprites"**](ep17_-_Sprites). We add sprites (moveable objects) to the
+    VGA module.
+18. [**"Interrupts"**](ep18_-_Interrupts). We add interrupt support to the CPU.
+### Keyboard ###
+19. [**"Keyboard"**](ep19_-_Keyboard). We are now ready to add the keyboard
+    interface.
 
 More to come soon...
 
