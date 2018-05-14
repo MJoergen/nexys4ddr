@@ -20,7 +20,7 @@ entity datapath is
       pc_sel_i   : in  std_logic_vector(5 downto 0);
       addr_sel_i : in  std_logic_vector(2 downto 0);
       data_sel_i : in  std_logic_vector(2 downto 0);
-      alu_sel_i  : in  std_logic_vector(2 downto 0);
+      alu_sel_i  : in  std_logic_vector(4 downto 0);
       sr_sel_i   : in  std_logic_vector(3 downto 0);
       sp_sel_i   : in  std_logic_vector(1 downto 0);
 
@@ -61,6 +61,7 @@ architecture structural of datapath is
    --
    constant DATA_AR   : std_logic_vector(2 downto 0) := B"001";
    constant DATA_SR   : std_logic_vector(2 downto 0) := B"010";
+   constant DATA_ALU  : std_logic_vector(2 downto 0) := B"011";
    constant DATA_PCLO : std_logic_vector(2 downto 0) := B"100";
    constant DATA_PCHI : std_logic_vector(2 downto 0) := B"101";
    --
@@ -240,12 +241,14 @@ begin
    data <= (others => '0') when data_sel_i = "000"     else
            ar              when data_sel_i = DATA_AR   else
            sr              when data_sel_i = DATA_SR   else
+           alu_ar          when data_sel_i = DATA_ALU  else
            pc(7 downto 0)  when data_sel_i = DATA_PCLO else
            pc(15 downto 8) when data_sel_i = DATA_PCHI else
            (others => '0');
 
    wren <= '1' when data_sel_i = DATA_AR   or 
                     data_sel_i = DATA_SR   or 
+                    data_sel_i = DATA_ALU  or 
                     data_sel_i = DATA_PCLO or 
                     data_sel_i = DATA_PCHI else
            '0';

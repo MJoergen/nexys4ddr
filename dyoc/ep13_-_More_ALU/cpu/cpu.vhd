@@ -29,7 +29,7 @@ architecture structural of cpu is
    signal pc_sel   : std_logic_vector(5 downto 0);
    signal addr_sel : std_logic_vector(2 downto 0);
    signal data_sel : std_logic_vector(2 downto 0);
-   signal alu_sel  : std_logic_vector(2 downto 0);
+   signal alu_sel  : std_logic_vector(4 downto 0);
    signal sr_sel   : std_logic_vector(3 downto 0);
    signal sp_sel   : std_logic_vector(1 downto 0);
 

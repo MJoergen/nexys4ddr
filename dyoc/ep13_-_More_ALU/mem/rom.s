@@ -261,6 +261,86 @@ noError10b:
 noError10c:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Test 11 : Test INC
+   LDA #$FF
+   STA $02
+   CLC
+   INC $02
+   BEQ noError11
+error11:
+   LDA #$11
+   JMP error11
+noError11:
+   BMI error11
+   BCS error11
+   LDA $02
+   BNE error11
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Test 12 : Test ASL (register)
+   LDA #$20
+   SEC
+   ASL A
+   BCC noError12
+error12:
+   LDA #$12
+   JMP error12
+noError12:
+   BMI error12
+   BEQ error12
+   CMP #$40
+   BNE error12
+
+   ASL A
+   BCS error12
+   BPL error12
+   BEQ error12
+   CMP #$80
+   BNE error12
+
+   ASL A
+   BCC error12
+   BMI error12
+   BNE error12
+   CMP #$00
+   BNE error12
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Test 13 : Test ASL (memory)
+   LDA #$41
+   STA $02
+   LDA #$23
+   SEC
+   ASL $02
+   BMI noError13
+error13:
+   LDA #$13
+   JMP error13
+noError13:
+   BCS error13
+   LDA $02
+   CMP #$82
+   BNE error13
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Test 14 : Test BIT
+   LDA #$C0
+   STA $02
+   SEC
+   LDA #$21
+   BIT $02
+   BCS noError14
+error14:
+   LDA #$14
+   JMP error14
+noError14:
+   BPL error14
+   BVC error14
+   CMP #$21
+   BNE error14
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; All tests very a success
 success:
    LDA #$FF
