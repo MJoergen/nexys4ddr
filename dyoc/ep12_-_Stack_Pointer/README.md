@@ -7,7 +7,7 @@ The 6502 processor has a fixed stack region of 256 bytes in the memory
 range 0x0100 to 0x01FF, and an associated 8-bit Stack Pointer. This requires
 a numnber of additions to the Data Path and the Control Logic.
 
-Instructions implemented in total : 37/151.
+Instructions implemented in total : 45/151.
 
 ## Datapath
 
