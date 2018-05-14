@@ -248,10 +248,10 @@ noError10a:
    LDA $01
    ADC #$00
    STA $01
-   CMP >error10
+   CMP #>error10
    BNE error10
    LDA $00
-   CMP <error10
+   CMP #<error10
    BNE error10
    JSR noError10b    ; This should return
    JMP noError10c

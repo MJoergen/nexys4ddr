@@ -82,6 +82,7 @@ begin
       data_sel_o => data_sel,
       alu_sel_o  => alu_sel,
       sr_sel_o   => sr_sel,
+      sp_sel_o   => sp_sel,
 
       invalid_o => invalid_o,
       debug_o   => debug_o(47 downto 0)

@@ -424,7 +424,7 @@ architecture Structural of ctl is
 -- 20 JSR a
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_PC + PC_INC + HI_DATA,
+      ADDR_PC + HI_DATA,
       ADDR_SP + DATA_PCHI + SP_DEC,
       ADDR_SP + DATA_PCLO + SP_DEC,
       PC_HL + LAST,
@@ -503,8 +503,8 @@ architecture Structural of ctl is
 
 -- 28 PLP
       ADDR_PC + PC_INC,
-      ADDR_SP + SR_DATA + SP_INC + LAST,
-      INVALID,
+      SP_INC,
+      ADDR_SP + SR_DATA + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1063,10 +1063,10 @@ architecture Structural of ctl is
 
 -- 60 RTS
       ADDR_PC + PC_INC,
-      ADDR_SP + SP_DEC + LO_DATA,
-      ADDR_SP + SP_DEC + HI_DATA,
-      PC_HL + LAST,
-      INVALID,
+      SP_INC,
+      ADDR_SP + SP_INC + LO_DATA,
+      ADDR_SP + HI_DATA,
+      PC_HL1 + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1143,8 +1143,8 @@ architecture Structural of ctl is
 
 -- 68 PLA
       ADDR_PC + PC_INC,
-      ADDR_SP + ALU_LDA + AR_ALU + SR_ALU + SP_INC + LAST,
-      INVALID,
+      SP_INC,
+      ADDR_SP + ALU_LDA + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
