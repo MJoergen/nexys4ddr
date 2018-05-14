@@ -12,11 +12,12 @@ entity ctl is
       ar_sel_o   : out std_logic;
       hi_sel_o   : out std_logic;
       lo_sel_o   : out std_logic;
-      pc_sel_o   : out std_logic_vector(4 downto 0);
-      addr_sel_o : out std_logic_vector(1 downto 0);
-      data_sel_o : out std_logic_vector(1 downto 0);
+      pc_sel_o   : out std_logic_vector(5 downto 0);
+      addr_sel_o : out std_logic_vector(2 downto 0);
+      data_sel_o : out std_logic_vector(2 downto 0);
       alu_sel_o  : out std_logic_vector(2 downto 0);
       sr_sel_o   : out std_logic_vector(3 downto 0);
+      sp_sel_o   : out std_logic_vector(1 downto 0);
 
       invalid_o  : out std_logic_vector(7 downto 0);
       debug_o    : out std_logic_vector(47 downto 0)
@@ -25,68 +26,78 @@ end ctl;
 
 architecture Structural of ctl is
 
-   subtype t_ctl is std_logic_vector(20 downto 0);
+   subtype t_ctl is std_logic_vector(25 downto 0);
    type t_rom is array(0 to 8*256-1) of t_ctl;
 
-   constant NOP     : t_ctl := B"0000_000_0_0_00_00_00000_0_0_0";
+   constant NOP       : t_ctl := B"00_0000_000_0_0_000_000_000000_0_0_0";
    --
-   constant AR_ALU  : t_ctl := B"0000_000_0_0_00_00_00000_0_0_1";
+   constant AR_ALU    : t_ctl := B"00_0000_000_0_0_000_000_000000_0_0_1";
    --
-   constant HI_DATA : t_ctl := B"0000_000_0_0_00_00_00000_0_1_0";
+   constant HI_DATA   : t_ctl := B"00_0000_000_0_0_000_000_000000_0_1_0";
    --
-   constant LO_DATA : t_ctl := B"0000_000_0_0_00_00_00000_1_0_0";
+   constant LO_DATA   : t_ctl := B"00_0000_000_0_0_000_000_000000_1_0_0";
    --
-   constant PC_INC  : t_ctl := B"0000_000_0_0_00_00_00001_0_0_0";
-   constant PC_HL   : t_ctl := B"0000_000_0_0_00_00_00010_0_0_0";
-   constant PC_BPL  : t_ctl := B"0000_000_0_0_00_00_00011_0_0_0";
-   constant PC_BMI  : t_ctl := B"0000_000_0_0_00_00_00111_0_0_0";
-   constant PC_BVC  : t_ctl := B"0000_000_0_0_00_00_01011_0_0_0";
-   constant PC_BVS  : t_ctl := B"0000_000_0_0_00_00_01111_0_0_0";
-   constant PC_BCC  : t_ctl := B"0000_000_0_0_00_00_10011_0_0_0";
-   constant PC_BCS  : t_ctl := B"0000_000_0_0_00_00_10111_0_0_0";
-   constant PC_BNE  : t_ctl := B"0000_000_0_0_00_00_11011_0_0_0";
-   constant PC_BEQ  : t_ctl := B"0000_000_0_0_00_00_11111_0_0_0";
+   constant PC_INC    : t_ctl := B"00_0000_000_0_0_000_000_000001_0_0_0";
+   constant PC_HL     : t_ctl := B"00_0000_000_0_0_000_000_000010_0_0_0";
+   constant PC_HL1    : t_ctl := B"00_0000_000_0_0_000_000_000011_0_0_0";
+   constant PC_BPL    : t_ctl := B"00_0000_000_0_0_000_000_000100_0_0_0";
+   constant PC_BMI    : t_ctl := B"00_0000_000_0_0_000_000_001100_0_0_0";
+   constant PC_BVC    : t_ctl := B"00_0000_000_0_0_000_000_010100_0_0_0";
+   constant PC_BVS    : t_ctl := B"00_0000_000_0_0_000_000_011100_0_0_0";
+   constant PC_BCC    : t_ctl := B"00_0000_000_0_0_000_000_100100_0_0_0";
+   constant PC_BCS    : t_ctl := B"00_0000_000_0_0_000_000_101100_0_0_0";
+   constant PC_BNE    : t_ctl := B"00_0000_000_0_0_000_000_110100_0_0_0";
+   constant PC_BEQ    : t_ctl := B"00_0000_000_0_0_000_000_111100_0_0_0";
    --
-   constant ADDR_PC : t_ctl := B"0000_000_0_0_00_01_00000_0_0_0";
-   constant ADDR_HL : t_ctl := B"0000_000_0_0_00_10_00000_0_0_0";
-   constant ADDR_ZP : t_ctl := B"0000_000_0_0_00_11_00000_0_0_0";
+   constant ADDR_PC   : t_ctl := B"00_0000_000_0_0_000_001_000000_0_0_0";
+   constant ADDR_HL   : t_ctl := B"00_0000_000_0_0_000_010_000000_0_0_0";
+   constant ADDR_ZP   : t_ctl := B"00_0000_000_0_0_000_011_000000_0_0_0";
+   constant ADDR_SP   : t_ctl := B"00_0000_000_0_0_000_100_000000_0_0_0";
    --
-   constant DATA_AR : t_ctl := B"0000_000_0_0_01_00_00000_0_0_0";
+   constant DATA_AR   : t_ctl := B"00_0000_000_0_0_001_000_000000_0_0_0";
+   constant DATA_SR   : t_ctl := B"00_0000_000_0_0_010_000_000000_0_0_0";
+   constant DATA_PCLO : t_ctl := B"00_0000_000_0_0_100_000_000000_0_0_0";
+   constant DATA_PCHI : t_ctl := B"00_0000_000_0_0_101_000_000000_0_0_0";
    --
-   constant LAST    : t_ctl := B"0000_000_0_1_00_00_00000_0_0_0";
+   constant LAST      : t_ctl := B"00_0000_000_0_1_000_000_000000_0_0_0";
    --
-   constant INVALID : t_ctl := B"0000_000_1_0_00_00_00000_0_0_0";
+   constant INVALID   : t_ctl := B"00_0000_000_1_0_000_000_000000_0_0_0";
    --
-   constant ALU_ORA : t_ctl := B"0000_000_0_0_00_00_00000_0_0_0";
-   constant ALU_AND : t_ctl := B"0000_001_0_0_00_00_00000_0_0_0";
-   constant ALU_EOR : t_ctl := B"0000_010_0_0_00_00_00000_0_0_0";
-   constant ALU_ADC : t_ctl := B"0000_011_0_0_00_00_00000_0_0_0";
-   constant ALU_STA : t_ctl := B"0000_100_0_0_00_00_00000_0_0_0";
-   constant ALU_LDA : t_ctl := B"0000_101_0_0_00_00_00000_0_0_0";
-   constant ALU_CMP : t_ctl := B"0000_110_0_0_00_00_00000_0_0_0";
-   constant ALU_SBC : t_ctl := B"0000_111_0_0_00_00_00000_0_0_0";
+   constant ALU_ORA   : t_ctl := B"00_0000_000_0_0_000_000_000000_0_0_0";
+   constant ALU_AND   : t_ctl := B"00_0000_001_0_0_000_000_000000_0_0_0";
+   constant ALU_EOR   : t_ctl := B"00_0000_010_0_0_000_000_000000_0_0_0";
+   constant ALU_ADC   : t_ctl := B"00_0000_011_0_0_000_000_000000_0_0_0";
+   constant ALU_STA   : t_ctl := B"00_0000_100_0_0_000_000_000000_0_0_0";
+   constant ALU_LDA   : t_ctl := B"00_0000_101_0_0_000_000_000000_0_0_0";
+   constant ALU_CMP   : t_ctl := B"00_0000_110_0_0_000_000_000000_0_0_0";
+   constant ALU_SBC   : t_ctl := B"00_0000_111_0_0_000_000_000000_0_0_0";
    --
-   constant SR_ALU  : t_ctl := B"0001_000_0_0_00_00_00000_0_0_0";
-   constant SR_CLC  : t_ctl := B"1000_000_0_0_00_00_00000_0_0_0";
-   constant SR_SEC  : t_ctl := B"1001_000_0_0_00_00_00000_0_0_0";
-   constant SR_CLI  : t_ctl := B"1010_000_0_0_00_00_00000_0_0_0";
-   constant SR_SEI  : t_ctl := B"1011_000_0_0_00_00_00000_0_0_0";
-   constant SR_CLV  : t_ctl := B"1100_000_0_0_00_00_00000_0_0_0";
-   constant SR_CLD  : t_ctl := B"1110_000_0_0_00_00_00000_0_0_0";
-   constant SR_SED  : t_ctl := B"1111_000_0_0_00_00_00000_0_0_0";
+   constant SR_ALU    : t_ctl := B"00_0001_000_0_0_000_000_000000_0_0_0";
+   constant SR_DATA   : t_ctl := B"00_0010_000_0_0_000_000_000000_0_0_0";
+   constant SR_CLC    : t_ctl := B"00_1000_000_0_0_000_000_000000_0_0_0";
+   constant SR_SEC    : t_ctl := B"00_1001_000_0_0_000_000_000000_0_0_0";
+   constant SR_CLI    : t_ctl := B"00_1010_000_0_0_000_000_000000_0_0_0";
+   constant SR_SEI    : t_ctl := B"00_1011_000_0_0_000_000_000000_0_0_0";
+   constant SR_CLV    : t_ctl := B"00_1100_000_0_0_000_000_000000_0_0_0";
+   constant SR_CLD    : t_ctl := B"00_1110_000_0_0_000_000_000000_0_0_0";
+   constant SR_SED    : t_ctl := B"00_1111_000_0_0_000_000_000000_0_0_0";
+   --
+   constant SP_INC    : t_ctl := B"01_0000_000_0_0_000_000_000000_0_0_0";
+   constant SP_DEC    : t_ctl := B"10_0000_000_0_0_000_000_000000_0_0_0";
 
    -- Decode control signals
    signal ctl      : t_ctl;
    alias ar_sel    : std_logic                    is ctl(0);
    alias hi_sel    : std_logic                    is ctl(1);
    alias lo_sel    : std_logic                    is ctl(2);
-   alias pc_sel    : std_logic_vector(4 downto 0) is ctl(7 downto 3);
-   alias addr_sel  : std_logic_vector(1 downto 0) is ctl(9 downto 8);
-   alias data_sel  : std_logic_vector(1 downto 0) is ctl(11 downto 10);
-   alias last_s    : std_logic                    is ctl(12);
-   alias invalid_s : std_logic                    is ctl(13);
-   alias alu_sel   : std_logic_vector(2 downto 0) is ctl(16 downto 14);
-   alias sr_sel    : std_logic_vector(3 downto 0) is ctl(20 downto 17);
+   alias pc_sel    : std_logic_vector(5 downto 0) is ctl(8 downto 3);
+   alias addr_sel  : std_logic_vector(2 downto 0) is ctl(11 downto 9);
+   alias data_sel  : std_logic_vector(2 downto 0) is ctl(14 downto 12);
+   alias last_s    : std_logic                    is ctl(15);
+   alias invalid_s : std_logic                    is ctl(16);
+   alias alu_sel   : std_logic_vector(2 downto 0) is ctl(19 downto 17);
+   alias sr_sel    : std_logic_vector(3 downto 0) is ctl(23 downto 20);
+   alias sp_sel    : std_logic_vector(1 downto 0) is ctl(25 downto 24);
 
    signal rom : t_rom := (
 
@@ -171,8 +182,8 @@ architecture Structural of ctl is
       INVALID,
 
 -- 08 PHP
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_SP + DATA_SR + SP_DEC + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -411,12 +422,12 @@ architecture Structural of ctl is
       INVALID,
 
 -- 20 JSR a
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + LO_DATA,
+      ADDR_PC + PC_INC + HI_DATA,
+      ADDR_SP + DATA_PCHI + SP_DEC,
+      ADDR_SP + DATA_PCLO + SP_DEC,
+      PC_HL + LAST,
       INVALID,
       INVALID,
 
@@ -491,8 +502,8 @@ architecture Structural of ctl is
       INVALID,
 
 -- 28 PLP
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_SP + SR_DATA + SP_INC + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -811,8 +822,8 @@ architecture Structural of ctl is
       INVALID,
 
 -- 48 PHA
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_SP + DATA_AR + SP_DEC + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1051,10 +1062,10 @@ architecture Structural of ctl is
       INVALID,
 
 -- 60 RTS
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_SP + SP_DEC + LO_DATA,
+      ADDR_SP + SP_DEC + HI_DATA,
+      PC_HL + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1131,8 +1142,8 @@ architecture Structural of ctl is
       INVALID,
 
 -- 68 PLA
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_SP + ALU_LDA + AR_ALU + SR_ALU + SP_INC + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -2706,11 +2717,12 @@ begin
    data_sel_o <= data_sel;
    alu_sel_o  <= alu_sel;
    sr_sel_o   <= sr_sel;
+   sp_sel_o   <= sp_sel;
 
    -- Debug Output
    invalid_o  <= invalid_inst;
-   debug_o(20 downto  0) <= ctl;    -- Four bytes
-   debug_o(31 downto 21) <= (others => '0');
+   debug_o(25 downto  0) <= ctl;    -- Four bytes
+   debug_o(31 downto 26) <= (others => '0');
    debug_o(34 downto 32) <= cnt;    -- One byte
    debug_o(39 downto 35) <= (others => '0');
    debug_o(47 downto 40) <= ir;     -- One byte

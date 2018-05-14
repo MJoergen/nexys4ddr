@@ -198,6 +198,69 @@ noError8:
    BNE error8
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Test 09 : Test PUSH and PULL
+   LDA #$11
+   PHA
+   LDA #$22
+   PHA
+   LDA #$11
+   CMP $01FF
+   BEQ noError9
+error9:
+   LDA #$09
+   JMP error9
+noError9:
+   PLA
+   CMP #$22
+   BNE error9
+   CMP $01FE
+   BNE error9
+   PLA
+   CMP #$11
+   BNE error9
+
+   LDA #$00
+   SEC         ; S=0, Z=1, C=1
+   PHP
+   LDA #$FF
+   CLC         ; S=1, Z=0, C=0         
+   PLP
+   BCC error9
+   BNE error9
+   BMI error9
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Test 10 : Test JSR and RTS
+   JSR noError10a ; This should never return in this test
+error10:
+   LDA #$10
+   JMP error10
+
+noError10a:
+   PLA
+   STA $00
+   PLA
+   STA $01
+   LDA $00
+   CLC
+   ADC #$01
+   STA $00
+   LDA $01
+   ADC #$00
+   STA $01
+   CMP >error10
+   BNE error10
+   LDA $00
+   CMP <error10
+   BNE error10
+   JSR noError10b    ; This should return
+   JMP noError10c
+noError10b:
+   RTS
+   JMP error10
+noError10c:
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; All tests very a success
 success:
    LDA #$FF

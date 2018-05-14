@@ -17,11 +17,12 @@ entity datapath is
       ar_sel_i   : in  std_logic;
       hi_sel_i   : in  std_logic;
       lo_sel_i   : in  std_logic;
-      pc_sel_i   : in  std_logic_vector(4 downto 0);
-      addr_sel_i : in  std_logic_vector(1 downto 0);
-      data_sel_i : in  std_logic_vector(1 downto 0);
+      pc_sel_i   : in  std_logic_vector(5 downto 0);
+      addr_sel_i : in  std_logic_vector(2 downto 0);
+      data_sel_i : in  std_logic_vector(2 downto 0);
       alu_sel_i  : in  std_logic_vector(2 downto 0);
       sr_sel_i   : in  std_logic_vector(3 downto 0);
+      sp_sel_i   : in  std_logic_vector(1 downto 0);
 
       -- Debug output containing internal registers
       debug_o : out std_logic_vector(95 downto 0)
@@ -60,6 +61,9 @@ architecture structural of datapath is
    -- 'A' register
    signal ar : std_logic_vector(7 downto 0);
 
+   -- Stack Pointer
+   signal sp : std_logic_vector(7 downto 0) := X"FF";
+
    -- Status register
    signal sr : std_logic_vector(7 downto 0) := (others => '0');
 
@@ -92,19 +96,20 @@ begin
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
-            case pc_sel_i(1 downto 0) is
-               when "00" => null;
-               when "01" => pc <= pc + 1;
-               when "10" => pc <= hi & lo;
-               when "11" =>
-                  if (pc_sel_i(4 downto 2) = "000" and sr(SR_S) = '0') or     -- BPL
-                     (pc_sel_i(4 downto 2) = "001" and sr(SR_S) = '1') or     -- BMI
-                     (pc_sel_i(4 downto 2) = "010" and sr(SR_V) = '0') or     -- BVC
-                     (pc_sel_i(4 downto 2) = "011" and sr(SR_V) = '1') or     -- BVS
-                     (pc_sel_i(4 downto 2) = "100" and sr(SR_C) = '0') or     -- BCC
-                     (pc_sel_i(4 downto 2) = "101" and sr(SR_C) = '1') or     -- BCS
-                     (pc_sel_i(4 downto 2) = "110" and sr(SR_Z) = '0') or     -- BNE
-                     (pc_sel_i(4 downto 2) = "111" and sr(SR_Z) = '1') then   -- BEQ
+            case pc_sel_i(2 downto 0) is
+               when "000" => null;
+               when "001" => pc <= pc + 1;
+               when "010" => pc <= hi & lo;
+               when "011" => pc <= (hi & lo) + 1;
+               when "100" =>
+                  if (pc_sel_i(5 downto 3) = "000" and sr(SR_S) = '0') or     -- BPL
+                     (pc_sel_i(5 downto 3) = "001" and sr(SR_S) = '1') or     -- BMI
+                     (pc_sel_i(5 downto 3) = "010" and sr(SR_V) = '0') or     -- BVC
+                     (pc_sel_i(5 downto 3) = "011" and sr(SR_V) = '1') or     -- BVS
+                     (pc_sel_i(5 downto 3) = "100" and sr(SR_C) = '0') or     -- BCC
+                     (pc_sel_i(5 downto 3) = "101" and sr(SR_C) = '1') or     -- BCS
+                     (pc_sel_i(5 downto 3) = "110" and sr(SR_Z) = '0') or     -- BNE
+                     (pc_sel_i(5 downto 3) = "111" and sr(SR_Z) = '1') then   -- BEQ
                      pc <= pc + 1 + sign_extend(data_i);
                   else
                      pc <= pc + 1;  -- If branch is not taken, just go to the next instruction.
@@ -127,6 +132,21 @@ begin
       end if;
    end process p_ar;
 
+   -- Stack Pointer
+   p_sp : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if wait_i = '0' then
+            case sp_sel_i is
+               when "00" => null;
+               when "01" => sp <= sp + 1;
+               when "10" => sp <= sp - 1;
+               when others => null;
+            end case;
+         end if;
+      end if;
+   end process p_sp;
+
    -- Status register
    p_sr : process (clk_i)
    begin
@@ -135,6 +155,7 @@ begin
             case sr_sel_i is
                when "0000" => null;
                when "0001" => sr <= alu_sr;
+               when "0010" => sr <= data_i;
                when "1000" => sr(SR_C) <= '0';  -- CLC
                when "1001" => sr(SR_C) <= '1';  -- SEC
                when "1010" => sr(SR_I) <= '0';  -- CLI 
@@ -174,14 +195,18 @@ begin
 
 
    -- Output multiplexers
-   addr <= (others => '0') when addr_sel_i = "00" else
-           pc              when addr_sel_i = "01" else
-           hi & lo         when addr_sel_i = "10" else
-           X"00" & lo      when addr_sel_i = "11" else
+   addr <= (others => '0') when addr_sel_i = "000" else
+           pc              when addr_sel_i = "001" else
+           hi & lo         when addr_sel_i = "010" else
+           X"00" & lo      when addr_sel_i = "011" else
+           X"01" & sp      when addr_sel_i = "100" else
            (others => '0');
 
-   data <= (others => '0') when data_sel_i = "00" else
-           ar              when data_sel_i = "01" else
+   data <= (others => '0') when data_sel_i = "000" else
+           ar              when data_sel_i = "001" else
+           sr              when data_sel_i = "010" else
+           pc(7 downto 0)  when data_sel_i = "100" else
+           pc(15 downto 8) when data_sel_i = "101" else
            (others => '0');
 
    wren <= '1' when data_sel_i = "01" else
