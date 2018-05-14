@@ -1,0 +1,151 @@
+00 BRK b
+01 ORA (d,X)
+05 ORA d       Episode 11
+06 ASL d
+08 PHP         Episode 12 
+09 ORA #       Episode 08
+0A ASL A
+0D ORA a       Episode 08
+0E ASL a
+10 BPL r       Episode 09
+11 ORA (d),Y
+15 ORA d,X
+16 ASL d,X
+18 CLC         Episode 09
+19 ORA a,Y
+1D ORA a,X
+1E ASL a,X
+20 JSR a       Episode 12
+21 AND (d,X)
+24 BIT d
+25 AND d       Episode 11
+26 ROL d
+28 PLP         Episode 12
+29 AND #       Episode 08
+2A ROL A
+2C BIT a
+2D AND a       Episode 08
+2E ROL a
+30 BMI r       Episode 09
+31 AND (d),Y
+35 AND d,X
+36 ROL d,X
+38 SEC         Episode 09
+39 AND a,Y
+3D AND a,X
+3E ROL a,X
+40 RTI
+41 EOR (d,X)
+45 EOR d       Episode 11
+46 LSR d
+48 PHA         Episode 12
+49 EOR #       Episode 08
+4A LSR A
+4C JMP a       Episode 06
+4D EOR a       Episode 08
+4E LSR a
+50 BVC r       Episode 09
+51 EOR (d),Y
+55 EOR d,X
+56 LSR d,X
+58 CLI         Episode 09
+59 EOR a,Y
+5D EOR a,X
+5E LSR a,X
+60 RTS         Episode 12
+61 ADC (d,X)
+65 ADC d       Episode 11
+66 ROR d
+68 PLA         Episode 12
+69 ADC #       Episode 08
+6A ROR A
+6C JMP (a)
+6D ADC a       Episode 08
+6E ROR a
+70 BVS r       Episode 09
+71 ADC (d),Y
+75 ADC d,X
+76 ROR d,X
+78 SEI         Episode 09
+79 ADC a,Y
+7D ADC a,X
+7E ROR a,X
+81 STA (d,X)
+84 STY d
+85 STA d       Episode 11
+86 STX d
+88 DEY
+8A TXA
+8C STY a
+8D STA a       Episode 06
+8E STX a
+90 BCC r       Episode 09
+91 STA (d),Y
+94 STY d,X
+95 STA d,X
+96 STX d,Y
+98 TYA
+99 STA a,Y
+9A TXS
+9D STA a,X
+A0 LDY #
+A1 LDA (d,X)
+A2 LDX #
+A4 LDY d
+A5 LDA d       Episode 11
+A6 LDX d
+A8 TAY
+A9 LDA #       Episode 05
+AA TAX
+AC LDY a
+AD LDA a       Episode 06
+AE LDX a
+B0 BCS r       Episode 09
+B1 LDA (d),Y
+B4 LDY d,X
+B5 LDA d,X
+B6 LDX d,Y
+B8 CLV         Episode 09
+B9 LDA a,Y
+BA TSX
+BC LDY a,X
+BD LDA a,X
+BE LDX a,Y
+C0 CPY #
+C1 CMP (d,X)
+C4 CPY d
+C5 CMP d       Episode 11
+C6 DEC d
+C8 INY
+C9 CMP #       Episode 08
+CA DEX
+CC CPY a
+CD CMP a       Episode 08
+CE DEC a
+D0 BNE r       Episode 09
+D1 CMP (d),Y
+D5 CMP d,X
+D6 DEC d,X
+D8 CLD         Episode 09
+D9 CMP a,Y
+DD CMP a,X
+DE DEC a,X
+E0 CPX #
+E1 SBC (d,X)
+E4 CPX d
+E5 SBC d       Episode 11
+E6 INC d
+E8 INX
+E9 SBC #       Episode 08
+EA NOP
+EC CPX a
+ED SBC a       Episode 08
+EE INC a
+F0 BEQ r       Episode 09
+F1 SBC (d),Y
+F5 SBC d,X
+F6 INC d,X
+F8 SED         Episode 09
+F9 SBC a,Y
+FD SBC a,X
+FE INC a,X
