@@ -135,6 +135,9 @@ begin
    -------------------------
 
    inst_vga_module : entity work.vga_module
+   generic map (
+      G_NEXYS4DDR => G_NEXYS4DDR
+   )
    port map (
       clk_i          => vga_clk_i,
       rst_i          => vga_rst_i,

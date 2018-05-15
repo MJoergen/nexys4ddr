@@ -30,6 +30,9 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
 entity chars is
+   generic (
+      G_NEXYS4DDR : boolean
+   );
    port (
       clk_i       : in  std_logic;
 
@@ -186,6 +189,7 @@ begin
 
    i_divmod13_rom : entity work.mem_file
    generic map (
+                  G_NEXYS4DDR  => G_NEXYS4DDR,
                   G_ADDR_SIZE  => 8,
                   G_DATA_SIZE  => 9,
                   G_MEM_FILE   => "divmod13.txt"
@@ -252,6 +256,7 @@ begin
 
    i_opcodes_rom : entity work.mem_file
    generic map (
+                  G_NEXYS4DDR  => G_NEXYS4DDR,
                   G_ADDR_SIZE  => 11,
                   G_DATA_SIZE  => 8,
                   G_MEM_FILE   => "opcodes.txt"
@@ -289,7 +294,7 @@ begin
       variable nibble_idx_v : integer range 0 to 63;
 
       function invert(arg : integer range 0 to 7) return integer is
-         type t_dat is array (natural range <>) of integer;
+         type t_dat is array (natural range <>) of integer range 0 to 7;
 
          constant conv3_4 : t_dat :=
             (1, 0, 3, 2, 5, 4, 7, 6);

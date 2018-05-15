@@ -7,6 +7,9 @@ use ieee.std_logic_1164.ALL;
 use ieee.std_logic_unsigned.all;
 
 entity bitmaps_mem is
+   generic (
+      G_NEXYS4DDR : boolean
+   );
    port (
       vga_clk_i   : in  std_logic;
 
@@ -53,6 +56,7 @@ begin
 
    inst_mem_hi : entity work.mem
    generic map (
+                  G_NEXYS4DDR => G_NEXYS4DDR,
                   G_ADDR_SIZE => 6,
                   G_DATA_SIZE => 8
                )
@@ -74,6 +78,7 @@ begin
 
    inst_mem_lo : entity work.mem
    generic map (
+                  G_NEXYS4DDR => G_NEXYS4DDR,
                   G_ADDR_SIZE => 6,
                   G_DATA_SIZE => 8
                )

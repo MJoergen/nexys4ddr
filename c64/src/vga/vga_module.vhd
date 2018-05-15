@@ -33,6 +33,9 @@ use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 
 entity vga_module is
+   generic (
+      G_NEXYS4DDR : boolean
+   );
    port (
       clk_i       : in  std_logic;
       rst_i       : in  std_logic;
@@ -116,6 +119,9 @@ begin
 
    -- This controls the display
    inst_vga_chars : entity work.chars
+   generic map (
+      G_NEXYS4DDR => G_NEXYS4DDR
+   )
    port map (
       clk_i       => clk_i,
 
