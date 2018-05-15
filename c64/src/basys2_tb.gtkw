@@ -1,0 +1,37 @@
+[*]
+[*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
+[*] Tue May 15 09:29:27 2018
+[*]
+[dumpfile] "/home/mfj/git/nexys4ddr/c64/basys2.ghw"
+[dumpfile_mtime] "Tue May 15 09:29:18 2018"
+[dumpfile_size] 1619899
+[savefile] "/home/mfj/git/nexys4ddr/c64/src/basys2_tb.gtkw"
+[timestart] 0
+[size] 1511 863
+[pos] 2052 -161
+*-33.535210 29640000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.basys2_tb.
+[treeopen] top.basys2_tb.inst_basys2.
+[treeopen] top.basys2_tb.inst_basys2.inst_dut.
+[treeopen] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.
+[treeopen] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_regs.
+[treeopen] top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.
+[sst_width] 306
+[signals_width] 203
+[sst_expanded] 1
+[sst_vpaned_height] 406
+@22
+#{top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.addr_i[10:0]} top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.addr_i[10] top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.addr_i[9] top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.addr_i[8] top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.addr_i[7] top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.addr_i[6] top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.addr_i[5] top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.addr_i[4] top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.addr_i[3] top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.addr_i[2] top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.addr_i[1] top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.addr_i[0]
+#{top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.rd_data_o[7:0]} top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.rd_data_o[7] top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.rd_data_o[6] top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.rd_data_o[5] top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.rd_data_o[4] top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.rd_data_o[3] top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.rd_data_o[2] top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.rd_data_o[1] top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.rd_data_o[0]
+@28
+top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.clk_i
+top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.rst_i
+top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.wr_en_i
+top.basys2_tb.inst_basys2.inst_dut.inst_mem.inst_rom.rd_en_i
+@22
+#{top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_pc.pc_r[15:0]} top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_pc.pc_r[15] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_pc.pc_r[14] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_pc.pc_r[13] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_pc.pc_r[12] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_pc.pc_r[11] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_pc.pc_r[10] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_pc.pc_r[9] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_pc.pc_r[8] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_pc.pc_r[7] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_pc.pc_r[6] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_pc.pc_r[5] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_pc.pc_r[4] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_pc.pc_r[3] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_pc.pc_r[2] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_pc.pc_r[1] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_pc.pc_r[0]
+@23
+#{top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_regs.reg_a[7:0]} top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_regs.reg_a[7] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_regs.reg_a[6] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_regs.reg_a[5] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_regs.reg_a[4] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_regs.reg_a[3] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_regs.reg_a[2] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_regs.reg_a[1] top.basys2_tb.inst_basys2.inst_dut.inst_cpu.inst_regs.reg_a[0]
+[pattern_trace] 1
+[pattern_trace] 0
