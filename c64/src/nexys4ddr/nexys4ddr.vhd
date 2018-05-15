@@ -186,7 +186,7 @@ begin
    inst_dut : entity work.hack 
    generic map (
       G_NEXYS4DDR => true,               -- True, when using the Nexys4DDR board.
-      G_ROM_SIZE  => 12,                 -- Number of bits in ROM address
+      G_ROM_SIZE  => 11,                 -- Number of bits in ROM address
       G_RAM_SIZE  => 11,                 -- Number of bits in RAM address
       G_DISP_SIZE => 10,                 -- Number of bits in DISP address
       G_COL_SIZE  => 10,                 -- Number of bits in COL address
@@ -199,7 +199,7 @@ begin
       G_MOB_MASK  => X"8400",            -- Last address 0x847F
       G_CONF_MASK => X"8600",            -- Last address 0x861F
       G_FONT_MASK => X"9000",            -- Last address 0x9FFF
-      G_ROM_MASK  => X"F000",            -- Last address 0xFFFF
+      G_ROM_MASK  => X"F800",            -- Last address 0xFFFF
       G_ROM_FILE  => "rom.txt",          -- Contains the machine code
       G_FONT_FILE => "ProggyClean.txt"   -- Contains the character font
    )
