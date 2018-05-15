@@ -49,7 +49,7 @@ begin
 
    inst_dut : entity work.hack 
    generic map (
-      G_NEXYS4DDR => true,               -- True, when using the Nexys4DDR board.
+      G_NEXYS4DDR => false,              -- False, when using the BASYS2 board.
       G_ROM_SIZE  => 11,                 -- Number of bits in ROM address
       G_RAM_SIZE  => 11,                 -- Number of bits in RAM address
       G_DISP_SIZE => 10,                 -- Number of bits in DISP address
@@ -78,7 +78,7 @@ begin
       vga_hs_o      => vga_hs_o,
       vga_vs_o      => vga_vs_o,
       vga_col_o     => vga_col_o,
-      vga_overlay_i => sw_i(1),
+      vga_overlay_i => sw_i(3 downto 1),
       vga_debug_i   => (others => '0'),
       --
       ps2_clk_i     => ps2_clk_i,
