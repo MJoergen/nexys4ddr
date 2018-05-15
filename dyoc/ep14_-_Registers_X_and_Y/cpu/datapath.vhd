@@ -23,6 +23,8 @@ entity datapath is
       alu_sel_i  : in  std_logic_vector(4 downto 0);
       sr_sel_i   : in  std_logic_vector(3 downto 0);
       sp_sel_i   : in  std_logic_vector(1 downto 0);
+      xr_sel_i   : in  std_logic;
+      reg_sel_i  : in  std_logic_vector(1 downto 0);
 
       -- Debug output containing internal registers
       debug_o : out std_logic_vector(95 downto 0)
@@ -64,6 +66,7 @@ architecture structural of datapath is
    constant DATA_ALU  : std_logic_vector(2 downto 0) := B"011";
    constant DATA_PCLO : std_logic_vector(2 downto 0) := B"100";
    constant DATA_PCHI : std_logic_vector(2 downto 0) := B"101";
+   constant DATA_XR   : std_logic_vector(2 downto 0) := B"110";
    --
    constant SR_ALU    : std_logic_vector(3 downto 0) := B"0001";
    constant SR_DATA   : std_logic_vector(3 downto 0) := B"0010";
@@ -77,6 +80,12 @@ architecture structural of datapath is
    --
    constant SP_INC    : std_logic_vector(1 downto 0) := B"01";
    constant SP_DEC    : std_logic_vector(1 downto 0) := B"10";
+   constant SP_XR     : std_logic_vector(1 downto 0) := B"11";
+   --
+   constant REG_AR    : std_logic_vector(1 downto 0) := B"00";
+   constant REG_XR    : std_logic_vector(1 downto 0) := B"01";
+   constant REG_YR    : std_logic_vector(1 downto 0) := B"10";
+   constant REG_SP    : std_logic_vector(1 downto 0) := B"11";
 
    -- Convert signed 8-bit number to signed 16-bit number
    function sign_extend(arg : std_logic_vector(7 downto 0))
@@ -88,6 +97,9 @@ architecture structural of datapath is
       return res;
    end function sign_extend;
 
+   -- Input to ALU
+   signal alu_reg : std_logic_vector(7 downto 0);
+
    -- Output from ALU
    signal alu_ar : std_logic_vector(7 downto 0);
    signal alu_sr : std_logic_vector(7 downto 0);
@@ -97,6 +109,9 @@ architecture structural of datapath is
 
    -- 'A' register
    signal ar : std_logic_vector(7 downto 0);
+
+   -- 'X' register
+   signal xr : std_logic_vector(7 downto 0);
 
    -- Stack Pointer
    signal sp : std_logic_vector(7 downto 0) := X"FF";
@@ -117,10 +132,15 @@ architecture structural of datapath is
 
 begin
 
+   alu_reg <= ar when reg_sel_i = REG_AR else
+              xr when reg_sel_i = REG_XR else
+              sp when reg_sel_i = REG_SP else
+              (others => '0');
+
    -- Instantiate ALU
    i_alu : entity work.alu
    port map (
-      a_i    => ar,
+      a_i    => alu_reg,
       b_i    => data_i,
       sr_i   => sr,
       func_i => alu_sel_i,
@@ -169,6 +189,18 @@ begin
       end if;
    end process p_ar;
 
+   -- 'X' register
+   p_xr : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if wait_i = '0' then
+            if xr_sel_i = '1' then
+               xr <= alu_ar;
+            end if;
+         end if;
+      end if;
+   end process p_xr;
+
    -- Stack Pointer
    p_sp : process (clk_i)
    begin
@@ -178,6 +210,7 @@ begin
                when "00" => null;
                when SP_INC => sp <= sp + 1;
                when SP_DEC => sp <= sp - 1;
+               when SP_XR  => sp <= xr;
                when others => null;
             end case;
          end if;
@@ -244,13 +277,15 @@ begin
            alu_ar          when data_sel_i = DATA_ALU  else
            pc(7 downto 0)  when data_sel_i = DATA_PCLO else
            pc(15 downto 8) when data_sel_i = DATA_PCHI else
+           xr              when data_sel_i = DATA_XR   else
            (others => '0');
 
    wren <= '1' when data_sel_i = DATA_AR   or 
                     data_sel_i = DATA_SR   or 
                     data_sel_i = DATA_ALU  or 
                     data_sel_i = DATA_PCLO or 
-                    data_sel_i = DATA_PCHI else
+                    data_sel_i = DATA_PCHI or
+                    data_sel_i = DATA_XR   else
            '0';
 
 
