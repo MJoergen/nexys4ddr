@@ -9,6 +9,7 @@ use std.textio.all;
 
 entity mem_file is
    generic (
+      G_NEXYS4DDR  : boolean;
       G_ADDR_SIZE  : integer;     -- Number of bits in address
       G_DATA_SIZE  : integer;     -- Number of bits in data
       G_MEM_FILE   : string       -- Initial memory contents
@@ -49,47 +50,107 @@ architecture Structural of mem_file is
       return RAM;
    end function;
 
-   signal i_mem_file : t_rom := InitRamFromFile(G_MEM_FILE);
+   signal i_mem_file      : t_rom := InitRamFromFile(G_MEM_FILE);
+   signal i_mem_file_copy : t_rom := InitRamFromFile(G_MEM_FILE);
 
    signal a_rd_data : std_logic_vector(G_DATA_SIZE-1 downto 0) := (others => '0');
    signal b_rd_data : std_logic_vector(G_DATA_SIZE-1 downto 0) := (others => '0');
 
 begin
 
-   -----------------
-   -- Port A
-   -----------------
+   gen_nexys4ddr : if G_NEXYS4DDR generate
+      -----------------
+      -- Port A
+      -----------------
 
-   process (a_clk_i)
-   begin
-      if rising_edge(a_clk_i) then
-         if a_wr_en_i = '1' then
-            i_mem_file(conv_integer(a_addr_i)) <= a_wr_data_i;
+      process (a_clk_i)
+      begin
+         if rising_edge(a_clk_i) then
+            if a_wr_en_i = '1' then
+               i_mem_file(conv_integer(a_addr_i)) <= a_wr_data_i;
+            end if;
+            
+            if a_rd_en_i = '1' then
+               a_rd_data <= i_mem_file(conv_integer(a_addr_i));
+            end if;
          end if;
-         
-         if a_rd_en_i = '1' then
-            a_rd_data <= i_mem_file(conv_integer(a_addr_i));
+      end process;
+
+      a_rd_data_o <= a_rd_data;
+
+
+      -----------------
+      -- Port B
+      -----------------
+
+      process (b_clk_i)
+      begin
+         if rising_edge(b_clk_i) then
+            if b_rd_en_i = '1' then
+               b_rd_data <= i_mem_file(conv_integer(b_addr_i));
+            end if;
          end if;
-      end if;
-   end process;
+      end process;
 
-   a_rd_data_o <= a_rd_data;
-
-
-   -----------------
-   -- Port B
-   -----------------
-
-   process (b_clk_i)
-   begin
-      if rising_edge(b_clk_i) then
-         if b_rd_en_i = '1' then
-            b_rd_data <= i_mem_file(conv_integer(b_addr_i));
-         end if;
-      end if;
-   end process;
-
-   b_rd_data_o <= b_rd_data;
+      b_rd_data_o <= b_rd_data;
  
+   end generate gen_nexys4ddr;
+
+   gen_basys2 : if not G_NEXYS4DDR generate
+      -----------------
+      -- Instance i_mem_file
+      -----------------
+
+      -- Port A : Write
+      process (a_clk_i)
+      begin
+         if rising_edge(a_clk_i) then
+            if a_wr_en_i = '1' then
+               i_mem_file(conv_integer(a_addr_i)) <= a_wr_data_i;
+            end if;
+         end if;
+      end process;
+
+      -- Port B : Read
+      process (a_clk_i)
+      begin
+         if rising_edge(a_clk_i) then
+            if a_rd_en_i = '1' then
+               a_rd_data <= i_mem_file(conv_integer(a_addr_i));
+            end if;
+         end if;
+      end process;
+
+      a_rd_data_o <= a_rd_data;
+
+
+      -----------------
+      -- Instance i_mem_file_copy
+      -----------------
+
+      -- Port A : Write
+      process (a_clk_i)
+      begin
+         if rising_edge(a_clk_i) then
+            if a_wr_en_i = '1' then
+               i_mem_file_copy(conv_integer(a_addr_i)) <= a_wr_data_i;
+            end if;
+         end if;
+      end process;
+
+      -- Port B : Read
+      process (b_clk_i)
+      begin
+         if rising_edge(b_clk_i) then
+            if b_rd_en_i = '1' then
+               b_rd_data <= i_mem_file_copy(conv_integer(b_addr_i));
+            end if;
+         end if;
+      end process;
+
+      b_rd_data_o <= b_rd_data;
+ 
+   end generate gen_basys2;
+
 end Structural;
 
