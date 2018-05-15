@@ -7,8 +7,9 @@ Instructions implemented in total : 64/151.
 
 ## ALU
 The current design of the ALU takes two operarand: The 'A' register and the
-memory read data.  The instruction "ASL A" must operate on the 'A' register,
-whereas the instruction "ASL a" must operate on the memory data.
+memory read data.  The instruction "ASL A" must operate on the 'A' register
+(i.e. the first operand), whereas the instruction "ASL a" must operate on the
+memory data (i.e. the second operand).
 
 In this design I've chosen to have two separate ASL commands to the ALU, one
 operating on the first operand, and one operating on the second operand.
