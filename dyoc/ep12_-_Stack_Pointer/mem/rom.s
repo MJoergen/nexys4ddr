@@ -261,7 +261,7 @@ noError10b:
 noError10c:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; All tests very a success
+; All tests were a success
 success:
    LDA #$FF
    JMP success
