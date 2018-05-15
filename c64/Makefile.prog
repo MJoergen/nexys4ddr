@@ -26,10 +26,10 @@ junk += ram.bin
 junk += a.out
 
 rom.txt:	rom.bin
-	./bin2hex.py $< $@
+	./bin2txt.py $< $@
 junk += rom.txt
 
 ram.txt:	ram.bin
-	./bin2hex.py $< $@
+	./bin2txt.py $< $@
 junk += ram.txt
 
