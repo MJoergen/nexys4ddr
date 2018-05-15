@@ -121,6 +121,7 @@ begin
 
    inst_disp : entity work.mem
    generic map (
+      G_NEXYS4DDR => G_NEXYS4DDR,
       G_ADDR_SIZE => G_DISP_SIZE,
       G_DATA_SIZE => 8,
       G_INIT_VAL  => 32   -- 0x20 = space
@@ -146,6 +147,7 @@ begin
 
    inst_col : entity work.mem
    generic map (
+      G_NEXYS4DDR => G_NEXYS4DDR,
       G_ADDR_SIZE => G_COL_SIZE,
       G_DATA_SIZE => 8,
       G_INIT_VAL  => 255
@@ -170,6 +172,9 @@ begin
    ---------------------------------------
 
    inst_mob : entity work.bitmaps_mem
+   generic map (
+      G_NEXYS4DDR => G_NEXYS4DDR
+   )
    port map (
       cpu_clk_i   => a_clk_i,
       cpu_addr_i  => a_addr_i(G_MOB_SIZE-1 downto 0),
@@ -220,9 +225,10 @@ begin
 
    inst_font : entity work.mem_file
    generic map (
-      G_ADDR_SIZE  => G_FONT_SIZE,
-      G_DATA_SIZE  => 8,
-      G_MEM_FILE   => G_FONT_FILE 
+      G_NEXYS4DDR => G_NEXYS4DDR,
+      G_ADDR_SIZE => G_FONT_SIZE,
+      G_DATA_SIZE => 8,
+      G_MEM_FILE  => G_FONT_FILE 
    )
    port map (
       a_clk_i     => a_clk_i,
