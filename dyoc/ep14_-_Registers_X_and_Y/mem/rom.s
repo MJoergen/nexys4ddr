@@ -339,6 +339,110 @@ noError14:
    CMP #$21
    BNE error14
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Test 15 : Test X-register
+   LDA #$78
+   LDX #$87
+   CMP #$78    ; Verify A-register is not destroyed
+   BEQ noError15
+error15:
+   LDA #$15
+   JMP error15
+noError15:
+   TXA
+   CMP #$87
+   BNE error15
+   INX
+   CPX #$88
+   BNE error15
+   DEX
+   CPX #$87
+   BNE error15
+
+   PHA
+   LDA #$78
+   PHA
+   TSX
+   INX
+   TXS
+   PLA
+   CMP #$87
+   BNE error15
+
+   LDX #$87
+   STX $02
+   LDX #$78
+   STX $03FF
+   LDA $02
+   CMP #$87
+   BNE error15
+   LDA $03FF
+   CMP #$78
+   BNE error15
+
+   LDA #$98
+   STA $02
+   LDA #$77
+   STA $03FF
+   LDX $02
+   CPX #$98
+   BNE error15
+   LDX $03FF
+   CMP #$77
+   BNE error15
+
+   LDA #$98
+   TAX
+   CPX $02
+   BNE error15
+   LDA #$77
+   TAX
+   CPX $03FF
+   BNE error15
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Test 16 : Test Y-register
+   LDA #$23
+   TAY
+   LDA #$34
+   CPY #$23
+   BEQ noError16
+error16:
+   LDA #$16
+   JMP error16
+noError16:
+   INY
+   CPY #$24
+   BNE error16
+   DEY
+   CPY #$23
+   BNE error16
+
+   LDY #$21
+   CPY #$21
+   BNE error16
+
+   STY $02
+   LDY #$43
+   STY $03FF
+   LDY #$21
+   CPY $02
+   BNE error16
+   LDY #$43
+   CPY $03FF
+   BNE error16
+
+   CMP #$34
+   BNE error16
+
+   LDY $02
+   TYA
+   CMP #$21
+   BNE error16
+   LDY $03FF
+   TYA
+   CMP #$43
+   BNE error16
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; All tests very a success

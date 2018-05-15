@@ -56,6 +56,7 @@ architecture Structural of alu is
    constant ALU_BIT_A : std_logic_vector(4 downto 0) := B"01100";
    constant ALU_DEC_A : std_logic_vector(4 downto 0) := B"01110";
    constant ALU_INC_A : std_logic_vector(4 downto 0) := B"01111";
+   constant ALU_LDA_A : std_logic_vector(4 downto 0) := B"01101";
 
    constant ALU_ASL_B : std_logic_vector(4 downto 0) := B"10000";
    constant ALU_ROL_B : std_logic_vector(4 downto 0) := B"10001";
@@ -81,7 +82,7 @@ begin
    c <= sr_i(0);  -- Old value of carry bit
 
    -- Calculate the result
-   p_a : process (c, a_i, b_i, sr_i, func_i)
+   p_a : process (c, tmp, a_i, b_i, sr_i, func_i)
    begin
       tmp <= (others => '0');
       a(8) <= c;  -- Default value
@@ -131,6 +132,9 @@ begin
 
          when ALU_INC_A =>
             a(7 downto 0) <= a_i + 1;
+
+         when ALU_LDA_A =>
+            a(7 downto 0) <= a_i;
 
          when ALU_ASL_B =>
             a <= b_i(7 downto 0) & '0';
@@ -235,6 +239,10 @@ begin
             sr(SR_Z) <= not or_all(a(7 downto 0));
 
          when ALU_INC_A | ALU_INC_B => -- INC   SZ
+            sr(SR_S) <= a(7);
+            sr(SR_Z) <= not or_all(a(7 downto 0));
+
+         when ALU_LDA_A =>
             sr(SR_S) <= a(7);
             sr(SR_Z) <= not or_all(a(7 downto 0));
 
