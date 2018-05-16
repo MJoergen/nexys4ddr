@@ -15,8 +15,8 @@ entity datapath is
 
       -- Control signals
       ar_sel_i   : in  std_logic;
-      hi_sel_i   : in  std_logic;
-      lo_sel_i   : in  std_logic;
+      hi_sel_i   : in  std_logic_vector(1 downto 0);
+      lo_sel_i   : in  std_logic_vector(1 downto 0);
       pc_sel_i   : in  std_logic_vector(5 downto 0);
       addr_sel_i : in  std_logic_vector(2 downto 0);
       data_sel_i : in  std_logic_vector(2 downto 0);
@@ -84,6 +84,14 @@ architecture structural of datapath is
    constant SP_DEC    : std_logic_vector(1 downto 0) := B"10";
    constant SP_XR     : std_logic_vector(1 downto 0) := B"11";
    --
+   constant HI_DATA   : std_logic_vector(1 downto 0) := B"01";
+   constant HI_ADDX   : std_logic_vector(1 downto 0) := B"10";
+   constant HI_ADDY   : std_logic_vector(1 downto 0) := B"11";
+   --
+   constant LO_DATA   : std_logic_vector(1 downto 0) := B"01";
+   constant LO_ADDX   : std_logic_vector(1 downto 0) := B"10";
+   constant LO_ADDY   : std_logic_vector(1 downto 0) := B"11";
+   --
    constant REG_AR    : std_logic_vector(1 downto 0) := B"00";
    constant REG_XR    : std_logic_vector(1 downto 0) := B"01";
    constant REG_YR    : std_logic_vector(1 downto 0) := B"10";
@@ -129,6 +137,10 @@ architecture structural of datapath is
    
    -- Address Lo register
    signal lo : std_logic_vector(7 downto 0);
+
+   -- Indirect addressing
+   signal hilo_addx_s : std_logic_vector(15 downto 0);
+   signal hilo_addy_s : std_logic_vector(15 downto 0);
 
    -- Output signals to memory
    signal addr : std_logic_vector(15 downto 0);
@@ -257,14 +269,20 @@ begin
       end if;
    end process p_sr;
 
+   hilo_addx_s <= (hi & lo) + xr;
+   hilo_addy_s <= (hi & lo) + yr;
+
    -- 'Hi' register
    p_hi : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
-            if hi_sel_i = '1' then
-               hi <= data_i;
-            end if;
+            case hi_sel_i is
+               when HI_DATA => hi <= data_i;
+               when HI_ADDX => hi <= hilo_addx_s(15 downto 8);
+               when HI_ADDY => hi <= hilo_addy_s(15 downto 8);
+               when others  => null;
+            end case;
          end if;
       end if;
    end process p_hi;
@@ -274,9 +292,12 @@ begin
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
-            if lo_sel_i = '1' then
-               lo <= data_i;
-            end if;
+            case lo_sel_i is
+               when LO_DATA => lo <= data_i;
+               when LO_ADDX => lo <= hilo_addx_s(7 downto 0);
+               when LO_ADDY => lo <= hilo_addy_s(7 downto 0);
+               when others  => null;
+            end case;
          end if;
       end if;
    end process p_lo;

@@ -445,6 +445,40 @@ noError16:
    BNE error16
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Test 17 : Test a,X and a,Y addressin modes
+   LDA #$11
+   STA $0320
+   LDX #$10
+   LDA #$DD
+   LDA $0310,X
+   BNE noError17
+error17:
+   LDA #$17
+   JMP error17
+noError17:
+   BMI error17
+   CMP #$11
+   BNE error17
+
+   LDA #$DD
+   LDX #$30
+   LDA $02F0,X
+   CMP #$11
+   BNE error17
+
+   LDA #$DD
+   LDY #$10
+   LDA $0310,Y
+   CMP #$11
+   BNE error17
+
+   LDA #$DD
+   LDY #$30
+   LDA $02F0,Y
+   CMP #$11
+   BNE error17
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; All tests were a success
 success:
    LDA #$FF
