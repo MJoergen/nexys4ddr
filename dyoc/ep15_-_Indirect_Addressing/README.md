@@ -3,6 +3,8 @@
 Welcome to "Design Your Own Computer".  In this episode we will introduce the
 indirect addressing modes, i.e. LDA a,X, LDA a,Y, LDA (d,X), and LDA (d),Y
 
+Instructions implemented in total : ??/151.
+
 ## LDA a,X and LDA a,Y
 In these instructions we must read the absolute address in the second and third
 cycles.  Then in the fourth cycle we must add either the 'X' or 'Y' register to
