@@ -33,6 +33,7 @@ architecture structural of cpu is
    signal sr_sel   : std_logic_vector(3 downto 0);
    signal sp_sel   : std_logic_vector(1 downto 0);
    signal xr_sel   : std_logic;
+   signal yr_sel   : std_logic;
    signal reg_sel  : std_logic_vector(1 downto 0);
 
 begin
@@ -61,6 +62,7 @@ begin
       sr_sel_i   => sr_sel,
       sp_sel_i   => sp_sel,
       xr_sel_i   => xr_sel,
+      yr_sel_i   => yr_sel,
       reg_sel_i  => reg_sel,
 
       debug_o => debug_o(143 downto 48)
@@ -88,6 +90,7 @@ begin
       sr_sel_o   => sr_sel,
       sp_sel_o   => sp_sel,
       xr_sel_o   => xr_sel,
+      yr_sel_o   => yr_sel,
       reg_sel_o  => reg_sel,
 
       invalid_o => invalid_o,

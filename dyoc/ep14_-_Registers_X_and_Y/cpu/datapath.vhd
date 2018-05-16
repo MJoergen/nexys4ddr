@@ -24,6 +24,7 @@ entity datapath is
       sr_sel_i   : in  std_logic_vector(3 downto 0);
       sp_sel_i   : in  std_logic_vector(1 downto 0);
       xr_sel_i   : in  std_logic;
+      yr_sel_i   : in  std_logic;
       reg_sel_i  : in  std_logic_vector(1 downto 0);
 
       -- Debug output containing internal registers
@@ -67,6 +68,7 @@ architecture structural of datapath is
    constant DATA_PCLO : std_logic_vector(2 downto 0) := B"100";
    constant DATA_PCHI : std_logic_vector(2 downto 0) := B"101";
    constant DATA_XR   : std_logic_vector(2 downto 0) := B"110";
+   constant DATA_YR   : std_logic_vector(2 downto 0) := B"111";
    --
    constant SR_ALU    : std_logic_vector(3 downto 0) := B"0001";
    constant SR_DATA   : std_logic_vector(3 downto 0) := B"0010";
@@ -113,6 +115,9 @@ architecture structural of datapath is
    -- 'X' register
    signal xr : std_logic_vector(7 downto 0);
 
+   -- 'Y' register
+   signal yr : std_logic_vector(7 downto 0);
+
    -- Stack Pointer
    signal sp : std_logic_vector(7 downto 0) := X"FF";
 
@@ -134,6 +139,7 @@ begin
 
    alu_reg <= ar when reg_sel_i = REG_AR else
               xr when reg_sel_i = REG_XR else
+              yr when reg_sel_i = REG_YR else
               sp when reg_sel_i = REG_SP else
               (others => '0');
 
@@ -200,6 +206,18 @@ begin
          end if;
       end if;
    end process p_xr;
+
+   -- 'Y' register
+   p_yr : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if wait_i = '0' then
+            if yr_sel_i = '1' then
+               yr <= alu_ar;
+            end if;
+         end if;
+      end if;
+   end process p_yr;
 
    -- Stack Pointer
    p_sp : process (clk_i)
@@ -278,6 +296,7 @@ begin
            pc(7 downto 0)  when data_sel_i = DATA_PCLO else
            pc(15 downto 8) when data_sel_i = DATA_PCHI else
            xr              when data_sel_i = DATA_XR   else
+           yr              when data_sel_i = DATA_YR   else
            (others => '0');
 
    wren <= '1' when data_sel_i = DATA_AR   or 
@@ -285,6 +304,7 @@ begin
                     data_sel_i = DATA_ALU  or 
                     data_sel_i = DATA_PCLO or 
                     data_sel_i = DATA_PCHI or
+                    data_sel_i = DATA_YR   or
                     data_sel_i = DATA_XR   else
            '0';
 

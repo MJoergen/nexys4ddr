@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.89 (w)1999-2018 BSI
-[*] Tue May 15 04:43:21 2018
+[*] Wed May 16 04:58:58 2018
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/dyoc/ep14_-_Registers_X_and_Y/tb.ghw"
-[dumpfile_mtime] "Tue May 15 04:42:54 2018"
-[dumpfile_size] 523807
+[dumpfile_mtime] "Wed May 16 04:58:08 2018"
+[dumpfile_size] 535200
 [savefile] "/home/mike/git/nexys4ddr/dyoc/ep14_-_Registers_X_and_Y/tb.gtkw"
-[timestart] 4903500000
+[timestart] 5404700000
 [size] 1920 970
 [pos] 1868 33
-*-25.421230 5060200000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-26.456932 5718200000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.tb.
 [treeopen] top.tb.i_cpu.
@@ -31,8 +31,9 @@ top.tb.cpu_wren
 -CPU
 @22
 #{top.tb.i_cpu.inst_datapath.ar[7:0]} top.tb.i_cpu.inst_datapath.ar[7] top.tb.i_cpu.inst_datapath.ar[6] top.tb.i_cpu.inst_datapath.ar[5] top.tb.i_cpu.inst_datapath.ar[4] top.tb.i_cpu.inst_datapath.ar[3] top.tb.i_cpu.inst_datapath.ar[2] top.tb.i_cpu.inst_datapath.ar[1] top.tb.i_cpu.inst_datapath.ar[0]
-@23
 #{top.tb.i_cpu.inst_datapath.xr[7:0]} top.tb.i_cpu.inst_datapath.xr[7] top.tb.i_cpu.inst_datapath.xr[6] top.tb.i_cpu.inst_datapath.xr[5] top.tb.i_cpu.inst_datapath.xr[4] top.tb.i_cpu.inst_datapath.xr[3] top.tb.i_cpu.inst_datapath.xr[2] top.tb.i_cpu.inst_datapath.xr[1] top.tb.i_cpu.inst_datapath.xr[0]
+@23
+#{top.tb.i_cpu.inst_datapath.yr[7:0]} top.tb.i_cpu.inst_datapath.yr[7] top.tb.i_cpu.inst_datapath.yr[6] top.tb.i_cpu.inst_datapath.yr[5] top.tb.i_cpu.inst_datapath.yr[4] top.tb.i_cpu.inst_datapath.yr[3] top.tb.i_cpu.inst_datapath.yr[2] top.tb.i_cpu.inst_datapath.yr[1] top.tb.i_cpu.inst_datapath.yr[0]
 @22
 #{top.tb.i_cpu.inst_datapath.sr[7:0]} top.tb.i_cpu.inst_datapath.sr[7] top.tb.i_cpu.inst_datapath.sr[6] top.tb.i_cpu.inst_datapath.sr[5] top.tb.i_cpu.inst_datapath.sr[4] top.tb.i_cpu.inst_datapath.sr[3] top.tb.i_cpu.inst_datapath.sr[2] top.tb.i_cpu.inst_datapath.sr[1] top.tb.i_cpu.inst_datapath.sr[0]
 #{top.tb.i_cpu.inst_datapath.sp[7:0]} top.tb.i_cpu.inst_datapath.sp[7] top.tb.i_cpu.inst_datapath.sp[6] top.tb.i_cpu.inst_datapath.sp[5] top.tb.i_cpu.inst_datapath.sp[4] top.tb.i_cpu.inst_datapath.sp[3] top.tb.i_cpu.inst_datapath.sp[2] top.tb.i_cpu.inst_datapath.sp[1] top.tb.i_cpu.inst_datapath.sp[0]
