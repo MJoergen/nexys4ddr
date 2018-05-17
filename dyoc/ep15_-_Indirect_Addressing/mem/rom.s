@@ -353,9 +353,13 @@ noError15:
    CMP #$87
    BNE error15
    INX
+   CPX #$87
+   BEQ error15
    CPX #$88
    BNE error15
    DEX
+   CPX #$88
+   BEQ error15
    CPX #$87
    BNE error15
 
@@ -412,9 +416,13 @@ error16:
    JMP error16
 noError16:
    INY
+   CPY #$23
+   BEQ error16
    CPY #$24
    BNE error16
    DEY
+   CPY #$24
+   BEQ error16
    CPY #$23
    BNE error16
 
@@ -477,6 +485,42 @@ noError17:
    LDA $02F0,Y
    CMP #$11
    BNE error17
+
+   LDX $02F0,Y ; $0320
+   CPX #$11
+   BNE error17
+   LDX #$10
+   LDY $0310,X ; $0320
+   CPY #$11
+   BNE error17
+
+   LDX #$40
+   LDY #$50
+   STX $20,Y   ; $70
+   LDA $70
+   CMP #$40
+   BNE error17
+
+   STY $20,X   ; $60
+   LDA $60
+   CMP #$50
+   BNE error17
+
+   LDA #$33
+   STA $70
+   LDA #$44
+   LDY $30,X   ; $70
+   CPY #$33
+   BNE error17
+
+   LDY #$20
+   LDA #$33
+   STA $50
+   LDA #$44
+   LDX $30,Y   ; $50
+   CPX #$33
+   BNE error17
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; All tests were a success
