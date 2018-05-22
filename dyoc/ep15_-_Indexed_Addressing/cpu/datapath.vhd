@@ -28,7 +28,7 @@ entity datapath is
       reg_sel_i  : in  std_logic_vector(1 downto 0);
 
       -- Debug output containing internal registers
-      debug_o : out std_logic_vector(95 downto 0)
+      debug_o : out std_logic_vector(111 downto 0)
    );
 end entity datapath;
 
@@ -43,6 +43,7 @@ architecture structural of datapath is
    constant SR_R : integer := 5;    -- Bit 5 is reserved.
    constant SR_V : integer := 6;
    constant SR_S : integer := 7;
+   constant SR_BR : std_logic_vector(7 downto 0) := (SR_B => '1', SR_R => '1', others => '0');
 
    constant PC_INC : std_logic_vector(2 downto 0) := B"001";
    constant PC_HL  : std_logic_vector(2 downto 0) := B"010";
@@ -312,7 +313,7 @@ begin
 
    data <= (others => '0') when data_sel_i = "000"     else
            ar              when data_sel_i = DATA_AR   else
-           sr              when data_sel_i = DATA_SR   else
+           sr or SR_BR     when data_sel_i = DATA_SR   else -- Bit S and R must always be set when pushing onto stack.
            alu_ar          when data_sel_i = DATA_ALU  else
            pc(7 downto 0)  when data_sel_i = DATA_PCLO else
            pc(15 downto 8) when data_sel_i = DATA_PCHI else
@@ -334,17 +335,19 @@ begin
    -- Drive output signals
    -----------------
 
-   debug_o(15 downto  0) <= pc;     -- Two bytes
-   debug_o(23 downto 16) <= ar;     -- One byte
-   debug_o(31 downto 24) <= data_i; -- One byte
-   debug_o(39 downto 32) <= lo;     -- One byte
-   debug_o(47 downto 40) <= hi;     -- One byte
-   debug_o(63 downto 48) <= addr;   -- Two bytes
-   debug_o(71 downto 64) <= data;   -- One byte
-   debug_o(72)           <= wren;   -- One byte
-   debug_o(79 downto 73) <= (others => '0');
-   debug_o(87 downto 80) <= sr;     -- One byte
-   debug_o(95 downto 88) <= (others => '0');
+   debug_o( 15 downto   0) <= pc;     -- Two bytes
+   debug_o( 23 downto  16) <= ar;     -- One byte
+   debug_o( 31 downto  24) <= data_i; -- One byte
+   debug_o( 39 downto  32) <= lo;     -- One byte
+   debug_o( 47 downto  40) <= hi;     -- One byte
+   debug_o( 63 downto  48) <= addr;   -- Two bytes
+   debug_o( 71 downto  64) <= data;   -- One byte
+   debug_o( 72)            <= wren;   -- One byte
+   debug_o( 79 downto  73) <= (others => '0');
+   debug_o( 87 downto  80) <= sr;     -- One byte
+   debug_o( 95 downto  88) <= (others => '0');
+   debug_o(103 downto  96) <= yr;
+   debug_o(111 downto 104) <= xr;
 
    addr_o <= addr;
    data_o <= data;

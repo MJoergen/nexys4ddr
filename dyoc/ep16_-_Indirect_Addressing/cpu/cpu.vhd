@@ -17,15 +17,15 @@ entity cpu is
 
       -- Debug output
       invalid_o : out std_logic_vector(7 downto 0);
-      debug_o   : out std_logic_vector(143 downto 0)
+      debug_o   : out std_logic_vector(159 downto 0)
    );
 end entity cpu;
 
 architecture structural of cpu is
 
    signal ar_sel   : std_logic;
-   signal hi_sel   : std_logic_vector(1 downto 0);
-   signal lo_sel   : std_logic_vector(1 downto 0);
+   signal hi_sel   : std_logic_vector(2 downto 0);
+   signal lo_sel   : std_logic_vector(2 downto 0);
    signal pc_sel   : std_logic_vector(5 downto 0);
    signal addr_sel : std_logic_vector(2 downto 0);
    signal data_sel : std_logic_vector(2 downto 0);
@@ -67,7 +67,7 @@ begin
       reg_sel_i  => reg_sel,
       zp_sel_i   => zp_sel,
 
-      debug_o => debug_o(143 downto 48)
+      debug_o => debug_o(159 downto 48)
    );
 
 
