@@ -58,7 +58,7 @@ We will be designing and building these blocks roughly in the above order.
 14. [**"Registers X and Y"**](ep14_-_Registers_X_and_Y). We add the two
     remaining registers 'X' and 'Y'.  Instructions implemented: 90/151.
 15. [**"Indexed addressing"**](ep15_-_Indexed_Addressing). We implement
-    the indexed addressing modes. Instructions implemented: ??/151.
+    the indexed addressing modes. Instructions implemented: 127/151.
 16. [**"Indirect addressing"**](ep15_-_Indirect_Addressing). We finish (almost)
     the CPU by adding support for indirect addressing modes. Instructions
     implemented: ??/151.
