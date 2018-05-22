@@ -317,12 +317,12 @@ architecture Structural of ctl is
       INVALID,
 
 -- 11 ORA (d),Y
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + ZP_DATA,
+      ADDR_ZP + LO_DATA + ZP_INC,
+      ADDR_ZP + HI_DATA,
+      HI_ADDY + LO_ADDY,
+      ADDR_HL + ALU_ORA + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
 
@@ -637,12 +637,12 @@ architecture Structural of ctl is
       INVALID,
 
 -- 31 AND (d),Y
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + ZP_DATA,
+      ADDR_ZP + LO_DATA + ZP_INC,
+      ADDR_ZP + HI_DATA,
+      HI_ADDY + LO_ADDY,
+      ADDR_HL + ALU_AND + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
 
@@ -687,10 +687,10 @@ architecture Structural of ctl is
       INVALID,
 
 -- 36 ROL d,X
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + LO_DATA,
+      HI_ADDX + LO_ADDX,
+      ADDR_LO + ALU_ROL_B + DATA_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -957,12 +957,12 @@ architecture Structural of ctl is
       INVALID,
 
 -- 51 EOR (d),Y
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + ZP_DATA,
+      ADDR_ZP + LO_DATA + ZP_INC,
+      ADDR_ZP + HI_DATA,
+      HI_ADDY + LO_ADDY,
+      ADDR_HL + ALU_EOR + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
 
@@ -1007,10 +1007,10 @@ architecture Structural of ctl is
       INVALID,
 
 -- 56 LSR d,X
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + LO_DATA,
+      HI_ADDX + LO_ADDX,
+      ADDR_LO + ALU_LSR_B + DATA_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1277,12 +1277,12 @@ architecture Structural of ctl is
       INVALID,
 
 -- 71 ADC (d),Y
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + ZP_DATA,
+      ADDR_ZP + LO_DATA + ZP_INC,
+      ADDR_ZP + HI_DATA,
+      HI_ADDY + LO_ADDY,
+      ADDR_HL + ALU_ADC + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
 
@@ -1327,10 +1327,10 @@ architecture Structural of ctl is
       INVALID,
 
 -- 76 ROR d,X
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + LO_DATA,
+      HI_ADDX + LO_ADDX,
+      ADDR_LO + ALU_ROR_B + DATA_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1597,12 +1597,12 @@ architecture Structural of ctl is
       INVALID,
 
 -- 91 STA (d),Y
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + ZP_DATA,
+      ADDR_ZP + LO_DATA + ZP_INC,
+      ADDR_ZP + HI_DATA,
+      HI_ADDY + LO_ADDY,
+      ADDR_HL + DATA_AR + LAST,
       INVALID,
       INVALID,
 
@@ -1917,12 +1917,12 @@ architecture Structural of ctl is
       INVALID,
 
 -- B1 LDA (d),Y
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + ZP_DATA,
+      ADDR_ZP + LO_DATA + ZP_INC,
+      ADDR_ZP + HI_DATA,
+      HI_ADDY + LO_ADDY,
+      ADDR_HL + ALU_LDA + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
 
@@ -2237,12 +2237,12 @@ architecture Structural of ctl is
       INVALID,
 
 -- D1 CMP (d),Y
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + ZP_DATA,
+      ADDR_ZP + LO_DATA + ZP_INC,
+      ADDR_ZP + HI_DATA,
+      HI_ADDY + LO_ADDY,
+      ADDR_HL + ALU_CMP + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
 
@@ -2287,10 +2287,10 @@ architecture Structural of ctl is
       INVALID,
 
 -- D6 DEC d,X
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + LO_DATA,
+      HI_ADDX + LO_ADDX,
+      ADDR_LO + ALU_DEC_B + DATA_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -2557,12 +2557,12 @@ architecture Structural of ctl is
       INVALID,
 
 -- F1 SBC (d),Y
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + ZP_DATA,
+      ADDR_ZP + LO_DATA + ZP_INC,
+      ADDR_ZP + HI_DATA,
+      HI_ADDY + LO_ADDY,
+      ADDR_HL + ALU_SBC + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
 
@@ -2607,10 +2607,10 @@ architecture Structural of ctl is
       INVALID,
 
 -- F6 INC d,X
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + LO_DATA,
+      HI_ADDX + LO_ADDX,
+      ADDR_LO + ALU_INC_B + DATA_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,

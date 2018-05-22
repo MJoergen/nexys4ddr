@@ -528,6 +528,47 @@ noError17:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Test 18 : Test (d,X) addressing modes
+   LDA #$21
+   STA $50
+   LDA #$03
+   STA $51
+   LDX #$11
+   STX $0321
+   LDX #$10
+   LDA ($40,X)
+   CMP #$11
+   BEQ noError18
+error18:
+   LDA #$18
+   JMP error18
+noError18:
+   LDA #$22
+   STA ($40,X)
+   LDA $0321
+   CMP #$22
+   BNE error18
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Test 19 : Test (d),Y addressing modes
+   LDA #$21
+   STA $50
+   LDA #$03
+   STA $51
+   LDY #$11
+   STY $0341
+   LDY #$20
+   LDA ($50),Y
+   CMP #$11
+   BEQ noError19
+error19:
+   LDA #$19
+   JMP error19
+noError19:
+   LDA #$22
+   STA ($50),Y
+   LDA $0341
+   CMP #$22
+   BNE error19
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; All tests were a success
