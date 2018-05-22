@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.89 (w)1999-2018 BSI
-[*] Tue May 22 17:37:06 2018
+[*] Tue May 22 18:55:04 2018
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/dyoc/ep16_-_Indirect_Addressing/tb.ghw"
-[dumpfile_mtime] "Tue May 22 17:27:51 2018"
-[dumpfile_size] 1197971
+[dumpfile_mtime] "Tue May 22 18:51:51 2018"
+[dumpfile_size] 28157144
 [savefile] "/home/mike/git/nexys4ddr/dyoc/ep16_-_Indirect_Addressing/tb.gtkw"
-[timestart] 15661300000
+[timestart] 413820000000
 [size] 1920 1103
 [pos] 1868 33
-*-25.456932 15927900000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-31.685751 418050000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.tb.
 [treeopen] top.tb.i_cpu.
@@ -50,7 +50,7 @@ top.tb.cpu_wren
 -Memory
 @1000200
 -Memory
-@23
+@25
 #{top.tb.i_mem.i_ram.mem[512][7:0]} top.tb.i_mem.i_ram.mem[512][7] top.tb.i_mem.i_ram.mem[512][6] top.tb.i_mem.i_ram.mem[512][5] top.tb.i_mem.i_ram.mem[512][4] top.tb.i_mem.i_ram.mem[512][3] top.tb.i_mem.i_ram.mem[512][2] top.tb.i_mem.i_ram.mem[512][1] top.tb.i_mem.i_ram.mem[512][0]
 [pattern_trace] 1
 [pattern_trace] 0
