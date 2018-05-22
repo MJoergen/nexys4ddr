@@ -468,30 +468,35 @@ noError17:
    CMP #$11
    BNE error17
 
+   ASL $0310,X
+   LDA $0310,X
+   CMP #$22
+   BNE error17
+
    LDA #$DD
    LDX #$30
    LDA $02F0,X
-   CMP #$11
+   CMP #$22
    BNE error17
 
    LDA #$DD
    LDY #$10
    LDA $0310,Y
-   CMP #$11
+   CMP #$22
    BNE error17
 
    LDA #$DD
    LDY #$30
    LDA $02F0,Y
-   CMP #$11
+   CMP #$22
    BNE error17
 
    LDX $02F0,Y ; $0320
-   CPX #$11
+   CPX #$22
    BNE error17
    LDX #$10
    LDY $0310,X ; $0320
-   CPY #$11
+   CPY #$22
    BNE error17
 
    LDX #$40

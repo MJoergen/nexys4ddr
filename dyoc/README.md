@@ -56,18 +56,20 @@ We will be designing and building these blocks roughly in the above order.
 13. [**"More ALU"**](ep13_-_More_ALU). We expand the ALU and add several more
     instructions.  Instructions implemented: 64/151.
 14. [**"Registers X and Y"**](ep14_-_Registers_X_and_Y). We add the two
-    remaining registers 'X' and 'Y'.  Instructions implemented: ??/151.
-15. [**"Indirect addressing"**](ep15_-_Indirect_Addressing). We finish (almost)
+    remaining registers 'X' and 'Y'.  Instructions implemented: 90/151.
+15. [**"Indexed addressing"**](ep15_-_Indexed_Addressing). We implement
+    the indexed addressing modes. Instructions implemented: ??/151.
+16. [**"Indirect addressing"**](ep15_-_Indirect_Addressing). We finish (almost)
     the CPU by adding support for indirect addressing modes. Instructions
     implemented: ??/151.
 ### VGA part 2 ###
-16. [**"Text display"**](ep16_-_Text_Display). We expand on the VGA module
+17. [**"Text display"**](ep16_-_Text_Display). We expand on the VGA module
     by adding a screen memory to contain the text to be displayed.
-17. [**"Sprites"**](ep17_-_Sprites). We add sprites (moveable objects) to the
+18. [**"Sprites"**](ep17_-_Sprites). We add sprites (moveable objects) to the
     VGA module.
-18. [**"Interrupts"**](ep18_-_Interrupts). We add interrupt support to the CPU.
+19. [**"Interrupts"**](ep18_-_Interrupts). We add interrupt support to the CPU.
 ### Keyboard ###
-19. [**"Keyboard"**](ep19_-_Keyboard). We are now ready to add the keyboard
+20. [**"Keyboard"**](ep19_-_Keyboard). We are now ready to add the keyboard
     interface.
 
 More to come soon...
