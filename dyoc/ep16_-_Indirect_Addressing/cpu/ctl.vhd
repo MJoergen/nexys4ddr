@@ -21,6 +21,7 @@ entity ctl is
       xr_sel_o   : out std_logic;
       yr_sel_o   : out std_logic;
       reg_sel_o  : out std_logic_vector(1 downto 0);
+      zp_sel_o   : out std_logic_vector(1 downto 0);
 
       invalid_o  : out std_logic_vector(7 downto 0);
       debug_o    : out std_logic_vector(47 downto 0)
@@ -29,96 +30,101 @@ end ctl;
 
 architecture Structural of ctl is
 
-   subtype t_ctl is std_logic_vector(33 downto 0);
+   subtype t_ctl is std_logic_vector(35 downto 0);
    type t_rom is array(0 to 8*256-1) of t_ctl;
 
-   constant NOP       : t_ctl := B"00_0_0_00_0000_00000_0_0_000_000_000000_00_00_0";
+   constant NOP       : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_000_000000_00_00_0";
    --
-   constant AR_ALU    : t_ctl := B"00_0_0_00_0000_00000_0_0_000_000_000000_00_00_1";
+   constant AR_ALU    : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_000_000000_00_00_1";
    --
-   constant HI_DATA   : t_ctl := B"00_0_0_00_0000_00000_0_0_000_000_000000_00_01_0";
-   constant HI_ADDX   : t_ctl := B"00_0_0_00_0000_00000_0_0_000_000_000000_00_10_0";
-   constant HI_ADDY   : t_ctl := B"00_0_0_00_0000_00000_0_0_000_000_000000_00_11_0";
+   constant HI_DATA   : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_000_000000_00_01_0";
+   constant HI_ADDX   : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_000_000000_00_10_0";
+   constant HI_ADDY   : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_000_000000_00_11_0";
    --
-   constant LO_DATA   : t_ctl := B"00_0_0_00_0000_00000_0_0_000_000_000000_01_00_0";
-   constant LO_ADDX   : t_ctl := B"00_0_0_00_0000_00000_0_0_000_000_000000_10_00_0";
-   constant LO_ADDY   : t_ctl := B"00_0_0_00_0000_00000_0_0_000_000_000000_11_00_0";
+   constant LO_DATA   : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_000_000000_01_00_0";
+   constant LO_ADDX   : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_000_000000_10_00_0";
+   constant LO_ADDY   : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_000_000000_11_00_0";
    --
-   constant PC_INC    : t_ctl := B"00_0_0_00_0000_00000_0_0_000_000_000001_00_00_0";
-   constant PC_HL     : t_ctl := B"00_0_0_00_0000_00000_0_0_000_000_000010_00_00_0";
-   constant PC_HL1    : t_ctl := B"00_0_0_00_0000_00000_0_0_000_000_000011_00_00_0";
-   constant PC_BPL    : t_ctl := B"00_0_0_00_0000_00000_0_0_000_000_000100_00_00_0";
-   constant PC_BMI    : t_ctl := B"00_0_0_00_0000_00000_0_0_000_000_001100_00_00_0";
-   constant PC_BVC    : t_ctl := B"00_0_0_00_0000_00000_0_0_000_000_010100_00_00_0";
-   constant PC_BVS    : t_ctl := B"00_0_0_00_0000_00000_0_0_000_000_011100_00_00_0";
-   constant PC_BCC    : t_ctl := B"00_0_0_00_0000_00000_0_0_000_000_100100_00_00_0";
-   constant PC_BCS    : t_ctl := B"00_0_0_00_0000_00000_0_0_000_000_101100_00_00_0";
-   constant PC_BNE    : t_ctl := B"00_0_0_00_0000_00000_0_0_000_000_110100_00_00_0";
-   constant PC_BEQ    : t_ctl := B"00_0_0_00_0000_00000_0_0_000_000_111100_00_00_0";
+   constant PC_INC    : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_000_000001_00_00_0";
+   constant PC_HL     : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_000_000010_00_00_0";
+   constant PC_HL1    : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_000_000011_00_00_0";
+   constant PC_BPL    : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_000_000100_00_00_0";
+   constant PC_BMI    : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_000_001100_00_00_0";
+   constant PC_BVC    : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_000_010100_00_00_0";
+   constant PC_BVS    : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_000_011100_00_00_0";
+   constant PC_BCC    : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_000_100100_00_00_0";
+   constant PC_BCS    : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_000_101100_00_00_0";
+   constant PC_BNE    : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_000_110100_00_00_0";
+   constant PC_BEQ    : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_000_111100_00_00_0";
    --
-   constant ADDR_PC   : t_ctl := B"00_0_0_00_0000_00000_0_0_000_001_000000_00_00_0";
-   constant ADDR_HL   : t_ctl := B"00_0_0_00_0000_00000_0_0_000_010_000000_00_00_0";
-   constant ADDR_ZP   : t_ctl := B"00_0_0_00_0000_00000_0_0_000_011_000000_00_00_0";
-   constant ADDR_SP   : t_ctl := B"00_0_0_00_0000_00000_0_0_000_100_000000_00_00_0";
+   constant ADDR_PC   : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_001_000000_00_00_0";
+   constant ADDR_HL   : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_010_000000_00_00_0";
+   constant ADDR_LO   : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_011_000000_00_00_0";
+   constant ADDR_SP   : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_100_000000_00_00_0";
+   constant ADDR_ZP   : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_101_000000_00_00_0";
    --
-   constant DATA_AR   : t_ctl := B"00_0_0_00_0000_00000_0_0_001_000_000000_00_00_0";
-   constant DATA_SR   : t_ctl := B"00_0_0_00_0000_00000_0_0_010_000_000000_00_00_0";
-   constant DATA_ALU  : t_ctl := B"00_0_0_00_0000_00000_0_0_011_000_000000_00_00_0";
-   constant DATA_PCLO : t_ctl := B"00_0_0_00_0000_00000_0_0_100_000_000000_00_00_0";
-   constant DATA_PCHI : t_ctl := B"00_0_0_00_0000_00000_0_0_101_000_000000_00_00_0";
-   constant DATA_XR   : t_ctl := B"00_0_0_00_0000_00000_0_0_110_000_000000_00_00_0";
-   constant DATA_YR   : t_ctl := B"00_0_0_00_0000_00000_0_0_111_000_000000_00_00_0";
+   constant DATA_AR   : t_ctl := B"00_00_0_0_00_0000_00000_0_0_001_000_000000_00_00_0";
+   constant DATA_SR   : t_ctl := B"00_00_0_0_00_0000_00000_0_0_010_000_000000_00_00_0";
+   constant DATA_ALU  : t_ctl := B"00_00_0_0_00_0000_00000_0_0_011_000_000000_00_00_0";
+   constant DATA_PCLO : t_ctl := B"00_00_0_0_00_0000_00000_0_0_100_000_000000_00_00_0";
+   constant DATA_PCHI : t_ctl := B"00_00_0_0_00_0000_00000_0_0_101_000_000000_00_00_0";
+   constant DATA_XR   : t_ctl := B"00_00_0_0_00_0000_00000_0_0_110_000_000000_00_00_0";
+   constant DATA_YR   : t_ctl := B"00_00_0_0_00_0000_00000_0_0_111_000_000000_00_00_0";
    --
-   constant LAST      : t_ctl := B"00_0_0_00_0000_00000_0_1_000_000_000000_00_00_0";
+   constant LAST      : t_ctl := B"00_00_0_0_00_0000_00000_0_1_000_000_000000_00_00_0";
    --
-   constant INVALID   : t_ctl := B"00_0_0_00_0000_00000_1_0_000_000_000000_00_00_0";
+   constant INVALID   : t_ctl := B"00_00_0_0_00_0000_00000_1_0_000_000_000000_00_00_0";
    --
-   constant ALU_ORA   : t_ctl := B"00_0_0_00_0000_00000_0_0_000_000_000000_00_00_0";
-   constant ALU_AND   : t_ctl := B"00_0_0_00_0000_00001_0_0_000_000_000000_00_00_0";
-   constant ALU_EOR   : t_ctl := B"00_0_0_00_0000_00010_0_0_000_000_000000_00_00_0";
-   constant ALU_ADC   : t_ctl := B"00_0_0_00_0000_00011_0_0_000_000_000000_00_00_0";
-   constant ALU_STA   : t_ctl := B"00_0_0_00_0000_00100_0_0_000_000_000000_00_00_0";
-   constant ALU_LDA   : t_ctl := B"00_0_0_00_0000_00101_0_0_000_000_000000_00_00_0";
-   constant ALU_CMP   : t_ctl := B"00_0_0_00_0000_00110_0_0_000_000_000000_00_00_0";
-   constant ALU_SBC   : t_ctl := B"00_0_0_00_0000_00111_0_0_000_000_000000_00_00_0";
-   constant ALU_ASL_A : t_ctl := B"00_0_0_00_0000_01000_0_0_000_000_000000_00_00_0";
-   constant ALU_ROL_A : t_ctl := B"00_0_0_00_0000_01001_0_0_000_000_000000_00_00_0";
-   constant ALU_LSR_A : t_ctl := B"00_0_0_00_0000_01010_0_0_000_000_000000_00_00_0";
-   constant ALU_ROR_A : t_ctl := B"00_0_0_00_0000_01011_0_0_000_000_000000_00_00_0";
-   constant ALU_BIT_A : t_ctl := B"00_0_0_00_0000_01100_0_0_000_000_000000_00_00_0";
-   constant ALU_LDA_A : t_ctl := B"00_0_0_00_0000_01101_0_0_000_000_000000_00_00_0";
-   constant ALU_DEC_A : t_ctl := B"00_0_0_00_0000_01110_0_0_000_000_000000_00_00_0";
-   constant ALU_INC_A : t_ctl := B"00_0_0_00_0000_01111_0_0_000_000_000000_00_00_0";
-   constant ALU_ASL_B : t_ctl := B"00_0_0_00_0000_10000_0_0_000_000_000000_00_00_0";
-   constant ALU_ROL_B : t_ctl := B"00_0_0_00_0000_10001_0_0_000_000_000000_00_00_0";
-   constant ALU_LSR_B : t_ctl := B"00_0_0_00_0000_10010_0_0_000_000_000000_00_00_0";
-   constant ALU_ROR_B : t_ctl := B"00_0_0_00_0000_10011_0_0_000_000_000000_00_00_0";
-   constant ALU_BIT_B : t_ctl := B"00_0_0_00_0000_10100_0_0_000_000_000000_00_00_0";
-   constant ALU_DEC_B : t_ctl := B"00_0_0_00_0000_10110_0_0_000_000_000000_00_00_0";
-   constant ALU_INC_B : t_ctl := B"00_0_0_00_0000_10111_0_0_000_000_000000_00_00_0";
+   constant ALU_ORA   : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_000_000000_00_00_0";
+   constant ALU_AND   : t_ctl := B"00_00_0_0_00_0000_00001_0_0_000_000_000000_00_00_0";
+   constant ALU_EOR   : t_ctl := B"00_00_0_0_00_0000_00010_0_0_000_000_000000_00_00_0";
+   constant ALU_ADC   : t_ctl := B"00_00_0_0_00_0000_00011_0_0_000_000_000000_00_00_0";
+   constant ALU_STA   : t_ctl := B"00_00_0_0_00_0000_00100_0_0_000_000_000000_00_00_0";
+   constant ALU_LDA   : t_ctl := B"00_00_0_0_00_0000_00101_0_0_000_000_000000_00_00_0";
+   constant ALU_CMP   : t_ctl := B"00_00_0_0_00_0000_00110_0_0_000_000_000000_00_00_0";
+   constant ALU_SBC   : t_ctl := B"00_00_0_0_00_0000_00111_0_0_000_000_000000_00_00_0";
+   constant ALU_ASL_A : t_ctl := B"00_00_0_0_00_0000_01000_0_0_000_000_000000_00_00_0";
+   constant ALU_ROL_A : t_ctl := B"00_00_0_0_00_0000_01001_0_0_000_000_000000_00_00_0";
+   constant ALU_LSR_A : t_ctl := B"00_00_0_0_00_0000_01010_0_0_000_000_000000_00_00_0";
+   constant ALU_ROR_A : t_ctl := B"00_00_0_0_00_0000_01011_0_0_000_000_000000_00_00_0";
+   constant ALU_BIT_A : t_ctl := B"00_00_0_0_00_0000_01100_0_0_000_000_000000_00_00_0";
+   constant ALU_LDA_A : t_ctl := B"00_00_0_0_00_0000_01101_0_0_000_000_000000_00_00_0";
+   constant ALU_DEC_A : t_ctl := B"00_00_0_0_00_0000_01110_0_0_000_000_000000_00_00_0";
+   constant ALU_INC_A : t_ctl := B"00_00_0_0_00_0000_01111_0_0_000_000_000000_00_00_0";
+   constant ALU_ASL_B : t_ctl := B"00_00_0_0_00_0000_10000_0_0_000_000_000000_00_00_0";
+   constant ALU_ROL_B : t_ctl := B"00_00_0_0_00_0000_10001_0_0_000_000_000000_00_00_0";
+   constant ALU_LSR_B : t_ctl := B"00_00_0_0_00_0000_10010_0_0_000_000_000000_00_00_0";
+   constant ALU_ROR_B : t_ctl := B"00_00_0_0_00_0000_10011_0_0_000_000_000000_00_00_0";
+   constant ALU_BIT_B : t_ctl := B"00_00_0_0_00_0000_10100_0_0_000_000_000000_00_00_0";
+   constant ALU_DEC_B : t_ctl := B"00_00_0_0_00_0000_10110_0_0_000_000_000000_00_00_0";
+   constant ALU_INC_B : t_ctl := B"00_00_0_0_00_0000_10111_0_0_000_000_000000_00_00_0";
    --
-   constant SR_ALU    : t_ctl := B"00_0_0_00_0001_00000_0_0_000_000_000000_00_00_0";
-   constant SR_DATA   : t_ctl := B"00_0_0_00_0010_00000_0_0_000_000_000000_00_00_0";
-   constant SR_CLC    : t_ctl := B"00_0_0_00_1000_00000_0_0_000_000_000000_00_00_0";
-   constant SR_SEC    : t_ctl := B"00_0_0_00_1001_00000_0_0_000_000_000000_00_00_0";
-   constant SR_CLI    : t_ctl := B"00_0_0_00_1010_00000_0_0_000_000_000000_00_00_0";
-   constant SR_SEI    : t_ctl := B"00_0_0_00_1011_00000_0_0_000_000_000000_00_00_0";
-   constant SR_CLV    : t_ctl := B"00_0_0_00_1100_00000_0_0_000_000_000000_00_00_0";
-   constant SR_CLD    : t_ctl := B"00_0_0_00_1110_00000_0_0_000_000_000000_00_00_0";
-   constant SR_SED    : t_ctl := B"00_0_0_00_1111_00000_0_0_000_000_000000_00_00_0";
+   constant SR_ALU    : t_ctl := B"00_00_0_0_00_0001_00000_0_0_000_000_000000_00_00_0";
+   constant SR_DATA   : t_ctl := B"00_00_0_0_00_0010_00000_0_0_000_000_000000_00_00_0";
+   constant SR_CLC    : t_ctl := B"00_00_0_0_00_1000_00000_0_0_000_000_000000_00_00_0";
+   constant SR_SEC    : t_ctl := B"00_00_0_0_00_1001_00000_0_0_000_000_000000_00_00_0";
+   constant SR_CLI    : t_ctl := B"00_00_0_0_00_1010_00000_0_0_000_000_000000_00_00_0";
+   constant SR_SEI    : t_ctl := B"00_00_0_0_00_1011_00000_0_0_000_000_000000_00_00_0";
+   constant SR_CLV    : t_ctl := B"00_00_0_0_00_1100_00000_0_0_000_000_000000_00_00_0";
+   constant SR_CLD    : t_ctl := B"00_00_0_0_00_1110_00000_0_0_000_000_000000_00_00_0";
+   constant SR_SED    : t_ctl := B"00_00_0_0_00_1111_00000_0_0_000_000_000000_00_00_0";
    --
-   constant SP_INC    : t_ctl := B"00_0_0_01_0000_00000_0_0_000_000_000000_00_00_0";
-   constant SP_DEC    : t_ctl := B"00_0_0_10_0000_00000_0_0_000_000_000000_00_00_0";
-   constant SP_XR     : t_ctl := B"00_0_0_11_0000_00000_0_0_000_000_000000_00_00_0";
+   constant SP_INC    : t_ctl := B"00_00_0_0_01_0000_00000_0_0_000_000_000000_00_00_0";
+   constant SP_DEC    : t_ctl := B"00_00_0_0_10_0000_00000_0_0_000_000_000000_00_00_0";
+   constant SP_XR     : t_ctl := B"00_00_0_0_11_0000_00000_0_0_000_000_000000_00_00_0";
    --
-   constant XR_ALU    : t_ctl := B"00_0_1_00_0000_00000_0_0_000_000_000000_00_00_0";
+   constant XR_ALU    : t_ctl := B"00_00_0_1_00_0000_00000_0_0_000_000_000000_00_00_0";
    --
-   constant YR_ALU    : t_ctl := B"00_1_0_00_0000_00000_0_0_000_000_000000_00_00_0";
+   constant YR_ALU    : t_ctl := B"00_00_1_0_00_0000_00000_0_0_000_000_000000_00_00_0";
    --
-   constant REG_AR    : t_ctl := B"00_0_0_00_0000_00000_0_0_000_000_000000_00_00_0";
-   constant REG_XR    : t_ctl := B"01_0_0_00_0000_00000_0_0_000_000_000000_00_00_0";
-   constant REG_YR    : t_ctl := B"10_0_0_00_0000_00000_0_0_000_000_000000_00_00_0";
-   constant REG_SP    : t_ctl := B"11_0_0_00_0000_00000_0_0_000_000_000000_00_00_0";
+   constant REG_AR    : t_ctl := B"00_00_0_0_00_0000_00000_0_0_000_000_000000_00_00_0";
+   constant REG_XR    : t_ctl := B"00_01_0_0_00_0000_00000_0_0_000_000_000000_00_00_0";
+   constant REG_YR    : t_ctl := B"00_10_0_0_00_0000_00000_0_0_000_000_000000_00_00_0";
+   constant REG_SP    : t_ctl := B"00_11_0_0_00_0000_00000_0_0_000_000_000000_00_00_0";
+   --
+   constant ZP_DATA   : t_ctl := B"01_00_0_0_00_0000_00000_0_0_000_000_000000_00_00_0";
+   constant ZP_ADDX   : t_ctl := B"10_00_0_0_00_0000_00000_0_0_000_000_000000_00_00_0";
+   constant ZP_INC    : t_ctl := B"11_00_0_0_00_0000_00000_0_0_000_000_000000_00_00_0";
 
    -- Decode control signals
    signal ctl      : t_ctl;
@@ -136,6 +142,7 @@ architecture Structural of ctl is
    alias xr_sel    : std_logic                    is ctl(30);
    alias yr_sel    : std_logic                    is ctl(31);
    alias reg_sel   : std_logic_vector(1 downto 0) is ctl(33 downto 32);
+   alias zp_sel    : std_logic_vector(1 downto 0) is ctl(35 downto 34);
 
    signal rom : t_rom := (
 
@@ -150,12 +157,12 @@ architecture Structural of ctl is
       INVALID,
 
 -- 01 ORA (d,X)
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + ZP_DATA,
+      ZP_ADDX,
+      ADDR_ZP + LO_DATA + ZP_INC,
+      ADDR_ZP + HI_DATA,
+      ADDR_HL + ALU_ORA + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
 
@@ -192,7 +199,7 @@ architecture Structural of ctl is
 -- 05 ORA d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + ALU_ORA + AR_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_ORA + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -202,7 +209,7 @@ architecture Structural of ctl is
 -- 06 ASL d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + ALU_ASL_B + DATA_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_ASL_B + DATA_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -353,7 +360,7 @@ architecture Structural of ctl is
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
       HI_ADDX + LO_ADDX,
-      ADDR_ZP + ALU_ORA + AR_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_ORA + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -363,7 +370,7 @@ architecture Structural of ctl is
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
       HI_ADDX + LO_ADDX,
-      ADDR_ZP + ALU_ASL_B + DATA_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_ASL_B + DATA_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -470,12 +477,12 @@ architecture Structural of ctl is
       INVALID,
 
 -- 21 AND (d,X)
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + ZP_DATA,
+      ZP_ADDX,
+      ADDR_ZP + LO_DATA + ZP_INC,
+      ADDR_ZP + HI_DATA,
+      ADDR_HL + ALU_AND + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
 
@@ -502,7 +509,7 @@ architecture Structural of ctl is
 -- 24 BIT d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + ALU_BIT_B + SR_ALU + LAST,
+      ADDR_LO + ALU_BIT_B + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -512,7 +519,7 @@ architecture Structural of ctl is
 -- 25 AND d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + ALU_AND + AR_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_AND + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -522,7 +529,7 @@ architecture Structural of ctl is
 -- 26 ROL d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + ALU_ROL_B + DATA_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_ROL_B + DATA_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -673,7 +680,7 @@ architecture Structural of ctl is
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
       HI_ADDX + LO_ADDX,
-      ADDR_ZP + ALU_AND + AR_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_AND + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -790,12 +797,12 @@ architecture Structural of ctl is
       INVALID,
 
 -- 41 EOR (d,X)
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + ZP_DATA,
+      ZP_ADDX,
+      ADDR_ZP + LO_DATA + ZP_INC,
+      ADDR_ZP + HI_DATA,
+      ADDR_HL + ALU_EOR + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
 
@@ -832,7 +839,7 @@ architecture Structural of ctl is
 -- 45 EOR d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + ALU_EOR + AR_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_EOR + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -842,7 +849,7 @@ architecture Structural of ctl is
 -- 46 LSR d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + ALU_LSR_B + DATA_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_LSR_B + DATA_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -993,7 +1000,7 @@ architecture Structural of ctl is
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
       HI_ADDX + LO_ADDX,
-      ADDR_ZP + ALU_EOR + AR_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_EOR + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1110,12 +1117,12 @@ architecture Structural of ctl is
       INVALID,
 
 -- 61 ADC (d,X)
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + ZP_DATA,
+      ZP_ADDX,
+      ADDR_ZP + LO_DATA + ZP_INC,
+      ADDR_ZP + HI_DATA,
+      ADDR_HL + ALU_ADC + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
 
@@ -1152,7 +1159,7 @@ architecture Structural of ctl is
 -- 65 ADC d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + ALU_ADC + AR_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_ADC + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1162,7 +1169,7 @@ architecture Structural of ctl is
 -- 66 ROR d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + ALU_ROR_B + DATA_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_ROR_B + DATA_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1313,7 +1320,7 @@ architecture Structural of ctl is
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
       HI_ADDX + LO_ADDX,
-      ADDR_ZP + ALU_ADC + AR_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_ADC + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1430,12 +1437,12 @@ architecture Structural of ctl is
       INVALID,
 
 -- 81 STA (d,X)
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + ZP_DATA,
+      ZP_ADDX,
+      ADDR_ZP + LO_DATA + ZP_INC,
+      ADDR_ZP + HI_DATA,
+      ADDR_HL + DATA_AR + LAST,
       INVALID,
       INVALID,
 
@@ -1462,7 +1469,7 @@ architecture Structural of ctl is
 -- 84 STY d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + DATA_YR + LAST,
+      ADDR_LO + DATA_YR + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1472,7 +1479,7 @@ architecture Structural of ctl is
 -- 85 STA d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + DATA_AR + LAST,
+      ADDR_LO + DATA_AR + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1482,7 +1489,7 @@ architecture Structural of ctl is
 -- 86 STX d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + DATA_XR + LAST,
+      ADDR_LO + DATA_XR + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1623,7 +1630,7 @@ architecture Structural of ctl is
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
       HI_ADDX + LO_ADDX,
-      ADDR_ZP + DATA_YR + LAST,
+      ADDR_LO + DATA_YR + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1633,7 +1640,7 @@ architecture Structural of ctl is
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
       HI_ADDX + LO_ADDX,
-      ADDR_ZP + DATA_AR + LAST,
+      ADDR_LO + DATA_AR + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1643,7 +1650,7 @@ architecture Structural of ctl is
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
       HI_ADDY + LO_ADDY,
-      ADDR_ZP + DATA_XR + LAST,
+      ADDR_LO + DATA_XR + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1750,12 +1757,12 @@ architecture Structural of ctl is
       INVALID,
 
 -- A1 LDA (d,X)
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + ZP_DATA,
+      ZP_ADDX,
+      ADDR_ZP + LO_DATA + ZP_INC,
+      ADDR_ZP + HI_DATA,
+      ADDR_HL + ALU_LDA + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
 
@@ -1782,7 +1789,7 @@ architecture Structural of ctl is
 -- A4 LDY d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + ALU_LDA + YR_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_LDA + YR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1792,7 +1799,7 @@ architecture Structural of ctl is
 -- A5 LDA d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + ALU_LDA + AR_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_LDA + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1802,7 +1809,7 @@ architecture Structural of ctl is
 -- A6 LDX d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + ALU_LDA + XR_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_LDA + XR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1943,7 +1950,7 @@ architecture Structural of ctl is
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
       HI_ADDX + LO_ADDX,
-      ADDR_ZP + ALU_LDA + YR_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_LDA + YR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1953,7 +1960,7 @@ architecture Structural of ctl is
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
       HI_ADDX + LO_ADDX,
-      ADDR_ZP + ALU_LDA + AR_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_LDA + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1963,7 +1970,7 @@ architecture Structural of ctl is
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
       HI_ADDY + LO_ADDY,
-      ADDR_ZP + ALU_LDA + XR_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_LDA + XR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -2070,12 +2077,12 @@ architecture Structural of ctl is
       INVALID,
 
 -- C1 CMP (d,X)
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + ZP_DATA,
+      ZP_ADDX,
+      ADDR_ZP + LO_DATA + ZP_INC,
+      ADDR_ZP + HI_DATA,
+      ADDR_HL + ALU_CMP + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
 
@@ -2102,7 +2109,7 @@ architecture Structural of ctl is
 -- C4 CPY d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + REG_YR + ALU_CMP + YR_ALU + SR_ALU + LAST,
+      ADDR_LO + REG_YR + ALU_CMP + YR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -2112,7 +2119,7 @@ architecture Structural of ctl is
 -- C5 CMP d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + ALU_CMP + AR_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_CMP + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -2122,7 +2129,7 @@ architecture Structural of ctl is
 -- C6 DEC d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + ALU_DEC_B + DATA_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_DEC_B + DATA_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -2273,7 +2280,7 @@ architecture Structural of ctl is
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
       HI_ADDX + LO_ADDX,
-      ADDR_ZP + ALU_CMP + AR_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_CMP + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -2390,12 +2397,12 @@ architecture Structural of ctl is
       INVALID,
 
 -- E1 SBC (d,X)
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + ZP_DATA,
+      ZP_ADDX,
+      ADDR_ZP + LO_DATA + ZP_INC,
+      ADDR_ZP + HI_DATA,
+      ADDR_HL + ALU_SBC + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
 
@@ -2422,7 +2429,7 @@ architecture Structural of ctl is
 -- E4 CPX d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + REG_XR + ALU_CMP + XR_ALU + SR_ALU + LAST,
+      ADDR_LO + REG_XR + ALU_CMP + XR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -2432,7 +2439,7 @@ architecture Structural of ctl is
 -- E5 SBC d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + ALU_SBC + AR_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_SBC + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -2442,7 +2449,7 @@ architecture Structural of ctl is
 -- E6 INC d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + ALU_INC_B + DATA_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_INC_B + DATA_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -2593,7 +2600,7 @@ architecture Structural of ctl is
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
       HI_ADDX + LO_ADDX,
-      ADDR_ZP + ALU_SBC + AR_ALU + SR_ALU + LAST,
+      ADDR_LO + ALU_SBC + AR_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -2759,6 +2766,7 @@ begin
    xr_sel_o   <= xr_sel;
    yr_sel_o   <= yr_sel;
    reg_sel_o  <= reg_sel;
+   zp_sel_o   <= zp_sel;
 
    -- Debug Output
    invalid_o  <= invalid_inst;

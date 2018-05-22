@@ -26,6 +26,7 @@ entity datapath is
       xr_sel_i   : in  std_logic;
       yr_sel_i   : in  std_logic;
       reg_sel_i  : in  std_logic_vector(1 downto 0);
+      zp_sel_i   : in  std_logic_vector(1 downto 0);
 
       -- Debug output containing internal registers
       debug_o : out std_logic_vector(95 downto 0)
@@ -59,8 +60,9 @@ architecture structural of datapath is
    --
    constant ADDR_PC : std_logic_vector(2 downto 0) := B"001";
    constant ADDR_HL : std_logic_vector(2 downto 0) := B"010";
-   constant ADDR_ZP : std_logic_vector(2 downto 0) := B"011";
+   constant ADDR_LO : std_logic_vector(2 downto 0) := B"011";
    constant ADDR_SP : std_logic_vector(2 downto 0) := B"100";
+   constant ADDR_ZP : std_logic_vector(2 downto 0) := B"101";
    --
    constant DATA_AR   : std_logic_vector(2 downto 0) := B"001";
    constant DATA_SR   : std_logic_vector(2 downto 0) := B"010";
@@ -91,6 +93,10 @@ architecture structural of datapath is
    constant LO_DATA   : std_logic_vector(1 downto 0) := B"01";
    constant LO_ADDX   : std_logic_vector(1 downto 0) := B"10";
    constant LO_ADDY   : std_logic_vector(1 downto 0) := B"11";
+   --
+   constant ZP_DATA   : std_logic_vector(1 downto 0) := B"01";
+   constant ZP_ADDX   : std_logic_vector(1 downto 0) := B"10";
+   constant ZP_INC    : std_logic_vector(1 downto 0) := B"11";
    --
    constant REG_AR    : std_logic_vector(1 downto 0) := B"00";
    constant REG_XR    : std_logic_vector(1 downto 0) := B"01";
@@ -137,6 +143,9 @@ architecture structural of datapath is
    
    -- Address Lo register
    signal lo : std_logic_vector(7 downto 0);
+
+   -- Zero-page register
+   signal zp : std_logic_vector(7 downto 0);
 
    -- Indirect addressing
    signal hilo_addx_s : std_logic_vector(15 downto 0);
@@ -302,12 +311,28 @@ begin
       end if;
    end process p_lo;
 
+   -- 'Zp' register
+   p_zp : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if wait_i = '0' then
+            case zp_sel_i is
+               when ZP_DATA => zp <= data_i;
+               when ZP_ADDX => zp <= zp + xr;
+               when ZP_INC  => zp <= zp + 1;
+               when others  => null;
+            end case;
+         end if;
+      end if;
+   end process p_zp;
+
    -- Output multiplexers
    addr <= (others => '0') when addr_sel_i = "000"   else
            pc              when addr_sel_i = ADDR_PC else
            hi & lo         when addr_sel_i = ADDR_HL else
-           X"00" & lo      when addr_sel_i = ADDR_ZP else
+           X"00" & lo      when addr_sel_i = ADDR_LO else
            X"01" & sp      when addr_sel_i = ADDR_SP else
+           X"00" & zp      when addr_sel_i = ADDR_ZP else
            (others => '0');
 
    data <= (others => '0') when data_sel_i = "000"     else
