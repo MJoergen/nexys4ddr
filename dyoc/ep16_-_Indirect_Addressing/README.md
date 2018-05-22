@@ -3,7 +3,7 @@
 Welcome to "Design Your Own Computer".  In this episode we will introduce the
 indirect addressing modes, i.e. the "(d,X)" and "(d),Y" instructions.
 
-Instructions implemented in total : ??/151.
+Instructions implemented in total : 148/151.
 
 ## (d,X)
 In the first two clock cycles, the instruction is read, and the zero page address
