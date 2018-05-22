@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.89 (w)1999-2018 BSI
-[*] Tue May 22 15:23:23 2018
+[*] Tue May 22 17:37:06 2018
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/dyoc/ep16_-_Indirect_Addressing/tb.ghw"
-[dumpfile_mtime] "Tue May 22 15:22:36 2018"
-[dumpfile_size] 1017461
+[dumpfile_mtime] "Tue May 22 17:27:51 2018"
+[dumpfile_size] 1197971
 [savefile] "/home/mike/git/nexys4ddr/dyoc/ep16_-_Indirect_Addressing/tb.gtkw"
-[timestart] 0
-[size] 1920 970
+[timestart] 15661300000
+[size] 1920 1103
 [pos] 1868 33
-*-30.456932 2876900000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-25.456932 15927900000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.tb.
 [treeopen] top.tb.i_cpu.

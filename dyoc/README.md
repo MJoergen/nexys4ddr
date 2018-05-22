@@ -61,7 +61,7 @@ We will be designing and building these blocks roughly in the above order.
     the indexed addressing modes. Instructions implemented: 132/151.
 16. [**"Indirect addressing"**](ep15_-_Indirect_Addressing). We finish (almost)
     the CPU by adding support for indirect addressing modes. Instructions
-    implemented: 149/151.
+    implemented: 150/151.
 ### VGA part 2 ###
 17. [**"Text display"**](ep16_-_Text_Display). We expand on the VGA module
     by adding a screen memory to contain the text to be displayed.

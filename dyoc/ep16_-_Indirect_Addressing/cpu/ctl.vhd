@@ -791,12 +791,12 @@ architecture Structural of ctl is
       INVALID,
 
 -- 40 RTI
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      SP_INC,
+      ADDR_SP + SP_INC + SR_DATA,
+      ADDR_SP + SP_INC + LO_DATA,
+      ADDR_SP + HI_DATA,
+      PC_HL + LAST,
       INVALID,
       INVALID,
 
