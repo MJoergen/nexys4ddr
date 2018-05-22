@@ -28,7 +28,7 @@ entity datapath is
       reg_sel_i  : in  std_logic_vector(1 downto 0);
 
       -- Debug output containing internal registers
-      debug_o : out std_logic_vector(95 downto 0)
+      debug_o : out std_logic_vector(111 downto 0)
    );
 end entity datapath;
 
@@ -314,17 +314,19 @@ begin
    -- Drive output signals
    -----------------
 
-   debug_o(15 downto  0) <= pc;     -- Two bytes
-   debug_o(23 downto 16) <= ar;     -- One byte
-   debug_o(31 downto 24) <= data_i; -- One byte
-   debug_o(39 downto 32) <= lo;     -- One byte
-   debug_o(47 downto 40) <= hi;     -- One byte
-   debug_o(63 downto 48) <= addr;   -- Two bytes
-   debug_o(71 downto 64) <= data;   -- One byte
-   debug_o(72)           <= wren;   -- One byte
-   debug_o(79 downto 73) <= (others => '0');
-   debug_o(87 downto 80) <= sr;     -- One byte
-   debug_o(95 downto 88) <= (others => '0');
+   debug_o( 15 downto   0) <= pc;     -- Two bytes
+   debug_o( 23 downto  16) <= ar;     -- One byte
+   debug_o( 31 downto  24) <= data_i; -- One byte
+   debug_o( 39 downto  32) <= lo;     -- One byte
+   debug_o( 47 downto  40) <= hi;     -- One byte
+   debug_o( 63 downto  48) <= addr;   -- Two bytes
+   debug_o( 71 downto  64) <= data;   -- One byte
+   debug_o( 72)            <= wren;   -- One byte
+   debug_o( 79 downto  73) <= (others => '0');
+   debug_o( 87 downto  80) <= sr;     -- One byte
+   debug_o( 95 downto  88) <= (others => '0');
+   debug_o(103 downto  96) <= yr;
+   debug_o(111 downto 104) <= xr;
 
    addr_o <= addr;
    data_o <= data;
