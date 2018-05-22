@@ -83,7 +83,7 @@
 ;ROM_vectors writable (0=no, 1=yes)
 ;if ROM vectors can not be used interrupts will not be trapped
 ;as a consequence BRK can not be tested but will be emulated to test RTI
-ROM_vectors = 1
+ROM_vectors = 0
 
 ;load_data_direct (0=move from code segment, 1=load directly)
 ;loading directly is preferred but may not be supported by your platform
@@ -108,12 +108,12 @@ data_segment = $200
 
 ;code_segment memory start address, 13kB of consecutive space required
 ;                                   add 2.5 kB .if I_flag = 2
-code_segment = $400  
+code_segment = $C000  
 
 ;self modifying code may be disabled to allow running in ROM
 ;0=part of the code is self modifying and must reside in RAM
 ;1=tests disabled: branch range
-disable_selfmod = 0
+disable_selfmod = 1
 
 ;report errors through I/O channel (0=use standard self trap loops, 1=include
 ;report.i65 as I/O channel, add 3.5 kB)
@@ -126,7 +126,7 @@ ram_top = -1
 
 ;disable test decimal mode ADC & SBC, 0=enable, 1=disable,
 ;2=disable including decimal flag in processor status
-disable_decimal = 0
+disable_decimal = 1
 
         ;noopt       ;do not take shortcuts
 

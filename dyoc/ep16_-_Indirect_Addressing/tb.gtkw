@@ -1,19 +1,22 @@
 [*]
 [*] GTKWave Analyzer v3.3.89 (w)1999-2018 BSI
-[*] Wed May 16 04:58:58 2018
+[*] Tue May 22 15:23:23 2018
 [*]
-[dumpfile] "/home/mike/git/nexys4ddr/dyoc/ep14_-_Registers_X_and_Y/tb.ghw"
-[dumpfile_mtime] "Wed May 16 04:58:08 2018"
-[dumpfile_size] 535200
-[savefile] "/home/mike/git/nexys4ddr/dyoc/ep14_-_Registers_X_and_Y/tb.gtkw"
-[timestart] 5404700000
+[dumpfile] "/home/mike/git/nexys4ddr/dyoc/ep16_-_Indirect_Addressing/tb.ghw"
+[dumpfile_mtime] "Tue May 22 15:22:36 2018"
+[dumpfile_size] 1017461
+[savefile] "/home/mike/git/nexys4ddr/dyoc/ep16_-_Indirect_Addressing/tb.gtkw"
+[timestart] 0
 [size] 1920 970
 [pos] 1868 33
-*-26.456932 5718200000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-30.456932 2876900000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.tb.
 [treeopen] top.tb.i_cpu.
 [treeopen] top.tb.i_cpu.inst_datapath.
+[treeopen] top.tb.i_mem.
+[treeopen] top.tb.i_mem.i_ram.
+[treeopen] top.tb.i_mem.i_ram.mem.
 [sst_width] 255
 [signals_width] 253
 [sst_expanded] 1
@@ -32,9 +35,7 @@ top.tb.cpu_wren
 @22
 #{top.tb.i_cpu.inst_datapath.ar[7:0]} top.tb.i_cpu.inst_datapath.ar[7] top.tb.i_cpu.inst_datapath.ar[6] top.tb.i_cpu.inst_datapath.ar[5] top.tb.i_cpu.inst_datapath.ar[4] top.tb.i_cpu.inst_datapath.ar[3] top.tb.i_cpu.inst_datapath.ar[2] top.tb.i_cpu.inst_datapath.ar[1] top.tb.i_cpu.inst_datapath.ar[0]
 #{top.tb.i_cpu.inst_datapath.xr[7:0]} top.tb.i_cpu.inst_datapath.xr[7] top.tb.i_cpu.inst_datapath.xr[6] top.tb.i_cpu.inst_datapath.xr[5] top.tb.i_cpu.inst_datapath.xr[4] top.tb.i_cpu.inst_datapath.xr[3] top.tb.i_cpu.inst_datapath.xr[2] top.tb.i_cpu.inst_datapath.xr[1] top.tb.i_cpu.inst_datapath.xr[0]
-@23
 #{top.tb.i_cpu.inst_datapath.yr[7:0]} top.tb.i_cpu.inst_datapath.yr[7] top.tb.i_cpu.inst_datapath.yr[6] top.tb.i_cpu.inst_datapath.yr[5] top.tb.i_cpu.inst_datapath.yr[4] top.tb.i_cpu.inst_datapath.yr[3] top.tb.i_cpu.inst_datapath.yr[2] top.tb.i_cpu.inst_datapath.yr[1] top.tb.i_cpu.inst_datapath.yr[0]
-@22
 #{top.tb.i_cpu.inst_datapath.sr[7:0]} top.tb.i_cpu.inst_datapath.sr[7] top.tb.i_cpu.inst_datapath.sr[6] top.tb.i_cpu.inst_datapath.sr[5] top.tb.i_cpu.inst_datapath.sr[4] top.tb.i_cpu.inst_datapath.sr[3] top.tb.i_cpu.inst_datapath.sr[2] top.tb.i_cpu.inst_datapath.sr[1] top.tb.i_cpu.inst_datapath.sr[0]
 #{top.tb.i_cpu.inst_datapath.sp[7:0]} top.tb.i_cpu.inst_datapath.sp[7] top.tb.i_cpu.inst_datapath.sp[6] top.tb.i_cpu.inst_datapath.sp[5] top.tb.i_cpu.inst_datapath.sp[4] top.tb.i_cpu.inst_datapath.sp[3] top.tb.i_cpu.inst_datapath.sp[2] top.tb.i_cpu.inst_datapath.sp[1] top.tb.i_cpu.inst_datapath.sp[0]
 #{top.tb.i_cpu.inst_ctl.ir[7:0]} top.tb.i_cpu.inst_ctl.ir[7] top.tb.i_cpu.inst_ctl.ir[6] top.tb.i_cpu.inst_ctl.ir[5] top.tb.i_cpu.inst_ctl.ir[4] top.tb.i_cpu.inst_ctl.ir[3] top.tb.i_cpu.inst_ctl.ir[2] top.tb.i_cpu.inst_ctl.ir[1] top.tb.i_cpu.inst_ctl.ir[0]
@@ -49,5 +50,7 @@ top.tb.cpu_wren
 -Memory
 @1000200
 -Memory
+@23
+#{top.tb.i_mem.i_ram.mem[512][7:0]} top.tb.i_mem.i_ram.mem[512][7] top.tb.i_mem.i_ram.mem[512][6] top.tb.i_mem.i_ram.mem[512][5] top.tb.i_mem.i_ram.mem[512][4] top.tb.i_mem.i_ram.mem[512][3] top.tb.i_mem.i_ram.mem[512][2] top.tb.i_mem.i_ram.mem[512][1] top.tb.i_mem.i_ram.mem[512][0]
 [pattern_trace] 1
 [pattern_trace] 0
