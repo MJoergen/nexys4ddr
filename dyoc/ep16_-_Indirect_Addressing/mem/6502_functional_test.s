@@ -5920,7 +5920,7 @@ test_jsr:
         cmp #>(jsr_ret)
         trap_ne
         lda $1fe
-        cmp #>(jsr_ret)
+        cmp #<(jsr_ret)
         trap_ne
         set_stat $ff
         pla             ;pull x,a
