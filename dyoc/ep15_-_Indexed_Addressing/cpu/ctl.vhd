@@ -680,10 +680,10 @@ architecture Structural of ctl is
       INVALID,
 
 -- 36 ROL d,X
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + LO_DATA,
+      HI_ADDX + LO_ADDX,
+      ADDR_ZP + ALU_ROL_B + DATA_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1000,10 +1000,10 @@ architecture Structural of ctl is
       INVALID,
 
 -- 56 LSR d,X
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + LO_DATA,
+      HI_ADDX + LO_ADDX,
+      ADDR_ZP + ALU_LSR_B + DATA_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1320,10 +1320,10 @@ architecture Structural of ctl is
       INVALID,
 
 -- 76 ROR d,X
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + LO_DATA,
+      HI_ADDX + LO_ADDX,
+      ADDR_ZP + ALU_ROR_B + DATA_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -2280,10 +2280,10 @@ architecture Structural of ctl is
       INVALID,
 
 -- D6 DEC d,X
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + LO_DATA,
+      HI_ADDX + LO_ADDX,
+      ADDR_ZP + ALU_DEC_B + DATA_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -2600,10 +2600,10 @@ architecture Structural of ctl is
       INVALID,
 
 -- F6 INC d,X
-      INVALID,
-      INVALID,
-      INVALID,
-      INVALID,
+      ADDR_PC + PC_INC,
+      ADDR_PC + PC_INC + LO_DATA,
+      HI_ADDX + LO_ADDX,
+      ADDR_ZP + ALU_INC_B + DATA_ALU + SR_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
