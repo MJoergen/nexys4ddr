@@ -88,7 +88,7 @@ ROM_vectors = 0
 ;load_data_direct (0=move from code segment, 1=load directly)
 ;loading directly is preferred but may not be supported by your platform
 ;0 produces only consecutive object code, 1 is not suitable for a binary image
-load_data_direct = 1
+load_data_direct = 0
 
 ;I_flag behavior (0=force enabled, 1=force disabled, 2=prohibit change, 3=allow
 ;change) 2 requires extra code and is not recommended. SEI & CLI can only be
@@ -701,13 +701,13 @@ sbiy2 :  .addr  sba2-$ff
 zp_bss_end:
    
         .org data_segment
-test_case :  .byt  1           ;current test number
-ram_chksm :  .byt  2           ;checksum for RAM integrity test
+test_case :  .byt  0           ;current test number
+ram_chksm :  .byt  0, 0           ;checksum for RAM integrity test
 ;add/subtract operand copy - abs tests write area
 abst  :                      ;5 bytes store/modify test area
-ada2  :  .byt  1               ;operand 2
-sba2 :   .byt  1               ;operand 2 complemented for subtract
-        .byt  3               ;fill remaining bytes
+ada2  :  .byt  0               ;operand 2
+sba2 :   .byt  0               ;operand 2 complemented for subtract
+        .byt  0,0,0               ;fill remaining bytes
 data_bss:
     .if load_data_direct = 1
 ex_andi: and #0              ;execute immediate opcodes
@@ -721,11 +721,11 @@ ex_adci: adc #0              ;execute immediate opcodes
 ex_sbci: sbc #0              ;execute immediate opcodes
         rts
     .else
-ex_andi: .byt  3
-ex_eori: .byt  3
-ex_orai: .byt  3
-ex_adci: .byt  3
-ex_sbci: .byt  3
+ex_andi: .byt  0,0,0
+ex_eori: .byt  0,0,0
+ex_orai: .byt  0,0,0
+ex_adci: .byt  0,0,0
+ex_sbci: .byt  0,0,0
     .endif
 abs1  :  .byt  $c3,$82,$41,0   ;test patterns for LDx BIT ROL ROR ASL LSR
 abs7f :  .byt  $7f             ;test pattern for compare
@@ -6028,89 +6028,89 @@ break2  :                ;BRK pass 2
         
 ;copy of data to initialize BSS segment
     .if load_data_direct <> 1
-zp_init
-zp1_    .byt  $c3,$82,$41,0   ;test patterns for LDx BIT ROL ROR ASL LSR
-zp7f_   .byt  $7f             ;test pattern for compare
+zp_init:
+zp1_  : .byt  $c3,$82,$41,0   ;test patterns for LDx BIT ROL ROR ASL LSR
+zp7f_ : .byt  $7f             ;test pattern for compare
 ;logical zeropage operands
-zpOR_   .byt  0,$1f,$71,$80   ;test pattern for OR
-zpAN_   .byt  $0f,$ff,$7f,$80 ;test pattern for AND
-zpEO_   .byt  $ff,$0f,$8f,$8f ;test pattern for EOR
+zpOR_ : .byt  0,$1f,$71,$80   ;test pattern for OR
+zpAN_ : .byt  $0f,$ff,$7f,$80 ;test pattern for AND
+zpEO_ : .byt  $ff,$0f,$8f,$8f ;test pattern for EOR
 ;indirect addressing pointers
-ind1_   .addr  abs1            ;indirect pointer to pattern in absolute memory
+ind1_ : .addr  abs1            ;indirect pointer to pattern in absolute memory
         .addr  abs1+1
         .addr  abs1+2
         .addr  abs1+3
         .addr  abs7f
-inw1_   .addr  abs1-$f8        ;indirect pointer for wrap-test pattern
-indt_   .addr  abst            ;indirect pointer to store area in absolute memory
+inw1_ : .addr  abs1-$f8        ;indirect pointer for wrap-test pattern
+indt_ : .addr  abst            ;indirect pointer to store area in absolute memory
         .addr  abst+1
         .addr  abst+2
         .addr  abst+3
-inwt_   .addr  abst-$f8        ;indirect pointer for wrap-test store
-indAN_  .addr  absAN           ;indirect pointer to AND pattern in absolute memory
+inwt_ : .addr  abst-$f8        ;indirect pointer for wrap-test store
+indAN_: .addr  absAN           ;indirect pointer to AND pattern in absolute memory
         .addr  absAN+1
         .addr  absAN+2
         .addr  absAN+3
-indEO_  .addr  absEO           ;indirect pointer to EOR pattern in absolute memory
+indEO_: .addr  absEO           ;indirect pointer to EOR pattern in absolute memory
         .addr  absEO+1
         .addr  absEO+2
         .addr  absEO+3
-indOR_  .addr  absOR           ;indirect pointer to OR pattern in absolute memory
+indOR_: .addr  absOR           ;indirect pointer to OR pattern in absolute memory
         .addr  absOR+1
         .addr  absOR+2
         .addr  absOR+3
 ;add/subtract indirect pointers
-adi2_   .addr  ada2            ;indirect pointer to operand 2 in absolute memory
-sbi2_   .addr  sba2            ;indirect pointer to complemented operand 2 (SBC)
-adiy2_  .addr  ada2-$ff        ;with offset for indirect indexed
-sbiy2_  .addr  sba2-$ff
-zp_end
+adi2_ : .addr  ada2            ;indirect pointer to operand 2 in absolute memory
+sbi2_ : .addr  sba2            ;indirect pointer to complemented operand 2 (SBC)
+adiy2_: .addr  ada2-$ff        ;with offset for indirect indexed
+sbiy2_: .addr  sba2-$ff
+zp_end:
     .if (zp_end - zp_init) <> (zp_bss_end - zp_bss)   
         ;force assembler error .if size is different   
         ERROR ERROR ERROR   ;mismatch between bss and zeropage data
     .endif 
-data_init
-ex_and_ and #0              ;execute immediate opcodes
+data_init:
+ex_and_: and #0              ;execute immediate opcodes
         rts
-ex_eor_ eor #0              ;execute immediate opcodes
+ex_eor_: eor #0              ;execute immediate opcodes
         rts
-ex_ora_ ora #0              ;execute immediate opcodes
+ex_ora_: ora #0              ;execute immediate opcodes
         rts
-ex_adc_ adc #0              ;execute immediate opcodes
+ex_adc_: adc #0              ;execute immediate opcodes
         rts
-ex_sbc_ sbc #0              ;execute immediate opcodes
+ex_sbc_: sbc #0              ;execute immediate opcodes
         rts
-abs1_   .byt  $c3,$82,$41,0   ;test patterns for LDx BIT ROL ROR ASL LSR
-abs7f_  .byt  $7f             ;test pattern for compare
+abs1_  : .byt  $c3,$82,$41,0   ;test patterns for LDx BIT ROL ROR ASL LSR
+abs7f_ : .byt  $7f             ;test pattern for compare
 ;loads
-fLDx_   .byt  fn,fn,0,fz      ;expected flags for load
+fLDx_  : .byt  fn,fn,0,fz      ;expected flags for load
 ;shifts
-rASL_                       ;expected result ASL & ROL -carry
-rROL_   .byt  $86,$04,$82,0   ; "
-rROLc_  .byt  $87,$05,$83,1   ;expected result ROL +carry
-rLSR_                       ;expected result LSR & ROR -carry
-rROR_   .byt  $61,$41,$20,0   ; "
-rRORc_  .byt  $e1,$c1,$a0,$80 ;expected result ROR +carry
-fASL_                       ;expected flags for shifts
-fROL_   .byt  fnc,fc,fn,fz    ;no carry in
-fROLc_  .byt  fnc,fc,fn,0     ;carry in
-fLSR_
-fROR_   .byt  fc,0,fc,fz      ;no carry in
-fRORc_  .byt  fnc,fn,fnc,fn   ;carry in
+rASL_  :                     ;expected result ASL & ROL -carry
+rROL_  : .byt  $86,$04,$82,0   ; "
+rROLc_ : .byt  $87,$05,$83,1   ;expected result ROL +carry
+rLSR_  :                     ;expected result LSR & ROR -carry
+rROR_  : .byt  $61,$41,$20,0   ; "
+rRORc_ : .byt  $e1,$c1,$a0,$80 ;expected result ROR +carry
+fASL_  :                     ;expected flags for shifts
+fROL_  : .byt  fnc,fc,fn,fz    ;no carry in
+fROLc_ : .byt  fnc,fc,fn,0     ;carry in
+fLSR_ :
+fROR_  : .byt  fc,0,fc,fz      ;no carry in
+fRORc_ : .byt  fnc,fn,fnc,fn   ;carry in
 ;increments (decrements)
-rINC_   .byt  $7f,$80,$ff,0,1 ;expected result for INC/DEC
-fINC_   .byt  0,fn,fn,fz,0    ;expected flags for INC/DEC
+rINC_  : .byt  $7f,$80,$ff,0,1 ;expected result for INC/DEC
+fINC_  : .byt  0,fn,fn,fz,0    ;expected flags for INC/DEC
 ;logical memory operand
-absOR_  .byt  0,$1f,$71,$80   ;test pattern for OR
-absAN_  .byt  $0f,$ff,$7f,$80 ;test pattern for AND
-absEO_  .byt  $ff,$0f,$8f,$8f ;test pattern for EOR
+absOR_ : .byt  0,$1f,$71,$80   ;test pattern for OR
+absAN_ : .byt  $0f,$ff,$7f,$80 ;test pattern for AND
+absEO_ : .byt  $ff,$0f,$8f,$8f ;test pattern for EOR
 ;logical accu operand
-absORa_ .byt  0,$f1,$1f,0     ;test pattern for OR
-absANa_ .byt  $f0,$ff,$ff,$ff ;test pattern for AND
-absEOa_ .byt  $ff,$f0,$f0,$0f ;test pattern for EOR
+absORa_: .byt  0,$f1,$1f,0     ;test pattern for OR
+absANa_: .byt  $f0,$ff,$ff,$ff ;test pattern for AND
+absEOa_: .byt  $ff,$f0,$f0,$0f ;test pattern for EOR
 ;logical results
-absrlo_ .byt  0,$ff,$7f,$80
-absflo_ .byt  fz,fn,0,fn
+absrlo_: .byt  0,$ff,$7f,$80
+absflo_: .byt  fz,fn,0,fn
 data_end:
     .if (data_end - data_init) <> (data_bss_end - data_bss)
         ;force assembler error .if size is different   
