@@ -16,11 +16,11 @@ fpga: comp.bit
 sim: $(SRC) $(TB) mem/rom.txt
 	ghdl -i --work=work $(SRC) $(TB)
 	ghdl -m --ieee=synopsys -fexplicit tb
-	ghdl -r tb --assert-level=error --wave=tb.ghw --stop-time=500us
+	ghdl -r tb --assert-level=error --wave=tb.ghw --stop-time=10us
 	gtkwave tb.ghw tb.gtkw
 
-mem/rom.o: mem/6502_functional_test.s
-	ca65 $< -o mem/rom.o
+mem/rom.o: mem/rom.s
+	ca65 $<
 mem/rom.bin: mem/rom.o
 	ld65 -C ld.cfg $<
 mem/rom.txt: mem/rom.bin

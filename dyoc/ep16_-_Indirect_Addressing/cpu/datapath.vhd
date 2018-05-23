@@ -15,8 +15,8 @@ entity datapath is
 
       -- Control signals
       ar_sel_i   : in  std_logic;
-      hi_sel_i   : in  std_logic_vector(2 downto 0);
-      lo_sel_i   : in  std_logic_vector(2 downto 0);
+      hi_sel_i   : in  std_logic_vector(1 downto 0);
+      lo_sel_i   : in  std_logic_vector(1 downto 0);
       pc_sel_i   : in  std_logic_vector(5 downto 0);
       addr_sel_i : in  std_logic_vector(2 downto 0);
       data_sel_i : in  std_logic_vector(2 downto 0);
@@ -46,13 +46,10 @@ architecture structural of datapath is
    constant SR_S : integer := 7;
    constant SR_BR : std_logic_vector(7 downto 0) := (SR_B => '1', SR_R => '1', others => '0');
 
-   constant PC_INC  : std_logic_vector(2 downto 0) := B"001";
-   constant PC_HL   : std_logic_vector(2 downto 0) := B"010";
-   constant PC_HL1  : std_logic_vector(2 downto 0) := B"011";
-   constant PC_SR   : std_logic_vector(2 downto 0) := B"100";
-   constant PC_D_HI : std_logic_vector(2 downto 0) := B"101";
-   constant PC_D_LO : std_logic_vector(2 downto 0) := B"110";
-   --
+   constant PC_INC : std_logic_vector(2 downto 0) := B"001";
+   constant PC_HL  : std_logic_vector(2 downto 0) := B"010";
+   constant PC_HL1 : std_logic_vector(2 downto 0) := B"011";
+   constant PC_SR  : std_logic_vector(2 downto 0) := B"100";
    constant PC_BPL : std_logic_vector(2 downto 0) := B"000";
    constant PC_BMI : std_logic_vector(2 downto 0) := B"001";
    constant PC_BVC : std_logic_vector(2 downto 0) := B"010";
@@ -90,15 +87,13 @@ architecture structural of datapath is
    constant SP_DEC    : std_logic_vector(1 downto 0) := B"10";
    constant SP_XR     : std_logic_vector(1 downto 0) := B"11";
    --
-   constant HI_DATA   : std_logic_vector(2 downto 0) := B"001";
-   constant HI_ADDX   : std_logic_vector(2 downto 0) := B"010";
-   constant HI_ADDY   : std_logic_vector(2 downto 0) := B"011";
-   constant HI_INC    : std_logic_vector(2 downto 0) := B"100";
+   constant HI_DATA   : std_logic_vector(1 downto 0) := B"01";
+   constant HI_ADDX   : std_logic_vector(1 downto 0) := B"10";
+   constant HI_ADDY   : std_logic_vector(1 downto 0) := B"11";
    --
-   constant LO_DATA   : std_logic_vector(2 downto 0) := B"001";
-   constant LO_ADDX   : std_logic_vector(2 downto 0) := B"010";
-   constant LO_ADDY   : std_logic_vector(2 downto 0) := B"011";
-   constant LO_INC    : std_logic_vector(2 downto 0) := B"100";
+   constant LO_DATA   : std_logic_vector(1 downto 0) := B"01";
+   constant LO_ADDX   : std_logic_vector(1 downto 0) := B"10";
+   constant LO_ADDY   : std_logic_vector(1 downto 0) := B"11";
    --
    constant ZP_DATA   : std_logic_vector(1 downto 0) := B"01";
    constant ZP_ADDX   : std_logic_vector(1 downto 0) := B"10";
@@ -127,7 +122,7 @@ architecture structural of datapath is
    signal alu_sr : std_logic_vector(7 downto 0);
    
    -- Program Counter
-   signal pc : std_logic_vector(15 downto 0) := X"C000";
+   signal pc : std_logic_vector(15 downto 0) := X"F800";
 
    -- 'A' register
    signal ar : std_logic_vector(7 downto 0);
@@ -156,7 +151,6 @@ architecture structural of datapath is
    -- Indirect addressing
    signal hilo_addx_s : std_logic_vector(15 downto 0);
    signal hilo_addy_s : std_logic_vector(15 downto 0);
-   signal hilo_inc_s  : std_logic_vector(15 downto 0);
 
    -- Output signals to memory
    signal addr : std_logic_vector(15 downto 0);
@@ -205,8 +199,6 @@ begin
                   else
                      pc <= pc + 1;  -- If branch is not taken, just go to the next instruction.
                   end if;
-               when PC_D_HI => pc(15 downto 8) <= data_i;
-               when PC_D_LO => pc( 7 downto 0) <= data_i;
                when others => null;
             end case;
          end if;
@@ -289,7 +281,6 @@ begin
 
    hilo_addx_s <= (hi & lo) + xr;
    hilo_addy_s <= (hi & lo) + yr;
-   hilo_inc_s  <= (hi & lo) + 1;
 
    -- 'Hi' register
    p_hi : process (clk_i)
@@ -300,7 +291,6 @@ begin
                when HI_DATA => hi <= data_i;
                when HI_ADDX => hi <= hilo_addx_s(15 downto 8);
                when HI_ADDY => hi <= hilo_addy_s(15 downto 8);
-               when HI_INC  => hi <= hilo_inc_s (15 downto 8);
                when others  => null;
             end case;
          end if;
@@ -316,7 +306,6 @@ begin
                when LO_DATA => lo <= data_i;
                when LO_ADDX => lo <= hilo_addx_s(7 downto 0);
                when LO_ADDY => lo <= hilo_addy_s(7 downto 0);
-               when LO_INC  => lo <= hilo_inc_s (7 downto 0);
                when others  => null;
             end case;
          end if;
@@ -384,7 +373,6 @@ begin
    debug_o( 95 downto  88) <= (others => '0');
    debug_o(103 downto  96) <= yr;
    debug_o(111 downto 104) <= xr;
-
 
    addr_o <= addr;
    data_o <= data;

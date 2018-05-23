@@ -41,11 +41,11 @@ begin
    i_rom : entity work.rom
    generic map (
       G_INIT_FILE => "mem/rom.txt",
-      G_ADDR_BITS => 14  -- 16K bytes
+      G_ADDR_BITS => 11  -- 2K bytes
    )
    port map (
       clk_i  => clk_i,
-      addr_i => addr_i(13 downto 0),
+      addr_i => addr_i(10 downto 0),
       data_o => rom_data
    );
    
@@ -74,7 +74,7 @@ begin
    ram_wren <= wren_i when addr_i(15 downto 11) = "00000" else
                '0';
 
-   data_o <= rom_data when addr_i(15 downto 14) = "11"    else
+   data_o <= rom_data when addr_i(15 downto 11) = "11111" else
              ram_data when addr_i(15 downto 11) = "00000" else
              X"00";
   
