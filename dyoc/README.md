@@ -59,17 +59,20 @@ We will be designing and building these blocks roughly in the above order.
     remaining registers 'X' and 'Y'.  Instructions implemented: 90/151.
 15. [**"Indexed addressing"**](ep15_-_Indexed_Addressing). We implement
     the indexed addressing modes. Instructions implemented: 132/151.
-16. [**"Indirect addressing"**](ep15_-_Indirect_Addressing). We finish (almost)
+16. [**"Indirect addressing"**](ep16_-_Indirect_Addressing). We finish (almost)
     the CPU by adding support for indirect addressing modes. Instructions
-    implemented: 150/151.
+    implemented: 148/151.
+17. [**"Interrupts"**](ep17_-_Interrupts). We finish
+    the CPU by adding the remaining three instructions. Instructions
+    implemented: 151/151.
 ### VGA part 2 ###
-17. [**"Text display"**](ep16_-_Text_Display). We expand on the VGA module
+18. [**"Text display"**](ep18_-_Text_Display). We expand on the VGA module
     by adding a screen memory to contain the text to be displayed.
-18. [**"Sprites"**](ep17_-_Sprites). We add sprites (moveable objects) to the
+19. [**"Sprites"**](ep19_-_Sprites). We add sprites (moveable objects) to the
     VGA module.
-19. [**"Interrupts"**](ep18_-_Interrupts). We add interrupt support to the CPU.
+20. [**"Interrupts"**](ep20_-_Interrupts). We add interrupt support to the CPU.
 ### Keyboard ###
-20. [**"Keyboard"**](ep19_-_Keyboard). We are now ready to add the keyboard
+21. [**"Keyboard"**](ep21_-_Keyboard). We are now ready to add the keyboard
     interface.
 
 More to come soon...
