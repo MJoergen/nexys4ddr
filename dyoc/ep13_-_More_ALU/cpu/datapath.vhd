@@ -247,11 +247,11 @@ begin
            pc(15 downto 8) when data_sel_i = DATA_PCHI else
            (others => '0');
 
-   wren <= '1' when data_sel_i = DATA_AR   or 
-                    data_sel_i = DATA_SR   or 
-                    data_sel_i = DATA_ALU  or 
-                    data_sel_i = DATA_PCLO or 
-                    data_sel_i = DATA_PCHI else
+   wren <= not wait_i when data_sel_i = DATA_AR   or 
+                           data_sel_i = DATA_SR   or 
+                           data_sel_i = DATA_ALU  or 
+                           data_sel_i = DATA_PCLO or 
+                           data_sel_i = DATA_PCHI else
            '0';
 
 

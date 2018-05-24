@@ -141,7 +141,7 @@ begin
            ar              when data_sel_i = "01" else
            (others => '0');
 
-   wren <= '1' when data_sel_i = "01" else
+   wren <= not wait_i when data_sel_i = "01" else
            '0';
 
 

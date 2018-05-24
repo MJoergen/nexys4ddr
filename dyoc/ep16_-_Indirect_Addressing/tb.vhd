@@ -20,6 +20,10 @@ architecture Structural of tb is
    signal cpu_led   : std_logic_vector(7 downto 0);
    signal cpu_debug : std_logic_vector(159 downto 0);
 
+   -- Generate pause signal
+   signal mem_wait_cnt  : std_logic_vector(1 downto 0) := (others => '0');
+   signal mem_wait      : std_logic;
+
 begin
    
    --------------------------------------------------
@@ -35,13 +39,28 @@ begin
 
    
    --------------------------------------------------
+   -- Generate wait signal
+   --------------------------------------------------
+
+   process (clk)
+   begin
+      if rising_edge(clk) then
+         mem_wait_cnt <= mem_wait_cnt + 1;
+      end if;
+   end process;
+
+   -- Check for wrap around of counter.
+   mem_wait <= '0' when mem_wait_cnt = 0  else '1';
+
+
+   --------------------------------------------------
    -- Instantiate CPU
    --------------------------------------------------
    
    i_cpu : entity work.cpu
    port map (
       clk_i     => clk,
-      wait_i    => '0',
+      wait_i    => mem_wait,
       addr_o    => cpu_addr,
       data_i    => mem_data,
       wren_o    => cpu_wren,
