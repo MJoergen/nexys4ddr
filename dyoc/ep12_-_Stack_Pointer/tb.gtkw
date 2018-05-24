@@ -1,22 +1,22 @@
 [*]
-[*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
-[*] Mon May 14 06:22:17 2018
+[*] GTKWave Analyzer v3.3.89 (w)1999-2018 BSI
+[*] Thu May 24 05:26:11 2018
 [*]
-[dumpfile] "/home/mfj/git/nexys4ddr/dyoc/ep12_-_Stack_Pointer/tb.ghw"
-[dumpfile_mtime] "Mon May 14 06:18:49 2018"
-[dumpfile_size] 466115
-[savefile] "/home/mfj/git/nexys4ddr/dyoc/ep12_-_Stack_Pointer/tb.gtkw"
-[timestart] 3290200000
+[dumpfile] "/home/mike/git/nexys4ddr/dyoc/ep12_-_Stack_Pointer/tb.ghw"
+[dumpfile_mtime] "Thu May 24 05:25:52 2018"
+[dumpfile_size] 527745
+[savefile] "/home/mike/git/nexys4ddr/dyoc/ep12_-_Stack_Pointer/tb.gtkw"
+[timestart] 0
 [size] 1325 765
 [pos] 2463 82
-*-25.143749 3394800000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-33.314316 3394800000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.tb.
 [treeopen] top.tb.i_cpu.
 [treeopen] top.tb.i_cpu.inst_ctl.
 [treeopen] top.tb.i_cpu.inst_datapath.
-[sst_width] 225
-[signals_width] 219
+[sst_width] 255
+[signals_width] 266
 [sst_expanded] 1
 [sst_vpaned_height] 218
 @28
