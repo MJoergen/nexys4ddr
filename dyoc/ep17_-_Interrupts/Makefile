@@ -9,6 +9,17 @@ TB  = tb.vhd
 
 
 #####################################
+# Generate bit-file and program FPGA
+#####################################
+
+comp.bit: $(SRC) $(XDC) mem/rom.txt
+	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source comp.tcl"
+
+fpga: comp.bit
+	djtgcfg prog -d Nexys4DDR -i 0 --file $<
+
+
+#####################################
 # Compile target program
 #####################################
 
@@ -18,17 +29,6 @@ mem/rom.bin: mem/rom.o
 	ld65 -C ld.cfg $<
 mem/rom.txt: mem/rom.bin
 	./bin2hex.py $< $@
-
-
-#####################################
-# Generate bit-file and program FPGA
-#####################################
-
-comp.bit: $(SRC) $(XDC) mem/rom.txt
-	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source comp.tcl"
-
-fpga: comp.bit
-	djtgcfg prog -d Nexys4DDR -i 0 --file $<
 
 
 #####################################
