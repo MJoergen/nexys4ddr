@@ -87,7 +87,7 @@ begin
    end process;
 
    -- Check for wrap around of counter.
-   mem_wait <= '0' when (mem_wait_cnt + sw_i) < mem_wait_cnt else '1';
+   mem_wait <= '0' when (mem_wait_cnt + sw_i) < mem_wait_cnt else not sw_i(7);
 
    
    --------------------------------------------------
