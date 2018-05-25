@@ -23,6 +23,7 @@ end digits;
 
 architecture Structural of digits is
 
+   -- Number of rows of text on screen
    constant NUM_ROWS : integer := digits_i'length / 16;
 
    -- Define pixel counter range
