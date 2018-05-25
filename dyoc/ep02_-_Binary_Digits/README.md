@@ -71,7 +71,7 @@ in lines 174). The foreground colour of the character is defined in line 172.
 The value to display is taken from the slide switches on the FPGA board. We
 therefore have to add the pin locations of these switches. This happens in
 lines 18-25 in comp.xdc.  Additionally, we have to add the signals to the top
-level entity declaration in line 9 of comp.vhd.
+level entity declaration in line 16 of comp.vhd.
 
 ## Learnings:
 Values assigned in a process are only stored at the end of the process.
