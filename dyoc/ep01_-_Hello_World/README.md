@@ -13,7 +13,7 @@ checker board pattern on the VGA output.
 The above files constitute the bare necessities for a FPGA project. As this project
 grows we will add more source files. However, the comp.vhd will remain the "top level"
 source file, and the project name is "comp". This project name is referenced in
-line 4 of comp.tcl, and is defined in lines 5, 13, and 15 in the file comp.vhd.
+line 4 of comp.tcl, and is defined in lines 11, 19, and 21 in the file comp.vhd.
 
 ## Key learnings in this episode:
 * Each signal may only be assigned values in one process. If more than one process
@@ -29,7 +29,7 @@ in the form of a resistor network. In that way, the Nexys 4 DDR board supports
 four bits of resolution for each of the three colours, i.e. a total of 12
 colour bits.  However, since this is going to be an 8-bit computer, we will
 only use three bits for red and green, and two bits for blue, for a total of
-eitght bit. Values for some common colours are defined in lines 32-37 in
+eight bits. Values for some common colours are defined in lines 32-37 in
 comp.vhd.
 
 ## VGA timing
@@ -45,7 +45,7 @@ two synchronization signals: *hs* and *vs*.  All the timing signals for this
 screen resolution is described on
 [pages 11 and 17](http://caxapa.ru/thumbs/361638/DMTv1r11.pdf)
 in the VESA monitor timing standard.
-The relevant timing parameters are defined in lines 17-30 in comp.vhd. I've tried
+The relevant timing parameters are defined in lines 23-36 in comp.vhd. I've tried
 to give the constants names that are recognizable from the above VESA standard.
 
 ## Clock input
@@ -53,7 +53,7 @@ The VGA timing for this particular screen resolution requires a pixel clock of
 (approximately) 25 Mhz. However, the crytal oscillator on the FPGA board need
 not have this precise frequency. On the Nexys 4 DDR board the oscillator has a
 frequency of 100 MHz. This frequency can conveniently be divided by 4 using a
-simple 2-bit counter.  This clock divider is implemented in lines 62-74 of
+simple 2-bit counter.  This clock divider is implemented in lines 68-80 of
 comp.vhd.
 
 There are ways to achieve clock rates that are rational multiples of the input clock
@@ -63,8 +63,8 @@ simple frequency divider.
 ## Pixel counters
 In the VHDL code we will have two pixel counters, x and y, where y is positive
 down. They will count from 0 to 799 in the x-direction and from 0 to 524 in the
-y-direction. These counters are generated in lines 77-103 in comp.vhd. And in
-lines 106-135 we generate the two synchronization signals.
+y-direction. These counters are generated in lines 83-109 in comp.vhd. And in
+lines 112-141 we generate the two synchronization signals.
 
 ## Colour pattern
 In this design we just start with a simple checkboard pattern. This can be achieved
@@ -79,11 +79,11 @@ the VESA standard.
 Some words on the timing of the synchronization and colour signals. It is
 important that the timing specification in the VESA standard is followed. In
 our implementation both the synchronization signals and the colour signals are
-derived from (i.e. functions of) the pixel counters. So in lines 106-135 of
+derived from (i.e. functions of) the pixel counters. So in lines 112-141 of
 comp.vhd the synchronization signals are driven in a clocked process. This means
 that the synchronization signals are delayed one clock cycle compared to the
 pixel counters. However, the same applies to the colour signals driven in lines
-138-156. Here too, the signals are delayed one clock cycle.
+144-164. Here too, the signals are delayed one clock cycle.
 All-in-all, since both the synchronization signals and the colour signals are
 delayed the same amount, they will be mutually consistent.
 
@@ -99,7 +99,7 @@ The toolchain needs to know which pins on the FPGA to use, and for this we must 
 on the hardware schematic diagram of the particular board used.
 All pin locations must be specified. They are defined in lines 5-16 in comp.xdc. The comments
 at the end of each line refers to the signal name used in the hardware schematic diagram.
-The corresponding signal names are defined in lines 7-11 in comp.vhd.
+The corresponding signal names are defined in lines 13-17 in comp.vhd.
 The toolchain also needs to know the clock frequencies used in the design.
 These are described in lines 18-20 in comp.xdc.
 
