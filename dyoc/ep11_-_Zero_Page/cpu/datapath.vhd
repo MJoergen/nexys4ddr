@@ -40,6 +40,33 @@ architecture structural of datapath is
    constant SR_V : integer := 6;
    constant SR_S : integer := 7;
 
+   constant PC_INC : std_logic_vector(1 downto 0) := B"01";
+   constant PC_HL  : std_logic_vector(1 downto 0) := B"10";
+   constant PC_SR  : std_logic_vector(1 downto 0) := B"11";
+   constant PC_BPL : std_logic_vector(2 downto 0) := B"000";
+   constant PC_BMI : std_logic_vector(2 downto 0) := B"001";
+   constant PC_BVC : std_logic_vector(2 downto 0) := B"010";
+   constant PC_BVS : std_logic_vector(2 downto 0) := B"011";
+   constant PC_BCC : std_logic_vector(2 downto 0) := B"100";
+   constant PC_BCS : std_logic_vector(2 downto 0) := B"101";
+   constant PC_BNE : std_logic_vector(2 downto 0) := B"110";
+   constant PC_BEQ : std_logic_vector(2 downto 0) := B"111";
+   --
+   constant ADDR_PC : std_logic_vector(1 downto 0) := B"01";
+   constant ADDR_HL : std_logic_vector(1 downto 0) := B"10";
+   constant ADDR_ZP : std_logic_vector(1 downto 0) := B"11";
+   --
+   constant DATA_AR : std_logic_vector(1 downto 0) := B"01";
+   --
+   constant SR_ALU  : std_logic_vector(3 downto 0) := B"0001";
+   constant SR_CLC  : std_logic_vector(3 downto 0) := B"1000";
+   constant SR_SEC  : std_logic_vector(3 downto 0) := B"1001";
+   constant SR_CLI  : std_logic_vector(3 downto 0) := B"1010";
+   constant SR_SEI  : std_logic_vector(3 downto 0) := B"1011";
+   constant SR_CLV  : std_logic_vector(3 downto 0) := B"1100";
+   constant SR_CLD  : std_logic_vector(3 downto 0) := B"1110";
+   constant SR_SED  : std_logic_vector(3 downto 0) := B"1111";
+
    -- Convert signed 8-bit number to signed 16-bit number
    function sign_extend(arg : std_logic_vector(7 downto 0))
    return std_logic_vector is
@@ -94,17 +121,17 @@ begin
          if wait_i = '0' then
             case pc_sel_i(1 downto 0) is
                when "00" => null;
-               when "01" => pc <= pc + 1;
-               when "10" => pc <= hi & lo;
-               when "11" =>
-                  if (pc_sel_i(4 downto 2) = "000" and sr(SR_S) = '0') or     -- BPL
-                     (pc_sel_i(4 downto 2) = "001" and sr(SR_S) = '1') or     -- BMI
-                     (pc_sel_i(4 downto 2) = "010" and sr(SR_V) = '0') or     -- BVC
-                     (pc_sel_i(4 downto 2) = "011" and sr(SR_V) = '1') or     -- BVS
-                     (pc_sel_i(4 downto 2) = "100" and sr(SR_C) = '0') or     -- BCC
-                     (pc_sel_i(4 downto 2) = "101" and sr(SR_C) = '1') or     -- BCS
-                     (pc_sel_i(4 downto 2) = "110" and sr(SR_Z) = '0') or     -- BNE
-                     (pc_sel_i(4 downto 2) = "111" and sr(SR_Z) = '1') then   -- BEQ
+               when PC_INC => pc <= pc + 1;
+               when PC_HL  => pc <= hi & lo;
+               when PC_SR  =>
+                  if (pc_sel_i(4 downto 2) = PC_BPL and sr(SR_S) = '0') or
+                     (pc_sel_i(4 downto 2) = PC_BMI and sr(SR_S) = '1') or
+                     (pc_sel_i(4 downto 2) = PC_BVC and sr(SR_V) = '0') or
+                     (pc_sel_i(4 downto 2) = PC_BVS and sr(SR_V) = '1') or
+                     (pc_sel_i(4 downto 2) = PC_BCC and sr(SR_C) = '0') or
+                     (pc_sel_i(4 downto 2) = PC_BCS and sr(SR_C) = '1') or
+                     (pc_sel_i(4 downto 2) = PC_BNE and sr(SR_Z) = '0') or
+                     (pc_sel_i(4 downto 2) = PC_BEQ and sr(SR_Z) = '1') then
                      pc <= pc + 1 + sign_extend(data_i);
                   else
                      pc <= pc + 1;  -- If branch is not taken, just go to the next instruction.
@@ -134,14 +161,14 @@ begin
          if wait_i = '0' then
             case sr_sel_i is
                when "0000" => null;
-               when "0001" => sr <= alu_sr;
-               when "1000" => sr(SR_C) <= '0';  -- CLC
-               when "1001" => sr(SR_C) <= '1';  -- SEC
-               when "1010" => sr(SR_I) <= '0';  -- CLI 
-               when "1011" => sr(SR_I) <= '1';  -- SEI
-               when "1100" => sr(SR_V) <= '0';  -- CLV
-               when "1110" => sr(SR_D) <= '0';  -- CLD
-               when "1111" => sr(SR_D) <= '1';  -- SED
+               when SR_ALU => sr <= alu_sr;
+               when SR_CLC => sr(SR_C) <= '0';
+               when SR_SEC => sr(SR_C) <= '1';
+               when SR_CLI => sr(SR_I) <= '0';
+               when SR_SEI => sr(SR_I) <= '1';
+               when SR_CLV => sr(SR_V) <= '0';
+               when SR_CLD => sr(SR_D) <= '0';
+               when SR_SED => sr(SR_D) <= '1';
                when others => null;
             end case;
          end if;
@@ -174,17 +201,17 @@ begin
 
 
    -- Output multiplexers
-   addr <= (others => '0') when addr_sel_i = "00" else
-           pc              when addr_sel_i = "01" else
-           hi & lo         when addr_sel_i = "10" else
-           X"00" & lo      when addr_sel_i = "11" else
+   addr <= (others => '0') when addr_sel_i = "00"    else
+           pc              when addr_sel_i = ADDR_PC else
+           hi & lo         when addr_sel_i = ADDR_HL else
+           X"00" & lo      when addr_sel_i = ADDR_ZP else
            (others => '0');
 
-   data <= (others => '0') when data_sel_i = "00" else
-           ar              when data_sel_i = "01" else
+   data <= (others => '0') when data_sel_i = "00"    else
+           ar              when data_sel_i = DATA_AR else
            (others => '0');
 
-   wren <= '1' when data_sel_i = "01" else
+   wren <= '1' when data_sel_i = DATA_AR else
            '0';
 
 
