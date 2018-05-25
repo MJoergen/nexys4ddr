@@ -25,6 +25,11 @@ end digits;
 
 architecture Structural of digits is
 
+   -- The following constants define a resolution of 640x480 @ 60 Hz.
+   -- Requires a clock of 25.175 MHz.
+   -- See page 17 in "VESA MONITOR TIMING STANDARD"
+   -- http://caxapa.ru/thumbs/361638/DMTv1r11.pdf
+
    -- Define pixel counter range
    constant H_TOTAL  : integer := 800;
    constant V_TOTAL  : integer := 525;
