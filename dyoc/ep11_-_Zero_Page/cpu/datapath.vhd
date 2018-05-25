@@ -17,9 +17,9 @@ entity datapath is
       ar_sel_i   : in  std_logic;
       hi_sel_i   : in  std_logic;
       lo_sel_i   : in  std_logic;
-      pc_sel_i   : in  std_logic_vector(4 downto 0);
-      addr_sel_i : in  std_logic_vector(1 downto 0);
-      data_sel_i : in  std_logic_vector(1 downto 0);
+      pc_sel_i   : in  std_logic_vector(5 downto 0);
+      addr_sel_i : in  std_logic_vector(2 downto 0);
+      data_sel_i : in  std_logic_vector(2 downto 0);
       alu_sel_i  : in  std_logic_vector(2 downto 0);
       sr_sel_i   : in  std_logic_vector(3 downto 0);
 
@@ -40,9 +40,9 @@ architecture structural of datapath is
    constant SR_V : integer := 6;
    constant SR_S : integer := 7;
 
-   constant PC_INC : std_logic_vector(1 downto 0) := B"01";
-   constant PC_HL  : std_logic_vector(1 downto 0) := B"10";
-   constant PC_SR  : std_logic_vector(1 downto 0) := B"11";
+   constant PC_INC : std_logic_vector(2 downto 0) := B"001";
+   constant PC_HL  : std_logic_vector(2 downto 0) := B"010";
+   constant PC_SR  : std_logic_vector(2 downto 0) := B"100";
    constant PC_BPL : std_logic_vector(2 downto 0) := B"000";
    constant PC_BMI : std_logic_vector(2 downto 0) := B"001";
    constant PC_BVC : std_logic_vector(2 downto 0) := B"010";
@@ -52,11 +52,11 @@ architecture structural of datapath is
    constant PC_BNE : std_logic_vector(2 downto 0) := B"110";
    constant PC_BEQ : std_logic_vector(2 downto 0) := B"111";
    --
-   constant ADDR_PC : std_logic_vector(1 downto 0) := B"01";
-   constant ADDR_HL : std_logic_vector(1 downto 0) := B"10";
-   constant ADDR_ZP : std_logic_vector(1 downto 0) := B"11";
+   constant ADDR_PC : std_logic_vector(2 downto 0) := B"001";
+   constant ADDR_HL : std_logic_vector(2 downto 0) := B"010";
+   constant ADDR_ZP : std_logic_vector(2 downto 0) := B"011";
    --
-   constant DATA_AR : std_logic_vector(1 downto 0) := B"01";
+   constant DATA_AR : std_logic_vector(2 downto 0) := B"001";
    --
    constant SR_ALU  : std_logic_vector(3 downto 0) := B"0001";
    constant SR_CLC  : std_logic_vector(3 downto 0) := B"1000";
@@ -119,19 +119,19 @@ begin
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
-            case pc_sel_i(1 downto 0) is
-               when "00" => null;
+            case pc_sel_i(2 downto 0) is
+               when "000" => null;
                when PC_INC => pc <= pc + 1;
                when PC_HL  => pc <= hi & lo;
                when PC_SR  =>
-                  if (pc_sel_i(4 downto 2) = PC_BPL and sr(SR_S) = '0') or
-                     (pc_sel_i(4 downto 2) = PC_BMI and sr(SR_S) = '1') or
-                     (pc_sel_i(4 downto 2) = PC_BVC and sr(SR_V) = '0') or
-                     (pc_sel_i(4 downto 2) = PC_BVS and sr(SR_V) = '1') or
-                     (pc_sel_i(4 downto 2) = PC_BCC and sr(SR_C) = '0') or
-                     (pc_sel_i(4 downto 2) = PC_BCS and sr(SR_C) = '1') or
-                     (pc_sel_i(4 downto 2) = PC_BNE and sr(SR_Z) = '0') or
-                     (pc_sel_i(4 downto 2) = PC_BEQ and sr(SR_Z) = '1') then
+                  if (pc_sel_i(5 downto 3) = PC_BPL and sr(SR_S) = '0') or
+                     (pc_sel_i(5 downto 3) = PC_BMI and sr(SR_S) = '1') or
+                     (pc_sel_i(5 downto 3) = PC_BVC and sr(SR_V) = '0') or
+                     (pc_sel_i(5 downto 3) = PC_BVS and sr(SR_V) = '1') or
+                     (pc_sel_i(5 downto 3) = PC_BCC and sr(SR_C) = '0') or
+                     (pc_sel_i(5 downto 3) = PC_BCS and sr(SR_C) = '1') or
+                     (pc_sel_i(5 downto 3) = PC_BNE and sr(SR_Z) = '0') or
+                     (pc_sel_i(5 downto 3) = PC_BEQ and sr(SR_Z) = '1') then
                      pc <= pc + 1 + sign_extend(data_i);
                   else
                      pc <= pc + 1;  -- If branch is not taken, just go to the next instruction.
@@ -199,15 +199,14 @@ begin
       end if;
    end process p_lo;
 
-
    -- Output multiplexers
-   addr <= (others => '0') when addr_sel_i = "00"    else
+   addr <= (others => '0') when addr_sel_i = "000"   else
            pc              when addr_sel_i = ADDR_PC else
            hi & lo         when addr_sel_i = ADDR_HL else
            X"00" & lo      when addr_sel_i = ADDR_ZP else
            (others => '0');
 
-   data <= (others => '0') when data_sel_i = "00"    else
+   data <= (others => '0') when data_sel_i = "000"   else
            ar              when data_sel_i = DATA_AR else
            (others => '0');
 
