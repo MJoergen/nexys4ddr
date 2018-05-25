@@ -30,6 +30,18 @@ end entity datapath;
 
 architecture structural of datapath is
 
+   constant PC_NOP   : std_logic_vector(1 downto 0) := B"00";
+   constant PC_INC   : std_logic_vector(1 downto 0) := B"01";
+   constant PC_HL    : std_logic_vector(1 downto 0) := B"10";
+   --
+   constant ADDR_NOP : std_logic_vector(1 downto 0) := B"00";
+   constant ADDR_PC  : std_logic_vector(1 downto 0) := B"01";
+   constant ADDR_HL  : std_logic_vector(1 downto 0) := B"10";
+   --
+   constant DATA_NOP : std_logic_vector(1 downto 0) := B"00";
+   constant DATA_AR  : std_logic_vector(1 downto 0) := B"01";
+
+
    -- Output from ALU
    signal alu_ar : std_logic_vector(7 downto 0);
    signal alu_sr : std_logic_vector(7 downto 0);
@@ -73,9 +85,9 @@ begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
             case pc_sel_i is
-               when "00" => null;
-               when "01" => pc <= pc + 1;
-               when "10" => pc <= hi & lo;
+               when PC_NOP => null;
+               when PC_INC => pc <= pc + 1;
+               when PC_HL  => pc <= hi & lo;
                when others => null;
             end case;
          end if;
@@ -132,16 +144,16 @@ begin
 
 
    -- Output multiplexers
-   addr <= (others => '0') when addr_sel_i = "00" else
-           pc              when addr_sel_i = "01" else
-           hi & lo         when addr_sel_i = "10" else
+   addr <= (others => '0') when addr_sel_i = ADDR_NOP else
+           pc              when addr_sel_i = ADDR_PC  else
+           hi & lo         when addr_sel_i = ADDR_HL  else
            (others => '0');
 
-   data <= (others => '0') when data_sel_i = "00" else
-           ar              when data_sel_i = "01" else
+   data <= (others => '0') when data_sel_i = DATA_NOP else
+           ar              when data_sel_i = DATA_AR  else
            (others => '0');
 
-   wren <= '1' when data_sel_i = "01" else
+   wren <= '1' when data_sel_i = DATA_AR else
            '0';
 
 
