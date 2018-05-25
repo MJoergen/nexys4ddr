@@ -46,6 +46,7 @@ architecture structural of datapath is
    constant SR_S : integer := 7;
    constant SR_BR : std_logic_vector(7 downto 0) := (SR_B => '1', SR_R => '1', others => '0');
 
+   constant PC_NOP  : std_logic_vector(2 downto 0) := B"000";
    constant PC_INC  : std_logic_vector(2 downto 0) := B"001";
    constant PC_HL   : std_logic_vector(2 downto 0) := B"010";
    constant PC_HL1  : std_logic_vector(2 downto 0) := B"011";
@@ -62,6 +63,7 @@ architecture structural of datapath is
    constant PC_BNE : std_logic_vector(2 downto 0) := B"110";
    constant PC_BEQ : std_logic_vector(2 downto 0) := B"111";
    --
+   constant ADDR_NOP    : std_logic_vector(3 downto 0) := B"0000";
    constant ADDR_PC     : std_logic_vector(3 downto 0) := B"0001";
    constant ADDR_HL     : std_logic_vector(3 downto 0) := B"0010";
    constant ADDR_LO     : std_logic_vector(3 downto 0) := B"0011";
@@ -74,6 +76,7 @@ architecture structural of datapath is
    constant ADDR_IRQ    : std_logic_vector(3 downto 0) := B"1110";
    constant ADDR_IRQ1   : std_logic_vector(3 downto 0) := B"1111";
    --
+   constant DATA_NOP  : std_logic_vector(2 downto 0) := B"000";
    constant DATA_AR   : std_logic_vector(2 downto 0) := B"001";
    constant DATA_SR   : std_logic_vector(2 downto 0) := B"010";
    constant DATA_ALU  : std_logic_vector(2 downto 0) := B"011";
@@ -82,6 +85,7 @@ architecture structural of datapath is
    constant DATA_XR   : std_logic_vector(2 downto 0) := B"110";
    constant DATA_YR   : std_logic_vector(2 downto 0) := B"111";
    --
+   constant SR_NOP    : std_logic_vector(3 downto 0) := B"0000";
    constant SR_ALU    : std_logic_vector(3 downto 0) := B"0001";
    constant SR_DATA   : std_logic_vector(3 downto 0) := B"0010";
    constant SR_CLC    : std_logic_vector(3 downto 0) := B"1000";
@@ -92,20 +96,24 @@ architecture structural of datapath is
    constant SR_CLD    : std_logic_vector(3 downto 0) := B"1110";
    constant SR_SED    : std_logic_vector(3 downto 0) := B"1111";
    --
+   constant SP_NOP    : std_logic_vector(1 downto 0) := B"00";
    constant SP_INC    : std_logic_vector(1 downto 0) := B"01";
    constant SP_DEC    : std_logic_vector(1 downto 0) := B"10";
    constant SP_XR     : std_logic_vector(1 downto 0) := B"11";
    --
+   constant HI_NOP    : std_logic_vector(2 downto 0) := B"000";
    constant HI_DATA   : std_logic_vector(2 downto 0) := B"001";
    constant HI_ADDX   : std_logic_vector(2 downto 0) := B"010";
    constant HI_ADDY   : std_logic_vector(2 downto 0) := B"011";
    constant HI_INC    : std_logic_vector(2 downto 0) := B"100";
    --
+   constant LO_NOP    : std_logic_vector(2 downto 0) := B"000";
    constant LO_DATA   : std_logic_vector(2 downto 0) := B"001";
    constant LO_ADDX   : std_logic_vector(2 downto 0) := B"010";
    constant LO_ADDY   : std_logic_vector(2 downto 0) := B"011";
    constant LO_INC    : std_logic_vector(2 downto 0) := B"100";
    --
+   constant ZP_NOP    : std_logic_vector(1 downto 0) := B"00";
    constant ZP_DATA   : std_logic_vector(1 downto 0) := B"01";
    constant ZP_ADDX   : std_logic_vector(1 downto 0) := B"10";
    constant ZP_INC    : std_logic_vector(1 downto 0) := B"11";
@@ -194,7 +202,7 @@ begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
             case pc_sel_i(2 downto 0) is
-               when "000" => null;
+               when PC_NOP => null;
                when PC_INC => pc <= pc + 1;
                when PC_HL  => pc <= hi & lo;
                when PC_HL1 => pc <= (hi & lo) + 1;
@@ -261,7 +269,7 @@ begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
             case sp_sel_i is
-               when "00" => null;
+               when SP_NOP => null;
                when SP_INC => sp <= sp + 1;
                when SP_DEC => sp <= sp - 1;
                when SP_XR  => sp <= xr;
@@ -277,7 +285,7 @@ begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
             case sr_sel_i is
-               when "0000" => null;
+               when SR_NOP  => null;
                when SR_ALU  => sr <= alu_sr;
                when SR_DATA => sr <= data_i;
                when SR_CLC  => sr(SR_C) <= '0';
@@ -303,6 +311,7 @@ begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
             case hi_sel_i is
+               when HI_NOP  => null;
                when HI_DATA => hi <= data_i;
                when HI_ADDX => hi <= hilo_addx_s(15 downto 8);
                when HI_ADDY => hi <= hilo_addy_s(15 downto 8);
@@ -319,6 +328,7 @@ begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
             case lo_sel_i is
+               when LO_NOP  => null;
                when LO_DATA => lo <= data_i;
                when LO_ADDX => lo <= hilo_addx_s(7 downto 0);
                when LO_ADDY => lo <= hilo_addy_s(7 downto 0);
@@ -335,6 +345,7 @@ begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
             case zp_sel_i is
+               when ZP_NOP  => null;
                when ZP_DATA => zp <= data_i;
                when ZP_ADDX => zp <= zp + xr;
                when ZP_INC  => zp <= zp + 1;
@@ -345,7 +356,7 @@ begin
    end process p_zp;
 
    -- Output multiplexers
-   addr <= (others => '0') when addr_sel_i = "000"       else
+   addr <= (others => '0') when addr_sel_i = ADDR_NOP    else
            pc              when addr_sel_i = ADDR_PC     else
            hi & lo         when addr_sel_i = ADDR_HL     else
            X"00" & lo      when addr_sel_i = ADDR_LO     else
@@ -359,9 +370,10 @@ begin
            X"FFFF"         when addr_sel_i = ADDR_IRQ1   else
            (others => '0');
 
-   data <= (others => '0') when data_sel_i = "000"     else
+   data <= (others => '0') when data_sel_i = DATA_NOP  else
            ar              when data_sel_i = DATA_AR   else
-           sr or SR_BR     when data_sel_i = DATA_SR   else -- Bit S and R must always be set when pushing onto stack.
+           -- Bit S and R must always be set when pushing onto stack.
+           sr or SR_BR     when data_sel_i = DATA_SR   else
            alu_ar          when data_sel_i = DATA_ALU  else
            pc(7 downto 0)  when data_sel_i = DATA_PCLO else
            pc(15 downto 8) when data_sel_i = DATA_PCHI else

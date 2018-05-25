@@ -40,6 +40,7 @@ architecture structural of datapath is
    constant SR_V : integer := 6;
    constant SR_S : integer := 7;
 
+   constant PC_NOP : std_logic_vector(2 downto 0) := B"000";
    constant PC_INC : std_logic_vector(2 downto 0) := B"001";
    constant PC_HL  : std_logic_vector(2 downto 0) := B"010";
    constant PC_SR  : std_logic_vector(2 downto 0) := B"100";
@@ -52,12 +53,15 @@ architecture structural of datapath is
    constant PC_BNE : std_logic_vector(2 downto 0) := B"110";
    constant PC_BEQ : std_logic_vector(2 downto 0) := B"111";
    --
-   constant ADDR_PC : std_logic_vector(2 downto 0) := B"001";
-   constant ADDR_HL : std_logic_vector(2 downto 0) := B"010";
-   constant ADDR_ZP : std_logic_vector(2 downto 0) := B"011";
+   constant ADDR_NOP : std_logic_vector(2 downto 0) := B"000";
+   constant ADDR_PC  : std_logic_vector(2 downto 0) := B"001";
+   constant ADDR_HL  : std_logic_vector(2 downto 0) := B"010";
+   constant ADDR_ZP  : std_logic_vector(2 downto 0) := B"011";
    --
-   constant DATA_AR : std_logic_vector(2 downto 0) := B"001";
+   constant DATA_NOP : std_logic_vector(2 downto 0) := B"000";
+   constant DATA_AR  : std_logic_vector(2 downto 0) := B"001";
    --
+   constant SR_NOP  : std_logic_vector(3 downto 0) := B"0000";
    constant SR_ALU  : std_logic_vector(3 downto 0) := B"0001";
    constant SR_CLC  : std_logic_vector(3 downto 0) := B"1000";
    constant SR_SEC  : std_logic_vector(3 downto 0) := B"1001";
@@ -120,7 +124,7 @@ begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
             case pc_sel_i(2 downto 0) is
-               when "000" => null;
+               when PC_NOP => null;
                when PC_INC => pc <= pc + 1;
                when PC_HL  => pc <= hi & lo;
                when PC_SR  =>
@@ -160,7 +164,7 @@ begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
             case sr_sel_i is
-               when "0000" => null;
+               when SR_NOP => null;
                when SR_ALU => sr <= alu_sr;
                when SR_CLC => sr(SR_C) <= '0';
                when SR_SEC => sr(SR_C) <= '1';
@@ -200,14 +204,14 @@ begin
    end process p_lo;
 
    -- Output multiplexers
-   addr <= (others => '0') when addr_sel_i = "000"   else
-           pc              when addr_sel_i = ADDR_PC else
-           hi & lo         when addr_sel_i = ADDR_HL else
-           X"00" & lo      when addr_sel_i = ADDR_ZP else
+   addr <= (others => '0') when addr_sel_i = ADDR_NOP else
+           pc              when addr_sel_i = ADDR_PC  else
+           hi & lo         when addr_sel_i = ADDR_HL  else
+           X"00" & lo      when addr_sel_i = ADDR_ZP  else
            (others => '0');
 
-   data <= (others => '0') when data_sel_i = "000"   else
-           ar              when data_sel_i = DATA_AR else
+   data <= (others => '0') when data_sel_i = DATA_NOP else
+           ar              when data_sel_i = DATA_AR  else
            (others => '0');
 
    wren <= '1' when data_sel_i = DATA_AR else
