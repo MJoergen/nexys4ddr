@@ -22,6 +22,9 @@ end digits;
 
 architecture Structural of digits is
 
+   -- Number of rows of text on screen
+   constant NUM_ROWS : integer := digits_i'length / 16;
+
    -- Define pixel counter range
    constant H_TOTAL  : integer := 800;
    constant V_TOTAL  : integer := 525;
@@ -66,10 +69,10 @@ architecture Structural of digits is
    signal char_row : integer range 0 to V_TOTAL/16-1;
 
    -- Value of nibble at current position
-   signal nibble_offset : integer range 0 to 27;
-   signal nibble_index  : integer range 0 to 27;
+   signal nibble_offset : integer range 0 to 4*NUM_ROWS-1;
+   signal nibble_index  : integer range 0 to 4*NUM_ROWS-1;
    signal nibble        : std_logic_vector(3 downto 0);
-   signal txt_offset    : integer range 0 to 34;
+   signal txt_offset    : integer range 0 to 5*NUM_ROWS-1;
 
    -- Bitmap of digit at current position
    signal char_nibble   : std_logic_vector(7 downto 0);
@@ -111,7 +114,7 @@ begin
    --------------------------------------------------
 
    nibble_offset <= (char_row - DIGITS_CHAR_Y)*4 + (char_col - DIGITS_CHAR_X);
-   nibble_index  <= 27 - nibble_offset;
+   nibble_index  <= 4*NUM_ROWS-1 - nibble_offset;
    nibble        <= digits_i(4*nibble_index+3 downto 4*nibble_index);
    txt_offset    <= (char_row - TEXT_CHAR_Y)*5 + (char_col - TEXT_CHAR_X);
 
@@ -125,11 +128,11 @@ begin
 
    char_txt    <= std_logic_vector(to_unsigned(character'pos(txt(txt_offset)), 8));
 
-   char <= char_nibble when char_row >= DIGITS_CHAR_Y and char_row < DIGITS_CHAR_Y+7 and
+   char <= char_nibble when char_row >= DIGITS_CHAR_Y and char_row < DIGITS_CHAR_Y+NUM_ROWS and
                             char_col >= DIGITS_CHAR_X and char_col < DIGITS_CHAR_X+4 else
-           char_txt    when char_row >= TEXT_CHAR_Y   and char_row < TEXT_CHAR_Y+7 and
+           char_txt    when char_row >= TEXT_CHAR_Y   and char_row < TEXT_CHAR_Y+NUM_ROWS and
                             char_col >= TEXT_CHAR_X   and char_col < TEXT_CHAR_X+5 else
-           X"20"; -- Space
+           X"20"; -- Fill the rest of the screen with spaces.
 
 
    --------------------------------------------------
