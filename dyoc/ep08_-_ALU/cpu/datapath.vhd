@@ -141,7 +141,7 @@ begin
            ar              when data_sel_i = "01" else
            (others => '0');
 
-   wren <= not wait_i when data_sel_i = "01" else
+   wren <= '1' when data_sel_i = "01" else
            '0';
 
 
@@ -163,7 +163,7 @@ begin
 
    addr_o <= addr;
    data_o <= data;
-   wren_o <= wren;
+   wren_o <= wren and not wait_i;
 
 end architecture structural;
 

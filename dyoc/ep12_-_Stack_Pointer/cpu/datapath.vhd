@@ -245,10 +245,10 @@ begin
            pc(15 downto 8) when data_sel_i = DATA_PCHI else
            (others => '0');
 
-   wren <= not wait_i when data_sel_i = DATA_AR   or 
-                           data_sel_i = DATA_SR   or 
-                           data_sel_i = DATA_PCLO or 
-                           data_sel_i = DATA_PCHI else
+   wren <= '1' when data_sel_i = DATA_AR   or 
+                    data_sel_i = DATA_SR   or 
+                    data_sel_i = DATA_PCLO or 
+                    data_sel_i = DATA_PCHI else
            '0';
 
 
@@ -270,7 +270,7 @@ begin
 
    addr_o <= addr;
    data_o <= data;
-   wren_o <= wren;
+   wren_o <= wren and not wait_i;
 
 end architecture structural;
 
