@@ -272,7 +272,7 @@ begin
    debug_o(72)           <= wren;   -- One byte
    debug_o(79 downto 73) <= (others => '0');
    debug_o(87 downto 80) <= sr;     -- One byte
-   debug_o(95 downto 88) <= (others => '0');
+   debug_o(95 downto 88) <= sp;
 
    addr_o <= addr;
    data_o <= data;

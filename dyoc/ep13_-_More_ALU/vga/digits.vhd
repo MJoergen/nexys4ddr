@@ -49,7 +49,7 @@ architecture Structural of digits is
    constant TEXT_CHAR_Y   : integer := DIGITS_CHAR_Y;
 
    type txt_t is array (0 to 5*NUM_ROWS-1) of character;
-   constant txt : txt_t := "  SR " & "W DA " & "ADDR " & "HI LO" &
+   constant txt : txt_t := "SP SR" & "W DA " & "ADDR " & "HI LO" &
                            "DI AR" & "  PC " & "IR CN" & " CTL1" & " CTL2";
 
    -- A single character bitmap is defined by 8x8 = 64 bits.

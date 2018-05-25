@@ -405,7 +405,7 @@ begin
    debug_o( 72)            <= wren;   -- One byte
    debug_o( 79 downto  73) <= (others => '0');
    debug_o( 87 downto  80) <= sr;     -- One byte
-   debug_o( 95 downto  88) <= (others => '0');
+   debug_o( 95 downto  88) <= sp;
    debug_o(103 downto  96) <= yr;
    debug_o(111 downto 104) <= xr;
 
