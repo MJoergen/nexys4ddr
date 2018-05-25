@@ -17,7 +17,7 @@ entity cpu is
 
       -- Debug output
       invalid_o : out std_logic_vector(7 downto 0);
-      debug_o   : out std_logic_vector(159 downto 0)
+      debug_o   : out std_logic_vector(175 downto 0)
    );
 end entity cpu;
 
@@ -67,7 +67,7 @@ begin
       reg_sel_i  => reg_sel,
       zp_sel_i   => zp_sel,
 
-      debug_o => debug_o(159 downto 48)
+      debug_o => debug_o(175 downto 64)
    );
 
 
@@ -97,7 +97,7 @@ begin
       zp_sel_o   => zp_sel,
 
       invalid_o => invalid_o,
-      debug_o   => debug_o(47 downto 0)
+      debug_o   => debug_o(63 downto 0)
    );
 
 

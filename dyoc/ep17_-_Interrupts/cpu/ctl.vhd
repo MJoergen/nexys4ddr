@@ -24,7 +24,7 @@ entity ctl is
       zp_sel_o   : out std_logic_vector(1 downto 0);
 
       invalid_o  : out std_logic_vector(7 downto 0);
-      debug_o    : out std_logic_vector(47 downto 0)
+      debug_o    : out std_logic_vector(63 downto 0)
    );
 end ctl;
 
@@ -2780,10 +2780,11 @@ begin
 
    -- Debug Output
    invalid_o  <= invalid_inst;
-   debug_o(31 downto  0) <= ctl(31 downto 0);    -- Four bytes
-   debug_o(34 downto 32) <= cnt;    -- One byte
-   debug_o(39 downto 35) <= (others => '0');
-   debug_o(47 downto 40) <= ir;     -- One byte
+   debug_o(38 downto  0) <= ctl;    -- Six bytes
+   debug_o(47 downto 39) <= (others => '0');
+   debug_o(50 downto 48) <= cnt;    -- One byte
+   debug_o(55 downto 51) <= (others => '0');
+   debug_o(63 downto 56) <= ir;     -- One byte
 
 end Structural;
 

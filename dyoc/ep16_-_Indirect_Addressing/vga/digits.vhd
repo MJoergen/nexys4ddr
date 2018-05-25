@@ -12,7 +12,7 @@ entity digits is
 
       pix_x_i   : in  std_logic_vector(9 downto 0);
       pix_y_i   : in  std_logic_vector(9 downto 0);
-      digits_i  : in  std_logic_vector(159 downto 0);
+      digits_i  : in  std_logic_vector(175 downto 0);
 
       vga_hs_o  : out std_logic;
       vga_vs_o  : out std_logic;
@@ -50,7 +50,7 @@ architecture Structural of digits is
 
    type txt_t is array (0 to 5*NUM_ROWS-1) of character;
    constant txt : txt_t := "XR YR" & "SP SR" & "W DA " & "ADDR " & "HI LO" &
-                           "DI AR" & "  PC " & "IR CN" & " CTL1" & " CTL2";
+                           "DI AR" & "  PC " & "IR CN" & " CTL1" & " CTL2" & " CTL3";
 
    -- A single character bitmap is defined by 8x8 = 64 bits.
    subtype bitmap_t is std_logic_vector(63 downto 0);

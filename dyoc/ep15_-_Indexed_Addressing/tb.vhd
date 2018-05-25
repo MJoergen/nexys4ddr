@@ -18,7 +18,7 @@ architecture Structural of tb is
 
    -- Debug output
    signal cpu_led   : std_logic_vector(7 downto 0);
-   signal cpu_debug : std_logic_vector(159 downto 0);
+   signal cpu_debug : std_logic_vector(175 downto 0);
 
    -- Generate pause signal
    signal mem_wait_cnt : std_logic_vector(1 downto 0) := (others => '0');
