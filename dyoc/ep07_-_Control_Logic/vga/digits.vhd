@@ -48,7 +48,7 @@ architecture Structural of digits is
    constant TEXT_CHAR_X   : integer := 2;
    constant TEXT_CHAR_Y   : integer := DIGITS_CHAR_Y;
 
-   type txt_t is array (0 to 34) of character;
+   type txt_t is array (0 to 5*NUM_ROWS-1) of character;
    constant txt : txt_t := "W DA " & "ADDR " & "HI LO" & "DI AR" & "  PC " & "IR CN" & " CTL ";
 
    -- A single character bitmap is defined by 8x8 = 64 bits.
