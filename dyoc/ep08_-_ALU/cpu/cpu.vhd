@@ -2,6 +2,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
+-- This module implements the 6502 CPU.
+-- The CPU expects read and writes to complete in the same cycle.
+-- Whenever 'wait_i' is asserted (i.e. '1') then the CPU just waits,
+-- without updating internal registers.
+
 entity cpu is
    port (
       clk_i   : in  std_logic;
@@ -16,7 +21,7 @@ entity cpu is
       wait_i  : in  std_logic;
 
       -- Debug output
-      invalid_o : out std_logic_vector(7 downto 0);
+      invalid_o : out std_logic_vector(7 downto 0);   -- First invalid instruction encountered
       debug_o   : out std_logic_vector(127 downto 0)
    );
 end entity cpu;
