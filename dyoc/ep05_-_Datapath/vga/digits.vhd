@@ -3,6 +3,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 
+-- This module generates the VGA output signals based
+-- on the current pixel counters. The module ensures
+-- that the mutual relative timing between the
+-- synchronization signals and colour signal adheres
+-- to the VESA standard.
+
 entity digits is
    generic (
       G_FONT_FILE : string
@@ -22,6 +28,11 @@ entity digits is
 end digits;
 
 architecture Structural of digits is
+
+   -- The following constants define a resolution of 640x480 @ 60 Hz.
+   -- Requires a clock of 25.175 MHz.
+   -- See page 17 in "VESA MONITOR TIMING STANDARD"
+   -- http://caxapa.ru/thumbs/361638/DMTv1r11.pdf
 
    -- Number of rows of text on screen
    constant NUM_ROWS : integer := digits_i'length / 16;

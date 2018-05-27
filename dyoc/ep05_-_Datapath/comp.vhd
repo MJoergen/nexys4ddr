@@ -59,12 +59,12 @@ begin
    -- This is close enough to 25.175 MHz.
    --------------------------------------------------
 
-   process (clk_i)
+   p_vga_cnt : process (clk_i)
    begin
       if rising_edge(clk_i) then
          vga_cnt <= vga_cnt + 1;
       end if;
-   end process;
+   end process p_vga_cnt;
 
    vga_clk <= vga_cnt(1);
 

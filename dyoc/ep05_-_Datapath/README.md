@@ -1,4 +1,5 @@
-# Design Your Own Computer - Episode 5 - "Datapath"
+# Design Your Own Computer
+# Episode 5 : "Datapath"
 
 Welcome to the fifth episode of "Design Your Own Computer". In this
 episode we will make a rudimentary skeleton of the CPU. The
@@ -72,10 +73,10 @@ Finally the control signals themselves are assigned combinatorially in lines
 ## VGA
 The file vga/digits.vhd has been expanded slightly in order to allow displaying
 text on the screen.  The actual text displayed in front of each row is written
-in lines 49-50, and the position is defined in lines 46-47.  The signal
+in lines 63-64, and the position is defined in lines 60-61.  The signal
 txt\_offset has been added to contain the index into the text string.  The text
-character is determined in line 127 in a rather cumbersome way. This is a
+character is determined in line 141 in a rather cumbersome way. This is a
 consequence of the strict type checking in the VHDL language.  The choice of
-which character to display in performed in lines 129-133, where three
+which character to display in performed in lines 143-147, where three
 possibilities are chosen between.
 
