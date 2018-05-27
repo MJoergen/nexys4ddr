@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
 -- This module drives the VGA interface of the design.
--- The screen resoltion generated is 640x480 @ 60 Hz,
+-- The screen resolution generated is 640x480 @ 60 Hz,
 -- with 256 colours.
 -- This module expects an input clock rate of approximately
 -- 25.175 MHz. It will work with a clock rate of 25.0 MHz.

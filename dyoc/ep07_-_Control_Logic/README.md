@@ -1,4 +1,5 @@
-# Design Your Own Computer - Episode 7 - "Expanding Control Logic"
+# Design Your Own Computer
+# Episode 7 : "Expanding Control Logic"
 
 Welcome to the seventh episode of "Design Your Own Computer". In this episode
 we will completely rewrite the Control Logic in a manner that is more readable
