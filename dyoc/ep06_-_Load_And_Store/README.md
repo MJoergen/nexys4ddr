@@ -1,4 +1,5 @@
-# Design Your Own Computer - Episode 6 - "Load and Store"
+# Design Your Own Computer
+# Episode 6 : "Load and Store"
 
 Welcome to the sixth episode of "Design Your Own Computer". In this episode we
 will add three more instructions to the CPU: "LDA a", "STA a", and "JMP a".
@@ -28,7 +29,7 @@ introduce two control signals, hi\_sel and lo\_sel too.
 
 The address output can now take one of two possible values: Either the current
 value of the Program Counter, or the value of the HI and LO registers. We
-therefore introduce a multiplexer in lines 99-102, as well as yet another
+therefore introduce a multiplexer in lines 147-150, as well as yet another
 control signal: addr\_sel.
 
 Furthermore, during the fourth clock cycle, the Program Counter should not be
@@ -39,7 +40,7 @@ the Program Counter to keep the same value in this current clock cycle.
 The "STA a" instructions is very similar to the "LDA a" instruction, and
 differs only in the last (fourth) clock cycle.  When doing "STA a" the 'A'
 register must be copied to the data output signals, and the wren signal must be
-set to '1'. This is done in lines 104-109, and once again a new control
+set to '1'. This is done in lines 152-157, and once again a new control
 signal data\_sel is introduced.
 
 ### JMP a

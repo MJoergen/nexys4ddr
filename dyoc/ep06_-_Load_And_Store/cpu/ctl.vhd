@@ -18,7 +18,7 @@ entity ctl is
 
       debug_o    : out std_logic_vector(15 downto 0)
    );
-end ctl;
+end entity ctl;
 
 architecture structural of ctl is
 
