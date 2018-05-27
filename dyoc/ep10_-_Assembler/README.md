@@ -1,4 +1,5 @@
-# Design Your Own Computer - Episode 10 - "Assembler"
+# Design Your Own Computer
+# Episode 10 : "Assembler"
 
 Welcome to the tenth episode of "Design Your Own Computer".  In this episode we
 will make use of an assembler to generate the initial contents of the memory.

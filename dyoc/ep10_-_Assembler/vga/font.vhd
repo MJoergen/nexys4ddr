@@ -9,7 +9,10 @@ entity font is
       G_FONT_FILE : string
    );
    port (
+      -- Character to select the current bitmap.
       char_i   : in  std_logic_vector(7 downto 0);
+
+      -- Bitmap of the selected character.
       bitmap_o : out std_logic_vector(63 downto 0)
    );
 end font;

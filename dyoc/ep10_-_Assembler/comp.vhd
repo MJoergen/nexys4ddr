@@ -5,11 +5,7 @@ use ieee.std_logic_unsigned.all;
 -- This is the top level module. The ports on this entity are mapped directly
 -- to pins on the FPGA.
 --
--- In this version the design can execute four instructions:
--- * LDA #
--- * LDA a
--- * STA a
--- * JMP a
+-- In this version the design can execute 31 instructions.
 --
 -- Additionally, the CPU registers are shown on the VGA display.
 -- The registers shown are:
@@ -65,12 +61,12 @@ begin
    -- This is close enough to 25.175 MHz.
    --------------------------------------------------
 
-   process (clk_i)
+   p_vga_cnt : process (clk_i)
    begin
       if rising_edge(clk_i) then
          vga_cnt <= vga_cnt + 1;
       end if;
-   end process;
+   end process p_vga_cnt;
 
    vga_clk <= vga_cnt(1);
 
