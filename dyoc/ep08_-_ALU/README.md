@@ -68,15 +68,15 @@ Not all ALU operations modify all the four flags. The list is as follows:
 
 We will implement the above instructions by inserting the ALU in the path from
 data input to the 'A' register. In other words, instead of taking data from the
-memory input, it will take data from the ALU. This changes the single line 91.
+memory input, it will take data from the ALU. This changes the single line 103.
 
-The Status Register is defined in lines 43-44 and controlled in lines
-97-107.
+The Status Register is defined in lines 55-56 and controlled in lines
+109-119.
 
 The output from the ALU is routed to two new signals alu\_ar and alu\_sr
-defined in lines 33-35.
+defined in lines 45-47.
 
-The ALU itself is instantiated in lines 59-68.
+The ALU itself is instantiated in lines 71-80.
 
 ## Testing
 Note that the CPU has no way of adding two numbers *without* carry. So instead
@@ -87,5 +87,5 @@ move the carry flag to the 'A' register, and clears the carry flag.
 The program defined in lines 43-55 of mem/mem.vhd is a simple 8-bit counter.
 
 Note that the memory size has been increased from 16 bytes to 256 bytes. This
-was done in lines 115 and 119 in comp.vhd.
+was done in lines 111 and 115 in comp.vhd.
 
