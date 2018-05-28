@@ -34,3 +34,6 @@ The size of the ROM needs to be expanded, because of the size of the functional
 test. This means changing the initial value of the Program Counter
 in line 136.
 
+It was also necessary to allow write access to the ROM, because the test requires this.
+This is done in lines 71-79 in mem/rom.vhd, as well as lines 77-78 in mem/mem.vhd.
+
