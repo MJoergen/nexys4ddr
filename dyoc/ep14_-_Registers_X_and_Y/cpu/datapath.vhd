@@ -71,8 +71,6 @@ architecture structural of datapath is
    constant DATA_ALU  : std_logic_vector(2 downto 0) := B"011";
    constant DATA_PCLO : std_logic_vector(2 downto 0) := B"100";
    constant DATA_PCHI : std_logic_vector(2 downto 0) := B"101";
-   constant DATA_XR   : std_logic_vector(2 downto 0) := B"110";
-   constant DATA_YR   : std_logic_vector(2 downto 0) := B"111";
    --
    constant SR_NOP    : std_logic_vector(3 downto 0) := B"0000";
    constant SR_ALU    : std_logic_vector(3 downto 0) := B"0001";
@@ -302,17 +300,13 @@ begin
            alu_ar          when data_sel_i = DATA_ALU  else
            pc(7 downto 0)  when data_sel_i = DATA_PCLO else
            pc(15 downto 8) when data_sel_i = DATA_PCHI else
-           xr              when data_sel_i = DATA_XR   else
-           yr              when data_sel_i = DATA_YR   else
            (others => '0');
 
    wren <= '1' when data_sel_i = DATA_AR   or 
                     data_sel_i = DATA_SR   or 
                     data_sel_i = DATA_ALU  or 
                     data_sel_i = DATA_PCLO or 
-                    data_sel_i = DATA_PCHI or
-                    data_sel_i = DATA_YR   or
-                    data_sel_i = DATA_XR   else
+                    data_sel_i = DATA_PCHI else
            '0';
 
 

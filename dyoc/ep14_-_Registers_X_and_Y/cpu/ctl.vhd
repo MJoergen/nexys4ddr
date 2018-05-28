@@ -62,8 +62,6 @@ architecture structural of ctl is
    constant DATA_ALU  : t_ctl := B"00_0_0_00_0000_00000_0_0_011_000_000000_0_0_0";
    constant DATA_PCLO : t_ctl := B"00_0_0_00_0000_00000_0_0_100_000_000000_0_0_0";
    constant DATA_PCHI : t_ctl := B"00_0_0_00_0000_00000_0_0_101_000_000000_0_0_0";
-   constant DATA_XR   : t_ctl := B"00_0_0_00_0000_00000_0_0_110_000_000000_0_0_0";
-   constant DATA_YR   : t_ctl := B"00_0_0_00_0000_00000_0_0_111_000_000000_0_0_0";
    --
    constant LAST      : t_ctl := B"00_0_0_00_0000_00000_0_1_000_000_000000_0_0_0";
    --
@@ -1458,7 +1456,7 @@ architecture structural of ctl is
 -- 84 STY d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + DATA_YR + LAST,
+      ADDR_ZP + REG_YR + ALU_STA + DATA_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1478,7 +1476,7 @@ architecture structural of ctl is
 -- 86 STX d
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
-      ADDR_ZP + DATA_XR + LAST,
+      ADDR_ZP + REG_XR + ALU_STA + DATA_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1539,7 +1537,7 @@ architecture structural of ctl is
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
       ADDR_PC + PC_INC + HI_DATA,
-      ADDR_HL + DATA_YR + LAST,
+      ADDR_HL + REG_YR + ALU_STA + DATA_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
@@ -1559,7 +1557,7 @@ architecture structural of ctl is
       ADDR_PC + PC_INC,
       ADDR_PC + PC_INC + LO_DATA,
       ADDR_PC + PC_INC + HI_DATA,
-      ADDR_HL + DATA_XR + LAST,
+      ADDR_HL + REG_XR + ALU_STA + DATA_ALU + LAST,
       INVALID,
       INVALID,
       INVALID,
