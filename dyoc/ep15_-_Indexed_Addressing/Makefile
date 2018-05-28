@@ -7,17 +7,21 @@ SRC = comp.vhd \
 XDC = comp.xdc
 TB  = tb.vhd
 
+
+#####################################
+# Generate bit-file and program FPGA
+#####################################
+
 comp.bit: comp.tcl $(SRC) $(XDC) mem/rom.txt
 	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $<"
 
 fpga: comp.bit
 	djtgcfg prog -d Nexys4DDR -i 0 --file $<
 
-sim: $(SRC) $(TB) mem/rom.txt
-	ghdl -i --work=work $(SRC) $(TB)
-	ghdl -m --ieee=synopsys -fexplicit tb
-	ghdl -r tb --assert-level=error --wave=tb.ghw --stop-time=40us
-	gtkwave tb.ghw tb.gtkw
+
+#####################################
+# Compile target program
+#####################################
 
 mem/rom.o: mem/rom.s
 	ca65 $<
@@ -25,6 +29,18 @@ mem/rom.bin: mem/rom.o
 	ld65 -C ld.cfg $<
 mem/rom.txt: mem/rom.bin
 	./bin2hex.py $< $@
+
+
+#####################################
+# Simulation
+#####################################
+
+sim: $(SRC) $(TB) mem/rom.txt
+	ghdl -i --work=work $(SRC) $(TB)
+	ghdl -m --ieee=synopsys -fexplicit tb
+	ghdl -r tb --assert-level=error --wave=tb.ghw --stop-time=40us
+	gtkwave tb.ghw tb.gtkw
+
 
 clean:
 	rm -rf usage_statistics_webtalk.*

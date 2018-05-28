@@ -1,8 +1,16 @@
 XILINX_DIR = /opt/Xilinx/Vivado/2017.3
 
-SRC = comp.vhd vga/sync.vhd vga/font.vhd vga/digits.vhd vga/vga.vhd mem/mem.vhd cpu/datapath.vhd cpu/ctl.vhd cpu/cpu.vhd cpu/alu.vhd
+SRC = comp.vhd \
+		vga/vga.vhd vga/digits.vhd vga/font.vhd \
+		mem/mem.vhd \
+		cpu/cpu.vhd cpu/datapath.vhd cpu/ctl.vhd cpu/alu.vhd
 XDC = comp.xdc
 TB  = tb.vhd
+
+
+#####################################
+# Generate bit-file and program FPGA
+#####################################
 
 comp.bit: comp.tcl $(SRC) $(XDC)
 	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $<"
@@ -10,11 +18,17 @@ comp.bit: comp.tcl $(SRC) $(XDC)
 fpga: comp.bit
 	djtgcfg prog -d Nexys4DDR -i 0 --file $<
 
+
+#####################################
+# Simulation
+#####################################
+
 sim: $(SRC) $(TB)
 	ghdl -i --work=work $(SRC) $(TB)
 	ghdl -m --ieee=synopsys -fexplicit tb
 	ghdl -r tb --assert-level=error --wave=tb.ghw --stop-time=40us
 	gtkwave tb.ghw tb.gtkw
+
 
 clean:
 	rm -rf usage_statistics_webtalk.*

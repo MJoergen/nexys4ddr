@@ -1,6 +1,14 @@
 XILINX_DIR = /opt/Xilinx/Vivado/2017.3
 
-comp.bit: comp.tcl comp.vhd vga/vga.vhd vga/digits.vhd comp.xdc
+SRC = comp.vhd \
+		vga/vga.vhd vga/digits.vhd
+XDC = comp.xdc
+
+#####################################
+# Generate bit-file and program FPGA
+#####################################
+
+comp.bit: comp.tcl $(SRC) $(XDC)
 	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $<"
 
 fpga: comp.bit
