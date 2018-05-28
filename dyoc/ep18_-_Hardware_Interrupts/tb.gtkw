@@ -1,18 +1,19 @@
 [*]
 [*] GTKWave Analyzer v3.3.89 (w)1999-2018 BSI
-[*] Mon May 28 12:18:04 2018
+[*] Mon May 28 12:38:19 2018
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/dyoc/ep18_-_Hardware_Interrupts/tb.ghw"
-[dumpfile_mtime] "Mon May 28 12:17:39 2018"
-[dumpfile_size] 994140
+[dumpfile_mtime] "Mon May 28 12:36:18 2018"
+[dumpfile_size] 991369
 [savefile] "/home/mike/git/nexys4ddr/dyoc/ep18_-_Hardware_Interrupts/tb.gtkw"
-[timestart] 0
+[timestart] 2842400000
 [size] 1920 1103
 [pos] 1868 33
-*-25.100788 39473100000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-25.100788 2979100000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.tb.
 [treeopen] top.tb.i_cpu.
+[treeopen] top.tb.i_cpu.inst_ctl.
 [treeopen] top.tb.i_cpu.inst_datapath.
 [treeopen] top.tb.i_mem.i_ram.mem.
 [sst_width] 255
@@ -42,10 +43,11 @@ top.tb.cpu_wren
 @22
 #{top.tb.i_cpu.inst_datapath.pc[15:0]} top.tb.i_cpu.inst_datapath.pc[15] top.tb.i_cpu.inst_datapath.pc[14] top.tb.i_cpu.inst_datapath.pc[13] top.tb.i_cpu.inst_datapath.pc[12] top.tb.i_cpu.inst_datapath.pc[11] top.tb.i_cpu.inst_datapath.pc[10] top.tb.i_cpu.inst_datapath.pc[9] top.tb.i_cpu.inst_datapath.pc[8] top.tb.i_cpu.inst_datapath.pc[7] top.tb.i_cpu.inst_datapath.pc[6] top.tb.i_cpu.inst_datapath.pc[5] top.tb.i_cpu.inst_datapath.pc[4] top.tb.i_cpu.inst_datapath.pc[3] top.tb.i_cpu.inst_datapath.pc[2] top.tb.i_cpu.inst_datapath.pc[1] top.tb.i_cpu.inst_datapath.pc[0]
 #{top.tb.i_cpu.inst_ctl.invalid_inst[7:0]} top.tb.i_cpu.inst_ctl.invalid_inst[7] top.tb.i_cpu.inst_ctl.invalid_inst[6] top.tb.i_cpu.inst_ctl.invalid_inst[5] top.tb.i_cpu.inst_ctl.invalid_inst[4] top.tb.i_cpu.inst_ctl.invalid_inst[3] top.tb.i_cpu.inst_ctl.invalid_inst[2] top.tb.i_cpu.inst_ctl.invalid_inst[1] top.tb.i_cpu.inst_ctl.invalid_inst[0]
+@29
+#{top.tb.i_cpu.inst_ctl.cic[1:0]} top.tb.i_cpu.inst_ctl.cic[1] top.tb.i_cpu.inst_ctl.cic[0]
 @28
 top.tb.i_cpu.irq_i
 top.tb.i_cpu.nmi_i
-@29
 top.tb.i_cpu.rst_i
 @1000200
 -CPU

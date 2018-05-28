@@ -12,6 +12,7 @@ entity datapath is
       data_i  : in  std_logic_vector(7 downto 0);
       data_o  : out std_logic_vector(7 downto 0);
       wren_o  : out std_logic;
+      sri_o   : out std_logic;
 
       -- Control signals
       ar_sel_i   : in  std_logic;
@@ -44,6 +45,7 @@ architecture structural of datapath is
    constant SR_R : integer := 5;    -- Bit 5 is reserved.
    constant SR_V : integer := 6;
    constant SR_S : integer := 7;
+   constant SR_NR : std_logic_vector(7 downto 0) := (SR_B => '0', SR_R => '1', others => '0');
    constant SR_BR : std_logic_vector(7 downto 0) := (SR_B => '1', SR_R => '1', others => '0');
 
    constant PC_NOP  : std_logic_vector(2 downto 0) := B"000";
@@ -82,6 +84,7 @@ architecture structural of datapath is
    constant DATA_ALU  : std_logic_vector(2 downto 0) := B"011";
    constant DATA_PCLO : std_logic_vector(2 downto 0) := B"100";
    constant DATA_PCHI : std_logic_vector(2 downto 0) := B"101";
+   constant DATA_SRB  : std_logic_vector(2 downto 0) := B"110";
    --
    constant SR_NOP    : std_logic_vector(3 downto 0) := B"0000";
    constant SR_ALU    : std_logic_vector(3 downto 0) := B"0001";
@@ -142,13 +145,13 @@ architecture structural of datapath is
    signal pc : std_logic_vector(15 downto 0) := X"C000";
 
    -- 'A' register
-   signal ar : std_logic_vector(7 downto 0);
+   signal ar : std_logic_vector(7 downto 0) := X"00";
 
    -- 'X' register
-   signal xr : std_logic_vector(7 downto 0);
+   signal xr : std_logic_vector(7 downto 0) := X"00";
 
    -- 'Y' register
-   signal yr : std_logic_vector(7 downto 0);
+   signal yr : std_logic_vector(7 downto 0) := X"00";
 
    -- Stack Pointer
    signal sp : std_logic_vector(7 downto 0) := X"FF";
@@ -370,18 +373,20 @@ begin
 
    data <= (others => '0') when data_sel_i = DATA_NOP  else
            ar              when data_sel_i = DATA_AR   else
-           -- Bit S and R must always be set when pushing onto stack.
-           sr or SR_BR     when data_sel_i = DATA_SR   else
+           -- Bit R must always be set when pushing onto stack.
+           sr or SR_NR     when data_sel_i = DATA_SR   else
            alu_ar          when data_sel_i = DATA_ALU  else
            pc(7 downto 0)  when data_sel_i = DATA_PCLO else
            pc(15 downto 8) when data_sel_i = DATA_PCHI else
+           sr or SR_BR     when data_sel_i = DATA_SRB  else
            (others => '0');
 
    wren <= '1' when data_sel_i = DATA_AR   or
                     data_sel_i = DATA_SR   or
                     data_sel_i = DATA_ALU  or
                     data_sel_i = DATA_PCLO or
-                    data_sel_i = DATA_PCHI else
+                    data_sel_i = DATA_PCHI or
+                    data_sel_i = DATA_SRB  else
            '0';
 
 
@@ -407,6 +412,7 @@ begin
    addr_o <= addr;
    data_o <= data;
    wren_o <= wren and not wait_i;
+   sri_o  <= sr(SR_I);
 
 end architecture structural;
 

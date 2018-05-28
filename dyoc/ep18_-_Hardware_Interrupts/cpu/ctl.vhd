@@ -6,6 +6,10 @@ entity ctl is
    port (
       clk_i      : in  std_logic;
       wait_i     : in  std_logic;
+      irq_i      : in  std_logic;
+      nmi_i      : in  std_logic;
+      rst_i      : in  std_logic;
+      sri_i      : in  std_logic;
 
       data_i     : in  std_logic_vector(7 downto 0);
 
@@ -78,6 +82,7 @@ architecture structural of ctl is
    constant DATA_ALU    : t_ctl := B"00_00_0_0_00_0000_00000_0_0_011_0000_000000_000_000_0";
    constant DATA_PCLO   : t_ctl := B"00_00_0_0_00_0000_00000_0_0_100_0000_000000_000_000_0";
    constant DATA_PCHI   : t_ctl := B"00_00_0_0_00_0000_00000_0_0_101_0000_000000_000_000_0";
+   constant DATA_SRB    : t_ctl := B"00_00_0_0_00_0000_00000_0_0_110_0000_000000_000_000_0";
    --
    constant LAST        : t_ctl := B"00_00_0_0_00_0000_00000_0_1_000_0000_000000_000_000_0";
    --
@@ -160,7 +165,7 @@ architecture structural of ctl is
       ADDR_IRQ1 + HI_DATA,
       ADDR_SP + DATA_PCHI + SP_DEC,
       ADDR_SP + DATA_PCLO + SP_DEC,
-      ADDR_SP + DATA_SR + SP_DEC,
+      ADDR_SP + DATA_SRB + SP_DEC,
       PC_HL + SR_SEI + LAST,
       INVALID,
 
@@ -2716,6 +2721,7 @@ architecture structural of ctl is
 
    signal ir  : std_logic_vector(7 downto 0) := (others => '0');
    signal cnt : std_logic_vector(2 downto 0) := (others => '0');
+   signal cic : std_logic_vector(1 downto 0) := (others => '0');
 
    signal invalid_inst : std_logic_vector(7 downto 0) := (others => '0');
 
@@ -2739,6 +2745,11 @@ begin
          if wait_i = '0' then
             if cnt = 0 then
                ir <= data_i;     -- Only load instruction register at beginning of instruction.
+
+               -- Inject a BRK in case of hardware interrupt.
+               if cic /= "00" then
+                  ir <= X"00";
+               end if;
             end if;
          end if;
       end if;
@@ -2757,6 +2768,26 @@ begin
       end if;
    end process p_invalid;
 
+   p_cic : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         -- Sample and prioritize hardware interrupts at end of instruction.
+         if wait_i = '0' then
+            if last_s = '1' then
+               if rst_i = '1' then
+                  cic <= "10";
+               elsif nmi_i = '1' then
+                  cic <= "01";
+               elsif irq_i = '1' and sri_i = '0' then
+                  cic <= "11";
+               else
+                  cic <= "00";
+               end if;
+            end if;
+         end if;
+      end if;
+   end process p_cic;
+
    -- Combinatorial lookup in ROM
    ctl <= ADDR_PC + PC_INC when cnt = 0 else
           rom(conv_integer(ir)*8 + conv_integer(cnt));
@@ -2766,8 +2797,8 @@ begin
    hi_sel_o   <= hi_sel;
    lo_sel_o   <= lo_sel;
    pc_sel_o   <= pc_sel;
-   addr_sel_o <= addr_sel;
-   data_sel_o <= data_sel;
+   addr_sel_o <= addr_sel when addr_sel(3) = '0' else '1' & cic & addr_sel(0);
+   data_sel_o <= "010" when data_sel = "110" and cic = "11" else data_sel;
    alu_sel_o  <= alu_sel;
    sr_sel_o   <= sr_sel;
    sp_sel_o   <= sp_sel;

@@ -41,6 +41,7 @@ architecture structural of cpu is
    signal yr_sel   : std_logic;
    signal reg_sel  : std_logic_vector(1 downto 0);
    signal zp_sel   : std_logic_vector(1 downto 0);
+   signal sri      : std_logic;
 
 begin
 
@@ -57,6 +58,7 @@ begin
       data_i  => data_i,
       data_o  => data_o,
       wren_o  => wren_o,
+      sri_o   => sri,
 
       ar_sel_i   => ar_sel,
       hi_sel_i   => hi_sel,
@@ -84,6 +86,10 @@ begin
    port map (
       clk_i   => clk_i,
       wait_i  => wait_i,
+      irq_i   => irq_i,
+      nmi_i   => nmi_i,
+      rst_i   => rst_i,
+      sri_i   => sri,
 
       data_i  => data_i,
 
