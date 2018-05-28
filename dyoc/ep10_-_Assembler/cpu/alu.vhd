@@ -32,13 +32,22 @@ architecture Structural of alu is
    signal c   : std_logic;                    -- Copy of the input carry signal
    signal a   : std_logic_vector(8 downto 0); -- New value of carry and accumulator
    signal sr  : std_logic_vector(7 downto 0); -- New value of the Status Register
-   signal cmp : std_logic_vector(8 downto 0); -- Temporary value used by CMP
+   signal tmp : std_logic_vector(8 downto 0); -- Temporary value used by CMP
 
    -- The Status Register contains: SV-BDIZC
    constant SR_S : integer := 7;
    constant SR_V : integer := 6;
    constant SR_Z : integer := 1;
    constant SR_C : integer := 0;
+
+   constant ALU_ORA   : std_logic_vector(2 downto 0) := B"000";
+   constant ALU_AND   : std_logic_vector(2 downto 0) := B"001";
+   constant ALU_EOR   : std_logic_vector(2 downto 0) := B"010";
+   constant ALU_ADC   : std_logic_vector(2 downto 0) := B"011";
+   constant ALU_STA   : std_logic_vector(2 downto 0) := B"100";
+   constant ALU_LDA   : std_logic_vector(2 downto 0) := B"101";
+   constant ALU_CMP   : std_logic_vector(2 downto 0) := B"110";
+   constant ALU_SBC   : std_logic_vector(2 downto 0) := B"111";
 
    -- An 8-input OR gate
    function or_all(arg : std_logic_vector(7 downto 0)) return std_logic is
@@ -58,32 +67,31 @@ begin
    -- Calculate the result
    p_a : process (c, a_i, b_i, sr_i, func_i)
    begin
-      cmp <= (others => '0');
-      a(8) <= c;  -- Default value
+      tmp <= (others => '0');
+      a <= c & a_i;  -- Default value
       case func_i is
-         when "000" => -- ORA   SZ
+         when ALU_ORA =>
             a(7 downto 0) <= a_i or b_i;
 
-         when "001" => -- AND   SZ
+         when ALU_AND =>
             a(7 downto 0) <= a_i and b_i;
 
-         when "010" => -- EOR   SZ
+         when ALU_EOR =>
             a(7 downto 0) <= a_i xor b_i;
 
-         when "011" => -- ADC   SZCV
+         when ALU_ADC =>
             a <= ('0' & a_i) + ('0' & b_i) + (X"00" & c);
 
-         when "100" => -- STA
-            a(7 downto 0) <= a_i;
+         when ALU_STA =>
+            null;
 
-         when "101" => -- LDA   SZ
+         when ALU_LDA =>
             a(7 downto 0) <= b_i;
 
-         when "110" => -- CMP   SZC
-            a(7 downto 0) <= a_i;
-            cmp <= ('0' & a_i) + ('0' & not b_i) + (X"00" & '1');
+         when ALU_CMP =>
+            tmp <= ('0' & a_i) + ('0' & not b_i) + (X"00" & '1');
 
-         when "111" => -- SBC   SZCV
+         when ALU_SBC =>
             a <= ('0' & a_i) + ('0' & not b_i) + (X"00" & c);
 
          when others =>
@@ -93,41 +101,41 @@ begin
    end process p_a;
 
    -- Calculate the new Status Register
-   p_sr : process (a, cmp, a_i, b_i, sr_i, func_i)
+   p_sr : process (a, tmp, a_i, b_i, sr_i, func_i)
    begin
       sr <= sr_i;  -- Keep the old value as default
 
       case func_i is
-         when "000" => -- ORA   SZ
+         when ALU_ORA =>
             sr(SR_S) <= a(7);
             sr(SR_Z) <= not or_all(a(7 downto 0));
 
-         when "001" => -- AND   SZ
+         when ALU_AND =>
             sr(SR_S) <= a(7);
             sr(SR_Z) <= not or_all(a(7 downto 0));
 
-         when "010" => -- EOR   SZ
+         when ALU_EOR =>
             sr(SR_S) <= a(7);
             sr(SR_Z) <= not or_all(a(7 downto 0));
 
-         when "011" => -- ADC   SZCV
+         when ALU_ADC =>
             sr(SR_S) <= a(7);
             sr(SR_Z) <= not or_all(a(7 downto 0));
             sr(SR_V) <= not(a_i(7) xor b_i(7)) and (a_i(7) xor a(7));
             sr(SR_C) <= a(8);
 
-         when "100" => -- STA
+         when ALU_STA =>
 
-         when "101" => -- LDA   SZ
+         when ALU_LDA =>
             sr(SR_S) <= a(7);
             sr(SR_Z) <= not or_all(a(7 downto 0));
 
-         when "110" => -- CMP   SZC
-            sr(SR_S) <= cmp(7);
-            sr(SR_Z) <= not or_all(cmp(7 downto 0));
-            sr(SR_C) <= cmp(8);
+         when ALU_CMP =>
+            sr(SR_S) <= tmp(7);
+            sr(SR_Z) <= not or_all(tmp(7 downto 0));
+            sr(SR_C) <= tmp(8);
 
-         when "111" => -- SBC   SZCV
+         when ALU_SBC =>
             sr(SR_S) <= a(7);
             sr(SR_Z) <= not or_all(a(7 downto 0));
             sr(SR_V) <= (a_i(7) xor b_i(7)) and (a_i(7) xor a(7));
