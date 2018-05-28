@@ -82,7 +82,7 @@ begin
    c <= sr_i(0);  -- Old value of carry bit
 
    -- Calculate the result
-   p_a : process (c, tmp, a_i, b_i, sr_i, func_i)
+   p_a : process (c, a_i, b_i, sr_i, func_i)
    begin
       tmp <= (others => '0');
       a <= c & a_i;  -- Default value
@@ -168,36 +168,36 @@ begin
       sr <= sr_i;  -- Keep the old value as default
 
       case func_i is
-         when ALU_ORA => -- ORA   SZ
+         when ALU_ORA =>
             sr(SR_S) <= a(7);
             sr(SR_Z) <= not or_all(a(7 downto 0));
 
-         when ALU_AND => -- AND   SZ
+         when ALU_AND =>
             sr(SR_S) <= a(7);
             sr(SR_Z) <= not or_all(a(7 downto 0));
 
-         when ALU_EOR => -- EOR   SZ
+         when ALU_EOR =>
             sr(SR_S) <= a(7);
             sr(SR_Z) <= not or_all(a(7 downto 0));
 
-         when ALU_ADC => -- ADC   SZCV
+         when ALU_ADC =>
             sr(SR_S) <= a(7);
             sr(SR_Z) <= not or_all(a(7 downto 0));
             sr(SR_V) <= not(a_i(7) xor b_i(7)) and (a_i(7) xor a(7));
             sr(SR_C) <= a(8);
 
-         when ALU_STA => -- STA
+         when ALU_STA =>
 
-         when ALU_LDA => -- LDA   SZ
+         when ALU_LDA =>
             sr(SR_S) <= a(7);
             sr(SR_Z) <= not or_all(a(7 downto 0));
 
-         when ALU_CMP => -- CMP   SZC
+         when ALU_CMP =>
             sr(SR_S) <= tmp(7);
             sr(SR_Z) <= not or_all(tmp(7 downto 0));
             sr(SR_C) <= tmp(8);
 
-         when ALU_SBC => -- SBC   SZCV
+         when ALU_SBC =>
             sr(SR_S) <= a(7);
             sr(SR_Z) <= not or_all(a(7 downto 0));
             sr(SR_V) <= (a_i(7) xor b_i(7)) and (a_i(7) xor a(7));
