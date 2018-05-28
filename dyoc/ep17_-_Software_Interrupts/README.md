@@ -1,5 +1,5 @@
 # Design Your Own Computer
-# Episode 17 : "Interrupts"
+# Episode 17 : "Software Interrupts"
 
 Welcome to "Design Your Own Computer".  In this episode we will implement
 the three remaining instructions: JMP (a), BRK, and RTI. Furthermore,
