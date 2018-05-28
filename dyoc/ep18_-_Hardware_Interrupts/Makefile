@@ -2,7 +2,7 @@ XILINX_DIR = /opt/Xilinx/Vivado/2017.3
 
 SRC = comp.vhd \
 		vga/font.vhd vga/digits.vhd vga/vga.vhd \
-		mem/ram.vhd mem/rom.vhd mem/mem.vhd \
+		mem/cic.vhd mem/ram.vhd mem/rom.vhd mem/mem.vhd \
 		cpu/datapath.vhd cpu/ctl.vhd cpu/cpu.vhd cpu/alu.vhd
 XDC = comp.xdc
 TB  = tb.vhd
@@ -23,7 +23,7 @@ fpga: comp.bit
 # Compile target program
 #####################################
 
-mem/rom.o: mem/6502_functional_test.s
+mem/rom.o: mem/6502_interrupt_test.s
 	ca65 $< -o $@
 mem/rom.bin: mem/rom.o
 	ld65 -C ld.cfg $<
@@ -38,7 +38,7 @@ mem/rom.txt: mem/rom.bin
 sim: $(SRC) $(TB) mem/rom.txt
 	ghdl -i --work=work $(SRC) $(TB)
 	ghdl -m --ieee=synopsys -fexplicit tb
-	ghdl -r tb --assert-level=error --wave=tb.ghw --stop-time=500us
+	ghdl -r tb --assert-level=error --wave=tb.ghw --stop-time=10us
 	gtkwave tb.ghw tb.gtkw
 
 

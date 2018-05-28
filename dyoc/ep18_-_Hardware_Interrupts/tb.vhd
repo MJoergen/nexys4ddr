@@ -15,6 +15,7 @@ architecture Structural of tb is
    signal mem_data  : std_logic_vector(7 downto 0);
    signal cpu_data  : std_logic_vector(7 downto 0);
    signal cpu_wren  : std_logic;
+   signal mem_stat  : std_logic_vector(7 downto 0);
 
    -- Debug output
    signal cpu_led   : std_logic_vector(7 downto 0);
@@ -65,6 +66,9 @@ begin
       data_i    => mem_data,
       wren_o    => cpu_wren,
       data_o    => cpu_data,
+      irq_i     => mem_stat(0),
+      nmi_i     => mem_stat(1),
+      rst_i     => mem_stat(2),
       invalid_o => cpu_led,
       debug_o   => cpu_debug
    );
@@ -79,7 +83,8 @@ begin
       addr_i => cpu_addr,  -- Only select the relevant address bits
       data_o => mem_data,
       wren_i => cpu_wren,
-      data_i => cpu_data
+      data_i => cpu_data,
+      stat_o => mem_stat
    );
 
 end architecture Structural;

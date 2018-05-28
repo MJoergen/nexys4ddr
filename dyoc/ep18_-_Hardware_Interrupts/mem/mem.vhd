@@ -22,16 +22,20 @@ entity mem is
       data_i : in  std_logic_vector(7 downto 0);
 
       -- '1' indicates we wish to perform a write at the selected address.
-      wren_i : in  std_logic
+      wren_i : in  std_logic;
+
+      stat_o : out std_logic_vector(7 downto 0)
    );
 end mem;
 
 architecture Structural of mem is
 
    signal rom_wren : std_logic;
-   signal ram_wren : std_logic;
    signal rom_data : std_logic_vector(7 downto 0);
+   signal ram_wren : std_logic;
    signal ram_data : std_logic_vector(7 downto 0);
+   signal cic_wren : std_logic;
+   signal cic_data : std_logic_vector(7 downto 0);
 
 begin
 
@@ -71,6 +75,20 @@ begin
    
 
    ----------------------
+   -- Instantiate the CIC
+   ----------------------
+
+   i_cic : entity work.cic
+   port map (
+      clk_i  => clk_i,
+      data_o => cic_data,
+      data_i => data_i,
+      wren_i => cic_wren,
+      stat_o => stat_o
+   );
+   
+
+   ----------------------
    -- Address decoding
    ----------------------
 
@@ -78,9 +96,12 @@ begin
                '0';
    ram_wren <= wren_i when addr_i(15 downto 11) = "00000" else
                '0';
+   cic_wren <= wren_i when addr_i = X"BFFF"               else
+               '0';
 
    data_o <= rom_data when addr_i(15 downto 14) = "11"    else
              ram_data when addr_i(15 downto 11) = "00000" else
+             cic_data when addr_i = X"BFFF"               else
              X"00";
   
 end Structural;

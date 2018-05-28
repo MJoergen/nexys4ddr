@@ -15,6 +15,11 @@ entity cpu is
       -- While this is so, the CPU just stands still, waiting.
       wait_i  : in  std_logic;
 
+      -- Hardware interrupts
+      irq_i   : in  std_logic;
+      nmi_i   : in  std_logic;
+      rst_i   : in  std_logic;
+
       -- Debug output
       invalid_o : out std_logic_vector(7 downto 0);   -- First invalid instruction encountered
       debug_o   : out std_logic_vector(175 downto 0)

@@ -63,12 +63,12 @@ load_data_direct = 0
 
 ;NMI & IRQ are tested with a feedback register
 ;emulators diag register - set i_drive = 0 for a latch (74HC573)
-I_port      = $bffc     ;feedback port address
+I_port      = $bfff     ;feedback port address
 I_ddr       = 0         ;feedback DDR address, 0 = no DDR
 I_drive     = 1         ;0 = totem pole, 1 = open collector
 IRQ_bit     = 0         ;bit number of feedback to IRQ
 NMI_bit     = 1         ;bit number of feedback to NMI, -1 .if not available
-I_filter    = $7f       ;filtering bit 7 = diag stop
+I_filter    = $ff       ;filtering bit 7 = diag stop
 
 ;typical IO chip port B - set i_drive = 0 to avoid pullup resistors
 ;I_port      = $bfb2     ;feedback port address

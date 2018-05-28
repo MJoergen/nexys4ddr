@@ -48,6 +48,7 @@ architecture Structural of comp is
    signal cpu_data  : std_logic_vector(7 downto 0);
    signal cpu_wren  : std_logic;
    signal cpu_debug : std_logic_vector(175 downto 0);
+   signal mem_stat  : std_logic_vector(7 downto 0);
 
    -- Output from VGA block
    signal vga_hs    : std_logic;
@@ -99,7 +100,10 @@ begin
       wren_o    => cpu_wren,
       data_o    => cpu_data,
       invalid_o => led_o,
-      debug_o   => cpu_debug
+      debug_o   => cpu_debug,
+      irq_i     => mem_stat(0),
+      nmi_i     => mem_stat(1),
+      rst_i     => mem_stat(2)
    );
 
    --------------------------------------------------
@@ -112,7 +116,8 @@ begin
       addr_i => cpu_addr,  -- Only select the relevant address bits
       data_o => mem_data,
       wren_i => cpu_wren,
-      data_i => cpu_data
+      data_i => cpu_data,
+      stat_o => mem_stat
    );
 
 
