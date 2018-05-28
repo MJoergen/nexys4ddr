@@ -62,17 +62,19 @@ We will be designing and building these blocks roughly in the above order.
 16. [**"Indirect addressing"**](ep16_-_Indirect_Addressing). We finish (almost)
     the CPU by adding support for indirect addressing modes. Instructions
     implemented: 148/151.
-17. [**"Interrupts"**](ep17_-_Interrupts). We finish
-    the CPU by adding the remaining three instructions. Instructions
+17. [**"Software Interrupts"**](ep17_-_Software_Interrupts). We add 
+    the remaining three instructions. Instructions
     implemented: 151/151.
+18. [**"Hardware Interrupts"**](ep18_-_Hardware_Interrupts). We finish
+    the CPU by adding support for hardware interrupts.
 ### VGA part 2 ###
-18. [**"Text display"**](ep18_-_Text_Display). We expand on the VGA module
+19. [**"Text display"**](ep18_-_Text_Display). We expand on the VGA module
     by adding a screen memory to contain the text to be displayed.
-19. [**"Sprites"**](ep19_-_Sprites). We add sprites (moveable objects) to the
+20. [**"Sprites"**](ep19_-_Sprites). We add sprites (moveable objects) to the
     VGA module.
-20. [**"Interrupts"**](ep20_-_Interrupts). We add interrupt support to the CPU.
+21. [**"Interrupts"**](ep20_-_Interrupts). We add interrupt support to the CPU.
 ### Keyboard ###
-21. [**"Keyboard"**](ep21_-_Keyboard). We are now ready to add the keyboard
+22. [**"Keyboard"**](ep21_-_Keyboard). We are now ready to add the keyboard
     interface.
 
 More to come soon...
