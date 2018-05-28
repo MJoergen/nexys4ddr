@@ -26,9 +26,9 @@ entity ctl is
       invalid_o  : out std_logic_vector(7 downto 0);
       debug_o    : out std_logic_vector(63 downto 0)
    );
-end ctl;
+end entity ctl;
 
-architecture Structural of ctl is
+architecture structural of ctl is
 
    subtype t_ctl is std_logic_vector(38 downto 0);
    type t_rom is array(0 to 8*256-1) of t_ctl;
@@ -2735,16 +2735,16 @@ begin
       end if;
    end process p_cnt;
 
-   p_inst : process (clk_i)
+   p_ir : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
             if cnt = 0 then
-               ir <= data_i;
+               ir <= data_i;     -- Only load instruction register at beginning of instruction.
             end if;
          end if;
       end if;
-   end process p_inst;
+   end process p_ir;
 
    p_invalid : process (clk_i)
    begin
@@ -2786,5 +2786,5 @@ begin
    debug_o(55 downto 51) <= (others => '0');
    debug_o(63 downto 56) <= ir;     -- One byte
 
-end Structural;
+end architecture structural;
 

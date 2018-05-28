@@ -28,7 +28,6 @@ end mem;
 
 architecture Structural of mem is
 
-   signal rom_wren : std_logic;
    signal ram_wren : std_logic;
    signal rom_data : std_logic_vector(7 downto 0);
    signal ram_data : std_logic_vector(7 downto 0);
@@ -47,9 +46,7 @@ begin
    port map (
       clk_i  => clk_i,
       addr_i => addr_i(13 downto 0),
-      data_o => rom_data,
-      data_i => data_i,
-      wren_i => rom_wren
+      data_o => rom_data 
    );
    
 
@@ -74,8 +71,6 @@ begin
    -- Address decoding
    ----------------------
 
-   rom_wren <= wren_i when addr_i(15 downto 14) = "11"    else
-               '0';
    ram_wren <= wren_i when addr_i(15 downto 11) = "00000" else
                '0';
 
