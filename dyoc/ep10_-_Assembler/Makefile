@@ -4,11 +4,11 @@ SRC = comp.vhd vga/sync.vhd vga/font.vhd vga/digits.vhd vga/vga.vhd mem/mem.vhd 
 XDC = comp.xdc
 TB  = tb.vhd
 
-comp.bit: $(SRC) $(XDC) mem/mem.txt
-	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source comp.tcl"
+comp.bit: comp.tcl $(SRC) $(XDC) mem/mem.txt
+	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $<"
 
 fpga: comp.bit
-	djtgcfg prog -d Nexys4DDR -i 0 --file comp.bit
+	djtgcfg prog -d Nexys4DDR -i 0 --file $<
 
 sim: $(SRC) $(TB) mem/mem.txt
 	ghdl -i --work=work $(SRC) $(TB)

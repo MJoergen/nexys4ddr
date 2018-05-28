@@ -12,8 +12,8 @@ TB  = tb.vhd
 # Generate bit-file and program FPGA
 #####################################
 
-comp.bit: $(SRC) $(XDC) mem/rom.txt
-	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source comp.tcl"
+comp.bit: comp.tcl $(SRC) $(XDC) mem/rom.txt
+	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $<"
 
 fpga: comp.bit
 	djtgcfg prog -d Nexys4DDR -i 0 --file $<
