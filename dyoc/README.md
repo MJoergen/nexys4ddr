@@ -67,14 +67,16 @@ We will be designing and building these blocks roughly in the above order.
     implemented: 151/151.
 18. [**"Hardware Interrupts"**](ep18_-_Hardware_Interrupts). We finish
     the CPU by adding support for hardware interrupts.
+19. [**"C Runtime"**](ep19_-_C_Runtime). We modify the toolchain
+    to allow CPU to run C programs.
 ### VGA part 2 ###
-19. [**"Text display"**](ep18_-_Text_Display). We expand on the VGA module
+20. [**"Text display"**](ep20_-_Text_Display). We expand on the VGA module
     by adding a screen memory to contain the text to be displayed.
-20. [**"Sprites"**](ep19_-_Sprites). We add sprites (moveable objects) to the
+21. [**"Sprites"**](ep21_-_Sprites). We add sprites (moveable objects) to the
     VGA module.
-21. [**"Interrupts"**](ep20_-_Interrupts). We add interrupt support to the CPU.
+22. [**"Interrupts"**](ep22_-_Interrupts). We add interrupt support to the CPU.
 ### Keyboard ###
-22. [**"Keyboard"**](ep21_-_Keyboard). We are now ready to add the keyboard
+23. [**"Keyboard"**](ep23_-_Keyboard). We are now ready to add the keyboard
     interface.
 
 More to come soon...
