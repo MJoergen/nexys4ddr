@@ -25,10 +25,15 @@ stack region. There, this requires a unique value of pc\_sel, which in
 turn requires expanding this control signal too. This is handled in line 145.
 
 The instruction PHP requires writing the value of the Status Register to the
-stack.  This is handled by lines 248-249. And the instruction JSR requires writing
-both the high and low byte of the Program Counter. This is handled by lines
-250-251.  Here too it has become necessary to expand the size of the control
-signal data\_sel.
+stack.  This is handled by lines 248-249. And the instruction JSR requires
+writing both the high and low byte of the Program Counter. This is handled by
+lines 250-251.  Here too it has become necessary to expand the size of the
+control signal data\_sel.
+
+Note that the Status Register value stored on the stack will always have the
+Reserved bit set as well as the Break bit set (even though this is not a BRK
+instruction). The only time the Break bit is cleared is during an interrupt
+(either IRQ or NMI).
 
 Finally, the instruction PLP requires copying the data input to the Status
 Register.  This is handled in line 200.
