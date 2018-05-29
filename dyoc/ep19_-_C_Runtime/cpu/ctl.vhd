@@ -2739,7 +2739,7 @@ begin
          end if;
 
          if rst_i = '1' then
-            cnt <= (others => '0');
+            cnt <= "101";
          end if;
       end if;
    end process p_cnt;
