@@ -15,8 +15,17 @@ to increment the address in the hold registers. This is done in
 lines 309 and 325.
 
 ## 00 BRK
-Here we need to read from the hardware vectors.  This requires adding
-the lines 354-359 in cpu/datapath.vhd.
+Here we need to read from the hardware vectors.  This requires adding the lines
+354-359 in cpu/datapath.vhd.
+
+This instruction is a bit tricky, since it is actually a two-byte instruction,
+even though the second byte is not used. The Program Counter value stored on
+the stack is the address after the second byte, so the Program Counter needs to
+be incremented twice, before the value is stored onto the stack.
+
+Furthermore, the Break bit in the Status Register must be set before it is
+pushed onto the stack, but the value itself in the Status Register is not
+changed.
 
 ## 40 RTI
 No changes to the datapath is needed to this instruction.
