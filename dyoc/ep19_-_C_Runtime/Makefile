@@ -20,14 +20,33 @@ fpga: comp.bit
 
 
 #####################################
+# Compile runtime library
+#####################################
+
+prog/crt0.o: prog/crt0.s
+	ca65 $< -o $@
+
+prog/comp.lib: prog/crt0.o
+	cp prog/cc65.lib $@
+	ar65 a $@ $^
+
+prog/vectors.o: prog/vectors.s
+	ca65 $< -o $@
+
+
+#####################################
 # Compile target program
 #####################################
 
-mem/rom.o: mem/6502_interrupt_test.s
+prog/rom.s: prog/rom.c
+	cc65 -t none -O $< -o $@
+prog/rom.o: prog/rom.s
 	ca65 $< -o $@
-mem/rom.bin: mem/rom.o
-	ld65 -C ld.cfg $<
-mem/rom.txt: mem/rom.bin
+prog/irq.o: prog/irq.s
+	ca65 $< -o $@
+prog/rom.bin: prog/rom.o prog/comp.lib prog/vectors.o prog/irq.o
+	ld65 -C ld.cfg $^
+mem/rom.txt: prog/rom.bin
 	./bin2hex.py $< $@
 
 
@@ -53,8 +72,9 @@ clean:
 	rm -rf work-obj93.cf
 	rm -rf tb
 	rm -rf tb.ghw
-	rm -rf mem/rom.o
-	rm -rf mem/rom.bin
 	rm -rf mem/rom.txt
 	rm -rf a.out
+	rm -rf prog/rom.s
+	rm -rf prog/*.o
+	rm -rf prog/*.bin
 
