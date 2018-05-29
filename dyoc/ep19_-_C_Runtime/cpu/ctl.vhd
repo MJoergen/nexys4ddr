@@ -2737,6 +2737,10 @@ begin
                cnt <= (others => '0');
             end if;
          end if;
+
+         if rst_i = '1' then
+            cnt <= (others => '0');
+         end if;
       end if;
    end process p_cnt;
 
@@ -2753,6 +2757,10 @@ begin
                end if;
             end if;
          end if;
+
+         if rst_i = '1' then
+            ir <= X"00";
+         end if;
       end if;
    end process p_ir;
 
@@ -2765,6 +2773,10 @@ begin
                   invalid_inst <= ir;
                end if;
             end if;
+         end if;
+
+         if rst_i = '1' then
+            invalid_inst <= X"00";
          end if;
       end if;
    end process p_invalid;
@@ -2785,6 +2797,10 @@ begin
                   cic <= "00";   -- BRK
                end if;
             end if;
+         end if;
+
+         if rst_i = '1' then
+            cic <= "10";
          end if;
       end if;
    end process p_cic;

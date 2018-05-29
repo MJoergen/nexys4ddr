@@ -143,7 +143,7 @@ architecture structural of datapath is
    signal alu_sr : std_logic_vector(7 downto 0);
    
    -- Program Counter
-   signal pc : std_logic_vector(15 downto 0) := X"C000";
+   signal pc : std_logic_vector(15 downto 0);
 
    -- 'A' register
    signal ar : std_logic_vector(7 downto 0);

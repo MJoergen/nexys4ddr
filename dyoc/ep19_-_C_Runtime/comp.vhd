@@ -24,6 +24,7 @@ entity comp is
 
       sw_i      : in  std_logic_vector(7 downto 0);
       led_o     : out std_logic_vector(7 downto 0);
+      rstn_i    : in  std_logic;
 
       vga_hs_o  : out std_logic;
       vga_vs_o  : out std_logic;
@@ -36,6 +37,9 @@ architecture Structural of comp is
    -- Clock divider for VGA
    signal vga_cnt  : std_logic_vector(1 downto 0) := (others => '0');
    signal vga_clk  : std_logic;
+
+   -- Reset
+   signal rst : std_logic := '1';
 
    -- Generate pause signal
    -- 25 bits corresponds to 25Mhz / 2^25 = 1 Hz approx.
@@ -73,6 +77,17 @@ begin
 
    
    --------------------------------------------------
+   -- Generate Reset
+   --------------------------------------------------
+
+   process (vga_clk)
+   begin
+      if rising_edge(vga_clk) then
+         rst <= not rstn_i;
+      end if;
+   end process;
+
+   --------------------------------------------------
    -- Generate wait signal
    --------------------------------------------------
 
@@ -103,7 +118,7 @@ begin
       debug_o   => cpu_debug,
       irq_i     => mem_stat(0),
       nmi_i     => mem_stat(1),
-      rst_i     => mem_stat(2)
+      rst_i     => rst
    );
 
    --------------------------------------------------

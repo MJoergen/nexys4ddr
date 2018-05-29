@@ -16,6 +16,7 @@ architecture Structural of tb is
    signal cpu_data  : std_logic_vector(7 downto 0);
    signal cpu_wren  : std_logic;
    signal mem_stat  : std_logic_vector(7 downto 0);
+   signal rst       : std_logic;
 
    -- Debug output
    signal cpu_led   : std_logic_vector(7 downto 0);
@@ -37,6 +38,13 @@ begin
       clk <= '1', '0' after 5 ns; -- 100 MHz
       wait for 10 ns;
    end process clk_gen;
+
+
+   --------------------------------------------------
+   -- Generate Reset
+   --------------------------------------------------
+
+   rst <= '1', '0' after 5 ns;
 
 
    --------------------------------------------------
@@ -68,7 +76,7 @@ begin
       data_o    => cpu_data,
       irq_i     => mem_stat(0),
       nmi_i     => mem_stat(1),
-      rst_i     => mem_stat(2),
+      rst_i     => rst,
       invalid_o => cpu_led,
       debug_o   => cpu_debug
    );
