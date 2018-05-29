@@ -77,4 +77,5 @@ clean:
 	rm -rf prog/rom.s
 	rm -rf prog/*.o
 	rm -rf prog/*.bin
+	rm -rf prog/comp.lib
 
