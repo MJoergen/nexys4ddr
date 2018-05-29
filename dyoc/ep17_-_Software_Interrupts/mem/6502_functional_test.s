@@ -113,7 +113,7 @@ code_segment = $C000
 ;self modifying code may be disabled to allow running in ROM
 ;0=part of the code is self modifying and must reside in RAM
 ;1=tests disabled: branch range
-disable_selfmod = 1
+disable_selfmod = 0
 
 ;report errors through I/O channel (0=use standard self trap loops, 1=include
 ;report.i65 as I/O channel, add 3.5 kB)
@@ -1042,7 +1042,7 @@ range_fw:
         dex
         dex             ;-3
 range_op :               ;test target with zero flag=0, z=1 .if previous dex
-range_adr: .addr *+1       ;modifiable relative address
+range_adr .set *+1       ;modifiable relative address
         beq *+64        ;+64 .if called without modification
         dex             ;+0
         dex
