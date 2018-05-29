@@ -80,23 +80,24 @@ begin
    -- Generate Reset
    --------------------------------------------------
 
-   process (vga_clk)
+   p_rst : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
          rst <= not rstn_i;
       end if;
-   end process;
+   end process p_rst;
+
 
    --------------------------------------------------
    -- Generate wait signal
    --------------------------------------------------
 
-   process (vga_clk)
+   p_mem_wait_cnt : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
          mem_wait_cnt <= mem_wait_cnt + sw_i;
       end if;
-   end process;
+   end process p_mem_wait_cnt;
 
    -- Check for wrap around of counter.
    mem_wait <= '0' when (mem_wait_cnt + sw_i) < mem_wait_cnt else not sw_i(7);
