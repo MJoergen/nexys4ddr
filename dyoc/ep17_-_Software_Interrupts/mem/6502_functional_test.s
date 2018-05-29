@@ -1229,7 +1229,7 @@ test_bne:
         trap_cs
         trap_pl
         next_test
-;testing stack operations PHA PHP PLA PLP
+;testing stack operations PHA PLA
             
         ldx #$ff        ;initialize stack
         txs
@@ -1255,6 +1255,21 @@ test_bne:
         cpx #$ff        ;sp incremented?
         trap_ne
         next_test
+
+;testing stack operations PHP PLP
+        set_stat 0      ;all off
+        php
+        pla
+        cmp_flag $30    ;returned with Reserved and Break bits set
+        trap_ne
+
+        set_stat $ff    ;all on
+        php
+        pla
+        cmp_flag $ff    ;returned with all bits set
+        trap_ne
+        next_test
+
 
 ;testing branch decisions BPL BMI BVC BVS BCC BCS BNE BEQ
         set_stat $ff    ;all on
