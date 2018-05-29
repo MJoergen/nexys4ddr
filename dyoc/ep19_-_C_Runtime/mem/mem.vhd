@@ -46,11 +46,11 @@ begin
    i_rom : entity work.rom
    generic map (
       G_INIT_FILE => "mem/rom.txt",
-      G_ADDR_BITS => 14  -- 16K bytes
+      G_ADDR_BITS => 11  -- 2K bytes
    )
    port map (
       clk_i  => clk_i,
-      addr_i => addr_i(13 downto 0),
+      addr_i => addr_i(10 downto 0),
       data_o => rom_data,
       data_i => data_i,
       wren_i => rom_wren
@@ -63,11 +63,11 @@ begin
 
    i_ram : entity work.ram
    generic map (
-      G_ADDR_BITS => 11  -- 2K bytes
+      G_ADDR_BITS => 12  -- 4K bytes
    )
    port map (
       clk_i  => clk_i,
-      addr_i => addr_i(10 downto 0),
+      addr_i => addr_i(11 downto 0),
       data_o => ram_data,
       data_i => data_i,
       wren_i => ram_wren
@@ -92,15 +92,15 @@ begin
    -- Address decoding
    ----------------------
 
-   rom_wren <= wren_i when addr_i(15 downto 14) = "11"    else
+   rom_wren <= wren_i when addr_i(15 downto 11) = "11111" else
                '0';
-   ram_wren <= wren_i when addr_i(15 downto 11) = "00000" else
+   ram_wren <= wren_i when addr_i(15 downto 12) = "0000"  else
                '0';
    cic_wren <= wren_i when addr_i = X"BFFF"               else
                '0';
 
-   data_o <= rom_data when addr_i(15 downto 14) = "11"    else
-             ram_data when addr_i(15 downto 11) = "00000" else
+   data_o <= rom_data when addr_i(15 downto 11) = "11111" else
+             ram_data when addr_i(15 downto 12) = "0000"  else
              cic_data when addr_i = X"BFFF"               else
              X"00";
   
