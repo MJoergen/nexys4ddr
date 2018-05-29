@@ -156,13 +156,13 @@ architecture structural of ctl is
 
 -- 00 BRK b (also RESET, NMI, and IRQ).
       ADDR_PC + PC_INC,
-      ADDR_IRQ + LO_DATA + PC_INC,
-      ADDR_IRQ1 + HI_DATA,
+      PC_INC,
       ADDR_SP + DATA_PCHI + SP_DEC,
       ADDR_SP + DATA_PCLO + SP_DEC,
       ADDR_SP + DATA_SR + SP_DEC,
-      PC_HL + SR_SEI + LAST,
-      INVALID,
+      ADDR_IRQ + LO_DATA + SR_SEI,
+      ADDR_IRQ1 + HI_DATA,
+      PC_HL + LAST,
 
 -- 01 ORA (d,X)
       ADDR_PC + PC_INC,
