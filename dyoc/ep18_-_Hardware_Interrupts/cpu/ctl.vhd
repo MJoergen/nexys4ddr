@@ -82,7 +82,7 @@ architecture structural of ctl is
    constant DATA_ALU    : t_ctl := B"00_00_0_0_00_0000_00000_0_0_011_0000_000000_000_000_0";
    constant DATA_PCLO   : t_ctl := B"00_00_0_0_00_0000_00000_0_0_100_0000_000000_000_000_0";
    constant DATA_PCHI   : t_ctl := B"00_00_0_0_00_0000_00000_0_0_101_0000_000000_000_000_0";
-   constant DATA_SRB    : t_ctl := B"00_00_0_0_00_0000_00000_0_0_110_0000_000000_000_000_0";
+   constant DATA_SRI    : t_ctl := B"00_00_0_0_00_0000_00000_0_0_110_0000_000000_000_000_0";
    --
    constant LAST        : t_ctl := B"00_00_0_0_00_0000_00000_0_1_000_0000_000000_000_000_0";
    --
@@ -161,13 +161,13 @@ architecture structural of ctl is
 
 -- 00 BRK b (also RESET, NMI, and IRQ).
       ADDR_PC + PC_INC,
-      ADDR_IRQ + LO_DATA + PC_INC,
-      ADDR_IRQ1 + HI_DATA,
+      PC_INC,
       ADDR_SP + DATA_PCHI + SP_DEC,
       ADDR_SP + DATA_PCLO + SP_DEC,
-      ADDR_SP + DATA_SRB + SP_DEC,
-      PC_HL + SR_SEI + LAST,
-      INVALID,
+      ADDR_SP + DATA_SR + SP_DEC,
+      ADDR_IRQ + LO_DATA + SR_SEI,
+      ADDR_IRQ1 + HI_DATA,
+      PC_HL + LAST,
 
 -- 01 ORA (d,X)
       ADDR_PC + PC_INC,
@@ -2722,6 +2722,7 @@ architecture structural of ctl is
    signal ir  : std_logic_vector(7 downto 0) := (others => '0');
    signal cnt : std_logic_vector(2 downto 0) := (others => '0');
    signal cic : std_logic_vector(1 downto 0) := (others => '0');
+   signal nmi_d : std_logic;
 
    signal invalid_inst : std_logic_vector(7 downto 0) := (others => '0');
 
@@ -2774,19 +2775,30 @@ begin
          -- Sample and prioritize hardware interrupts at end of instruction.
          if wait_i = '0' then
             if last_s = '1' then
-               if rst_i = '1' then
+               if rst_i = '1' then  -- Reset is non-maskable and level sensitive.
                   cic <= "10";
-               elsif nmi_i = '1' then
+               elsif nmi_d = '0' and nmi_i = '1' then -- NMI is non-maskable, but edge sensitive.
                   cic <= "01";
-               elsif irq_i = '1' and sri_i = '0' then
+               elsif irq_i = '1' and sri_i = '0' then -- IRQ is level sensitive, but maskable.
                   cic <= "11";
                else
-                  cic <= "00";
+                  cic <= "00";   -- BRK
                end if;
             end if;
          end if;
       end if;
    end process p_cic;
+
+   p_nmi_d : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if wait_i = '0' then
+            if last_s = '1' then
+               nmi_d <= nmi_i;
+            end if;
+         end if;
+      end if;
+   end process p_nmi_d;
 
    -- Combinatorial lookup in ROM
    ctl <= ADDR_PC + PC_INC when cnt = 0 else
@@ -2796,9 +2808,9 @@ begin
    ar_sel_o   <= ar_sel;
    hi_sel_o   <= hi_sel;
    lo_sel_o   <= lo_sel;
-   pc_sel_o   <= pc_sel;
-   addr_sel_o <= addr_sel when addr_sel(3) = '0' else '1' & cic & addr_sel(0);
-   data_sel_o <= "010" when data_sel = "110" and cic = "11" else data_sel;
+   pc_sel_o   <= "000000"                when pc_sel(2 downto 0) = "001" and (cic = "11" or cic = "01") else pc_sel;
+   addr_sel_o <= '1' & cic & addr_sel(0) when addr_sel(3) = '1'                                         else addr_sel;
+   data_sel_o <= "110"                   when data_sel = "010" and (cic = "11" or cic = "01")           else data_sel;
    alu_sel_o  <= alu_sel;
    sr_sel_o   <= sr_sel;
    sp_sel_o   <= sp_sel;

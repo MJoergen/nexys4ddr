@@ -45,7 +45,6 @@ architecture structural of datapath is
    constant SR_R : integer := 5;    -- Bit 5 is reserved.
    constant SR_V : integer := 6;
    constant SR_S : integer := 7;
-   constant SR_NR : std_logic_vector(7 downto 0) := (SR_B => '0', SR_R => '1', others => '0');
    constant SR_BR : std_logic_vector(7 downto 0) := (SR_B => '1', SR_R => '1', others => '0');
 
    constant PC_NOP  : std_logic_vector(2 downto 0) := B"000";
@@ -71,6 +70,8 @@ architecture structural of datapath is
    constant ADDR_LO     : std_logic_vector(3 downto 0) := B"0011";
    constant ADDR_SP     : std_logic_vector(3 downto 0) := B"0100";
    constant ADDR_ZP     : std_logic_vector(3 downto 0) := B"0101";
+   constant ADDR_BRK    : std_logic_vector(3 downto 0) := B"1000";
+   constant ADDR_BRK1   : std_logic_vector(3 downto 0) := B"1001";
    constant ADDR_NMI    : std_logic_vector(3 downto 0) := B"1010";
    constant ADDR_NMI1   : std_logic_vector(3 downto 0) := B"1011";
    constant ADDR_RESET  : std_logic_vector(3 downto 0) := B"1100";
@@ -84,7 +85,7 @@ architecture structural of datapath is
    constant DATA_ALU  : std_logic_vector(2 downto 0) := B"011";
    constant DATA_PCLO : std_logic_vector(2 downto 0) := B"100";
    constant DATA_PCHI : std_logic_vector(2 downto 0) := B"101";
-   constant DATA_SRB  : std_logic_vector(2 downto 0) := B"110";
+   constant DATA_SRI  : std_logic_vector(2 downto 0) := B"110";
    --
    constant SR_NOP    : std_logic_vector(3 downto 0) := B"0000";
    constant SR_ALU    : std_logic_vector(3 downto 0) := B"0001";
@@ -145,13 +146,13 @@ architecture structural of datapath is
    signal pc : std_logic_vector(15 downto 0) := X"C000";
 
    -- 'A' register
-   signal ar : std_logic_vector(7 downto 0) := X"00";
+   signal ar : std_logic_vector(7 downto 0);
 
    -- 'X' register
-   signal xr : std_logic_vector(7 downto 0) := X"00";
+   signal xr : std_logic_vector(7 downto 0);
 
    -- 'Y' register
-   signal yr : std_logic_vector(7 downto 0) := X"00";
+   signal yr : std_logic_vector(7 downto 0);
 
    -- Stack Pointer
    signal sp : std_logic_vector(7 downto 0) := X"FF";
@@ -177,6 +178,9 @@ architecture structural of datapath is
    signal addr : std_logic_vector(15 downto 0);
    signal data : std_logic_vector(7 downto 0);
    signal wren : std_logic;
+
+   -- Status register written to stack during interrupt.
+   signal sr_irq : std_logic_vector(7 downto 0);
 
 begin
 
@@ -356,6 +360,13 @@ begin
       end if;
    end process p_zp;
 
+   p_sr_irq : process (sr)
+   begin
+      sr_irq <= sr;
+      sr_irq(SR_R) <= '1';
+      sr_irq(SR_B) <= '0';
+   end process p_sr_irq;
+
    -- Output multiplexers
    addr <= (others => '0') when addr_sel_i = ADDR_NOP    else
            pc              when addr_sel_i = ADDR_PC     else
@@ -369,16 +380,18 @@ begin
            X"FFFD"         when addr_sel_i = ADDR_RESET1 else
            X"FFFE"         when addr_sel_i = ADDR_IRQ    else
            X"FFFF"         when addr_sel_i = ADDR_IRQ1   else
+           X"FFFE"         when addr_sel_i = ADDR_BRK    else
+           X"FFFF"         when addr_sel_i = ADDR_BRK1   else
            (others => '0');
 
    data <= (others => '0') when data_sel_i = DATA_NOP  else
            ar              when data_sel_i = DATA_AR   else
-           -- Bit R must always be set when pushing onto stack.
-           sr or SR_NR     when data_sel_i = DATA_SR   else
+           -- Bits B and R must always be set when pushing onto stack.
+           sr or SR_BR     when data_sel_i = DATA_SR   else
            alu_ar          when data_sel_i = DATA_ALU  else
            pc(7 downto 0)  when data_sel_i = DATA_PCLO else
            pc(15 downto 8) when data_sel_i = DATA_PCHI else
-           sr or SR_BR     when data_sel_i = DATA_SRB  else
+           sr_irq          when data_sel_i = DATA_SRI  else
            (others => '0');
 
    wren <= '1' when data_sel_i = DATA_AR   or
@@ -386,7 +399,7 @@ begin
                     data_sel_i = DATA_ALU  or
                     data_sel_i = DATA_PCLO or
                     data_sel_i = DATA_PCHI or
-                    data_sel_i = DATA_SRB  else
+                    data_sel_i = DATA_SRI  else
            '0';
 
 
