@@ -39,7 +39,7 @@ prog/vectors.o: prog/vectors.s
 #####################################
 
 prog/rom.s: prog/rom.c
-	cc65 -t none -O $< -o $@
+	cc65 -g -t none -O $< -o $@
 prog/rom.o: prog/rom.s
 	ca65 $< -o $@
 prog/irq.o: prog/irq.s
@@ -57,7 +57,7 @@ mem/rom.txt: prog/rom.bin
 sim: $(SRC) $(TB) mem/rom.txt
 	ghdl -i --work=work $(SRC) $(TB)
 	ghdl -m --ieee=synopsys -fexplicit tb
-	ghdl -r tb --assert-level=error --wave=tb.ghw --stop-time=10us
+	ghdl -r tb --assert-level=error --wave=tb.ghw --stop-time=50us
 	gtkwave tb.ghw tb.gtkw
 
 
