@@ -45,7 +45,7 @@ prog/rom.o: prog/rom.s
 prog/irq.o: prog/irq.s
 	ca65 $< -o $@
 prog/rom.bin: prog/rom.o prog/vectors.o prog/irq.o prog/comp.lib
-	ld65 -v -m prog/rom.map -C ld.cfg $^
+	ld65 -m prog/rom.map -C ld.cfg $^
 mem/rom.txt: prog/rom.bin
 	./bin2hex.py $< $@
 
