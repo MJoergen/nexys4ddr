@@ -45,7 +45,7 @@ void main()
    uint8_t i;
 
    rom_init(&rom);
-   for (i=0; i<100; ++i)
+   for (i=0; i<10; ++i)
    {
       rom_iter(&rom);
    }
