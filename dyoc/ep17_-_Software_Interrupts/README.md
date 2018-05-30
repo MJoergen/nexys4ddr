@@ -39,7 +39,7 @@ No changes to the datapath is needed to implement this instruction.
 
 
 ## Functional test
-In a differen project (<https://github.com/Klaus2m5/6502_65C02_functional_tests>)
+In a different project (<https://github.com/Klaus2m5/6502_65C02_functional_tests>)
 I've found a very thorough functional test of the entire CPU
 instruction set.  Unfortunately, the assembly syntax is not compatible with the
 ca65 assembler, so it has been necessary to do a lot a manual editing,
