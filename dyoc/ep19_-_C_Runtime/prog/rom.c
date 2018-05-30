@@ -20,15 +20,17 @@ void rom_init(t_rom *ptr)
 
 void rom_iter(t_rom *ptr)
 {
-   uint8_t k = ptr->m_mem[ptr->m_idx];
+   uint8_t *pMem = ptr->m_mem;
+
+   uint8_t k = pMem[ptr->m_idx];
 
    if (k < SIZE)
    {
-      ptr->m_mem[k] += 1;
+      pMem[k] += 1;
    }
    else
    {
-      ptr->m_mem[ptr->m_idx] = 0;
+      pMem[ptr->m_idx] = 0;
    }
 
    ptr->m_idx += 1;
@@ -40,11 +42,17 @@ void rom_iter(t_rom *ptr)
 void main()
 {
    t_rom rom;
+   uint8_t i;
 
    rom_init(&rom);
-   while (1)
+   for (i=0; i<100; ++i)
    {
       rom_iter(&rom);
    }
+
+   // Infinite loop
+   while(1)
+   {}
+
 } // end of main
 
