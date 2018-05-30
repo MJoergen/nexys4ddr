@@ -68,7 +68,7 @@ begin
       data_o    => cpu_data,
       irq_i     => mem_stat(0),
       nmi_i     => mem_stat(1),
-      rst_i     => mem_stat(2),
+      rst_i     => '0',
       invalid_o => cpu_led,
       debug_o   => cpu_debug
    );

@@ -2721,7 +2721,19 @@ architecture structural of ctl is
 
    signal ir  : std_logic_vector(7 downto 0) := (others => '0');
    signal cnt : std_logic_vector(2 downto 0) := (others => '0');
+
+   -- Interrupt Source
+   -- 00 : BRK
+   -- 01 : NMI
+   -- 10 : Reset
+   -- 11 :_IRQ
+   -- This controls which interrupt vector to fetch the Program Counter
+   -- from, and also which value of the Break bit in the Status Register
+   -- to write to the stack.
    signal cic : std_logic_vector(1 downto 0) := (others => '0');
+
+   -- Delayed NMI signal
+   -- Used to perform edge detection on the NMI input.
    signal nmi_d : std_logic;
 
    signal invalid_inst : std_logic_vector(7 downto 0) := (others => '0');

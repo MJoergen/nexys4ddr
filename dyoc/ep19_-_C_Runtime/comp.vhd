@@ -79,7 +79,6 @@ begin
    --------------------------------------------------
    -- Generate Reset
    --------------------------------------------------
-
    p_rst : process (vga_clk)
    begin
       if rising_edge(vga_clk) then

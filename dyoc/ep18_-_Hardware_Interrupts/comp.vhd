@@ -103,8 +103,9 @@ begin
       debug_o   => cpu_debug,
       irq_i     => mem_stat(0),
       nmi_i     => mem_stat(1),
-      rst_i     => mem_stat(2)
+      rst_i     => '0'     -- Not used in this episode
    );
+
 
    --------------------------------------------------
    -- Instantiate memory
