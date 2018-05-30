@@ -30,15 +30,11 @@ end mem;
 
 architecture Structural of mem is
 
-   signal rom_wren : std_logic;
    signal rom_data : std_logic_vector(7 downto 0);
    signal rom_cs   : std_logic;
    signal ram_wren : std_logic;
    signal ram_data : std_logic_vector(7 downto 0);
    signal ram_cs   : std_logic;
-   signal cic_wren : std_logic;
-   signal cic_data : std_logic_vector(7 downto 0);
-   signal cic_cs   : std_logic;
 
 begin
 
@@ -54,9 +50,7 @@ begin
    port map (
       clk_i  => clk_i,
       addr_i => addr_i(10 downto 0),
-      data_o => rom_data,
-      data_i => data_i,
-      wren_i => rom_wren
+      data_o => rom_data
    );
    
 
@@ -78,20 +72,6 @@ begin
    
 
    ----------------------
-   -- Instantiate the CIC
-   ----------------------
-
-   i_cic : entity work.cic
-   port map (
-      clk_i  => clk_i,
-      data_o => cic_data,
-      data_i => data_i,
-      wren_i => cic_wren,
-      stat_o => stat_o
-   );
-   
-
-   ----------------------
    -- Address decoding
    ----------------------
 
@@ -101,16 +81,11 @@ begin
    ram_cs <= '1' when addr_i(15 downto 12) = "0000"  else
              '0';
 
-   cic_cs <= '1' when addr_i = X"BFFF"               else
-             '0';
 
-   rom_wren <= wren_i and rom_cs;
    ram_wren <= wren_i and ram_cs;
-   cic_wren <= wren_i and cic_cs;
 
    data_o <= rom_data when rom_cs = '1' else
              ram_data when ram_cs = '1' else
-             cic_data when cic_cs = '1' else
              X"00";
   
 end Structural;
