@@ -53,10 +53,10 @@ architecture Structural of digits is
    -- Each character is 16x16 pixels, so the screen contains 40x30 characters.
 
    -- Define positioning of first digit
-   constant DIGITS_CHAR_X : integer := 8;
+   constant DIGITS_CHAR_X : integer := 16;
    constant DIGITS_CHAR_Y : integer := 10;
 
-   constant TEXT_CHAR_X   : integer := 2;
+   constant TEXT_CHAR_X   : integer := 10;
    constant TEXT_CHAR_Y   : integer := DIGITS_CHAR_Y;
 
    type txt_t is array (0 to 5*NUM_ROWS-1) of character;
