@@ -44,8 +44,8 @@ prog/rom.o: prog/rom.s
 	ca65 $< -o $@
 prog/irq.o: prog/irq.s
 	ca65 $< -o $@
-prog/rom.bin: prog/rom.o prog/comp.lib prog/vectors.o prog/irq.o
-	ld65 -C ld.cfg $^
+prog/rom.bin: prog/rom.o prog/vectors.o prog/irq.o prog/comp.lib
+	ld65 -v -m prog/rom.map -C ld.cfg $^
 mem/rom.txt: prog/rom.bin
 	./bin2hex.py $< $@
 
@@ -78,4 +78,5 @@ clean:
 	rm -rf prog/*.o
 	rm -rf prog/*.bin
 	rm -rf prog/comp.lib
+	rm -rf prog/rom.map
 
