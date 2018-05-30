@@ -10,13 +10,13 @@ Instructions implemented in total : 151/151.
 ## 6C JMP (a)
 In this instruction, we read the new value of the Program Counter
 in cycles 4 and 5. We therefore need two new values for pc\_sel, see
-lines 214-215 in cpu/datapath.vhd. Additionally, we need the ability
+lines 220-221 in cpu/datapath.vhd. Additionally, we need the ability
 to increment the address in the hold registers. This is done in
-lines 309 and 325.
+lines 316 and 333.
 
 ## 00 BRK
 Here we need to read from the hardware vectors.  This requires adding the lines
-354-359 in cpu/datapath.vhd.
+363-368 in cpu/datapath.vhd.
 
 This instruction is a bit tricky, since it is actually a two-byte instruction,
 even though the second byte is not used. The Program Counter value stored on
@@ -41,7 +41,7 @@ so it has been necessary to do a lot a manual editing. Edits include:
 
 The size of the ROM needs to be expanded, because of the size of the functional
 test. This means changing the initial value of the Program Counter
-in line 136.
+in line 142.
 
 It was also necessary to allow write access to the ROM, because the test requires this.
 This is done in lines 71-79 in mem/rom.vhd, as well as lines 77-78 in mem/mem.vhd.
