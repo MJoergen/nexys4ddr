@@ -47,7 +47,7 @@ architecture Structural of digits is
    -- Each character is 16x16 pixels, so the screen contains 40x30 characters.
 
    -- Define positioning of first digit
-   constant DIGITS_CHAR_X : integer := 2;
+   constant DIGITS_CHAR_X : integer := 10;
    constant DIGITS_CHAR_Y : integer := 15;
 
    -- A single character bitmap is defined by 8x8 = 64 bits.
