@@ -1,5 +1,5 @@
-00 BRK b
-01 ORA (d,X)
+00 BRK b       Episode 17
+01 ORA (d,X)   Episode 16
 05 ORA d       Episode 11
 06 ASL d       Episode 13
 08 PHP         Episode 12 
@@ -8,15 +8,15 @@
 0D ORA a       Episode 08
 0E ASL a       Episode 13
 10 BPL r       Episode 09
-11 ORA (d),Y
-15 ORA d,X
-16 ASL d,X
+11 ORA (d),Y   Episode 16
+15 ORA d,X     Episode 15
+16 ASL d,X     Episode 15
 18 CLC         Episode 09
-19 ORA a,Y
-1D ORA a,X
-1E ASL a,X
+19 ORA a,Y     Episode 15
+1D ORA a,X     Episode 15
+1E ASL a,X     Episode 15
 20 JSR a       Episode 12
-21 AND (d,X)
+21 AND (d,X)   Episode 16
 24 BIT d       Episode 13
 25 AND d       Episode 11
 26 ROL d       Episode 13
@@ -27,15 +27,15 @@
 2D AND a       Episode 08
 2E ROL a       Episode 13
 30 BMI r       Episode 09
-31 AND (d),Y
-35 AND d,X
-36 ROL d,X
+31 AND (d),Y   Episode 16
+35 AND d,X     Episode 15
+36 ROL d,X     Episode 15
 38 SEC         Episode 09
-39 AND a,Y
-3D AND a,X
-3E ROL a,X
-40 RTI
-41 EOR (d,X)
+39 AND a,Y     Episode 15
+3D AND a,X     Episode 15
+3E ROL a,X     Episode 15
+40 RTI         Episode 17
+41 EOR (d,X)   Episode 16
 45 EOR d       Episode 11
 46 LSR d       Episode 13
 48 PHA         Episode 12
@@ -45,107 +45,107 @@
 4D EOR a       Episode 08
 4E LSR a       Episode 13
 50 BVC r       Episode 09
-51 EOR (d),Y
-55 EOR d,X
-56 LSR d,X
+51 EOR (d),Y   Episode 16
+55 EOR d,X     Episode 15
+56 LSR d,X     Episode 15
 58 CLI         Episode 09
-59 EOR a,Y
-5D EOR a,X
-5E LSR a,X
+59 EOR a,Y     Episode 15
+5D EOR a,X     Episode 15
+5E LSR a,X     Episode 15
 60 RTS         Episode 12
-61 ADC (d,X)
+61 ADC (d,X)   Episode 16
 65 ADC d       Episode 11
 66 ROR d       Episode 13
 68 PLA         Episode 12
 69 ADC #       Episode 08
 6A ROR A       Episode 13
-6C JMP (a)
+6C JMP (a)     Episode 17
 6D ADC a       Episode 08
 6E ROR a       Episode 13
 70 BVS r       Episode 09
-71 ADC (d),Y
-75 ADC d,X
-76 ROR d,X
+71 ADC (d),Y   Episode 16
+75 ADC d,X     Episode 15
+76 ROR d,X     Episode 15
 78 SEI         Episode 09
-79 ADC a,Y
-7D ADC a,X
-7E ROR a,X
-81 STA (d,X)
-84 STY d
+79 ADC a,Y     Episode 15
+7D ADC a,X     Episode 15
+7E ROR a,X     Episode 15
+81 STA (d,X)   Episode 16
+84 STY d       Episode 14
 85 STA d       Episode 11
-86 STX d
-88 DEY
-8A TXA
-8C STY a
+86 STX d       Episode 14
+88 DEY         Episode 14
+8A TXA         Episode 14
+8C STY a       Episode 14
 8D STA a       Episode 06
-8E STX a
+8E STX a       Episode 14
 90 BCC r       Episode 09
-91 STA (d),Y
-94 STY d,X
-95 STA d,X
-96 STX d,Y
-98 TYA
-99 STA a,Y
-9A TXS
-9D STA a,X
-A0 LDY #
-A1 LDA (d,X)
-A2 LDX #
-A4 LDY d
+91 STA (d),Y   Episode 16
+94 STY d,X     Episode 15
+95 STA d,X     Episode 15
+96 STX d,Y     Episode 15
+98 TYA         Episode 14
+99 STA a,Y     Episode 15
+9A TXS         Episode 14
+9D STA a,X     Episode 15
+A0 LDY #       Episode 14
+A1 LDA (d,X)   Episode 16
+A2 LDX #       Episode 14
+A4 LDY d       Episode 14
 A5 LDA d       Episode 11
-A6 LDX d
-A8 TAY
+A6 LDX d       Episode 14
+A8 TAY         Episode 14
 A9 LDA #       Episode 05
-AA TAX
-AC LDY a
+AA TAX         Episode 14
+AC LDY a       Episode 14
 AD LDA a       Episode 06
-AE LDX a
+AE LDX a       Episode 14
 B0 BCS r       Episode 09
-B1 LDA (d),Y
-B4 LDY d,X
-B5 LDA d,X
-B6 LDX d,Y
+B1 LDA (d),Y   Episode 16
+B4 LDY d,X     Episode 15
+B5 LDA d,X     Episode 15
+B6 LDX d,Y     Episode 15
 B8 CLV         Episode 09
-B9 LDA a,Y
-BA TSX
-BC LDY a,X
-BD LDA a,X
-BE LDX a,Y
-C0 CPY #
-C1 CMP (d,X)
-C4 CPY d
+B9 LDA a,Y     Episode 15
+BA TSX         Episode 14
+BC LDY a,X     Episode 15
+BD LDA a,X     Episode 15
+BE LDX a,Y     Episode 15
+C0 CPY #       Episode 14
+C1 CMP (d,X)   Episode 16
+C4 CPY d       Episode 14
 C5 CMP d       Episode 11
 C6 DEC d       Episode 13
-C8 INY
+C8 INY         Episode 14
 C9 CMP #       Episode 08
-CA DEX
-CC CPY a
+CA DEX         Episode 14
+CC CPY a       Episode 14
 CD CMP a       Episode 08
 CE DEC a       Episode 13
 D0 BNE r       Episode 09
-D1 CMP (d),Y
-D5 CMP d,X
-D6 DEC d,X
+D1 CMP (d),Y   Episode 16
+D5 CMP d,X     Episode 15
+D6 DEC d,X     Episode 15
 D8 CLD         Episode 09
-D9 CMP a,Y
-DD CMP a,X
-DE DEC a,X
-E0 CPX #
-E1 SBC (d,X)
-E4 CPX d
+D9 CMP a,Y     Episode 15
+DD CMP a,X     Episode 15
+DE DEC a,X     Episode 15
+E0 CPX #       Episode 14
+E1 SBC (d,X)   Episode 16
+E4 CPX d       Episode 14
 E5 SBC d       Episode 11
 E6 INC d       Episode 13
-E8 INX
+E8 INX         Episode 14
 E9 SBC #       Episode 08
 EA NOP         Episode 13
-EC CPX a
+EC CPX a       Episode 14
 ED SBC a       Episode 08
 EE INC a       Episode 13
 F0 BEQ r       Episode 09
-F1 SBC (d),Y
-F5 SBC d,X
-F6 INC d,X
+F1 SBC (d),Y   Episode 16
+F5 SBC d,X     Episode 15
+F6 INC d,X     Episode 15
 F8 SED         Episode 09
-F9 SBC a,Y
-FD SBC a,X
-FE INC a,X
+F9 SBC a,Y     Episode 15
+FD SBC a,X     Episode 15
+FE INC a,X     Episode 15
