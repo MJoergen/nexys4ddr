@@ -41,7 +41,6 @@ architecture Structural of comp is
    signal cpu_data  : std_logic_vector(7 downto 0);
    signal cpu_wren  : std_logic;
    signal cpu_debug : std_logic_vector(175 downto 0);
-   signal mem_stat  : std_logic_vector(7 downto 0);
 
    -- Output from VGA block
    signal vga_hs    : std_logic;
@@ -110,8 +109,8 @@ begin
       data_o    => cpu_data,
       invalid_o => led_o,
       debug_o   => cpu_debug,
-      irq_i     => mem_stat(0),
-      nmi_i     => mem_stat(1),
+      irq_i     => '0',
+      nmi_i     => '0',
       rst_i     => rst
    );
 
