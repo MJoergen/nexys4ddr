@@ -186,7 +186,7 @@ begin
          stage4 <= stage3;
 
          v_offset_x := stage3.pix_x(2 downto 0);
-         v_offset_y := stage3.pix_y(2 downto 0);
+         v_offset_y := 7-stage3.pix_y(2 downto 0);
 
          v_offset_bitmap := conv_integer(v_offset_y) * 8 + conv_integer(v_offset_x);
 
