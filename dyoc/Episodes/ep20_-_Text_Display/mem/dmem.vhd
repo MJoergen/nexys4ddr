@@ -8,7 +8,8 @@ use ieee.std_logic_unsigned.all;
 
 entity dmem is
    generic (
-      G_ADDR_BITS : integer
+      G_ADDR_BITS : integer;
+      G_INIT_VAL  : std_logic_vector(7 downto 0) := X"00"
    );
    port (
       clk_i  : in  std_logic;
@@ -30,7 +31,7 @@ architecture Structural of dmem is
    type mem_t is array (0 to 2**G_ADDR_BITS-1) of std_logic_vector(7 downto 0);
 
    -- Initialize memory contents
-   signal mem : mem_t := (others => (others => '0'));
+   signal mem : mem_t := (others => G_INIT_VAL);
 
 begin
   

@@ -112,7 +112,8 @@ begin
 
    i_col : entity work.dmem
    generic map (
-      G_ADDR_BITS => G_COL_SIZE
+      G_ADDR_BITS => G_COL_SIZE,
+      G_INIT_VAL  => X"FF"
    )
    port map (
       clk_i    => clk_i,
