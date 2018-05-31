@@ -7,20 +7,21 @@ use ieee.std_logic_unsigned.all;
 -- with 256 colours.
 -- This module expects an input clock rate of approximately
 -- 25.175 MHz. It will work with a clock rate of 25.0 MHz.
---
--- The VGA output displays seven rows of four hexadecimal digits (2 bytes)
--- converted from the input signal digits_i.
--- Additionally a short text description is shown in front of every row.
 
 entity vga is
    port (
-      clk_i     : in  std_logic;    -- Expects 25.175 MHz
+      clk_i       : in  std_logic;    -- Expects 25.175 MHz
 
-      digits_i  : in  std_logic_vector(175 downto 0);
+      digits_i    : in  std_logic_vector(175 downto 0);
 
-      vga_hs_o  : out std_logic;
-      vga_vs_o  : out std_logic;
-      vga_col_o : out std_logic_vector(7 downto 0)
+      char_addr_o : out std_logic_vector(12 downto 0);
+      char_data_i : in  std_logic_vector( 7 downto 0);
+      col_addr_o  : out std_logic_vector(12 downto 0);
+      col_data_i  : in  std_logic_vector( 7 downto 0);
+
+      vga_hs_o    : out std_logic;
+      vga_vs_o    : out std_logic;
+      vga_col_o   : out std_logic_vector(7 downto 0)
    );
 end vga;
 
@@ -36,6 +37,18 @@ architecture Structural of vga is
    -- Pixel counters
    signal pix_x : std_logic_vector(9 downto 0) := (others => '0');
    signal pix_y : std_logic_vector(9 downto 0) := (others => '0');
+
+   signal char_addr : std_logic_vector(12 downto 0);
+   signal char_data : std_logic_vector( 7 downto 0);
+   signal col_addr  : std_logic_vector(12 downto 0);
+   signal col_data  : std_logic_vector( 7 downto 0);
+
+   -- Output from Chars module.
+   signal char_pix_x : std_logic_vector(9 downto 0);
+   signal char_pix_y : std_logic_vector(9 downto 0);
+   signal char_hs    : std_logic;
+   signal char_vs    : std_logic;
+   signal char_col   : std_logic_vector(7 downto 0);
 
 begin
    
@@ -68,6 +81,34 @@ begin
    end process p_pix_y;
 
 
+
+   --------------------------------------------------
+   -- Instantiate character display
+   --------------------------------------------------
+
+   i_chars : entity work.chars
+   generic map (
+      G_FONT_FILE => "font8x8.txt"
+   )
+   port map (
+      clk_i       => clk_i,
+
+      pix_x_i     => pix_x,
+      pix_y_i     => pix_y,
+
+      char_addr_o => char_addr_o,
+      char_data_i => char_data_i,
+      col_addr_o  => col_addr_o,
+      col_data_i  => col_data_i,
+
+      pix_x_o     => char_pix_x,
+      pix_y_o     => char_pix_y,
+      vga_hs_o    => char_hs,
+      vga_vs_o    => char_vs,
+      vga_col_o   => char_col
+   );
+
+
    --------------------------------------------------
    -- Instantiate digits generator
    --------------------------------------------------
@@ -79,8 +120,11 @@ begin
    port map (
       clk_i     => clk_i,
       digits_i  => digits_i,
-      pix_x_i   => pix_x,
-      pix_y_i   => pix_y,
+      pix_x_i   => char_pix_x,
+      pix_y_i   => char_pix_y,
+      vga_hs_i  => char_hs,
+      vga_vs_i  => char_vs,
+      vga_col_i => char_col,
       vga_hs_o  => vga_hs_o,
       vga_vs_o  => vga_vs_o,
       vga_col_o => vga_col_o

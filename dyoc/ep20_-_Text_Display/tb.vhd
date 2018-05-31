@@ -26,6 +26,12 @@ architecture Structural of tb is
    signal mem_wait_cnt : std_logic_vector(0 downto 0) := (others => '0');
    signal mem_wait     : std_logic;
 
+   -- Connected to VGA (not used)
+   signal char_addr : std_logic_vector(12 downto 0) := (others => '0');
+   signal char_data : std_logic_vector( 7 downto 0);
+   signal col_addr  : std_logic_vector(12 downto 0) := (others => '0');
+   signal col_data  : std_logic_vector( 7 downto 0);
+
 begin
    
    --------------------------------------------------
@@ -86,13 +92,30 @@ begin
    --------------------------------------------------
    
    i_mem : entity work.mem
+   generic map (
+      G_ROM_SIZE  => 11, -- 2 Kbytes
+      G_RAM_SIZE  => 12, -- 4 Kbytes
+      G_CHAR_SIZE => 13, -- 8 Kbytes
+      G_COL_SIZE  => 13, -- 8 Kbytes
+      --
+      G_ROM_MASK  => X"F800",
+      G_RAM_MASK  => X"0000",
+      G_CHAR_MASK => X"8000",
+      G_COL_MASK  => X"A000",
+      --
+      G_FONT_FILE => "font8x8.txt",
+      G_ROM_FILE  => "mem/rom.txt"
+   )
    port map (
-      clk_i  => clk,
-      addr_i => cpu_addr,  -- Only select the relevant address bits
-      data_o => mem_data,
-      wren_i => cpu_wren,
-      data_i => cpu_data,
-      stat_o => mem_stat
+      clk_i         => clk,
+      a_addr_i      => cpu_addr,  -- Only select the relevant address bits
+      a_data_o      => mem_data,
+      a_wren_i      => cpu_wren,
+      a_data_i      => cpu_data,
+      b_char_addr_i => char_addr,
+      b_char_data_o => char_data,
+      b_col_addr_i  => col_addr,
+      b_col_data_o  => col_data
    );
 
 end architecture Structural;

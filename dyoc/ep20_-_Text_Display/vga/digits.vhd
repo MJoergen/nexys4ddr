@@ -3,6 +3,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 
+-- This module implements an overlay containing debug information
+-- It receives as input the current screen, and outputs
+-- the modified screen.
+
 entity digits is
    generic (
       G_FONT_FILE : string
@@ -14,6 +18,12 @@ entity digits is
       pix_y_i   : in  std_logic_vector(9 downto 0);
       digits_i  : in  std_logic_vector(175 downto 0);
 
+      -- Current screen
+      vga_hs_i  : in  std_logic;
+      vga_vs_i  : in  std_logic;
+      vga_col_i : in  std_logic_vector(7 downto 0);
+
+      -- Modified screen with overlay
       vga_hs_o  : out std_logic;
       vga_vs_o  : out std_logic;
       vga_col_o : out std_logic_vector(7 downto 0)
@@ -171,7 +181,7 @@ begin
          if pix = '1' then
             vga.col <= COL_WHITE;
          else
-            vga.col <= COL_DARK; -- Text background colour.
+            vga.col <= vga_col_i; -- Text background colour.
          end if;
 
          -- Make sure colour is black outside visible screen
@@ -189,11 +199,7 @@ begin
    p_vga_hs : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if pix_x_i >= HS_START and pix_x_i < HS_START+HS_TIME then
-            vga.hs <= '0';
-         else
-            vga.hs <= '1';
-         end if;
+         vga.hs <= vga_hs_i;
       end if;
    end process p_vga_hs;
 
@@ -204,11 +210,7 @@ begin
    p_vga_vs : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if pix_y_i >= VS_START and pix_y_i < VS_START+VS_TIME then
-            vga.vs <= '0';
-         else
-            vga.vs <= '1';
-         end if;
+         vga.vs <= vga_vs_i;
       end if;
    end process p_vga_vs;
 

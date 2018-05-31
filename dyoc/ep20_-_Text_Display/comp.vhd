@@ -6,17 +6,6 @@ use ieee.std_logic_unsigned.all;
 -- to pins on the FPGA.
 --
 -- In this version the design can execute all instructions.
---
--- Additionally, the CPU registers are shown on the VGA display.
--- The registers shown are:
--- * WREN (1 byte) and DATA OUT (1 byte)
--- * ADDR (2 bytes)
--- * HI (1 byte) and LO (1 byte)
--- * DATA IN (1 byte) and 'A' register (1 byte)
--- * PC (2 bytes)
--- * Instruction Register (1 byte) and Instruction Cycle Count (1 bytes)
---
--- The speed of the execution is controlled by the slide switches.
 
 entity comp is
    port (
@@ -58,6 +47,11 @@ architecture Structural of comp is
    signal vga_hs    : std_logic;
    signal vga_vs    : std_logic;
    signal vga_col   : std_logic_vector(7 downto 0);
+
+   signal char_addr : std_logic_vector(12 downto 0);
+   signal char_data : std_logic_vector( 7 downto 0);
+   signal col_addr  : std_logic_vector(12 downto 0);
+   signal col_data  : std_logic_vector( 7 downto 0);
 
 begin
    
@@ -126,13 +120,30 @@ begin
    --------------------------------------------------
    
    i_mem : entity work.mem
+   generic map (
+      G_ROM_SIZE  => 11, -- 2 Kbytes
+      G_RAM_SIZE  => 12, -- 4 Kbytes
+      G_CHAR_SIZE => 13, -- 8 Kbytes
+      G_COL_SIZE  => 13, -- 8 Kbytes
+      --
+      G_ROM_MASK  => X"F800",
+      G_RAM_MASK  => X"0000",
+      G_CHAR_MASK => X"8000",
+      G_COL_MASK  => X"A000",
+      --
+      G_FONT_FILE => "font8x8.txt",
+      G_ROM_FILE  => "mem/rom.txt"
+   )
    port map (
-      clk_i  => vga_clk,
-      addr_i => cpu_addr,  -- Only select the relevant address bits
-      data_o => mem_data,
-      wren_i => cpu_wren,
-      data_i => cpu_data,
-      stat_o => mem_stat
+      clk_i         => vga_clk,
+      a_addr_i      => cpu_addr,  -- Only select the relevant address bits
+      a_data_o      => mem_data,
+      a_wren_i      => cpu_wren,
+      a_data_i      => cpu_data,
+      b_char_addr_i => char_addr,
+      b_char_data_o => char_data,
+      b_col_addr_i  => col_addr,
+      b_col_data_o  => col_data
    );
 
 
@@ -142,11 +153,15 @@ begin
 
    i_vga : entity work.vga
    port map (
-      clk_i     => vga_clk,
-      digits_i  => cpu_debug,
-      vga_hs_o  => vga_hs,
-      vga_vs_o  => vga_vs,
-      vga_col_o => vga_col
+      clk_i       => vga_clk,
+      digits_i    => cpu_debug,
+      char_addr_o => char_addr,
+      char_data_i => char_data,
+      col_addr_o  => col_addr,
+      col_data_i  => col_data,
+      vga_hs_o    => vga_hs,
+      vga_vs_o    => vga_vs,
+      vga_col_o   => vga_col
    );
 
 
