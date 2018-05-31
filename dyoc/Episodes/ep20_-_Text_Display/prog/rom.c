@@ -1,58 +1,37 @@
-// A little program to do some array manipulations. This is just a simple test of the toolchain and the CPU implementation.
-// Call first the rom_init() function to initialize.
-// After 100 calls to rom_iter() the m_mem[] array should contain the following:
-// 1 7 7 2 1 2 1 2 0 2
-// and the m_idx variable should contain zero.
-
 #include <stdint.h>
-#include "rom.h"
 
-void rom_init(t_rom *ptr)
+uint8_t *ADDR_CHAR = (uint8_t *) 0x8000;
+uint8_t *ADDR_COL  = (uint8_t *) 0xA000;
+
+#define COL_WHITE 0xFF
+
+static uint8_t hex2char(uint8_t val)
 {
-   uint8_t i;
-
-   for (i=0; i<SIZE; ++i)
-      ptr->m_mem[i] = 0;
-
-   ptr->m_idx = 0;
-
-} // end of rom_init
-
-void rom_iter(t_rom *ptr)
-{
-   uint8_t *pMem = ptr->m_mem;
-
-   uint8_t k = pMem[ptr->m_idx];
-
-   if (k < SIZE)
-   {
-      pMem[k] += 1;
-   }
+   if (val < 10)
+      return val + '0';
    else
-   {
-      pMem[ptr->m_idx] = 0;
-   }
-
-   ptr->m_idx += 1;
-   if (ptr->m_idx >= SIZE)
-      ptr->m_idx = 0;
-
-} // end of rom_iter
+      return val-10 + 'A';
+}
 
 void main()
 {
-   t_rom rom;
-   uint8_t i;
+   uint16_t cnt;
 
-   rom_init(&rom);
-   for (i=0; i<10; ++i)
-   {
-      rom_iter(&rom);
-   }
+   ADDR_COL[100] = COL_WHITE;
+   ADDR_COL[101] = COL_WHITE;
+   ADDR_COL[102] = COL_WHITE;
+   ADDR_COL[103] = COL_WHITE;
 
    // Infinite loop
    while(1)
-   {}
+   {
+      ADDR_CHAR[100] = hex2char((cnt>>12) & 0xF);
+      ADDR_CHAR[101] = hex2char((cnt>>8) & 0xF);
+      ADDR_CHAR[102] = hex2char((cnt>>4) & 0xF);
+      ADDR_CHAR[103] = hex2char((cnt>>0) & 0xF);
+
+      cnt++;
+   }
 
 } // end of main
 
