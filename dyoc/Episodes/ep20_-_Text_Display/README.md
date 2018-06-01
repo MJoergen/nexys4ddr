@@ -100,14 +100,16 @@ The remaining signals need to be copied over individually, in lines 146-160.
 
 ### Stage 3 (lines 163-196)
 The font bitmap is 64 bits wide, and the particular bitnumber to use is
-calculated in lines 178-181.
+calculated in lines 178-181. Note that we have to subtract the y coordinate
+from 7.  This same step was necessary in vga/overlay.vhd in line 168. If this
+subtraction is removed, then the characters will be upside-down.
 
 ## Software support
 Now that the firmware can display characters on the VGA output, this can be
 used in software. A very simple version of printf() is implemented in the file
-prog/printf.c. This version write only to the character memory, and not the
+prog/printf.c. This version writes only to the character memory, and not the
 colour memory, so all text will be white on black for now. The memory map is
 hardcoded in line 9. The location in character memory is calculated as 80\*y+x,
-see line 26. This calculation corresponds to the equivalent calculation in
-lines 113-114 of vga/chars.vhd.
+see e.g. line 26. This calculation corresponds to the equivalent calculation in
+lines 114-115 of vga/chars.vhd.
 
