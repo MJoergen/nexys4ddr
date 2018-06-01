@@ -32,6 +32,10 @@ The interpretation ("decoding") of the memory map takes place in lines 61-72 of
 mem/mem.vhd. The postscript "cs" means "chip select". Note that there is no
 rom\_wren, because we have removed to ability for the CPU to write to the ROM.
 
+A default value of 0xFF has been given the colour memory. This means that
+all characters have a default colour of white on black if the CPU doesn't write
+to the colour memory.
+
 ## VGA access to the character and colour memory.
 Both the CPU and the VGA module will be accessing the character and colour
 memories independently of each other, and possibly simultaneously. This is no
@@ -91,4 +95,12 @@ The remaining signals need to be copied over individually, in lines 145-159.
 The font bitmap is 64 bits wide, and the particular bitnumber to use is
 calculated in lines 177-180.
 
+## Software support
+Now that the firmware can display characters on the VGA output, this can be
+used in software. A very simple version of printf() is implemented in the file
+prog/printf.c. This version write only to the character memory, and not the
+colour memory, so all text will be white on black for now. The memory map is
+hardcoded in line 9. The location in character memory is calculated as 80\*y+x,
+see line 26. This calculation corresponds to the equivalent calculation in
+lines 113-114 of vga/chars.vhd.
 
