@@ -107,6 +107,7 @@ begin
             stage1.vs <= '1';
          end if;
 
+         -- Calculate lookup address in character and colour memories.
          v_char_x := stage0.pix_x(9 downto 3);
          v_char_y := stage0.pix_y(9 downto 3);
 
