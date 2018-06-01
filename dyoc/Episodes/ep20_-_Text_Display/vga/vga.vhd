@@ -12,6 +12,7 @@ entity vga is
    port (
       clk_i       : in  std_logic;    -- Expects 25.175 MHz
 
+      overlay_i   : in  std_logic;
       digits_i    : in  std_logic_vector(175 downto 0);
 
       char_addr_o : out std_logic_vector(12 downto 0);
@@ -49,6 +50,11 @@ architecture Structural of vga is
    signal char_hs    : std_logic;
    signal char_vs    : std_logic;
    signal char_col   : std_logic_vector(7 downto 0);
+
+   -- Output from Overlay module.
+   signal overlay_hs  : std_logic;
+   signal overlay_vs  : std_logic;
+   signal overlay_col : std_logic_vector(7 downto 0);
 
 begin
    
@@ -110,10 +116,10 @@ begin
 
 
    --------------------------------------------------
-   -- Instantiate digits generator
+   -- Instantiate CPU debug overlay
    --------------------------------------------------
 
-   i_digits : entity work.digits
+   i_overlay : entity work.overlay
    generic map (
       G_FONT_FILE => "font8x8.txt"
    )
@@ -125,10 +131,15 @@ begin
       vga_hs_i  => char_hs,
       vga_vs_i  => char_vs,
       vga_col_i => char_col,
-      vga_hs_o  => vga_hs_o,
-      vga_vs_o  => vga_vs_o,
-      vga_col_o => vga_col_o
+      vga_hs_o  => overlay_hs,
+      vga_vs_o  => overlay_vs,
+      vga_col_o => overlay_col
    );
+
+   -- Optionally enable CPU debug overlay
+   vga_hs_o  <= overlay_hs  when overlay_i = '1' else char_hs;
+   vga_vs_o  <= overlay_vs  when overlay_i = '1' else char_vs;
+   vga_col_o <= overlay_col when overlay_i = '1' else char_col;
 
 end architecture Structural;
 
