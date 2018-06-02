@@ -7,7 +7,7 @@ use ieee.numeric_std.all;
 -- It receives as input the current screen, and outputs
 -- the modified screen.
 
-entity digits is
+entity overlay is
    generic (
       G_FONT_FILE : string
    );
@@ -28,9 +28,9 @@ entity digits is
       vga_vs_o  : out std_logic;
       vga_col_o : out std_logic_vector(7 downto 0)
    );
-end digits;
+end overlay;
 
-architecture Structural of digits is
+architecture Structural of overlay is
 
    -- Number of rows of text on screen
    constant NUM_ROWS : integer := digits_i'length / 16;

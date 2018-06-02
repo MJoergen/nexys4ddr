@@ -35,6 +35,9 @@ architecture Structural of comp is
    signal mem_wait_cnt  : std_logic_vector(24 downto 0) := (others => '0');
    signal mem_wait      : std_logic;
 
+   -- VGA debug overlay
+   signal overlay       : std_logic;
+
    -- Data Path signals
    signal cpu_addr  : std_logic_vector(15 downto 0);
    signal mem_data  : std_logic_vector(7 downto 0);
@@ -96,6 +99,13 @@ begin
 
    
    --------------------------------------------------
+   -- Control VGA debug overlay
+   --------------------------------------------------
+   
+   overlay <= not sw_i(7);
+
+
+   --------------------------------------------------
    -- Instantiate CPU
    --------------------------------------------------
    
@@ -153,6 +163,7 @@ begin
    i_vga : entity work.vga
    port map (
       clk_i       => vga_clk,
+      overlay_i   => overlay,
       digits_i    => cpu_debug,
       char_addr_o => char_addr,
       char_data_i => char_data,

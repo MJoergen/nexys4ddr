@@ -22,9 +22,7 @@ entity mem is
       data_i : in  std_logic_vector(7 downto 0);
 
       -- '1' indicates we wish to perform a write at the selected address.
-      wren_i : in  std_logic;
-
-      stat_o : out std_logic_vector(7 downto 0)
+      wren_i : in  std_logic
    );
 end mem;
 
