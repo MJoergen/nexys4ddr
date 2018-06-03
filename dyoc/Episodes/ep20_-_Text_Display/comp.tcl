@@ -1,6 +1,6 @@
 # This is a tcl command script for the Vivado tool chain
 read_vhdl {comp.vhd \
-   vga/chars.vhd vga/font.vhd vga/digits.vhd vga/vga.vhd \
+   vga/overlay.vhd vga/chars.vhd vga/font.vhd vga/digits.vhd vga/vga.vhd \
    mem/dmem.vhd mem/ram.vhd mem/rom.vhd mem/mem.vhd \
    cpu/datapath.vhd cpu/ctl.vhd cpu/cpu.vhd cpu/alu.vhd}
 read_xdc comp.xdc

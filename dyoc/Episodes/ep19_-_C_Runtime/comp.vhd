@@ -130,7 +130,7 @@ begin
       addr_i => cpu_addr,  -- Only select the relevant address bits
       data_o => mem_data,
       wren_i => cpu_wren,
-      data_i => cpu_data,
+      data_i => cpu_data
    );
 
 
