@@ -15,6 +15,7 @@ architecture Structural of tb is
    signal mem_data  : std_logic_vector(7 downto 0);
    signal cpu_data  : std_logic_vector(7 downto 0);
    signal cpu_wren  : std_logic;
+   signal cpu_rden  : std_logic;
    signal mem_stat  : std_logic_vector(7 downto 0);
    signal rst       : std_logic;
 
@@ -77,6 +78,7 @@ begin
       clk_i     => clk,
       wait_i    => mem_wait,
       addr_o    => cpu_addr,
+      rden_o    => cpu_rden,
       data_i    => mem_data,
       wren_o    => cpu_wren,
       data_o    => cpu_data,
@@ -109,6 +111,7 @@ begin
    port map (
       clk_i         => clk,
       a_addr_i      => cpu_addr,  -- Only select the relevant address bits
+      a_rden_i      => cpu_rden,
       a_data_o      => mem_data,
       a_wren_i      => cpu_wren,
       a_data_i      => cpu_data,

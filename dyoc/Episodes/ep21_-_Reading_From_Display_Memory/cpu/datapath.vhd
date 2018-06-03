@@ -10,6 +10,7 @@ entity datapath is
       wait_i  : in  std_logic;
       addr_o  : out std_logic_vector(15 downto 0);
       data_i  : in  std_logic_vector(7 downto 0);
+      rden_o  : out std_logic;
       data_o  : out std_logic_vector(7 downto 0);
       wren_o  : out std_logic;
       sri_o   : out std_logic;
@@ -178,6 +179,7 @@ architecture structural of datapath is
    signal addr : std_logic_vector(15 downto 0);
    signal data : std_logic_vector(7 downto 0);
    signal wren : std_logic;
+   signal rden : std_logic;
 
    -- Status register written to stack during interrupt.
    signal sr_irq : std_logic_vector(7 downto 0);
@@ -402,6 +404,21 @@ begin
                     data_sel_i = DATA_SRI  else
            '0';
 
+   rden <= '1' when addr_sel_i = ADDR_PC     or
+                    addr_sel_i = ADDR_HL     or
+                    addr_sel_i = ADDR_LO     or
+                    addr_sel_i = ADDR_SP     or
+                    addr_sel_i = ADDR_ZP     or
+                    addr_sel_i = ADDR_NMI    or
+                    addr_sel_i = ADDR_NMI1   or
+                    addr_sel_i = ADDR_RESET  or
+                    addr_sel_i = ADDR_RESET1 or
+                    addr_sel_i = ADDR_IRQ    or
+                    addr_sel_i = ADDR_IRQ1   or
+                    addr_sel_i = ADDR_BRK    or
+                    addr_sel_i = ADDR_BRK1   else
+           '0';
+
 
    -----------------
    -- Drive output signals
@@ -415,7 +432,8 @@ begin
    debug_o( 63 downto  48) <= addr;   -- Two bytes
    debug_o( 71 downto  64) <= data;   -- One byte
    debug_o( 72)            <= wren;   -- One byte
-   debug_o( 79 downto  73) <= (others => '0');
+   debug_o( 73)            <= rden;
+   debug_o( 79 downto  74) <= (others => '0');
    debug_o( 87 downto  80) <= sr;     -- One byte
    debug_o( 95 downto  88) <= sp;
    debug_o(103 downto  96) <= yr;
@@ -425,6 +443,7 @@ begin
    addr_o <= addr;
    data_o <= data;
    wren_o <= wren and not wait_i;
+   rden_o <= rden;
    sri_o  <= sr(SR_I);
 
 end architecture structural;

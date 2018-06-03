@@ -28,8 +28,10 @@ entity mem is
       -- Port A - connected to CPU
       a_addr_i      : in  std_logic_vector(15 downto 0);
       a_data_o      : out std_logic_vector( 7 downto 0);
+      a_rden_i      : in  std_logic;
       a_data_i      : in  std_logic_vector( 7 downto 0);
       a_wren_i      : in  std_logic;
+      a_wait_o      : out std_logic;
 
       -- Port B - connected to VGA
       b_char_addr_i : in  std_logic_vector(12 downto 0);
@@ -56,6 +58,9 @@ architecture Structural of mem is
    signal col_data  : std_logic_vector(7 downto 0);
    signal col_cs    : std_logic;
 
+   signal a_wait   : std_logic;
+   signal a_wait_d : std_logic;
+
 begin
 
    ----------------------
@@ -72,6 +77,22 @@ begin
    col_wren  <= a_wren_i and col_cs;
 
 
+   --------------------
+   -- Insert wait state
+   --------------------
+
+   a_wait <= a_rden_i and (char_cs or col_cs);
+
+   p_a_wait_d : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         a_wait_d <= a_wait;
+      end if;
+   end process p_a_wait_d;
+
+   a_wait_o <= '1' when a_wait = '1' and a_wait_d = '0' else
+               '0';
+
    ----------------------
    -- Instantiate the ROM
    ----------------------
@@ -86,7 +107,7 @@ begin
       addr_i => a_addr_i(G_ROM_SIZE-1 downto 0),
       data_o => rom_data
    );
-   
+
 
    -----------------------------------
    -- Instantiate the character memory
@@ -99,6 +120,7 @@ begin
    port map (
       clk_i    => clk_i,
       a_addr_i => a_addr_i(G_CHAR_SIZE-1 downto 0),
+      a_data_o => char_data,
       a_data_i => a_data_i,
       a_wren_i => char_wren,
       b_addr_i => b_char_addr_i,
@@ -118,6 +140,7 @@ begin
    port map (
       clk_i    => clk_i,
       a_addr_i => a_addr_i(G_COL_SIZE-1 downto 0),
+      a_data_o => col_data,
       a_data_i => a_data_i,
       a_wren_i => col_wren,
       b_addr_i => b_col_addr_i,
@@ -140,10 +163,12 @@ begin
       data_i => a_data_i,
       wren_i => ram_wren
    );
-   
+
 
    a_data_o <= rom_data  when rom_cs  = '1' else
                ram_data  when ram_cs  = '1' else
+               char_data when char_cs = '1' else
+               col_data  when col_cs  = '1' else
                X"00";
   
 end Structural;

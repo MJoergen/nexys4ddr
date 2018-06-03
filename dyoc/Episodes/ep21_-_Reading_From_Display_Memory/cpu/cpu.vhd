@@ -9,6 +9,7 @@ entity cpu is
       -- Memory interface
       addr_o  : out std_logic_vector(15 downto 0);
       data_i  : in  std_logic_vector(7 downto 0);
+      rden_o  : out std_logic;
       data_o  : out std_logic_vector(7 downto 0);
       wren_o  : out std_logic;
       -- The "wait_i" is '1' when the memory is not ready.
@@ -56,6 +57,7 @@ begin
 
       addr_o  => addr_o,
       data_i  => data_i,
+      rden_o  => rden_o,
       data_o  => data_o,
       wren_o  => wren_o,
       sri_o   => sri,

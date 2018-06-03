@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
 -- This is a Dual-Port memory
--- Port A is write-only
+-- Port A supports read and write
 -- Port B is read-only
 
 entity dmem is
@@ -16,6 +16,7 @@ entity dmem is
 
       -- Port A
       a_addr_i : in  std_logic_vector(G_ADDR_BITS-1 downto 0);
+      a_data_o : out std_logic_vector(7 downto 0);
       a_data_i : in  std_logic_vector(7 downto 0);
       a_wren_i : in  std_logic;
 
@@ -42,6 +43,7 @@ begin
          if a_wren_i = '1' then
             mem(conv_integer(a_addr_i)) <= a_data_i;
          end if;
+         a_data_o <= mem(conv_integer(a_addr_i));
       end if;
    end process p_port_a;
 

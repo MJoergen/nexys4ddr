@@ -4,8 +4,6 @@ use ieee.std_logic_unsigned.all;
 
 -- This is the top level module. The ports on this entity are mapped directly
 -- to pins on the FPGA.
---
--- In this version the design can execute all instructions.
 
 entity comp is
    port (
@@ -35,10 +33,14 @@ architecture Structural of comp is
    signal mem_wait_cnt  : std_logic_vector(24 downto 0) := (others => '0');
    signal mem_wait      : std_logic;
 
+   -- VGA debug overlay
+   signal overlay       : std_logic;
+
    -- Data Path signals
    signal cpu_addr  : std_logic_vector(15 downto 0);
    signal mem_data  : std_logic_vector(7 downto 0);
    signal cpu_data  : std_logic_vector(7 downto 0);
+   signal cpu_rden  : std_logic;
    signal cpu_wren  : std_logic;
    signal cpu_debug : std_logic_vector(175 downto 0);
 
@@ -47,6 +49,7 @@ architecture Structural of comp is
    signal vga_vs    : std_logic;
    signal vga_col   : std_logic_vector(7 downto 0);
 
+   -- Interface between VGA and Memory
    signal char_addr : std_logic_vector(12 downto 0);
    signal char_data : std_logic_vector( 7 downto 0);
    signal col_addr  : std_logic_vector(12 downto 0);
@@ -96,6 +99,13 @@ begin
 
    
    --------------------------------------------------
+   -- Control VGA debug overlay
+   --------------------------------------------------
+
+   overlay <= not sw_i(7);
+
+
+   --------------------------------------------------
    -- Instantiate CPU
    --------------------------------------------------
    
@@ -104,6 +114,7 @@ begin
       clk_i     => vga_clk,
       wait_i    => mem_wait,
       addr_o    => cpu_addr,
+      rden_o    => cpu_rden,
       data_i    => mem_data,
       wren_o    => cpu_wren,
       data_o    => cpu_data,
@@ -134,11 +145,15 @@ begin
       G_ROM_FILE  => "mem/rom.txt"
    )
    port map (
-      clk_i         => vga_clk,
-      a_addr_i      => cpu_addr,  -- Only select the relevant address bits
-      a_data_o      => mem_data,
-      a_wren_i      => cpu_wren,
-      a_data_i      => cpu_data,
+      clk_i    => vga_clk,
+      --
+      a_addr_i => cpu_addr,  -- Only select the relevant address bits
+      a_data_o => mem_data,
+      a_rden_i => cpu_rden,
+      a_wren_i => cpu_wren,
+      a_data_i => cpu_data,
+      a_wait_o => mem_wait,
+      --
       b_char_addr_i => char_addr,
       b_char_data_o => char_data,
       b_col_addr_i  => col_addr,
@@ -152,15 +167,17 @@ begin
 
    i_vga : entity work.vga
    port map (
-      clk_i       => vga_clk,
-      digits_i    => cpu_debug,
+      clk_i     => vga_clk,
+      overlay_i => overlay,
+      digits_i  => cpu_debug,
+      vga_hs_o  => vga_hs,
+      vga_vs_o  => vga_vs,
+      vga_col_o => vga_col,
+
       char_addr_o => char_addr,
       char_data_i => char_data,
       col_addr_o  => col_addr,
-      col_data_i  => col_data,
-      vga_hs_o    => vga_hs,
-      vga_vs_o    => vga_vs,
-      vga_col_o   => vga_col
+      col_data_i  => col_data
    );
 
 
