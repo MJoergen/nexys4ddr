@@ -2750,6 +2750,7 @@ begin
             end if;
          end if;
 
+         -- Upon reset, start by loading Program Counter from Reset vector.
          if rst_i = '1' then
             cnt <= "101";
          end if;
@@ -2770,6 +2771,7 @@ begin
             end if;
          end if;
 
+         -- Upon reset, force the first instruction to be BRK
          if rst_i = '1' then
             ir <= X"00";
          end if;
@@ -2787,6 +2789,7 @@ begin
             end if;
          end if;
 
+         -- Upon reset, clear the invalid instruction register.
          if rst_i = '1' then
             invalid_inst <= X"00";
          end if;
@@ -2811,6 +2814,7 @@ begin
             end if;
          end if;
 
+         -- Upon reset, force a hardware interrupt from the Reset vector.
          if rst_i = '1' then
             cic <= "10";
          end if;
