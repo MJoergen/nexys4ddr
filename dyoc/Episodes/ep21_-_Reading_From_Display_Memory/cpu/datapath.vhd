@@ -179,7 +179,7 @@ architecture structural of datapath is
    signal addr : std_logic_vector(15 downto 0);
    signal data : std_logic_vector(7 downto 0);
    signal wren : std_logic;
-   signal rden : std_logic;
+   signal mem  : std_logic;
 
    -- Status register written to stack during interrupt.
    signal sr_irq : std_logic_vector(7 downto 0);
@@ -404,7 +404,7 @@ begin
                     data_sel_i = DATA_SRI  else
            '0';
 
-   rden <= '1' when addr_sel_i = ADDR_PC     or
+   mem  <= '1' when addr_sel_i = ADDR_PC     or
                     addr_sel_i = ADDR_HL     or
                     addr_sel_i = ADDR_LO     or
                     addr_sel_i = ADDR_SP     or
@@ -432,7 +432,7 @@ begin
    debug_o( 63 downto  48) <= addr;   -- Two bytes
    debug_o( 71 downto  64) <= data;   -- One byte
    debug_o( 72)            <= wren;   -- One byte
-   debug_o( 73)            <= rden;
+   debug_o( 73)            <= mem and not wren;
    debug_o( 79 downto  74) <= (others => '0');
    debug_o( 87 downto  80) <= sr;     -- One byte
    debug_o( 95 downto  88) <= sp;
@@ -443,7 +443,7 @@ begin
    addr_o <= addr;
    data_o <= data;
    wren_o <= wren and not wait_i;
-   rden_o <= rden and not wren;
+   rden_o <= mem and not wren;
    sri_o  <= sr(SR_I);
 
 end architecture structural;

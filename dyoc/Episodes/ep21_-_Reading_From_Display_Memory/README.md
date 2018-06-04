@@ -35,28 +35,8 @@ write (or possibly even no memory transaction at all). The CPU must therefore
 provide a new signal cpu\_rden. This is because the mem\_wait signal should
 not be asserted during a memory write cycle.
 
-The cpu\_rden signal is determined in lines 407-420 of cpu/datapath.vhd. This
-basically states that any memory transaction that is not a write must be a
-read.
-
-
-
-## CPU clock domain
-We need the CPU to be able to read and write to and from the character
-memory as well.
-The Block RAM resources in the FPGA do indeed support Dual Port Mode, i.e.
-with one write port (the CPU) and two read ports (the CPU and the VGA module).
-However, since the CPU expects memory to be asynchronous, we have until now
-made the CPU read on the *falling* clock edge. This won't work now, because
-the FPGA considers this a different clock domain.
-
-With the above description we habe a total of three clock domains: CPU rising
-edge, CPU falling edge, and VGA rising edge. There are two approaches to
-getting around this. One is to force the CPU and VGA to use the same clock ( as
-they indeed to at the moment), thus equating the CPU rising edge and the VGA
-rising edge.  The other approach is to tell the CPU to use synchronuous reads
-when reading from the character and colour memmories. This latter is the
-preferred approach as it is more flexible, allowing the CPU and the VGA modules
-to have different clock speeds.  Furthermore, the support for synchronuous
-reads is already implemented in the wait signal.
+The cpu\_rden signal is determined in line 446 of cpu/datapath.vhd.  This
+basically states that any memory transfer that is not a write must be a read.
+The additional signal mem indicates a memory transfer, and is evaluated in
+lines 407-420 of cpu/datapath.vhd.
 
