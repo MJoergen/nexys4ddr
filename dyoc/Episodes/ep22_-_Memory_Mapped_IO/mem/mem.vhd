@@ -125,7 +125,8 @@ begin
 
    i_memio : entity work.memio
    generic map (
-      G_ADDR_BITS => G_MEMIO_SIZE
+      G_ADDR_BITS => G_MEMIO_SIZE,
+      G_INIT_VAL  => X"000000000000FF00"
    )
    port map (
       clk_i     => clk_i,
