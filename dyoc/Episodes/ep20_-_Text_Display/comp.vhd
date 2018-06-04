@@ -38,8 +38,8 @@ architecture Structural of comp is
 
    -- Generate pause signal
    -- 25 bits corresponds to 25Mhz / 2^25 = 1 Hz approx.
-   signal mem_wait_cnt  : std_logic_vector(24 downto 0) := (others => '0');
-   signal mem_wait      : std_logic;
+   signal sys_wait_cnt  : std_logic_vector(24 downto 0) := (others => '0');
+   signal sys_wait      : std_logic;
 
    -- VGA debug overlay
    signal overlay       : std_logic;
@@ -93,15 +93,15 @@ begin
    -- Generate wait signal
    --------------------------------------------------
 
-   p_mem_wait_cnt : process (vga_clk)
+   p_sys_wait_cnt : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
-         mem_wait_cnt <= mem_wait_cnt + sw_i;
+         sys_wait_cnt <= sys_wait_cnt + sw_i;
       end if;
-   end process p_mem_wait_cnt;
+   end process p_sys_wait_cnt;
 
    -- Check for wrap around of counter.
-   mem_wait <= '0' when (mem_wait_cnt + sw_i) < mem_wait_cnt else not sw_i(7);
+   sys_wait <= '0' when (sys_wait_cnt + sw_i) < sys_wait_cnt else not sw_i(7);
 
    
    --------------------------------------------------
@@ -118,7 +118,7 @@ begin
    i_cpu : entity work.cpu
    port map (
       clk_i     => vga_clk,
-      wait_i    => mem_wait,
+      wait_i    => sys_wait,
       addr_o    => cpu_addr,
       data_i    => mem_data,
       wren_o    => cpu_wren,
