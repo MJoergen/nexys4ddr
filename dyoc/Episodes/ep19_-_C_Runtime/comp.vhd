@@ -115,8 +115,8 @@ begin
       data_o    => cpu_data,
       invalid_o => led_o,
       debug_o   => cpu_debug,
-      irq_i     => '0',
-      nmi_i     => '0',
+      irq_i     => '0', -- Not used at the moment
+      nmi_i     => '0', -- Not used at the moment
       rst_i     => rst
    );
 
