@@ -6,7 +6,7 @@
 
 void printf(char* str)
 {
-   static uint8_t* CharMemory = MAP_CHAR;
+   static uint8_t* CharMemory = MEM_CHAR;
 
    // Current position of cursor
    static uint8_t x=0, y=0;

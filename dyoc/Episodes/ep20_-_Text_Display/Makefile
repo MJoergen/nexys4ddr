@@ -9,6 +9,9 @@ TB   = tb.vhd
 WAVE = tb.ghw
 SAVE = tb.gtkw
 
+# Include directory
+C_INC = prog
+
 
 #####################################
 # Generate bit-file and program FPGA
@@ -32,7 +35,7 @@ lib/vectors.o: lib/vectors.s
 	ca65 $< -o $@
 
 lib/printf.s: lib/printf.c
-	cc65 -g -t none -O $< -o $@
+	cc65 -I $(C_INC) -g -t none -O $< -o $@
 
 lib/printf.o: lib/printf.s
 	ca65 $< -o $@
@@ -79,10 +82,12 @@ clean:
 	rm -rf tb.ghw
 	rm -rf mem/rom.txt
 	rm -rf a.out
-	rm -rf prog/rom.s
+	rm -rf lib/comp.lib
+	rm -rf lib/*.o
+	rm -rf lib/printf.s
+	rm -rf prog/main.s
 	rm -rf prog/printf.s
 	rm -rf prog/*.o
 	rm -rf prog/*.bin
-	rm -rf prog/comp.lib
 	rm -rf prog/rom.map
 
