@@ -6,6 +6,12 @@ use ieee.std_logic_unsigned.all;
 -- to pins on the FPGA.
 --
 -- In this version the design can execute all instructions.
+-- It additionally features a 80x60 character display.
+--
+-- The speed of the execution is controlled by the slide switches.
+-- Simultaneously, the CPU debug is shown as an overlay over the text screen.
+-- If switch 7 is turned on, the CPU operates at full speed, and the
+-- CPU debug overlay is switched off.
 
 entity comp is
    port (

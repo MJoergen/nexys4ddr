@@ -128,10 +128,12 @@ eight pixels, with bit number 0 in the lower left corner.
 Now that the firmware can display characters on the VGA output, this can be
 used in software. A very simple version of printf() is implemented in the file
 prog/printf.c. This version writes only to the character memory, and not the
-colour memory, so all text will be white on black for now. The memory map is
-hardcoded in line 9. The location in character memory is calculated as 80\*y+x,
-see e.g. line 26. This calculation corresponds to the equivalent calculation in
-lines 114-115 of vga/chars.vhd.
+colour memory, so all text will be white on black for now.  The location in
+character memory is calculated as 80\*y+x, see e.g. line 26. This calculation
+corresponds to the equivalent calculation in lines 114-115 of vga/chars.vhd.
+
+Furthermore, a new file prog/memorymap.h has been added. This is to avoid having
+the software hardcode address etc. in the source code.
 
 ## VGA Overlay
 Since we now have two sources of VGA output, the character memory and the CPU
