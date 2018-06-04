@@ -1,8 +1,15 @@
 # Design Your Own Computer
 # Episode 20 : "Text Display"
 
-Welcome to "Design Your Own Computer".  After this episode
-the computer will be able to display 80x60 characters on the VGA output.
+Welcome to "Design Your Own Computer".  The purpose of this episode is to
+enable the display of 80x60 characters on the VGA output.
+To do this we need to do the following:
+* Modify memory map by adding the character and color memories.
+* Allow the VGA module access to these memory regions.
+* Implementing character display in the VGA module.
+* Software support
+Furthermore, we wish to retain the ability to display the CPU debug on the VGA
+output.
 
 ## Memory map
 The screen resolution is 640x480 pixels and since our font is 8x8 pixels this
@@ -18,9 +25,10 @@ following address ranges:
 
 Addresses within 0x8000 - 0xBFFF but outside the above ranges are not used.
 
-The current design will only allow support writing to these memory ranges.
-Allowing the CPU to read from these memory ranges will require a rather large
-number of additional changes, so that is deferred to the next episode.
+The current design will only allow the CPU to write to but not read from these
+memory ranges.  Allowing the CPU to read from these memory ranges will require
+a rather large number of additional changes, so that is deferred to the next
+episode.
 
 By now we have four different active memory ranges (ROM, RAM, CHAR, and COL),
 and it is practical to make the design slightly more generic. Therefore, in
@@ -53,13 +61,6 @@ Note that a default value of 0xFF has been given in line 116. This means that
 all characters have a default colour of white on black if the CPU doesn't write
 to the colour memory.
 
-
-## VGA Overlay
-Since we now have two sources of VGA output, the character memory and the CPU
-debug information, we'll implement the latter as an overlay. The file
-vga/digits.vhd has been renamed to vga/overlay.vhd, and the bit 7 of the switch
-(the "fast" mode) is simultaneously used to disable the CPU debug overlay when
-in fast mode. This takes places in lines 139-142 of vga/vga.vhd.
 
 ## VGA character and colour display
 A new file vga/chars.vhd is used to implement the character display. The
@@ -112,4 +113,11 @@ colour memory, so all text will be white on black for now. The memory map is
 hardcoded in line 9. The location in character memory is calculated as 80\*y+x,
 see e.g. line 26. This calculation corresponds to the equivalent calculation in
 lines 114-115 of vga/chars.vhd.
+
+## VGA Overlay
+Since we now have two sources of VGA output, the character memory and the CPU
+debug information, we'll implement the latter as an overlay. The file
+vga/digits.vhd has been renamed to vga/overlay.vhd, and the bit 7 of the switch
+(the "fast" mode) is simultaneously used to disable the CPU debug overlay when
+in fast mode. This takes places in lines 139-142 of vga/vga.vhd.
 
