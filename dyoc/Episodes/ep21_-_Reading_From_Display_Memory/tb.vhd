@@ -55,21 +55,6 @@ begin
 
 
    --------------------------------------------------
-   -- Generate wait signal
-   --------------------------------------------------
-
-   process (clk)
-   begin
-      if rising_edge(clk) then
-         mem_wait_cnt <= mem_wait_cnt + 1;
-      end if;
-   end process;
-
-   -- Check for wrap around of counter.
-   mem_wait <= '0' when mem_wait_cnt = 0  else '1';
-
-   
-   --------------------------------------------------
    -- Instantiate CPU
    --------------------------------------------------
    
@@ -115,6 +100,7 @@ begin
       a_data_o      => mem_data,
       a_wren_i      => cpu_wren,
       a_data_i      => cpu_data,
+      a_wait_o      => mem_wait,
       b_char_addr_i => char_addr,
       b_char_data_o => char_data,
       b_col_addr_i  => col_addr,
