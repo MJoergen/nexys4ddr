@@ -40,6 +40,8 @@ simplicity.
 The interpretation (i.e. decoding) of the memory map takes place in lines 61-72
 of mem/mem.vhd. The postscript "cs" means "chip select". Note that there is no
 rom\_wren, because we have removed to ability for the CPU to write to the ROM.
+The definition of the memory map is moved to the file comp.vhd in lines
+133-141.
 
 ## VGA access to the character and colour memory.
 Both the CPU and the VGA module will be accessing the character memory
@@ -90,20 +92,37 @@ and colour memories.  Since these memories are separate and distinct, we can
 perform lookups in both memories simultaneously. The same address is used for
 both memories.
 
+The lookup address is calculated by first determining the character row and
+column. This is done by dividing the pixel counters by eight, i.e. removing the
+lower three bits. The offset address in memory is then calculated as 80\*y+x,
+where 80 is the number of characters in the horizontal direction.  This formula
+is a convenient choice, where offset zero corresponds to the top left corner.
+Other choices are possible too, and the main requirement is that there is a
+unique 1-1 correspondence between the character position on the screen, and the
+memory address offset.
+
 ### Stage 2 (lines 120-160)
 The actual lookup is done by connecting the address and data buses in lines
-120-128.
+120-128.  Note that the character and colour memories are synchronuous, which
+means there is a one clock cycle delay from address to data. This is the reason
+why the address is in stage 1, whereas the data is in stage 2.
 
 Next, the font bitmap is determined by another lookup in lines 131-143. This
-lookup is table-based and there is no clock cycle delay.
+lookup is table-based and there is no clock cycle delay.  Here, the font bitmap
+is a combinatorial memory, and therefore not synchronous.  Therefore, both
+address and data belong to stage 2. The font memory is combinatorial, because
+it has no clock input.
 
 The remaining signals need to be copied over individually, in lines 146-160.
 
+
 ### Stage 3 (lines 163-196)
 The font bitmap is 64 bits wide, and the particular bitnumber to use is
-calculated in lines 178-181. Note that we have to subtract the y coordinate
-from 7.  This same step was necessary in vga/overlay.vhd in line 168. If this
-subtraction is removed, then the characters will be upside-down.
+calculated in lines 178-181. The main point is we need to take the pixel
+coordinates modulo 8 (the font size in pixels). Since 8 is a power of two, this
+modulo operation consists simply of taking the lower three bits of the
+pixel coordinate. The font data is - as before - arranged as eight rows of
+eight pixels, with bit number 0 in the lower left corner.
 
 ## Software support
 Now that the firmware can display characters on the VGA output, this can be
@@ -119,5 +138,6 @@ Since we now have two sources of VGA output, the character memory and the CPU
 debug information, we'll implement the latter as an overlay. The file
 vga/digits.vhd has been renamed to vga/overlay.vhd, and the bit 7 of the switch
 (the "fast" mode) is simultaneously used to disable the CPU debug overlay when
-in fast mode. This takes places in lines 139-142 of vga/vga.vhd.
+in fast mode, see lines 101-105 of comp.vhd.  The actual overlay takes places
+in lines 139-142 of vga/vga.vhd.
 

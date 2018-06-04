@@ -73,19 +73,19 @@ architecture Structural of chars is
 
 begin
 
-   -------------------------------------
+   ---------------------------------------------
    -- Stage 0
    -- This stage copies pix_x and pix_y.
-   -------------------------------------
+   ---------------------------------------------
 
    stage0.pix_x <= pix_x_i;
    stage0.pix_y <= pix_y_i;
 
 
-   -----------------------------------------
+   ---------------------------------------------
    -- Stage 1
    -- This stage calculates hs, vs, and addr
-   -----------------------------------------
+   ---------------------------------------------
 
    p_stage1 : process (clk_i)
       variable v_char_x : std_logic_vector(6 downto 0);
@@ -117,10 +117,10 @@ begin
    end process p_stage1;
 
 
-   ----------------------------------------
+   ---------------------------------------------
    -- Stage 2
    -- Read character and colour from memory
-   ----------------------------------------
+   ---------------------------------------------
 
    char_addr_o  <= stage1.addr;
    col_addr_o   <= stage1.addr;
@@ -128,10 +128,10 @@ begin
    stage2.color <= col_data_i;
 
 
-   ---------------------------
+   ---------------------------------------------
    -- Stage 2
    -- Read bitmap of character
-   ---------------------------
+   ---------------------------------------------
 
    i_font : entity work.font
    generic map (
@@ -160,10 +160,10 @@ begin
    end process p_stage2;
 
 
-   ----------
+   ---------------------------------------------
    -- Stage 3
    -- This stage calculates pix_col.
-   ----------
+   ---------------------------------------------
 
    p_stage3 : process (clk_i)
       variable v_offset_x : std_logic_vector(2 downto 0);
