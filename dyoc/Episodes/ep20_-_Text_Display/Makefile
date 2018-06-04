@@ -40,7 +40,7 @@ lib/printf.s: lib/printf.c
 lib/printf.o: lib/printf.s
 	ca65 $< -o $@
 
-lib/comp.lib: lib/crt0.o lib/vectors.o lib/printf.o
+lib/comp.lib: lib/crt0.o lib/printf.o
 	cp lib/none.lib $@
 	ar65 a $@ $^
 
@@ -53,8 +53,10 @@ prog/main.s: prog/main.c
 
 prog/main.o: prog/main.s
 	ca65 $< -o $@
-prog/rom.bin: prog/main.o lib/comp.lib
+
+prog/rom.bin: prog/main.o lib/comp.lib lib/vectors.o
 	ld65 -m prog/rom.map -C ld.cfg $^
+
 mem/rom.txt: prog/rom.bin
 	./bin2hex.py $< $@
 

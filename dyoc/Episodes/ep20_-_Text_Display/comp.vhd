@@ -171,13 +171,14 @@ begin
       clk_i       => vga_clk,
       overlay_i   => overlay,
       digits_i    => cpu_debug,
+      vga_hs_o    => vga_hs,
+      vga_vs_o    => vga_vs,
+      vga_col_o   => vga_col,
+
       char_addr_o => char_addr,
       char_data_i => char_data,
       col_addr_o  => col_addr,
-      col_data_i  => col_data,
-      vga_hs_o    => vga_hs,
-      vga_vs_o    => vga_vs,
-      vga_col_o   => vga_col
+      col_data_i  => col_data
    );
 
 

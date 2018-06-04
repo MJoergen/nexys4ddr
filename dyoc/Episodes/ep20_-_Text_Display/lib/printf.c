@@ -1,5 +1,6 @@
 #include "types.h"
-#include "memorymap.h" // Defines MAP_CHAR
+#include "memorymap.h" // Defines MEM_CHAR
+#include "printf.h"
 
 // Simple implementation of printf. Only supports printing text strings.
 // A newline will jump to the beginning of the next line.
@@ -23,22 +24,22 @@ void printf(char* str)
             break;
 
          default:
-            CharMemory[80*y+x] = str[i];
+            CharMemory[SCREEN_X*y+x] = str[i];
             x++;
             break;
       } // end of switch
 
-      if (x >= 80)
+      if (x >= SCREEN_X)
       {
          x = 0;
          y++;
       }
 
-      if (y >= 25)
+      if (y >= SCREEN_Y)
       {
-         for (y = 0; y < 25; y++)
-            for (x = 0; x < 80; x++)
-               CharMemory[80*y+x] = ' ';
+         for (y = 0; y < SCREEN_Y; y++)
+            for (x = 0; x < SCREEN_X; x++)
+               CharMemory[SCREEN_X*y+x] = ' ';
          x = 0;
          y = 0;
       }
@@ -53,7 +54,7 @@ void printfHex8(uint8_t key)
     foo[0] = hex[(key >> 4) & 0xF];
     foo[1] = hex[key & 0xF];
     printf(foo);
-} // end of printfHex
+} // end of printfHex8
 
 // Print a 16-bit hexadecimal number
 void printfHex16(uint16_t key)
