@@ -72,12 +72,13 @@ We will be designing and building these blocks roughly in the above order.
 ### VGA part 2 ###
 20. [**"Text display"**](Episodes/ep20_-_Text_Display). We expand on the VGA module
     by adding a screen memory to contain the text to be displayed.
-21. [**"Sprites"**](Episodes/ep21_-_Sprites). We add sprites (moveable objects) to the
-    VGA module.
-22. [**"Interrupts"**](Episodes/ep22_-_Interrupts). We add interrupt support to the CPU.
+21. [**"Reading from Display memory"**](Episodes/ep21_-_Reading_From_Display_Memory). We 
+    make it possible for the CPU to read from the character and colour memories.
 ### Keyboard ###
-23. [**"Keyboard"**](Episodes/ep23_-_Keyboard). We are now ready to add the keyboard
+22. [**"Keyboard"**](Episodes/ep22_-_Keyboard). We are now ready to add the keyboard
     interface.
+23. [**"Sprites"**](Episodes/ep23_-_Sprites). We add sprites (moveable objects) to the
+    VGA module.
 
 More to come soon...
 
