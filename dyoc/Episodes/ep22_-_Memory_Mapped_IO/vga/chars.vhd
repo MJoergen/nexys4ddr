@@ -18,6 +18,8 @@ entity chars is
       col_addr_o  : out std_logic_vector(12 downto 0);
       col_data_i  : in  std_logic_vector( 7 downto 0);
 
+      bg_col_i    : in  std_logic_vector(7 downto 0);
+
       pix_x_o     : out std_logic_vector(9 downto 0);
       pix_y_o     : out std_logic_vector(9 downto 0);
       vga_hs_o    : out std_logic;
@@ -181,7 +183,7 @@ begin
          v_offset_bitmap := conv_integer(v_offset_y) * 8 + conv_integer(v_offset_x);
 
          -- Set the text background colour
-         stage3.pix_col <= (others => '0');  -- Black
+         stage3.pix_col <= bg_col_i;
 
          if stage2.bitmap(v_offset_bitmap) = '1' then
             stage3.pix_col <= stage2.color;

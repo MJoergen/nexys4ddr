@@ -65,6 +65,10 @@ architecture Structural of comp is
    signal col_addr  : std_logic_vector(12 downto 0);
    signal col_data  : std_logic_vector( 7 downto 0);
 
+   -- Memory Mapped I/O
+   signal memio_rd  : std_logic_vector(63 downto 0);
+   signal memio_wr  : std_logic_vector(63 downto 0);
+
 begin
    
    --------------------------------------------------
@@ -144,18 +148,20 @@ begin
    
    i_mem : entity work.mem
    generic map (
-      G_ROM_SIZE  => 11, -- 2 Kbytes
-      G_RAM_SIZE  => 12, -- 4 Kbytes
-      G_CHAR_SIZE => 13, -- 8 Kbytes
-      G_COL_SIZE  => 13, -- 8 Kbytes
+      G_ROM_SIZE   => 11, -- 2 Kbytes
+      G_RAM_SIZE   => 12, -- 4 Kbytes
+      G_CHAR_SIZE  => 13, -- 8 Kbytes
+      G_COL_SIZE   => 13, -- 8 Kbytes
+      G_MEMIO_SIZE =>  4, -- 16 bytes 
       --
-      G_ROM_MASK  => X"F800",
-      G_RAM_MASK  => X"0000",
-      G_CHAR_MASK => X"8000",
-      G_COL_MASK  => X"A000",
+      G_ROM_MASK   => X"F800",
+      G_RAM_MASK   => X"0000",
+      G_CHAR_MASK  => X"8000",
+      G_COL_MASK   => X"A000",
+      G_MEMIO_MASK => X"7FF0",
       --
-      G_FONT_FILE => "font8x8.txt",
-      G_ROM_FILE  => "mem/rom.txt"
+      G_FONT_FILE  => "font8x8.txt",
+      G_ROM_FILE   => "mem/rom.txt"
    )
    port map (
       clk_i    => vga_clk,
@@ -170,7 +176,10 @@ begin
       b_char_addr_i => char_addr,
       b_char_data_o => char_data,
       b_col_addr_i  => col_addr,
-      b_col_data_o  => col_data
+      b_col_data_o  => col_data,
+      --
+      b_memio_rd_o => memio_rd,
+      b_memio_wr_i => memio_wr
    );
 
 
@@ -190,7 +199,10 @@ begin
       char_addr_o => char_addr,
       char_data_i => char_data,
       col_addr_o  => col_addr,
-      col_data_i  => col_data
+      col_data_i  => col_data,
+
+      memio_i => memio_wr(15 downto 0),
+      memio_o => memio_rd(31 downto 0)
    );
 
 

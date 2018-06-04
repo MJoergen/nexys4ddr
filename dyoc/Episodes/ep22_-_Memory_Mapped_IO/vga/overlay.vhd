@@ -23,6 +23,8 @@ entity overlay is
       vga_vs_i  : in  std_logic;
       vga_col_i : in  std_logic_vector(7 downto 0);
 
+      fg_col_i  : in  std_logic_vector(7 downto 0);
+
       -- Modified screen with overlay
       vga_hs_o  : out std_logic;
       vga_vs_o  : out std_logic;
@@ -179,7 +181,7 @@ begin
       if rising_edge(clk_i) then
 
          if pix = '1' then
-            vga.col <= COL_WHITE;
+            vga.col <= fg_col_i;
          else
             vga.col <= vga_col_i; -- Text background colour.
          end if;

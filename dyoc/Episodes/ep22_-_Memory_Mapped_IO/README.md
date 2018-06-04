@@ -22,18 +22,16 @@ Reading from the VGA module could be the current pixel coordinates.
 ## Addressing
 Since only a few bytes of data is transferred between the CPU and the VGA
 module, we'll reserve a total of sixteen bytes, half of which is read-only.
-We'll place the sixteen bytes in the addressable range 9FF0 - 9FFF. This
-overlaps the unused part of the character screen, but this will not pose any
-problems.
+We'll place the sixteen bytes in the addressable range 7FF0 - 7FFF.
 
 We therefore choose the following addressable locations:
-* 9FF0 : character background colour
-* 9FF1 : overlay background colour
-* 9FF2 : overlay foreground colour
-* 9FF8 : pix\_x low  (read-only)
-* 9FF9 : pix\_x high (read-only)
-* 9FFA : pix\_y low  (read-only)
-* 9FFB : pix\_y high (read-only)
+* 7FF0 : character background colour
+* 7FF1 : overlay background colour
+* 7FF2 : overlay foreground colour
+* 7FF8 : pix\_x low  (read-only)
+* 7FF9 : pix\_x high (read-only)
+* 7FFA : pix\_y low  (read-only)
+* 7FFB : pix\_y high (read-only)
 
 ## Cool graphical effects :-)
 The idea is to change the background colour synchronuous with the pixel coordinates.
