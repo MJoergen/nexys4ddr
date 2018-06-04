@@ -443,7 +443,7 @@ begin
    addr_o <= addr;
    data_o <= data;
    wren_o <= wren and not wait_i;
-   rden_o <= rden;
+   rden_o <= rden and not wren;
    sri_o  <= sr(SR_I);
 
 end architecture structural;
