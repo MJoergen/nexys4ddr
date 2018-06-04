@@ -5,7 +5,7 @@
 // and the m_idx variable should contain zero.
 
 #include <stdint.h>
-#include "rom.h"
+#include "main.h"
 
 void rom_init(t_rom *ptr)
 {
