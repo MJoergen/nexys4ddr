@@ -28,30 +28,28 @@ fpga: comp.bit
 prog/crt0.o: prog/crt0.s
 	ca65 $< -o $@
 
-prog/comp.lib: prog/crt0.o
-	cp prog/none.lib $@
-	ar65 a $@ $^
-
 prog/vectors.o: prog/vectors.s
 	ca65 $< -o $@
 
+prog/printf.s: prog/printf.c
+	cc65 -g -t none -O $< -o $@
+
+prog/comp.lib: prog/crt0.o prog/vectors.o prog/printf.o
+	cp prog/none.lib $@
+	ar65 a $@ $^
 
 #####################################
 # Compile target program
 #####################################
 
-prog/printf.s: prog/printf.c
-	cc65 -g -t none -O $< -o $@
-prog/rom.s: prog/rom.c
+prog/main.s: prog/main.c
 	cc65 -g -t none -O $< -o $@
 
 prog/printf.o: prog/printf.s
 	ca65 $< -o $@
-prog/rom.o: prog/rom.s
+prog/main.o: prog/main.s
 	ca65 $< -o $@
-prog/irq.o: prog/irq.s
-	ca65 $< -o $@
-prog/rom.bin: prog/printf.o prog/rom.o prog/vectors.o prog/irq.o prog/comp.lib
+prog/rom.bin: prog/main.o prog/irq.o prog/comp.lib
 	ld65 -m prog/rom.map -C ld.cfg $^
 mem/rom.txt: prog/rom.bin
 	./bin2hex.py $< $@
