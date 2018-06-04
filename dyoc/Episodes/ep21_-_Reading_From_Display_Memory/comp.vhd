@@ -4,6 +4,14 @@ use ieee.std_logic_unsigned.all;
 
 -- This is the top level module. The ports on this entity are mapped directly
 -- to pins on the FPGA.
+--
+-- In this version the design can execute all instructions.
+-- It additionally features a 80x60 character display.
+--
+-- The speed of the execution is controlled by the slide switches.
+-- Simultaneously, the CPU debug is shown as an overlay over the text screen.
+-- If switch 7 is turned on, the CPU operates at full speed, and the
+-- CPU debug overlay is switched off.
 
 entity comp is
    port (
@@ -99,6 +107,7 @@ begin
    -- Check for wrap around of counter.
    sys_wait <= '0' when (sys_wait_cnt + sw_i) < sys_wait_cnt else not sw_i(7);
 
+   -- Generate wait signal for the CPU.
    cpu_wait <= mem_wait or sys_wait;
 
    
@@ -124,8 +133,8 @@ begin
       data_o    => cpu_data,
       invalid_o => led_o,
       debug_o   => cpu_debug,
-      irq_i     => '0',
-      nmi_i     => '0',
+      irq_i     => '0', -- Not used at the moment
+      nmi_i     => '0', -- Not used at the moment
       rst_i     => rst
    );
 

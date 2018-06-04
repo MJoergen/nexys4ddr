@@ -1,6 +1,7 @@
 	.setcpu		"6502"
 
-   .export _init, _exit
+   .export _nmi_int, _init, _irq_int
+   .export _exit
    .import _main
 
    .export __STARTUP__ : absolute = 1     ; Mark as startup
@@ -48,4 +49,12 @@ _exit:
    JSR donelib              ; Run destructors
 halt:
    JMP halt
+
+.segment	"CODE"
+
+_nmi_int:
+   RTI
+
+_irq_int:
+   RTI
 
