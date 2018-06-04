@@ -73,9 +73,11 @@ begin
    -- Address decoding
    ----------------------
 
+   -- Allow 2K bytes of ROM in the range 0xF800 - 0xFFFF.
    rom_cs <= '1' when addr_i(15 downto 11) = "11111" else
              '0';
 
+   -- Allow 4K bytes of ROM in the range 0x0000 - 0x0FFF.
    ram_cs <= '1' when addr_i(15 downto 12) = "0000"  else
              '0';
 
