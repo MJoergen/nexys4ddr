@@ -25,17 +25,20 @@ fpga: comp.bit
 # Compile runtime library
 #####################################
 
-prog/crt0.o: prog/crt0.s
+lib/crt0.o: lib/crt0.s
 	ca65 $< -o $@
 
-prog/vectors.o: prog/vectors.s
+lib/vectors.o: lib/vectors.s
 	ca65 $< -o $@
 
-prog/printf.s: prog/printf.c
+lib/printf.s: lib/printf.c
 	cc65 -g -t none -O $< -o $@
 
-prog/comp.lib: prog/crt0.o prog/vectors.o prog/printf.o
-	cp prog/none.lib $@
+lib/printf.o: lib/printf.s
+	ca65 $< -o $@
+
+lib/comp.lib: lib/crt0.o lib/vectors.o lib/printf.o
+	cp lib/none.lib $@
 	ar65 a $@ $^
 
 #####################################
@@ -45,11 +48,9 @@ prog/comp.lib: prog/crt0.o prog/vectors.o prog/printf.o
 prog/main.s: prog/main.c
 	cc65 -g -t none -O $< -o $@
 
-prog/printf.o: prog/printf.s
-	ca65 $< -o $@
 prog/main.o: prog/main.s
 	ca65 $< -o $@
-prog/rom.bin: prog/main.o prog/irq.o prog/comp.lib
+prog/rom.bin: prog/main.o lib/comp.lib
 	ld65 -m prog/rom.map -C ld.cfg $^
 mem/rom.txt: prog/rom.bin
 	./bin2hex.py $< $@

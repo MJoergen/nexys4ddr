@@ -135,6 +135,10 @@ corresponds to the equivalent calculation in lines 114-115 of vga/chars.vhd.
 Furthermore, a new file prog/memorymap.h has been added. This is to avoid having
 the software hardcode address etc. in the source code.
 
+The C source code has been reorganized, so that the runtime library has been
+moved to a separate directory lib. And the source file for the main function
+has been renamed from rom.c to main.c
+
 ## VGA Overlay
 Since we now have two sources of VGA output, the character memory and the CPU
 debug information, we'll implement the latter as an overlay. The file
