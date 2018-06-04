@@ -29,7 +29,7 @@ prog/crt0.o: prog/crt0.s
 	ca65 $< -o $@
 
 prog/comp.lib: prog/crt0.o
-	cp prog/cc65.lib $@
+	cp prog/none.lib $@
 	ar65 a $@ $^
 
 prog/vectors.o: prog/vectors.s
