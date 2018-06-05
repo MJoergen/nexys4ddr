@@ -15,9 +15,7 @@
 
 #define VGA_CHAR_BG_COL  ((uint8_t *) 0x7FF0)
 #define VGA_OVERL_FG_COL ((uint8_t *) 0x7FF1)
-#define VGA_PIX_X_LOW    ((uint8_t *) 0x7FF8)
-#define VGA_PIX_X_HIGH   ((uint8_t *) 0x7FF9)
-#define VGA_PIX_Y_LOW    ((uint8_t *) 0x7FFA)
-#define VGA_PIX_Y_HIGH   ((uint8_t *) 0x7FFB)
+#define VGA_PIX_X        ((uint16_t *) 0x7FF8)
+#define VGA_PIX_Y        ((uint16_t *) 0x7FFA)
 
 #endif // _MEMORY_MAP_H_
