@@ -40,8 +40,8 @@ entity mem is
       b_char_data_o : out std_logic_vector( 7 downto 0);
       b_col_addr_i  : in  std_logic_vector(12 downto 0);
       b_col_data_o  : out std_logic_vector( 7 downto 0);
-      b_memio_rd_o  : out std_logic_vector(63 downto 0);
-      b_memio_wr_i  : in  std_logic_vector(63 downto 0)
+      b_memio_wr_o  : out std_logic_vector(63 downto 0);
+      b_memio_rd_i  : in  std_logic_vector(63 downto 0)
    );
 end mem;
 
@@ -91,7 +91,7 @@ begin
    -- Insert wait state
    --------------------
 
-   a_wait <= a_rden_i and (char_cs or col_cs);
+   a_wait <= a_rden_i and (char_cs or col_cs or memio_cs);
 
    p_a_wait_d : process (clk_i)
    begin
@@ -134,8 +134,8 @@ begin
       a_data_o  => memio_data,
       a_data_i  => a_data_i,
       a_wren_i  => memio_wren,
-      b_memio_i => b_memio_wr_i,
-      b_memio_o => b_memio_rd_o
+      b_memio_o => b_memio_wr_o, -- From MEMIO
+      b_memio_i => b_memio_rd_i  -- To MEMIO
    );
 
 
