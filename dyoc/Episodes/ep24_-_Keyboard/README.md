@@ -1,8 +1,8 @@
 # Design Your Own Computer
-# Episode 24 : "PS/2 interface"
+# Episode 24 : "Keyboard"
  
-Welcome to "Design Your Own Computer".  In this episode we'll add support for the 
-PS/2 interface.
+Welcome to "Design Your Own Computer".  In this episode we'll add the ability
+to read key strokes from the keyboard, using the PS/2 interface.
 
 ## PS/2 interface
 The PS/2 interface consist of a single clock line and a single data line. It is
@@ -23,6 +23,15 @@ it will forever remain out of synchronization. So we implement a simple state
 machine that after the 11 bits it will check the Start and Stop bits.  If they
 are not correct, it will check after every bit, and wait for the correct values
 of the Start and Stop bits.
+
+## Memory map
+The last keyboard event can be read from the address 7FFE. Additionally, an
+interrupt is generated after each keyboard event. There is no buffering in the
+FPGA, and therefore the keyboard interrupt must be serviced reasonably.
+Especially since the keyboard may generate several events back-to-back.
+
+## Interrupt map
+The keyboard is connected to bit 1 of the Interrupt Controller.
 
 ## Debug output
 For now, we'll just display the current value of shift register on the VGA overlay.
