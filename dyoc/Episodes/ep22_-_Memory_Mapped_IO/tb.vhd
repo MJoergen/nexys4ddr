@@ -7,33 +7,16 @@ end tb;
 
 architecture Structural of tb is
 
-   -- Clock
+   -- Clock and Reset
    signal clk  : std_logic;
+   signal rstn : std_logic;
 
-   -- Data Path signals
-   signal cpu_addr  : std_logic_vector(15 downto 0);
-   signal mem_data  : std_logic_vector(7 downto 0);
-   signal cpu_data  : std_logic_vector(7 downto 0);
-   signal cpu_wren  : std_logic;
-   signal cpu_rden  : std_logic;
-   signal rst       : std_logic;
-
-   -- Debug output
-   signal cpu_led   : std_logic_vector(7 downto 0);
-   signal cpu_debug : std_logic_vector(175 downto 0);
-
-   -- Generate pause signal
-   signal mem_wait_cnt : std_logic_vector(0 downto 0) := (others => '0');
-   signal mem_wait     : std_logic;
-
-   -- Connected to VGA (not used)
-   signal char_addr : std_logic_vector(12 downto 0) := (others => '0');
-   signal char_data : std_logic_vector( 7 downto 0);
-   signal col_addr  : std_logic_vector(12 downto 0) := (others => '0');
-   signal col_data  : std_logic_vector( 7 downto 0);
-
-   signal memio_rd  : std_logic_vector(63 downto 0);
-   signal memio_wr  : std_logic_vector(63 downto 0);
+   -- Computer
+   signal sw      : std_logic_vector(7 downto 0);
+   signal led     : std_logic_vector(7 downto 0);
+   signal vga_hs  : std_logic;
+   signal vga_vs  : std_logic;
+   signal vga_col : std_logic_vector(7 downto 0);
 
 begin
    
@@ -41,7 +24,6 @@ begin
    -- Generate clock
    --------------------------------------------------
 
-   -- Generate clock
    clk_gen : process
    begin
       clk <= '1', '0' after 5 ns; -- 100 MHz
@@ -53,64 +35,29 @@ begin
    -- Generate Reset
    --------------------------------------------------
 
-   rst <= '1', '0' after 15 ns;
+   rstn <= '0', '1' after 15 ns;
 
 
    --------------------------------------------------
-   -- Instantiate CPU
+   -- Generate input switches
    --------------------------------------------------
-   
-   i_cpu : entity work.cpu
+
+   sw <= "10000000"; -- Fast mode
+
+
+   --------------------------------------------------
+   -- Instantiate computer
+   --------------------------------------------------
+
+   inst_comp : entity work.comp
    port map (
       clk_i     => clk,
-      wait_i    => mem_wait,
-      addr_o    => cpu_addr,
-      rden_o    => cpu_rden,
-      data_i    => mem_data,
-      wren_o    => cpu_wren,
-      data_o    => cpu_data,
-      irq_i     => '0',
-      nmi_i     => '0',
-      rst_i     => rst,
-      invalid_o => cpu_led,
-      debug_o   => cpu_debug
-   );
-
-   --------------------------------------------------
-   -- Instantiate memory
-   --------------------------------------------------
-   
-   i_mem : entity work.mem
-   generic map (
-      G_ROM_SIZE   => 11, -- 2 Kbytes
-      G_RAM_SIZE   => 12, -- 4 Kbytes
-      G_CHAR_SIZE  => 13, -- 8 Kbytes
-      G_COL_SIZE   => 13, -- 8 Kbytes
-      G_MEMIO_SIZE =>  4, -- 16 bytes
-      --
-      G_ROM_MASK   => X"F800",
-      G_RAM_MASK   => X"0000",
-      G_CHAR_MASK  => X"8000",
-      G_COL_MASK   => X"A000",
-      G_MEMIO_MASK => X"7FF0",
-      --
-      G_FONT_FILE  => "font8x8.txt",
-      G_ROM_FILE   => "mem/rom.txt"
-   )
-   port map (
-      clk_i         => clk,
-      a_addr_i      => cpu_addr,  -- Only select the relevant address bits
-      a_rden_i      => cpu_rden,
-      a_data_o      => mem_data,
-      a_wren_i      => cpu_wren,
-      a_data_i      => cpu_data,
-      a_wait_o      => mem_wait,
-      b_char_addr_i => char_addr,
-      b_char_data_o => char_data,
-      b_col_addr_i  => col_addr,
-      b_col_data_o  => col_data,
-      b_memio_rd_o  => memio_rd,
-      b_memio_wr_i  => memio_wr
+      sw_i      => sw,
+      led_o     => led,
+      rstn_i    => rstn,
+      vga_hs_o  => vga_hs,
+      vga_vs_o  => vga_vs,
+      vga_col_o => vga_col
    );
 
 end architecture Structural;

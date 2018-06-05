@@ -126,10 +126,29 @@ begin
    -- Calculate value of digit at current position ('0' or '1')
    --------------------------------------------------
 
-   nibble_offset <= (char_row - DIGITS_CHAR_Y)*4 + (char_col - DIGITS_CHAR_X);
-   nibble_index  <= 4*NUM_ROWS-1 - nibble_offset;
-   nibble        <= digits_i(4*nibble_index+3 downto 4*nibble_index);
-   txt_offset    <= (char_row - TEXT_CHAR_Y)*5 + (char_col - TEXT_CHAR_X);
+   process (char_row, char_col)
+   begin
+      if char_row >= DIGITS_CHAR_Y and char_row < DIGITS_CHAR_Y+NUM_ROWS and
+         char_col >= DIGITS_CHAR_X and char_col < DIGITS_CHAR_X+4 then
+         nibble_offset <= (char_row - DIGITS_CHAR_Y)*4 + (char_col - DIGITS_CHAR_X);
+         nibble_index  <= 4*NUM_ROWS-1 - nibble_offset;
+         nibble        <= digits_i(4*nibble_index+3 downto 4*nibble_index);
+      else
+         nibble_offset <= 0;
+         nibble_index  <= 0;
+         nibble        <= "0000";
+      end if;
+   end process;
+
+   process (char_row, char_col)
+   begin
+      if char_row >= TEXT_CHAR_Y   and char_row < TEXT_CHAR_Y+NUM_ROWS and
+         char_col >= TEXT_CHAR_X   and char_col < TEXT_CHAR_X+5 then
+         txt_offset <= (char_row - TEXT_CHAR_Y)*5 + (char_col - TEXT_CHAR_X);
+      else
+         txt_offset <= 0;
+      end if;
+   end process;
 
 
    --------------------------------------------------
