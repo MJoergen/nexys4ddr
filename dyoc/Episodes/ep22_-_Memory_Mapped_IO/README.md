@@ -26,8 +26,7 @@ We'll place the sixteen bytes in the addressable range 7FF0 - 7FFF.
 
 We therefore choose the following addressable locations:
 * 7FF0 : character background colour
-* 7FF1 : overlay background colour
-* 7FF2 : overlay foreground colour
+* 7FF1 : overlay foreground colour
 * 7FF8 : pix\_x low  (read-only)
 * 7FF9 : pix\_x high (read-only)
 * 7FFA : pix\_y low  (read-only)
