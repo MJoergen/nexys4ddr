@@ -126,7 +126,7 @@ begin
    -- Calculate value of digit at current position ('0' or '1')
    --------------------------------------------------
 
-   process (char_row, char_col)
+   process (char_row, char_col, nibble_offset, nibble_index, digits_i)
    begin
       if char_row >= DIGITS_CHAR_Y and char_row < DIGITS_CHAR_Y+NUM_ROWS and
          char_col >= DIGITS_CHAR_X and char_col < DIGITS_CHAR_X+4 then
