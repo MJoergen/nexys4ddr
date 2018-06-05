@@ -25,23 +25,24 @@ entity mem is
       G_ROM_FILE   : string            -- Contains the contents of the ROM memory.
    );
    port (
-      clk_i         : in  std_logic;
+      clk_i          : in  std_logic;
 
       -- Port A - connected to CPU
-      a_addr_i      : in  std_logic_vector(15 downto 0);
-      a_data_o      : out std_logic_vector( 7 downto 0);
-      a_rden_i      : in  std_logic;
-      a_data_i      : in  std_logic_vector( 7 downto 0);
-      a_wren_i      : in  std_logic;
-      a_wait_o      : out std_logic;
+      a_addr_i       : in  std_logic_vector(15 downto 0);
+      a_data_o       : out std_logic_vector( 7 downto 0);
+      a_rden_i       : in  std_logic;
+      a_data_i       : in  std_logic_vector( 7 downto 0);
+      a_wren_i       : in  std_logic;
+      a_wait_o       : out std_logic;
 
       -- Port B - connected to VGA and Memory Mapped I/O
-      b_char_addr_i : in  std_logic_vector(12 downto 0);
-      b_char_data_o : out std_logic_vector( 7 downto 0);
-      b_col_addr_i  : in  std_logic_vector(12 downto 0);
-      b_col_data_o  : out std_logic_vector( 7 downto 0);
-      b_memio_wr_o  : out std_logic_vector(63 downto 0);
-      b_memio_rd_i  : in  std_logic_vector(63 downto 0)
+      b_char_addr_i  : in  std_logic_vector(12 downto 0);
+      b_char_data_o  : out std_logic_vector( 7 downto 0);
+      b_col_addr_i   : in  std_logic_vector(12 downto 0);
+      b_col_data_o   : out std_logic_vector( 7 downto 0);
+      b_memio_wr_o   : out std_logic_vector(63 downto 0);
+      b_memio_rd_i   : in  std_logic_vector(63 downto 0);
+      b_memio_rden_o : out std_logic_vector( 7 downto 0)
    );
 end mem;
 
@@ -86,6 +87,12 @@ begin
    col_wren   <= a_wren_i and col_cs;
    memio_wren <= a_wren_i and memio_cs;
 
+
+   process (a_addr_i, a_rden_i, memio_cs, a_wait_d)
+   begin
+      b_memio_rden_o <= (others => '0');
+      b_memio_rden_o(conv_integer(a_addr_i(G_MEMIO_SIZE-2 downto 0))) <= a_rden_i and memio_cs and a_wait_d and a_addr_i(G_MEMIO_SIZE-1);
+   end process;
 
    --------------------
    -- Insert wait state

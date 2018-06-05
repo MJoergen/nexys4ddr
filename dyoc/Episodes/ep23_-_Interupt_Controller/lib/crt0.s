@@ -2,7 +2,7 @@
 
    .export _nmi_int, _init, _irq_int
    .export _exit
-   .import _main
+   .import _main, _isr
 
    .export __STARTUP__ : absolute = 1     ; Mark as startup
    .import __RAM_START__, __RAM_SIZE__    ; Linker generated
@@ -56,5 +56,16 @@ _nmi_int:
    RTI
 
 _irq_int:
+   PHA
+   TXA
+   PHA
+   TYA
+   PHA
+   JSR _isr
+   PLA
+   TAY
+   PLA
+   TAX
+   PLA
    RTI
 

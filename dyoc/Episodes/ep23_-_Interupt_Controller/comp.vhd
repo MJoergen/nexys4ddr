@@ -66,8 +66,13 @@ architecture Structural of comp is
    signal col_data  : std_logic_vector( 7 downto 0);
 
    -- Memory Mapped I/O
-   signal memio_rd  : std_logic_vector(63 downto 0);
-   signal memio_wr  : std_logic_vector(63 downto 0);
+   signal memio_rd   : std_logic_vector(63 downto 0);
+   signal memio_rden : std_logic_vector( 7 downto 0);
+   signal memio_wr   : std_logic_vector(63 downto 0);
+
+   -- Interrupt controller
+   signal ic_irq     : std_logic_vector(7 downto 0);
+   signal cpu_irq    : std_logic;
 
 begin
    
@@ -137,7 +142,7 @@ begin
       data_o    => cpu_data,
       invalid_o => led_o,
       debug_o   => cpu_debug,
-      irq_i     => '0', -- Not used at the moment
+      irq_i     => cpu_irq,
       nmi_i     => '0', -- Not used at the moment
       rst_i     => rst
    );
@@ -178,10 +183,29 @@ begin
       b_col_addr_i  => col_addr,
       b_col_data_o  => col_data,
       --
-      b_memio_rd_i => memio_rd,  -- To MEMIO
-      b_memio_wr_o => memio_wr   -- From MEMIO
+      b_memio_rd_i   => memio_rd,    -- To MEMIO
+      b_memio_rden_o => memio_rden,  -- To MEMIO
+      b_memio_wr_o   => memio_wr     -- From MEMIO
    );
 
+
+   --------------------------------------------------
+   -- Instantiate interrupt controller
+   --------------------------------------------------
+
+   i_ic : entity work.ic
+   port map (
+      clk_i   => vga_clk,
+      irq_i   => ic_irq,    -- Eight independent interrupt sources
+      irq_o   => cpu_irq,   -- Overall CPU interrupt
+
+      mask_i  => memio_wr(63 downto 56),     -- IRQ mask
+      stat_o  => memio_rd(63 downto 56),     -- IRQ status
+
+      stat_clr_i => memio_rden(7)            -- Reading from IRQ status
+   );
+
+   memio_rd(55 downto 32) <= (others => '0');
 
    --------------------------------------------------
    -- Generate VGA module
@@ -201,9 +225,12 @@ begin
       col_addr_o  => col_addr,
       col_data_i  => col_data,
 
-      memio_i => memio_wr(15 downto 0),   -- From MEMIO
-      memio_o => memio_rd(31 downto 0)    -- To MEMIO
+      memio_i => memio_wr(31 downto 0),   -- From MEMIO
+      memio_o => memio_rd(31 downto 0),   -- To MEMIO
+      irq_o => ic_irq(0)
    );
+
+   ic_irq(7 downto 1) <= (others => '0');
 
 
    --------------------------------------------------

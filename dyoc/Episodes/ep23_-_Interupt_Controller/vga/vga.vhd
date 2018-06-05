@@ -20,8 +20,9 @@ entity vga is
       col_addr_o  : out std_logic_vector(12 downto 0);
       col_data_i  : in  std_logic_vector( 7 downto 0);
 
-      memio_i     : in  std_logic_vector(2*8-1 downto 0);
+      memio_i     : in  std_logic_vector(4*8-1 downto 0);
       memio_o     : out std_logic_vector(4*8-1 downto 0);
+      irq_o       : out std_logic;
 
       vga_hs_o    : out std_logic;
       vga_vs_o    : out std_logic;
@@ -31,8 +32,9 @@ end vga;
 
 architecture Structural of vga is
 
-   signal character_background_colour : std_logic_vector(7 downto 0);
-   signal overlay_foreground_colour   : std_logic_vector(7 downto 0);
+   signal character_background_colour : std_logic_vector( 7 downto 0);
+   signal overlay_foreground_colour   : std_logic_vector( 7 downto 0);
+   signal pix_y_line_interrupt        : std_logic_vector(15 downto 0);
 
    -- Define constants used for 640x480 @ 60 Hz.
    -- Requires a clock of 25.175 MHz.
@@ -40,6 +42,10 @@ architecture Structural of vga is
    -- http://caxapa.ru/thumbs/361638/DMTv1r11.pdf
    constant H_TOTAL  : integer := 800;
    constant V_TOTAL  : integer := 525;
+
+   -- Define visible screen size
+   constant H_PIXELS : integer := 640;
+   constant V_PIXELS : integer := 480;
 
    -- Pixel counters
    signal pix_x : std_logic_vector(9 downto 0) := (others => '0');
@@ -157,10 +163,15 @@ begin
 
    character_background_colour <= memio_i( 7 downto  0);
    overlay_foreground_colour   <= memio_i(15 downto  8);
+   pix_y_line_interrupt        <= memio_i(31 downto 16);
    memio_o( 7 downto  0) <= pix_x(7 downto 0);
    memio_o(15 downto  8) <= "000000" & pix_x(9 downto 8);
    memio_o(23 downto 16) <= pix_y(7 downto 0);
    memio_o(31 downto 24) <= "000000" & pix_y(9 downto 8);
+
+   -- Generate interrupt at end of the requested line.
+   irq_o <= '1' when pix_y = pix_y_line_interrupt and pix_x = H_PIXELS else
+            '0';
 
 end architecture Structural;
 
