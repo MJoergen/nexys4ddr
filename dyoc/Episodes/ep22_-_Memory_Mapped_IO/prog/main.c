@@ -14,14 +14,15 @@ void main()
    {
       for (line = 0; line<PIXELS_Y; ++line)
       {
-         while (*VGA_PIX_Y < line)
+         // Wait until the beginning of the line.
+         while (*VGA_PIX_Y != line)
          {}
 
-         // Wait until the end of the line
+         // Wait until outside visible screen.
          while (*VGA_PIX_X < PIXELS_X)
          {}
 
-         *VGA_CHAR_BG_COL = (line / 256);
+         *VGA_CHAR_BG_COL = line & 0xFF;
       }
    }
 
