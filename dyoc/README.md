@@ -81,8 +81,9 @@ control e.g. background colour.
     an interrupt controller.
 24. [**"Keyboard"**](Episodes/ep24_-_Keyboard). We are now ready to add the keyboard
     interface.
-25. [**"Sprites"**](Episodes/ep25_-_Sprites). We add sprites (moveable objects) to the
-    VGA module.
+### Operating System ###
+25. [**"Basic OS"**](Episodes/ep25_-_Basic_OS).
+    We now support reading character from the keyboard.
 
 More to come soon...
 
