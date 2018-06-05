@@ -35,13 +35,19 @@ lib/crt0.o: lib/crt0.s
 lib/vectors.o: lib/vectors.s
 	ca65 $< -o $@
 
+lib/keyboard.s: lib/keyboard.c
+	cc65 -I $(C_INC) -g -t none -O $< -o $@
+
+lib/keyboard.o: lib/keyboard.s
+	ca65 $< -o $@
+
 lib/printf.s: lib/printf.c
 	cc65 -I $(C_INC) -g -t none -O $< -o $@
 
 lib/printf.o: lib/printf.s
 	ca65 $< -o $@
 
-lib/comp.lib: lib/crt0.o lib/printf.o
+lib/comp.lib: lib/crt0.o lib/printf.o lib/keyboard.o
 	cp lib/none.lib $@
 	ar65 a $@ $^
 
@@ -88,6 +94,7 @@ clean:
 	rm -rf lib/comp.lib
 	rm -rf lib/*.o
 	rm -rf lib/printf.s
+	rm -rf lib/keyboard.s
 	rm -rf prog/main.s
 	rm -rf prog/printf.s
 	rm -rf prog/*.o
