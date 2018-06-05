@@ -14,20 +14,14 @@ void main()
    {
       for (line = 0; line<PIXELS_Y; ++line)
       {
-         while (*VGA_PIX_Y_HIGH != line / 256)
-         {}
-
-         while (*VGA_PIX_Y_LOW != line & 255)
+         while (*VGA_PIX_Y < line)
          {}
 
          // Wait until the end of the line
-         while (*VGA_PIX_X_HIGH < PIXELS_X / 256)
+         while (*VGA_PIX_X < PIXELS_X)
          {}
 
-         while (*VGA_PIX_X_LOW < PIXELS_X & 255)
-         {}
-
-         (*VGA_CHAR_BG_COL) = (line / 256);
+         *VGA_CHAR_BG_COL = (line / 256);
       }
    }
 
