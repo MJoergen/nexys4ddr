@@ -178,8 +178,8 @@ begin
       b_col_addr_i  => col_addr,
       b_col_data_o  => col_data,
       --
-      b_memio_rd_o => memio_rd,
-      b_memio_wr_i => memio_wr
+      b_memio_rd_i => memio_rd,  -- To MEMIO
+      b_memio_wr_o => memio_wr   -- From MEMIO
    );
 
 
@@ -201,8 +201,8 @@ begin
       col_addr_o  => col_addr,
       col_data_i  => col_data,
 
-      memio_i => memio_wr(15 downto 0),
-      memio_o => memio_rd(31 downto 0)
+      memio_i => memio_wr(15 downto 0),   -- From MEMIO
+      memio_o => memio_rd(31 downto 0)    -- To MEMIO
    );
 
 
