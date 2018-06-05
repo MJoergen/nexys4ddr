@@ -53,7 +53,7 @@ architecture Structural of comp is
    signal cpu_data  : std_logic_vector(7 downto 0);
    signal cpu_rden  : std_logic;
    signal cpu_wren  : std_logic;
-   signal cpu_debug : std_logic_vector(175 downto 0);
+   signal cpu_debug : std_logic_vector(191 downto 0);
    signal cpu_wait  : std_logic;
    signal mem_wait  : std_logic;
 
@@ -144,7 +144,7 @@ begin
       wren_o    => cpu_wren,
       data_o    => cpu_data,
       invalid_o => led_o,
-      debug_o   => cpu_debug,
+      debug_o   => cpu_debug(175 downto 0),
       irq_i     => cpu_irq,
       nmi_i     => '0', -- Not used at the moment
       rst_i     => rst
@@ -246,6 +246,8 @@ begin
       irq_o      => ic_irq(1)
    );
 
+   cpu_debug(183 downto 176) <= memio_rd(55 downto 48);
+   cpu_debug(191 downto 184) <= (others => '0');
 
    memio_rd(47 downto 32) <= (others => '0');
    ic_irq(7 downto 2)     <= (others => '0');
