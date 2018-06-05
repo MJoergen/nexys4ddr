@@ -74,10 +74,12 @@ We will be designing and building these blocks roughly in the above order.
     by adding a screen memory to contain the text to be displayed.
 21. [**"Reading from Display memory"**](Episodes/ep21_-_Reading_From_Display_Memory). We 
     make it possible for the CPU to read from the character and colour memories.
+22. [**"Memory Mapped I/O"**](Episodes/ep22_-_Memory_Mapped_IO). Now we allow the CPU to
+control e.g. background colour.
 ### Keyboard ###
-22. [**"Keyboard"**](Episodes/ep22_-_Keyboard). We are now ready to add the keyboard
+23. [**"Keyboard"**](Episodes/ep23_-_Keyboard). We are now ready to add the keyboard
     interface.
-23. [**"Sprites"**](Episodes/ep23_-_Sprites). We add sprites (moveable objects) to the
+24. [**"Sprites"**](Episodes/ep24_-_Sprites). We add sprites (moveable objects) to the
     VGA module.
 
 More to come soon...
