@@ -12,11 +12,13 @@ architecture Structural of tb is
    signal rstn : std_logic;
 
    -- Computer
-   signal sw      : std_logic_vector(7 downto 0);
-   signal led     : std_logic_vector(7 downto 0);
-   signal vga_hs  : std_logic;
-   signal vga_vs  : std_logic;
-   signal vga_col : std_logic_vector(7 downto 0);
+   signal sw       : std_logic_vector(7 downto 0);
+   signal led      : std_logic_vector(7 downto 0);
+   signal vga_hs   : std_logic;
+   signal vga_vs   : std_logic;
+   signal vga_col  : std_logic_vector(7 downto 0);
+   signal ps2_clk  : std_logic;
+   signal ps2_data : std_logic;
 
 begin
    
@@ -51,13 +53,15 @@ begin
 
    inst_comp : entity work.comp
    port map (
-      clk_i     => clk,
-      sw_i      => sw,
-      led_o     => led,
-      rstn_i    => rstn,
-      vga_hs_o  => vga_hs,
-      vga_vs_o  => vga_vs,
-      vga_col_o => vga_col
+      clk_i      => clk,
+      sw_i       => sw,
+      led_o      => led,
+      rstn_i     => rstn,
+      ps2_clk_i  => ps2_clk,
+      ps2_data_i => ps2_data,
+      vga_hs_o   => vga_hs,
+      vga_vs_o   => vga_vs,
+      vga_col_o  => vga_col
    );
 
 end architecture Structural;

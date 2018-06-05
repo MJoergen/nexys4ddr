@@ -159,7 +159,7 @@ static unsigned char irqY;
 static unsigned char irqCnt;
 static unsigned char irqBgStart;
 
-#define YPOS_LINE1 (3*13 - 1)
+#define YPOS_LINE1 0*(3*13 - 1)
 #define YPOS_LINE2 (4*13 - 1)
 
 // The interrupt service routine.
@@ -415,10 +415,10 @@ void __fastcall__ reset(void)
    __asm__("LDX #$FF");
    __asm__("TXS");                           // Reset stack pointer
 
-   smult_init();
+//   smult_init();
    circle_init();
-   clearScreen();
-   resetColorLine();
+//   clearScreen();
+//   resetColorLine();
 
    // Configure text color
    __asm__("LDA #%b", COL_LIGHT);
@@ -450,10 +450,10 @@ void __fastcall__ reset(void)
    __asm__("LDA $8000");                           // Read first character from screen memory (where cursor is).
    __asm__("STA %b", ZP_CURSOR_CHAR);
 
-loop:
    __asm__("JSR %v", readFromKeyboard);      // This is a blocking call; it won't return until a valid keypress is detected.
    __asm__("JSR %v", updateBuffer);
 
+loop:
    goto loop;  // Just do an endless loop.
 } // end of reset
 

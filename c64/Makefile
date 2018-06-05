@@ -102,7 +102,7 @@ PROG_SRC   += src/prog/umult.c
 LD_CFG      = src/prog/ld.cfg
 VECTORS_AS  = src/prog/vectors.s
 
-stoptime = --stop-time=30us
+stoptime = --stop-time=130us
 
 # The following is used for the compress.vhd unit test.
 #SRC    = src/nexys4ddr/compress.vhd

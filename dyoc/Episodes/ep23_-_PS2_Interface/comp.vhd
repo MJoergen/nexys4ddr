@@ -15,15 +15,18 @@ use ieee.std_logic_unsigned.all;
 
 entity comp is
    port (
-      clk_i     : in  std_logic;                      -- 100 MHz
+      clk_i      : in  std_logic;                      -- 100 MHz
 
-      sw_i      : in  std_logic_vector(7 downto 0);
-      led_o     : out std_logic_vector(7 downto 0);
-      rstn_i    : in  std_logic;
+      sw_i       : in  std_logic_vector(7 downto 0);
+      led_o      : out std_logic_vector(7 downto 0);
+      rstn_i     : in  std_logic;
 
-      vga_hs_o  : out std_logic;
-      vga_vs_o  : out std_logic;
-      vga_col_o : out std_logic_vector(7 downto 0)    -- RRRGGGBB
+      ps2_clk_i  : in  std_logic;
+      ps2_data_i : in  std_logic;
+
+      vga_hs_o   : out std_logic;
+      vga_vs_o   : out std_logic;
+      vga_col_o  : out std_logic_vector(7 downto 0)    -- RRRGGGBB
    );
 end comp;
 
@@ -50,7 +53,7 @@ architecture Structural of comp is
    signal cpu_data  : std_logic_vector(7 downto 0);
    signal cpu_rden  : std_logic;
    signal cpu_wren  : std_logic;
-   signal cpu_debug : std_logic_vector(175 downto 0);
+   signal cpu_debug : std_logic_vector(191 downto 0);
    signal cpu_wait  : std_logic;
    signal mem_wait  : std_logic;
 
@@ -68,6 +71,10 @@ architecture Structural of comp is
    -- Memory Mapped I/O
    signal memio_rd  : std_logic_vector(63 downto 0);
    signal memio_wr  : std_logic_vector(63 downto 0);
+
+   -- Keyboard
+   signal kbd_byte  : std_logic_vector(7 downto 0);
+   signal kbd_valid : std_logic;
 
 begin
    
@@ -136,7 +143,7 @@ begin
       wren_o    => cpu_wren,
       data_o    => cpu_data,
       invalid_o => led_o,
-      debug_o   => cpu_debug,
+      debug_o   => cpu_debug(175 downto 0),
       irq_i     => '0', -- Not used at the moment
       nmi_i     => '0', -- Not used at the moment
       rst_i     => rst
@@ -205,6 +212,23 @@ begin
       memio_o => memio_rd(31 downto 0)    -- To MEMIO
    );
 
+
+   --------------------------------------------------
+   -- Instantiate PS/2
+   --------------------------------------------------
+   
+   i_ps2 : entity work.ps2
+   port map (
+      clk_i       => vga_clk,
+      ps2_clk_i   => ps2_clk_i,
+      ps2_data_i  => ps2_data_i,
+      kbd_byte_o  => kbd_byte,
+      kbd_valid_o => kbd_valid
+   );
+
+   cpu_debug(183 downto 176) <= kbd_byte;
+   cpu_debug(184)            <= kbd_valid;
+   cpu_debug(191 downto 185) <= (others => '0');
 
    --------------------------------------------------
    -- Drive output signals
