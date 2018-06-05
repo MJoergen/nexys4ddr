@@ -22,6 +22,7 @@
 // Readonly
 #define VGA_PIX_X        ((uint16_t *) 0x7FF8)
 #define VGA_PIX_Y        ((uint16_t *) 0x7FFA)
+#define KBD_DATA         ((uint8_t *)  0x7FFE)
 #define IRQ_STATUS       ((uint8_t *)  0x7FFF)
 
 #endif // _MEMORY_MAP_H_

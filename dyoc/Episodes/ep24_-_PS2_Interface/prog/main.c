@@ -9,7 +9,7 @@
 void main()
 {
    *VGA_PIX_Y_INT = 1;        // Let VGA generate interrupt at end of line 1.
-   *IRQ_MASK = 1;             // Enable VGA IRQ Y interupt.
+   *IRQ_MASK = 2;             // Enable keyboard interupt.
    CLI();                     // Enable CPU interrupts.
 
    // Just go into a busy loop
@@ -22,16 +22,10 @@ void main()
 // Called from crt0.s
 void isr()
 {
-   if (*IRQ_STATUS & 1) // Reading the IRQ status clears it.
+   if (*IRQ_STATUS & 2) // Reading the IRQ status clears it.
    {
-      uint16_t line = *VGA_PIX_Y_INT + 1;
-
-      *VGA_CHAR_BG_COL = line & 0xFF;
-
-      if (line < PIXELS_Y)
-         *VGA_PIX_Y_INT = line;
-      else
-         *VGA_PIX_Y_INT = 0;
+      printfHex8(*KBD_DATA);
+      printf("\n");
    }
 } // end of irq
 

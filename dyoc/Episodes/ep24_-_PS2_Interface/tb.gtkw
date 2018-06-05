@@ -1,21 +1,21 @@
 [*]
 [*] GTKWave Analyzer v3.3.89 (w)1999-2018 BSI
-[*] Tue Jun  5 11:24:35 2018
+[*] Tue Jun  5 14:35:57 2018
 [*]
-[dumpfile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep23_-_Interupt_Controller/tb.ghw"
-[dumpfile_mtime] "Tue Jun  5 11:16:01 2018"
-[dumpfile_size] 1399591
-[savefile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep23_-_Interupt_Controller/tb.gtkw"
-[timestart] 23000000000
+[dumpfile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep24_-_PS2_Interface/tb.ghw"
+[dumpfile_mtime] "Tue Jun  5 14:33:27 2018"
+[dumpfile_size] 1804191
+[savefile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep24_-_PS2_Interface/tb.gtkw"
+[timestart] 0
 [size] 1920 1103
 [pos] 1868 33
-*-31.877865 35540000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-33.764053 68608000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.tb.
 [treeopen] top.tb.inst_comp.
-[treeopen] top.tb.inst_comp.i_ic.
+[treeopen] top.tb.inst_comp.i_mem.
 [sst_width] 255
-[signals_width] 343
+[signals_width] 239
 [sst_expanded] 1
 [sst_vpaned_height] 299
 @28
@@ -44,16 +44,43 @@ top.tb.inst_comp.i_cpu.wren_o
 -CPU
 @28
 top.tb.inst_comp.i_mem.memio_cs
-@22
-#{top.tb.inst_comp.i_vga.pix_x[9:0]} top.tb.inst_comp.i_vga.pix_x[9] top.tb.inst_comp.i_vga.pix_x[8] top.tb.inst_comp.i_vga.pix_x[7] top.tb.inst_comp.i_vga.pix_x[6] top.tb.inst_comp.i_vga.pix_x[5] top.tb.inst_comp.i_vga.pix_x[4] top.tb.inst_comp.i_vga.pix_x[3] top.tb.inst_comp.i_vga.pix_x[2] top.tb.inst_comp.i_vga.pix_x[1] top.tb.inst_comp.i_vga.pix_x[0]
-#{top.tb.inst_comp.i_vga.pix_y[9:0]} top.tb.inst_comp.i_vga.pix_y[9] top.tb.inst_comp.i_vga.pix_y[8] top.tb.inst_comp.i_vga.pix_y[7] top.tb.inst_comp.i_vga.pix_y[6] top.tb.inst_comp.i_vga.pix_y[5] top.tb.inst_comp.i_vga.pix_y[4] top.tb.inst_comp.i_vga.pix_y[3] top.tb.inst_comp.i_vga.pix_y[2] top.tb.inst_comp.i_vga.pix_y[1] top.tb.inst_comp.i_vga.pix_y[0]
-#{top.tb.inst_comp.i_vga.pix_y_line_interrupt[15:0]} top.tb.inst_comp.i_vga.pix_y_line_interrupt[15] top.tb.inst_comp.i_vga.pix_y_line_interrupt[14] top.tb.inst_comp.i_vga.pix_y_line_interrupt[13] top.tb.inst_comp.i_vga.pix_y_line_interrupt[12] top.tb.inst_comp.i_vga.pix_y_line_interrupt[11] top.tb.inst_comp.i_vga.pix_y_line_interrupt[10] top.tb.inst_comp.i_vga.pix_y_line_interrupt[9] top.tb.inst_comp.i_vga.pix_y_line_interrupt[8] top.tb.inst_comp.i_vga.pix_y_line_interrupt[7] top.tb.inst_comp.i_vga.pix_y_line_interrupt[6] top.tb.inst_comp.i_vga.pix_y_line_interrupt[5] top.tb.inst_comp.i_vga.pix_y_line_interrupt[4] top.tb.inst_comp.i_vga.pix_y_line_interrupt[3] top.tb.inst_comp.i_vga.pix_y_line_interrupt[2] top.tb.inst_comp.i_vga.pix_y_line_interrupt[1] top.tb.inst_comp.i_vga.pix_y_line_interrupt[0]
-@28
-top.tb.inst_comp.i_vga.irq_o
-@22
+@c00022
 #{top.tb.inst_comp.i_ic.irq_i[7:0]} top.tb.inst_comp.i_ic.irq_i[7] top.tb.inst_comp.i_ic.irq_i[6] top.tb.inst_comp.i_ic.irq_i[5] top.tb.inst_comp.i_ic.irq_i[4] top.tb.inst_comp.i_ic.irq_i[3] top.tb.inst_comp.i_ic.irq_i[2] top.tb.inst_comp.i_ic.irq_i[1] top.tb.inst_comp.i_ic.irq_i[0]
+@28
+top.tb.inst_comp.i_ic.irq_i[7]
+top.tb.inst_comp.i_ic.irq_i[6]
+top.tb.inst_comp.i_ic.irq_i[5]
+top.tb.inst_comp.i_ic.irq_i[4]
+top.tb.inst_comp.i_ic.irq_i[3]
+top.tb.inst_comp.i_ic.irq_i[2]
+top.tb.inst_comp.i_ic.irq_i[1]
+top.tb.inst_comp.i_ic.irq_i[0]
+@1401200
+-group_end
+@22
 #{top.tb.inst_comp.i_ic.mask_i[7:0]} top.tb.inst_comp.i_ic.mask_i[7] top.tb.inst_comp.i_ic.mask_i[6] top.tb.inst_comp.i_ic.mask_i[5] top.tb.inst_comp.i_ic.mask_i[4] top.tb.inst_comp.i_ic.mask_i[3] top.tb.inst_comp.i_ic.mask_i[2] top.tb.inst_comp.i_ic.mask_i[1] top.tb.inst_comp.i_ic.mask_i[0]
-@23
+@c00022
 #{top.tb.inst_comp.i_ic.irq_latch[7:0]} top.tb.inst_comp.i_ic.irq_latch[7] top.tb.inst_comp.i_ic.irq_latch[6] top.tb.inst_comp.i_ic.irq_latch[5] top.tb.inst_comp.i_ic.irq_latch[4] top.tb.inst_comp.i_ic.irq_latch[3] top.tb.inst_comp.i_ic.irq_latch[2] top.tb.inst_comp.i_ic.irq_latch[1] top.tb.inst_comp.i_ic.irq_latch[0]
+@28
+top.tb.inst_comp.i_ic.irq_latch[7]
+top.tb.inst_comp.i_ic.irq_latch[6]
+top.tb.inst_comp.i_ic.irq_latch[5]
+top.tb.inst_comp.i_ic.irq_latch[4]
+top.tb.inst_comp.i_ic.irq_latch[3]
+top.tb.inst_comp.i_ic.irq_latch[2]
+top.tb.inst_comp.i_ic.irq_latch[1]
+top.tb.inst_comp.i_ic.irq_latch[0]
+@1401200
+-group_end
+@28
+top.tb.inst_comp.inst_ps2.ps2_clk_i
+top.tb.inst_comp.inst_ps2.ps2_data_i
+top.tb.inst_comp.inst_ps2.irq_o
+@22
+#{top.tb.inst_comp.inst_ps2.data_o[7:0]} top.tb.inst_comp.inst_ps2.data_o[7] top.tb.inst_comp.inst_ps2.data_o[6] top.tb.inst_comp.inst_ps2.data_o[5] top.tb.inst_comp.inst_ps2.data_o[4] top.tb.inst_comp.inst_ps2.data_o[3] top.tb.inst_comp.inst_ps2.data_o[2] top.tb.inst_comp.inst_ps2.data_o[1] top.tb.inst_comp.inst_ps2.data_o[0]
+@28
+top.tb.inst_comp.i_mem.char_cs
+@29
+top.tb.inst_comp.i_mem.char_wren
 [pattern_trace] 1
 [pattern_trace] 0

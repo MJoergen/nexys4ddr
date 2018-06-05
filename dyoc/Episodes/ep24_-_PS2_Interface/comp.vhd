@@ -21,6 +21,9 @@ entity comp is
       led_o     : out std_logic_vector(7 downto 0);
       rstn_i    : in  std_logic;
 
+      ps2_clk_i  : in  std_logic;
+      ps2_data_i : in  std_logic;
+
       vga_hs_o  : out std_logic;
       vga_vs_o  : out std_logic;
       vga_col_o : out std_logic_vector(7 downto 0)    -- RRRGGGBB
@@ -205,10 +208,9 @@ begin
       stat_clr_i => memio_rden(7)            -- Reading from IRQ status
    );
 
-   memio_rd(55 downto 32) <= (others => '0');
 
    --------------------------------------------------
-   -- Generate VGA module
+   -- Instantiate VGA module
    --------------------------------------------------
 
    i_vga : entity work.vga
@@ -230,7 +232,23 @@ begin
       irq_o => ic_irq(0)
    );
 
-   ic_irq(7 downto 1) <= (others => '0');
+
+   -------------------------
+   -- Instantiate PS2 module
+   -------------------------
+
+   inst_ps2 : entity work.ps2
+   port map (
+      clk_i      => vga_clk,
+      ps2_clk_i  => ps2_clk_i,
+      ps2_data_i => ps2_data_i,
+      data_o     => memio_rd(55 downto 48),  -- KBD DATA
+      irq_o      => ic_irq(1)
+   );
+
+
+   memio_rd(47 downto 32) <= (others => '0');
+   ic_irq(7 downto 2)     <= (others => '0');
 
 
    --------------------------------------------------
