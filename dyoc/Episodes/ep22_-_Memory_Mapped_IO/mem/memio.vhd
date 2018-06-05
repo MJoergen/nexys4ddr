@@ -4,7 +4,8 @@ use ieee.std_logic_unsigned.all;
 
 entity memio is
    generic (
-      G_ADDR_BITS : integer
+      G_ADDR_BITS : integer;
+      G_INIT_VAL  : std_logic_vector(63 downto 0)
    );
    port (
       clk_i  : in  std_logic;
@@ -16,14 +17,14 @@ entity memio is
       a_wren_i : in  std_logic;
 
       -- Port B
-      b_memio_i : in  std_logic_vector(63 downto 0);
-      b_memio_o : out std_logic_vector(63 downto 0)
+      b_memio_i : in  std_logic_vector(63 downto 0);  -- To MEMIO
+      b_memio_o : out std_logic_vector(63 downto 0)   -- From MEMIO
    );
 end memio;
 
 architecture Structural of memio is
 
-   signal memio_r : std_logic_vector( 63 downto 0);
+   signal memio_r : std_logic_vector( 63 downto 0) := G_INIT_VAL;
    signal memio_s : std_logic_vector(127 downto 0);
 
 begin
