@@ -77,9 +77,11 @@ We will be designing and building these blocks roughly in the above order.
 22. [**"Memory Mapped I/O"**](Episodes/ep22_-_Memory_Mapped_IO). Now we allow the CPU to
 control e.g. background colour.
 ### Keyboard ###
-23. [**"Keyboard"**](Episodes/ep23_-_Keyboard). We are now ready to add the keyboard
+23. [**"Interrupt Controller"**](Episodes/ep23_-_Interrupt_Controller). Here we build
+    an interrupt controller.
+24. [**"Keyboard"**](Episodes/ep24_-_Keyboard). We are now ready to add the keyboard
     interface.
-24. [**"Sprites"**](Episodes/ep24_-_Sprites). We add sprites (moveable objects) to the
+25. [**"Sprites"**](Episodes/ep25_-_Sprites). We add sprites (moveable objects) to the
     VGA module.
 
 More to come soon...
