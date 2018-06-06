@@ -80,8 +80,8 @@ static void readline()
             return;
 
          default :      // Ordinary character
-            //memmove(&MEM_CHAR[80*curs_y+curs_x+1], &MEM_CHAR[80*curs_y+curs_x], 79-curs_x);
-            //memmove(&MEM_COL[80*curs_y+curs_x+1], &MEM_COL[80*curs_y+curs_x], 79-curs_x);
+            memmove(&MEM_CHAR[80*curs_y+curs_x+1], &MEM_CHAR[80*curs_y+curs_x], 79-curs_x);
+            memmove(&MEM_COL[80*curs_y+curs_x+1], &MEM_COL[80*curs_y+curs_x], 79-curs_x);
             putchxy(curs_x, curs_y, ch, curs_col);
             if (curs_x<79)
             {
@@ -98,10 +98,6 @@ static void readline()
 void main()
 {
    uint8_t dummy;
-//   // Do a small timing measurement to begin with
-//   uint32_t t1 = *CPU_CYC;
-//   uint32_t t2 = *CPU_CYC;
-//   printfHex16((t2-t1) & 0xFFFF);
 
    *VGA_PIX_Y_INT = PIXELS_Y-1;     // Generate interrupts at end of last line.
    vga_cursor_disable();            // Make sure cursor is disabled before enabling interrupts.
