@@ -41,15 +41,24 @@ lib/keyboard.s: lib/keyboard.c
 lib/keyboard.o: lib/keyboard.s
 	ca65 $< -o $@
 
+lib/vga.s: lib/vga.c
+	cc65 -I $(C_INC) -g -t none -O $< -o $@
+
+lib/vga.o: lib/vga.s
+	ca65 $< -o $@
+
 lib/printf.s: lib/printf.c
 	cc65 -I $(C_INC) -g -t none -O $< -o $@
 
 lib/printf.o: lib/printf.s
 	ca65 $< -o $@
 
-lib/comp.lib: lib/crt0.o lib/printf.o lib/keyboard.o
+lib/irq.o: lib/irq.s
+	ca65 $< -o $@
+
+lib/comp.lib: lib/crt0.o lib/printf.o lib/vga.o lib/keyboard.o
 	cp lib/none.lib $@
-	ar65 a $@ $^
+	ar65 r $@ $^
 
 #####################################
 # Compile target program
@@ -61,7 +70,7 @@ prog/main.s: prog/main.c
 prog/main.o: prog/main.s
 	ca65 $< -o $@
 
-prog/rom.bin: prog/main.o lib/comp.lib lib/vectors.o
+prog/rom.bin: prog/main.o lib/comp.lib lib/irq.o lib/vectors.o
 	ld65 -m prog/rom.map -C ld.cfg $^
 
 mem/rom.txt: prog/rom.bin
@@ -95,6 +104,7 @@ clean:
 	rm -rf lib/*.o
 	rm -rf lib/printf.s
 	rm -rf lib/keyboard.s
+	rm -rf lib/vga.s
 	rm -rf prog/main.s
 	rm -rf prog/printf.s
 	rm -rf prog/*.o

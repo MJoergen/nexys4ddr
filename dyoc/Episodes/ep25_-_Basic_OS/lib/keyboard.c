@@ -56,14 +56,10 @@ static uint8_t kbd_buffer_pop()
 } // end of kbd_buffer_pop
 
 
-// Called from crt0.s
-// This is written in assembler, because the C code is not re-entrant.
-void isr()
+// Keyboard interrupt
+// This must be written entirely in assembler, because the C code is not re-entrant.
+void kbd_isr()
 {
-   __asm__("LDA %w", (uint16_t) IRQ_STATUS);   // Reading the IRQ status clears it.
-   __asm__("AND #%b", IRQ_KBD);
-   __asm__("BEQ %g", end_isr);
-
    __asm__("LDA %w", (uint16_t) KBD_DATA);     // Read keyboard event into A.
    __asm__("LDX %v", kbd_buffer_count);
    __asm__("CPX #%b", KBD_BUFFER_SIZE);
@@ -74,8 +70,7 @@ void isr()
 
 end_isr:
    __asm__("RTS");
-} // end of isr
-
+} // end of kbd_isr
 
 // Read keyboard event. Will wait in blocking mode.
 uint8_t kbd_getchar()

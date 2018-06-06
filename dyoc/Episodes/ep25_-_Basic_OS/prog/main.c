@@ -12,7 +12,7 @@ static void putchxy(uint8_t x, uint8_t y, uint8_t ch, uint8_t col)
 
 static uint8_t curs_x = 0;
 static uint8_t curs_y = 0;
-static uint8_t curs_col = 0xFF;
+static uint8_t curs_col = 0x0F;     // White text on black background.
 
 static void readline()
 {
