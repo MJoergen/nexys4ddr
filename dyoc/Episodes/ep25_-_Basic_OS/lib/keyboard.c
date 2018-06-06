@@ -55,6 +55,15 @@ static uint8_t kbd_buffer_pop()
    return kbd_data;
 } // end of kbd_buffer_pop
 
+#if 0
+static uint8_t cnt = 0;
+
+void vga_isr()
+{
+   __asm__("INC %v", cnt);
+}
+
+#endif
 
 // Keyboard interrupt
 // This must be written entirely in assembler, because the C code is not re-entrant.
@@ -117,4 +126,4 @@ uint8_t kbd_getchar()
       return kbd_tab_normal[kbd_data];
 } // end of kbd_getchar
 
-
+#include "../lib/vga.c"
