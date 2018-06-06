@@ -82,9 +82,11 @@ Line 3 exposes the symbols \_init and \_exit. The former is referenced in the
 file prog/vectors.s. The latter symbol is currently not used.
 Line 4 import the symbol \_main, which is the C runtime program entry point.
 
-Line 18 marks the beginning of the \_init.  The main responsibility is to setup
-the C program stack (lines 24-30), clear the BSS segment (line 35), initialize
-the DATA (line 36) segment, and then call the main() function (lines 39-42).
+Line 18 marks the beginning of the \_init.  The main responsibility is to:
+* setup the C program stack (lines 24-30)
+* clear the BSS segment (line 35)
+* initialize the DATA (line 36) segment
+* call the main() function (lines 39-42).
 
 Upon exit, the CPU enters an infinite loop in lines 44-50.
 
