@@ -7,7 +7,8 @@ To do this we need to do the following:
 * Modify memory map by adding the character and color memories.
 * Allow the VGA module access to these memory regions.
 * Implementing character display in the VGA module.
-* Software support
+* Software support.
+
 Furthermore, we wish to retain the ability to display the CPU debug on the VGA
 output.
 
