@@ -23,8 +23,7 @@ address 0xFFFC and 0xFFFD.
 
 To achieve this the control registers must be given default values.
 * Lines 2774-2777 of cpu/ctl.vhd starts the Reset sequence by forcing the
-* Instruction
-Register to the value 00.
+Instruction Register to the value 00.
 * Lines 2753-2756 skip the first few cycles of the BRK
 instruction, so the CPU immediately fetches the Program Counter from the Reset
 vector.
