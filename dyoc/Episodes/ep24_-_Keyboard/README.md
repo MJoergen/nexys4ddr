@@ -27,8 +27,9 @@ of the Start and Stop bits.
 ## Memory map
 The last keyboard event can be read from the address 7FFE. Additionally, an
 interrupt is generated after each keyboard event. There is no buffering in the
-FPGA, and therefore the keyboard interrupt must be serviced reasonably.
-Especially since the keyboard may generate several events back-to-back.
+FPGA, and therefore the keyboard interrupt must be serviced reasonably quickly.
+Especially since the keyboard may generate several events back-to-back. Therefore,
+keyboard handling is usually done in an interrupt service routine.
 
 ## Interrupt map
 The keyboard is connected to bit 1 of the Interrupt Controller.
