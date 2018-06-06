@@ -41,14 +41,15 @@ of a large multiplexer selecting between the eight different operations.
 ## Status register
 The CPU contains an 8-bit status register containing a number of flags. These
 are:
-0. Carry
-1. Zero
-2. Interrupt Mask
-3. Decimal Mode
-4. Break
+
+0. Carry (C)
+1. Zero (Z)
+2. Interrupt Mask (I)
+3. Decimal Mode (D)
+4. Break (B)
 5. Reserved
 6. Overflow (V)
-7. Sign
+7. Sign (S)
 
 Some of these flags (C, Z, V, and S) store the result of the last operation,
 and are therefore calculated in the ALU. The remaining three (I, D, and B) are
