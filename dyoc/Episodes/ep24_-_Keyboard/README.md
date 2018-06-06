@@ -20,7 +20,7 @@ bit into a shift register.
 After 11 bits, we can extract the byte from the shift register.  However, this
 is not very robust, since if the FPGA should ever get out of synchronization,
 it will forever remain out of synchronization. So we implement a simple state
-machine that after the 11 bits it will check the Start and Stop bits.  If they
+machine that after the 11 bits checks the Start and Stop bits.  If they
 are not correct, it will check after every bit, and wait for the correct values
 of the Start and Stop bits.
 
