@@ -24,7 +24,7 @@ remaining (60K bytes) will for now be unused. However, we'll later add video
 memory, allowing the CPU to write text on the screen.
 
 Thus, we'll now have two memory blocks (RAM and ROM), and where ROM will be
-initialized from a file. We need to write address coding to determine which of
+initialized from a file. We need to write address decoding to determine which of
 the two memory blocks (if any) the CPU is accessing.
 
 The initial contents of mem/mem.vhd has been moved to mem/rom.vhd to support
