@@ -18,7 +18,7 @@ entity chars is
       col_addr_o  : out std_logic_vector(12 downto 0);
       col_data_i  : in  std_logic_vector( 7 downto 0);
 
-      bg_col_i    : in  std_logic_vector(7 downto 0);
+      palette_i   : in  std_logic_vector(16*8-1 downto 0);
 
       pix_x_o     : out std_logic_vector(9 downto 0);
       pix_y_o     : out std_logic_vector(9 downto 0);
@@ -171,6 +171,7 @@ begin
       variable v_offset_x : std_logic_vector(2 downto 0);
       variable v_offset_y : std_logic_vector(2 downto 0);
       variable v_offset_bitmap : integer range 0 to 63;
+      variable v_colour   : integer range 0 to 15;
    begin
       if rising_edge(clk_i) then
 
@@ -182,12 +183,13 @@ begin
 
          v_offset_bitmap := conv_integer(v_offset_y) * 8 + conv_integer(v_offset_x);
 
-         -- Set the text background colour
-         stage3.pix_col <= bg_col_i;
-
+         -- Set the colour
          if stage2.bitmap(v_offset_bitmap) = '1' then
-            stage3.pix_col <= stage2.color;
+            v_colour := conv_integer(stage2.color(3 downto 0));
+         else
+            v_colour := conv_integer(stage2.color(7 downto 4));
          end if;
+         stage3.pix_col <= palette_i(v_colour*8+7 downto v_colour*8);
 
          -- Make sure colour is black outside visible screen
          if stage2.pix_x >= H_PIXELS or stage2.pix_y >= V_PIXELS then
