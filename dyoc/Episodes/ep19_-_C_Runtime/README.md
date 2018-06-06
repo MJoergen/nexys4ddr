@@ -21,12 +21,16 @@ Additionally, we'll perform a few extra steps in this Episode
 Upon reset, the CPU must load the Program Counter from the Reset vector at
 address 0xFFFC and 0xFFFD.
 
-To achieve this the control registers must be given default values. Lines
-2774-2777 of cpu/ctl.vhd starts the Reset sequence by forcing the Instruction
-Register to the value 00.  Lines 2753-2756 skip the first few cycles of the BRK
+To achieve this the control registers must be given default values.
+* Lines 2774-2777 of cpu/ctl.vhd starts the Reset sequence by forcing the
+* Instruction
+Register to the value 00.
+* Lines 2753-2756 skip the first few cycles of the BRK
 instruction, so the CPU immediately fetches the Program Counter from the Reset
-vector.  In lines 2792-2795 we reset the Invalid Instruction register, but this
-is just for debugging purposes. Finally in lines 2817-2820 we instruct the
+vector.
+* In lines 2792-2795 we reset the Invalid Instruction register, but this
+is just for debugging purposes.
+* Finally in lines 2817-2820 we instruct the
 Control Logic that this is a Reset (as opposed to a regular BRK instruction).
 
 ## Memory map (segments)
