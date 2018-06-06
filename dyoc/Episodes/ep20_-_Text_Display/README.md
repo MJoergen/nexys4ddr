@@ -42,7 +42,7 @@ The interpretation (i.e. decoding) of the memory map takes place in lines 61-72
 of mem/mem.vhd. The postscript "cs" means "chip select". Note that there is no
 rom\_wren, because we have removed to ability for the CPU to write to the ROM.
 The definition of the memory map is moved to the file comp.vhd in lines
-133-141.
+133-141, and an equivalent C-style copy is maintained in file prog/memorymap.h.
 
 ## VGA access to the character and colour memory.
 Both the CPU and the VGA module will be accessing the character memory
