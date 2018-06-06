@@ -91,12 +91,18 @@ static void readline()
 // Called from crt0.s
 void main()
 {
+   // Do a small timing measurement to begin with
+   uint32_t t1 = *CPU_CYC;
+   uint32_t t2 = *CPU_CYC;
+   printfHex16((t2-t1) & 0xFFFF);
+
+
    *IRQ_MASK = IRQ_KBD;          // Enable keyboard interupt.
    CLI();                        // Enable CPU interrupts.
 
    while (1)
    {
-      readline();
+      readline(); // Return when user hits Enter.
 
       // Go to start of next line
       curs_y++;
