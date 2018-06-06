@@ -20,7 +20,6 @@ Instructions implemented in total : 45/151.
 
 ## Datapath
 
-
 The Stack Pointer itself can either increase or decrease by one. This is easily
 implemented in lines 177-190. There is an associated new control signal
 sr\_sel.
@@ -29,9 +28,9 @@ Being able to read from and write to the stack region requires writing the
 address to the bus. This is handled in line 243. It has become necessary to
 increase the size of the control signal addr\_sel.
 
-The instruction RTS requires adding 1 to the 16-bit value read from the
-stack region. There, this requires a unique value of pc\_sel, which in
-turn requires expanding this control signal too. This is handled in line 145.
+The instruction RTS requires adding 1 to the 16-bit value read from the stack
+region. Therefore, we need another value of pc\_sel, which in turn requires
+expanding this control signal too. This is handled in line 145.
 
 The instruction PHP requires writing the value of the Status Register to the
 stack.  This is handled by lines 248-249. And the instruction JSR requires
