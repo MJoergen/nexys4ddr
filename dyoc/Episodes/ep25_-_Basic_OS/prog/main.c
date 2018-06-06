@@ -2,6 +2,7 @@
 #include <string.h>              // memmove
 #include "printf.h"
 #include "keyboard.h"
+#include "vga.h"
 #include "memorymap.h"
 
 static void putchxy(uint8_t x, uint8_t y, uint8_t ch, uint8_t col)
@@ -19,7 +20,12 @@ static void readline()
    // Just go into a busy loop
    while (1)
    {
-      uint8_t ch = kbd_getchar();    // Wait for next character.
+      uint8_t ch;
+
+      vga_cursor_enable(&MEM_COL[80*curs_y+curs_x]);
+      ch = kbd_getchar();    // Wait for next character.
+      vga_cursor_disable();
+
       switch (ch)
       {
          case 0x08 :    // Backspace
@@ -74,8 +80,8 @@ static void readline()
             return;
 
          default :      // Ordinary character
-            memmove(&MEM_CHAR[80*curs_y+curs_x+1], &MEM_CHAR[80*curs_y+curs_x], 79-curs_x);
-            memmove(&MEM_COL[80*curs_y+curs_x+1], &MEM_COL[80*curs_y+curs_x], 79-curs_x);
+            //memmove(&MEM_CHAR[80*curs_y+curs_x+1], &MEM_CHAR[80*curs_y+curs_x], 79-curs_x);
+            //memmove(&MEM_COL[80*curs_y+curs_x+1], &MEM_COL[80*curs_y+curs_x], 79-curs_x);
             putchxy(curs_x, curs_y, ch, curs_col);
             if (curs_x<79)
             {
@@ -91,14 +97,17 @@ static void readline()
 // Called from crt0.s
 void main()
 {
-   // Do a small timing measurement to begin with
-   uint32_t t1 = *CPU_CYC;
-   uint32_t t2 = *CPU_CYC;
-   printfHex16((t2-t1) & 0xFFFF);
+   uint8_t dummy;
+//   // Do a small timing measurement to begin with
+//   uint32_t t1 = *CPU_CYC;
+//   uint32_t t2 = *CPU_CYC;
+//   printfHex16((t2-t1) & 0xFFFF);
 
-
-   *IRQ_MASK = IRQ_KBD;          // Enable keyboard interupt.
-   CLI();                        // Enable CPU interrupts.
+   *VGA_PIX_Y_INT = PIXELS_Y-1;     // Generate interrupts at end of last line.
+   vga_cursor_disable();            // Make sure cursor is disabled before enabling interrupts.
+   dummy = *IRQ_STATUS;             // Clear any pending interrupts.
+   *IRQ_MASK = IRQ_KBD | IRQ_VGA;   // Enable keyboard and VGA interupts.
+   CLI();                           // Enable CPU interrupts.
 
    while (1)
    {
