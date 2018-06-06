@@ -14,14 +14,13 @@ to a separate module, via ordinary reads from and writes to memory. We already
 have something similar in the form of the character and colour memories.
 
 Writing to the VGA module could e.g. control the background colour of the
-character screen, as well as the foreground and background colours of the
-overlay screen.
+character screen or the foreground colour of the overlay screen.
 
 Reading from the VGA module could be the current pixel coordinates.
 
 ## Addressing
 Since only a few bytes of data is transferred between the CPU and the VGA
-module, we'll reserve a total of sixteen bytes, half of which is read-only.
+module, we'll reserve a total of sixteen bytes, half of which are read-only.
 We'll place the sixteen bytes in the addressable range 7FF0 - 7FFF.
 
 We therefore choose the following addressable locations:
