@@ -34,10 +34,12 @@ the IRQ signal is level sensitive. This is all taken care of in lines 2784-2813 
 cpu/ctl.vhd
 
 Lines 2823-2825 are changed, because it is necessary to overwrite some of the
-control signals during interrupt. Line 2825 makes sure that the Break bit is cleared
+control signals during interrupt.
+* Line 2825 makes sure that the Break bit is cleared
 when writing the Status Register to the stack during an NMI or IRQ.
-Line 2824 ensures that the correct interrupt vector is used for fetching the
-new Program Counter. Finally, line 2823 prevents incrementing the Program
+* Line 2824 ensures that the correct interrupt vector is used for fetching the
+new Program Counter.
+* Finally, line 2823 prevents incrementing the Program
 Counter during an IRQ or NMI. This is necessary to ensure the correct return
 address is written to the stack.
 
