@@ -1,7 +1,7 @@
 	.setcpu		"6502"
 
-   .export nmi_int, init, irq_int
-   .export _exit
+   .export init, _exit
+   .export nmi_int, irq_int
    .import _main
 
    .export __STARTUP__ : absolute = 1     ; Mark as startup
@@ -16,7 +16,14 @@
 
 .segment	"STARTUP"
 
+; ---------------------------------------------------------------------------
+; Entry point for a hardware reset. Referenced in lib/vectors.s
+
 init:
+
+; ---------------------------------------------------------------------------
+; Setup processor mode
+
    SEI         ; Disable interrupts
    CLD         ; Clear decimal mode
    LDX #$FF    ; Reset stack pointer
@@ -38,12 +45,12 @@ init:
    JSR initlib              ; Run constructors
 
 ; ---------------------------------------------------------------------------
-; Call main()
+; Call C-function main()
 
    JSR _main
 
 ; ---------------------------------------------------------------------------
-; Back from main (this is also the _exit entry):  force a software break
+; Back from main (this is also entry point for the C-function exit()):
 
 _exit:
    SEI                      ; Disable interrupts

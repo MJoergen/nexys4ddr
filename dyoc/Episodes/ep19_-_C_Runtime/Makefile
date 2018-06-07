@@ -23,15 +23,15 @@ fpga: comp.bit
 # Compile runtime library
 #####################################
 
-lib/crt0.o: lib/crt0.s
+lib/vectors.o: lib/vectors.s     # Hardware interrupt vectors
 	ca65 $< -o $@
 
-lib/vectors.o: lib/vectors.s
+lib/crt0.o: lib/crt0.s           # Reset vector
 	ca65 $< -o $@
 
 lib/comp.lib: lib/crt0.o
 	cp lib/none.lib $@
-	ar65 a $@ $^
+	ar65 r $@ $^
 
 
 #####################################
