@@ -24,15 +24,16 @@ vga_isr:
    INX
 noc:
 
-   CPX >PIXELS_Y        ; Have we reached bottom of screen?
+   CPX #>PIXELS_Y        ; Have we reached bottom of screen?
    BNE nowrap
-   CMP <PIXELS_Y
+   CMP #<PIXELS_Y
    BNE nowrap
    LDA #$00
+   LDX #$00
 nowrap:
 
    STA VGA_PIX_Y_INT    ; Store new line number
-   STA VGA_PIX_Y_INT+1
+   STX VGA_PIX_Y_INT+1
 
    STA VGA_PALETTE      ; Update background colour
 
