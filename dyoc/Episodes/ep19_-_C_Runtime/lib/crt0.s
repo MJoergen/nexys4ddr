@@ -1,6 +1,6 @@
 	.setcpu		"6502"
 
-   .export _nmi_int, _init, _irq_int
+   .export nmi_int, init, irq_int
    .export _exit
    .import _main
 
@@ -16,7 +16,7 @@
 
 .segment	"STARTUP"
 
-_init:
+init:
    SEI         ; Disable interrupts
    CLD         ; Clear decimal mode
    LDX #$FF    ; Reset stack pointer
@@ -46,15 +46,16 @@ _init:
 ; Back from main (this is also the _exit entry):  force a software break
 
 _exit:
+   SEI                      ; Disable interrupts
    JSR donelib              ; Run destructors
 halt:
    JMP halt
 
 .segment	"CODE"
 
-_nmi_int:
+nmi_int:
    RTI
 
-_irq_int:
+irq_int:
    RTI
 
