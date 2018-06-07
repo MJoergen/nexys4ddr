@@ -94,7 +94,6 @@ clean:
 	rm -rf lib/*.o
 	rm -rf lib/printf.s
 	rm -rf prog/main.s
-	rm -rf prog/printf.s
 	rm -rf prog/*.o
 	rm -rf prog/*.bin
 	rm -rf prog/rom.map
