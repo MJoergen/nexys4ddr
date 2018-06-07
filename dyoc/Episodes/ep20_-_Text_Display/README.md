@@ -147,6 +147,15 @@ and background, in lines 186-191. Finally, in line 192 the colour index
 is used to extract the pixel colour from the colour palette.
 
 
+## VGA Overlay
+Since we now have two sources of VGA output, the character memory and the CPU
+debug information, we'll implement the latter as an overlay. The file
+vga/digits.vhd has been renamed to vga/overlay.vhd, and the bit 7 of the switch
+(the "fast" mode) is simultaneously used to disable the CPU debug overlay when
+in fast mode, see lines 107-111 of comp.vhd.  The actual overlay takes places
+in lines 141-144 of vga/vga.vhd.
+
+
 ## Software support
 Now that the firmware can display characters on the VGA output, this can be
 used in software. A very simple version of printf() is implemented in the file
@@ -163,11 +172,6 @@ The C source code has been reorganized, and the runtime library has been
 moved to a separate directory lib. The source file for the main function
 has been renamed from rom.c to main.c.
 
-## VGA Overlay
-Since we now have two sources of VGA output, the character memory and the CPU
-debug information, we'll implement the latter as an overlay. The file
-vga/digits.vhd has been renamed to vga/overlay.vhd, and the bit 7 of the switch
-(the "fast" mode) is simultaneously used to disable the CPU debug overlay when
-in fast mode, see lines 107-111 of comp.vhd.  The actual overlay takes places
-in lines 141-144 of vga/vga.vhd.
+The test program prints out 70 numbered lines of text. In the current implementation,
+the text will wrap around, and the last lines will appear at the top of the screen.
 
