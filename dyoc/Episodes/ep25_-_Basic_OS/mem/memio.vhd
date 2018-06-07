@@ -33,7 +33,7 @@ begin
   
    -- Port A
    p_port_a : process (clk_i)
-      variable addr_v : integer range 0 to 63;
+      variable addr_v : integer range 0 to 2**G_ADDR_BITS-1;
    begin
       if rising_edge(clk_i) then
          addr_v := conv_integer(a_addr_i);

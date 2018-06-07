@@ -163,6 +163,7 @@ begin
       memio_o   => cpu_memio_rd
    );
 
+
    --------------------------------------------------
    -- Instantiate memory
    --------------------------------------------------
@@ -218,24 +219,9 @@ begin
       irq_i   => ic_irq,    -- Eight independent interrupt sources
       irq_o   => cpu_irq,   -- Overall CPU interrupt
 
-      mask_i  => irq_memio_wr,         -- 7FDF : IRQ mask
-      stat_o  => irq_memio_rd,         -- 7FFF : IRQ status
-
+      mask_i     => irq_memio_wr,      -- IRQ mask
+      stat_o     => irq_memio_rd,      -- IRQ status
       stat_clr_i => irq_memio_rden     -- Reading from IRQ status
-   );
-
-
-   -------------------------
-   -- Instantiate PS2 module
-   -------------------------
-
-   inst_ps2 : entity work.ps2
-   port map (
-      clk_i      => vga_clk,
-      ps2_clk_i  => ps2_clk_i,
-      ps2_data_i => ps2_data_i,
-      data_o     => kbd_memio_rd,  -- KBD DATA
-      irq_o      => kbd_irq
    );
 
 
@@ -263,13 +249,29 @@ begin
    );
 
 
+   -------------------------
+   -- Instantiate PS2 module
+   -------------------------
+
+   inst_ps2 : entity work.ps2
+   port map (
+      clk_i      => vga_clk,
+      ps2_clk_i  => ps2_clk_i,
+      ps2_data_i => ps2_data_i,
+
+      data_o     => kbd_memio_rd,
+      irq_o      => kbd_irq
+   );
+
+
    --------------------------------------------------
    -- Memory Mapped I/O
    -- This must match the mapping in prog/memorymap.h
    --------------------------------------------------
-   
+
    -- 7FC0 - 7FCF : VGA_PALETTE
-   -- 7FD0 - 7DF1 : VGA_PIX_Y_INT
+   -- 7FD0 - 7FD1 : VGA_PIX_Y_INT
+   -- 7FD2 - 7FDE : Not used
    -- 7FDF        : IRQ_MASK
    vga_memio_wr <= memio_wr(17*8+7 downto 0*8);
    --              memio_wr(30*8+7 downto 18*8);      -- Not used
@@ -279,6 +281,7 @@ begin
    -- 7FE2 - 7FE3 : VGA_PIX_Y
    -- 7FE4 - 7FE7 : CPU_CYC
    -- 7FE8        : KBD_DATA
+   -- 7FE9 - 7FFE : Not used
    -- 7FFF        : IRQ_STATUS
    memio_rd( 3*8+7 downto  0*8) <= vga_memio_rd;
    memio_rd( 7*8+7 downto  4*8) <= cpu_memio_rd;
@@ -291,16 +294,16 @@ begin
    -------------------------
    -- Interrupt Controller
    -------------------------
-   
+
    ic_irq(0) <= vga_irq;
    ic_irq(1) <= kbd_irq;
-   ic_irq(7 downto 2) <= (others => '0');
+   ic_irq(7 downto 2) <= (others => '0');             -- Not used
 
 
    -------------------------
    -- VGA overlay
    -------------------------
-   
+
    vga_overlay(175 downto   0) <= cpu_debug;
    vga_overlay(183 downto 176) <= kbd_memio_rd;
    vga_overlay(191 downto 184) <= (others => '0');      -- Not used
