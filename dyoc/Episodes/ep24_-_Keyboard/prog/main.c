@@ -8,8 +8,17 @@
 // Called from crt0.s
 void main()
 {
-   *IRQ_MASK = IRQ_KBD;          // Enable keyboard interupt.
-   CLI();                        // Enable CPU interrupts.
+   uint8_t dummy;
+
+   // Do a small timing measurement to begin with
+   uint32_t t1 = *CPU_CYC;
+   uint32_t t2 = *CPU_CYC;
+   printfHex16(t2-t1);
+   printf("\n");
+
+   dummy = *IRQ_STATUS;             // Clear any pending interrupts.
+   *IRQ_MASK = IRQ_KBD;             // Enable keyboard interrupts.
+   CLI();                           // Enable CPU interrupts.
 
    // Just go into a busy loop
    while (1)
