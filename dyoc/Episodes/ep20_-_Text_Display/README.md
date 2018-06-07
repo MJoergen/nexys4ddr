@@ -106,7 +106,7 @@ step serves only to improve readability.
 In this stage we calculate - as before - the horizontal and vertical
 synchronization signals. These signals will in the later stages be delayed so
 they remain aligned with the generated colour signal.  The main part of this
-step are lines 110-115, where we calculate the lookup address in the character
+step are lines 112-117, where we calculate the lookup address in the character
 and colour memories.  Since these memories are separate and distinct, we can
 perform lookups in both memories simultaneously. The same address is used for
 both memories.
@@ -122,37 +122,42 @@ memory address offset.
 
 ### Stage 2 (lines 122-162)
 The actual lookup is done by connecting the address and data buses in lines
-120-128.  Note that the character and colour memories are synchronuous, which
+122-130.  Note that the character and colour memories are synchronuous, which
 means there is a one clock cycle delay from address to data. This is the reason
 why the address is in stage 1, whereas the data is in stage 2.
 
-Next, the font bitmap is determined by another lookup in lines 131-143. This
+Next, the font bitmap is determined by another lookup in lines 133-145. This
 lookup is table-based and there is no clock cycle delay.  Here, the font bitmap
 is a combinatorial memory, and therefore not synchronous.  Therefore, both
 address and data belong to stage 2. The font memory is combinatorial, because
 it has no clock input.
 
-The remaining signals need to be copied over individually, in lines 146-160.
+The remaining signals need to be copied over individually, in lines 148-162.
 
-### Stage 3 (lines 165-198)
+### Stage 3 (lines 165-200)
 The font bitmap is 64 bits wide, and the particular bitnumber to use is
-calculated in lines 180-183. The main point is we need to take the pixel
+calculated in lines 181-184. The main point is we need to take the pixel
 coordinates modulo 8 (the font size in pixels). Since 8 is a power of two, this
 modulo operation consists simply of taking the lower three bits of the
 pixel coordinate. The font data is - as before - arranged as eight rows of
 eight pixels, with bit number 0 in the lower left corner.
 
+The colour index from the colour memory is split into two halves, foreground
+and background, in lines 186-191. Finally, in line 192 the colour index
+is used to extract the pixel colour from the colour palette.
+
 
 ## Software support
 Now that the firmware can display characters on the VGA output, this can be
 used in software. A very simple version of printf() is implemented in the file
-prog/printf.c. This version writes only to the character memory, and not the
+lib/printf.c. This version writes only to the character memory, and not the
 colour memory, so all text will be white on black for now.  The location in
-character memory is calculated as 80\*y+x, see e.g. line 26. This calculation
-corresponds to the equivalent calculation in lines 114-115 of vga/chars.vhd.
+character memory is calculated as 80\*y+x, see e.g. line 26, where
+I've used the constant H\_CHARS defined in prog/printf.h. This calculation
+corresponds to the equivalent calculation in lines 116-117 of vga/chars.vhd.
 
 Furthermore, a new file prog/memorymap.h has been added. This is to avoid having
-the software hardcode address etc. in the source code.
+the software hardcode addresses etc. in the source code.
 
 The C source code has been reorganized, and the runtime library has been
 moved to a separate directory lib. The source file for the main function
@@ -163,6 +168,6 @@ Since we now have two sources of VGA output, the character memory and the CPU
 debug information, we'll implement the latter as an overlay. The file
 vga/digits.vhd has been renamed to vga/overlay.vhd, and the bit 7 of the switch
 (the "fast" mode) is simultaneously used to disable the CPU debug overlay when
-in fast mode, see lines 101-105 of comp.vhd.  The actual overlay takes places
-in lines 139-142 of vga/vga.vhd.
+in fast mode, see lines 107-111 of comp.vhd.  The actual overlay takes places
+in lines 141-144 of vga/vga.vhd.
 

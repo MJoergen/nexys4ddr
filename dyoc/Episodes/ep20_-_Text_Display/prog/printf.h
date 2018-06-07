@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-#define SCREEN_X 80
-#define SCREEN_Y 60
+#define H_CHARS 80
+#define V_CHARS 60
 
 void printf(char* str);
 void printfHex8(uint8_t key);
