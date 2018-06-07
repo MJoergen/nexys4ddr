@@ -8,7 +8,8 @@ void main()
 {
    uint16_t line;
 
-   *VGA_OVERL_FG_COL = 0xE0; // RED
+   // Set text foreground colour
+   VGA_PALETTE[15] = 0xE0; // RED
 
    while (1)
    {
@@ -22,7 +23,8 @@ void main()
          while (*VGA_PIX_X < PIXELS_X)
          {}
 
-         *VGA_CHAR_BG_COL = line & 0xFF;
+         // Set background colour
+         VGA_PALETTE[0] = line;
       }
    }
 

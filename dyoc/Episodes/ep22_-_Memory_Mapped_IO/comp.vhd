@@ -66,8 +66,15 @@ architecture Structural of comp is
    signal col_data  : std_logic_vector( 7 downto 0);
 
    -- Memory Mapped I/O
-   signal memio_rd  : std_logic_vector(63 downto 0);
-   signal memio_wr  : std_logic_vector(63 downto 0);
+   signal memio_rd   : std_logic_vector(8*32-1 downto 0);
+   signal memio_rden : std_logic_vector(  32-1 downto 0);
+   signal memio_wr   : std_logic_vector(8*32-1 downto 0);
+
+   signal vga_memio_wr : std_logic_vector(18*8-1 downto 0);
+
+   signal vga_memio_rd : std_logic_vector( 4*8-1 downto 0);
+   signal cpu_memio_rd : std_logic_vector( 4*8-1 downto 0);
+
 
 begin
    
@@ -139,7 +146,8 @@ begin
       debug_o   => cpu_debug,
       irq_i     => '0', -- Not used at the moment
       nmi_i     => '0', -- Not used at the moment
-      rst_i     => rst
+      rst_i     => rst,
+      memio_o   => cpu_memio_rd
    );
 
    --------------------------------------------------
@@ -148,20 +156,22 @@ begin
    
    i_mem : entity work.mem
    generic map (
-      G_ROM_SIZE   => 11, -- 2 Kbytes
+      G_ROM_SIZE   => 12, -- 4 Kbytes
       G_RAM_SIZE   => 12, -- 4 Kbytes
       G_CHAR_SIZE  => 13, -- 8 Kbytes
       G_COL_SIZE   => 13, -- 8 Kbytes
-      G_MEMIO_SIZE =>  4, -- 16 bytes 
+      G_MEMIO_SIZE =>  6, -- 64 bytes 
       --
-      G_ROM_MASK   => X"F800",
+      G_ROM_MASK   => X"F000",
       G_RAM_MASK   => X"0000",
       G_CHAR_MASK  => X"8000",
       G_COL_MASK   => X"A000",
-      G_MEMIO_MASK => X"7FF0",
+      G_MEMIO_MASK => X"7FC0",
       --
       G_FONT_FILE  => "font8x8.txt",
-      G_ROM_FILE   => "mem/rom.txt"
+      G_ROM_FILE   => "mem/rom.txt",
+      G_MEMIO_INIT => X"00000000000000000000000000000000" &
+                      X"FFFCE3E0433C1E178C82803022110A00"
    )
    port map (
       clk_i    => vga_clk,
@@ -184,7 +194,7 @@ begin
 
 
    --------------------------------------------------
-   -- Generate VGA module
+   -- Instantiate VGA module
    --------------------------------------------------
 
    i_vga : entity work.vga
@@ -201,9 +211,29 @@ begin
       col_addr_o  => col_addr,
       col_data_i  => col_data,
 
-      memio_i => memio_wr(15 downto 0),   -- From MEMIO
-      memio_o => memio_rd(31 downto 0)    -- To MEMIO
+      memio_i => vga_memio_wr,
+      memio_o => vga_memio_rd
    );
+
+
+   --------------------------------------------------
+   -- Memory Mapped I/O
+   -- This must match the mapping in prog/memorymap.h
+   --------------------------------------------------
+
+   -- 7FC0 - 7FCF : VGA_PALETTE
+   -- 7FD0 - 7FD1 : VGA_PIX_Y_INT
+   -- 7FD2 - 7FDF : Not used
+   vga_memio_wr <= memio_wr(17*8+7 downto 0*8);
+   --              memio_wr(31*8+7 downto 18*8);      -- Not used
+
+   -- 7FE0 - 7FE1 : VGA_PIX_X
+   -- 7FE2 - 7FE3 : VGA_PIX_Y
+   -- 7FE4 - 7FE7 : CPU_CYC
+   -- 7FE8 - 7FFF : Not used
+   memio_rd( 3*8+7 downto  0*8) <= vga_memio_rd;
+   memio_rd( 7*8+7 downto  4*8) <= cpu_memio_rd;
+   memio_rd(31*8+7 downto  8*8) <= (others => '0');   -- Not used
 
 
    --------------------------------------------------
