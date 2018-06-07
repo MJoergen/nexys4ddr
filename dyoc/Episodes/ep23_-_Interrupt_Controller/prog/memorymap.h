@@ -13,15 +13,18 @@
 #define SIZE_COL  (0x2000)
 #define SIZE_ROM  (0x0800)
 
-// Writeable
-#define VGA_CHAR_BG_COL  ((uint8_t *)  0x7FF0)
-#define VGA_OVERL_FG_COL ((uint8_t *)  0x7FF1)
-#define VGA_PIX_Y_INT    ((uint16_t *) 0x7FF2)
-#define IRQ_MASK         ((uint8_t *)  0x7FF7)
+// Memory mapped IO
 
-// Readonly
-#define VGA_PIX_X        ((uint16_t *) 0x7FF8)
-#define VGA_PIX_Y        ((uint16_t *) 0x7FFA)
+// Writeable 7FC0 - 7FDF
+#define VGA_PALETTE      ((uint8_t *)  0x7FC0)  // array of 16 bytes
+#define VGA_PIX_Y_INT    ((uint16_t *) 0x7FD0)
+#define IRQ_MASK         ((uint8_t *)  0x7FDF)
+
+// Readonly 7FE0 - 7FFF
+#define VGA_PIX_X        ((uint16_t *) 0x7FE0)
+#define VGA_PIX_Y        ((uint16_t *) 0x7FE2)
+#define CPU_CYC          ((uint32_t *) 0x7FE4)
 #define IRQ_STATUS       ((uint8_t *)  0x7FFF)
+#define IRQ_VGA          0x01
 
 #endif // _MEMORY_MAP_H_

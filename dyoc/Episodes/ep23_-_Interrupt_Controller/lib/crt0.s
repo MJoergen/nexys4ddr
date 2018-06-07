@@ -1,8 +1,7 @@
 	.setcpu		"6502"
 
-   .export _nmi_int, _init, _irq_int
-   .export _exit
-   .import _main, _isr
+   .export init, _exit
+   .import _main
 
    .export __STARTUP__ : absolute = 1     ; Mark as startup
    .import __RAM_START__, __RAM_SIZE__    ; Linker generated
@@ -16,10 +15,17 @@
 
 .segment	"STARTUP"
 
-_init:
-   SEI         ; Disable interrupts
-   CLD         ; Clear decimal mode
-   LDX #$FF    ; Reset stack pointer
+; ---------------------------------------------------------------------------
+; Entry point for a hardware reset. Referenced in lib/vectors.s
+
+init:
+
+; ---------------------------------------------------------------------------
+; Setup processor mode
+
+   SEI                     ; Disable interrupts
+   CLD                     ; Clear decimal mode
+   LDX #$FF                ; Reset stack pointer
    TXS
 
 ; ---------------------------------------------------------------------------
@@ -33,39 +39,21 @@ _init:
 ; ---------------------------------------------------------------------------
 ; Initialize memory storage
 
-   JSR zerobss              ; Clear BSS segment
-   JSR copydata             ; Initialize DATA segment
-   JSR initlib              ; Run constructors
+   JSR zerobss             ; Clear BSS segment
+   JSR copydata            ; Initialize DATA segment
+   JSR initlib             ; Run constructors
 
 ; ---------------------------------------------------------------------------
-; Call main()
+; Call C-function main()
 
    JSR _main
 
 ; ---------------------------------------------------------------------------
-; Back from main (this is also the _exit entry):  force a software break
+; Back from main (this is also entry point for the C-function exit()):
 
 _exit:
-   JSR donelib              ; Run destructors
+   SEI                     ; Disable interrupts
+   JSR donelib             ; Run destructors
 halt:
    JMP halt
-
-.segment	"CODE"
-
-_nmi_int:
-   RTI
-
-_irq_int:
-   PHA
-   TXA
-   PHA
-   TYA
-   PHA
-   JSR _isr
-   PLA
-   TAY
-   PLA
-   TAX
-   PLA
-   RTI
 

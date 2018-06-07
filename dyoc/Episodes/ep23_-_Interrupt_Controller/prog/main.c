@@ -2,9 +2,6 @@
 #include "printf.h"
 #include "memorymap.h"
 
-#define PIXELS_X 640
-#define PIXELS_Y 480
-
 // Called from crt0.s
 void main()
 {
@@ -18,20 +15,4 @@ void main()
    }
 
 } // end of main
-
-// Called from crt0.s
-void isr()
-{
-   if (*IRQ_STATUS & 1) // Reading the IRQ status clears it.
-   {
-      uint16_t line = *VGA_PIX_Y_INT + 1;
-
-      *VGA_CHAR_BG_COL = line & 0xFF;
-
-      if (line < PIXELS_Y)
-         *VGA_PIX_Y_INT = line;
-      else
-         *VGA_PIX_Y_INT = 0;
-   }
-} // end of irq
 
