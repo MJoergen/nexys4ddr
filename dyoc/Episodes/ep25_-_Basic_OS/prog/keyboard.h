@@ -1,9 +1,14 @@
 #ifndef _KEYBOARD_H_
 #define _KEYBOARD_H_
 
-#include "types.h"
+#include <stdint.h>
 
-// Read keyboard event. Will wait in blocking mode.
+// This does a BLOCKING wait, until a keyboard event is present in the buffer
+// It will pop this value and return.
+uint8_t kbd_buffer_pop();
+
+// This does a BLOCKING wait, until a character has been pressed.
 uint8_t kbd_getchar();
 
 #endif // _KEYBOARD_H_
+

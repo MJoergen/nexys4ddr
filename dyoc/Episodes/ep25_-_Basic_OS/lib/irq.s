@@ -1,7 +1,7 @@
 .setcpu "6502"
 
 .export nmi_int, irq_int
-.import _kbd_isr, _vga_isr
+.import kbd_isr, vga_isr
 
 IRQ_STATUS = $7FFF ; see prog/memorymap.h
 
@@ -20,12 +20,12 @@ irq_int:
    LDA IRQ_STATUS    ; Reading the IRQ status clears it.
    LSR               ; Shift bit 0 (VGA) to carry (see prog/memorymap.h)
    BCC done_vga
-   JSR _vga_isr
+   JSR vga_isr
 done_vga:
 
    LSR               ; Shift bit 1 (KBD) to carry (see prog/memorymap.h)
    BCC done_kbd
-   JSR _kbd_isr
+   JSR kbd_isr
 done_kbd:
 
    PLA

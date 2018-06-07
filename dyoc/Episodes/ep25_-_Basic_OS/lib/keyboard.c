@@ -1,11 +1,48 @@
-#include <6502.h>                // CLI()
+#include <6502.h>                // SEI() and CLI()
 #include <string.h>              // memmove
 #include "memorymap.h"
 
-// This holds a small buffer of keyboard events
-#define KBD_BUFFER_SIZE 6
-static uint8_t kbd_buffer[KBD_BUFFER_SIZE];
-static uint8_t kbd_buffer_count = 0;
+#define KBD_BUFFER_SIZE 10       // This should just be a small numer.
+
+//////////////////////////////////////////////////////////////////////////////////
+// Don't change these declarations, because they are used in the interrupt
+// service routine lib/kbd_irq.s
+const uint8_t kbd_buffer_size = KBD_BUFFER_SIZE;   // Make sure it is declared
+                                                   // as a const, so it will
+                                                   // reside in ROM. This
+                                                   // prevents it from
+                                                   // accidentally getting
+                                                   // corrupted.
+uint8_t kbd_buffer[KBD_BUFFER_SIZE];
+uint8_t kbd_buffer_count = 0;
+//////////////////////////////////////////////////////////////////////////////////
+
+
+// This does a BLOCKING wait, until a keyboard event is present in the buffer
+// It will pop this value and return.
+uint8_t kbd_buffer_pop()
+{
+   uint8_t kbd_data;
+
+   // Do a BLOCKING wait for keyboard event.
+   // The variable kbd_buffer_count will be incremented by the interrupt
+   // service routine in lib/kbd_isr.s.
+   while (kbd_buffer_count == 0)
+   {} // Do nothing while waiting.
+
+
+   // Use SEI() and CLI() as a primitive semaphore to prevent the
+   // interrupt service routine from accessing the buffer
+   // while we're updating it here.
+   SEI();
+   kbd_data = kbd_buffer[0];  // Read first entry from buffer
+   memmove(kbd_buffer, kbd_buffer+1, kbd_buffer_count);  // Take entry out of buffer
+   kbd_buffer_count--;
+   CLI();
+
+   return kbd_data;
+} // end of kbd_buffer_pop
+
 
 // Current state of keyboard
 static uint8_t kbd_release = 0;  // A release event is being processed.
@@ -36,41 +73,6 @@ static const uint8_t kbd_tab_shifted[128] = {
    0x00, 0x3E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
-
-// Private helper function
-static uint8_t kbd_buffer_pop()
-{
-   uint8_t kbd_data;
-
-   // Wait for keyboard event
-   while (kbd_buffer_count == 0)
-   {}
-
-   SEI();
-   kbd_data = kbd_buffer[0];
-   memmove(kbd_buffer, kbd_buffer+1, kbd_buffer_count);
-   kbd_buffer_count--;
-   CLI();
-
-   return kbd_data;
-} // end of kbd_buffer_pop
-
-
-// Keyboard interrupt
-// This must be written entirely in assembler, because the C code is not re-entrant.
-void kbd_isr()
-{
-   __asm__("LDA %w", (uint16_t) KBD_DATA);     // Read keyboard event into A.
-   __asm__("LDX %v", kbd_buffer_count);
-   __asm__("CPX #%b", KBD_BUFFER_SIZE);
-   __asm__("BEQ %g", end_isr);          // Skip if keyboard buffer is full.
-
-   __asm__("STA %v,X", kbd_buffer);
-   __asm__("INC %v", kbd_buffer_count);
-
-end_isr:
-   __asm__("RTS");
-} // end of kbd_isr
 
 // Read keyboard event. Will wait in blocking mode.
 uint8_t kbd_getchar()
@@ -116,5 +118,3 @@ uint8_t kbd_getchar()
    else
       return kbd_tab_normal[kbd_data];
 } // end of kbd_getchar
-
-//#include "../lib/vga.c"

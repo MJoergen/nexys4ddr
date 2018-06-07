@@ -1,9 +1,8 @@
 .setcpu		"6502"
 .export		_vga_cursor_enable
 .export		_vga_cursor_disable
-.export		_vga_isr
-
-BLINK_TIME = $10     ; 60 units in a second.
+.export     _curs_enable, _curs_inverted, _curs_cnt
+.exportzp   _curs_pos
 
 .segment	"DATA"
 
@@ -67,43 +66,4 @@ _curs_pos:
 L0021:	RTS
 
 .endproc
-
-
-; ---------------------------------------------------------------
-; void __near__ vga_isr (void)
-; ---------------------------------------------------------------
-
-.segment	"CODE"
-
-.proc	_vga_isr: near
-
-	LDX     _curs_enable
-	BEQ     L003F
-
-	DEC     _curs_cnt
-	BNE     L003F
-
-   PHA
-	LDA     #BLINK_TIME
-	STA     _curs_cnt
-	LDY     #$00
-	LDA     (_curs_pos),y
-	ASL     a
-	ADC     #$00
-	ASL     a
-	ADC     #$00
-	ASL     a
-	ADC     #$00
-	ASL     a
-	ADC     #$00
-	STA     (_curs_pos),y
-	LDA     _curs_inverted
-	EOR     #$FF
-	STA     _curs_inverted
-   PLA
-
-L003F:	RTS
-
-.endproc
-
 

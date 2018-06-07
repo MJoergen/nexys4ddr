@@ -1,7 +1,7 @@
 #ifndef _VGA_H_
 #define _VGA_H_
 
-#include "types.h"
+#include <stdint.h>
 
 #define PIXELS_X 640
 #define PIXELS_Y 480

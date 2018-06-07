@@ -29,10 +29,25 @@ fpga: comp.bit
 # Compile runtime library
 #####################################
 
-lib/crt0.o: lib/crt0.s
+lib/vectors.o: lib/vectors.s     # Hardware interrupt vectors
 	ca65 $< -o $@
 
-lib/vectors.o: lib/vectors.s
+lib/irq.o: lib/irq.s             # IRQ and NMI vectors
+	ca65 $< -o $@
+
+lib/crt0.o: lib/crt0.s           # Reset vector
+	ca65 $< -o $@
+
+lib/vga_isr.o: lib/vga_isr.s     # VGA interrupt service routine
+	ca65 $< -o $@
+
+lib/kbd_isr.o: lib/kbd_isr.s     # KBD interrupt service routine
+	ca65 $< -o $@
+
+lib/printf.s: lib/printf.c
+	cc65 -I $(C_INC) -g -t none -O $< -o $@
+
+lib/printf.o: lib/printf.s
 	ca65 $< -o $@
 
 lib/keyboard.s: lib/keyboard.c
@@ -44,16 +59,7 @@ lib/keyboard.o: lib/keyboard.s
 lib/vga.o: lib/vga.s
 	ca65 $< -o $@
 
-lib/printf.s: lib/printf.c
-	cc65 -I $(C_INC) -g -t none -O $< -o $@
-
-lib/printf.o: lib/printf.s
-	ca65 $< -o $@
-
-lib/irq.o: lib/irq.s
-	ca65 $< -o $@
-
-lib/comp.lib: lib/crt0.o lib/printf.o lib/keyboard.o lib/vga.o
+lib/comp.lib: lib/crt0.o lib/printf.o lib/kbd_isr.o lib/vga_isr.o lib/vga.o lib/irq.o lib/keyboard.o 
 	cp lib/none.lib $@
 	ar65 r $@ $^
 
@@ -67,7 +73,7 @@ prog/main.s: prog/main.c
 prog/main.o: prog/main.s
 	ca65 $< -o $@
 
-prog/rom.bin: prog/main.o lib/comp.lib lib/irq.o lib/vectors.o
+prog/rom.bin: prog/main.o lib/vectors.o lib/comp.lib
 	ld65 -m prog/rom.map -C ld.cfg $^
 
 mem/rom.txt: prog/rom.bin
@@ -102,7 +108,6 @@ clean:
 	rm -rf lib/printf.s
 	rm -rf lib/keyboard.s
 	rm -rf prog/main.s
-	rm -rf prog/printf.s
 	rm -rf prog/*.o
 	rm -rf prog/*.bin
 	rm -rf prog/rom.map
