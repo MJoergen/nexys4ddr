@@ -1,11 +1,9 @@
 #include <6502.h>                // CLI()
 #include "printf.h"
+#include "keyboard.h"
+#include "types.h"
 #include "memorymap.h"
 
-#define PIXELS_X 640
-#define PIXELS_Y 480
-
-// Called from crt0.s
 void main()
 {
    uint8_t dummy;
@@ -23,17 +21,10 @@ void main()
    // Just go into a busy loop
    while (1)
    {
+      uint8_t ev = kbd_buffer_pop();   // This does a BLOCKING wait.
+      printfHex8(ev);
+      printf("\n");
    }
 
 } // end of main
-
-// Called from crt0.s
-void isr()
-{
-   if (*IRQ_STATUS & IRQ_KBD)    // Reading the IRQ status clears it.
-   {
-      printfHex8(*KBD_DATA);
-      printf("\n");
-   }
-} // end of irq
 
