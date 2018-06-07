@@ -44,7 +44,7 @@ prog/main.s: prog/main.c
 prog/main.o: prog/main.s
 	ca65 $< -o $@
 
-prog/rom.bin: prog/main.o lib/comp.lib lib/vectors.o
+prog/rom.bin: prog/main.o lib/vectors.o lib/comp.lib
 	ld65 -m prog/rom.map -C ld.cfg $^
 
 mem/rom.txt: prog/rom.bin
