@@ -198,7 +198,7 @@ begin
       if rising_edge(clk_i) then
 
          if pix = '1' then
-            vga.col <= X"FF";
+            vga.col <= COL_WHITE;
          else
             vga.col <= vga_col_i; -- Text background colour.
          end if;

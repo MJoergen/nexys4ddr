@@ -1,7 +1,7 @@
 #ifndef _MEMORY_MAP_H_
 #define _MEMORY_MAP_H_
 
-#include "types.h"
+#include <stdint.h>
 
 #define MEM_RAM  ((uint8_t *) 0x0000)
 #define MEM_CHAR ((uint8_t *) 0x8000)
