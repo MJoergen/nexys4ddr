@@ -28,10 +28,10 @@ fpga: comp.bit
 # Compile runtime library
 #####################################
 
-lib/crt0.o: lib/crt0.s
+lib/vectors.o: lib/vectors.s     # Hardware interrupt vectors
 	ca65 $< -o $@
 
-lib/vectors.o: lib/vectors.s
+lib/crt0.o: lib/crt0.s           # Reset vector
 	ca65 $< -o $@
 
 lib/printf.s: lib/printf.c
@@ -42,7 +42,7 @@ lib/printf.o: lib/printf.s
 
 lib/comp.lib: lib/crt0.o lib/printf.o
 	cp lib/none.lib $@
-	ar65 a $@ $^
+	ar65 r $@ $^
 
 #####################################
 # Compile target program
@@ -54,7 +54,7 @@ prog/main.s: prog/main.c
 prog/main.o: prog/main.s
 	ca65 $< -o $@
 
-prog/rom.bin: prog/main.o lib/comp.lib lib/vectors.o
+prog/rom.bin: prog/main.o lib/vectors.o lib/comp.lib
 	ld65 -m prog/rom.map -C ld.cfg $^
 
 mem/rom.txt: prog/rom.bin
@@ -68,7 +68,7 @@ mem/rom.txt: prog/rom.bin
 sim: $(SRC) $(TB) mem/rom.txt
 	ghdl -i --work=work $(SRC) $(TB)
 	ghdl -m --ieee=synopsys -fexplicit tb
-	ghdl -r tb --assert-level=error --wave=$(WAVE) --stop-time=5us
+	ghdl -r tb --assert-level=error --wave=$(WAVE) --stop-time=400us
 	gtkwave $(WAVE) $(SAVE)
 
 clean:
@@ -88,6 +88,7 @@ clean:
 	rm -rf lib/*.o
 	rm -rf lib/printf.s
 	rm -rf prog/main.s
+	rm -rf prog/printf.s
 	rm -rf prog/*.o
 	rm -rf prog/*.bin
 	rm -rf prog/rom.map

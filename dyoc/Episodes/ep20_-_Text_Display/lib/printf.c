@@ -1,5 +1,6 @@
+#include <string.h>     // memmove() and memset()
 #include "types.h"
-#include "memorymap.h" // Defines MEM_CHAR
+#include "memorymap.h"  // Defines MEM_CHAR
 #include "printf.h"
 
 // Simple implementation of printf. Only supports printing text strings.
@@ -37,11 +38,18 @@ void printf(char* str)
 
       if (y >= SCREEN_Y)
       {
-         for (y = 0; y < SCREEN_Y; y++)
-            for (x = 0; x < SCREEN_X; x++)
-               CharMemory[SCREEN_X*y+x] = ' ';
+         // Move screen up one line
+         memmove(CharMemory,                 // destination is start of first line.
+                 CharMemory + SCREEN_X,      // source is start of second line.
+                 SCREEN_X*(SCREEN_Y-1));     // length is screen minus one line.
+
+         // Clear bottom line
+         memset(CharMemory + SCREEN_X*(SCREEN_Y-1),   // destination is start of last line.
+                ' ',                                  // character is space.
+                SCREEN_X);                            // size if one line.
+
+         y = SCREEN_Y-1;
          x = 0;
-         y = 0;
       }
    } // end of for
 } // end of printf
@@ -60,6 +68,6 @@ void printfHex8(uint8_t key)
 void printfHex16(uint16_t key)
 {
     printfHex8((key >> 8) & 0xFF);
-    printfHex8(key & 0xFF);
+    printfHex8( key & 0xFF);
 } // end of printfHex16
 
