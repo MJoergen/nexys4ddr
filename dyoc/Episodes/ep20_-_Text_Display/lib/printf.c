@@ -28,26 +28,18 @@ void printf(char* str)
             break;
       } // end of switch
 
+      // End of line, just start at next line
       if (x >= H_CHARS)
       {
          x = 0;
          y++;
       }
 
+      // End of screen, go to the top.
       if (y >= V_CHARS)
       {
-         // Move entire screen up one line
-         memmove(MEM_CHAR,                   // destination is start of first line.
-                 MEM_CHAR + H_CHARS,         // source is start of second line.
-                 H_CHARS*(V_CHARS-1));       // length is screen minus one line.
-
-         // Clear bottom line
-         memset(MEM_CHAR + H_CHARS*(V_CHARS-1),       // destination is start of last line.
-                ' ',                                  // character is space.
-                H_CHARS);                             // size if one line.
-
-         y = V_CHARS-1;
          x = 0;
+         y = 0;
       }
    } // end of for
 } // end of printf
