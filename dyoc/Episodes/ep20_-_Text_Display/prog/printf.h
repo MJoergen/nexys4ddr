@@ -1,7 +1,7 @@
 #ifndef _PRINTF_H_
 #define _PRINTF_H_
 
-#include "types.h"
+#include <stdint.h>
 
 #define SCREEN_X 80
 #define SCREEN_Y 60

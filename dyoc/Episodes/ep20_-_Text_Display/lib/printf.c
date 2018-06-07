@@ -1,5 +1,5 @@
 #include <string.h>     // memmove() and memset()
-#include "types.h"
+#include <stdint.h>     // uint8_t, etc.
 #include "memorymap.h"  // Defines MEM_CHAR
 #include "printf.h"
 

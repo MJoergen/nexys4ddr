@@ -42,7 +42,25 @@ The interpretation (i.e. decoding) of the memory map takes place in lines 61-72
 of mem/mem.vhd. The postscript "cs" means "chip select". Note that there is no
 rom\_wren, because we have removed to ability for the CPU to write to the ROM.
 The definition of the memory map is moved to the file comp.vhd in lines
-133-141, and an equivalent C-style copy is maintained in file prog/memorymap.h.
+139-147, and an equivalent C-style copy is maintained in file prog/memorymap.h.
+
+## Colour palette
+The colour memory will contain one byte for each character. A simple design
+is to use this byte directly as the 8-bit colour. However, I've chosen a
+different design here.
+
+So the upper 4 bits of the colour byte defines the background colour, while the
+lower 4 bits defines the text colour. The 4-bit colours are then mapped
+to an 8-bit colour using a colour palette. In this episode, the colour palette
+is hard-coded, but in later episodes it will be possible for the CPU to update
+the colour palette.
+
+The default colour palette assigns the colour black to the value 0, and the
+colour white to the value 15. Intermediate values between 0 and 15 correspond
+to various colours.
+
+The default colour index in the colour memory is 0x0F, which corresponds to
+white text on black background.
 
 ## VGA access to the character and colour memory.
 Both the CPU and the VGA module will be accessing the character memory
@@ -60,7 +78,7 @@ i.e. mem/ram.vhd) is that there are now two address buses, one for writing
 signals a\_addr\_i and b\_addr\_i.
 
 The character and colour memories are instantiated in lines 91-125 of mem/mem.vhd.
-Note that a default value of 0xFF has been given in line 116. This means that
+Note that a default value of 0x0F has been given in line 116. This means that
 all characters have a default colour of white on black if the CPU doesn't write
 to the colour memory.
 
@@ -71,7 +89,7 @@ implementation is somewhat different from e.g. vga/overlay.vhd, in that it uses
 a pipeline. This is because the operations needed to determine the pixel colour takes
 several clock cycles.
 
-The pipeline is described by the record t\_vga defined in lines 49-72 of
+The pipeline is described by the record t\_vga defined in lines 51-74 of
 vga/chars.vhd.  The precise number of steps in the pipeline can be increased
 and/or decreased, so the choices made here are mainly based on readability.
 
@@ -79,12 +97,12 @@ Each stage is delayed one clock cycle relative to the previous stage. The
 length of the pipeline (i.e. number of stages) poses no problems, as long as
 all signals are delayed the same amount.
 
-### Stage 0 (lines 76-82)
+### Stage 0 (lines 78-84)
 In the initial stage the input signals pix\_x\_i and pix\_y\_i are copied
 directly into stage 0 of the pipeline. There is no delay in this, and this
 step serves only to improve readability.
 
-### Stage 1 (lines 85-117)
+### Stage 1 (lines 87-119)
 In this stage we calculate - as before - the horizontal and vertical
 synchronization signals. These signals will in the later stages be delayed so
 they remain aligned with the generated colour signal.  The main part of this
@@ -102,7 +120,7 @@ Other choices are possible too, and the main requirement is that there is a
 unique 1-1 correspondence between the character position on the screen, and the
 memory address offset.
 
-### Stage 2 (lines 120-160)
+### Stage 2 (lines 122-162)
 The actual lookup is done by connecting the address and data buses in lines
 120-128.  Note that the character and colour memories are synchronuous, which
 means there is a one clock cycle delay from address to data. This is the reason
@@ -116,14 +134,14 @@ it has no clock input.
 
 The remaining signals need to be copied over individually, in lines 146-160.
 
-
-### Stage 3 (lines 163-196)
+### Stage 3 (lines 165-198)
 The font bitmap is 64 bits wide, and the particular bitnumber to use is
-calculated in lines 178-181. The main point is we need to take the pixel
+calculated in lines 180-183. The main point is we need to take the pixel
 coordinates modulo 8 (the font size in pixels). Since 8 is a power of two, this
 modulo operation consists simply of taking the lower three bits of the
 pixel coordinate. The font data is - as before - arranged as eight rows of
 eight pixels, with bit number 0 in the lower left corner.
+
 
 ## Software support
 Now that the firmware can display characters on the VGA output, this can be
