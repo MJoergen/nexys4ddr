@@ -22,7 +22,10 @@ entity mem is
       G_MEMIO_MASK : std_logic_vector(15 downto 0);  -- Value of upper bits in MEMIO address
       --
       G_FONT_FILE  : string;           -- Contains the contents of the FONT memory.
-      G_ROM_FILE   : string            -- Contains the contents of the ROM memory.
+      G_ROM_FILE   : string;           -- Contains the contents of the ROM memory.
+      --
+      -- Initial contents of the Memory Mapped I/O
+      G_MEMIO_INIT : std_logic_vector(8*32-1 downto 0)
    );
    port (
       clk_i          : in  std_logic;
@@ -40,9 +43,9 @@ entity mem is
       b_char_data_o  : out std_logic_vector( 7 downto 0);
       b_col_addr_i   : in  std_logic_vector(12 downto 0);
       b_col_data_o   : out std_logic_vector( 7 downto 0);
-      b_memio_wr_o   : out std_logic_vector(63 downto 0);
-      b_memio_rd_i   : in  std_logic_vector(63 downto 0);
-      b_memio_rden_o : out std_logic_vector( 7 downto 0)
+      b_memio_wr_o   : out std_logic_vector(8*32-1 downto 0);
+      b_memio_rd_i   : in  std_logic_vector(8*32-1 downto 0);
+      b_memio_rden_o : out std_logic_vector(  32-1 downto 0)
    );
 end mem;
 
@@ -133,7 +136,7 @@ begin
    i_memio : entity work.memio
    generic map (
       G_ADDR_BITS => G_MEMIO_SIZE,
-      G_INIT_VAL  => X"000000000000FF00"
+      G_INIT_VAL  => G_MEMIO_INIT
    )
    port map (
       clk_i     => clk_i,
@@ -172,7 +175,7 @@ begin
    i_col : entity work.dmem
    generic map (
       G_ADDR_BITS => G_COL_SIZE,
-      G_INIT_VAL  => X"FF"
+      G_INIT_VAL  => X"0F"          -- White text on black background
    )
    port map (
       clk_i    => clk_i,
