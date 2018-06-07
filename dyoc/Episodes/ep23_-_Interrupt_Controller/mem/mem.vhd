@@ -40,9 +40,9 @@ entity mem is
       b_char_data_o  : out std_logic_vector( 7 downto 0);
       b_col_addr_i   : in  std_logic_vector(12 downto 0);
       b_col_data_o   : out std_logic_vector( 7 downto 0);
-      b_memio_wr_o   : out std_logic_vector(63 downto 0);
-      b_memio_rd_i   : in  std_logic_vector(63 downto 0);
-      b_memio_rden_o : out std_logic_vector( 7 downto 0)
+      b_memio_wr_o   : out std_logic_vector(8*32-1 downto 0);
+      b_memio_rd_i   : in  std_logic_vector(8*32-1 downto 0);
+      b_memio_rden_o : out std_logic_vector(  32-1 downto 0)
    );
 end mem;
 

@@ -13,15 +13,15 @@ entity vga is
       clk_i       : in  std_logic;    -- Expects 25.175 MHz
 
       overlay_i   : in  std_logic;
-      digits_i    : in  std_logic_vector(175 downto 0);
+      digits_i    : in  std_logic_vector(191 downto 0);
 
       char_addr_o : out std_logic_vector(12 downto 0);
       char_data_i : in  std_logic_vector( 7 downto 0);
       col_addr_o  : out std_logic_vector(12 downto 0);
       col_data_i  : in  std_logic_vector( 7 downto 0);
 
-      memio_i     : in  std_logic_vector(4*8-1 downto 0);
-      memio_o     : out std_logic_vector(4*8-1 downto 0);
+      memio_i     : in  std_logic_vector(18*8-1 downto 0);
+      memio_o     : out std_logic_vector( 4*8-1 downto 0);
       irq_o       : out std_logic;
 
       vga_hs_o    : out std_logic;
@@ -32,9 +32,8 @@ end vga;
 
 architecture Structural of vga is
 
-   signal character_background_colour : std_logic_vector( 7 downto 0);
-   signal overlay_foreground_colour   : std_logic_vector( 7 downto 0);
-   signal pix_y_line_interrupt        : std_logic_vector(15 downto 0);
+   signal colour_palette       : std_logic_vector(16*8-1 downto 0);
+   signal pix_y_line_interrupt : std_logic_vector(15 downto 0);
 
    -- Define constants used for 640x480 @ 60 Hz.
    -- Requires a clock of 25.175 MHz.
@@ -119,7 +118,7 @@ begin
       col_addr_o  => col_addr_o,
       col_data_i  => col_data_i,
 
-      bg_col_i    => character_background_colour,
+      palette_i   => colour_palette,
 
       pix_x_o     => char_pix_x,
       pix_y_o     => char_pix_y,
@@ -145,7 +144,6 @@ begin
       vga_hs_i  => char_hs,
       vga_vs_i  => char_vs,
       vga_col_i => char_col,
-      fg_col_i  => overlay_foreground_colour,
       vga_hs_o  => overlay_hs,
       vga_vs_o  => overlay_vs,
       vga_col_o => overlay_col
@@ -161,9 +159,9 @@ begin
    -- Memory Mapped I/O
    --------------------
 
-   character_background_colour <= memio_i( 7 downto  0);
-   overlay_foreground_colour   <= memio_i(15 downto  8);
-   pix_y_line_interrupt        <= memio_i(31 downto 16);
+   colour_palette       <= memio_i(15*8+7 downto  0*8);
+   pix_y_line_interrupt <= memio_i(17*8+7 downto 16*8);
+
    memio_o( 7 downto  0) <= pix_x(7 downto 0);
    memio_o(15 downto  8) <= "000000" & pix_x(9 downto 8);
    memio_o(23 downto 16) <= pix_y(7 downto 0);
