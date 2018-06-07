@@ -40,3 +40,7 @@ basically states that any memory transfer that is not a write must be a read.
 The additional signal mem indicates a memory transfer, and is evaluated in
 lines 407-420 of cpu/datapath.vhd.
 
+## Other modifications
+One major reason for adding read support from display memory, is to
+allow screen scrolling. This is done in lib/printf.c in lines 39-50.
+

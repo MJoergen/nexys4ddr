@@ -107,6 +107,8 @@ begin
       col_addr_o  => col_addr_o,
       col_data_i  => col_data_i,
 
+      palette_i   => X"FFFCE3E0433C1E178C82803022110A00",
+
       pix_x_o     => char_pix_x,
       pix_y_o     => char_pix_y,
       vga_hs_o    => char_hs,

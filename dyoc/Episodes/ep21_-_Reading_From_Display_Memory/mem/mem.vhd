@@ -135,7 +135,7 @@ begin
    i_col : entity work.dmem
    generic map (
       G_ADDR_BITS => G_COL_SIZE,
-      G_INIT_VAL  => X"FF"
+      G_INIT_VAL  => X"0F"    -- Default is white text on black background.
    )
    port map (
       clk_i    => clk_i,
