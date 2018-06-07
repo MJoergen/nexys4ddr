@@ -41,9 +41,6 @@ lib/keyboard.s: lib/keyboard.c
 lib/keyboard.o: lib/keyboard.s
 	ca65 $< -o $@
 
-lib/vga.s: lib/vga.c
-	cc65 -I $(C_INC) -g -t none -O $< -o $@
-
 lib/vga.o: lib/vga.s
 	ca65 $< -o $@
 
@@ -56,7 +53,7 @@ lib/printf.o: lib/printf.s
 lib/irq.o: lib/irq.s
 	ca65 $< -o $@
 
-lib/comp.lib: lib/crt0.o lib/printf.o lib/vga.o lib/keyboard.o
+lib/comp.lib: lib/crt0.o lib/printf.o lib/keyboard.o lib/vga.o
 	cp lib/none.lib $@
 	ar65 r $@ $^
 
@@ -84,7 +81,7 @@ mem/rom.txt: prog/rom.bin
 sim: $(SRC) $(TB) mem/rom.txt
 	ghdl -i --work=work $(SRC) $(TB)
 	ghdl -m --ieee=synopsys -fexplicit tb
-	ghdl -r tb --assert-level=error --wave=$(WAVE) --stop-time=200us
+	ghdl -r tb --assert-level=error --wave=$(WAVE) --stop-time=400us
 	gtkwave $(WAVE) $(SAVE)
 
 clean:
@@ -104,7 +101,6 @@ clean:
 	rm -rf lib/*.o
 	rm -rf lib/printf.s
 	rm -rf lib/keyboard.s
-	rm -rf lib/vga.s
 	rm -rf prog/main.s
 	rm -rf prog/printf.s
 	rm -rf prog/*.o

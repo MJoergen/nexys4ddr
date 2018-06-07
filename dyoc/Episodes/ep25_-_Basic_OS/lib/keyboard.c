@@ -3,7 +3,7 @@
 #include "memorymap.h"
 
 // This holds a small buffer of keyboard events
-#define KBD_BUFFER_SIZE 16
+#define KBD_BUFFER_SIZE 6
 static uint8_t kbd_buffer[KBD_BUFFER_SIZE];
 static uint8_t kbd_buffer_count = 0;
 
@@ -117,4 +117,4 @@ uint8_t kbd_getchar()
       return kbd_tab_normal[kbd_data];
 } // end of kbd_getchar
 
-
+//#include "../lib/vga.c"
