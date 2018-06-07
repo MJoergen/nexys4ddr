@@ -105,7 +105,6 @@ clean:
 	rm -rf lib/printf.s
 	rm -rf lib/keyboard.s
 	rm -rf prog/main.s
-	rm -rf prog/printf.s
 	rm -rf prog/*.o
 	rm -rf prog/*.bin
 	rm -rf prog/rom.map

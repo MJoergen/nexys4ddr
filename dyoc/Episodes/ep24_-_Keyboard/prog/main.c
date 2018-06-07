@@ -1,7 +1,7 @@
 #include <6502.h>                // CLI()
+#include <stdint.h>
 #include "printf.h"
 #include "keyboard.h"
-#include "types.h"
 #include "memorymap.h"
 
 void main()

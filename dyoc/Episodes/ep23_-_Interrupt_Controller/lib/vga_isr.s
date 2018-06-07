@@ -5,7 +5,7 @@
 ; Therefore, one shouldn't call C functions from this routine.
 ; Furthermore, it should be short and fast, so as not to slow down the main program.
 
-; These addresses must mach those in prog/memorymap.h
+; These addresses must match those in prog/memorymap.h
 VGA_PALETTE   = $7FC0   
 VGA_PIX_Y_INT = $7FD0
 
