@@ -1,7 +1,11 @@
 .setcpu		"6502"
-.export		vga_isr
+.export     vga_isr     ; Used in lib/irq.s
 .import     _curs_enable, _curs_cnt, _curs_inverted
 .importzp   _curs_pos
+
+; The interrupt routine must be written entirely in assembler, because the C code is not re-entrant.
+; Therefore, one shouldn't call C functions from this routine.
+; Furthermore, it should be short and fast, so as not to slow down the main program.
 
 BLINK_TIME = $10     ; 60 units in a second.
 
