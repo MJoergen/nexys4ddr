@@ -1,12 +1,30 @@
 # Design Your Own Computer
 # Episode 19 : "C Runtime"
 
-Welcome to "Design Your Own Computer".  In this episode we will modify the
-toolchain to support the C runtime, thus allowing us to make C programs run on
-the CPU. Furthermore, we will complete the CPU by adding support for Reset.
+Welcome to "Design Your Own Computer".
 
-The C runtime used by the [cc65](http://cc65.github.io/doc/cc65.html) compiler
-requires the support of a number of features:
+Let's first take a status of the project. So far we've finished implementing
+the 6502 CPU. That means we can now write programs (in assembly) and have
+them run of our computer.
+
+We still need to expand the functionality of the VGA output, as well as add
+keyboard input to our computer. However, before we do that, I would
+like to be able to run C-programs on our computer.
+
+Being able to run C-program on the 6502 requires several additions to
+our tool chain:
+* C compiler targeting the 6502 CPU.
+* C linker
+* C runtime ABI support.
+* C runtime library.
+
+As our C compiler I will use [cc65](http://cc65.github.io/doc/cc65.html).  This
+compiler comes with a complete toolchain including linker, runtime library,
+etc. In this episode we will configure this toolchain.
+
+
+The toolchain provided by the [cc65](http://cc65.github.io/doc/cc65.html)
+compiler requires the support of a number of features in our computer:
 * CPU reset.
 * Memory map.
 * Linker script.
