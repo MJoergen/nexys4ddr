@@ -30,6 +30,10 @@ sim: $(SRC) $(TB) mem/rom.txt
 	gtkwave tb.ghw tb.gtkw
 
 
+#####################################
+# Cleanup
+#####################################
+
 clean:
 	rm -rf usage_statistics_webtalk.*
 	rm -rf vivado*

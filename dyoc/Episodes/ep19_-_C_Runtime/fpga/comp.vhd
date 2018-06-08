@@ -135,7 +135,7 @@ begin
 
 
    --------------------------------------------------
-   -- Generate VGA module
+   -- Instantiate VGA module
    --------------------------------------------------
 
    i_vga : entity work.vga

@@ -26,9 +26,11 @@ build/comp.lib: build/crt0.o
 	ar65 r $@ $^
 
 build/crt0.o: lib/crt0.s           # Reset vector
+	mkdir -p build
 	ca65 $< -o $@
 
 build/vectors.o: lib/vectors.s     # Hardware interrupt vectors
+	mkdir -p build
 	ca65 $< -o $@
 
 
