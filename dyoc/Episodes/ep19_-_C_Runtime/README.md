@@ -99,13 +99,8 @@ functions and these arguments can have arbitrary sizes.
 ## Startup code prog/lib/crt0.s
 Upon reset, the processor starts executing code at the label "init" referenced in
 prog/lib/vectors.s. This startup code is placed in a separate file
-prog/lib/crt0.s, and is respondible for preparing the C runtime environment.
-
-Line 3 exposes the symbols init and \_exit. The former is referenced in the
-file prog/vectors.s. The latter symbol is currently not used.
-Line 5 imports the symbol \_main, which is the C runtime program entry point.
-
-Line 18 marks the beginning of init.  The main responsibility is to:
+prog/lib/crt0.s in line 18, and is responsible for setting up the C runtime
+environment:
 * Setup the C program stack (lines 24-30).
 * Initialize the C-stack for function arguments (lines 32-38).
 * Clear the BSS segment (line 43).
