@@ -28,15 +28,15 @@ our computer:
 * Memory map.
 * Linker script.
 * Startup code.
-* Runtime library.
 
-Additionally, we'll perform a few extra steps in this Episode
+Additionally, we'll perform a few extra steps in this episode:
 * Reset button (this is strictly not needed, but a nice feature).
-* Cleanup
+* Cleanup of the directory structure.
 
 ## CPU reset
 Upon reset, the CPU must load the Program Counter from the Reset vector at
-address 0xFFFC and 0xFFFD.
+address 0xFFFC and 0xFFFD, instead of using a hardcoded value in the
+source code.
 
 To achieve this the control registers must be given default values.
 * Lines 2774-2777 of cpu/ctl.vhd starts the Reset sequence by forcing the
@@ -52,14 +52,13 @@ Control Logic that this is a Reset (as opposed to a regular BRK instruction).
 ## Memory map (segments)
 Even though the memory map of the computer is unchanged, the C runtime assumes
 the presence of a number of additional segments. The reason is that these
-segments must be placed in different locations in memory, and have different
-requirements for initialization at startup.
+segments have different requirements for initialization at startup.
 
 ### Segment VECTORS
 The segment VECTORS is just six bytes long and holds the addresses of the three
 interrupt vectors Reset, NMI, and IRQ. These six bytes must be placed at
-0xFFFA.  This segment is defined in the file prog/vectors.s, and we see that
-the three vectors point to \_nmi\_int, \_init, and \_irq\_int, respectively.
+0xFFFA.  This segment is defined in the file prog/lib/vectors.s, and we see
+that the three vectors point to nmi\_int, init, and irq\_int, respectively.
 This segment must be part of the ROM.  The ordering of these lines is crucial.
 
 ### Segment CODE
@@ -79,33 +78,50 @@ be cleared at startup.
 This contains initialized constants. They must be placed in ROM.
 
 
-## The linker script ld.cfg
+## The linker script prog/ld.cfg
 This script is taken from <https://cc65.github.io/doc/customizing.html> and
 modified slightly.  Refer to the documentation at
 <http://cc65.github.io/doc/ld65.html> for full details.
 
 Other than placing the segments correctly in memory, the linker script
-additionally defines extra symbols that are accessible to the startup code, see
-e.g.  lines 32, 33, and 37 of ld.cfg.
+additionally defines extra symbols that are used by the startup code, see
+e.g.  lines 38, 39, and 47 of prog/ld.cfg.
 
-Lines 74-79 of ld.cfg define the symbol \_\_STACKSIZE\_\_. This is because the
-C runtime uses its own stack space in RAM (as opposed to the processor stack in
-page 1). This is because the stack is used to pass arguments to functions and
-these arguments can have arbitrary sizes.
+Lines 97-102 of ld.cfg define the symbol \_\_STACKSIZE\_\_. This is because the
+C runtime uses its own stack space in RAM (as opposed to the processor stack at
+address 0x0100). This is because the C-stack is used to pass arguments to
+functions and these arguments can have arbitrary sizes.
 
 
-## Startup code prog/crt0.s
-Line 3 exposes the symbols \_init and \_exit. The former is referenced in the
+## Startup code prog/lib/crt0.s
+Line 3 exposes the symbols init and \_exit. The former is referenced in the
 file prog/vectors.s. The latter symbol is currently not used.
-Line 4 import the symbol \_main, which is the C runtime program entry point.
+Line 5 imports the symbol \_main, which is the C runtime program entry point.
 
-Line 18 marks the beginning of the \_init.  The main responsibility is to:
-* setup the C program stack (lines 24-30)
-* clear the BSS segment (line 35)
-* initialize the DATA (line 36) segment
-* call the main() function (lines 39-42).
+Line 18 marks the beginning of init.  The main responsibility is to:
+* Setup the C program stack (lines 24-30).
+* Initialize the C-stack for function arguments (lines 32-38).
+* Clear the BSS segment (line 43).
+* Initialize the DATA segment (line 44).
+* Call the main() function (lines 47-50).
 
-Upon exit, the CPU enters an infinite loop in lines 44-50.
+Upon exit from the main() function, the CPU enters an infinite loop in lines 55-59.
+
+Interrupts (IRQ and NMI) are currently not supported, so they just return immediately,
+see lines 61-67.
+
+The startup code references a number of function, e.g. zerobss and copydata.
+These functions are implemented elsewhere. I've chosen to use the existing
+runtime libraries provided by the cc65 toolchain. This runtime library
+depends on the platform. The platform we're building is basically a bare-metal
+platform, no features other than keyboard input and VGA output (both yet to be
+implemented). Therefore, we copy the default library from cc65/lib/none.lib to
+prog/none.lib. This library contains several useful functions, including zerobss and
+copydata, as well as functions to support the cc65 ABI.
+
+It also contains a version of the startup code crt0.s, that must be replaced by
+our own. This is taken care of in lines 22-31 of Makefile, where we make our
+own copy of none.lib and modify the copy.
 
 
 ## Reset button
@@ -119,22 +135,13 @@ that after power-up the rst signal is automatically asserted (i.e. by using
 the default value assigned in line 42 of comp.vhd).
 
 ## Cleanup
-We can now get rid of the default value of the Program Counter in line 146 of
-cpu/datapath.vhd. Furthermore, I've removed the CIC module and the file
+The project has now grown to a size where it is convenient to add more
+directory structure.  So everything has been distributed to two new directories
+fpga/ and prog/. The former contains all the VHDl code and Makefiles necessary
+to generate a bit-file. The directory prog/ contains everything needed to
+generate the ROM image.
+
+Furthermore, I have removed some unused code, e.g.  the CIC module and the file
 mem/cic.vhd, since that was just for testing purposes in the previous episode.
 Additionally, writing to the ROM is removed as well.
-
-## Runtime library
-The startup code references a number of function, e.g. zerobss and copydata.
-These functions are implemented elsewhere. I've chosen to use the existing
-runtime libraries provided by the cc65 toolchain. This runtime library
-depends on the platform. The platform we're building is basically a bare-metal
-platform, no features other than keyboard input and VGA output (both yet to be
-implemented). Therefore, we copy the default library from cc65/lib/none.lib to
-prog/none.lib. This library contains several useful functions, including zerobss and
-copydata, as well as functions to support the cc65 ABI.
-
-It also contains a version of the startup code crt0.s, that must be replaced by
-our own. This is taken care of in lines 22-31 of Makefile, where we make our
-own copy of none.lib and modify the copy.
 
