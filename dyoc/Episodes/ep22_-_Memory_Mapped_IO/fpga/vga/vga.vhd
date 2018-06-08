@@ -41,10 +41,6 @@ architecture Structural of vga is
    constant H_TOTAL  : integer := 800;
    constant V_TOTAL  : integer := 525;
 
-   -- Define visible screen size
-   constant H_PIXELS : integer := 640;
-   constant V_PIXELS : integer := 480;
-
    -- Pixel counters
    signal pix_x : std_logic_vector(9 downto 0) := (others => '0');
    signal pix_y : std_logic_vector(9 downto 0) := (others => '0');
