@@ -155,7 +155,7 @@ begin
       G_COL_MASK  => X"A000",
       --
       G_FONT_FILE => "font8x8.txt",
-      G_ROM_FILE  => "mem/rom.txt"
+      G_ROM_FILE  => "../rom.txt"
    )
    port map (
       clk_i    => vga_clk,
