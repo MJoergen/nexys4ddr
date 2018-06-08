@@ -139,7 +139,7 @@ the default value assigned in line 42 of comp.vhd).
 ## Cleanup
 The project has now grown to a size where it is convenient to add more
 directory structure.  So everything has been distributed to two new directories
-fpga/ and prog/. The former contains all the VHDl code and Makefiles necessary
+fpga/ and prog/. The former contains all the VHDL code and Makefiles necessary
 to generate a bit-file. The directory prog/ contains everything needed to
 generate the ROM image.
 
