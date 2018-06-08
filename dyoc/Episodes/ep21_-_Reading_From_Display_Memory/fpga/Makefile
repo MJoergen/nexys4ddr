@@ -21,7 +21,6 @@ fpga: comp.bit
 	djtgcfg prog -d Nexys4DDR -i 0 --file $<
 
 
-
 #####################################
 # Simulation
 #####################################
@@ -47,3 +46,4 @@ clean:
 	rm -rf work-obj93.cf
 	rm -rf tb
 	rm -rf tb.ghw
+

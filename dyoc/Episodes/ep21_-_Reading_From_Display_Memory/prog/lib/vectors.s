@@ -1,6 +1,6 @@
 .setcpu		"6502"
 
-.import init, nmi_int, irq_int   ; Declared in lib/crt0.s
+.import nmi_int, init, irq_int   ; Declared in lib/crt0.s
 
 .segment "VECTORS"               ; The linker script ld.cfg ensures
                                  ; that this segment is placed at
