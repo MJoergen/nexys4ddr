@@ -43,7 +43,8 @@ To achieve this the control registers must be given default values.
 Instruction Register to the value 00, i.e. the BRK instruction.
 * Lines 2753-2756 skip the first few cycles of the BRK
 instruction, so the CPU immediately fetches the Program Counter from the Reset
-vector.
+vector. In other words it won't write the current (undefined) value of the 
+Program Counter to the processor stack, during the Reset operation.
 * In lines 2792-2795 we reset the Invalid Instruction register, but this
 is just for debugging purposes.
 * Finally in lines 2817-2820 we instruct the
