@@ -54,6 +54,8 @@ Control Logic that this is a Reset (as opposed to a regular BRK instruction).
 Even though the memory map of the computer is unchanged, the C runtime assumes
 the presence of a number of additional segments. The reason is that these
 segments have different requirements for initialization at startup.
+The segments are defined in the linker script prog/ld.cfg, and are initialized
+in the startup code in prog/lib/crt0.s, see the following sections.
 
 ### Segment VECTORS
 The segment VECTORS is just six bytes long and holds the addresses of the three
