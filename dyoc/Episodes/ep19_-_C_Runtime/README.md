@@ -9,7 +9,7 @@ assembler [ca65](http://cc65.github.io/doc/ca65.html)) and have them run of our
 computer.
 
 We still need to expand the functionality of the VGA output and add keyboard
-input, as well as add an operating system, before our computer is any where
+input, as well as add an operating system, before our computer is anywhere
 near complete.  However, before we do that, I would like to be able to run
 C-programs on our computer, instead of having to write them in assembly.
 
