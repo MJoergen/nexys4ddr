@@ -23,7 +23,7 @@ our tool chain:
 As our C compiler I will use [cc65](http://cc65.github.io/doc/cc65.html).  This
 compiler comes with a complete toolchain including linker, runtime library, ABI
 support, etc.  The toolchain requires the support of a number of features in
-our computer:
+our computer that we'll implement in this episode:
 * CPU reset.
 * Memory map.
 * Linker script.
