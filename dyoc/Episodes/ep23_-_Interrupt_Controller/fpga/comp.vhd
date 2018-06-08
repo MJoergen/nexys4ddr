@@ -34,7 +34,7 @@ architecture Structural of comp is
    signal vga_clk  : std_logic;
 
    -- Reset
-   signal rst : std_logic := '1';
+   signal rst : std_logic := '1';   -- Make sure reset is asserted after power-up.
 
    -- Generate pause signal
    -- 25 bits corresponds to 25Mhz / 2^25 = 1 Hz approx.
@@ -176,7 +176,7 @@ begin
       G_MEMIO_MASK => X"7FC0",
       --
       G_FONT_FILE  => "font8x8.txt",
-      G_ROM_FILE   => "mem/rom.txt",
+      G_ROM_FILE   => "../rom.txt",
       G_MEMIO_INIT => X"00000000000000000000000000000000" &
                       X"FFFCE3E0433C1E178C82803022110A00"
    )
