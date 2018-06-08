@@ -101,7 +101,7 @@ Upon reset, the processor starts executing code at the label "init" referenced i
 prog/lib/vectors.s. This startup code is placed in a separate file
 prog/lib/crt0.s in line 18, and is responsible for setting up the C runtime
 environment:
-* Setup the C program stack (lines 24-30).
+* Setup the processor stack (lines 24-30).
 * Initialize the C-stack for function arguments (lines 32-38).
 * Clear the BSS segment (line 43).
 * Initialize the DATA segment (line 44).
