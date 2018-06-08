@@ -2,44 +2,56 @@
 # Episode 22 : "Memory Mapped I/O"
 
 Welcome to "Design Your Own Computer".  In this episode we'll add the option to
-have memory mapped I/O. This will be necessary to handle e.g. reading from
-keyboard.
+have memory mapped I/O, which is used to transfer data between the CPU and any
+peripheral devices like e.g. the keyboard.  We'll also use the memory mapped
+I/O to configure the colour palette of the VGA output.
 
 However, before we implement the keyboard handling, we'll start with what we
 already have: the VGA output, and we'll use it to generate cool graphical
 effects.
 
-## VGA memory mapped I/O
-The use of memory mapped I/O is to allow the CPU access to read from and write
-to a separate module, via ordinary reads from and writes to memory. We already
-have something similar in the form of the character and colour memories.
-
-Writing to the VGA module could e.g. control the background colour of the
-character screen or the foreground colour of the overlay screen.
-
-Reading from the VGA module could be the current pixel coordinates.
-
-## Clock cycle counter
-Another small feature I've added is a 32-bit clock cycle counter. This
-can be used to perform precise timing calculations. Not sure it will be
-needed, but it's a small feature to implement.
-
 ## Addressing
-Since only a few bytes of data is transferred between the CPU and the VGA
-module, we'll reserve a total of sixty four bytes, half of which are read-only.
+Since only a few bytes of data is transferred between the CPU and the peripheral
+devices, we'll reserve a total of sixty four bytes, half of which are read-only.
 We'll place these bytes in the addressable range 7FC0 - 7FFF.
 
-We therefore choose the following addressable locations:
+We therefore choose the following writeable data:
 * 7FC0 - 7FCF : VGA Colour palette
-* 7FD0 - 7FD1 : VGA Line interrupt
-* 7FD2 - 7FDF : Reserved
+* 7FD0 - 7FDF : Reserved
 
+and the folowing readonly data:
 * 7FE0 - 7FE1 : VGA Pixel X coordinate
 * 7FE2 - 7FE3 : VGA Pixel Y coordinate
 * 7FE4 - 7FE7 : CPU Clock cycle counter
 * 7FE8 - 7FFF : Reserved
 
 
+## VGA memory mapped I/O
+The colour palette consists of 16 bytes, where the byte at address 7FC0 maps to
+the colour index 0, and the byte at address 7FCF maps to the colour index 15.
+The default values are such that index 0 is black, and index 15 is white. The colour
+memory is initialized to white on black, i.e. index 15 in foreground and index 0 in
+background.
+
+Therefore, by writing to address 7FC0 the CPU can control the default background
+colour of the screen. This will be used to generate cool graphical effects, which
+I'll describe in the following.
+
+Reading from the VGA module will be the current pixel coordinates. Note that
+these are 16-bit values in little-endian format, with the LSB at the even
+addresses and the MSB at the odd addresses. This need not concern the programmer
+because the toolchain is setup to do the right thing when accessing the
+coordinates through a uint16\_t pointer.
+
+
+## Clock cycle counter
+Another small feature I've added is a 32-bit clock cycle counter. This
+can be used to perform precise timing calculations. Not sure it will be
+needed, but it's a small feature to implement.
+
+
 ## Cool graphical effects :-)
-The idea is to change the colour palette synchronuous with the pixel coordinates.
+With just the above, the CPU can create nice horizontal lines on the screen.
+The idea is to change the colour palette, i.e. the default background colour,
+in a manner to the current VGA pixel coordinate.
 
