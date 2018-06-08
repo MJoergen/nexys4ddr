@@ -42,7 +42,7 @@ begin
 
    i_rom : entity work.rom
    generic map (
-      G_INIT_FILE => "mem/rom.txt",
+      G_INIT_FILE => "../rom.txt",
       G_ADDR_BITS => 12  -- 4K bytes
    )
    port map (
