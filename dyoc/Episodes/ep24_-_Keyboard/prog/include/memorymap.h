@@ -26,5 +26,6 @@
 #define CPU_CYC          ((uint32_t *) 0x7FE4)
 #define IRQ_STATUS       ((uint8_t *)  0x7FFF)
 #define IRQ_VGA          0x01
+#define IRQ_KBD          0x02
 
 #endif // _MEMORY_MAP_H_
