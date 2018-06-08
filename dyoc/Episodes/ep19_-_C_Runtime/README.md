@@ -112,18 +112,18 @@ Upon exit from the main() function, the CPU enters an infinite loop in lines 55-
 Interrupts (IRQ and NMI) are currently not supported, so they just return immediately,
 see lines 61-67.
 
-The startup code references a number of function, e.g. zerobss and copydata.
-These functions are implemented elsewhere. I've chosen to use the existing
+The startup code references a number of functions, e.g. zerobss and copydata.
+These functions must be implemented too. I've chosen to use the existing
 runtime libraries provided by the cc65 toolchain. This runtime library
 depends on the platform. The platform we're building is basically a bare-metal
 platform, no features other than keyboard input and VGA output (both yet to be
 implemented). Therefore, we copy the default library from cc65/lib/none.lib to
-prog/none.lib. This library contains several useful functions, including zerobss and
+prog/lib/none.lib. This library contains several useful functions, including zerobss and
 copydata, as well as functions to support the cc65 ABI.
 
-It also contains a version of the startup code crt0.s, that must be replaced by
-our own. This is taken care of in lines 22-31 of Makefile, where we make our
-own copy of none.lib and modify the copy.
+This library also contains its own version of the startup code crt0.s, which
+must be replaced by our own. This is taken care of in prog/Makefile in lines 23-26,
+where we make our own copy of none.lib and modify the copy.
 
 
 ## Reset button
