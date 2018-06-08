@@ -3,7 +3,7 @@
 
 Welcome to the twentieth episode of "Design Your Own Computer".
 
-We now want to expand on the VGA support. We'll enable the display of 80x60
+We now want to expand on the VGA support and enable the display of 80x60
 coloured characters.
 
 To do this we need to do the following:
