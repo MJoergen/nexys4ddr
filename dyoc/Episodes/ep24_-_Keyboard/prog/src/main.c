@@ -18,7 +18,7 @@ void main()
    *IRQ_MASK = IRQ_KBD;             // Enable keyboard interrupts.
    CLI();                           // Enable CPU interrupts.
 
-   // Just go into a busy loop
+   // Just go into a busy loop.
    while (1)
    {
       uint8_t ev = kbd_buffer_pop();   // This does a BLOCKING wait.
