@@ -1,5 +1,5 @@
 # Include directory
-C_INC = .
+INCLUDE = include
 
 
 #####################################
@@ -15,9 +15,9 @@ build/rom.bin: build/main.o build/vectors.o build/comp.lib
 build/main.o: build/main.s
 	ca65 $< -o $@
 
-build/main.s: main.c
+build/main.s: src/main.c
 	mkdir -p build
-	cc65 -g -t none -O $< -o $@
+	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
 
 
 #####################################
@@ -32,7 +32,7 @@ build/printf.o: build/printf.s
 	ca65 $< -o $@
 
 build/printf.s: lib/printf.c
-	cc65 -I $(C_INC) -g -t none -O $< -o $@
+	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
 
 build/crt0.o: lib/crt0.s           # Reset vector
 	mkdir -p build

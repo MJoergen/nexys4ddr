@@ -34,7 +34,7 @@ architecture Structural of comp is
    signal vga_clk  : std_logic;
 
    -- Reset
-   signal rst : std_logic := '1';
+   signal rst : std_logic := '1';   -- Make sure reset is asserted after power-up.
 
    -- Generate pause signal
    -- 25 bits corresponds to 25Mhz / 2^25 = 1 Hz approx.
