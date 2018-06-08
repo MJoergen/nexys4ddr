@@ -1,16 +1,119 @@
 # Design Your Own Computer
 # Episode 20 : "Text Display"
 
-Welcome to "Design Your Own Computer".  The purpose of this episode is to
-enable the display of 80x60 characters on the VGA output.
+Welcome to the twentieth episode of "Design Your Own Computer".
+
+We now want to expand on the VGA support. We'll enable the display of 80x60
+coloured characters.
+
 To do this we need to do the following:
+* Determine a colour scheme.
+* Implement coloured character display in the VGA module.
 * Modify memory map by adding the character and color memories.
 * Allow the VGA module access to these memory regions.
-* Implementing character display in the VGA module.
 * Software support.
 
 Furthermore, we wish to retain the ability to display the CPU debug on the VGA
 output.
+
+
+## Colour scheme
+This may sound trivial, why not just use one byte per character to determine
+the colour of this particular character? Well, that is indeed a possible
+approach, but it does mean that all characters on the screen have the same
+*background* colour.
+
+Another approach is to assign *two* bytes of colour to each character, thus
+allowing full control of both foreground and background colour of each
+character. This is also possible but does require twice as much memory for the
+colour information.
+
+Instead, I've chosen to use a colour index (or palette). So the colour
+information of each character consists of two 4-bit colour indeces (foreground
+and background).  Each 4-bit colour index is then mapped to an 8-bit colour
+using a global colour palette.  The only real benefit of this more complicated
+implementation is to save of the amount of memory needed for the colour
+information.
+
+So to summarize, each byte of colour memory is divided into two 4-bit colour
+indices, where the MSB is mapped to the background colour, and the LSB is
+mapped to the foreground colour.
+
+The colour palette will consist of sixteen different colours, and I've just
+chosen a selection of various colours, where the value 0 maps to 0x00 (black),
+and the value 15 maps to 0xFF (white).
+
+The default colour index in the colour memory is 0x0F, which therefore
+corresponds to white text on black background.
+
+
+## VGA character and colour display
+A new file vga/chars.vhd is used to implement the display of coloured
+characters. The implementation is somewhat different from e.g. vga/overlay.vhd,
+in that it uses a pipeline. This is because the operations needed to determine
+the pixel colour takes several clock cycles.
+
+The pipeline is described by the record t\_vga defined in lines 51-74 of
+vga/chars.vhd.  The precise number of steps in the pipeline can be increased
+and/or decreased, so the choices made here are somewhat arbitrary and mainly
+based on readability.
+
+Each stage will be delayed one clock cycle relative to the previous stage. The
+total length of the pipeline (i.e. number of stages) poses no problems, as long
+as all signals are delayed the same amount. This is easily achieved by having
+all signals in the same record t\_vga.
+
+### Stage 0 (lines 78-84)
+In the initial stage the input signals pix\_x\_i and pix\_y\_i are copied
+directly into stage 0 of the pipeline. There is no delay in this, and this
+step serves only to improve readability.
+
+### Stage 1 (lines 87-119)
+In this stage we calculate - as before - the horizontal and vertical
+synchronization signals. These signals will in the later stages be delayed so
+they remain aligned with the generated colour signal.  The main part of this
+step are lines 112-117, where we calculate the lookup address in the character
+and colour memories.  Since these memories are separate and distinct, we can
+perform lookups in both memories simultaneously. The same address is used for
+both memories.
+
+The lookup address is calculated by first determining the character row and
+column. This is done by dividing the pixel counters by eight, i.e. removing the
+lower three bits, since the font size is 8x8 pixels. The offset address in
+memory is then calculated as 80\*y+x, where 80 is the number of characters in
+the horizontal direction.  In the source code I've used the symbol H\_CHARS for
+readability. This formula is a convenient choice, where offset zero corresponds
+to the top left corner.  Other choices are possible too, and the main
+requirement is that there is a unique 1-1 correspondence between the character
+position on the screen, and the memory address offset.
+
+### Stage 2 (lines 122-162)
+The actual lookup in the character and colour memories is done by connecting
+the address and data buses in lines 122-130.  Note that the character and
+colour memories are synchronuous, which means there is a one clock cycle delay
+from address to data. This is the reason why the address is in stage 1, whereas
+the data is in stage 2.
+
+Next, the font bitmap is determined by another lookup in lines 133-145. This
+lookup is table-based i.e. combinatorial and there is no clock cycle delay.
+Therefore, both address and data belong to stage 2. The font memory is
+combinatorial, because it has no clock input.
+
+The remaining signals need to be copied over individually, in lines 148-162.
+
+### Stage 3 (lines 165-200)
+The font bitmap is 64 bits wide, and the particular bitnumber to use is
+calculated in lines 181-184. The main point is we need to take the pixel
+coordinates modulo 8 (the font size in pixels). Since 8 is a power of two, this
+modulo operation consists simply of taking the lower three bits of the pixel
+coordinates. The font data is - as before - arranged as eight rows of eight
+pixels, with bit number 0 in the lower left corner. This is the reason why we
+in line 182 have to subtract the y-coordinate from 7.
+
+The colour index from the colour memory is split into two halves, foreground
+and background, in lines 186-191. Finally, in line 192 the colour index
+is used to extract the pixel colour from the colour palette.
+
 
 ## Memory map
 The screen resolution is 640x480 pixels and since our font is 8x8 pixels this
@@ -44,23 +147,6 @@ rom\_wren, because we have removed to ability for the CPU to write to the ROM.
 The definition of the memory map is moved to the file comp.vhd in lines
 139-147, and an equivalent C-style copy is maintained in file prog/memorymap.h.
 
-## Colour palette
-The colour memory will contain one byte for each character. A simple design
-is to use this byte directly as the 8-bit colour. However, I've chosen a
-different design here.
-
-So the upper 4 bits of the colour byte defines the background colour, while the
-lower 4 bits defines the text colour. The 4-bit colours are then mapped
-to an 8-bit colour using a colour palette. In this episode, the colour palette
-is hard-coded, but in later episodes it will be possible for the CPU to update
-the colour palette.
-
-The default colour palette assigns the colour black to the value 0, and the
-colour white to the value 15. Intermediate values between 0 and 15 correspond
-to various colours.
-
-The default colour index in the colour memory is 0x0F, which corresponds to
-white text on black background.
 
 ## VGA access to the character and colour memory.
 Both the CPU and the VGA module will be accessing the character memory
@@ -81,70 +167,6 @@ The character and colour memories are instantiated in lines 91-125 of mem/mem.vh
 Note that a default value of 0x0F has been given in line 116. This means that
 all characters have a default colour of white on black if the CPU doesn't write
 to the colour memory.
-
-
-## VGA character and colour display
-A new file vga/chars.vhd is used to implement the character display. The
-implementation is somewhat different from e.g. vga/overlay.vhd, in that it uses
-a pipeline. This is because the operations needed to determine the pixel colour takes
-several clock cycles.
-
-The pipeline is described by the record t\_vga defined in lines 51-74 of
-vga/chars.vhd.  The precise number of steps in the pipeline can be increased
-and/or decreased, so the choices made here are mainly based on readability.
-
-Each stage is delayed one clock cycle relative to the previous stage. The
-length of the pipeline (i.e. number of stages) poses no problems, as long as
-all signals are delayed the same amount.
-
-### Stage 0 (lines 78-84)
-In the initial stage the input signals pix\_x\_i and pix\_y\_i are copied
-directly into stage 0 of the pipeline. There is no delay in this, and this
-step serves only to improve readability.
-
-### Stage 1 (lines 87-119)
-In this stage we calculate - as before - the horizontal and vertical
-synchronization signals. These signals will in the later stages be delayed so
-they remain aligned with the generated colour signal.  The main part of this
-step are lines 112-117, where we calculate the lookup address in the character
-and colour memories.  Since these memories are separate and distinct, we can
-perform lookups in both memories simultaneously. The same address is used for
-both memories.
-
-The lookup address is calculated by first determining the character row and
-column. This is done by dividing the pixel counters by eight, i.e. removing the
-lower three bits. The offset address in memory is then calculated as 80\*y+x,
-where 80 is the number of characters in the horizontal direction.  This formula
-is a convenient choice, where offset zero corresponds to the top left corner.
-Other choices are possible too, and the main requirement is that there is a
-unique 1-1 correspondence between the character position on the screen, and the
-memory address offset.
-
-### Stage 2 (lines 122-162)
-The actual lookup is done by connecting the address and data buses in lines
-122-130.  Note that the character and colour memories are synchronuous, which
-means there is a one clock cycle delay from address to data. This is the reason
-why the address is in stage 1, whereas the data is in stage 2.
-
-Next, the font bitmap is determined by another lookup in lines 133-145. This
-lookup is table-based and there is no clock cycle delay.  Here, the font bitmap
-is a combinatorial memory, and therefore not synchronous.  Therefore, both
-address and data belong to stage 2. The font memory is combinatorial, because
-it has no clock input.
-
-The remaining signals need to be copied over individually, in lines 148-162.
-
-### Stage 3 (lines 165-200)
-The font bitmap is 64 bits wide, and the particular bitnumber to use is
-calculated in lines 181-184. The main point is we need to take the pixel
-coordinates modulo 8 (the font size in pixels). Since 8 is a power of two, this
-modulo operation consists simply of taking the lower three bits of the
-pixel coordinate. The font data is - as before - arranged as eight rows of
-eight pixels, with bit number 0 in the lower left corner.
-
-The colour index from the colour memory is split into two halves, foreground
-and background, in lines 186-191. Finally, in line 192 the colour index
-is used to extract the pixel colour from the colour palette.
 
 
 ## VGA Overlay
