@@ -40,7 +40,7 @@ source code.
 
 To achieve this the control registers must be given default values.
 * Lines 2774-2777 of cpu/ctl.vhd starts the Reset sequence by forcing the
-Instruction Register to the value 00.
+Instruction Register to the value 00, i.e. the BRK instruction.
 * Lines 2753-2756 skip the first few cycles of the BRK
 instruction, so the CPU immediately fetches the Program Counter from the Reset
 vector.
