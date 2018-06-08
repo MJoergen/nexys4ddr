@@ -97,7 +97,7 @@ functions and these arguments can have arbitrary sizes.
 
 
 ## Startup code prog/lib/crt0.s
-Upon reset, the processor starts executing code at the label "init" defined in
+Upon reset, the processor starts executing code at the label "init" referenced in
 prog/lib/vectors.s. This startup code is placed in a separate file
 prog/lib/crt0.s, and is respondible for preparing the C runtime environment.
 
