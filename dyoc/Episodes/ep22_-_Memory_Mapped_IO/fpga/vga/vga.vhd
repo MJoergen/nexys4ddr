@@ -20,7 +20,7 @@ entity vga is
       col_addr_o  : out std_logic_vector(12 downto 0);
       col_data_i  : in  std_logic_vector( 7 downto 0);
 
-      memio_i     : in  std_logic_vector(18*8-1 downto 0);
+      memio_i     : in  std_logic_vector(16*8-1 downto 0);
       memio_o     : out std_logic_vector( 4*8-1 downto 0);
 
       vga_hs_o    : out std_logic;
@@ -32,7 +32,6 @@ end vga;
 architecture Structural of vga is
 
    signal colour_palette       : std_logic_vector(16*8-1 downto 0);
-   signal pix_y_line_interrupt : std_logic_vector(15 downto 0);
 
    -- Define constants used for 640x480 @ 60 Hz.
    -- Requires a clock of 25.175 MHz.
@@ -155,7 +154,6 @@ begin
    --------------------
 
    colour_palette       <= memio_i(15*8+7 downto  0*8);
-   pix_y_line_interrupt <= memio_i(17*8+7 downto 16*8);
 
    memio_o( 7 downto  0) <= pix_x(7 downto 0);
    memio_o(15 downto  8) <= "000000" & pix_x(9 downto 8);
