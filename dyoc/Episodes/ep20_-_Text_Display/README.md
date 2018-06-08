@@ -116,26 +116,27 @@ is used to extract the pixel colour from the colour palette.
 
 
 ## Memory map
-The screen resolution is 640x480 pixels and since our font is 8x8 pixels this
-gives a screen size of 80x60 characters, i.e. 4800 bytes (or 0x12C0 in
-hexadecimal).  For simplicity we'll allocate 8 Kbytes for the character screen,
-i.e. 0x2000 bytes.  We'll add colours to each character as well, so that's
-another 8 Kbytes.
+As mentioned above we need 80x60 bytes of character memory, as well as the same
+amount of colour memory. Each memory therefore needs 4800 bytes (or 0x12C0 in
+hexadecimal).  For simplicity we'll allocate 8 Kbytes for each memory,
+i.e. 0x2000 bytes.
 
 The CPU can access the character memory and the colour memory by writing to the
 following address ranges:
 * 0x8000 - 0x92BF : Character memory
 * 0xA000 - 0xB2BF : Colour memory
+These address ranges are just arbitrarily chosen.
 
-Addresses within 0x8000 - 0xBFFF but outside the above ranges are not used.
+Addresses within 0x8000 - 0xBFFF but outside the above ranges are not used, and
+will be ignored.
 
-The current design will only allow the CPU to write to but not read from these
-memory ranges.  Allowing the CPU to read from these memory ranges will require
-a rather large number of additional changes, so that is deferred to the next
-episode.
+The current design will only allow the CPU to write to, but not read, from
+these memory ranges.  Allowing the CPU to read from these memory ranges will
+require a rather large number of additional changes, so that is deferred to the
+next episode.
 
 By now we have four different active memory ranges (ROM, RAM, CHAR, and COL),
-and it is practical to make the design slightly more generic. Therefore, in
+and it is practical to make the design slightly more flexible. Therefore, in
 mem/mem.vhd we've added a number of generics to control the size and location
 of the different memory regions. The design supports only sizes that are powers
 of 2, and locations that are aligned accordingly. This is purely for
@@ -143,9 +144,14 @@ simplicity.
 
 The interpretation (i.e. decoding) of the memory map takes place in lines 61-72
 of mem/mem.vhd. The postscript "cs" means "chip select". Note that there is no
-rom\_wren, because we have removed to ability for the CPU to write to the ROM.
+rom\_wren, because we have removed the ability for the CPU to write to the ROM.
 The definition of the memory map is moved to the file comp.vhd in lines
-139-147, and an equivalent C-style copy is maintained in file prog/memorymap.h.
+139-147, and an equivalent C-style copy is maintained in file include/memorymap.h.
+
+Any changes to the memory map, e.g. size of RAM for instance, requires changing
+three places: The decoding in mem/mem.vhd, the linker script prog/ld.cfg, and the
+header file include/memorymap.h. It is imperative that these three files are
+kept in complete sync with each other.
 
 
 ## VGA access to the character and colour memory.
@@ -168,6 +174,10 @@ Note that a default value of 0x0F has been given in line 116. This means that
 all characters have a default colour of white on black if the CPU doesn't write
 to the colour memory.
 
+The colour palette itself is hardcoded in line 112 of vga/vga.vhd. This version
+therefore does not support changing the colour palette, but we'll fix that in a
+later episode.
+
 
 ## VGA Overlay
 Since we now have two sources of VGA output, the character memory and the CPU
@@ -175,25 +185,23 @@ debug information, we'll implement the latter as an overlay. The file
 vga/digits.vhd has been renamed to vga/overlay.vhd, and the bit 7 of the switch
 (the "fast" mode) is simultaneously used to disable the CPU debug overlay when
 in fast mode, see lines 107-111 of comp.vhd.  The actual overlay takes places
-in lines 141-144 of vga/vga.vhd.
+in lines 143-146 of vga/vga.vhd.
 
 
 ## Software support
 Now that the firmware can display characters on the VGA output, this can be
 used in software. A very simple version of printf() is implemented in the file
 lib/printf.c. This version writes only to the character memory, and not the
-colour memory, so all text will be white on black for now.  The location in
-character memory is calculated as 80\*y+x, see e.g. line 26, where
-I've used the constant H\_CHARS defined in prog/printf.h. This calculation
-corresponds to the equivalent calculation in lines 116-117 of vga/chars.vhd.
+colour memory, so all text will have the default white on black colour for now.
+The location in character memory is calculated as 80\*y+x, see e.g. line 26,
+where I've used the constant H\_CHARS defined in include/printf.h. This
+calculation corresponds to the equivalent calculation in lines 116-117 of
+vga/chars.vhd.
 
-Furthermore, a new file prog/memorymap.h has been added. This is to avoid having
-the software hardcode addresses etc. in the source code.
-
-The C source code has been reorganized, and the runtime library has been
-moved to a separate directory lib. The source file for the main function
-has been renamed from rom.c to main.c.
+Furthermore, a new file include/memorymap.h has been added. This is to
+avoid having the software hardcode addresses etc. in the source code.
 
 The test program prints out 70 numbered lines of text. In the current implementation,
 the text will wrap around, and the last lines will appear at the top of the screen.
+This is controlled in lib/printf.c lines 38-43.
 
