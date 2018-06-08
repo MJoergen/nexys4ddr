@@ -183,7 +183,7 @@ begin
       G_MEMIO_MASK => X"7FC0",
       --
       G_FONT_FILE  => "font8x8.txt",
-      G_ROM_FILE   => "mem/rom.txt",
+      G_ROM_FILE   => "../rom.txt",
       --
       G_MEMIO_INIT => X"00000000000000000000000000000000" & 
                       X"FFFCE3E0433C1E178C82803022110A00"
