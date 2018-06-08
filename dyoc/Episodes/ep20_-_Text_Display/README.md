@@ -32,7 +32,7 @@ Instead, I've chosen to use a colour index (or palette). So the colour
 information of each character consists of two 4-bit colour indeces (foreground
 and background).  Each 4-bit colour index is then mapped to an 8-bit colour
 using a global colour palette.  The only real benefit of this more complicated
-implementation is to save of the amount of memory needed for the colour
+implementation is to save on the amount of memory needed for the colour
 information.
 
 So to summarize, each byte of colour memory is divided into two 4-bit colour
