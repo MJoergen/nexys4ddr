@@ -32,6 +32,7 @@ build/printf.o: build/printf.s
 	ca65 $< -o $@
 
 build/printf.s: lib/printf.c
+	mkdir -p build
 	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
 
 build/crt0.o: lib/crt0.s           # Reset vector
