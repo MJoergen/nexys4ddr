@@ -13,7 +13,7 @@ input, as well as add an operating system, before our computer is anywhere
 near complete.  However, before we do that, I would like to be able to run
 C-programs on our computer, instead of having to write them in assembly.
 
-Being able to run C-program on our computer requires several additions to
+Being able to run C-programs on our computer requires several additions to
 our tool chain:
 * C compiler targeting the 6502 CPU.
 * C linker.
