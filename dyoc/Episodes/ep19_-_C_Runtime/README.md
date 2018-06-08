@@ -8,24 +8,22 @@ the 6502 CPU. That means we can now write programs (in assembly, using the
 assembler [ca65](http://cc65.github.io/doc/ca65.html)) and have them run of our
 computer.
 
-We still need to expand the functionality of the VGA output, as well as add
-keyboard input to our computer. However, before we do that, I would
-like to be able to run C-programs on our computer.
+We still need to expand the functionality of the VGA output and add keyboard
+input, as well as add an operating system, before our computer is any where
+near complete.  However, before we do that, I would like to be able to run
+C-programs on our computer, instead of having to write them in assembly.
 
-Being able to run C-program on the 6502 requires several additions to
+Being able to run C-program on our computer requires several additions to
 our tool chain:
 * C compiler targeting the 6502 CPU.
-* C linker
+* C linker.
 * C runtime ABI support.
 * C runtime library.
 
 As our C compiler I will use [cc65](http://cc65.github.io/doc/cc65.html).  This
-compiler comes with a complete toolchain including linker, runtime library,
-etc. In this episode we will configure this toolchain.
-
-
-The toolchain provided by the [cc65](http://cc65.github.io/doc/cc65.html)
-compiler requires the support of a number of features in our computer:
+compiler comes with a complete toolchain including linker, runtime library, ABI
+support, etc.  The toolchain requires the support of a number of features in
+our computer:
 * CPU reset.
 * Memory map.
 * Linker script.
