@@ -21,7 +21,6 @@ build/main.s: src/main.c
 #####################################
 
 build/comp.lib: build/crt0.o
-	mkdir -p build
 	cp lib/none.lib $@
 	ar65 r $@ $^
 
