@@ -1,7 +1,8 @@
 # Design Your Own Computer
 # Episode 20 : "Text Display"
 
-Welcome to the twentieth episode of "Design Your Own Computer".
+Welcome to this - rather long - twentieth episode of "Design Your Own
+Computer".
 
 We now want to expand on the VGA support and enable the display of 80x60
 coloured characters.
