@@ -1,6 +1,6 @@
 #include <6502.h>                // CLI()
 #include <stdint.h>
-#include "printf.h"
+#include <stdio.h>
 #include "keyboard.h"
 #include "memorymap.h"
 
@@ -11,8 +11,7 @@ void main()
    // Do a small timing measurement to begin with
    uint32_t t1 = *CPU_CYC;
    uint32_t t2 = *CPU_CYC;
-   printfHex16(t2-t1);
-   printf("\n");
+   printf("%04x\n", t2-t1);
 
    dummy = *IRQ_STATUS;             // Clear any pending interrupts.
    *IRQ_MASK = IRQ_KBD;             // Enable keyboard interrupts.
@@ -22,8 +21,7 @@ void main()
    while (1)
    {
       uint8_t ev = kbd_buffer_pop();   // This does a BLOCKING wait.
-      printfHex8(ev);
-      printf("\n");
+      printf("%02x\n", ev);
    }
 
 } // end of main
