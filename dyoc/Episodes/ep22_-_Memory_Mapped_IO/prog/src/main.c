@@ -1,4 +1,4 @@
-#include "printf.h"
+#include <stdio.h>
 #include "memorymap.h"
 
 #define H_PIXELS 640
@@ -11,9 +11,7 @@ void main()
 
    for (i=0; i<70; ++i)
    {
-      printf("Hello World: ");
-      printfHex8(i);
-      printf("\n");
+      printf("Hello World: %d\n", i);
    }
 
    // Set text foreground colour
