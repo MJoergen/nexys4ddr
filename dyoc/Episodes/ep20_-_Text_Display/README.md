@@ -221,3 +221,14 @@ The beauty of using standard library functions like this is that the same test
 progam can be compiled using a standard C compiler, e.g. gcc, and can be run -
 as is - on any other system.
 
+One last thing: The C-library function printf() supports formatting etc, and
+therefore it takes up quite a lot of the ROM. This is most easily seen by
+examining the generated file build/rom.map. The line beginning with CODE in the
+section called "Segment list" shows that the ROM requirements jumps from 0x00FB
+to 0x0930. This is an increase of about 2 Kbytes.
+
+The linker is smart and only includes the printf() functionality if it is
+actually used. If you do need to save the 2 Kbytes of ROM space, but still need
+to print characters to the screen, it is possible to call write() directly.
+There will be no support for fancy formatting, though.
+
