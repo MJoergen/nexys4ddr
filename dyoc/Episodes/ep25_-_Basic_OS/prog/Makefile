@@ -24,7 +24,7 @@ build/main.s: src/main.c
 # Compile runtime library
 #####################################
 
-build/comp.lib: build/crt0.o build/printf.o build/kbd_isr.o \
+build/comp.lib: build/crt0.o build/write.o build/kbd_isr.o \
 					 build/vga_isr.o build/vga.o build/irq.o build/keyboard.o 
 	cp lib/none.lib $@
 	ar65 r $@ $^
@@ -40,10 +40,10 @@ build/keyboard.s: lib/keyboard.c
 	mkdir -p build
 	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
 
-build/printf.o: build/printf.s
+build/write.o: build/write.s
 	ca65 $< -o $@
 
-build/printf.s: lib/printf.c
+build/write.s: lib/write.c
 	mkdir -p build
 	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
 

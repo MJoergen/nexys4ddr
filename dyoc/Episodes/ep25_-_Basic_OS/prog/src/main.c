@@ -1,6 +1,5 @@
 #include <6502.h>                // CLI()
 #include <string.h>              // memmove
-#include "printf.h"
 #include "keyboard.h"
 #include "vga.h"
 #include "memorymap.h"
