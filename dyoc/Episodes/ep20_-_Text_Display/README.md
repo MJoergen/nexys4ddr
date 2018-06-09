@@ -190,18 +190,36 @@ in lines 143-146 of vga/vga.vhd.
 
 ## Software support
 Now that the firmware can display characters on the VGA output, this can be
-used in software. A very simple version of printf() is implemented in the file
-lib/printf.c. This version writes only to the character memory, and not the
-colour memory, so all text will have the default white on black colour for now.
-The location in character memory is calculated as 80\*y+x, see e.g. line 26,
-where I've used the constant H\_CHARS defined in include/printf.h. This
+used in software.  The C runtime support of the cc65 compiler includes an
+implementation of the printf() function, which will take care of all the
+strange formatting supported by this function. But the library still needs to
+be told, how to actually access the character screen.
+
+Accessing the character screen is done by implementing the function write(),
+which is a standard system call that takes three parameters: A file descriptor
+and a buffer pointer and size. The function must return the number of
+characters written.
+
+In our implementation - in the file lib/write.c - we will ignore the file
+descriptor. I've chosen to implement the function in regular C, but if
+performance does become a problem, the function can easily be rewritten in
+assembler.
+
+The location in character memory is calculated as 80\*y+x, see line 32.  This
 calculation corresponds to the equivalent calculation in lines 116-117 of
-vga/chars.vhd.
+vga/chars.vhd.  The implementation currently does not support screen scrolling
+(this will be added in the next episode), so instead it just wraps around to
+the top of the screen.
 
-Furthermore, a new file include/memorymap.h has been added. This is to
-avoid having the software hardcode addresses etc. in the source code.
+A new file include/memorymap.h has been added to avoid having the software
+hardcode addresses etc. in the source code.
 
-The test program prints out 70 numbered lines of text. In the current implementation,
-the text will wrap around, and the last lines will appear at the top of the screen.
-This is controlled in lib/printf.c lines 38-43.
+The test program in src/main.c prints out 70 numbered lines of text. In the
+current implementation, the text will wrap around, and the last lines will
+appear at the top of the screen.  This is controlled in lib/printf.c lines
+38-43.
+
+The beauty of using standard library functions like this is that the same test
+progam can be compiled using a standard C compiler, e.g. gcc, and can be run -
+as is - on any other system.
 
