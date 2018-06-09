@@ -214,10 +214,8 @@ the top of the screen.
 A new file include/memorymap.h has been added to avoid having the software
 hardcode addresses etc. in the source code.
 
-The test program in src/main.c prints out 70 numbered lines of text. In the
-current implementation, the text will wrap around, and the last lines will
-appear at the top of the screen.  This is controlled in lib/printf.c lines
-38-43.
+The test program is copied from the previous episode and modified to print
+out the result of the calculation.
 
 The beauty of using standard library functions like this is that the same test
 progam can be compiled using a standard C compiler, e.g. gcc, and can be run -
