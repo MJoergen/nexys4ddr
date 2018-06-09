@@ -1,5 +1,5 @@
 #include <6502.h>             // CLI()
-#include "printf.h"
+#include <stdio.h>
 #include "memorymap.h"
 
 void main()
