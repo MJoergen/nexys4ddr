@@ -1,57 +1,81 @@
-// A little program to do some array manipulations. This is just a simple test of the toolchain and the CPU implementation.
-// Call first the init() function to initialize.
-// After 100 calls to iter() the mem[] array should contain the following:
-// 1 7 7 2 1 2 1 2 0 2
-// and the idx variable should contain zero.
+// This program searches iteratively for a solution to the 8-queens problem on
+// a chess board.
+// The expected number of solutions is 92.
+// See https://en.wikipedia.org/wiki/Eight_queens_puzzle
 
 #include <stdint.h>
 
-#define SIZE 10
+#define SIZE 8
 
-uint8_t mem[SIZE];
-uint8_t idx;
+uint8_t  pos[SIZE];
+uint8_t  valid[SIZE];
+uint8_t  solutions = 0;
+uint16_t iterations = 0;
 
-
-void iter()
+static void calculate_valid(void)
 {
-   uint8_t k = mem[idx];
+   uint8_t val=1;
+   uint8_t q;
+   uint8_t c;
 
-   if (k < SIZE)
+   for (q=1; q<SIZE; ++q)
    {
-      mem[k] += 1;
+      if (val) // This is just an optimization
+      {
+         for (c=0; c<q; ++c)
+         {
+            val = val && (pos[c]         != pos[q]) &&
+                         (pos[c] + (q-c) != pos[q]) &&
+                         (pos[c]         != pos[q] + (q-c));
+         }
+      }
+      valid[q] = val;
    }
-   else
-   {
-      mem[idx] = 0;
-   }
 
-   idx += 1;
-   if (idx >= SIZE)
-      idx = 0;
+} // end of calculate_valid
 
-} // end of iter
-
-
-void main()
+int main()
 {
-   uint8_t i;
+   int8_t q;   // Must be a signed type
 
-   // Initialize
-   for (i=0; i<SIZE; ++i)
-      mem[i] = 0;
-   idx = 0;
-
-
-   // Do the calculations
-   for (i=0; i<100; ++i)
+   for (q=0; q<SIZE; ++q)
    {
-      iter();
+      pos[q] = 0;
+      valid[q] = 1;
    }
 
+   while (1)
+   {
+      iterations++;
 
-   // Infinite loop
-   while(1)
-   {}
+      calculate_valid();
+      if (valid[SIZE-1])
+      {
+         solutions++;
+      }
 
+      for (q=SIZE-1; q>=0; --q)
+      {
+         uint8_t val = (q==0) || (valid[q-1]);
+         if (val && (pos[q]<SIZE-1))
+         {
+            pos[q]++;
+            break; // out of for loop
+         }
+         pos[q] = 0;
+      }
+
+      if (q<0)
+      {
+         break; // out of while loop
+      }
+
+   } // end of while (1)
+
+   __asm__("LDA %v", solutions);
+loop:
+   __asm__("JMP %g", loop);
+
+   return 0;
 } // end of main
 
