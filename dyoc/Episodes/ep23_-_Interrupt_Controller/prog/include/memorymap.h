@@ -25,7 +25,7 @@
 #define VGA_PIX_Y        ((uint16_t *) 0x7FE2)
 #define CPU_CYC          ((uint32_t *) 0x7FE4)
 #define IRQ_STATUS       ((uint8_t *)  0x7FFF)
-#define IRQ_TIMER        0x01
-#define IRQ_VGA          0x02
+#define IRQ_TIMER_NUM    0
+#define IRQ_VGA_NUM      1
 
 #endif // _MEMORY_MAP_H_

@@ -16,6 +16,13 @@
 .segment	"STARTUP"
 
 ; ---------------------------------------------------------------------------
+; Extra defines needed by the startup code
+
+IRQ_STATUS     = $7FFF
+IRQ_MASK       = $7FDF
+IRQ_TIMER_MASK = $01
+
+; ---------------------------------------------------------------------------
 ; Entry point for a hardware reset. Referenced in lib/vectors.s
 
 init:
@@ -41,8 +48,16 @@ init:
 
    JSR zerobss             ; Clear BSS segment
    JSR copydata            ; Initialize DATA segment
-   JSR clearscreen         ; Fill the character screen with ' '.
+   ;JSR clearscreen         ; Fill the character screen with ' '.
    JSR initlib             ; Run constructors
+
+; ---------------------------------------------------------------------------
+; Enable timer interrupt
+
+   LDA #IRQ_TIMER_MASK     ; Enable timer interrupt
+   STA IRQ_MASK
+   LDA IRQ_STATUS          ; Clear any pending interrupts
+   CLI                     ; Enable interrupt handling
 
 ; ---------------------------------------------------------------------------
 ; Call C-function main()

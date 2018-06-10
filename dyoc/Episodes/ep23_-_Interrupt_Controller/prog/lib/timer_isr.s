@@ -7,7 +7,7 @@
 ; Therefore, one shouldn't call C functions from this routine.
 ; Furthermore, it should be short and fast, so as not to slow down the main program.
 
-; The 'A' register must NOT be changed in this routine.
+; The 'A' and 'Y' registers must NOT be changed in this routine.
 
 .segment	"CODE"
 

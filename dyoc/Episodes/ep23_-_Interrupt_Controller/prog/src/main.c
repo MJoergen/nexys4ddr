@@ -10,9 +10,9 @@
 
 #include <time.h>
 #include <stdio.h>
-#include <6502.h>       // CLI()
-#include "memorymap.h"  // IRQ_MASK, IRQ_TIMER
-#include "memorymap.h"
+#include "sys_irq.h"    // sys_set_vga_irq
+
+extern t_irq_handler vga_isr;
 
 #define H_PIXELS 640
 #define V_PIXELS 480
@@ -56,7 +56,6 @@ int main()
    time_t t1;
    time_t t2;
    uint16_t diff;
-   uint8_t dummy;
 
    int pos[SIZE];
    int valid[SIZE];
@@ -70,10 +69,8 @@ int main()
       valid[q] = 1;
    }
 
-   // Enable timer and VGA interupts
-   *IRQ_MASK = IRQ_TIMER | IRQ_VGA;
-   dummy = *IRQ_STATUS;    // Clear pending interrupts
-   CLI();
+   // Enable VGA interupts
+   sys_set_vga_irq(&vga_isr);
 
    t1 = time(0);
    while (1)
