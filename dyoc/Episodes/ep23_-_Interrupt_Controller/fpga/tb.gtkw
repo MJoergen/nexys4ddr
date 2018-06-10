@@ -1,19 +1,22 @@
 [*]
 [*] GTKWave Analyzer v3.3.89 (w)1999-2018 BSI
-[*] Tue Jun  5 11:24:35 2018
+[*] Sun Jun 10 06:04:58 2018
 [*]
-[dumpfile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep23_-_Interupt_Controller/tb.ghw"
-[dumpfile_mtime] "Tue Jun  5 11:16:01 2018"
-[dumpfile_size] 1399591
-[savefile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep23_-_Interupt_Controller/tb.gtkw"
-[timestart] 23000000000
+[dumpfile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep23_-_Interrupt_Controller/fpga/tb.ghw"
+[dumpfile_mtime] "Sun Jun 10 05:51:55 2018"
+[dumpfile_size] 4694064
+[savefile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep23_-_Interrupt_Controller/fpga/tb.gtkw"
+[timestart] 0
 [size] 1920 1103
 [pos] 1868 33
-*-31.877865 35540000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-36.047791 201900000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.tb.
 [treeopen] top.tb.inst_comp.
 [treeopen] top.tb.inst_comp.i_ic.
+[treeopen] top.tb.inst_comp.i_mem.
+[treeopen] top.tb.inst_comp.i_mem.i_ram.
+[treeopen] top.tb.inst_comp.i_mem.i_ram.mem.
 [sst_width] 255
 [signals_width] 343
 [sst_expanded] 1
@@ -53,7 +56,13 @@ top.tb.inst_comp.i_vga.irq_o
 @22
 #{top.tb.inst_comp.i_ic.irq_i[7:0]} top.tb.inst_comp.i_ic.irq_i[7] top.tb.inst_comp.i_ic.irq_i[6] top.tb.inst_comp.i_ic.irq_i[5] top.tb.inst_comp.i_ic.irq_i[4] top.tb.inst_comp.i_ic.irq_i[3] top.tb.inst_comp.i_ic.irq_i[2] top.tb.inst_comp.i_ic.irq_i[1] top.tb.inst_comp.i_ic.irq_i[0]
 #{top.tb.inst_comp.i_ic.mask_i[7:0]} top.tb.inst_comp.i_ic.mask_i[7] top.tb.inst_comp.i_ic.mask_i[6] top.tb.inst_comp.i_ic.mask_i[5] top.tb.inst_comp.i_ic.mask_i[4] top.tb.inst_comp.i_ic.mask_i[3] top.tb.inst_comp.i_ic.mask_i[2] top.tb.inst_comp.i_ic.mask_i[1] top.tb.inst_comp.i_ic.mask_i[0]
-@23
 #{top.tb.inst_comp.i_ic.irq_latch[7:0]} top.tb.inst_comp.i_ic.irq_latch[7] top.tb.inst_comp.i_ic.irq_latch[6] top.tb.inst_comp.i_ic.irq_latch[5] top.tb.inst_comp.i_ic.irq_latch[4] top.tb.inst_comp.i_ic.irq_latch[3] top.tb.inst_comp.i_ic.irq_latch[2] top.tb.inst_comp.i_ic.irq_latch[1] top.tb.inst_comp.i_ic.irq_latch[0]
+#{top.tb.inst_comp.timer_cnt[17:0]} top.tb.inst_comp.timer_cnt[17] top.tb.inst_comp.timer_cnt[16] top.tb.inst_comp.timer_cnt[15] top.tb.inst_comp.timer_cnt[14] top.tb.inst_comp.timer_cnt[13] top.tb.inst_comp.timer_cnt[12] top.tb.inst_comp.timer_cnt[11] top.tb.inst_comp.timer_cnt[10] top.tb.inst_comp.timer_cnt[9] top.tb.inst_comp.timer_cnt[8] top.tb.inst_comp.timer_cnt[7] top.tb.inst_comp.timer_cnt[6] top.tb.inst_comp.timer_cnt[5] top.tb.inst_comp.timer_cnt[4] top.tb.inst_comp.timer_cnt[3] top.tb.inst_comp.timer_cnt[2] top.tb.inst_comp.timer_cnt[1] top.tb.inst_comp.timer_cnt[0]
+@28
+top.tb.inst_comp.timer_irq
+@22
+#{top.tb.inst_comp.i_mem.i_ram.mem[640][7:0]} top.tb.inst_comp.i_mem.i_ram.mem[640][7] top.tb.inst_comp.i_mem.i_ram.mem[640][6] top.tb.inst_comp.i_mem.i_ram.mem[640][5] top.tb.inst_comp.i_mem.i_ram.mem[640][4] top.tb.inst_comp.i_mem.i_ram.mem[640][3] top.tb.inst_comp.i_mem.i_ram.mem[640][2] top.tb.inst_comp.i_mem.i_ram.mem[640][1] top.tb.inst_comp.i_mem.i_ram.mem[640][0]
+@23
+#{top.tb.inst_comp.i_mem.i_ram.mem[641][7:0]} top.tb.inst_comp.i_mem.i_ram.mem[641][7] top.tb.inst_comp.i_mem.i_ram.mem[641][6] top.tb.inst_comp.i_mem.i_ram.mem[641][5] top.tb.inst_comp.i_mem.i_ram.mem[641][4] top.tb.inst_comp.i_mem.i_ram.mem[641][3] top.tb.inst_comp.i_mem.i_ram.mem[641][2] top.tb.inst_comp.i_mem.i_ram.mem[641][1] top.tb.inst_comp.i_mem.i_ram.mem[641][0]
 [pattern_trace] 1
 [pattern_trace] 0

@@ -5,6 +5,8 @@
 ; Therefore, one shouldn't call C functions from this routine.
 ; Furthermore, it should be short and fast, so as not to slow down the main program.
 
+; The 'A' register must NOT be changed in this routine.
+
 ; These addresses must match those in prog/memorymap.h
 VGA_PALETTE   = $7FC0   
 VGA_PIX_Y_INT = $7FD0
@@ -15,6 +17,7 @@ PIXELS_Y      = 480     ; Number of lines in visible screen
 
 vga_isr:
 
+   PHA                  ; Save A register
    LDA VGA_PIX_Y_INT    ; Load current line number
    LDX VGA_PIX_Y_INT+1
 
@@ -37,5 +40,6 @@ nowrap:
 
    STA VGA_PALETTE      ; Update background colour
 
+   PLA                  ; Restore 'A' register
    RTS
 

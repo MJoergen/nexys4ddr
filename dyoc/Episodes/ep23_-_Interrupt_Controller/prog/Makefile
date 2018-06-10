@@ -24,9 +24,12 @@ build/main.s: src/main.c
 # Compile runtime library
 #####################################
 
-build/comp.lib: build/crt0.o build/write.o build/vga_isr.o build/irq.o
+build/comp.lib: build/crt0.o build/_systime.o build/write.o build/timer_isr.o build/vga_isr.o build/irq.o
 	cp lib/none.lib $@
 	ar65 r $@ $^
+
+build/_systime.o: lib/_systime.s
+	ca65 $< -o $@
 
 build/write.o: build/write.s
 	ca65 $< -o $@
@@ -34,6 +37,10 @@ build/write.o: build/write.s
 build/write.s: lib/write.c
 	mkdir -p build
 	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
+
+build/timer_isr.o: lib/timer_isr.s # Timer interrupt service routine
+	mkdir -p build
+	ca65 $< -o $@
 
 build/vga_isr.o: lib/vga_isr.s     # VGA interrupt service routine
 	mkdir -p build
