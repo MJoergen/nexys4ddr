@@ -152,6 +152,5 @@ solve the 8-queens puzzle on a chess board, see
 iterative brute force search, and should end up finding 92 different solutions
 (including rotations etc). We have not yet implemented any VGA output, but the
 program ends in a loop, where the number of solutions is read into the 'A'
-register.  It takes approximately 15 seconds when running at 25 MHz.
-
+register.  It takes approximately 10 seconds when running at 25 MHz.
 
