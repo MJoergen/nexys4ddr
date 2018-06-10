@@ -21,7 +21,6 @@ fpga: comp.bit
 	djtgcfg prog -d Nexys4DDR -i 0 --file $<
 
 
-
 #####################################
 # Simulation
 #####################################

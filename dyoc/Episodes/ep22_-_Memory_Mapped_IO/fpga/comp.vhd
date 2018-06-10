@@ -156,13 +156,13 @@ begin
    
    i_mem : entity work.mem
    generic map (
-      G_ROM_SIZE   => 12, -- 4 Kbytes
-      G_RAM_SIZE   => 12, -- 4 Kbytes
+      G_ROM_SIZE   => 14, -- 16 Kbytes
+      G_RAM_SIZE   => 15, -- 32 Kbytes
       G_CHAR_SIZE  => 13, -- 8 Kbytes
       G_COL_SIZE   => 13, -- 8 Kbytes
       G_MEMIO_SIZE =>  6, -- 64 bytes 
       --
-      G_ROM_MASK   => X"F000",
+      G_ROM_MASK   => X"C000",
       G_RAM_MASK   => X"0000",
       G_CHAR_MASK  => X"8000",
       G_COL_MASK   => X"A000",
