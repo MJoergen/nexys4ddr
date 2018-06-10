@@ -148,3 +148,13 @@ Furthermore, I have removed some unused code, e.g.  the CIC module and the file
 mem/cic.vhd, since that was just for testing purposes in the previous episode.
 Additionally, writing to the ROM is removed as well.
 
+## Test program
+As a test of the system, I've implemented a small program to solve the 8-queens
+puzzle on a chess board, see
+<https://en.wikipedia.org/wiki/Eight_queens_puzzle>. The program does an
+iterative brute force search, and should end up finding 92 different solutions
+(including rotations etc). We have not yet implemented any VGA output, but the
+program ends in a loop, where the number of solutions is read into the 'A'
+register.  It takes approximately 15 seconds when running at 25 MHz.
+
+
