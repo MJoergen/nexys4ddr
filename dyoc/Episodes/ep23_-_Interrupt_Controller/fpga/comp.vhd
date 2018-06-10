@@ -294,7 +294,7 @@ begin
 
 
    -------------------------
-   -- Interrupt Controller
+   -- Interrupt Sources
    -------------------------
 
    ic_irq(0) <= timer_irq;
