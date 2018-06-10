@@ -6,7 +6,7 @@ Computer".
 
 Let's first take a status of the project. So far we've finished implementing
 the 6502 CPU. That means we can now write programs (in assembly, using the
-assembler [ca65](http://cc65.github.io/doc/ca65.html)) and have them run of our
+assembler [ca65](http://cc65.github.io/doc/ca65.html)) and have them run on our
 computer.
 
 We still need to expand the functionality of the VGA output and add keyboard
@@ -22,9 +22,9 @@ our tool chain:
 * C runtime library.
 
 As our C compiler I will use [cc65](http://cc65.github.io/doc/cc65.html).  This
-compiler comes with a complete toolchain including linker, runtime library, ABI
-support, etc.  The toolchain requires the support of a number of features in
-our computer that we'll implement in this episode:
+compiler comes with a complete toolchain including linker, ABI support, runtime
+library, etc.  However, the toolchain requires the support of a number of
+additional features in our computer that we'll implement in this episode:
 * CPU reset.
 * Memory map.
 * Linker script.
@@ -36,10 +36,8 @@ Additionally, we'll perform a few extra steps in this episode:
 
 ## CPU reset
 Upon reset, the CPU must load the Program Counter from the Reset vector at
-address 0xFFFC and 0xFFFD, instead of using a hardcoded value in the
-source code.
-
-To achieve this the control registers must be given default values.
+addresses 0xFFFC and 0xFFFD, instead of using a hardcoded value in the source
+code.  To achieve this the control registers must be given default values:
 * Lines 2774-2777 of cpu/ctl.vhd starts the Reset sequence by forcing the
 Instruction Register to the value 00, i.e. the BRK instruction.
 * Lines 2753-2756 skip the first few cycles of the BRK
@@ -60,10 +58,10 @@ in the startup code in prog/lib/crt0.s, see the following sections.
 
 ### Segment VECTORS
 The segment VECTORS is just six bytes long and holds the addresses of the three
-interrupt vectors Reset, NMI, and IRQ. These six bytes must be placed at
-0xFFFA.  This segment is defined in the file prog/lib/vectors.s, and we see
-that the three vectors point to nmi\_int, init, and irq\_int, respectively.
-This segment must be part of the ROM.  The ordering of these lines is crucial.
+interrupt vectors: Reset, NMI, and IRQ. These six bytes must be part of the ROM
+and be placed at 0xFFFA.  This segment is defined in the file
+prog/lib/vectors.s, and we see that the three vectors point to nmi\_int, init,
+and irq\_int, respectively.  The ordering of these lines is crucial.
 
 ### Segment CODE
 This contains the machine code instructions, i.e. the runnable program. This
@@ -89,20 +87,20 @@ modified slightly.  Refer to the documentation at
 
 Other than placing the segments correctly in memory, the linker script
 additionally defines extra symbols that are used by the startup code, see
-e.g.  lines 38, 39, and 47 of prog/ld.cfg.
+e.g.  lines 41, 42, and 50 of prog/ld.cfg.
 
-Lines 97-102 of ld.cfg define the symbol \_\_STACKSIZE\_\_. This is because the
+Lines 100-105 of prog/ld.cfg define the symbol \_\_STACKSIZE\_\_. This is because the
 C runtime uses its own stack space in RAM (as opposed to the processor stack at
-address 0x0100). This is because the C-stack is used to pass arguments to
-functions and these arguments can have arbitrary sizes.
+address 0x0100). The C-stack is used to pass arguments to functions and these
+arguments can have arbitrary sizes.
 
 
 ## Startup code prog/lib/crt0.s
-Upon reset, the processor starts executing code at the label "init" referenced in
-prog/lib/vectors.s. This startup code is placed in a separate file
-prog/lib/crt0.s in line 18, and is responsible for setting up the C runtime
+Upon reset, the processor starts executing code at the label "init" referenced
+in lib/vectors.s. The startup code is placed in a separate file lib/crt0.s
+starting from line 19, and is responsible for setting up the C runtime
 environment:
-* Setup the processor stack (lines 24-30).
+* Setup the processor mode (lines 24-30).
 * Initialize the C-stack for function arguments (lines 32-38).
 * Clear the BSS segment (line 43).
 * Initialize the DATA segment (line 44).
@@ -113,29 +111,28 @@ Upon exit from the main() function, the CPU enters an infinite loop in lines 55-
 Interrupts (IRQ and NMI) are currently not supported, so they just return immediately,
 see lines 61-67.
 
-The startup code references a number of functions, e.g. zerobss and copydata.
-These functions must be implemented too. I've chosen to use the existing
-runtime libraries provided by the cc65 toolchain. This runtime library
-depends on the platform. The platform we're building is basically a bare-metal
-platform, no features other than keyboard input and VGA output (both yet to be
-implemented). Therefore, we copy the default library from cc65/lib/none.lib to
-prog/lib/none.lib. This library contains several useful functions, including zerobss and
-copydata, as well as functions to support the cc65 ABI.
+The startup code references a number of functions, e.g. zerobss and copydata
+that must be implemented too. I've chosen to use the existing runtime libraries
+provided by the cc65 toolchain. This runtime library depends on the platform.
+The platform we're building is basically a bare-metal platform, supporting no
+features other than keyboard input and VGA output (both yet to be implemented).
+Therefore, we copy the default library from cc65/lib/none.lib to
+prog/lib/none.lib. This library contains several useful functions, including
+zerobss and copydata, as well as functions to support the cc65 ABI.
 
 This library also contains its own version of the startup code crt0.s, which
-must be replaced by our own. This is taken care of in prog/Makefile in lines 23-26,
+must be replaced by our own. This is taken care of in prog/Makefile in lines 23-25,
 where we make our own copy of none.lib and modify the copy.
 
 
 ## Reset button
 It can be useful to reset the CPU after startup.  To this end we use the
 CPU\_RESETN button on the Nexys4DDR board and connect it to a new pin 'rstn\_i'
-to the computer.  This happens in line 27 of comp.vhd and line 34 of comp.xdc.
-Since this button is inverted, we invert the signal in lines 78-86 of comp.vhd.
-
-Note the use of a register (i.e. a synchronous process). This is to ensure
-that after power-up the rst signal is automatically asserted (i.e. by using
-the default value assigned in line 42 of comp.vhd).
+to the computer.  This happens in line 27 of fpga/comp.vhd and line 34 of
+fpga/comp.xdc.  Since this button is inverted, we invert the signal in lines
+78-86 of fpga/comp.vhd.  Note the use of a register (i.e. a synchronous
+process). This is to ensure that after power-up the rst signal is automatically
+asserted (i.e. by using the default value assigned in line 42 of comp.vhd).
 
 ## Cleanup
 The project has now grown to a size where it is convenient to add more
