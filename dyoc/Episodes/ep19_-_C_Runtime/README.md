@@ -149,8 +149,8 @@ mem/cic.vhd, since that was just for testing purposes in the previous episode.
 Additionally, writing to the ROM is removed as well.
 
 ## Test program
-As a test of the system, I've implemented a small program to solve the 8-queens
-puzzle on a chess board, see
+As a test of the system, I've implemented a small test program in src/main.c to
+solve the 8-queens puzzle on a chess board, see
 <https://en.wikipedia.org/wiki/Eight_queens_puzzle>. The program does an
 iterative brute force search, and should end up finding 92 different solutions
 (including rotations etc). We have not yet implemented any VGA output, but the
