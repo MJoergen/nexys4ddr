@@ -72,8 +72,9 @@ int main()
 
    } // end of while (1)
 
-   __asm__("LDA %v", solutions);
 loop:
+   __asm__("LDA %v", solutions);
+   __asm__("STA %v", solutions);
    __asm__("JMP %g", loop);
 
    return 0;
