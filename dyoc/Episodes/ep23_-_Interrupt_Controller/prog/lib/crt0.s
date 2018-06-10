@@ -41,6 +41,7 @@ init:
 
    JSR zerobss             ; Clear BSS segment
    JSR copydata            ; Initialize DATA segment
+   JSR clearscreen         ; Fill the character screen with ' '.
    JSR initlib             ; Run constructors
 
 ; ---------------------------------------------------------------------------
@@ -56,4 +57,21 @@ _exit:
    JSR donelib             ; Run destructors
 halt:
    JMP halt
+
+clearscreen:
+   LDY #$00                 ; Address of character memory
+   LDX #$80
+   STY ptr1                 ; Store address in zeropage pointer
+   STX ptr1+1
+   LDA #$20                 ; ASCII code for ' '
+   LDX #$A0                 ; High byte of end pointer
+   LDY #$00                 ; Loop counter
+loop:                       ; Fill 256 bytes with ' '
+   STA (ptr1),Y
+   INY
+   BNE loop
+   INC ptr1+1               ; Increment high byte
+   CPX ptr1+1               ; Have we reached the end?
+   BNE loop                 ; If not, go back and continue.
+   RTS
 
