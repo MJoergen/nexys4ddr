@@ -1,7 +1,8 @@
 # Design Your Own Computer
 # Episode 19 : "C Runtime"
 
-Welcome to the nineteenth episode of "Design Your Own Computer".
+Welcome to this - rather lengthy - nineteenth episode of "Design Your Own
+Computer".
 
 Let's first take a status of the project. So far we've finished implementing
 the 6502 CPU. That means we can now write programs (in assembly, using the
