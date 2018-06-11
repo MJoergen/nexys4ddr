@@ -36,13 +36,13 @@ static void calculate_valid(void)
 
 } // end of calculate_valid
 
-static void print_all(const int *p)
+static void print_all(void)
 {
-   int q;
+   uint8_t q;
 
    for (q=0; q<SIZE; ++q)
    {
-      printf("%d ", p[q]);
+      printf("%d ", pos[q]);
    }
    printf("\n");
 } // end of print_all
@@ -65,7 +65,7 @@ int main()
       if (valid[SIZE-1])
       {
          solutions++;
-         print_all(pos);
+         print_all();
       }
 
       for (q=SIZE-1; q>=0; --q)
