@@ -147,12 +147,18 @@ The interpretation (i.e. decoding) of the memory map takes place in lines 61-72
 of mem/mem.vhd. The postscript "cs" means "chip select". Note that there is no
 rom\_wren, because we have removed the ability for the CPU to write to the ROM.
 The definition of the memory map is moved to the file comp.vhd in lines
-139-147, and an equivalent C-style copy is maintained in file include/memorymap.h.
+139-147, and an equivalent C-style copy is maintained in file
+include/memorymap.h.
+
+I've chosen to increase the RAM and ROM size to the maximum possible, i.e.  32
+Kbytes of RAM from 0x0000 to 0x7FFF, and 16 Kbytes of ROM from 0xC000 to
+0xFFFF. We'll gradually be writing larger and larger programs, and will need
+the extra space.
 
 Any changes to the memory map, e.g. size of RAM for instance, requires changing
-three places: The decoding in mem/mem.vhd, the linker script prog/ld.cfg, and the
-header file include/memorymap.h. It is imperative that these three files are
-kept in complete sync with each other.
+three places: The decoding in mem/mem.vhd, the linker script prog/ld.cfg, and
+the header file include/memorymap.h. It is imperative that these three files
+are kept in complete sync with each other.
 
 
 ## VGA access to the character and colour memory.
