@@ -8,22 +8,25 @@
 // At the same time, it maintains a visual pattern synchronous with the
 // VGA output, using interrupts.
 
-#include <time.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <time.h>
 #include "sys_irq.h"    // sys_set_vga_irq
 
 extern t_irq_handler vga_isr;
 
-#define H_PIXELS 640
-#define V_PIXELS 480
-
 #define SIZE 8
 
-static void calculate_valid(int *valid, const int *pos)
+uint8_t  pos[SIZE];
+uint8_t  valid[SIZE];
+uint8_t  solutions = 0;
+uint16_t iterations = 0;
+
+static void calculate_valid(void)
 {
-   int val=1;
-   int q;
-   int c;
+   uint8_t val=1;
+   uint8_t q;
+   uint8_t c;
    for (q=1; q<SIZE; ++q)
    {
       if (val) // This is just an optimization
@@ -40,28 +43,23 @@ static void calculate_valid(int *valid, const int *pos)
 
 } // end of calculate_valid
 
-static void print_all(const int *p)
+static void print_all(void)
 {
-   int q;
+   uint8_t q;
 
    for (q=0; q<SIZE; ++q)
    {
-      printf("%d ", p[q]);
+      printf("%d ", pos[q]);
    }
    printf("\n");
 } // end of print_all
 
 int main()
 {
+   int8_t q;   // Must be a signed type
    time_t t1;
    time_t t2;
    uint16_t diff;
-
-   int pos[SIZE];
-   int valid[SIZE];
-   int q;
-   int solutions = 0;
-   int iterations = 0;
 
    for (q=0; q<SIZE; ++q)
    {
@@ -77,16 +75,16 @@ int main()
    {
       iterations++;
 
-      calculate_valid(valid, pos);
+      calculate_valid();
       if (valid[SIZE-1])
       {
          solutions++;
-         print_all(pos);
+         print_all();
       }
 
       for (q=SIZE-1; q>=0; --q)
       {
-         int val = (q==0) || (valid[q-1]);
+         uint8_t val = (q==0) || (valid[q-1]);
          if (val && (pos[q]<SIZE-1))
          {
             pos[q]++;

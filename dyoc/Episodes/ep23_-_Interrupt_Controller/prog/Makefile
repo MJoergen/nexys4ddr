@@ -27,11 +27,26 @@ build/main.s: src/main.c
 # Compile runtime library
 #####################################
 
-build/comp.lib: build/crt0.o build/_systime.o build/write.o build/timer_isr.o build/sys_irq.o build/irq.o
+build/comp.lib: build/crt0.o build/write.o build/clrscr.o build/_systime.o build/timer_isr.o build/sys_irq.o build/irq.o
 	cp lib/none.lib $@
 	ar65 r $@ $^
 
 build/_systime.o: lib/_systime.s
+	ca65 $< -o $@
+
+build/timer_isr.o: lib/timer_isr.s # Timer interrupt service routine
+	mkdir -p build
+	ca65 $< -o $@
+
+build/sys_irq.o: build/sys_irq.s   # IRQ and NMI vectors
+	ca65 $< -o $@
+
+build/sys_irq.s: lib/sys_irq.c     # IRQ and NMI vectors
+	mkdir -p build
+	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
+
+build/irq.o: lib/irq.s             # IRQ and NMI vectors
+	mkdir -p build
 	ca65 $< -o $@
 
 build/write.o: build/write.s
@@ -41,22 +56,11 @@ build/write.s: lib/write.c
 	mkdir -p build
 	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
 
-build/timer_isr.o: lib/timer_isr.s # Timer interrupt service routine
+build/clrscr.o: lib/clrscr.s       # Clear screen
 	mkdir -p build
 	ca65 $< -o $@
 
 build/crt0.o: lib/crt0.s           # Reset vector
-	mkdir -p build
-	ca65 $< -o $@
-
-build/sys_irq.o: build/sys_irq.s     # IRQ and NMI vectors
-	ca65 $< -o $@
-
-build/sys_irq.s: lib/sys_irq.c     # IRQ and NMI vectors
-	mkdir -p build
-	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
-
-build/irq.o: lib/irq.s             # IRQ and NMI vectors
 	mkdir -p build
 	ca65 $< -o $@
 
