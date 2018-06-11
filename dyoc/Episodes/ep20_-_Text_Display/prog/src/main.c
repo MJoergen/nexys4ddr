@@ -2,8 +2,11 @@
 // a chess board.
 // The expected number of solutions is 92.
 // See https://en.wikipedia.org/wiki/Eight_queens_puzzle
+//
+// It prints out all the solutions.
 
 #include <stdint.h>
+#include <stdio.h>
 
 #define SIZE 8
 
@@ -17,7 +20,6 @@ static void calculate_valid(void)
    uint8_t val=1;
    uint8_t q;
    uint8_t c;
-
    for (q=1; q<SIZE; ++q)
    {
       if (val) // This is just an optimization
@@ -33,6 +35,17 @@ static void calculate_valid(void)
    }
 
 } // end of calculate_valid
+
+static void print_all(const int *p)
+{
+   int q;
+
+   for (q=0; q<SIZE; ++q)
+   {
+      printf("%d ", p[q]);
+   }
+   printf("\n");
+} // end of print_all
 
 int main()
 {
@@ -52,6 +65,7 @@ int main()
       if (valid[SIZE-1])
       {
          solutions++;
+         print_all(pos);
       }
 
       for (q=SIZE-1; q>=0; --q)
@@ -69,13 +83,10 @@ int main()
       {
          break; // out of while loop
       }
-
    } // end of while (1)
 
-loop:
-   __asm__("LDA %v", solutions);
-   __asm__("STA %v", solutions);
-   __asm__("JMP %g", loop);
+   printf("%d iterations.\n", iterations);
+   printf("%d solutions.\n", solutions);
 
    return 0;
 } // end of main
