@@ -212,7 +212,8 @@ descriptor. I've chosen to implement the function in regular C, but if
 performance does become a problem, the function can easily be rewritten in
 assembler. I've added a new file lib/clrscr.s to clear the screen. This
 is called from the startup code in lib/crt0.s. So when pressing the CPU reset
-button, the screen is automatically cleared.
+button, the screen is automatically cleared. This function can be called from
+the C-code by #include'ing \<conio.h\>.
 
 The location in character memory is calculated as 80\*y+x, see line 32.  This
 calculation corresponds to the equivalent calculation in lines 116-117 of
