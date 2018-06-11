@@ -173,7 +173,7 @@ begin
    i_mem : entity work.mem
    generic map (
       G_ROM_SIZE   => 14, -- 16 Kbytes
-      G_RAM_SIZE   => 16, -- 32 Kbytes
+      G_RAM_SIZE   => 15, -- 32 Kbytes
       G_CHAR_SIZE  => 13, -- 8 Kbytes
       G_COL_SIZE   => 13, -- 8 Kbytes
       G_MEMIO_SIZE =>  6, -- 64 bytes 
