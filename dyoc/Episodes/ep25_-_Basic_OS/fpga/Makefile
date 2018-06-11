@@ -44,7 +44,6 @@ clean:
 	rm -rf comp.dcp
 	rm -rf .Xil
 	rm -rf .cache
-	rm -rf *.o
 	rm -rf work-obj93.cf
 	rm -rf tb
 	rm -rf tb.ghw
