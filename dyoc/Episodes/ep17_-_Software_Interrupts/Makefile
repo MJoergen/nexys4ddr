@@ -1,11 +1,13 @@
 XILINX_DIR = /opt/Xilinx/Vivado/2017.3
 
-SRC = comp.vhd \
-		vga/font.vhd vga/digits.vhd vga/vga.vhd \
-		mem/ram.vhd mem/rom.vhd mem/mem.vhd \
-		cpu/datapath.vhd cpu/ctl.vhd cpu/cpu.vhd cpu/alu.vhd
-XDC = comp.xdc
-TB  = tb.vhd
+SRC  = comp.vhd \
+       vga/font.vhd vga/digits.vhd vga/vga.vhd \
+       mem/ram.vhd mem/rom.vhd mem/mem.vhd \
+       cpu/datapath.vhd cpu/ctl.vhd cpu/cpu.vhd cpu/alu.vhd
+XDC  = comp.xdc
+TB   = tb.vhd
+WAVE = tb.ghw
+SAVE = tb.gtkw
 
 
 #####################################
@@ -39,7 +41,7 @@ sim: $(SRC) $(TB) mem/rom.txt
 	ghdl -i --work=work $(SRC) $(TB)
 	ghdl -m --ieee=synopsys -fexplicit tb
 	ghdl -r tb --assert-level=error --wave=tb.ghw --stop-time=500us
-	gtkwave tb.ghw tb.gtkw
+	gtkwave $(WAVE) $(SAVE)
 
 
 clean:
