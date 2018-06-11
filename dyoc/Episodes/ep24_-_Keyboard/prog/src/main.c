@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "keyboard.h"
-#include "memorymap.h"
+#include "memorymap.h"           // IRQ_KBD_NUM
 
 void main()
 {
@@ -14,7 +14,7 @@ void main()
    printf("%04x\n", t2-t1);
 
    dummy = *IRQ_STATUS;             // Clear any pending interrupts.
-   *IRQ_MASK = IRQ_KBD;             // Enable keyboard interrupts.
+   *IRQ_MASK = 1<<IRQ_KBD_NUM;      // Enable keyboard interrupts.
    CLI();                           // Enable CPU interrupts.
 
    // Just go into a busy loop.

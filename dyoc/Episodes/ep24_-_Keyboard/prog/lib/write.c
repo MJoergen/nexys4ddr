@@ -1,4 +1,5 @@
 #include <stdint.h>     // uint8_t, etc.
+#include <string.h>     // memmove
 #include "memorymap.h"  // MEM_CHAR
 
 // This is just a very simple implementation of the write() function.
@@ -41,11 +42,17 @@ int write (int fd, const uint8_t* buf, const unsigned count)
          y++;
       }
 
-      // End of screen, just go back to the top.
+      // End of screen, so scroll.
       if (y >= V_CHARS)
       {
+         // Move screen up one line
+         memmove(MEM_CHAR, MEM_CHAR+H_CHARS, H_CHARS*(V_CHARS-1));
+
+         // Clean bottom line
+         memset(MEM_CHAR+H_CHARS*(V_CHARS-1), ' ', H_CHARS);
+
          x = 0;
-         y = 0;
+         y = V_CHARS-1;
       }
    }
 

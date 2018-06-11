@@ -1,7 +1,7 @@
 	.setcpu		"6502"
 
    .export init, _exit
-   .import _main
+   .import _main, _clrscr
 
    .export __STARTUP__ : absolute = 1     ; Mark as startup
    .import __RAM_START__, __RAM_SIZE__    ; Linker generated
@@ -14,6 +14,13 @@
 ; Place the startup code in a special segment
 
 .segment	"STARTUP"
+
+; ---------------------------------------------------------------------------
+; Extra defines needed by the startup code
+
+IRQ_STATUS     = $7FFF
+IRQ_MASK       = $7FDF
+IRQ_TIMER_MASK = $01
 
 ; ---------------------------------------------------------------------------
 ; Entry point for a hardware reset. Referenced in lib/vectors.s
@@ -42,6 +49,15 @@ init:
    JSR zerobss             ; Clear BSS segment
    JSR copydata            ; Initialize DATA segment
    JSR initlib             ; Run constructors
+   JSR _clrscr             ; Clear screen
+
+; ---------------------------------------------------------------------------
+; Enable timer interrupt
+
+   LDA #IRQ_TIMER_MASK     ; Enable timer interrupt
+   STA IRQ_MASK
+   LDA IRQ_STATUS          ; Clear any pending interrupts
+   CLI                     ; Enable interrupt handling
 
 ; ---------------------------------------------------------------------------
 ; Call C-function main()
