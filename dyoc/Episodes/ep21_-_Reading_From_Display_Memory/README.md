@@ -42,7 +42,7 @@ lines 407-420 of cpu/datapath.vhd.
 
 ## Other modifications
 One major reason for adding read support from display memory, is to
-allow screen scrolling. This is done in lib/printf.c in lines 39-50.
+allow screen scrolling. This is done in lib/write.c in lines 45-56.
 
 And that's it! Moving on, we need a few more things, before we're ready to
 add keyboard support. Stay tuned ...
