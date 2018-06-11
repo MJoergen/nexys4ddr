@@ -40,7 +40,7 @@ mem/rom.txt: mem/rom.bin
 sim: $(SRC) $(TB) mem/rom.txt
 	ghdl -i --work=work $(SRC) $(TB)
 	ghdl -m --ieee=synopsys -fexplicit tb
-	ghdl -r tb --assert-level=error --wave=tb.ghw --stop-time=500us
+	ghdl -r tb --assert-level=error --wave=$(WAVE) --stop-time=500us
 	gtkwave $(WAVE) $(SAVE)
 
 

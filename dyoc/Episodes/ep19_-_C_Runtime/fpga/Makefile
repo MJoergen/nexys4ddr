@@ -28,7 +28,7 @@ fpga: comp.bit
 sim: $(SRC) $(TB) ../rom.txt
 	ghdl -i --work=work $(SRC) $(TB)
 	ghdl -m --ieee=synopsys -fexplicit tb
-	ghdl -r tb --assert-level=error --wave=tb.ghw --stop-time=150us
+	ghdl -r tb --assert-level=error --wave=$(WAVE) --stop-time=150us
 	gtkwave $(WAVE) $(SAVE)
 
 
