@@ -2,9 +2,13 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
+-----------------------
+-- Interrupt Controller
+-----------------------
+
 entity ic is
    port (
-      clk_i      : in  std_logic;                      -- 100 MHz
+      clk_i      : in  std_logic;
 
       irq_i      : in  std_logic_vector(7 downto 0);
       irq_o      : out std_logic;

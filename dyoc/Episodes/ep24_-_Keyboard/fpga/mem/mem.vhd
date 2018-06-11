@@ -206,10 +206,10 @@ begin
 
 
    a_data_o <= rom_data   when rom_cs   = '1' else
+               memio_data when memio_cs = '1' else
                ram_data   when ram_cs   = '1' else
                char_data  when char_cs  = '1' else
                col_data   when col_cs   = '1' else
-               memio_data when memio_cs = '1' else
                X"00";
   
 end Structural;

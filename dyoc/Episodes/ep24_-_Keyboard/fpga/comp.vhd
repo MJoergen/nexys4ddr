@@ -89,6 +89,14 @@ architecture Structural of comp is
    signal irq_memio_rd : std_logic_vector( 1*8-1 downto 0);
    signal irq_memio_rden : std_logic;
 
+   -- Counter for the timer interrupt.
+   -- It counts on the vga_clk (running at 25 MHz).
+   -- It wraps around once every 0.01 seconds, i.e. after
+   -- 25M/100 = 250k clock periods.
+   constant C_TIMER_CNT : std_logic_vector(17 downto 0) := std_logic_vector(to_unsigned(250000, 18));
+   signal timer_cnt : std_logic_vector(17 downto 0) := (others => '0');
+   signal timer_irq : std_logic := '0';
+
 begin
 
    --------------------------------------------------
@@ -170,13 +178,13 @@ begin
 
    i_mem : entity work.mem
    generic map (
-      G_ROM_SIZE   => 12, -- 4 Kbytes
-      G_RAM_SIZE   => 12, -- 4 Kbytes
+      G_ROM_SIZE   => 14, -- 16 Kbytes
+      G_RAM_SIZE   => 15, -- 32 Kbytes
       G_CHAR_SIZE  => 13, -- 8 Kbytes
       G_COL_SIZE   => 13, -- 8 Kbytes
       G_MEMIO_SIZE =>  6, -- 64 bytes
       --
-      G_ROM_MASK   => X"F000",
+      G_ROM_MASK   => X"C000",
       G_RAM_MASK   => X"0000",
       G_CHAR_MASK  => X"8000",
       G_COL_MASK   => X"A000",
@@ -265,6 +273,24 @@ begin
 
 
    --------------------------------------------------
+   -- Generate timer interrupt
+   --------------------------------------------------
+
+   p_timer_cnt : process (vga_clk)
+   begin
+      if rising_edge(vga_clk) then
+         timer_irq <= '0';
+         if timer_cnt = C_TIMER_CNT-1 then
+            timer_cnt <= (others => '0');
+            timer_irq <= '1'; -- Generate interrupt at wrap around.
+         else
+            timer_cnt <= timer_cnt + 1;
+         end if;
+      end if;
+   end process p_timer_cnt;
+
+
+   --------------------------------------------------
    -- Memory Mapped I/O
    -- This must match the mapping in prog/memorymap.h
    --------------------------------------------------
@@ -292,12 +318,13 @@ begin
 
 
    -------------------------
-   -- Interrupt Controller
+   -- Interrupt Sources
    -------------------------
 
-   ic_irq(0) <= vga_irq;
-   ic_irq(1) <= kbd_irq;
-   ic_irq(7 downto 2) <= (others => '0');             -- Not used
+   ic_irq(0) <= timer_irq;
+   ic_irq(1) <= vga_irq;
+   ic_irq(2) <= kbd_irq;
+   ic_irq(7 downto 3) <= (others => '0');             -- Not used
 
 
    -------------------------
