@@ -27,7 +27,8 @@ build/main.s: src/main.c
 # Compile runtime library
 #####################################
 
-build/comp.lib: build/crt0.o build/write.o build/clrscr.o build/_systime.o build/timer_isr.o build/sys_irq.o build/irq.o
+build/comp.lib: build/crt0.o build/write.o build/clrscr.o build/_systime.o build/timer_isr.o \
+                build/sys_irq.o build/irq.o
 	cp lib/none.lib $@
 	ar65 r $@ $^
 

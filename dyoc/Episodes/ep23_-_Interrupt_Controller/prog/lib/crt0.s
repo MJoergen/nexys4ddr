@@ -18,6 +18,7 @@
 ; ---------------------------------------------------------------------------
 ; Extra defines needed by the startup code
 ; These must match the corresponding symbols in include/memorymap.h
+; and the assignment in lib/irq.s.
 
 IRQ_STATUS     = $7FFF
 IRQ_MASK       = $7FDF

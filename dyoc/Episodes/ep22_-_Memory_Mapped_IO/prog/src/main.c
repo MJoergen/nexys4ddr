@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include "memorymap.h"
+#include "memorymap.h"  // VGA_PALETTE
 
 #define SIZE 8
 

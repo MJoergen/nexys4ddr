@@ -6,10 +6,6 @@ have memory mapped I/O, which is used to transfer data between the CPU and any
 peripheral devices like e.g. the keyboard.  We'll also use the memory mapped
 I/O to configure the colour palette of the VGA output.
 
-However, before we implement the keyboard handling, we'll start with what we
-already have: the VGA output, and we'll use it to generate cool graphical
-effects.
-
 ## Addressing
 Since only a few bytes of data is transferred between the CPU and the peripheral
 devices, we'll reserve a total of sixty four bytes, half of which are read-only.
@@ -26,10 +22,13 @@ and the folowing readonly data:
 * 7FE8 - 7FFF : Reserved
 
 Note that the Memory Mapped IO address range collides with the RAM address range.
-This effectively means that we can't use the last 64 kbytes of the 32 Kbyte RAM.
+This effectively means that we can't use the last 64 bytes of the 32 Kbyte RAM.
 However, we must be careful to establish the correct priority. So in mem/mem.vhd
 lines 201-206, it is important that memio comes before ram, to ensure the CPU
 reads from the Memory Mapped IO and not from the RAM.
+
+The Memory Map is implemented in mem/memio.vhd, but the actual memory map is
+inferred from the connections in lines 219-235 in fpga/comp.vhd.
 
 ## VGA memory mapped I/O
 The colour palette consists of 16 bytes, where the byte at address 7FC0 maps to
@@ -59,4 +58,8 @@ needed, but it's a small feature to implement.
 With just the above, the CPU can create nice horizontal lines on the screen.
 The idea is to change the colour palette, i.e. the default background colour,
 in a manner to the current VGA pixel coordinate.
+
+Unfortunately, the VGA output is not quite stable, and there is a substantial
+amount of flickering. This is due to the fact that the CPU and the VGA are
+not synchronized. This will be solved in the next episode.
 
