@@ -210,7 +210,9 @@ characters written.
 In our implementation - in the file lib/write.c - we will ignore the file
 descriptor. I've chosen to implement the function in regular C, but if
 performance does become a problem, the function can easily be rewritten in
-assembler.
+assembler. I've added a new file lib/clrscr.s to clear the screen. This
+is called from the startup code in lib/crt0.s. So when pressing the CPU reset
+button, the screen is automatically cleared.
 
 The location in character memory is calculated as 80\*y+x, see line 32.  This
 calculation corresponds to the equivalent calculation in lines 116-117 of

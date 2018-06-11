@@ -2,7 +2,7 @@
 
    .export init, _exit
    .export nmi_int, irq_int
-   .import _main
+   .import _main, _clrscr
 
    .export __STARTUP__ : absolute = 1     ; Mark as startup
    .import __RAM_START__, __RAM_SIZE__    ; Linker generated
@@ -43,6 +43,7 @@ init:
    JSR zerobss              ; Clear BSS segment
    JSR copydata             ; Initialize DATA segment
    JSR initlib              ; Run constructors
+   JSR _clrscr              ; Clear screen
 
 ; ---------------------------------------------------------------------------
 ; Call C-function main()
