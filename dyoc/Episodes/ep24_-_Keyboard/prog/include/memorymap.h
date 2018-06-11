@@ -24,6 +24,7 @@
 #define VGA_PIX_X        ((uint16_t *) 0x7FE0)
 #define VGA_PIX_Y        ((uint16_t *) 0x7FE2)
 #define CPU_CYC          ((uint32_t *) 0x7FE4)
+#define KBD_DATA         ((uint32_t *) 0x7FE8)
 #define IRQ_STATUS       ((uint8_t *)  0x7FFF)
 #define IRQ_TIMER_NUM    0
 #define IRQ_VGA_NUM      1

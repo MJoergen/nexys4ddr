@@ -1,6 +1,6 @@
 .setcpu		"6502"
 .export		kbd_isr              ; Used in lib/irq.s
-.import     _kbd_buffer_count, _kbd_buffer, _kbd_buffer_size
+.import     _kbd_buffer_count, _kbd_buffer, _kbd_buffer_size   ; Defined in lib/keyboard.c
 
 ; The interrupt routine must be written entirely in assembler, because the C code is not re-entrant.
 ; Therefore, one shouldn't call C functions from this routine.
