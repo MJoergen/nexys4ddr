@@ -9,8 +9,19 @@ INCLUDE = include
 ../rom.txt: build/rom.bin
 	./bin2hex.py $< $@
 
-build/rom.bin: build/main.o build/vectors.o build/comp.lib
+build/rom.bin: build/main.o build/vga.o build/keyboard.o build/vectors.o build/comp.lib
 	ld65 -m build/rom.map -C ld.cfg $^
+
+build/vga.o: lib/vga.s
+	mkdir -p build
+	ca65 $< -o $@
+
+build/keyboard.o: build/keyboard.s
+	ca65 $< -o $@
+
+build/keyboard.s: src/keyboard.c
+	mkdir -p build
+	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
 
 build/main.o: build/main.s
 	ca65 $< -o $@
@@ -24,21 +35,31 @@ build/main.s: src/main.c
 # Compile runtime library
 #####################################
 
-build/comp.lib: build/crt0.o build/write.o build/kbd_isr.o \
-					 build/vga_isr.o build/vga.o build/irq.o build/keyboard.o 
+build/comp.lib: build/crt0.o build/write.o build/clrscr.o build/_systime.o build/timer_isr.o build/sys_irq.o build/irq.o build/kbd_isr.o
 	cp lib/none.lib $@
 	ar65 r $@ $^
 
-build/vga.o: lib/vga.s
+build/kbd_isr.o: lib/kbd_isr.s     # Keyboard interrupt service routine
 	mkdir -p build
 	ca65 $< -o $@
 
-build/keyboard.o: build/keyboard.s
+build/_systime.o: lib/_systime.s
 	ca65 $< -o $@
 
-build/keyboard.s: lib/keyboard.c
+build/timer_isr.o: lib/timer_isr.s # Timer interrupt service routine
+	mkdir -p build
+	ca65 $< -o $@
+
+build/sys_irq.o: build/sys_irq.s   # IRQ and NMI vectors
+	ca65 $< -o $@
+
+build/sys_irq.s: lib/sys_irq.c     # IRQ and NMI vectors
 	mkdir -p build
 	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
+
+build/irq.o: lib/irq.s             # IRQ and NMI vectors
+	mkdir -p build
+	ca65 $< -o $@
 
 build/write.o: build/write.s
 	ca65 $< -o $@
@@ -47,19 +68,11 @@ build/write.s: lib/write.c
 	mkdir -p build
 	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
 
-build/kbd_isr.o: lib/kbd_isr.s     # KBD interrupt service routine
-	mkdir -p build
-	ca65 $< -o $@
-
-build/vga_isr.o: lib/vga_isr.s     # VGA interrupt service routine
+build/clrscr.o: lib/clrscr.s       # Clear screen
 	mkdir -p build
 	ca65 $< -o $@
 
 build/crt0.o: lib/crt0.s           # Reset vector
-	mkdir -p build
-	ca65 $< -o $@
-
-build/irq.o: lib/irq.s             # IRQ and NMI vectors
 	mkdir -p build
 	ca65 $< -o $@
 

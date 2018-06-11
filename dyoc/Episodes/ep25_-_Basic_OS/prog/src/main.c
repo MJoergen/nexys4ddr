@@ -101,7 +101,8 @@ void main()
    *VGA_PIX_Y_INT = PIXELS_Y-1;     // Generate interrupts at end of last line.
    vga_cursor_disable();            // Make sure cursor is disabled before enabling interrupts.
    dummy = *IRQ_STATUS;             // Clear any pending interrupts.
-   *IRQ_MASK = IRQ_KBD | IRQ_VGA;   // Enable keyboard and VGA interupts.
+   *IRQ_MASK |= 1 << IRQ_KBD_NUM;   // Enable keyboard interupts.
+   *IRQ_MASK |= 1 << IRQ_VGA_NUM;   // Enable VGA interupts.
    CLI();                           // Enable CPU interrupts.
 
    while (1)
