@@ -9,15 +9,8 @@ INCLUDE = include
 ../rom.txt: build/rom.bin
 	./bin2hex.py $< $@
 
-build/rom.bin: build/main.o build/keyboard.o build/vectors.o build/comp.lib
+build/rom.bin: build/main.o build/vectors.o build/comp.lib
 	ld65 -m build/rom.map -C ld.cfg $^
-
-build/keyboard.o: build/keyboard.s
-	ca65 $< -o $@
-
-build/keyboard.s: src/keyboard.c
-	mkdir -p build
-	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
 
 build/main.o: build/main.s
 	ca65 $< -o $@
@@ -31,9 +24,17 @@ build/main.s: src/main.c
 # Compile runtime library
 #####################################
 
-build/comp.lib: build/crt0.o build/write.o build/clrscr.o build/_systime.o build/timer_isr.o build/sys_irq.o build/irq.o build/kbd_isr.o
+build/comp.lib: build/crt0.o build/write.o build/clrscr.o build/_systime.o build/timer_isr.o \
+                build/sys_irq.o build/irq.o build/kbd_isr.o build/keyboard.o
 	cp lib/none.lib $@
 	ar65 r $@ $^
+
+build/keyboard.o: build/keyboard.s
+	ca65 $< -o $@
+
+build/keyboard.s: lib/keyboard.c
+	mkdir -p build
+	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
 
 build/kbd_isr.o: lib/kbd_isr.s     # Keyboard interrupt service routine
 	mkdir -p build
