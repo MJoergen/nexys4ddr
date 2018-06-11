@@ -17,10 +17,12 @@
 
 ; ---------------------------------------------------------------------------
 ; Extra defines needed by the startup code
+; These must match the corresponding symbols in include/memorymap.h
 
 IRQ_STATUS     = $7FFF
 IRQ_MASK       = $7FDF
-IRQ_TIMER_MASK = $01
+IRQ_TIMER_NUM  = 0
+IRQ_TIMER_MASK = 1 << IRQ_TIMER_NUM
 
 ; ---------------------------------------------------------------------------
 ; Entry point for a hardware reset. Referenced in lib/vectors.s

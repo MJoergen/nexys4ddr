@@ -9,7 +9,7 @@ not very successful. We are clearly lacking the possibility of very precise
 synchronization with the VGA output.
 
 To achieve this synchronization we'll make a number of modifications
-to the FPGA and to the software, all regarding interupts.
+to the FPGA and to the software, all regarding interrupts.
 
 ## Changes to the FPGA
 
@@ -20,16 +20,17 @@ VGA module and the memory map IO module too.
 ### Interrupt Controller
 
 We will use interrupts to achieve the required synchronization. Eventually, we
-will have add support for several independent interrupts sources, but for now
-we'll just have the VGA module generate interrupts, as well as having a general
-timer interrupt.
+will add support for several independent interrupts sources, but for now we'll
+just have two interrupts: A general timer interrupt, and interrupt from the VGA
+module.
 
-We'll build an interrupt controller that will support up to eight interrupt
-sources, each of which can be individually masked (disabled).  The controller
-latches the incoming interrupts into an interrupt status register.  Whenever
-the AND of this interrupt status latch and the corresponding interrupt mask
-register is nonzero, then it asserts the interrupt pin irq\_i on the CPU.  The
-interrupt status latch is automatically cleared when the CPU reads from it.
+We'll build an interrupt controller in the file fpga/ic.vhd that will support
+up to eight interrupt sources, each of which can be individually masked
+(disabled).  The interrupt controller latches the incoming interrupts into an
+interrupt status register.  Whenever the AND of this interrupt status latch and
+the corresponding interrupt mask register is nonzero, the controller will
+assert the interrupt pin irq\_i on the CPU.  The interrupt status latch is
+automatically cleared when the CPU reads from it.
 
 The interrupt controller is implemented in the new file fpga/ic.vhd and is
 instantiated in lines 213-226 of fpga/comp.vhd. Furthermore, the interrupt
@@ -46,7 +47,7 @@ simplicity of implementation is this siuation.
 To achieve the required side effect we must add a new signal b\_memio\_rden\_o
 to the file mem/mem.vhd. I've chosen a rather general implementation where
 each bit in the signal corresponds to one of the read-only bytes of the Memory
-Mapped IO. The signal is evaluated in lines 94-99 of mem/mem.vhd.
+Mapped IO. The signal is generated in lines 94-99 of mem/mem.vhd.
 
 ### Timer counter
 I've chosen to generate timer interrupts at 100 times per second. Too many
@@ -69,7 +70,7 @@ We would like the VGA module to be a source for generating interrupts based on t
 current pixel line being displayed at the moment. Therefore, I've chosen to
 allow the CPU to control on which line to generate interrupt. This is done by
 adding two more bytes to the Memory Mapped IO. The interrupt is generated at the
-end of the configured line, and is done in lines 170-172 of vga/vga.vhd.
+end of the requested line, and is done in lines 170-172 of vga/vga.vhd.
 
 ## Changes to the software
 
@@ -90,15 +91,15 @@ The file include/memorymap.h has been updated by adding the following registers:
   sources.  When reading from this memory location, all pending interrupts are
   cleared.
 
-Additionally two constants IRQ\_TIMER and IRQ\_VGA, have been defined. These
-values must match the assignment of interrupt sources in fpga/comp.vhd lines
-296-302.
+Additionally two constants IRQ\_TIMER\_NUM and IRQ\_VGA\_NUM, have been
+defined. These values must match the assignment of interrupt sources in
+fpga/comp.vhd lines 296-302.
 
 ### Startup code
 The (empty) definitions of nmi\_int and irq\_int have been moved from
 lib/crt0.s to a new file lib/irq.s, more on that later.
 
-In lines 55-61 of lib/crt0.s, the timer interrupt (bit 0) is enabled and the
+In lines 56-62 of lib/crt0.s, the timer interrupt (bit 0) is enabled and the
 CPU interrupt mask register is cleared, thus enabling timer interrupts. Note,
 this must be done as the very last step before calling main(), because the
 interrupt service routine in lib/irq.s expects the DATA segment to be
@@ -106,19 +107,17 @@ initialized.
 
 ### Interrupt handling
 The new file lib/irq.s provides a generic interrupt handler, fetching the
-specific interrupt handler from a jump table in lines 31-39. This makes it
+specific interrupt handler from a jump table in lines 26-34. This makes it
 possible for a running program to change the interrupt handler. Note that the
 default interrupt handlers are disabled, except for the timer interrupt.  The
 allocation of interrupt numbers must match the bit ordering as given in
 fpga/comp.vhd.
 
-The interrupt service routine is expected to be very fast, and written entirely
-in assembly. It MUST preserve the contents of the 'A' and 'Y' registers.
-
 It is imperative that the interrupt service routines are very fast, and that
 they do not use any of the existing C routines. This is because the C runtime
 is not re-entrant. Therefore, the interrupt service routines are best
-handwritten entirely in assembly.
+handwritten entirely in assembly.  Additionally, they MUST preserve the
+contents of the 'A' and 'Y' registers.
 
 The timer interrupt service routine in lib/timer\_isr.s maintains a two-byte
 seconds counter and a one-byte 0.01 second counter.
@@ -134,7 +133,7 @@ function \_systime() in \_lib/systime.s.
 ### Test program
 The whole point of introducing interrupts was to be able to precisely control the
 background colour of the VGA output. This is achieved by enabling VGA interrupt
-in lines 72-73 of src/main.c.
+in lines 70-71 of src/main.c.
 
 The VGA interrupt file src/vga\_isr.s first copies the current pixel line
 number to the background palette colour. The counter is then incremented and

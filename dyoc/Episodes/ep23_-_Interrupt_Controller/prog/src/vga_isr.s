@@ -1,5 +1,5 @@
 .setcpu		"6502"
-.export		_vga_isr
+.export		_vga_isr    ; Referenced in src/main.c
 
 ; The interrupt routine must be written entirely in assembler, because the C code is not re-entrant.
 ; Therefore, one shouldn't call C functions from this routine.

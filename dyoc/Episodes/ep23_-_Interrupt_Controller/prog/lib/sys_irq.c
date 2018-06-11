@@ -18,12 +18,12 @@ t_irq_handler *sys_set_vga_irq(t_irq_handler *irqHandler)
    CLI();
 
    return oldHandler;
-}
+} // end of sys_set_vga_irq
 
 void sys_clear_vga_irq(void)
 {
    SEI();
    *IRQ_MASK &= ~IRQ_VGA_MASK;
    CLI();
-}
+} // end of sys_clear_vga_irq
 
