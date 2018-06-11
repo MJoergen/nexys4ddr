@@ -25,6 +25,11 @@ and the folowing readonly data:
 * 7FE4 - 7FE7 : CPU Clock cycle counter
 * 7FE8 - 7FFF : Reserved
 
+Note that the Memory Mapped IO address range collides with the RAM address range.
+This effectively means that we can't use the last 64 kbytes of the 32 Kbyte RAM.
+However, we must be careful to establish the correct priority. So in mem/mem.vhd
+lines 201-206, it is important that memio comes before ram, to ensure the CPU
+reads from the Memory Mapped IO and not from the RAM.
 
 ## VGA memory mapped I/O
 The colour palette consists of 16 bytes, where the byte at address 7FC0 maps to
