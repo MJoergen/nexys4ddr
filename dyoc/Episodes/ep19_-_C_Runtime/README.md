@@ -154,3 +154,9 @@ iterative brute force search, and should end up finding 92 different solutions
 program ends in a loop, where the number of solutions is read into the 'A'
 register.  It takes approximately 10 seconds when running at 25 MHz.
 
+Congratulations! You now have a computer that can run arbitrary programs
+written in C! High-five :-)
+
+In the next episode we'll add support for printing characters to the screen.
+
+
