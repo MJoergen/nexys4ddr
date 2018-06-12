@@ -242,3 +242,6 @@ actually used. If you do need to save the 2 Kbytes of ROM space, but still need
 to print characters to the screen, it is possible to call write() directly.
 There will be no support for fancy formatting, though.
 
+I've adjusted the stack size as well, from 512 bytes til 4 Kbytes. This is done
+in line 102 of prog/ld.cfg.
+

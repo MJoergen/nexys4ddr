@@ -23,9 +23,11 @@ and the folowing readonly data:
 
 Note that the Memory Mapped IO address range collides with the RAM address range.
 This effectively means that we can't use the last 64 bytes of the 32 Kbyte RAM.
-However, we must be careful to establish the correct priority. So in mem/mem.vhd
-lines 201-206, it is important that memio comes before ram, to ensure the CPU
-reads from the Memory Mapped IO and not from the RAM.
+However, we must be careful to establish the correct priority. So in
+mem/mem.vhd lines 201-206, it is important that memio comes before ram, to
+ensure the CPU reads from the Memory Mapped IO and not from the RAM.
+Furthermore, we must instruct the C runtime library that these bytes of RAM are
+unavailable. This is done in line 15 of prog/ld.cfg.
 
 The Memory Map is implemented in mem/memio.vhd, but the actual memory map is
 inferred from the connections in lines 219-235 in fpga/comp.vhd.
