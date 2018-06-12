@@ -3,7 +3,8 @@
 
 Welcome to "Design Your Own Computer".  In this episode
 we'll make it possible for the CPU to read from the character
-and colour memories.
+and colour memories. This is needed in order to support scrolling
+of the screen, when the text reaches the bottom of the screen.
 
 To do this we need to introduce two new signals to the system:
 * mem\_wait
