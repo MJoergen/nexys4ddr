@@ -9,7 +9,10 @@ void main()
    {
       uint8_t ev = getchar();   // This does a BLOCKING wait.
       uint16_t t = clock();
-      printf("%04x %02x\n", t, ev);
+      uint16_t s = t/100;
+      uint16_t g = t-s*100;
+
+      printf("%2d.%02d : %02x\n", s, g, ev);
    }
 
 } // end of main
