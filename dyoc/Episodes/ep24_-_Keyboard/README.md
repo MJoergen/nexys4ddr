@@ -23,6 +23,17 @@ correct, it will check after every bit, and wait for the correct values of the
 Start and Stop bits. This is all controlled in lines 83-115 of
 keyboard/ps2.vhd.
 
+### Keyboard scan codes
+The data sent from the keyboard to the FPGA are called scan codes, and are
+enturely different from ASCII values. Furthermore, pressing keys like shift and
+control sends scan codes as well. The two shift keys have different scan codes
+even! So there must be a mapping from scan code to ASCII code, as well as a
+state machine to keep track of whether shift is pressed or not.
+
+I've chosen to place this functionality in the FPGA (instead of in the software),
+because the key tables alone take up 256 bytes. In the FPGA this lookup is
+performed in the new file keyboard/scancode.vhd.
+
 ### Interrupt map
 The PS/2 module generates an interrupt, whenever a keyboard event has been
 received. This interrupt is connected to bit 2 of the Interrupt Controller,
@@ -51,7 +62,12 @@ The interrupt routine manages a small buffer of keyboard events. If the buffer
 is full, the new keyboard event is discarded.
 
 ### Access to keyboard buffer
-I've added a function kbd\_buffer\_pop() in the file lib/keyboard.c that
+I've added a function cgetc() in the file lib/cgetc.c that
 returns the oldest keyboard event. If the buffer is empty, it will do a
 blocking wait.
+
+Additionally, inputting a line is done by implementing the function read(),
+which is a standard system call that takes three parameters: A file descriptor
+and a buffer pointer and size. The function must return the number of
+characters read.
 
