@@ -25,14 +25,14 @@ build/main.s: src/main.c
 #####################################
 
 build/comp.lib: build/crt0.o build/write.o build/clrscr.o build/clock.o build/timer_isr.o \
-                build/sys_irq.o build/irq.o build/kbd_isr.o build/getch.o build/read.o
+                build/sys_irq.o build/irq.o build/kbd_isr.o build/cgetc.o build/read.o
 	cp lib/none.lib $@
 	ar65 r $@ $^
 
-build/getch.o: build/getch.s
+build/cgetc.o: build/cgetc.s
 	ca65 $< -o $@
 
-build/getch.s: lib/getch.c
+build/cgetc.s: lib/cgetc.c
 	mkdir -p build
 	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
 

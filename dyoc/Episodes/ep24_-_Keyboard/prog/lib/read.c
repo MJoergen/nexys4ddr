@@ -1,5 +1,5 @@
 #include <stdint.h>     // uint8_t, etc.
-//#include <string.h>     // memmove
+#include <conio.h>      // cgetc()
 
 uint8_t getch();
 
@@ -13,7 +13,7 @@ int read (int fd, uint8_t* buf, const unsigned count)
 
    while (cnt--)
    {
-      *buf = getch();
+      *buf = cgetc();
       buf++;
    }
    

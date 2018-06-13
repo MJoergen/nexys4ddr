@@ -20,7 +20,7 @@ uint8_t kbd_buffer_count = 0;
 
 // This does a BLOCKING wait, until a keyboard event is present in the buffer
 // It will pop this value and return.
-uint8_t getch()
+uint8_t cgetc()
 {
    uint8_t kbd_data;
 
@@ -41,6 +41,6 @@ uint8_t getch()
    CLI();
 
    return kbd_data;
-} // end of getch
+} // end of cgetc
 
 
