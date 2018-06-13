@@ -8,6 +8,8 @@
 // At the same time, it maintains a visual pattern synchronous with the
 // VGA output, using interrupts.
 
+#define __ATMOS__       // Set the correct value (100) for CLOCKS_PER_SEC
+
 #include <stdint.h>
 #include <stdio.h>
 #include <time.h>
@@ -57,9 +59,11 @@ static void print_all(void)
 int main()
 {
    int8_t q;   // Must be a signed type
-   time_t t1;
-   time_t t2;
-   uint16_t diff;
+   clock_t t1;
+   clock_t t2;
+   clock_t diff;
+   clock_t secs;
+   clock_t hunds;
 
    for (q=0; q<SIZE; ++q)
    {
@@ -70,7 +74,7 @@ int main()
    // Enable VGA interupts
    sys_set_vga_irq(&vga_isr);
 
-   t1 = time(0);
+   t1 = clock();
    while (1)
    {
       iterations++;
@@ -98,12 +102,14 @@ int main()
          break; // out of while loop
       }
    } // end of while (1)
-   t2 = time(0);
+   t2 = clock();
 
    printf("%d iterations.\n", iterations);
    printf("%d solutions.\n", solutions);
    diff = t2-t1;
-   printf("%d seconds.\n", diff);
+   secs = diff / CLOCKS_PER_SEC;
+   hunds = ((diff - secs*CLOCKS_PER_SEC)*100) / CLOCKS_PER_SEC;
+   printf("%ld.%02ld seconds.\n", secs, hunds);
 
    // End with a busy loop to prevent interrupts from being disabled.
    while (1)

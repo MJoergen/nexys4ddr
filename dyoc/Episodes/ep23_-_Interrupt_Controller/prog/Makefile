@@ -27,12 +27,12 @@ build/main.s: src/main.c
 # Compile runtime library
 #####################################
 
-build/comp.lib: build/crt0.o build/write.o build/clrscr.o build/_systime.o build/timer_isr.o \
+build/comp.lib: build/crt0.o build/write.o build/clrscr.o build/clock.o build/timer_isr.o \
                 build/sys_irq.o build/irq.o
 	cp lib/none.lib $@
 	ar65 r $@ $^
 
-build/_systime.o: lib/_systime.s
+build/clock.o: lib/clock.s
 	ca65 $< -o $@
 
 build/timer_isr.o: lib/timer_isr.s # Timer interrupt service routine
