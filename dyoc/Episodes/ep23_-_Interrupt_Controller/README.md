@@ -86,7 +86,7 @@ interrupts, including
 The file include/memorymap.h has been updated by adding the following registers:
 * 7FD0 : VGA\_PIX\_Y\_INT. This 16-bit number contains the pixel line number for
   generating interrupt.
-* 7FF7 : IRQ\_MASK. Each bit masks one of the eight interrupt sources.
+* 7FDF : IRQ\_MASK. Each bit masks one of the eight interrupt sources.
 * 7FFF : IRQ\_STATUS. Each bit shows the current status of the interrupt
   sources.  When reading from this memory location, all pending interrupts are
   cleared.
@@ -120,24 +120,29 @@ handwritten entirely in assembly.  Additionally, they MUST preserve the
 contents of the 'A' and 'Y' registers.
 
 The timer interrupt service routine in lib/timer\_isr.s maintains a two-byte
-seconds counter and a one-byte 0.01 second counter.
+counter that is updated every 0.01 seconds. It wraps around every approx.
+ten minutes.
 
 ### Library support
 To install a new interrupt service routine, the function sys\_set\_vga\_irq()
 in lib/sys\_irq.c should be used.
 
-To read the current value of the timer, just use the time() function from the
-standard library. This will automatically interface to our computer through the
-function \_systime() in \_lib/systime.s.
+To read the current value of the timer, just use the clock() function from the
+standard library. This is implemented in lib/clock.s.
 
 ### Test program
-The whole point of introducing interrupts was to be able to precisely control the
-background colour of the VGA output. This is achieved by enabling VGA interrupt
-in lines 70-71 of src/main.c.
+The whole point of introducing interrupts was to be able to precisely control
+the background colour of the VGA output. This is achieved by enabling VGA
+interrupt in lines 70-71 of src/main.c.
 
 The VGA interrupt file src/vga\_isr.s first copies the current pixel line
 number to the background palette colour. The counter is then incremented and
 stored as the next interrupt line.  This way, an interrupt is generated after
 each VGA line, which happens every 800 clock cycles (the horizontal pixel
 count).
+
+In order to use the clock() function, it is necessary to define the
+constant CLOCKS\_PER\_SEC, because this constant is platform dependent.
+The option I've chosen is to define the symbol \_\_ATMOS\_\_ in line 11 of
+src/main.c.
 

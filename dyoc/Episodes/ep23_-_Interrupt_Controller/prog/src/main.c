@@ -12,7 +12,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include <time.h>
+#include <time.h>       // clock()
 #include "sys_irq.h"    // sys_set_vga_irq
 
 extern t_irq_handler vga_isr;
