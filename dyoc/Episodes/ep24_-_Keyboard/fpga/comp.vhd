@@ -98,6 +98,8 @@ architecture Structural of comp is
    signal timer_cnt : std_logic_vector(17 downto 0) := (others => '0');
    signal timer_irq : std_logic := '0';
 
+   signal kbd_debug : std_logic_vector(15 downto 0);
+
 begin
 
    --------------------------------------------------
@@ -258,18 +260,20 @@ begin
    );
 
 
-   -------------------------
-   -- Instantiate PS2 module
-   -------------------------
+   ------------------------------
+   -- Instantiate keyboard module
+   ------------------------------
 
-   inst_ps2 : entity work.ps2
+   inst_keyboard : entity work.keyboard
    port map (
       clk_i      => vga_clk,
       ps2_clk_i  => ps2_clk_i,
       ps2_data_i => ps2_data_i,
 
       data_o     => kbd_memio_rd,
-      irq_o      => kbd_irq
+      irq_o      => kbd_irq,
+
+      debug_o    => kbd_debug
    );
 
 
@@ -333,8 +337,7 @@ begin
    -------------------------
 
    vga_overlay(175 downto   0) <= cpu_debug;
-   vga_overlay(183 downto 176) <= kbd_memio_rd;
-   vga_overlay(191 downto 184) <= (others => '0');      -- Not used
+   vga_overlay(191 downto 176) <= kbd_debug;
 
 
    --------------------------------------------------

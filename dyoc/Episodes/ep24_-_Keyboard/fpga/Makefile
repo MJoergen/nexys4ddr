@@ -3,7 +3,7 @@ XILINX_DIR = /opt/Xilinx/Vivado/2017.3
 SRC  = comp.vhd ic.vhd\
 		 vga/overlay.vhd vga/chars.vhd vga/font.vhd vga/vga.vhd \
 		 mem/memio.vhd mem/dmem.vhd mem/ram.vhd mem/rom.vhd mem/mem.vhd \
-		 keyboard/ps2.vhd \
+		 keyboard/ps2.vhd keyboard/scancode.vhd keyboard/keyboard.vhd \
 		 cpu/datapath.vhd cpu/ctl.vhd cpu/cpu.vhd cpu/alu.vhd
 XDC  = comp.xdc
 TB   = tb.vhd keyboard/ps2_tb.vhd

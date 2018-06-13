@@ -11,7 +11,7 @@ entity ps2 is
       ps2_data_i : in std_logic;
 
       data_o     : out std_logic_vector(7 downto 0);
-      irq_o      : out std_logic
+      valid_o    : out std_logic
    );
 end entity ps2;
 
@@ -30,7 +30,7 @@ architecture structural of ps2 is
    signal shiftreg : std_logic_vector(10 downto 0);
 
    signal data     : std_logic_vector(7 downto 0);
-   signal irq      : std_logic := '0';
+   signal valid    : std_logic := '0';
 
 begin
 
@@ -94,7 +94,7 @@ begin
    p_cnt : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         irq <= '0';
+         valid <= '0';
 
          -- Wait for rising edge on ps2_clk
          if ps2_clk_d = '0' and ps2_clk_r = '1' then
@@ -106,7 +106,7 @@ begin
                if shiftreg(10) = '1' and  -- Stop bit
                   shiftreg(0) = '0' then  -- Start bit
                   data <= shiftreg(8 downto 1);
-                  irq  <= '1';
+                  valid  <= '1';
                   cnt  <= 0;
                end if;
             end if;
@@ -119,8 +119,8 @@ begin
    -- Drive output signals
    ------------------------------------------------------------
 
-   data_o <= data;
-   irq_o  <= irq;
+   data_o  <= data;
+   valid_o <= valid;
 
 end architecture structural;
 
