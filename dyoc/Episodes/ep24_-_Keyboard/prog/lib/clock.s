@@ -1,23 +1,20 @@
 .setcpu  "6502"
-.import   axulong    ; Convert uint16_t to uint32_t
-.export  __systime
-.export  _timer_100
-.export  _timer
+.import  axulong
+.export  _clock
+.export  _timer         ; 16-bit counter
 
 .segment "BSS"
 
-_timer_100:
-	.res	1,$00
 _timer:
-	.res	2,$00
+	.res	2
 
 ; ---------------------------------------------------------------
-; unsigned long __near__ _systime (void)
+; unsigned long __near__ clock (void)
 ; ---------------------------------------------------------------
 
 .segment "CODE"
 
-.proc	__systime: near
+.proc	_clock: near
 
 	PHP               ; It is necessary to disable interrupts.
                      ; while reading the timer value. Otherwise,
