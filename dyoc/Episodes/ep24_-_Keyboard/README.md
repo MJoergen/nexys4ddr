@@ -27,7 +27,7 @@ keyboard/ps2.vhd.
 The data sent from the keyboard to the FPGA are called scan codes, and are
 enturely different from ASCII values. Furthermore, pressing keys like shift and
 control sends scan codes as well. The two shift keys have different scan codes
-even! So there must be a mapping from scan code to ASCII code, as well as a
+even! So there needs to be a mapping from scan code to ASCII code, as well as a
 state machine to keep track of whether shift is pressed or not.
 
 I've chosen to place this functionality in the FPGA (instead of in the software),
@@ -37,16 +37,16 @@ performed in the new file keyboard/scancode.vhd.
 ### Interrupt map
 The PS/2 module generates an interrupt, whenever a keyboard event has been
 received. This interrupt is connected to bit 2 of the Interrupt Controller,
-see line 327 of fpga/comp.vhd.
+see line 331 of fpga/comp.vhd.
 
 ### Memory map
-The last keyboard event can be read from the address 7FE8, see line 315 of
+The last keyboard event can be read from the address 7FE8, see line 319 of
 fpga/comp.vhd.  There is no buffering in the FPGA, and therefore the keyboard
 interrupt must be serviced reasonably quickly, especially since the keyboard
 may generate several events back-to-back.
 
 ### VGA Overlay
-I've added the last keyboard event to the VGA overlay, see line 336 of
+I've added the last keyboard event to the VGA overlay, see line 340 of
 fpga/comp.vhd.
 
 ## Software changes
@@ -59,7 +59,7 @@ lib/kbd\_isr.s.
 
 ### Interrupt service routine
 The interrupt routine manages a small buffer of keyboard events. If the buffer
-is full, the new keyboard event is discarded.
+is full, the new keyboard strokes are ignored.
 
 ### Access to keyboard buffer
 I've added a function cgetc() in the file lib/cgetc.c that
