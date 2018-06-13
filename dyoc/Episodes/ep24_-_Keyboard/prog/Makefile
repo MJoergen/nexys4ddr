@@ -25,14 +25,14 @@ build/main.s: src/main.c
 #####################################
 
 build/comp.lib: build/crt0.o build/write.o build/clrscr.o build/clock.o build/timer_isr.o \
-                build/sys_irq.o build/irq.o build/kbd_isr.o build/keyboard.o
+                build/sys_irq.o build/irq.o build/kbd_isr.o build/getch.o build/read.o
 	cp lib/none.lib $@
 	ar65 r $@ $^
 
-build/keyboard.o: build/keyboard.s
+build/getch.o: build/getch.s
 	ca65 $< -o $@
 
-build/keyboard.s: lib/keyboard.c
+build/getch.s: lib/getch.c
 	mkdir -p build
 	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
 
@@ -57,6 +57,13 @@ build/sys_irq.s: lib/sys_irq.c     # IRQ and NMI vectors
 build/irq.o: lib/irq.s             # IRQ and NMI vectors
 	mkdir -p build
 	ca65 $< -o $@
+
+build/read.o: build/read.s
+	ca65 $< -o $@
+
+build/read.s: lib/read.c
+	mkdir -p build
+	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
 
 build/write.o: build/write.s
 	ca65 $< -o $@
