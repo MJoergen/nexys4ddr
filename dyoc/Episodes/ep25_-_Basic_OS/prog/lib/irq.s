@@ -1,8 +1,9 @@
 .setcpu "6502"
 
 .export nmi_int, irq_int   ; Used by lib/vectors.s
-.export _isr_jump_table
-.import timer_isr
+.export _isr_jump_table    ; Used by lib/sys_irq.c
+.import timer_isr          ; See lib/timer_isr.s
+.import kbd_isr            ; See lib/kbd_isr.s
 
 ; These must be the same addresses defined in prog/memorymap.h
 IRQ_STATUS = $7FFF
@@ -16,11 +17,6 @@ tmp2:
 tmp3:
    .byte 0, 0
 
-.segment "CODE"
-
-jmp_isr:
-   JMP (isr_ptr)
-   
 .segment "ZEROPAGE"
 
 isr_ptr:
@@ -31,7 +27,7 @@ isr_ptr:
 _isr_jump_table:
    .addr timer_isr         ; IRQ 0  (TIMER)
    .addr unhandled_irq     ; IRQ 1  (VGA)
-   .addr unhandled_irq     ; IRQ 2  (Reserved)
+   .addr kbd_isr           ; IRQ 2  (Keyboard)
    .addr unhandled_irq     ; IRQ 2  (Reserved)
    .addr unhandled_irq     ; IRQ 2  (Reserved)
    .addr unhandled_irq     ; IRQ 2  (Reserved)
@@ -66,7 +62,7 @@ loop:
    LDX _isr_jump_table+1,Y
    STX isr_ptr+1
 
-   JSR jmp_isr             ; Jump indirectly to interrupt service routine.
+   JSR jmp_isr_ptr         ; Jump indirectly to interrupt service routine, see below.
                            ; The A and Y registers MUST be preserved.
 
 next_irq:
@@ -85,3 +81,6 @@ end:
    PLA
    RTI
 
+jmp_isr_ptr:
+   JMP (isr_ptr)
+   

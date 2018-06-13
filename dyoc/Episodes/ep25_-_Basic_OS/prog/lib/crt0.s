@@ -17,10 +17,15 @@
 
 ; ---------------------------------------------------------------------------
 ; Extra defines needed by the startup code
+; These must match the corresponding symbols in include/memorymap.h
+; and the assignment in lib/irq.s.
 
 IRQ_STATUS     = $7FFF
 IRQ_MASK       = $7FDF
-IRQ_TIMER_MASK = $01
+IRQ_TIMER_NUM  = 0
+IRQ_TIMER_MASK = 1 << IRQ_TIMER_NUM
+IRQ_KBD_NUM    = 2
+IRQ_KBD_MASK   = 1 << IRQ_KBD_NUM
 
 ; ---------------------------------------------------------------------------
 ; Entry point for a hardware reset. Referenced in lib/vectors.s
@@ -54,8 +59,8 @@ init:
 ; ---------------------------------------------------------------------------
 ; Enable timer interrupt
 
-   LDA #IRQ_TIMER_MASK     ; Enable timer interrupt
-   STA IRQ_MASK
+   LDA #IRQ_TIMER_MASK | IRQ_KBD_MASK
+   STA IRQ_MASK            ; Enable timer and keyboard interrupt
    LDA IRQ_STATUS          ; Clear any pending interrupts
    CLI                     ; Enable interrupt handling
 
