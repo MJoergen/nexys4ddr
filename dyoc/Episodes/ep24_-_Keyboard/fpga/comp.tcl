@@ -10,4 +10,6 @@ place_design
 route_design
 write_checkpoint -force comp.dcp
 write_bitstream -force comp.bit
+
+source bmm.tcl
 exit
