@@ -7,8 +7,8 @@ foreach memInst $myInsts {
    # find the bus index, this is specific to our design
    set idx [string last "_" $memInst]
    set busIndex [string range $memInst $idx+1 999]
-   set first [expr {2*$busIndex}]
-   set last [expr {2*$busIndex+1}]
+   set first [expr {2*(3-$busIndex)}]
+   set last [expr {2*(3-$busIndex)+1}]
    # build a list in a format which is close to the output we need
    set x "$memInst \[$last:$first\] LOC = $loc"
    lappend bmmList $x
@@ -21,7 +21,7 @@ set fp [open comp.bmm w]
 # then you need to understand how this file behaves.
 puts $fp "ADDRESS_SPACE rom RAMB32 \[0xC000:0xFFFF\]"
 puts $fp "   BUS_BLOCK"
-foreach printList [lsort -dictionary $bmmList] {
+foreach printList [lsort -decreasing -dictionary $bmmList] {
    puts $fp "      $printList;"
 }
 puts $fp "   END_BUS_BLOCK;"
