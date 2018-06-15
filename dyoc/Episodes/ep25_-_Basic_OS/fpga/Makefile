@@ -10,13 +10,22 @@ TB   = tb.vhd keyboard/ps2_tb.vhd
 WAVE = tb.ghw
 SAVE = tb.gtkw
 
+BIT = ../../ep24_-_Keyboard/fpga/comp.bit
+BMM = ../../ep24_-_Keyboard/fpga/comp.bmm
+ROM = ../rom.txt
+MEM = comp.mem
+
 
 #####################################
 # Generate bit-file and program FPGA
 #####################################
 
-comp.bit: comp.tcl $(SRC) $(XDC) ../rom.txt
-	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $<"
+comp.bit: $(BIT) $(BMM) $(MEM)
+	bash -c "source $(XILINX_DIR)/settings64.sh ; data2mem -bm $(BMM) -bt $(BIT) -bd $(MEM) -o b comp.bit"
+
+$(MEM): $(ROM)
+	echo "@C000" > $(MEM)
+	cat $(ROM) >> $(MEM)
 
 fpga: comp.bit
 	djtgcfg prog -d Nexys4DDR -i 0 --file $<
@@ -26,7 +35,7 @@ fpga: comp.bit
 # Simulation
 #####################################
 
-sim: $(SRC) $(TB) ../rom.txt
+sim: $(SRC) $(TB) $(ROM)
 	ghdl -i --work=work $(SRC) $(TB)
 	ghdl -m --ieee=synopsys -fexplicit tb
 	ghdl -r tb --assert-level=error --wave=$(WAVE) --stop-time=200us
@@ -47,3 +56,4 @@ clean:
 	rm -rf work-obj93.cf
 	rm -rf tb
 	rm -rf tb.ghw
+	rm -rf $(MEM)
