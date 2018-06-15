@@ -6,9 +6,7 @@ foreach memInst $myInsts {
    set loc [string trimleft $loc RAMB36_]
    # find the bus index, this is specific to our design
    set idx [string last "_" $memInst]
-   puts $idx
    set busIndex [string range $memInst $idx+1 999]
-   puts $busindex
    set first [expr {2*$busIndex}]
    set last [expr {2*$busIndex+1}]
    # build a list in a format which is close to the output we need
@@ -30,4 +28,14 @@ puts $fp "   END_BUS_BLOCK;"
 puts $fp "END_ADDRESS_SPACE;"
 
 close $fp
+
+unset myInsts
+unset bmmList
+unset loc
+unset idx
+unset busIndex
+unset first
+unset last
+unset x
+unset fp
 
