@@ -1,4 +1,4 @@
-XILINX_DIR = /opt/Xilinx/Vivado/2017.3
+XILINX_ISE_DIR = /opt/Xilinx/14.7/ISE_DS
 
 SRC  = comp.vhd ic.vhd\
 		 vga/overlay.vhd vga/chars.vhd vga/font.vhd vga/vga.vhd \
@@ -21,7 +21,7 @@ MEM = comp.mem
 #####################################
 
 comp.bit: $(BIT) $(BMM) $(MEM)
-	bash -c "source $(XILINX_DIR)/settings64.sh ; data2mem -bm $(BMM) -bt $(BIT) -bd $(MEM) -o b comp.bit"
+	bash -c "source $(XILINX_ISE_DIR)/settings64.sh ; data2mem -bm $(BMM) -bt $(BIT) -bd $(MEM) -o b comp.bit"
 
 $(MEM): $(ROM)
 	echo "@C000" > $(MEM)
