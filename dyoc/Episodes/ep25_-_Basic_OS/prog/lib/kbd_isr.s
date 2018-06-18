@@ -1,6 +1,6 @@
 .setcpu		"6502"
 .export		kbd_isr              ; Used in lib/irq.s
-.import     _kbd_buffer_count, _kbd_buffer, _kbd_buffer_size   ; Defined in lib/keyboard.c
+.export     _kbd_buffer_count, _kbd_buffer, _kbd_buffer_size
 
 ; The interrupt routine must be written entirely in assembler, because the C code is not re-entrant.
 ; Therefore, one shouldn't call C functions from this routine.
@@ -9,6 +9,23 @@
 ; Address of memory mapped IO to read last keyboard event.
 ; Must match the corresponding address in prog/keyboard.h
 KBD_DATA   = $7FE8
+
+KBD_BUFFER_SIZE = 10
+
+
+.segment	"RODATA"
+
+_kbd_buffer_size:
+   .byte KBD_BUFFER_SIZE
+
+
+.segment	"BSS"
+
+_kbd_buffer_count:
+	.res	1,$00
+
+_kbd_buffer:
+	.res	KBD_BUFFER_SIZE, $00
 
 
 .segment	"CODE"

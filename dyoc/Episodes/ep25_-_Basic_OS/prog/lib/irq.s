@@ -3,6 +3,7 @@
 .export nmi_int, irq_int   ; Used by lib/vectors.s
 .export _isr_jump_table    ; Used by lib/sys_irq.c
 .import timer_isr          ; See lib/timer_isr.s
+.import vga_isr            ; See lib/vga_isr.s
 .import kbd_isr            ; See lib/kbd_isr.s
 
 ; These must be the same addresses defined in prog/memorymap.h
@@ -26,7 +27,7 @@ isr_ptr:
 
 _isr_jump_table:
    .addr timer_isr         ; IRQ 0  (TIMER)
-   .addr unhandled_irq     ; IRQ 1  (VGA)
+   .addr vga_isr           ; IRQ 1  (VGA)
    .addr kbd_isr           ; IRQ 2  (Keyboard)
    .addr unhandled_irq     ; IRQ 2  (Reserved)
    .addr unhandled_irq     ; IRQ 2  (Reserved)

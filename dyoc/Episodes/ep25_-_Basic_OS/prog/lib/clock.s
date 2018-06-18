@@ -1,12 +1,7 @@
 .setcpu  "6502"
 .import  axulong
 .export  _clock
-.export  _timer         ; 16-bit counter
-
-.segment "BSS"
-
-_timer:
-	.res	2
+.import  _timer         ; 16-bit counter
 
 ; ---------------------------------------------------------------
 ; unsigned long __near__ clock (void)

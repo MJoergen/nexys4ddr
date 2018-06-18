@@ -2,21 +2,8 @@
 #include <string.h>              // memmove
 #include "memorymap.h"
 
-#define KBD_BUFFER_SIZE 10       // This should just be a small numer.
-
-//////////////////////////////////////////////////////////////////////////////////
-// Don't change these declarations, because they are used in the interrupt
-// service routine lib/kbd_irq.s
-const uint8_t kbd_buffer_size = KBD_BUFFER_SIZE;   // Make sure it is declared
-                                                   // as a const, so it will
-                                                   // reside in ROM. This
-                                                   // prevents it from
-                                                   // accidentally getting
-                                                   // corrupted.
-uint8_t kbd_buffer[KBD_BUFFER_SIZE];
-uint8_t kbd_buffer_count = 0;
-//////////////////////////////////////////////////////////////////////////////////
-
+extern uint8_t  kbd_buffer_count;
+extern uint8_t* kbd_buffer;
 
 // This does a BLOCKING wait, until a keyboard event is present in the buffer
 // It will pop this value and return.
