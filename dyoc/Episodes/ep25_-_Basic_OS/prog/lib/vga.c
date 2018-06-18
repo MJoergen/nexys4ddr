@@ -72,22 +72,6 @@ void cputcxy(uint8_t x, uint8_t y, char ch)
    cputc(ch);
 } // end of cputcxy
 
-
-void cputs (const char* s)
-{
-   while (*s)
-   {
-      cputc(*s);
-      s++;
-   }
-}
-
-void cputsxy (unsigned char x, unsigned char y, const char* s)
-{
-   gotoxy(x, y);
-   cputs(s);
-}
-
 // For now, we just ignore the file descriptor fd.
 int write (int fd, const uint8_t* buf, const unsigned count)
 {

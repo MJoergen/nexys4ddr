@@ -25,7 +25,7 @@ build/main.s: src/main.c
 #####################################
 
 build/comp.lib: build/crt0.o build/vga.o build/clock.o build/timer_isr.o build/sys_irq.o build/irq.o build/kbd_isr.o \
-                build/kbd.o build/vga_isr.o build/putchar.o build/scrsize.o build/cursor.o
+                build/kbd.o build/vga_isr.o build/putchar.o build/scrsize.o build/cursor.o build/cputs.o
 	cp lib/none.lib $@
 	ar65 r $@ $^
 
@@ -56,6 +56,13 @@ build/scrsize.o: build/scrsize.s   #
 	ca65 $< -o $@
 
 build/scrsize.s: lib/scrsize.c     # 
+	mkdir -p build
+	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
+
+build/cputs.o: build/cputs.s   # 
+	ca65 $< -o $@
+
+build/cputs.s: lib/cputs.c     # 
 	mkdir -p build
 	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
 
