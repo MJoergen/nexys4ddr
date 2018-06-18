@@ -1,7 +1,6 @@
 .setcpu "6502"
 
 .export nmi_int, irq_int   ; Used by lib/vectors.s
-.export _isr_jump_table    ; Used by lib/sys_irq.c
 .import timer_isr          ; See lib/timer_isr.s
 .import vga_isr            ; See lib/vga_isr.s
 .import kbd_isr            ; See lib/kbd_isr.s
@@ -10,18 +9,13 @@
 IRQ_STATUS = $7FFF
 IRQ_MASK   = $7FDF
 
-.segment "BSS"
-tmp1:
-   .byte 0
-tmp2:
-   .byte 0
-tmp3:
-   .byte 0, 0
 
 .segment "ZEROPAGE"
 
 isr_ptr:
    .byte 0, 0              ; This is temporary scratch space.
+                           ; Must be in zero page.
+
 
 .segment "DATA"
 
@@ -34,6 +28,7 @@ _isr_jump_table:
    .addr unhandled_irq     ; IRQ 2  (Reserved)
    .addr unhandled_irq     ; IRQ 2  (Reserved)
    .addr unhandled_irq     ; IRQ 2  (Reserved)
+
 
 .segment	"CODE"
 
@@ -53,6 +48,8 @@ irq_int:
 
    LDA IRQ_STATUS          ; Reading the IRQ status clears it.
    AND IRQ_MASK            ; Mask off any disabled interrupts.
+   BEQ end                 ; Optimization: Early exit.
+
    LDY #$00                ; Start from bit 0
 loop:
    LSR                     ; Shift current bit to carry
@@ -66,9 +63,10 @@ loop:
    JSR jmp_isr_ptr         ; Jump indirectly to interrupt service routine, see below.
                            ; The A and Y registers MUST be preserved.
 
-next_irq:
    TAX                     ; Optimization: If no more interrupts, quickly skip to the end.
    BEQ end
+
+next_irq:
    INY
    INY
    CPY #$10                ; More interrupts?
