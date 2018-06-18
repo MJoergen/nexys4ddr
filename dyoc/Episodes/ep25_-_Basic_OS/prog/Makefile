@@ -25,7 +25,7 @@ build/main.s: src/main.c
 #####################################
 
 build/comp.lib: build/crt0.o build/vga.o build/clock.o build/timer_isr.o build/sys_irq.o build/irq.o build/kbd_isr.o \
-                build/cgetc.o build/vga_isr.o
+                build/cgetc.o build/vga_isr.o build/putchar.o build/scrsize.o build/cursor.o
 	cp lib/none.lib $@
 	ar65 r $@ $^
 
@@ -44,6 +44,27 @@ build/clock.o: lib/clock.s
 build/timer_isr.o: lib/timer_isr.s # Timer interrupt service routine
 	mkdir -p build
 	ca65 $< -o $@
+
+build/cursor.o: build/cursor.s   # 
+	ca65 $< -o $@
+
+build/cursor.s: lib/cursor.c     # 
+	mkdir -p build
+	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
+
+build/scrsize.o: build/scrsize.s   # 
+	ca65 $< -o $@
+
+build/scrsize.s: lib/scrsize.c     # 
+	mkdir -p build
+	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
+
+build/putchar.o: build/putchar.s   # 
+	ca65 $< -o $@
+
+build/putchar.s: lib/putchar.c     # 
+	mkdir -p build
+	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
 
 build/vga.o: build/vga.s   # IRQ and NMI vectors
 	ca65 $< -o $@

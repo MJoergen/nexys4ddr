@@ -8,8 +8,10 @@
 #define V_CHARS 60   // Vertical
 
 // Current cursor position
-static uint8_t pos_x = 0;
-static uint8_t pos_y = 0;
+uint8_t pos_x = 0;
+uint8_t pos_y = 0;
+
+void putchar(uint8_t ch);
 
 void clrscr(void)
 {
@@ -41,12 +43,6 @@ static void newline(void)
       pos_y = V_CHARS-1;
    }
 } // end of newline
-
-
-void putchar(uint8_t ch)
-{
-   MEM_CHAR[H_CHARS*pos_y+pos_x] = ch;
-}
 
 
 void cputc(char ch)
@@ -124,50 +120,6 @@ void cvlinexy(uint8_t x, uint8_t y, uint8_t length)
 {
    gotoxy(x, y);
    cvline(length);
-}
-
-
-void screensize(uint8_t* x, uint8_t* y)
-{
-   *x = H_CHARS;
-   *y = V_CHARS;
-}
-
-extern uint8_t  curs_enable;
-extern uint8_t* curs_pos;
-extern uint8_t  curs_inverted;
-extern uint8_t  curs_cnt;
-
-#pragma zpsym("curs_pos");    // curs_pos is in zero-page.
-
-static uint8_t nibble_swap(uint8_t val)
-{
-   return (val << 4) | (val >> 4);
-}
-
-
-uint8_t cursor(uint8_t onoff)
-{
-   uint8_t oldOnOff = curs_enable;
-
-   curs_enable = 0;  // Make sure a stray interrupt doesn't cause a crash.
-
-   if (onoff == 0)
-   {
-      curs_pos      = &MEM_CHAR[H_CHARS*pos_y+pos_x];
-      curs_inverted = 0;
-      curs_cnt      = 2;     // Give it a low value, so that it will quickly invert.
-      curs_enable   = onoff;
-   }
-   else
-   {
-      if (curs_inverted)
-      {
-         *curs_pos = nibble_swap(*curs_pos);
-      }
-   }
-
-   return oldOnOff;
 }
 
 
