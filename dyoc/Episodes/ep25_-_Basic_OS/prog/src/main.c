@@ -1,118 +1,89 @@
-#include <6502.h>                // CLI()
-#include <string.h>              // memmove
-#include "keyboard.h"
-#include "vga.h"
-#include "memorymap.h"
+/*
+** Fancy hello world program using cc65.
+**
+** Ullrich von Bassewitz (ullrich@von-bassewitz.de)
+**
+*/
 
-static void putchxy(uint8_t x, uint8_t y, uint8_t ch, uint8_t col)
+#define __ATMOS__
+
+#include <stdlib.h>
+#include <string.h>
+#include <conio.h>
+//#include <joystick.h>
+
+
+
+/*****************************************************************************/
+/*                                   Data                                    */
+/*****************************************************************************/
+
+
+
+static const char Text [] = "Hello world!";
+
+
+
+/*****************************************************************************/
+/*                                   Code                                    */
+/*****************************************************************************/
+
+
+
+int main (void)
 {
-   MEM_CHAR[80*y+x] = ch;
-   MEM_COL[80*y+x] = col;
-} // end of putchxy
+    unsigned char XSize, YSize;
 
-static uint8_t curs_x = 0;
-static uint8_t curs_y = 0;
-static uint8_t curs_col = 0x0F;     // White text on black background.
+    /* Set screen colors */
+    (void) textcolor (COLOR_WHITE);
+    (void) bordercolor (COLOR_BLACK);
+    (void) bgcolor (COLOR_BLACK);
 
-static void readline()
-{
-   // Just go into a busy loop
-   while (1)
-   {
-      uint8_t ch;
+    /* Clear the screen, put cursor in upper left corner */
+    clrscr ();
 
-      vga_cursor_enable(&MEM_COL[80*curs_y+curs_x]);
-      ch = kbd_getchar();    // Wait for next character.
-      vga_cursor_disable();
+    /* Ask for the screen size */
+    screensize (&XSize, &YSize);
 
-      switch (ch)
-      {
-         case 0x08 :    // Backspace
-            if (curs_x>0)
-            {
-               curs_x--;
-               memmove(&MEM_CHAR[80*curs_y+curs_x], &MEM_CHAR[80*curs_y+curs_x+1], 79-curs_x);
-               memmove(&MEM_COL[80*curs_y+curs_x], &MEM_COL[80*curs_y+curs_x+1], 79-curs_x);
-            }
-            break;
+    /* Draw a border around the screen */
 
-         case 0x7F :    // Delete
-            memmove(&MEM_CHAR[80*curs_y+curs_x], &MEM_CHAR[80*curs_y+curs_x+1], 79-curs_x);
-            memmove(&MEM_COL[80*curs_y+curs_x], &MEM_COL[80*curs_y+curs_x+1], 79-curs_x);
-            break;
+    /* Top line */
+    cputc (CH_ULCORNER);
+    chline (XSize - 2);
+    cputc (CH_URCORNER);
 
-         case 0x1B :    // Left
-            if (curs_x>0)
-            {
-               curs_x--;
-            }
-            break;
+    /* Vertical line, left side */
+    cvlinexy (0, 1, YSize - 2);
 
-         case 0x1A :    // Right
-            if (curs_x<79)
-            {
-               curs_x++;
-            }
-            break;
+    /* Bottom line */
+    cputc (CH_LLCORNER);
+    chline (XSize - 2);
+    cputc (CH_LRCORNER);
 
-         case 0x02 :    // Home
-            curs_x = 0;
-            break;
+    /* Vertical line, right side */
+    cvlinexy (XSize - 1, 1, YSize - 2);
 
-         case 0x03 :    // End
-            if (MEM_CHAR[80*curs_y+79] != ' ')
-            {
-               curs_x = 79;
-               break;
-            }
-            for (curs_x=78; curs_x>0; --curs_x)
-            {
-               if (MEM_CHAR[80*curs_y+curs_x] != ' ')
-               {
-                  curs_x++;
-                  break;
-               }
-            }
-            break;
+    /* Write the greeting in the mid of the screen */
+    gotoxy ((XSize - strlen (Text)) / 2, YSize / 2);
+    cprintf ("%s", Text);
 
-         case 0x0D :    // Newline
-            return;
+#if defined(__NES__) || defined(__PCE__) || defined(__GAMATE__)
 
-         default :      // Ordinary character
-            memmove(&MEM_CHAR[80*curs_y+curs_x+1], &MEM_CHAR[80*curs_y+curs_x], 79-curs_x);
-            memmove(&MEM_COL[80*curs_y+curs_x+1], &MEM_COL[80*curs_y+curs_x], 79-curs_x);
-            putchxy(curs_x, curs_y, ch, curs_col);
-            if (curs_x<79)
-            {
-               curs_x++;
-            }
-            break;
+    /* Wait for the user to press a button */
+    joy_install (joy_static_stddrv);
+    while (!joy_read (JOY_1)) ;
+    joy_uninstall ();
 
-      }   // end of case
-   } // end of while (1)
-} // end of readline
+#else
 
+    /* Wait for the user to press a key */
+    cgetc ();
 
-// Called from crt0.s
-void main()
-{
-   uint8_t dummy;
+#endif
 
-   *VGA_PIX_Y_INT = PIXELS_Y-1;     // Generate interrupts at end of last line.
-   vga_cursor_disable();            // Make sure cursor is disabled before enabling interrupts.
-   dummy = *IRQ_STATUS;             // Clear any pending interrupts.
-   *IRQ_MASK |= 1 << IRQ_KBD_NUM;   // Enable keyboard interupts.
-   *IRQ_MASK |= 1 << IRQ_VGA_NUM;   // Enable VGA interupts.
-   CLI();                           // Enable CPU interrupts.
+    /* Clear the screen again */
+    clrscr ();
 
-   while (1)
-   {
-      readline(); // Return when user hits Enter.
-
-      // Go to start of next line
-      curs_y++;
-      curs_x = 0;
-   }
-
-} // end of main
-
+    /* Done */
+    return EXIT_SUCCESS;
+}

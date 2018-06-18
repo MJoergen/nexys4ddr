@@ -9,19 +9,12 @@ INCLUDE = include
 ../rom.txt: build/rom.bin
 	./bin2hex.py $< $@
 
-build/rom.bin: build/main.o build/vga.o build/keyboard.o build/vectors.o build/comp.lib
+build/rom.bin: build/main.o build/vga.o build/vectors.o build/comp.lib
 	ld65 -m build/rom.map -C ld.cfg $^
 
 build/vga.o: lib/vga.s
 	mkdir -p build
 	ca65 $< -o $@
-
-build/keyboard.o: build/keyboard.s
-	ca65 $< -o $@
-
-build/keyboard.s: src/keyboard.c
-	mkdir -p build
-	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
 
 build/main.o: build/main.s
 	ca65 $< -o $@
@@ -35,7 +28,7 @@ build/main.s: src/main.c
 # Compile runtime library
 #####################################
 
-build/comp.lib: build/crt0.o build/write.o build/clrscr.o build/clock.o build/timer_isr.o build/sys_irq.o build/irq.o build/kbd_isr.o
+build/comp.lib: build/crt0.o build/write.o build/clrscr.o build/clock.o build/timer_isr.o build/sys_irq.o build/irq.o build/kbd_isr.o build/color.o build/cgetc.o build/chline.o build/cvline.o build/screensize.o
 	cp lib/none.lib $@
 	ar65 r $@ $^
 
@@ -43,12 +36,42 @@ build/kbd_isr.o: lib/kbd_isr.s     # Keyboard interrupt service routine
 	mkdir -p build
 	ca65 $< -o $@
 
+build/screensize.o: lib/screensize.s
+	mkdir -p build
+	ca65 $< -o $@
+
+build/color.o: lib/color.s
+	mkdir -p build
+	ca65 $< -o $@
+
 build/clock.o: lib/clock.s
+	mkdir -p build
 	ca65 $< -o $@
 
 build/timer_isr.o: lib/timer_isr.s # Timer interrupt service routine
 	mkdir -p build
 	ca65 $< -o $@
+
+build/cvline.o: build/cvline.s   # IRQ and NMI vectors
+	ca65 $< -o $@
+
+build/cvline.s: lib/cvline.c     # IRQ and NMI vectors
+	mkdir -p build
+	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
+
+build/chline.o: build/chline.s   # IRQ and NMI vectors
+	ca65 $< -o $@
+
+build/chline.s: lib/chline.c     # IRQ and NMI vectors
+	mkdir -p build
+	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
+
+build/cgetc.o: build/cgetc.s   # IRQ and NMI vectors
+	ca65 $< -o $@
+
+build/cgetc.s: lib/cgetc.c     # IRQ and NMI vectors
+	mkdir -p build
+	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
 
 build/sys_irq.o: build/sys_irq.s   # IRQ and NMI vectors
 	ca65 $< -o $@
