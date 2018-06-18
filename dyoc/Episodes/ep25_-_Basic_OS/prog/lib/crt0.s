@@ -22,9 +22,13 @@
 
 IRQ_STATUS     = $7FFF
 IRQ_MASK       = $7FDF
+
 IRQ_TIMER_NUM  = 0
-IRQ_TIMER_MASK = 1 << IRQ_TIMER_NUM
+IRQ_VGA_NUM    = 1
 IRQ_KBD_NUM    = 2
+
+IRQ_TIMER_MASK = 1 << IRQ_TIMER_NUM
+IRQ_VGA_MASK   = 1 << IRQ_VGA_NUM
 IRQ_KBD_MASK   = 1 << IRQ_KBD_NUM
 
 ; ---------------------------------------------------------------------------
@@ -59,7 +63,7 @@ init:
 ; ---------------------------------------------------------------------------
 ; Enable timer interrupt
 
-   LDA #IRQ_TIMER_MASK | IRQ_KBD_MASK
+   LDA #IRQ_TIMER_MASK | IRQ_VGA_MASK | IRQ_KBD_MASK
    STA IRQ_MASK            ; Enable timer and keyboard interrupt
    LDA IRQ_STATUS          ; Clear any pending interrupts
    CLI                     ; Enable interrupt handling
