@@ -36,6 +36,8 @@ _kbd_buffer:
 ; If however the buffer is full, the current keyboard event is discarded.
 
 kbd_isr:
+   PHA                           ; Preserve A-register
+
    LDA KBD_DATA                  ; Get current keyboard event
    LDX _kbd_buffer_count         ; Get buffer size
    CPX _kbd_buffer_size          ; Is buffer full ?
@@ -43,5 +45,7 @@ kbd_isr:
    STA _kbd_buffer,X             ; Append to end of buffer
    INC _kbd_buffer_count         ; Increment buffer size
 end:
+
+   PLA                           ; Restore A-register
    RTS
 
