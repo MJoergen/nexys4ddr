@@ -8,11 +8,13 @@
 #define __ATMOS__
 
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <conio.h>
 #include <joystick.h>
 
 
+void putchar(uint8_t ch);
 
 /*****************************************************************************/
 /*                                   Data                                    */
@@ -58,7 +60,7 @@ int main (void)
     /* Bottom line */
     cputc (CH_LLCORNER);
     chline (XSize - 2);
-    cputc (CH_LRCORNER);
+    putchar (CH_LRCORNER);
 
     /* Vertical line, right side */
     cvlinexy (XSize - 1, 1, YSize - 2);

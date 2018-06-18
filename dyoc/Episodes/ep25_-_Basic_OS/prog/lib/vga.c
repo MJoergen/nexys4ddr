@@ -111,6 +111,7 @@ void cvline(uint8_t length)
    {
       putchar('|');
       newline();
+      length--;
    }
 }
 

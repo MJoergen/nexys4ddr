@@ -66,12 +66,8 @@ build/cputs.s: lib/cputs.c     #
 	mkdir -p build
 	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
 
-build/putchar.o: build/putchar.s   # 
+build/putchar.o: lib/putchar.s   # 
 	ca65 $< -o $@
-
-build/putchar.s: lib/putchar.c     # 
-	mkdir -p build
-	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
 
 build/vga.o: build/vga.s   # IRQ and NMI vectors
 	ca65 $< -o $@
