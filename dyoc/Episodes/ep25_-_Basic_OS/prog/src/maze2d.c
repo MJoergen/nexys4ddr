@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>     // rand()
 #include <time.h>       // clock()
-#include "curses.h"
+#include <conio.h>
 
 #define MAX_ROWS	11
 #define MAX_COLS  24
@@ -80,26 +80,20 @@ int main()
 
    srand(clock());
 
-   initscr(); cbreak(); noecho();
-   nonl(); keypad(stdscr, 1);
-
    InitMaze();
 
-   clear();
-   refresh();
+   clrscr();
 
    /* Get random start square */
    curSq = MAX_SQUARES - 1;
 
-   while (curSq>=0)
+   while (curSq >= 0)
    {
       int dir;
 
 #define BEEN_HERE 1<<7
 
-      move(1, 60);
-      if (!curSq)
-         wprintw(stdscr, "You escaped!");
+      cputsxy(1, 1, "You escaped!");
 
       grid[curSq] |= BEEN_HERE;
 
@@ -112,34 +106,30 @@ int main()
             int row = 1 + 2*GetRow(printSq);
             int g = grid[printSq];
 
-            mvaddch(row+1, col+1, ' ');
-            mvaddch(row,   col,   wall);
-            mvaddch(row+2, col,   wall);
-            mvaddch(row+2, col+2, wall);
-            mvaddch(row,   col+2, wall);
-            mvaddch(row,   col+1, (g&(1<<DIR_NORTH)) ? ' ' : wall);
-            mvaddch(row+1, col+2, (g&(1<<DIR_EAST))  ? ' ' : wall);
-            mvaddch(row+1, col,   (g&(1<<DIR_WEST))  ? ' ' : wall);
-            mvaddch(row+2, col+1, (g&(1<<DIR_SOUTH)) ? ' ' : wall);
+            cputcxy(row+1, col+1, ' ');
+            cputcxy(row,   col,   wall);
+            cputcxy(row+2, col,   wall);
+            cputcxy(row+2, col+2, wall);
+            cputcxy(row,   col+2, wall);
+            cputcxy(row,   col+1, (g&(1<<DIR_NORTH)) ? ' ' : wall);
+            cputcxy(row+1, col+2, (g&(1<<DIR_EAST))  ? ' ' : wall);
+            cputcxy(row+1, col,   (g&(1<<DIR_WEST))  ? ' ' : wall);
+            cputcxy(row+2, col+1, (g&(1<<DIR_SOUTH)) ? ' ' : wall);
          }
       }
-      mvaddch(2+GetRow(curSq)*2, 2+GetCol(curSq)*2, curSq ? '@' : '*');
-      move(2+GetRow(curSq)*2, 2+GetCol(curSq)*2);
-      refresh();
+      cputcxy(2+GetRow(curSq)*2, 2+GetCol(curSq)*2, curSq ? '@' : '*');
+      gotoxy(2+GetRow(curSq)*2, 2+GetCol(curSq)*2);
 
       dir = MAX_DIRS;
-      switch(getch())
+      switch (cgetc())
       {
-         case KEY_UP:
-         case 'k': dir = DIR_NORTH; break;
-         case KEY_DOWN:
-         case 'j': dir = DIR_SOUTH; break;
-         case KEY_RIGHT:
-         case 'l': dir = DIR_EAST; break;
-         case KEY_LEFT:
-         case 'h': dir = DIR_WEST; break;
+         case 'w': case 'k': dir = DIR_NORTH; break;
+         case 's': case 'j': dir = DIR_SOUTH; break;
+         case 'd': case 'l': dir = DIR_EAST; break;
+         case 'a': case 'h': dir = DIR_WEST; break;
          case 'q': curSq = -1; break;
       }
+
       if (dir < MAX_DIRS)
       {
          if (grid[curSq] & (1<<dir))
@@ -147,11 +137,7 @@ int main()
             curSq += offset[dir];
          }
       }
-   }
-
-   clear();
-   refresh();
-   endwin();
+   } // end of while (curSq >= 0)
 
    return 0;
 } // end of main

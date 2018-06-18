@@ -7,7 +7,7 @@ extern uint8_t* kbd_buffer;
 
 // This does a BLOCKING wait, until a keyboard event is present in the buffer
 // It will pop this value and return.
-uint8_t cgetc()
+uint8_t cgetc(void)
 {
    uint8_t kbd_data;
 
@@ -30,4 +30,27 @@ uint8_t cgetc()
    return kbd_data;
 } // end of cgetc
 
+
+uint8_t kbhit(void)
+{
+   if (kbd_buffer_count)
+      return 1;
+   return 0;
+}
+
+
+// For now, we just ignore the file descriptor fd.
+int read (int fd, uint8_t* buf, const unsigned count)
+{
+   unsigned cnt = count;
+   (void) fd;                // Hack to avoid warning about unused variable.
+
+   while (cnt--)
+   {
+      *buf = cgetc();
+      buf++;
+   }
+   
+   return count;
+} // end of read
 

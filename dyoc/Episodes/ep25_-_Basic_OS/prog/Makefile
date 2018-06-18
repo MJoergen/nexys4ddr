@@ -25,7 +25,7 @@ build/main.s: src/main.c
 #####################################
 
 build/comp.lib: build/crt0.o build/vga.o build/clock.o build/timer_isr.o build/sys_irq.o build/irq.o build/kbd_isr.o \
-                build/cgetc.o build/vga_isr.o build/putchar.o build/scrsize.o build/cursor.o
+                build/kbd.o build/vga_isr.o build/putchar.o build/scrsize.o build/cursor.o
 	cp lib/none.lib $@
 	ar65 r $@ $^
 
@@ -73,10 +73,10 @@ build/vga.s: lib/vga.c     # IRQ and NMI vectors
 	mkdir -p build
 	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
 
-build/cgetc.o: build/cgetc.s   # IRQ and NMI vectors
+build/kbd.o: build/kbd.s   # IRQ and NMI vectors
 	ca65 $< -o $@
 
-build/cgetc.s: lib/cgetc.c     # IRQ and NMI vectors
+build/kbd.s: lib/kbd.c     # IRQ and NMI vectors
 	mkdir -p build
 	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
 
