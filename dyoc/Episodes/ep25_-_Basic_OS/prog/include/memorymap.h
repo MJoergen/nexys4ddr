@@ -14,18 +14,27 @@
 #define SIZE_ROM  (0x4000)
 
 // Memory mapped IO
+typedef struct
+{
+   uint8_t  vgaPalette[16];
+   uint16_t vgaPixYInt;
+   uint8_t  _reserved[13];
+   uint8_t  irqMask;
+} t_memio_config;
 
-// Writeable 7FC0 - 7FDF
-#define VGA_PALETTE      ((uint8_t *)  0x7FC0)  // array of 16 bytes
-#define VGA_PIX_Y_INT    ((uint16_t *) 0x7FD0)
-#define IRQ_MASK         ((uint8_t *)  0x7FDF)
+typedef struct
+{
+   uint16_t vgaPixX;
+   uint16_t vgaPixY;
+   uint32_t cpuCyc;
+   uint8_t  kbdData;
+   uint8_t  _reserved[22];
+   uint8_t  irqStatus;
+} t_memio_status;
 
-// Readonly 7FE0 - 7FFF
-#define VGA_PIX_X        ((uint16_t *) 0x7FE0)
-#define VGA_PIX_Y        ((uint16_t *) 0x7FE2)
-#define CPU_CYC          ((uint32_t *) 0x7FE4)
-#define KBD_DATA         ((uint8_t *)  0x7FE8)
-#define IRQ_STATUS       ((uint8_t *)  0x7FFF)
+#define MEMIO_CONFIG ((t_memio_config *) 0x7FC0)
+#define MEMIO_STATUS ((t_memio_status *) 0x7FE0)
+
 #define IRQ_TIMER_NUM    0
 #define IRQ_VGA_NUM      1
 #define IRQ_KBD_NUM      2

@@ -125,16 +125,16 @@ void cvlinexy(uint8_t x, uint8_t y, uint8_t length)
 
 uint8_t textcolor(uint8_t newCol)
 {
-   uint8_t oldCol = VGA_PALETTE[15];
-   VGA_PALETTE[15] = newCol;
+   uint8_t oldCol = MEMIO_CONFIG->vgaPalette[15];
+   MEMIO_CONFIG->vgaPalette[15] = newCol;
    return oldCol;
 }
 
 
 uint8_t bgcolor(uint8_t newCol)
 {
-   uint8_t oldCol = VGA_PALETTE[0];
-   VGA_PALETTE[0] = newCol;
+   uint8_t oldCol = MEMIO_CONFIG->vgaPalette[0];
+   MEMIO_CONFIG->vgaPalette[0] = newCol;
    return oldCol;
 }
 
