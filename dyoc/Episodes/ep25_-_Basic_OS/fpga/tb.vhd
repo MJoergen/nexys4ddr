@@ -90,9 +90,9 @@ begin
 
    process
    begin
-      data <= X"13";
+      data <= X"23";
       valid <= '0';
-      wait for 40 us;
+      wait for 70 us;
       valid <= '1';
       wait until clk = '1';
       valid <= '0';

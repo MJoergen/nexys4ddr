@@ -94,7 +94,8 @@ begin
    process (a_addr_i, a_rden_i, memio_cs, a_wait_d)
    begin
       b_memio_rden_o <= (others => '0');
-      b_memio_rden_o(conv_integer(a_addr_i(G_MEMIO_SIZE-2 downto 0))) <= a_rden_i and memio_cs and a_wait_d and a_addr_i(G_MEMIO_SIZE-1);
+      b_memio_rden_o(conv_integer(a_addr_i(G_MEMIO_SIZE-2 downto 0))) <=
+         a_rden_i and memio_cs and a_wait_d and a_addr_i(G_MEMIO_SIZE-1);
    end process;
 
    --------------------
