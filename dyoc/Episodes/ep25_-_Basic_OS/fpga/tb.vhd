@@ -92,7 +92,7 @@ begin
    begin
       data <= X"23";
       valid <= '0';
-      wait for 70 us;
+      wait for 120 us;
       valid <= '1';
       wait until clk = '1';
       valid <= '0';
