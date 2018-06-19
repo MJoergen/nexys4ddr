@@ -3,7 +3,7 @@
 #include "memorymap.h"
 
 extern uint8_t  kbd_buffer_count;
-extern uint8_t* kbd_buffer;
+extern uint8_t  kbd_buffer[];
 
 // This does a BLOCKING wait, until a keyboard event is present in the buffer
 // It will pop this value and return.
