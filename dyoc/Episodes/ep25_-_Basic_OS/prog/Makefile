@@ -10,7 +10,7 @@ INCLUDE = -I include
 	./bin2hex.py $< $@
 
 build/rom.bin: build/main.o build/vectors.o conio/build/conio.lib runtime/build/runtime.lib
-	ld65 -m build/rom.map -C ld.cfg $^
+	ld65 -m build/rom.map -C ld.cfg --start-group $^ --end-group
 
 build:
 	mkdir -p $@
@@ -43,5 +43,7 @@ build/vectors.o: runtime/vectors.s     # Hardware interrupt vectors
 
 clean:
 	rm -rf build
+	rm -rf conio/build
+	rm -rf runtime/build
 	rm -rf ../rom.txt
 	rm -rf a.out
