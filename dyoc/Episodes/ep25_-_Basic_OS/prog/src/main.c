@@ -14,8 +14,6 @@
 #include <joystick.h>
 
 
-void putchar(uint8_t ch);
-
 /*****************************************************************************/
 /*                                   Data                                    */
 /*****************************************************************************/
@@ -60,7 +58,7 @@ int main (void)
     /* Bottom line */
     cputc (CH_LLCORNER);
     chline (XSize - 2);
-    putchar (CH_LRCORNER);
+    cputc (CH_LRCORNER);
 
     /* Vertical line, right side */
     cvlinexy (XSize - 1, 1, YSize - 2);
