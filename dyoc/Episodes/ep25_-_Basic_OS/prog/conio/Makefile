@@ -9,20 +9,28 @@ INCLUDE = include
 SOURCES := $(wildcard *.c)
 SOURCES += $(wildcard *.s)
 
-OBJECTS := $(addsuffix .o,$(basename $(SOURCES)))
+#OBJECTS := $(addsuffix .o,$(basename $(SOURCES)))
+OBJECTS := $(addsuffix .o, $(basename $(addprefix build/, $(SOURCES))))
 
+CFLAGS = -O
+INCLUDE = -I ../include -I .
+
+.SUFFIXES:
+.PHONY: all
+
+all: build/conio.lib
+
+build:
+	mkdir -p $@
+
+build/%.o: %.c | build
+	cl65 -c $(CFLAGS) $(INCLUDE) -o $@ $<
+
+build/%.o: %.s | build
+	cl65 -c $(ASFLAGS) -o $@ $<
 
 build/conio.lib: $(OBJECTS)
-
-
-%.o: %.c
-	mkdir -p build
-	cl65 $< -o $@
-
-%.o: %.s
-	mkdir -p build
-	ca65 $< -o $@
-
+	ar65 r $@ $^
 
 
 #####################################
@@ -31,5 +39,4 @@ build/conio.lib: $(OBJECTS)
 
 clean:
 	rm -rf build
-	rm -rf ../rom.txt
-	rm -rf a.out
+
