@@ -5,9 +5,12 @@
 
 void cputc(char ch)
 {
-   if (ch == '\n')
+   if (ch == '\r')         // Carriage return
    {
       pos_x = 0;
+   }
+   else if (ch == '\n')    // Line feed
+   {
       newline();
    }
    else
