@@ -1,6 +1,6 @@
-# Include directory
-INCLUDE = include
-
+# Compiler flags
+CFLAGS = -O
+INCLUDE = -I include
 
 #####################################
 # Compile target program
@@ -12,12 +12,11 @@ INCLUDE = include
 build/rom.bin: build/main.o build/vectors.o conio/build/conio.lib runtime/build/runtime.lib
 	ld65 -m build/rom.map -C ld.cfg $^
 
-build/main.o: build/main.s
-	ca65 $< -o $@
+build:
+	mkdir -p $@
 
-build/main.s: src/main.c
-	mkdir -p build
-	cc65 -I $(INCLUDE) -g -t none -O $< -o $@
+build/main.o: src/main.c | build
+	cl65 -t none -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
 
 #####################################

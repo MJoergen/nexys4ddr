@@ -19,10 +19,10 @@ build:
 	mkdir -p $@
 
 build/%.o: %.c | build
-	cl65 -c $(CFLAGS) $(INCLUDE) -o $@ $<
+	cl65 -t none -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
 build/%.o: %.s | build
-	cl65 -c $(ASFLAGS) -o $@ $<
+	cl65 -t none -c $(ASFLAGS) -o $@ $<
 
 build/$(LIB).lib: $(OBJECTS)
 	ar65 r $@ $^
