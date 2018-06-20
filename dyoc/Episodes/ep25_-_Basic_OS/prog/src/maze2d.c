@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>     // rand()
 #include <time.h>       // clock()
@@ -93,7 +92,10 @@ int main()
 
 #define BEEN_HERE 1<<7
 
-      cputsxy(1, 1, "You escaped!");
+      if (!curSq)
+      {
+         cputsxy(1, 1, "You escaped!");
+      }
 
       grid[curSq] |= BEEN_HERE;
 
