@@ -1,5 +1,5 @@
 # Library name
-LIB = conio
+LIB = runtime
 
 SOURCES := $(wildcard *.c)
 SOURCES += $(wildcard *.s)
@@ -25,6 +25,7 @@ build/%.o: %.s | build
 	cl65 -c $(ASFLAGS) -o $@ $<
 
 build/$(LIB).lib: $(OBJECTS)
+	cp none.lib $@
 	ar65 r $@ $^
 
 
