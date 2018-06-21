@@ -2,8 +2,9 @@
 #include <stdlib.h>  // rand()
 #include <time.h>    // clock()
 #include <conio.h>
-#include <string.h>  // memcpy
+#include <string.h>  // memcpy()
 #include "memorymap.h"  // MEM_CHAR
+#include "gettime.h"  // clock_gettime()
 
 #define SIZE_X 80
 #define SIZE_Y 60
@@ -24,8 +25,6 @@ const uint8_t PROP = 20;
 
 char    board[ROWS*COLS];
 char newboard[ROWS*COLS];
-
-uint16_t tim = 0;
 
 void reset(void)
 {
@@ -120,17 +119,34 @@ void show(void)
 } // end of show
 
 
+uint16_t ms(void)
+{
+   uint32_t now;
+
+   MEMIO_CONFIG->cpuCycLatch = 1;
+   now = MEMIO_STATUS->cpuCyc;
+   MEMIO_CONFIG->cpuCycLatch = 0;
+
+   return now/25000;
+} // end of ms
+
+
 void main(void)
 {
+   int16_t tim = 0;
+   uint16_t fps10;
+
    reset();
    while (1)
    {
       show();
 
-      tim = clock()-tim;
-      gotoxy(70, 50);
-      cprintf("%05d", tim);
-      tim = clock();
+      tim = ms()-tim;
+      fps10 = 10000/tim;
+      gotoxy(72, 59);
+      cprintf("FPS: %d.%d", fps10/10, fps10%10);
+      tim = ms();
+
 
       if (kbhit())
       {
