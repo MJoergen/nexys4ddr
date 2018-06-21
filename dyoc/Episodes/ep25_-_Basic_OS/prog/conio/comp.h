@@ -14,6 +14,9 @@
 extern uint8_t pos_x;
 extern uint8_t pos_y;
 
+extern uint8_t* curs_pos;
+#pragma zpsym("curs_pos");    // curs_pos is in zero-page.
+
 void putchar(uint8_t);
 void newline(void);
 

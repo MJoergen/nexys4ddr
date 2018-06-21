@@ -1,9 +1,8 @@
 #include <stdint.h>
 #include <time.h>
-#include <6502.h>       // SEI() and CLI()
 
 #include "gettime.h"
-#include "memorymap.h"
+#include "getcycles.h"
 
 #define CLOCK_SPEED_MHZ 25
 
@@ -15,9 +14,7 @@ int clock_gettime(clockid_t clk_id, struct timespec *tp)
 
    if (tp)
    {
-      MEMIO_CONFIG->cpuCycLatch = 1;
-      now = MEMIO_STATUS->cpuCyc;
-      MEMIO_CONFIG->cpuCycLatch = 0;
+      now = getcycles();
 
       tp->tv_sec = now / (CLOCK_SPEED_MHZ*1000000UL);
       now -= tp->tv_sec*(CLOCK_SPEED_MHZ*1000000UL);

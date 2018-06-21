@@ -1,9 +1,8 @@
 .setcpu		"6502"
-.importzp	sp, sreg, regsave, regbank
-.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
-.import		_pos_x
-.import		_pos_y
-.autoimport
+;.importzp	sp, sreg, regsave, regbank
+;.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
+.importzp	_curs_pos
+;.autoimport
 .export		_putchar
 
 ; This file must be written in assembler, because
@@ -21,24 +20,15 @@
 
 .segment	"CODE"
 
-	jsr     pusha
-	lda     _pos_y
-	jsr     pusha0
-	lda     #$50
-	jsr     tosumula0
-	clc
-	adc     _pos_x
-	bcc     L0006
-	inx
-L0006:	sta     ptr3
-   txa
-   clc
-	adc     #$80
-	sta     ptr3+1
 	ldy     #$00
-	lda     (sp),y
-	sta     (ptr3),y
-	jmp     incsp1
+	sta     (_curs_pos),y
+
+   inc     _curs_pos
+   bne     end
+   inc     _curs_pos+1
+end:
+
+   rts
 
 .endproc
 

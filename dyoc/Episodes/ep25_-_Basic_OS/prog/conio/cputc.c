@@ -1,6 +1,7 @@
 #include <stdint.h>     // uint8_t, etc.
 #include <conio.h>
 
+#include "memorymap.h"
 #include "comp.h"
 
 void cputc(char ch)
@@ -8,6 +9,7 @@ void cputc(char ch)
    if (ch == '\r')         // Carriage return
    {
       pos_x = 0;
+      curs_pos = &MEM_CHAR[H_CHARS*pos_y+pos_x];
    }
    else if (ch == '\n')    // Line feed
    {
@@ -25,5 +27,6 @@ void cputc(char ch)
          newline();
       }
    }
+
 } // end of cputc
 

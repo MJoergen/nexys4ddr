@@ -1,10 +1,8 @@
 #include <stdint.h>
 #include <stdlib.h>  // rand()
-#include <time.h>    // clock()
 #include <conio.h>
 #include <string.h>  // memcpy()
-#include "memorymap.h"  // MEM_CHAR
-#include "gettime.h"  // clock_gettime()
+#include "getcycles.h"  // getcycles()
 
 #define SIZE_X 80
 #define SIZE_Y 60
@@ -98,21 +96,19 @@ void show(void)
    for (y=1; y<=SIZE_Y; ++y)
    {
       uint16_t iStart = y*COLS;
-      uint8_t *p = MEM_CHAR + (y-1)*80;
 
+      gotoxy(0, y-1);
       for (x=1; x<=SIZE_X; ++x)
       {
          uint16_t idx = iStart+x;
 
          if (board[idx])
          {
-            *p = '*';
-            p++;
+            cputc('*');
          }
          else
          {
-            *p = ' ';
-            p++;
+            cputc(' ');
          }
       }
    }
@@ -123,9 +119,7 @@ uint16_t ms(void)
 {
    uint32_t now;
 
-   MEMIO_CONFIG->cpuCycLatch = 1;
-   now = MEMIO_STATUS->cpuCyc;
-   MEMIO_CONFIG->cpuCycLatch = 0;
+   now = getcycles();
 
    return now/25000;
 } // end of ms
@@ -150,7 +144,7 @@ void main(void)
 
       if (kbhit())
       {
-         srand(clock());
+         srand(ms());
          cgetc();
          reset();
       }

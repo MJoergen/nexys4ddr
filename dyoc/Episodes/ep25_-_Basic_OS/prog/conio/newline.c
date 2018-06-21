@@ -14,6 +14,8 @@ void newline(void)
    {
       pos_y = 0;
    }
+
+   curs_pos = &MEM_CHAR[H_CHARS*pos_y+pos_x];
 } // end of newline
 
 
