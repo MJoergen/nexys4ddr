@@ -27,3 +27,11 @@ Since we now have a separate conio library, the existing directory 'lib' has
 been removed and replaced by two new directories 'conio' and 'runtime'. The
 former has support for all the conio functions, while the latter has support
 for the hardware vectors RESET and IRQ.
+
+## Demo programs
+A number of different demo programs are now available. To try them, you must
+modify the first line of prog/Makefile. The following demo programs are
+available:
+* life : This is Conway's Game of Life. Currently, it runs approx 6 frames per second.
+* maze2d : A two-dimensional maze.
+

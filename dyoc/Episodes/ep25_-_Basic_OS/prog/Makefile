@@ -1,12 +1,11 @@
+PROGRAM = life
+
 # Compiler flags
 CFLAGS = -O
 
-DIR = life
-
-
 # Add program sources
-SOURCES += $(wildcard $(DIR)/*.c)
-SOURCES += $(wildcard $(DIR)/*.s)
+SOURCES += $(wildcard $(PROGRAM)/*.c)
+SOURCES += $(wildcard $(PROGRAM)/*.s)
 
 # Add conio sources
 LIBSOURCES += $(wildcard conio/*.c)
@@ -37,10 +36,10 @@ build/rom.bin: $(OBJECTS) build/runtime/vectors.o build/comp.lib
 	ld65 -m build/rom.map -C ld.cfg $^
 
 
-build/%.o: %.c | build build/conio build/runtime build/$(DIR)
+build/%.o: %.c | build build/conio build/runtime build/$(PROGRAM)
 	cl65 -t none -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
-build/%.o: %.s | build build/conio build/runtime build/$(DIR)
+build/%.o: %.s | build build/conio build/runtime build/$(PROGRAM)
 	cl65 -t none -c $(ASFLAGS) -o $@ $<
 
 build/comp.lib: $(LIBOBJECTS)
@@ -56,7 +55,7 @@ build/conio:
 build/runtime:
 	mkdir -p $@
 
-build/$(DIR):
+build/$(PROGRAM):
 	mkdir -p $@
 
 
