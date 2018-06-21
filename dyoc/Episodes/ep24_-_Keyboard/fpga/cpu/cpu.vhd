@@ -4,23 +4,24 @@ use ieee.std_logic_unsigned.all;
 
 entity cpu is
    port (
-      clk_i   : in  std_logic;
+      clk_i    : in  std_logic;
 
       -- Memory interface
-      addr_o  : out std_logic_vector(15 downto 0);
-      data_i  : in  std_logic_vector(7 downto 0);
-      rden_o  : out std_logic;
-      data_o  : out std_logic_vector(7 downto 0);
-      wren_o  : out std_logic;
+      addr_o   : out std_logic_vector(15 downto 0);
+      data_i   : in  std_logic_vector(7 downto 0);
+      rden_o   : out std_logic;
+      data_o   : out std_logic_vector(7 downto 0);
+      wren_o   : out std_logic;
       -- The "wait_i" is '1' when the memory is not ready.
       -- While this is so, the CPU just stands still, waiting.
-      wait_i  : in  std_logic;
-      memio_o : out std_logic_vector( 4*8-1 downto 0);
+      wait_i   : in  std_logic;
+      memio_o  : out std_logic_vector( 4*8-1 downto 0);
+      memio_i  : in  std_logic_vector( 1*8-1 downto 0);
 
       -- Hardware interrupts
-      irq_i   : in  std_logic;
-      nmi_i   : in  std_logic;
-      rst_i   : in  std_logic;
+      irq_i    : in  std_logic;
+      nmi_i    : in  std_logic;
+      rst_i    : in  std_logic;
 
       -- Debug output
       invalid_o : out std_logic_vector(7 downto 0);   -- First invalid instruction encountered
@@ -30,21 +31,22 @@ end entity cpu;
 
 architecture structural of cpu is
 
-   signal cyc_cnt  : std_logic_vector(31 downto 0);
-   signal ar_sel   : std_logic;
-   signal hi_sel   : std_logic_vector(2 downto 0);
-   signal lo_sel   : std_logic_vector(2 downto 0);
-   signal pc_sel   : std_logic_vector(5 downto 0);
-   signal addr_sel : std_logic_vector(3 downto 0);
-   signal data_sel : std_logic_vector(2 downto 0);
-   signal alu_sel  : std_logic_vector(4 downto 0);
-   signal sr_sel   : std_logic_vector(3 downto 0);
-   signal sp_sel   : std_logic_vector(1 downto 0);
-   signal xr_sel   : std_logic;
-   signal yr_sel   : std_logic;
-   signal reg_sel  : std_logic_vector(1 downto 0);
-   signal zp_sel   : std_logic_vector(1 downto 0);
-   signal sri      : std_logic;
+   signal cyc_cnt   : std_logic_vector(31 downto 0);
+   signal cyc_latch : std_logic_vector(31 downto 0);
+   signal ar_sel    : std_logic;
+   signal hi_sel    : std_logic_vector(2 downto 0);
+   signal lo_sel    : std_logic_vector(2 downto 0);
+   signal pc_sel    : std_logic_vector(5 downto 0);
+   signal addr_sel  : std_logic_vector(3 downto 0);
+   signal data_sel  : std_logic_vector(2 downto 0);
+   signal alu_sel   : std_logic_vector(4 downto 0);
+   signal sr_sel    : std_logic_vector(3 downto 0);
+   signal sp_sel    : std_logic_vector(1 downto 0);
+   signal xr_sel    : std_logic;
+   signal yr_sel    : std_logic;
+   signal reg_sel   : std_logic_vector(1 downto 0);
+   signal zp_sel    : std_logic_vector(1 downto 0);
+   signal sri       : std_logic;
 
 begin
 
@@ -63,6 +65,17 @@ begin
          end if;
       end if;
    end process p_cyc_cnt;
+
+   -- Latch cycle counter when reading
+   p_cyc_latch : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if memio_i(0) = '0' then
+            cyc_latch <= cyc_cnt;
+         end if;
+      end if;
+   end process p_cyc_latch;
+
 
 
    -----------------
@@ -137,7 +150,7 @@ begin
    -- Drive Output Signals
    -----------------------
 
-   memio_o(31 downto 0) <= cyc_cnt;
+   memio_o(31 downto 0) <= cyc_latch;
 
 end architecture structural;
 
