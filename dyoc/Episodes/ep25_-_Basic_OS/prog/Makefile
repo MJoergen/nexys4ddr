@@ -1,7 +1,7 @@
 # Compiler flags
 CFLAGS = -O
 
-DIR = timertest
+DIR = life
 
 
 # Add program sources
