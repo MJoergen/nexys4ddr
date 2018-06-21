@@ -3,8 +3,8 @@
 #include <time.h>       // clock()
 #include <conio.h>
 
-#define MAX_ROWS	11
-#define MAX_COLS  24
+#define MAX_ROWS  28
+#define MAX_COLS  28
 #define MAX_SQUARES	(MAX_ROWS*MAX_COLS)
 
 uint8_t grid[MAX_SQUARES];
@@ -32,10 +32,31 @@ uint16_t GetRandomSquare()
    return rand() % MAX_SQUARES;
 }
 
+
+void DrawPos(uint16_t sq)
+{
+   const char wall = '#';
+   uint8_t col = 1 + 2*GetCol(sq);
+   uint8_t row = 1 + 2*GetRow(sq);
+   uint8_t g = grid[sq];
+
+   cputcxy(col+1, row+1, ' ');
+   cputcxy(col,   row,   wall);
+   cputcxy(col,   row+2, wall);
+   cputcxy(col+2, row+2, wall);
+   cputcxy(col+2, row,   wall);
+   cputcxy(col+1, row,   (g&(1<<DIR_NORTH)) ? ' ' : wall);
+   cputcxy(col+2, row+1, (g&(1<<DIR_EAST))  ? ' ' : wall);
+   cputcxy(col,   row+1, (g&(1<<DIR_WEST))  ? ' ' : wall);
+   cputcxy(col+1, row+2, (g&(1<<DIR_SOUTH)) ? ' ' : wall);
+} // end of DrawPos
+
+
 void InitMaze(void)
 {
    int sq;
    int count;
+   uint16_t c;
 
    for(sq=0; sq<MAX_SQUARES; sq++)
    {
@@ -56,10 +77,14 @@ void InitMaze(void)
          {	/* We haven't been here before. */
 
             /* Make an opening */
-            grid[sq] += 1 << (dir);
+            grid[sq] += 1 << (dir); DrawPos(sq);
             sq = newSq;
-            grid[sq] += 1 << ((MAX_DIRS-1) - dir);
+            grid[sq] += 1 << ((MAX_DIRS-1) - dir); DrawPos(sq);
             count--;
+            gotoxy(70, 10); cprintf("%05d", count);
+            for (c=0; c<10000; ++c)
+            {
+            }
          }
          else if (abs(rand()) < abs(rand())/6)
          {
@@ -72,6 +97,7 @@ void InitMaze(void)
       }
    }
 } // end of InitMaze
+
 
 int main()
 {
@@ -94,7 +120,7 @@ int main()
 
       if (!curSq)
       {
-         cputsxy(1, 1, "You escaped!");
+         cputsxy(1, 58, "You escaped!");
       }
 
       grid[curSq] |= BEEN_HERE;
@@ -103,24 +129,11 @@ int main()
       {
          if (grid[printSq] & BEEN_HERE)
          {
-            const char wall = '#';
-            int col = 1 + 2*GetCol(printSq);
-            int row = 1 + 2*GetRow(printSq);
-            int g = grid[printSq];
-
-            cputcxy(row+1, col+1, ' ');
-            cputcxy(row,   col,   wall);
-            cputcxy(row+2, col,   wall);
-            cputcxy(row+2, col+2, wall);
-            cputcxy(row,   col+2, wall);
-            cputcxy(row,   col+1, (g&(1<<DIR_NORTH)) ? ' ' : wall);
-            cputcxy(row+1, col+2, (g&(1<<DIR_EAST))  ? ' ' : wall);
-            cputcxy(row+1, col,   (g&(1<<DIR_WEST))  ? ' ' : wall);
-            cputcxy(row+2, col+1, (g&(1<<DIR_SOUTH)) ? ' ' : wall);
+            DrawPos(printSq);
          }
       }
-      cputcxy(2+GetRow(curSq)*2, 2+GetCol(curSq)*2, curSq ? '@' : '*');
-      gotoxy(2+GetRow(curSq)*2, 2+GetCol(curSq)*2);
+      cputcxy(2+GetCol(curSq)*2, 2+GetRow(curSq)*2, curSq ? '@' : '*');
+      gotoxy(2+GetCol(curSq)*2, 2+GetRow(curSq)*2);
 
       dir = MAX_DIRS;
       switch (cgetc())
