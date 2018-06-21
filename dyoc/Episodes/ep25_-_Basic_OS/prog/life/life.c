@@ -4,8 +4,8 @@
 #include <conio.h>
 #include <string.h>  // memcpy
 
-#define SIZE_X 60
-#define SIZE_Y 40
+#define SIZE_X 80
+#define SIZE_Y 60
 
 #define ROWS (SIZE_Y+2)
 #define COLS (SIZE_X+2)
@@ -24,6 +24,7 @@ const uint8_t PROP = 20;
 char    board[ROWS*COLS];
 char newboard[ROWS*COLS];
 
+uint16_t tim = 0;
 
 void reset(void)
 {
@@ -64,14 +65,14 @@ void update(void)
          uint16_t idx = iStart+x;
 
          uint8_t neighbours = 
-            board[idx+D]  +
-            board[idx+DR] +
-            board[idx+DL] +
-            board[idx+R]  +
-            board[idx+L]  +
-            board[idx+U]  +
-            board[idx+UR] +
-            board[idx+UL];
+            (board+D)[idx]  +    // This strange construction is an optimization.
+            (board+DR)[idx] +
+            (board+DL)[idx] +
+            (board+R)[idx]  +
+            (board+L)[idx]  +
+            (board+U)[idx]  +
+            (board+UR)[idx] +
+            (board+UL)[idx];
 
          newboard[idx] = board[idx];
          if (board[idx] && (neighbours < 2 || neighbours > 3))
@@ -98,17 +99,19 @@ void show(void)
    {
       uint16_t iStart = y*COLS;
 
+      gotoxy(0, y-1);
+
       for (x=1; x<=SIZE_X; ++x)
       {
          uint16_t idx = iStart+x;
 
          if (board[idx])
          {
-            cputcxy(x-1, y-1, '*');
+            cputc('*');
          }
          else
          {
-            cputcxy(x-1, y-1, ' ');
+            cputc(' ');
          }
       }
    }
@@ -117,8 +120,6 @@ void show(void)
 
 void main(void)
 {
-   uint16_t tim = clock();
-
    reset();
    while (1)
    {
