@@ -3,6 +3,7 @@
 #include <time.h>    // clock()
 #include <conio.h>
 #include <string.h>  // memcpy
+#include "memorymap.h"  // MEM_CHAR
 
 #define SIZE_X 80
 #define SIZE_Y 60
@@ -98,8 +99,7 @@ void show(void)
    for (y=1; y<=SIZE_Y; ++y)
    {
       uint16_t iStart = y*COLS;
-
-      gotoxy(0, y-1);
+      uint8_t *p = MEM_CHAR + (y-1)*80;
 
       for (x=1; x<=SIZE_X; ++x)
       {
@@ -107,11 +107,13 @@ void show(void)
 
          if (board[idx])
          {
-            cputc('*');
+            *p = '*';
+            p++;
          }
          else
          {
-            cputc(' ');
+            *p = ' ';
+            p++;
          }
       }
    }
