@@ -96,13 +96,12 @@ void show(void)
    for (y=1; y<=SIZE_Y; ++y)
    {
       uint16_t iStart = y*COLS;
+      uint8_t *p = &board[iStart];
 
       gotoxy(0, y-1);
       for (x=1; x<=SIZE_X; ++x)
       {
-         uint16_t idx = iStart+x;
-
-         if (board[idx])
+         if (p[x])
          {
             cputc('*');
          }
