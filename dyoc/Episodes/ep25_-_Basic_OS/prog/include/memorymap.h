@@ -18,7 +18,8 @@ typedef struct
 {
    uint8_t  vgaPalette[16];
    uint16_t vgaPixYInt;
-   uint8_t  _reserved[13];
+   uint8_t  cpuCycLatch;
+   uint8_t  _reserved[12];
    uint8_t  irqMask;
 } t_memio_config;
 
