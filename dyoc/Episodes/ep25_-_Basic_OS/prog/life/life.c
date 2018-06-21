@@ -4,13 +4,25 @@
 #include <conio.h>
 #include <string.h>  // memcpy
 
-#define SIZE_X 80
-#define SIZE_Y 60
+#define SIZE_X 60
+#define SIZE_Y 40
 
-const uint8_t PROP = 10;
+#define ROWS (SIZE_Y+2)
+#define COLS (SIZE_X+2)
 
-char    board[SIZE_Y+2][SIZE_X+2];
-char newboard[SIZE_Y+2][SIZE_X+2];
+#define D  (COLS)
+#define DR (COLS+1)
+#define DL (COLS-1)
+#define R  (1)
+#define L  (-1)
+#define U  (-COLS)
+#define UR (-COLS+1)
+#define UL (-COLS-1)
+
+const uint8_t PROP = 20;
+
+char    board[ROWS*COLS];
+char newboard[ROWS*COLS];
 
 
 void reset(void)
@@ -18,23 +30,20 @@ void reset(void)
    uint8_t x;
    uint8_t y;
 
-   for (y=0; y<SIZE_Y+2; ++y)
+   memset(board, 0, sizeof(board));
+   memset(newboard, 0, sizeof(newboard));
+
+   for (y=1; y<=SIZE_Y; ++y)
    {
-      for (x=0; x<SIZE_X+2; ++x)
+      uint16_t iStart = y*COLS;
+
+      for (x=1; x<=SIZE_X; ++x)
       {
+         uint16_t idx = iStart+x;
+
          if ((rand()%100) < PROP)
          {
-            board[y][x] = 1;
-         }
-         else
-         {
-            board[y][x] = 0;
-         }
-
-         if (x==0 || x==SIZE_X+1 || y==0 || y==SIZE_Y+1)
-         {
-            board[y][x] = 0;
-            newboard[y][x] = 0;
+            board[idx] = 1;
          }
       }
    }
@@ -48,26 +57,30 @@ void update(void)
 
    for (y=1; y<=SIZE_Y; ++y)
    {
+      uint16_t iStart = y*COLS;
+
       for (x=1; x<=SIZE_X; ++x)
       {
-         uint8_t neighbours = 
-            board[y-1][x-1] +
-            board[y-1][x] +
-            board[y-1][x+1] +
-            board[y][x-1] +
-            board[y][x+1] +
-            board[y+1][x-1] +
-            board[y+1][x] +
-            board[y+1][x+1];
+         uint16_t idx = iStart+x;
 
-         newboard[y][x] = board[y][x];
-         if (board[y][x] && (neighbours < 2 || neighbours > 3))
+         uint8_t neighbours = 
+            board[idx+D]  +
+            board[idx+DR] +
+            board[idx+DL] +
+            board[idx+R]  +
+            board[idx+L]  +
+            board[idx+U]  +
+            board[idx+UR] +
+            board[idx+UL];
+
+         newboard[idx] = board[idx];
+         if (board[idx] && (neighbours < 2 || neighbours > 3))
          {
-            newboard[y][x] = 0;
+            newboard[idx] = 0;
          }
-         if (!board[y][x] && (neighbours == 3))
+         if (!board[idx] && (neighbours == 3))
          {
-            newboard[y][x] = 1;
+            newboard[idx] = 1;
          }
       }
    }
@@ -83,9 +96,13 @@ void show(void)
 
    for (y=1; y<=SIZE_Y; ++y)
    {
+      uint16_t iStart = y*COLS;
+
       for (x=1; x<=SIZE_X; ++x)
       {
-         if (board[y][x])
+         uint16_t idx = iStart+x;
+
+         if (board[idx])
          {
             cputcxy(x-1, y-1, '*');
          }
@@ -100,10 +117,18 @@ void show(void)
 
 void main(void)
 {
+   uint16_t tim = clock();
+
    reset();
    while (1)
    {
       show();
+
+      tim = clock()-tim;
+      gotoxy(70, 50);
+      cprintf("%05d", tim);
+      tim = clock();
+
       if (kbhit())
       {
          srand(clock());
