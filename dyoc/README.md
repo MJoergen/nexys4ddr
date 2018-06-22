@@ -82,8 +82,8 @@ control e.g. background colour.
 24. [**"Keyboard"**](Episodes/ep24_-_Keyboard). We are now ready to add the keyboard
     interface.
 ### Operating System ###
-25. [**"Basic OS"**](Episodes/ep25_-_Basic_OS).
-    We now support reading character from the keyboard.
+25. [**"Sample Programs"**](Episodes/ep25_-_Sample_Programs).
+    We now demonstrate some sample programs for our new computer.
 
 More to come soon...
 
