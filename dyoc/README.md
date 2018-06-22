@@ -81,7 +81,6 @@ control e.g. background colour.
     an interrupt controller.
 24. [**"Keyboard"**](Episodes/ep24_-_Keyboard). We are now ready to add the keyboard
     interface.
-### Operating System ###
 25. [**"Sample Programs"**](Episodes/ep25_-_Sample_Programs).
     We now demonstrate some sample programs for our new computer.
 
