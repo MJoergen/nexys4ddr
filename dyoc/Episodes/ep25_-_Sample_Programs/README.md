@@ -1,9 +1,9 @@
 # Design Your Own Computer
-# Episode 25 : "Console I/O"
+# Episode 25 : "Sample Programs"
  
-Welcome to "Design Your Own Computer".  In this episode we'll begin
-implementing a rudimentary operating system. The first step is
-to have a command line.
+Welcome to "Design Your Own Computer".  In this episode we'll implement
+some sample programs to demonstrate our new computer.
+At the same time, we'll add some more library support.
 
 ## conio support
 There are two different standards for I/O: stdio and conio.
@@ -28,7 +28,7 @@ been removed and replaced by two new directories 'conio' and 'runtime'. The
 former has support for all the conio functions, while the latter has support
 for the hardware vectors RESET and IRQ.
 
-## Demo programs
+## Sample programs
 A number of different demo programs are now available. To try them, you must
 modify the first line of prog/Makefile. The following demo programs are
 available:
