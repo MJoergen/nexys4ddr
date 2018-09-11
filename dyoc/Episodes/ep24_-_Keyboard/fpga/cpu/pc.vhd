@@ -90,5 +90,8 @@ begin
       end if;
    end process p_pc;
 
+   -- Drive output signals
+   pc_o <= pc;
+
 end architecture structural;
 
