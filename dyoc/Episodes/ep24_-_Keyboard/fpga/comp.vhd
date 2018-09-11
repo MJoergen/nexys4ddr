@@ -57,11 +57,6 @@ architecture Structural of comp is
    signal cpu_wait  : std_logic;
    signal mem_wait  : std_logic;
 
-   -- Output from VGA block
-   signal vga_hs    : std_logic;
-   signal vga_vs    : std_logic;
-   signal vga_col   : std_logic_vector(7 downto 0);
-
    -- Interface between VGA and Memory
    signal char_addr : std_logic_vector(12 downto 0);
    signal char_data : std_logic_vector( 7 downto 0);
@@ -236,9 +231,9 @@ begin
       clk_i     => vga_clk,
       overlay_i => vga_overlay_en,
       digits_i  => vga_overlay,
-      vga_hs_o  => vga_hs,
-      vga_vs_o  => vga_vs,
-      vga_col_o => vga_col,
+      vga_hs_o  => vga_hs_o,
+      vga_vs_o  => vga_vs_o,
+      vga_col_o => vga_col_o,
 
       char_addr_o => char_addr,
       char_data_i => char_data,
@@ -326,15 +321,6 @@ begin
 
    vga_overlay(175 downto   0) <= cpu_debug;
    vga_overlay(191 downto 176) <= kbd_debug;
-
-
-   --------------------------------------------------
-   -- Drive output signals
-   --------------------------------------------------
-
-   vga_hs_o  <= vga_hs;
-   vga_vs_o  <= vga_vs;
-   vga_col_o <= vga_col;
 
 end architecture Structural;
 

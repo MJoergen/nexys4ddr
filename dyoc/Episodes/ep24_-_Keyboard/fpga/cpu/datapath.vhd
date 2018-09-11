@@ -48,23 +48,6 @@ architecture structural of datapath is
    constant SR_S : integer := 7;
    constant SR_BR : std_logic_vector(7 downto 0) := (SR_B => '1', SR_R => '1', others => '0');
 
-   constant PC_NOP  : std_logic_vector(2 downto 0) := B"000";
-   constant PC_INC  : std_logic_vector(2 downto 0) := B"001";
-   constant PC_HL   : std_logic_vector(2 downto 0) := B"010";
-   constant PC_HL1  : std_logic_vector(2 downto 0) := B"011";
-   constant PC_SR   : std_logic_vector(2 downto 0) := B"100";
-   constant PC_D_HI : std_logic_vector(2 downto 0) := B"101";
-   constant PC_D_LO : std_logic_vector(2 downto 0) := B"110";
-   --
-   constant PC_BPL : std_logic_vector(2 downto 0) := B"000";
-   constant PC_BMI : std_logic_vector(2 downto 0) := B"001";
-   constant PC_BVC : std_logic_vector(2 downto 0) := B"010";
-   constant PC_BVS : std_logic_vector(2 downto 0) := B"011";
-   constant PC_BCC : std_logic_vector(2 downto 0) := B"100";
-   constant PC_BCS : std_logic_vector(2 downto 0) := B"101";
-   constant PC_BNE : std_logic_vector(2 downto 0) := B"110";
-   constant PC_BEQ : std_logic_vector(2 downto 0) := B"111";
-   --
    constant ADDR_NOP    : std_logic_vector(3 downto 0) := B"0000";
    constant ADDR_PC     : std_logic_vector(3 downto 0) := B"0001";
    constant ADDR_HL     : std_logic_vector(3 downto 0) := B"0010";
@@ -104,18 +87,6 @@ architecture structural of datapath is
    constant SP_DEC    : std_logic_vector(1 downto 0) := B"10";
    constant SP_XR     : std_logic_vector(1 downto 0) := B"11";
    --
-   constant HI_NOP    : std_logic_vector(2 downto 0) := B"000";
-   constant HI_DATA   : std_logic_vector(2 downto 0) := B"001";
-   constant HI_ADDX   : std_logic_vector(2 downto 0) := B"010";
-   constant HI_ADDY   : std_logic_vector(2 downto 0) := B"011";
-   constant HI_INC    : std_logic_vector(2 downto 0) := B"100";
-   --
-   constant LO_NOP    : std_logic_vector(2 downto 0) := B"000";
-   constant LO_DATA   : std_logic_vector(2 downto 0) := B"001";
-   constant LO_ADDX   : std_logic_vector(2 downto 0) := B"010";
-   constant LO_ADDY   : std_logic_vector(2 downto 0) := B"011";
-   constant LO_INC    : std_logic_vector(2 downto 0) := B"100";
-   --
    constant ZP_NOP    : std_logic_vector(1 downto 0) := B"00";
    constant ZP_DATA   : std_logic_vector(1 downto 0) := B"01";
    constant ZP_ADDX   : std_logic_vector(1 downto 0) := B"10";
@@ -125,16 +96,6 @@ architecture structural of datapath is
    constant REG_XR    : std_logic_vector(1 downto 0) := B"01";
    constant REG_YR    : std_logic_vector(1 downto 0) := B"10";
    constant REG_SP    : std_logic_vector(1 downto 0) := B"11";
-
-   -- Convert signed 8-bit number to signed 16-bit number
-   function sign_extend(arg : std_logic_vector(7 downto 0))
-   return std_logic_vector is
-      variable res : std_logic_vector(15 downto 0);
-   begin
-      res := (others => arg(7)); -- Copy sign bit to all bits.
-      res(7 downto 0) := arg;
-      return res;
-   end function sign_extend;
 
    -- Input to ALU
    signal alu_reg : std_logic_vector(7 downto 0);
@@ -161,19 +122,11 @@ architecture structural of datapath is
    -- Status register
    signal sr : std_logic_vector(7 downto 0) := (others => '0');
 
-   -- Address Hi register
-   signal hi : std_logic_vector(7 downto 0);
+   -- Address Hi and Lo registers
+   signal hilo : std_logic_vector(15 downto 0);
    
-   -- Address Lo register
-   signal lo : std_logic_vector(7 downto 0);
-
    -- Zero-page register
    signal zp : std_logic_vector(7 downto 0);
-
-   -- Indirect addressing
-   signal hilo_addx_s : std_logic_vector(15 downto 0);
-   signal hilo_addy_s : std_logic_vector(15 downto 0);
-   signal hilo_inc_s  : std_logic_vector(15 downto 0);
 
    -- Output signals to memory
    signal addr : std_logic_vector(15 downto 0);
@@ -203,36 +156,30 @@ begin
       sr_o   => alu_sr
    );
 
-   -- Program Counter
-   p_pc : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if wait_i = '0' then
-            case pc_sel_i(2 downto 0) is
-               when PC_NOP => null;
-               when PC_INC => pc <= pc + 1;
-               when PC_HL  => pc <= hi & lo;
-               when PC_HL1 => pc <= (hi & lo) + 1;
-               when PC_SR  =>
-                  if (pc_sel_i(5 downto 3) = PC_BPL and sr(SR_S) = '0') or
-                     (pc_sel_i(5 downto 3) = PC_BMI and sr(SR_S) = '1') or
-                     (pc_sel_i(5 downto 3) = PC_BVC and sr(SR_V) = '0') or
-                     (pc_sel_i(5 downto 3) = PC_BVS and sr(SR_V) = '1') or
-                     (pc_sel_i(5 downto 3) = PC_BCC and sr(SR_C) = '0') or
-                     (pc_sel_i(5 downto 3) = PC_BCS and sr(SR_C) = '1') or
-                     (pc_sel_i(5 downto 3) = PC_BNE and sr(SR_Z) = '0') or
-                     (pc_sel_i(5 downto 3) = PC_BEQ and sr(SR_Z) = '1') then
-                     pc <= pc + 1 + sign_extend(data_i);
-                  else
-                     pc <= pc + 1;  -- If branch is not taken, just go to the next instruction.
-                  end if;
-               when PC_D_HI => pc(15 downto 8) <= data_i;
-               when PC_D_LO => pc( 7 downto 0) <= data_i;
-               when others => null;
-            end case;
-         end if;
-      end if;
-   end process p_pc;
+   -- Instantiate Program Counter
+   i_pc : entity work.pc
+   port map (
+      clk_i    => clk_i,
+      wait_i   => wait_i,
+      pc_sel_i => pc_sel_i,
+      hilo_i   => hilo,
+      data_i   => data_i,
+      sr_i     => sr,
+      pc_o     => pc
+   );
+
+   -- Instantiate Hi and Lo registers
+   i_hilo : entity work.hilo
+   port map (
+      clk_i    => clk_i,
+      wait_i   => wait_i,
+      hi_sel_i => hi_sel_i,
+      lo_sel_i => lo_sel_i,
+      xr_i     => xr,
+      yr_i     => yr,
+      data_i   => data_i,
+      hilo_o   => hilo
+   );
 
    -- 'A' register
    p_ar : process (clk_i)
@@ -308,44 +255,6 @@ begin
       end if;
    end process p_sr;
 
-   hilo_addx_s <= (hi & lo) + xr;
-   hilo_addy_s <= (hi & lo) + yr;
-   hilo_inc_s  <= (hi & lo) + 1;
-
-   -- 'Hi' register
-   p_hi : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if wait_i = '0' then
-            case hi_sel_i is
-               when HI_NOP  => null;
-               when HI_DATA => hi <= data_i;
-               when HI_ADDX => hi <= hilo_addx_s(15 downto 8);
-               when HI_ADDY => hi <= hilo_addy_s(15 downto 8);
-               when HI_INC  => hi <= hilo_inc_s (15 downto 8);
-               when others  => null;
-            end case;
-         end if;
-      end if;
-   end process p_hi;
-
-   -- 'Lo' register
-   p_lo : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if wait_i = '0' then
-            case lo_sel_i is
-               when LO_NOP  => null;
-               when LO_DATA => lo <= data_i;
-               when LO_ADDX => lo <= hilo_addx_s(7 downto 0);
-               when LO_ADDY => lo <= hilo_addy_s(7 downto 0);
-               when LO_INC  => lo <= hilo_inc_s (7 downto 0);
-               when others  => null;
-            end case;
-         end if;
-      end if;
-   end process p_lo;
-
    -- 'Zp' register
    p_zp : process (clk_i)
    begin
@@ -370,20 +279,20 @@ begin
    end process p_sr_irq;
 
    -- Output multiplexers
-   addr <= (others => '0') when addr_sel_i = ADDR_NOP    else
-           pc              when addr_sel_i = ADDR_PC     else
-           hi & lo         when addr_sel_i = ADDR_HL     else
-           X"00" & lo      when addr_sel_i = ADDR_LO     else
-           X"01" & sp      when addr_sel_i = ADDR_SP     else
-           X"00" & zp      when addr_sel_i = ADDR_ZP     else
-           X"FFFA"         when addr_sel_i = ADDR_NMI    else
-           X"FFFB"         when addr_sel_i = ADDR_NMI1   else
-           X"FFFC"         when addr_sel_i = ADDR_RESET  else
-           X"FFFD"         when addr_sel_i = ADDR_RESET1 else
-           X"FFFE"         when addr_sel_i = ADDR_IRQ    else
-           X"FFFF"         when addr_sel_i = ADDR_IRQ1   else
-           X"FFFE"         when addr_sel_i = ADDR_BRK    else
-           X"FFFF"         when addr_sel_i = ADDR_BRK1   else
+   addr <= (others => '0')  when addr_sel_i = ADDR_NOP    else
+           pc               when addr_sel_i = ADDR_PC     else
+           hilo             when addr_sel_i = ADDR_HL     else
+           hilo and X"00FF" when addr_sel_i = ADDR_LO     else
+           X"01" & sp       when addr_sel_i = ADDR_SP     else
+           X"00" & zp       when addr_sel_i = ADDR_ZP     else
+           X"FFFA"          when addr_sel_i = ADDR_NMI    else
+           X"FFFB"          when addr_sel_i = ADDR_NMI1   else
+           X"FFFC"          when addr_sel_i = ADDR_RESET  else
+           X"FFFD"          when addr_sel_i = ADDR_RESET1 else
+           X"FFFE"          when addr_sel_i = ADDR_IRQ    else
+           X"FFFF"          when addr_sel_i = ADDR_IRQ1   else
+           X"FFFE"          when addr_sel_i = ADDR_BRK    else
+           X"FFFF"          when addr_sel_i = ADDR_BRK1   else
            (others => '0');
 
    data <= (others => '0') when data_sel_i = DATA_NOP  else
@@ -427,8 +336,7 @@ begin
    debug_o( 15 downto   0) <= pc;     -- Two bytes
    debug_o( 23 downto  16) <= ar;     -- One byte
    debug_o( 31 downto  24) <= data_i; -- One byte
-   debug_o( 39 downto  32) <= lo;     -- One byte
-   debug_o( 47 downto  40) <= hi;     -- One byte
+   debug_o( 47 downto  32) <= hilo;   -- Two bytes
    debug_o( 63 downto  48) <= addr;   -- Two bytes
    debug_o( 71 downto  64) <= data;   -- One byte
    debug_o( 72)            <= wren;   -- One byte
