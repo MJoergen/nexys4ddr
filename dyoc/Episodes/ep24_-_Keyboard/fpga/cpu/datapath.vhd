@@ -71,27 +71,6 @@ architecture structural of datapath is
    constant DATA_PCHI : std_logic_vector(2 downto 0) := B"101";
    constant DATA_SRI  : std_logic_vector(2 downto 0) := B"110";
    --
-   constant SR_NOP    : std_logic_vector(3 downto 0) := B"0000";
-   constant SR_ALU    : std_logic_vector(3 downto 0) := B"0001";
-   constant SR_DATA   : std_logic_vector(3 downto 0) := B"0010";
-   constant SR_CLC    : std_logic_vector(3 downto 0) := B"1000";
-   constant SR_SEC    : std_logic_vector(3 downto 0) := B"1001";
-   constant SR_CLI    : std_logic_vector(3 downto 0) := B"1010";
-   constant SR_SEI    : std_logic_vector(3 downto 0) := B"1011";
-   constant SR_CLV    : std_logic_vector(3 downto 0) := B"1100";
-   constant SR_CLD    : std_logic_vector(3 downto 0) := B"1110";
-   constant SR_SED    : std_logic_vector(3 downto 0) := B"1111";
-   --
-   constant SP_NOP    : std_logic_vector(1 downto 0) := B"00";
-   constant SP_INC    : std_logic_vector(1 downto 0) := B"01";
-   constant SP_DEC    : std_logic_vector(1 downto 0) := B"10";
-   constant SP_XR     : std_logic_vector(1 downto 0) := B"11";
-   --
-   constant ZP_NOP    : std_logic_vector(1 downto 0) := B"00";
-   constant ZP_DATA   : std_logic_vector(1 downto 0) := B"01";
-   constant ZP_ADDX   : std_logic_vector(1 downto 0) := B"10";
-   constant ZP_INC    : std_logic_vector(1 downto 0) := B"11";
-   --
    constant REG_AR    : std_logic_vector(1 downto 0) := B"00";
    constant REG_XR    : std_logic_vector(1 downto 0) := B"01";
    constant REG_YR    : std_logic_vector(1 downto 0) := B"10";
@@ -156,6 +135,22 @@ begin
       sr_o   => alu_sr
    );
 
+   -- Instantiate register file
+   i_regfile : entity work.regfile
+   port map (
+      clk_i    => clk_i,
+      wait_i   => wait_i,
+      ar_sel_i => ar_sel_i,
+      xr_sel_i => xr_sel_i,
+      yr_sel_i => yr_sel_i,
+      sp_sel_i => sp_sel_i,
+      val_i    => alu_ar,
+      ar_o     => ar,
+      xr_o     => xr,
+      yr_o     => yr,
+      sp_o     => sp
+   );
+
    -- Instantiate Program Counter
    i_pc : entity work.pc
    port map (
@@ -181,95 +176,27 @@ begin
       hilo_o   => hilo
    );
 
-   -- 'A' register
-   p_ar : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if wait_i = '0' then
-            if ar_sel_i = '1' then
-               ar <= alu_ar;
-            end if;
-         end if;
-      end if;
-   end process p_ar;
+   -- Instantiate Status Register
+   i_sr : entity work.sr
+   port map (
+      clk_i    => clk_i,
+      wait_i   => wait_i,
+      sr_sel_i => sr_sel_i,
+      val_i    => alu_sr,
+      data_i   => data_i,
+      sr_o     => sr
+   );
 
-   -- 'X' register
-   p_xr : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if wait_i = '0' then
-            if xr_sel_i = '1' then
-               xr <= alu_ar;
-            end if;
-         end if;
-      end if;
-   end process p_xr;
-
-   -- 'Y' register
-   p_yr : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if wait_i = '0' then
-            if yr_sel_i = '1' then
-               yr <= alu_ar;
-            end if;
-         end if;
-      end if;
-   end process p_yr;
-
-   -- Stack Pointer
-   p_sp : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if wait_i = '0' then
-            case sp_sel_i is
-               when SP_NOP => null;
-               when SP_INC => sp <= sp + 1;
-               when SP_DEC => sp <= sp - 1;
-               when SP_XR  => sp <= xr;
-               when others => null;
-            end case;
-         end if;
-      end if;
-   end process p_sp;
-
-   -- Status register
-   p_sr : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if wait_i = '0' then
-            case sr_sel_i is
-               when SR_NOP  => null;
-               when SR_ALU  => sr <= alu_sr;
-               when SR_DATA => sr <= data_i;
-               when SR_CLC  => sr(SR_C) <= '0';
-               when SR_SEC  => sr(SR_C) <= '1';
-               when SR_CLI  => sr(SR_I) <= '0';
-               when SR_SEI  => sr(SR_I) <= '1';
-               when SR_CLV  => sr(SR_V) <= '0';
-               when SR_CLD  => sr(SR_D) <= '0';
-               when SR_SED  => sr(SR_D) <= '1';
-               when others => null;
-            end case;
-         end if;
-      end if;
-   end process p_sr;
-
-   -- 'Zp' register
-   p_zp : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if wait_i = '0' then
-            case zp_sel_i is
-               when ZP_NOP  => null;
-               when ZP_DATA => zp <= data_i;
-               when ZP_ADDX => zp <= zp + xr;
-               when ZP_INC  => zp <= zp + 1;
-               when others  => null;
-            end case;
-         end if;
-      end if;
-   end process p_zp;
+   -- Instantiate Zero Page Register
+   i_zp : entity work.zp
+   port map (
+      clk_i    => clk_i,
+      wait_i   => wait_i,
+      zp_sel_i => zp_sel_i,
+      data_i   => data_i,
+      xr_i     => xr,
+      zp_o     => zp 
+   );
 
    p_sr_irq : process (sr)
    begin

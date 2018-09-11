@@ -1,8 +1,8 @@
 ADDRESS_SPACE rom RAMB32 [0xC000:0xFFFF]
    BUS_BLOCK
-      i_mem/i_rom/data_reg_3 [1:0] LOC = X3Y16;
-      i_mem/i_rom/data_reg_2 [3:2] LOC = X2Y15;
-      i_mem/i_rom/data_reg_1 [5:4] LOC = X1Y15;
-      i_mem/i_rom/data_reg_0 [7:6] LOC = X2Y16;
+      i_mem/i_rom/data_reg_3 [1:0] LOC = X0Y28;
+      i_mem/i_rom/data_reg_2 [3:2] LOC = X0Y29;
+      i_mem/i_rom/data_reg_1 [5:4] LOC = X0Y30;
+      i_mem/i_rom/data_reg_0 [7:6] LOC = X0Y27;
    END_BUS_BLOCK;
 END_ADDRESS_SPACE;
