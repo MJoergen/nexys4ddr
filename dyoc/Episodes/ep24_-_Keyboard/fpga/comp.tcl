@@ -1,5 +1,5 @@
 # This is a tcl command script for the Vivado tool chain
-read_vhdl {comp.vhd ic.vhd\
+read_vhdl {comp.vhd ic.vhd waiter.vhd timer.vhd\
    vga/overlay.vhd vga/chars.vhd vga/font.vhd vga/vga.vhd \
    mem/memio.vhd mem/dmem.vhd mem/ram.vhd mem/rom.vhd mem/mem.vhd \
    keyboard/ps2.vhd keyboard/scancode.vhd keyboard/keyboard.vhd \
