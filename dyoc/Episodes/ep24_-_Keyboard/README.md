@@ -49,6 +49,11 @@ may generate several events back-to-back.
 I've added the last keyboard event to the VGA overlay, see line 340 of
 fpga/comp.vhd.
 
+### Cleanup
+I've split the CPU datapath module into a number of separate files to make the
+hierearchy more clear. Basically, the datapath module itself contains no
+registers, only instantiated sub-blocks.
+
 ## Software changes
 
 ### Startup code
