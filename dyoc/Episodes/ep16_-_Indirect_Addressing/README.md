@@ -22,3 +22,12 @@ result is stored in the hold register.  In the fifth clock cycle the
 'Y'-register is added to the address in the hold register.  This new address is
 used for the remainder of the instruction.
 
+## Supported make targets are:
+* make sim : Simulate the computer so far. It uses the functional test
+  in mem/mem.s as stimulus.
+* make fpga : Program the FPGA and run the computer on the hardware.
+
+The test ends after around 1000 clock cycles with the value $FF in the
+A-register and the value $4C in the Instruction Register (executing a JMP
+instruction at $FB61).  This corresponds to approx eight seconds
+in the hardware, when running with switch 7 set to on.

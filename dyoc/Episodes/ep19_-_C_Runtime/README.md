@@ -159,4 +159,13 @@ written in C! High-five :-)
 
 In the next episode we'll add support for printing characters to the screen.
 
+## Supported make targets in the fpga directory are:
+* make sim : Simulate the computer so far. It uses the functional test
+  in mem/6502\_interrupt\_test.s as stimulus. The program takes far too long
+  to simulate, though.
+* make fpga : Program the FPGA and run the computer on the hardware.
+
+The test runs for about ten seconds on hardware and ends with the value $5C in the
+A-register and the value $4C in the Instruction Register (executing a JMP
+instruction at $F1E9).
 

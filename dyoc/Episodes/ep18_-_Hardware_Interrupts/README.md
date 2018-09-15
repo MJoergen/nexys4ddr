@@ -49,3 +49,13 @@ is caused by a BRK or PHP instruction, and the Break bit is cleared if the
 write is caused by an IRQ or NMI. For more details, see the description
 in <https://wiki.nesdev.com/w/index.php/Status_flags> and <https://wiki.nesdev.com/w/index.php/CPU_status_flag_behavior>.
 
+## Supported make targets are:
+* make sim : Simulate the computer so far. It uses the functional test
+  in mem/6502\_interrupt\_test.s as stimulus.
+* make fpga : Program the FPGA and run the computer on the hardware.
+
+The test ends after around 1500 clock cycles with the value $00 in the
+A-register and the value $4C in the Instruction Register (executing a JMP
+instruction at $C300).  This corresponds to approx eight seconds
+in the hardware, when running with switch 7 set to on.
+

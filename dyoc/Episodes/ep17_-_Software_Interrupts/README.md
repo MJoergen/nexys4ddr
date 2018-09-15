@@ -64,3 +64,11 @@ re-defining bit 7 of the input switch to denote "full speed".  This is easily
 achieved by changing line 86 in comp.vhd, so that mem\_wait is never asserted
 at full speed.
 
+## Supported make targets are:
+* make sim : Simulate the computer so far. It uses the new functional
+  test in mem/6502\_functional\_test.s as stimulus.
+* make fpga : Program the FPGA and run the computer on the hardware.
+
+The test ends with the value $F0 in the A-register and the value $4C in the
+Instruction Register (executing a JMP instruction at $EFAD).
+

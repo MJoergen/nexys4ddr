@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.89 (w)1999-2018 BSI
-[*] Mon May 28 12:38:19 2018
+[*] Sat Sep 15 14:03:14 2018
 [*]
-[dumpfile] "/home/mike/git/nexys4ddr/dyoc/ep18_-_Hardware_Interrupts/tb.ghw"
-[dumpfile_mtime] "Mon May 28 12:36:18 2018"
-[dumpfile_size] 991369
-[savefile] "/home/mike/git/nexys4ddr/dyoc/ep18_-_Hardware_Interrupts/tb.gtkw"
-[timestart] 2842400000
+[dumpfile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep18_-_Hardware_Interrupts/tb.ghw"
+[dumpfile_mtime] "Sat Sep 15 14:01:22 2018"
+[dumpfile_size] 1488661
+[savefile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep18_-_Hardware_Interrupts/tb.gtkw"
+[timestart] 0
 [size] 1920 1103
 [pos] 1868 33
-*-25.100788 2979100000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-33.041893 59330000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.tb.
 [treeopen] top.tb.i_cpu.
