@@ -22,6 +22,7 @@
 const uint8_t PROP = 20;
 
 char    board[ROWS*COLS];
+char    color[ROWS*COLS];
 char newboard[ROWS*COLS];
 
 void reset(void)
@@ -30,6 +31,7 @@ void reset(void)
    uint8_t y;
 
    memset(board, 0, sizeof(board));
+   memset(color, 0, sizeof(board));
    memset(newboard, 0, sizeof(newboard));
 
    for (y=1; y<=SIZE_Y; ++y)
@@ -75,11 +77,23 @@ void update(void)
          newboard[idx] = board[idx];
          if (board[idx] && (neighbours < 2 || neighbours > 3))
          {
+            // Death
             newboard[idx] = 0;
+            color[idx] = 0;
          }
          if (!board[idx] && (neighbours == 3))
          {
+            // Birth
             newboard[idx] = 1;
+            color[idx] = 1;
+         }
+
+         if (board[idx])
+         {
+            if (color[idx] < 15)
+            {
+               color[idx] += 1;
+            }
          }
       }
    }
@@ -87,6 +101,9 @@ void update(void)
    memcpy(board, newboard, sizeof(board));
 } // end of update
 
+
+extern uint8_t* curs_pos;
+#pragma zpsym("curs_pos");    // curs_pos is in zero-page.
 
 void show(void)
 {
@@ -103,6 +120,7 @@ void show(void)
       {
          if (p[x])
          {
+            *(curs_pos + 0x2000) = color[iStart+x];
             cputc('*');
          }
          else
@@ -112,7 +130,6 @@ void show(void)
       }
    }
 } // end of show
-
 
 uint16_t ms(void)
 {
