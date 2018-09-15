@@ -1,17 +1,18 @@
-XILINX_ISE_DIR = /opt/Xilinx/14.7/ISE_DS
+XILINX_DIR = /opt/Xilinx/Vivado/2017.3
 
 SRC  = comp.vhd ic.vhd\
 		 vga/overlay.vhd vga/chars.vhd vga/font.vhd vga/vga.vhd \
 		 mem/memio.vhd mem/dmem.vhd mem/ram.vhd mem/rom.vhd mem/mem.vhd \
 		 keyboard/ps2.vhd keyboard/scancode.vhd keyboard/keyboard.vhd \
-		 cpu/datapath.vhd cpu/ctl.vhd cpu/cpu.vhd cpu/alu.vhd
+		 cpu/datapath.vhd cpu/ctl.vhd cpu/cpu.vhd cpu/alu.vhd \
+		 ethernet/lan8720a/smi.vhd ethernet/read_smi.vhd
 XDC  = comp.xdc
 TB   = tb.vhd keyboard/ps2_tb.vhd
 WAVE = tb.ghw
 SAVE = tb.gtkw
 
-BIT = ../../ep24_-_Keyboard/fpga/comp.bit
-BMM = ../../ep24_-_Keyboard/fpga/comp.bmm
+BIT = comp.bit
+BMM = comp.bmm
 ROM = ../rom.txt
 MEM = comp.mem
 
@@ -20,12 +21,8 @@ MEM = comp.mem
 # Generate bit-file and program FPGA
 #####################################
 
-comp.bit: $(BIT) $(BMM) $(MEM)
-	bash -c "source $(XILINX_ISE_DIR)/settings64.sh ; data2mem -bm $(BMM) -bt $(BIT) -bd $(MEM) -o b comp.bit"
-
-$(MEM): $(ROM)
-	echo "@C000" > $(MEM)
-	cat $(ROM) >> $(MEM)
+comp.bit: comp.tcl $(SRC) $(XDC) ../rom.txt
+	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $<"
 
 fpga: comp.bit
 	djtgcfg prog -d Nexys4DDR -i 0 --file $<
