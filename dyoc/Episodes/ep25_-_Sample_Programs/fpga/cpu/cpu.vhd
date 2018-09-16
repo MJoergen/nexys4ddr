@@ -32,7 +32,7 @@ end entity cpu;
 architecture structural of cpu is
 
    signal cyc_cnt   : std_logic_vector(31 downto 0);
-   signal cyc_latch : std_logic_vector(31 downto 0);
+   signal cyc_latch : std_logic;
    signal ar_sel    : std_logic;
    signal hi_sel    : std_logic_vector(2 downto 0);
    signal lo_sel    : std_logic_vector(2 downto 0);
@@ -51,32 +51,18 @@ architecture structural of cpu is
 begin
 
    -----------------
-   -- Statistics
+   -- Instantiate cycle counter
    -----------------
 
-   -- Cycle counter
-   p_cyc_cnt : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         cyc_cnt <= cyc_cnt + 1;
+   inst_cycle : entity work.cycle
+   port map (
+      clk_i     => clk_i,
+      rst_i     => rst_i,
+      latch_i   => cyc_latch,
+      cyc_cnt_o => cyc_cnt
+   );
 
-         if rst_i = '1' then
-            cyc_cnt <= (others => '0');
-         end if;
-      end if;
-   end process p_cyc_cnt;
-
-   -- Latch cycle counter when reading
-   p_cyc_latch : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if memio_i(0) = '0' then
-            cyc_latch <= cyc_cnt;
-         end if;
-      end if;
-   end process p_cyc_latch;
-
-
+   cyc_latch <= not memio_i(0);
 
    -----------------
    -- Instantiate datapath
@@ -150,7 +136,7 @@ begin
    -- Drive Output Signals
    -----------------------
 
-   memio_o(31 downto 0) <= cyc_latch;
+   memio_o(31 downto 0) <= cyc_cnt;
 
 end architecture structural;
 
