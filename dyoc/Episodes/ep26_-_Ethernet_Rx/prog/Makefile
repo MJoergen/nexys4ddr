@@ -1,4 +1,4 @@
-PROGRAM = life
+PROGRAM = ethernet
 
 # Compiler flags
 CFLAGS = -O

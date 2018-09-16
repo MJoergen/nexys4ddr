@@ -20,8 +20,8 @@
 ; These must match the corresponding symbols in include/memorymap.h
 ; and the assignment in lib/irq.s.
 
-IRQ_STATUS     = $7FFF
-IRQ_MASK       = $7FDF
+IRQ_STATUS     = $7F9F
+IRQ_MASK       = $7F1F
 
 IRQ_TIMER_NUM  = 0
 IRQ_VGA_NUM    = 1
@@ -58,7 +58,7 @@ init:
    JSR zerobss             ; Clear BSS segment
    JSR copydata            ; Initialize DATA segment
    JSR initlib             ; Run constructors
-   JSR _clrscr             ; Clear screen
+   ;JSR _clrscr             ; Clear screen
 
 ; ---------------------------------------------------------------------------
 ; Enable timer interrupt

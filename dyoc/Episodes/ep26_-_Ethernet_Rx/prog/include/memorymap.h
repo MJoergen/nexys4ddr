@@ -21,6 +21,8 @@ typedef struct
    uint8_t  cpuCycLatch;
    uint8_t  _reserved[12];
    uint8_t  irqMask;
+   uint8_t  _reserved2[32];
+   uint8_t  _reserved3[64];
 } t_memio_config;
 
 typedef struct
@@ -31,10 +33,12 @@ typedef struct
    uint8_t  kbdData;
    uint8_t  _reserved[22];
    uint8_t  irqStatus;
+   uint8_t  _reserved2[32];
+   uint8_t  rx[64];
 } t_memio_status;
 
-#define MEMIO_CONFIG ((t_memio_config *) 0x7FC0)
-#define MEMIO_STATUS ((t_memio_status *) 0x7FE0)
+#define MEMIO_CONFIG ((t_memio_config *) 0x7F00)
+#define MEMIO_STATUS ((t_memio_status *) 0x7F80)
 
 #define IRQ_TIMER_NUM    0
 #define IRQ_VGA_NUM      1

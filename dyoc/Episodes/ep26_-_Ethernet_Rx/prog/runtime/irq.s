@@ -6,8 +6,8 @@
 .import kbd_isr            ; See lib/kbd_isr.s
 
 ; These must be the same addresses defined in prog/memorymap.h
-IRQ_STATUS = $7FFF
-IRQ_MASK   = $7FDF
+IRQ_STATUS = $7F9F
+IRQ_MASK   = $7F1F
 
 
 .segment "ZEROPAGE"

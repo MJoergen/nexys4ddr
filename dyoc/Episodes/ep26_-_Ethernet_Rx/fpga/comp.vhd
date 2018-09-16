@@ -3,11 +3,20 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 
+-- Needed for xpm_cdc_array_single
+library xpm;
+use xpm.vcomponents.all;
+
+-- Needed for bufg
+library unisim;
+use unisim.vcomponents.all;
+
 -- This is the top level module. The ports on this entity are mapped directly
 -- to pins on the FPGA.
 --
 -- In this version the design can execute all instructions.
--- It additionally features a 80x60 character display.
+-- It additionally features a 80x60 character display and connects to an
+-- onboard Ethernet PHY.
 --
 -- The speed of the execution is controlled by the slide switches.
 -- Simultaneously, the CPU debug is shown as an overlay over the text screen.
@@ -16,26 +25,46 @@ use ieee.numeric_std.all;
 
 entity comp is
    port (
-      clk_i     : in  std_logic;                      -- 100 MHz
+      clk_i        : in  std_logic;                      -- 100 MHz
 
-      sw_i      : in  std_logic_vector(7 downto 0);
-      led_o     : out std_logic_vector(7 downto 0);
-      rstn_i    : in  std_logic;
+      -- CPU reset (push button). Active low.
+      rstn_i       : in  std_logic;
 
-      ps2_clk_i  : in  std_logic;
-      ps2_data_i : in  std_logic;
+      -- Input switches
+      sw_i         : in  std_logic_vector(7 downto 0);
 
-      vga_hs_o  : out std_logic;
-      vga_vs_o  : out std_logic;
-      vga_col_o : out std_logic_vector(7 downto 0)    -- RRRGGGBB
+      -- Output LED's
+      led_o        : out std_logic_vector(7 downto 0);
+
+      -- Keyboard / mouse
+      ps2_clk_i    : in  std_logic;
+      ps2_data_i   : in  std_logic;
+
+      -- Connected to Ethernet PHY
+      eth_txd_o    : out   std_logic_vector(1 downto 0);
+      eth_txen_o   : out   std_logic;
+      eth_rxd_i    : in    std_logic_vector(1 downto 0);
+      eth_rxerr_i  : in    std_logic;
+      eth_crsdv_i  : in    std_logic;
+      eth_intn_i   : in    std_logic;
+      eth_mdio_io  : inout std_logic;
+      eth_mdc_o    : out   std_logic;
+      eth_rstn_o   : out   std_logic;
+      eth_refclk_o : out   std_logic;
+   
+      -- Output to VGA monitor
+      vga_hs_o     : out std_logic;
+      vga_vs_o     : out std_logic;
+      vga_col_o    : out std_logic_vector(7 downto 0)    -- RRRGGGBB
    );
 end comp;
 
 architecture Structural of comp is
 
-   -- Clock divider for VGA
-   signal vga_cnt  : std_logic_vector(1 downto 0) := (others => '0');
+   -- Clock divider for VGA and Ethnernet
+   signal clk_cnt  : std_logic_vector(1 downto 0) := (others => '0');
    signal vga_clk  : std_logic;
+   signal eth_clk  : std_logic;
 
    -- Reset
    signal rst : std_logic := '1';   -- Make sure reset is asserted after power-up.
@@ -51,18 +80,13 @@ architecture Structural of comp is
 
    -- Data Path signals
    signal cpu_addr  : std_logic_vector(15 downto 0);
-   signal mem_data  : std_logic_vector(7 downto 0);
-   signal cpu_data  : std_logic_vector(7 downto 0);
+   signal mem_data  : std_logic_vector( 7 downto 0);
+   signal cpu_data  : std_logic_vector( 7 downto 0);
    signal cpu_rden  : std_logic;
    signal cpu_wren  : std_logic;
    signal cpu_debug : std_logic_vector(175 downto 0);
    signal cpu_wait  : std_logic;
    signal mem_wait  : std_logic;
-
-   -- Output from VGA block
-   signal vga_hs    : std_logic;
-   signal vga_vs    : std_logic;
-   signal vga_col   : std_logic_vector(7 downto 0);
 
    -- Interface between VGA and Memory
    signal char_addr : std_logic_vector(12 downto 0);
@@ -70,16 +94,13 @@ architecture Structural of comp is
    signal col_addr  : std_logic_vector(12 downto 0);
    signal col_data  : std_logic_vector( 7 downto 0);
 
-   -- Memory Mapped I/O
-   signal memio_rd   : std_logic_vector(8*32-1 downto 0);
-   signal memio_rden : std_logic_vector(  32-1 downto 0);
-   signal memio_wr   : std_logic_vector(8*32-1 downto 0);
+   -- Interface between Ethernet and Memory
+   signal eth_user_data : std_logic_vector(64*8-1 downto 0);
 
-   -- Interrupt controller
-   signal ic_irq     : std_logic_vector(7 downto 0);
-   signal cpu_irq    : std_logic;
-   signal vga_irq    : std_logic;
-   signal kbd_irq    : std_logic;
+   -- Memory Mapped I/O
+   signal memio_rd   : std_logic_vector(8*128-1 downto 0);
+   signal memio_rden : std_logic_vector(  128-1 downto 0);
+   signal memio_wr   : std_logic_vector(8*128-1 downto 0);
 
    signal vga_memio_wr : std_logic_vector(18*8-1 downto 0);
    signal irq_memio_wr : std_logic_vector( 1*8-1 downto 0);
@@ -91,12 +112,11 @@ architecture Structural of comp is
    signal irq_memio_rd : std_logic_vector( 1*8-1 downto 0);
    signal irq_memio_rden : std_logic;
 
-   -- Counter for the timer interrupt.
-   -- It counts on the vga_clk (running at 25 MHz).
-   -- It wraps around once every 0.01 seconds, i.e. after
-   -- 25M/100 = 250k clock periods.
-   constant C_TIMER_CNT : std_logic_vector(17 downto 0) := std_logic_vector(to_unsigned(250000, 18));
-   signal timer_cnt : std_logic_vector(17 downto 0) := (others => '0');
+   -- Interrupt controller
+   signal ic_irq    : std_logic_vector(7 downto 0);
+   signal cpu_irq   : std_logic;
+   signal vga_irq   : std_logic;
+   signal kbd_irq   : std_logic;
    signal timer_irq : std_logic := '0';
 
    signal kbd_debug : std_logic_vector(15 downto 0);
@@ -104,18 +124,35 @@ architecture Structural of comp is
 begin
 
    --------------------------------------------------
-   -- Divide input clock by 4, from 100 MHz to 25 MHz
-   -- This is close enough to 25.175 MHz.
+   -- Divide input clock (100 MHz) by 2 and 4, to generate
+   -- 50 MHz (for Ethernet) and 25 MHz (for VGA).
+   -- The VGA clock should ideally be 25.175 MHz, but
+   -- this is close enough.
    --------------------------------------------------
 
    p_vga_cnt : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         vga_cnt <= vga_cnt + 1;
+         clk_cnt <= clk_cnt + 1;
       end if;
    end process p_vga_cnt;
 
-   vga_clk <= vga_cnt(1);
+--   -- Instantiate clock buffer for ETH clock (50 MHz)
+--   BUFG_eth_inst : BUFG
+--   port map (
+--               I => clk_cnt(0),
+--               O => eth_clk
+--            );
+--
+--   -- Instantiate clock buffer for VGA clock (25 MHz)
+--   BUFG_vga_inst : BUFG
+--   port map (
+--               I => clk_cnt(1),
+--               O => vga_clk
+--            );
+
+   eth_clk <= clk_cnt(0);
+   vga_clk <= clk_cnt(1);
 
 
    --------------------------------------------------
@@ -187,18 +224,24 @@ begin
       G_RAM_SIZE   => 15, -- 32 Kbytes
       G_CHAR_SIZE  => 13, -- 8 Kbytes
       G_COL_SIZE   => 13, -- 8 Kbytes
-      G_MEMIO_SIZE =>  6, -- 64 bytes
+      G_MEMIO_SIZE =>  8, -- 256 bytes
       --
       G_ROM_MASK   => X"C000",
       G_RAM_MASK   => X"0000",
       G_CHAR_MASK  => X"8000",
       G_COL_MASK   => X"A000",
-      G_MEMIO_MASK => X"7FC0",
+      G_MEMIO_MASK => X"7F00",
       --
       G_FONT_FILE  => "font8x8.txt",
       G_ROM_FILE   => "../rom.txt",
       --
       G_MEMIO_INIT => X"00000000000000000000000000000000" &
+                      X"00000000000000000000000000000000" &
+                      X"00000000000000000000000000000000" &
+                      X"00000000000000000000000000000000" &
+                      X"00000000000000000000000000000000" &
+                      X"00000000000000000000000000000000" &
+                      X"00000000000000000000000000000000" &
                       X"FFFCE3E0433C1E178C82803022110A00"
    )
    port map (
@@ -247,9 +290,9 @@ begin
       clk_i     => vga_clk,
       overlay_i => vga_overlay_en,
       digits_i  => vga_overlay,
-      vga_hs_o  => vga_hs,
-      vga_vs_o  => vga_vs,
-      vga_col_o => vga_col,
+      vga_hs_o  => vga_hs_o,
+      vga_vs_o  => vga_vs_o,
+      vga_col_o => vga_col_o,
 
       char_addr_o => char_addr,
       char_data_i => char_data,
@@ -279,49 +322,90 @@ begin
    );
 
 
+   ------------------------------
+   -- Instantiate Ethernet module
+   ------------------------------
+
+   inst_ethernet : entity work.ethernet
+   port map (
+      clk_i        => eth_clk,
+      user_data_o  => eth_user_data,
+      eth_txd_o    => eth_txd_o,
+      eth_txen_o   => eth_txen_o,
+      eth_rxd_i    => eth_rxd_i,
+      eth_rxerr_i  => eth_rxerr_i,
+      eth_crsdv_i  => eth_crsdv_i,
+      eth_intn_i   => eth_intn_i,
+      eth_mdio_io  => eth_mdio_io,
+      eth_mdc_o    => eth_mdc_o,
+      eth_rstn_o   => eth_rstn_o,
+      eth_refclk_o => eth_refclk_o
+   );
+
+
+   --------------------------------------------------
+   -- Clock domain crossing
+   --------------------------------------------------
+
+--   xpm_cdc_array_single_inst: XPM_CDC_ARRAY_SINGLE
+--   generic map (
+--                  DEST_SYNC_FF   => 2,
+--                  SIM_ASSERT_CHK => 1,
+--                  SRC_INPUT_REG  => 0, -- integer; 0=do not register input, 1=register input
+--                  WIDTH          => 32*16 -- integer; range: 1-1024
+--               )
+--   port map (
+--               src_clk  => '0',   -- Not used
+--               src_in   => eth_smi_data,
+--               dest_clk => vga_clk,
+--               dest_out => smi_memio_rd
+--            );
+
    --------------------------------------------------
    -- Generate timer interrupt
    --------------------------------------------------
 
-   p_timer_cnt : process (vga_clk)
-   begin
-      if rising_edge(vga_clk) then
-         timer_irq <= '0';
-         if timer_cnt = C_TIMER_CNT-1 then
-            timer_cnt <= (others => '0');
-            timer_irq <= '1'; -- Generate interrupt at wrap around.
-         else
-            timer_cnt <= timer_cnt + 1;
-         end if;
-      end if;
-   end process p_timer_cnt;
+   i_timer : entity work.timer
+   generic map (
+      G_TIMER_CNT => 250000    -- Generate interrupt every 0.01 seconds
+   )
+   port map (
+      clk_i => vga_clk,
+      irq_o => timer_irq
+   );
 
 
    --------------------------------------------------
    -- Memory Mapped I/O
-   -- This must match the mapping in prog/memorymap.h
+   -- This must match the mapping in prog/include/memorymap.h
    --------------------------------------------------
 
-   -- 7FC0 - 7FCF : VGA_PALETTE
-   -- 7FD0 - 7FD1 : VGA_PIX_Y_INT
-   -- 7FD2 - 7FDE : Not used
-   -- 7FDF        : IRQ_MASK
-   vga_memio_wr <= memio_wr(17*8+7 downto 0*8);
-   cpu_memio_wr <= memio_wr(18*8+7 downto 18*8);
-   --              memio_wr(30*8+7 downto 19*8);      -- Not used
-   irq_memio_wr <= memio_wr(31*8+7 downto 31*8);
+   -- 7F00 - 7F0F : VGA_PALETTE
+   -- 7F10 - 7F11 : VGA_PIX_Y_INT
+   -- 7F12 - 7F1E : Not used
+   -- 7F1F        : IRQ_MASK
+   -- 7F20 - 7F7F : Not used
+   vga_memio_wr <= memio_wr( 17*8+7 downto 0*8);
+   cpu_memio_wr <= memio_wr( 18*8+7 downto 18*8);
+   --              memio_wr( 30*8+7 downto 19*8);      -- Not used
+   irq_memio_wr <= memio_wr( 31*8+7 downto 31*8);
+   --              memio_wr(127*8+7 downto 32*8);      -- Not used
 
-   -- 7FE0 - 7FE1 : VGA_PIX_X
-   -- 7FE2 - 7FE3 : VGA_PIX_Y
-   -- 7FE4 - 7FE7 : CPU_CYC
-   -- 7FE8        : KBD_DATA
-   -- 7FE9 - 7FFE : Not used
-   -- 7FFF        : IRQ_STATUS
-   memio_rd( 3*8+7 downto  0*8) <= vga_memio_rd;
-   memio_rd( 7*8+7 downto  4*8) <= cpu_memio_rd;
-   memio_rd( 8*8+7 downto  8*8) <= kbd_memio_rd;
-   memio_rd(30*8+7 downto  9*8) <= (others => '0');   -- Not used
-   memio_rd(31*8+7 downto 31*8) <= irq_memio_rd;
+   -- 7F80 - 7F81 : VGA_PIX_X
+   -- 7F82 - 7F83 : VGA_PIX_Y
+   -- 7F84 - 7F87 : CPU_CYC
+   -- 7F88        : KBD_DATA
+   -- 7F89 - 7F9E : Not used
+   -- 7F9F        : IRQ_STATUS
+   -- 7FA0 - 7FBF : Not used
+   -- 7FC0 - 7FFF : Ethernet SMI
+   memio_rd(  3*8+7 downto  0*8) <= vga_memio_rd;
+   memio_rd(  7*8+7 downto  4*8) <= cpu_memio_rd;
+   memio_rd(  8*8+7 downto  8*8) <= kbd_memio_rd;
+   memio_rd( 30*8+7 downto  9*8) <= (others => '0');   -- Not used
+   memio_rd( 31*8+7 downto 31*8) <= irq_memio_rd;
+   memio_rd( 63*8+7 downto 32*8) <= (others => '0');   -- Not used
+   memio_rd(127*8+7 downto 64*8) <= eth_user_data;
    irq_memio_rden <= memio_rden(31);
 
 
@@ -341,15 +425,6 @@ begin
 
    vga_overlay(175 downto   0) <= cpu_debug;
    vga_overlay(191 downto 176) <= kbd_debug;
-
-
-   --------------------------------------------------
-   -- Drive output signals
-   --------------------------------------------------
-
-   vga_hs_o  <= vga_hs;
-   vga_vs_o  <= vga_vs;
-   vga_col_o <= vga_col;
 
 end architecture Structural;
 

@@ -24,6 +24,18 @@ architecture Structural of tb is
    signal data  : std_logic_vector(7 downto 0);
    signal valid : std_logic;
 
+   -- Connected to Ethernet PHY
+   signal eth_txd    : std_logic_vector(1 downto 0);
+   signal eth_txen   : std_logic;
+   signal eth_rxd    : std_logic_vector(1 downto 0);
+   signal eth_rxerr  : std_logic;
+   signal eth_crsdv  : std_logic;
+   signal eth_intn   : std_logic;
+   signal eth_mdio   : std_logic;
+   signal eth_mdc    : std_logic;
+   signal eth_rstn   : std_logic;
+   signal eth_refclk : std_logic;
+   
 begin
    
    --------------------------------------------------
@@ -57,15 +69,25 @@ begin
 
    inst_comp : entity work.comp
    port map (
-      clk_i      => clk,
-      sw_i       => sw,
-      led_o      => led,
-      rstn_i     => rstn,
-      ps2_clk_i  => ps2_clk,
-      ps2_data_i => ps2_data,
-      vga_hs_o   => vga_hs,
-      vga_vs_o   => vga_vs,
-      vga_col_o  => vga_col
+      clk_i        => clk,
+      sw_i         => sw,
+      led_o        => led,
+      rstn_i       => rstn,
+      ps2_clk_i    => ps2_clk,
+      ps2_data_i   => ps2_data,
+      eth_txd_o    => eth_txd,
+      eth_txen_o   => eth_txen,
+      eth_rxd_i    => eth_rxd,
+      eth_rxerr_i  => eth_rxerr,
+      eth_crsdv_i  => eth_crsdv,
+      eth_intn_i   => eth_intn,
+      eth_mdio_io  => eth_mdio,
+      eth_mdc_o    => eth_mdc,
+      eth_rstn_o   => eth_rstn,
+      eth_refclk_o => eth_refclk,
+      vga_hs_o     => vga_hs,
+      vga_vs_o     => vga_vs,
+      vga_col_o    => vga_col
    );
 
 

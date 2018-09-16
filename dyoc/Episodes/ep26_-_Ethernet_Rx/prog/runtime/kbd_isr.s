@@ -8,7 +8,7 @@
 
 ; Address of memory mapped IO to read last keyboard event.
 ; Must match the corresponding address in prog/keyboard.h
-KBD_DATA   = $7FE8
+KBD_DATA   = $7F88
 
 KBD_BUFFER_SIZE = 10
 
