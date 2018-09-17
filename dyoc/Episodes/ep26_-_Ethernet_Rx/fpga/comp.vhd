@@ -3,14 +3,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 
--- Needed for xpm_cdc_array_single
-library xpm;
-use xpm.vcomponents.all;
-
--- Needed for bufg
-library unisim;
-use unisim.vcomponents.all;
-
 -- This is the top level module. The ports on this entity are mapped directly
 -- to pins on the FPGA.
 --
@@ -69,9 +61,7 @@ architecture Structural of comp is
    -- Reset
    signal rst : std_logic := '1';   -- Make sure reset is asserted after power-up.
 
-   -- Generate pause signal
-   -- 25 bits corresponds to 25Mhz / 2^25 = 1 Hz approx.
-   signal sys_wait_cnt  : std_logic_vector(24 downto 0) := (others => '0');
+   -- Wait signal is used to slow down the CPU
    signal sys_wait      : std_logic;
 
    -- VGA debug overlay
@@ -137,20 +127,6 @@ begin
       end if;
    end process p_vga_cnt;
 
---   -- Instantiate clock buffer for ETH clock (50 MHz)
---   BUFG_eth_inst : BUFG
---   port map (
---               I => clk_cnt(0),
---               O => eth_clk
---            );
---
---   -- Instantiate clock buffer for VGA clock (25 MHz)
---   BUFG_vga_inst : BUFG
---   port map (
---               I => clk_cnt(1),
---               O => vga_clk
---            );
-
    eth_clk <= clk_cnt(0);
    vga_clk <= clk_cnt(1);
 
@@ -167,18 +143,15 @@ begin
 
 
    --------------------------------------------------
-   -- Generate wait signal
+   -- Instantiate Waiter
    --------------------------------------------------
 
-   p_sys_wait_cnt : process (vga_clk)
-   begin
-      if rising_edge(vga_clk) then
-         sys_wait_cnt <= sys_wait_cnt + sw_i;
-      end if;
-   end process p_sys_wait_cnt;
-
-   -- Check for wrap around of counter.
-   sys_wait <= '0' when (sys_wait_cnt + sw_i) < sys_wait_cnt else not sw_i(7);
+   i_waiter : entity work.waiter
+   port map (
+      clk_i   => vga_clk,
+      inc_i   => sw_i,
+      wait_o  => sys_Wait
+   );
 
    -- Generate wait signal for the CPU.
    cpu_wait <= mem_wait or sys_wait;
@@ -259,6 +232,10 @@ begin
       b_col_addr_i  => col_addr,
       b_col_data_o  => col_data,
       --
+      b_eth_wren_i   => eth_wren,
+      b_eth_addr_i   => eth_addr,
+      b_eth_data_i   => eth_data,
+      --
       b_memio_rd_i   => memio_rd,    -- To MEMIO
       b_memio_rden_o => memio_rden,  -- To MEMIO
       b_memio_wr_o   => memio_wr     -- From MEMIO
@@ -323,7 +300,7 @@ begin
 
 
    ------------------------------
-   -- Instantiate Ethernet module
+   -- Instantiate Ethernet modul
    ------------------------------
 
    inst_ethernet : entity work.ethernet
