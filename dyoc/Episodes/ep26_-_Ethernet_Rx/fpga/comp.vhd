@@ -16,6 +16,10 @@ use ieee.numeric_std.all;
 -- CPU debug overlay is switched off.
 
 entity comp is
+   generic (
+      G_SIM_MODEL : boolean := false;
+      G_FONT_FILE : string := "font8x8.txt"
+   );
    port (
       clk_i        : in  std_logic;                      -- 100 MHz
 
@@ -85,7 +89,9 @@ architecture Structural of comp is
    signal col_data  : std_logic_vector( 7 downto 0);
 
    -- Interface between Ethernet and Memory
-   signal eth_user_data : std_logic_vector(64*8-1 downto 0);
+   signal eth_user_wren : std_logic;
+   signal eth_user_addr : std_logic_vector(15 downto 0);
+   signal eth_user_data : std_logic_vector( 7 downto 0);
 
    -- Memory Mapped I/O
    signal memio_rd   : std_logic_vector(8*128-1 downto 0);
@@ -95,10 +101,12 @@ architecture Structural of comp is
    signal vga_memio_wr : std_logic_vector(18*8-1 downto 0);
    signal irq_memio_wr : std_logic_vector( 1*8-1 downto 0);
    signal cpu_memio_wr : std_logic_vector( 1*8-1 downto 0);
+   signal eth_memio_wr : std_logic_vector( 4*8-1 downto 0);
 
    signal vga_memio_rd : std_logic_vector( 4*8-1 downto 0);
    signal cpu_memio_rd : std_logic_vector( 4*8-1 downto 0);
    signal kbd_memio_rd : std_logic_vector( 1*8-1 downto 0);
+   signal eth_memio_rd : std_logic_vector( 8*8-1 downto 0);
    signal irq_memio_rd : std_logic_vector( 1*8-1 downto 0);
    signal irq_memio_rden : std_logic;
 
@@ -140,6 +148,36 @@ begin
          rst <= not rstn_i;
       end if;
    end process p_rst;
+
+
+   --------------------------------------------------
+   -- Instantiate interrupt controller
+   --------------------------------------------------
+
+   i_ic : entity work.ic
+   port map (
+      clk_i   => vga_clk,
+      irq_i   => ic_irq,    -- Eight independent interrupt sources
+      irq_o   => cpu_irq,   -- Overall CPU interrupt
+
+      mask_i     => irq_memio_wr,      -- IRQ mask
+      stat_o     => irq_memio_rd,      -- IRQ status
+      stat_clr_i => irq_memio_rden     -- Reading from IRQ status
+   );
+
+
+   --------------------------------------------------
+   -- Generate timer interrupt
+   --------------------------------------------------
+
+   i_timer : entity work.timer
+   generic map (
+      G_TIMER_CNT => 250000    -- Generate interrupt every 0.01 seconds
+   )
+   port map (
+      clk_i => vga_clk,
+      irq_o => timer_irq
+   );
 
 
    --------------------------------------------------
@@ -205,7 +243,6 @@ begin
       G_COL_MASK   => X"A000",
       G_MEMIO_MASK => X"7F00",
       --
-      G_FONT_FILE  => "font8x8.txt",
       G_ROM_FILE   => "../rom.txt",
       --
       G_MEMIO_INIT => X"00000000000000000000000000000000" &
@@ -232,9 +269,9 @@ begin
       b_col_addr_i  => col_addr,
       b_col_data_o  => col_data,
       --
-      b_eth_wren_i   => eth_wren,
-      b_eth_addr_i   => eth_addr,
-      b_eth_data_i   => eth_data,
+      b_eth_wren_i   => eth_user_wren,
+      b_eth_addr_i   => eth_user_addr,
+      b_eth_data_i   => eth_user_data,
       --
       b_memio_rd_i   => memio_rd,    -- To MEMIO
       b_memio_rden_o => memio_rden,  -- To MEMIO
@@ -243,26 +280,13 @@ begin
 
 
    --------------------------------------------------
-   -- Instantiate interrupt controller
-   --------------------------------------------------
-
-   i_ic : entity work.ic
-   port map (
-      clk_i   => vga_clk,
-      irq_i   => ic_irq,    -- Eight independent interrupt sources
-      irq_o   => cpu_irq,   -- Overall CPU interrupt
-
-      mask_i     => irq_memio_wr,      -- IRQ mask
-      stat_o     => irq_memio_rd,      -- IRQ status
-      stat_clr_i => irq_memio_rden     -- Reading from IRQ status
-   );
-
-
-   --------------------------------------------------
    -- Instantiate VGA module
    --------------------------------------------------
 
    i_vga : entity work.vga
+   generic map (
+      G_FONT_FILE => "font8x8.txt"
+   )
    port map (
       clk_i     => vga_clk,
       overlay_i => vga_overlay_en,
@@ -303,21 +327,51 @@ begin
    -- Instantiate Ethernet modul
    ------------------------------
 
-   inst_ethernet : entity work.ethernet
-   port map (
-      clk_i        => eth_clk,
-      user_data_o  => eth_user_data,
-      eth_txd_o    => eth_txd_o,
-      eth_txen_o   => eth_txen_o,
-      eth_rxd_i    => eth_rxd_i,
-      eth_rxerr_i  => eth_rxerr_i,
-      eth_crsdv_i  => eth_crsdv_i,
-      eth_intn_i   => eth_intn_i,
-      eth_mdio_io  => eth_mdio_io,
-      eth_mdc_o    => eth_mdc_o,
-      eth_rstn_o   => eth_rstn_o,
-      eth_refclk_o => eth_refclk_o
-   );
+   gen_ethernet : if G_SIM_MODEL = true generate
+      inst_ethernet : entity work.ethernet
+      port map (
+         clk_i        => eth_clk,
+         user_wren_o  => eth_user_wren,
+         user_addr_o  => eth_user_addr,
+         user_data_o  => eth_user_data,
+         user_memio_i => eth_memio_wr,
+         user_memio_o => eth_memio_rd,
+         --
+         eth_txd_o    => eth_txd_o,
+         eth_txen_o   => eth_txen_o,
+         eth_rxd_i    => eth_rxd_i,
+         eth_rxerr_i  => eth_rxerr_i,
+         eth_crsdv_i  => eth_crsdv_i,
+         eth_intn_i   => eth_intn_i,
+         eth_mdio_io  => eth_mdio_io,
+         eth_mdc_o    => eth_mdc_o,
+         eth_rstn_o   => eth_rstn_o,
+         eth_refclk_o => eth_refclk_o
+      );
+   end generate gen_ethernet;
+
+   gen_no_ethernet : if G_SIM_MODEL = false generate
+      inst_ethernet : entity work.ethernet_sim
+      port map (
+         clk_i        => eth_clk,
+         user_wren_o  => eth_user_wren,
+         user_addr_o  => eth_user_addr,
+         user_data_o  => eth_user_data,
+         user_memio_i => eth_memio_wr,
+         user_memio_o => eth_memio_rd,
+         --
+         eth_txd_o    => eth_txd_o,
+         eth_txen_o   => eth_txen_o,
+         eth_rxd_i    => eth_rxd_i,
+         eth_rxerr_i  => eth_rxerr_i,
+         eth_crsdv_i  => eth_crsdv_i,
+         eth_intn_i   => eth_intn_i,
+         eth_mdio_io  => eth_mdio_io,
+         eth_mdc_o    => eth_mdc_o,
+         eth_rstn_o   => eth_rstn_o,
+         eth_refclk_o => eth_refclk_o
+      );
+   end generate gen_no_ethernet;
 
 
    --------------------------------------------------
@@ -337,20 +391,6 @@ begin
 --               dest_clk => vga_clk,
 --               dest_out => smi_memio_rd
 --            );
-
-   --------------------------------------------------
-   -- Generate timer interrupt
-   --------------------------------------------------
-
-   i_timer : entity work.timer
-   generic map (
-      G_TIMER_CNT => 250000    -- Generate interrupt every 0.01 seconds
-   )
-   port map (
-      clk_i => vga_clk,
-      irq_o => timer_irq
-   );
-
 
    --------------------------------------------------
    -- Memory Mapped I/O

@@ -1,9 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
---use ieee.numeric_std.all;
---use ieee.std_logic_textio.all;
---use std.textio.all;
 
 -- This module models a single-port asynchronous RAM.
 -- Even though there are separate signals for data
@@ -23,8 +20,11 @@ entity ram is
    port (
       clk_i  : in  std_logic;
 
-      -- Current address selected.
-      addr_i : in  std_logic_vector(G_ADDR_BITS-1 downto 0);
+      -- Current read address selected.
+      rd_addr_i : in  std_logic_vector(G_ADDR_BITS-1 downto 0);
+
+      -- Current write address selected.
+      wr_addr_i : in  std_logic_vector(G_ADDR_BITS-1 downto 0);
 
       -- Data contents at the selected address.
       -- Valid in same clock cycle.
@@ -56,7 +56,7 @@ begin
    begin
       if rising_edge(clk_i) then
          if wren_i = '1' then
-            mem(conv_integer(addr_i)) <= data_i;
+            mem(conv_integer(wr_addr_i)) <= data_i;
          end if;
       end if;
    end process p_mem;
@@ -67,7 +67,7 @@ begin
    p_data : process (clk_i)
    begin
       if falling_edge(clk_i) then
-         data <= mem(conv_integer(addr_i));
+         data <= mem(conv_integer(rd_addr_i));
       end if;
    end process p_data;
 

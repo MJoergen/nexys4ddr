@@ -21,7 +21,6 @@ entity mem is
       G_COL_MASK   : std_logic_vector(15 downto 0);  -- Value of upper bits in COL address
       G_MEMIO_MASK : std_logic_vector(15 downto 0);  -- Value of upper bits in MEMIO address
       --
-      G_FONT_FILE  : string;           -- Contains the contents of the FONT memory.
       G_ROM_FILE   : string;           -- Contains the contents of the ROM memory.
       --
       -- Initial contents of the Memory Mapped I/O
@@ -38,11 +37,14 @@ entity mem is
       a_wren_i       : in  std_logic;
       a_wait_o       : out std_logic;
 
-      -- Port B - connected to VGA and Memory Mapped I/O
+      -- Port B - connected to VGA, Ethernet, and Memory Mapped I/O
       b_char_addr_i  : in  std_logic_vector(12 downto 0);
       b_char_data_o  : out std_logic_vector( 7 downto 0);
       b_col_addr_i   : in  std_logic_vector(12 downto 0);
       b_col_data_o   : out std_logic_vector( 7 downto 0);
+      b_eth_wren_i   : in  std_logic;
+      b_eth_addr_i   : in  std_logic_vector(15 downto 0);
+      b_eth_data_i   : in  std_logic_vector( 7 downto 0);
       b_memio_wr_o   : out std_logic_vector(8*128-1 downto 0);
       b_memio_rd_i   : in  std_logic_vector(8*128-1 downto 0);
       b_memio_rden_o : out std_logic_vector(  128-1 downto 0)
@@ -69,6 +71,11 @@ architecture Structural of mem is
    signal memio_wren : std_logic;
    signal memio_data : std_logic_vector(7 downto 0);
    signal memio_cs   : std_logic;
+   --
+   signal ram_wr_en   : std_logic;
+   signal ram_rd_addr : std_logic_vector(G_RAM_SIZE-1 downto 0);
+   signal ram_wr_addr : std_logic_vector(G_RAM_SIZE-1 downto 0);
+   signal ram_wr_data : std_logic_vector( 7 downto 0);
 
    signal a_wait   : std_logic;
    signal a_wait_d : std_logic;
@@ -102,7 +109,9 @@ begin
    -- Insert wait state
    --------------------
 
-   a_wait <= a_rden_i and (char_cs or col_cs or memio_cs);
+   a_wait <= (a_rden_i and (char_cs or col_cs or memio_cs)) or
+             (a_wren_i and b_eth_wren_i and ram_cs);
+
 
    p_a_wait_d : process (clk_i)
    begin
@@ -113,6 +122,23 @@ begin
 
    a_wait_o <= '1' when a_wait = '1' and a_wait_d = '0' else
                '0';
+
+   ram_rd_addr <= a_addr_i(G_RAM_SIZE-1 downto 0);
+
+   -- Multiplex writes from CPU and Ethernet
+   process (a_wren_i, a_addr_i, a_data_i, b_eth_wren_i, b_eth_addr_i, b_eth_data_i)
+   begin
+      ram_wr_addr <= a_addr_i(G_RAM_SIZE-1 downto 0);
+      ram_wr_data <= a_data_i;
+      ram_wr_en   <= a_wren_i;
+
+      if b_eth_wren_i = '1' then
+         ram_wr_addr <= b_eth_addr_i(G_RAM_SIZE-1 downto 0);
+         ram_wr_data <= b_eth_data_i;
+         ram_wr_en   <= b_eth_wren_i;
+      end if;
+   end process;
+
 
    ----------------------
    -- Instantiate the ROM
@@ -198,11 +224,12 @@ begin
       G_ADDR_BITS => G_RAM_SIZE
    )
    port map (
-      clk_i  => clk_i,
-      addr_i => a_addr_i(G_RAM_SIZE-1 downto 0),
-      data_o => ram_data,
-      data_i => a_data_i,
-      wren_i => ram_wren
+      clk_i     => clk_i,
+      rd_addr_i => ram_rd_addr,
+      wr_addr_i => ram_wr_addr,
+      data_o    => ram_data,
+      data_i    => ram_wr_data,
+      wren_i    => ram_wren
    );
 
 
@@ -211,7 +238,7 @@ begin
                ram_data   when ram_cs   = '1' else
                char_data  when char_cs  = '1' else
                col_data   when col_cs   = '1' else
-               X"00";
+               X"00";   -- Default value is needed to avoid inferring a latch.
   
 end Structural;
 
