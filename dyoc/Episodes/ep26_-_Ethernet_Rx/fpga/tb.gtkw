@@ -1,19 +1,21 @@
 [*]
-[*] GTKWave Analyzer v3.3.89 (w)1999-2018 BSI
-[*] Tue Jun  5 14:35:57 2018
+[*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
+[*] Mon Sep 17 12:58:44 2018
 [*]
-[dumpfile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep24_-_PS2_Interface/tb.ghw"
-[dumpfile_mtime] "Tue Jun  5 14:33:27 2018"
-[dumpfile_size] 1804191
-[savefile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep24_-_PS2_Interface/tb.gtkw"
-[timestart] 0
-[size] 1920 1103
+[dumpfile] "/home/mfj/git/nexys4ddr/dyoc/Episodes/ep26_-_Ethernet_Rx/fpga/tb.ghw"
+[dumpfile_mtime] "Mon Sep 17 12:47:15 2018"
+[dumpfile_size] 2981216
+[savefile] "/home/mfj/git/nexys4ddr/dyoc/Episodes/ep26_-_Ethernet_Rx/fpga/tb.gtkw"
+[timestart] 49796900000
+[size] 1855 1103
 [pos] 1868 33
-*-33.764053 68608000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-25.764053 50060000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.tb.
 [treeopen] top.tb.inst_comp.
+[treeopen] top.tb.inst_comp.B1.inst_ethernet.
 [treeopen] top.tb.inst_comp.i_mem.
+[treeopen] top.tb.inst_comp.i_mem.i_ram.
 [sst_width] 255
 [signals_width] 239
 [sst_expanded] 1
@@ -73,14 +75,25 @@ top.tb.inst_comp.i_ic.irq_latch[0]
 @1401200
 -group_end
 @28
-top.tb.inst_comp.inst_ps2.ps2_clk_i
-top.tb.inst_comp.inst_ps2.ps2_data_i
-top.tb.inst_comp.inst_ps2.irq_o
-@22
-#{top.tb.inst_comp.inst_ps2.data_o[7:0]} top.tb.inst_comp.inst_ps2.data_o[7] top.tb.inst_comp.inst_ps2.data_o[6] top.tb.inst_comp.inst_ps2.data_o[5] top.tb.inst_comp.inst_ps2.data_o[4] top.tb.inst_comp.inst_ps2.data_o[3] top.tb.inst_comp.inst_ps2.data_o[2] top.tb.inst_comp.inst_ps2.data_o[1] top.tb.inst_comp.inst_ps2.data_o[0]
-@28
 top.tb.inst_comp.i_mem.char_cs
-@29
 top.tb.inst_comp.i_mem.char_wren
+@800200
+-Ethernet
+@28
+top.tb.inst_comp.B1.inst_ethernet.clk_i
+top.tb.inst_comp.B1.inst_ethernet.user_wren_o
+@22
+#{top.tb.inst_comp.B1.inst_ethernet.user_addr_o[15:0]} top.tb.inst_comp.B1.inst_ethernet.user_addr_o[15] top.tb.inst_comp.B1.inst_ethernet.user_addr_o[14] top.tb.inst_comp.B1.inst_ethernet.user_addr_o[13] top.tb.inst_comp.B1.inst_ethernet.user_addr_o[12] top.tb.inst_comp.B1.inst_ethernet.user_addr_o[11] top.tb.inst_comp.B1.inst_ethernet.user_addr_o[10] top.tb.inst_comp.B1.inst_ethernet.user_addr_o[9] top.tb.inst_comp.B1.inst_ethernet.user_addr_o[8] top.tb.inst_comp.B1.inst_ethernet.user_addr_o[7] top.tb.inst_comp.B1.inst_ethernet.user_addr_o[6] top.tb.inst_comp.B1.inst_ethernet.user_addr_o[5] top.tb.inst_comp.B1.inst_ethernet.user_addr_o[4] top.tb.inst_comp.B1.inst_ethernet.user_addr_o[3] top.tb.inst_comp.B1.inst_ethernet.user_addr_o[2] top.tb.inst_comp.B1.inst_ethernet.user_addr_o[1] top.tb.inst_comp.B1.inst_ethernet.user_addr_o[0]
+#{top.tb.inst_comp.B1.inst_ethernet.user_data_o[7:0]} top.tb.inst_comp.B1.inst_ethernet.user_data_o[7] top.tb.inst_comp.B1.inst_ethernet.user_data_o[6] top.tb.inst_comp.B1.inst_ethernet.user_data_o[5] top.tb.inst_comp.B1.inst_ethernet.user_data_o[4] top.tb.inst_comp.B1.inst_ethernet.user_data_o[3] top.tb.inst_comp.B1.inst_ethernet.user_data_o[2] top.tb.inst_comp.B1.inst_ethernet.user_data_o[1] top.tb.inst_comp.B1.inst_ethernet.user_data_o[0]
+#{top.tb.inst_comp.B1.inst_ethernet.user_memio_o[47:0]} top.tb.inst_comp.B1.inst_ethernet.user_memio_o[47] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[46] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[45] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[44] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[43] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[42] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[41] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[40] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[39] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[38] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[37] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[36] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[35] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[34] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[33] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[32] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[31] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[30] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[29] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[28] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[27] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[26] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[25] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[24] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[23] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[22] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[21] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[20] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[19] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[18] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[17] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[16] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[15] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[14] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[13] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[12] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[11] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[10] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[9] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[8] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[7] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[6] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[5] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[4] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[3] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[2] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[1] top.tb.inst_comp.B1.inst_ethernet.user_memio_o[0]
+@1000200
+-Ethernet
+@28
+top.tb.inst_comp.i_mem.i_ram.clk_i
+top.tb.inst_comp.i_mem.i_ram.wren_i
+@22
+#{top.tb.inst_comp.i_mem.i_ram.wr_addr_i[14:0]} top.tb.inst_comp.i_mem.i_ram.wr_addr_i[14] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[13] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[12] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[11] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[10] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[9] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[8] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[7] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[6] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[5] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[4] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[3] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[2] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[1] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[0]
+@23
+#{top.tb.inst_comp.i_mem.i_ram.data_i[7:0]} top.tb.inst_comp.i_mem.i_ram.data_i[7] top.tb.inst_comp.i_mem.i_ram.data_i[6] top.tb.inst_comp.i_mem.i_ram.data_i[5] top.tb.inst_comp.i_mem.i_ram.data_i[4] top.tb.inst_comp.i_mem.i_ram.data_i[3] top.tb.inst_comp.i_mem.i_ram.data_i[2] top.tb.inst_comp.i_mem.i_ram.data_i[1] top.tb.inst_comp.i_mem.i_ram.data_i[0]
 [pattern_trace] 1
 [pattern_trace] 0

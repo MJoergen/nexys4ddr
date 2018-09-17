@@ -24,7 +24,7 @@ entity mem is
       G_ROM_FILE   : string;           -- Contains the contents of the ROM memory.
       --
       -- Initial contents of the Memory Mapped I/O
-      G_MEMIO_INIT : std_logic_vector(8*128-1 downto 0)
+      G_MEMIO_INIT : std_logic_vector(8*32-1 downto 0)
    );
    port (
       clk_i          : in  std_logic;
@@ -45,9 +45,9 @@ entity mem is
       b_eth_wren_i   : in  std_logic;
       b_eth_addr_i   : in  std_logic_vector(15 downto 0);
       b_eth_data_i   : in  std_logic_vector( 7 downto 0);
-      b_memio_wr_o   : out std_logic_vector(8*128-1 downto 0);
-      b_memio_rd_i   : in  std_logic_vector(8*128-1 downto 0);
-      b_memio_rden_o : out std_logic_vector(  128-1 downto 0)
+      b_memio_wr_o   : out std_logic_vector(8*32-1 downto 0);
+      b_memio_rd_i   : in  std_logic_vector(8*32-1 downto 0);
+      b_memio_rden_o : out std_logic_vector(  32-1 downto 0)
    );
 end mem;
 

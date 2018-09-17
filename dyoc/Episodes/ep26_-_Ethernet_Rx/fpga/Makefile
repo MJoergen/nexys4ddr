@@ -6,9 +6,9 @@ SRC  = comp.vhd \
 		 mem/memio.vhd mem/dmem.vhd mem/ram.vhd mem/rom.vhd mem/mem.vhd \
 		 keyboard/ps2.vhd keyboard/scancode.vhd keyboard/keyboard.vhd \
 		 cpu/zp.vhd cpu/sr.vhd cpu/regfile.vhd cpu/hilo.vhd cpu/pc.vhd cpu/cycle.vhd cpu/datapath.vhd cpu/ctl.vhd cpu/cpu.vhd cpu/alu.vhd \
-		 ethernet/ethernet.vhd ethernet/lan8720a/lan8720a.vhd ethernet/lan8720a/rmii_rx.vhd
+		 ethernet/dma.vhd ethernet/fifo.vhd ethernet/ethernet.vhd ethernet/lan8720a/lan8720a.vhd ethernet/lan8720a/rmii_rx.vhd
 XDC  = comp.xdc
-TB   = tb.vhd keyboard/ps2_tb.vhd
+TB   = tb.vhd keyboard/ps2_tb.vhd ethernet/ethernet_sim.vhd
 WAVE = tb.ghw
 SAVE = tb.gtkw
 
@@ -28,10 +28,8 @@ fpga: comp.bit
 # Simulation
 #####################################
 
-sim: $(SRC) $(TB) ../rom.txt
+sim: $(TB) $(SRC) ../rom.txt
 	ghdl -i --work=work $(SRC) $(TB)
-	#ghdl -i --work=xpm $(XILINX_DIR)/data/ip/xpm/xpm_VCOMP.vhd
-	#ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VCOMP.vhd
 	ghdl -m --ieee=synopsys -fexplicit tb
 	ghdl -r tb --assert-level=error --wave=$(WAVE) --stop-time=200us
 	gtkwave $(WAVE) $(SAVE)

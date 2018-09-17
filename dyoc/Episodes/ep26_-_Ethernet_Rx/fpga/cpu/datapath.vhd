@@ -277,7 +277,7 @@ begin
 
    addr_o <= addr;
    data_o <= data;
-   wren_o <= wren and not wait_i;
+   wren_o <= wren;
    rden_o <= mem and not wren;
    sri_o  <= sr(SR_I);
 

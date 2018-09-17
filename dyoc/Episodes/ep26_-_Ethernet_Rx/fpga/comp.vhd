@@ -94,19 +94,18 @@ architecture Structural of comp is
    signal eth_user_data : std_logic_vector( 7 downto 0);
 
    -- Memory Mapped I/O
-   signal memio_rd   : std_logic_vector(8*128-1 downto 0);
-   signal memio_rden : std_logic_vector(  128-1 downto 0);
-   signal memio_wr   : std_logic_vector(8*128-1 downto 0);
+   signal memio_rd   : std_logic_vector(8*32-1 downto 0);
+   signal memio_rden : std_logic_vector(  32-1 downto 0);
+   signal memio_wr   : std_logic_vector(8*32-1 downto 0);
 
    signal vga_memio_wr : std_logic_vector(18*8-1 downto 0);
    signal irq_memio_wr : std_logic_vector( 1*8-1 downto 0);
    signal cpu_memio_wr : std_logic_vector( 1*8-1 downto 0);
-   signal eth_memio_wr : std_logic_vector( 4*8-1 downto 0);
 
    signal vga_memio_rd : std_logic_vector( 4*8-1 downto 0);
    signal cpu_memio_rd : std_logic_vector( 4*8-1 downto 0);
    signal kbd_memio_rd : std_logic_vector( 1*8-1 downto 0);
-   signal eth_memio_rd : std_logic_vector( 8*8-1 downto 0);
+   signal eth_memio_rd : std_logic_vector( 6*8-1 downto 0);
    signal irq_memio_rd : std_logic_vector( 1*8-1 downto 0);
    signal irq_memio_rden : std_logic;
 
@@ -235,7 +234,7 @@ begin
       G_RAM_SIZE   => 15, -- 32 Kbytes
       G_CHAR_SIZE  => 13, -- 8 Kbytes
       G_COL_SIZE   => 13, -- 8 Kbytes
-      G_MEMIO_SIZE =>  8, -- 256 bytes
+      G_MEMIO_SIZE =>  6, -- 64 bytes
       --
       G_ROM_MASK   => X"C000",
       G_RAM_MASK   => X"0000",
@@ -246,12 +245,6 @@ begin
       G_ROM_FILE   => "../rom.txt",
       --
       G_MEMIO_INIT => X"00000000000000000000000000000000" &
-                      X"00000000000000000000000000000000" &
-                      X"00000000000000000000000000000000" &
-                      X"00000000000000000000000000000000" &
-                      X"00000000000000000000000000000000" &
-                      X"00000000000000000000000000000000" &
-                      X"00000000000000000000000000000000" &
                       X"FFFCE3E0433C1E178C82803022110A00"
    )
    port map (
@@ -327,51 +320,26 @@ begin
    -- Instantiate Ethernet modul
    ------------------------------
 
-   gen_ethernet : if G_SIM_MODEL = true generate
-      inst_ethernet : entity work.ethernet
-      port map (
-         clk_i        => eth_clk,
-         user_wren_o  => eth_user_wren,
-         user_addr_o  => eth_user_addr,
-         user_data_o  => eth_user_data,
-         user_memio_i => eth_memio_wr,
-         user_memio_o => eth_memio_rd,
-         --
-         eth_txd_o    => eth_txd_o,
-         eth_txen_o   => eth_txen_o,
-         eth_rxd_i    => eth_rxd_i,
-         eth_rxerr_i  => eth_rxerr_i,
-         eth_crsdv_i  => eth_crsdv_i,
-         eth_intn_i   => eth_intn_i,
-         eth_mdio_io  => eth_mdio_io,
-         eth_mdc_o    => eth_mdc_o,
-         eth_rstn_o   => eth_rstn_o,
-         eth_refclk_o => eth_refclk_o
-      );
-   end generate gen_ethernet;
-
-   gen_no_ethernet : if G_SIM_MODEL = false generate
-      inst_ethernet : entity work.ethernet_sim
-      port map (
-         clk_i        => eth_clk,
-         user_wren_o  => eth_user_wren,
-         user_addr_o  => eth_user_addr,
-         user_data_o  => eth_user_data,
-         user_memio_i => eth_memio_wr,
-         user_memio_o => eth_memio_rd,
-         --
-         eth_txd_o    => eth_txd_o,
-         eth_txen_o   => eth_txen_o,
-         eth_rxd_i    => eth_rxd_i,
-         eth_rxerr_i  => eth_rxerr_i,
-         eth_crsdv_i  => eth_crsdv_i,
-         eth_intn_i   => eth_intn_i,
-         eth_mdio_io  => eth_mdio_io,
-         eth_mdc_o    => eth_mdc_o,
-         eth_rstn_o   => eth_rstn_o,
-         eth_refclk_o => eth_refclk_o
-      );
-   end generate gen_no_ethernet;
+   inst_ethernet : entity work.ethernet
+   port map (
+      user_clk_i   => vga_clk,
+      user_wren_o  => eth_user_wren,
+      user_addr_o  => eth_user_addr,
+      user_data_o  => eth_user_data,
+      user_memio_o => eth_memio_rd,
+      --
+      eth_clk_i    => eth_clk,
+      eth_txd_o    => eth_txd_o,
+      eth_txen_o   => eth_txen_o,
+      eth_rxd_i    => eth_rxd_i,
+      eth_rxerr_i  => eth_rxerr_i,
+      eth_crsdv_i  => eth_crsdv_i,
+      eth_intn_i   => eth_intn_i,
+      eth_mdio_io  => eth_mdio_io,
+      eth_mdc_o    => eth_mdc_o,
+      eth_rstn_o   => eth_rstn_o,
+      eth_refclk_o => eth_refclk_o
+   );
 
 
    --------------------------------------------------
@@ -397,32 +365,32 @@ begin
    -- This must match the mapping in prog/include/memorymap.h
    --------------------------------------------------
 
-   -- 7F00 - 7F0F : VGA_PALETTE
-   -- 7F10 - 7F11 : VGA_PIX_Y_INT
-   -- 7F12 - 7F1E : Not used
-   -- 7F1F        : IRQ_MASK
-   -- 7F20 - 7F7F : Not used
-   vga_memio_wr <= memio_wr( 17*8+7 downto 0*8);
-   cpu_memio_wr <= memio_wr( 18*8+7 downto 18*8);
-   --              memio_wr( 30*8+7 downto 19*8);      -- Not used
-   irq_memio_wr <= memio_wr( 31*8+7 downto 31*8);
-   --              memio_wr(127*8+7 downto 32*8);      -- Not used
+   -- 7FC0 - 7FCF : VGA_PALETTE
+   -- 7FD0 - 7FD1 : VGA_PIX_Y_INT
+   -- 7FD2 - 7FDE : Not used
+   -- 7FDF        : IRQ_MASK
+   vga_memio_wr <= memio_wr(17*8+7 downto 0*8);
+   cpu_memio_wr <= memio_wr(18*8+7 downto 18*8);
+   --              memio_wr(30*8+7 downto 19*8);      -- Not used
+   irq_memio_wr <= memio_wr(31*8+7 downto 31*8);
 
-   -- 7F80 - 7F81 : VGA_PIX_X
-   -- 7F82 - 7F83 : VGA_PIX_Y
-   -- 7F84 - 7F87 : CPU_CYC
-   -- 7F88        : KBD_DATA
-   -- 7F89 - 7F9E : Not used
-   -- 7F9F        : IRQ_STATUS
-   -- 7FA0 - 7FBF : Not used
-   -- 7FC0 - 7FFF : Ethernet SMI
-   memio_rd(  3*8+7 downto  0*8) <= vga_memio_rd;
-   memio_rd(  7*8+7 downto  4*8) <= cpu_memio_rd;
-   memio_rd(  8*8+7 downto  8*8) <= kbd_memio_rd;
-   memio_rd( 30*8+7 downto  9*8) <= (others => '0');   -- Not used
-   memio_rd( 31*8+7 downto 31*8) <= irq_memio_rd;
-   memio_rd( 63*8+7 downto 32*8) <= (others => '0');   -- Not used
-   memio_rd(127*8+7 downto 64*8) <= eth_user_data;
+   -- 7FE0 - 7FE1 : VGA_PIX_X
+   -- 7FE2 - 7FE3 : VGA_PIX_Y
+   -- 7FE4 - 7FE7 : CPU_CYC
+   -- 7FE8        : KBD_DATA
+   -- 7FE9        : Not used
+   -- 7FEA - 7FEB : ETH_ADDR
+   -- 7FEC - 7FED : ETH_CNT
+   -- 7FEE        : ETH_ERR0
+   -- 7FEF        : ETH_ERR1
+   -- 7FF0 - 7FFE : Not used
+   -- 7FFF        : IRQ_STATUS
+   memio_rd( 3*8+7 downto  0*8) <= vga_memio_rd;
+   memio_rd( 7*8+7 downto  4*8) <= cpu_memio_rd;
+   memio_rd( 8*8+7 downto  8*8) <= kbd_memio_rd;
+   memio_rd(15*8+7 downto 10*8) <= eth_memio_rd;
+   memio_rd(30*8+7 downto 16*8) <= (others => '0');   -- Not used
+   memio_rd(31*8+7 downto 31*8) <= irq_memio_rd;
    irq_memio_rden <= memio_rden(31);
 
 
