@@ -16,29 +16,30 @@
 // Memory mapped IO
 typedef struct
 {
-   uint8_t  vgaPalette[16];
-   uint16_t vgaPixYInt;
-   uint8_t  cpuCycLatch;
+   uint8_t  vgaPalette[16];   // 7FC0 - 7FCF
+   uint16_t vgaPixYInt;       // 7FD0 - 7FD1
+   uint8_t  cpuCycLatch;      // 7FD2
    uint8_t  _reserved[12];
-   uint8_t  irqMask;
-   uint8_t  _reserved2[32];
-   uint8_t  _reserved3[64];
+   uint8_t  irqMask;          // 7FDF
 } t_memio_config;
 
 typedef struct
 {
-   uint16_t vgaPixX;
-   uint16_t vgaPixY;
-   uint32_t cpuCyc;
-   uint8_t  kbdData;
-   uint8_t  _reserved[22];
-   uint8_t  irqStatus;
-   uint8_t  _reserved2[32];
-   uint8_t  rx[64];
+   uint16_t vgaPixX;       // 7FE0 - 7FE1
+   uint16_t vgaPixY;       // 7FE2 - 7FE3
+   uint32_t cpuCyc;        // 7FE4 - 7FE7
+   uint8_t  kbdData;       // 7FE8
+   uint8_t  _reserved;
+   uint16_t ethAddr;       // 7FEA - 7FEB
+   uint16_t ethCnt;        // 7FEC - 7FED
+   uint8_t  ethErr0;       // 7FEE
+   uint8_t  ethErr1;       // 7FEF
+   uint8_t  _reserved2[22];
+   uint8_t  irqStatus;     // 7FFF
 } t_memio_status;
 
-#define MEMIO_CONFIG ((t_memio_config *) 0x7F00)
-#define MEMIO_STATUS ((t_memio_status *) 0x7F80)
+#define MEMIO_CONFIG ((t_memio_config *) 0x7FC0)
+#define MEMIO_STATUS ((t_memio_status *) 0x7FE0)
 
 #define IRQ_TIMER_NUM    0
 #define IRQ_VGA_NUM      1

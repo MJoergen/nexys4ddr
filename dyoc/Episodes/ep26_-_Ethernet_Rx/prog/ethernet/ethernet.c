@@ -12,22 +12,35 @@ static void putx8(uint8_t x)
 void main(void)
 {
    uint8_t y = 0;
+   uint8_t *pStart;
+   uint8_t *pEnd;
+   uint8_t cnt = 0;
+
+   pStart = (uint8_t *) (MEMIO_STATUS->ethAddr);
+
    while (1)
    {
       uint8_t x;
 
-      while (MEMIO_STATUS->rx[62] == y)
+      // Wait until a new packet has been received.
+      while (MEMIO_STATUS->ethCnt == y)
       {
+         cnt += 1;
       }
 
-      y = MEMIO_STATUS->rx[62];
+      pEnd = (uint8_t *) (MEMIO_STATUS->ethAddr);
+      y = MEMIO_STATUS->ethCnt;
 
+      // Dump first 40 bytes of packet onto screen
       gotoxy(0, y%60);
       for (x=0; x<40; ++x)
       {
-         uint8_t val = MEMIO_STATUS->rx[x];
+         uint8_t val = pStart[x];
          putx8(val);
       }
+
+      // Next packet starts right after the previous
+      pStart = pEnd;
    }
 
 } // end of main
