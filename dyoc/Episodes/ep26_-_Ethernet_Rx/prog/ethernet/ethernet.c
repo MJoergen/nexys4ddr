@@ -4,14 +4,14 @@
 
 static void putx8(uint8_t x)
 {
-   const char hex[16] = "0123456789ABCDEF";
+   static const char hex[16] = "0123456789ABCDEF";
    cputc(hex[(x>>4) & 0x0F]);
    cputc(hex[(x>>0) & 0x0F]);
 }
 
 void main(void)
 {
-   uint8_t y = 0;
+   uint16_t y = 0;
    uint8_t *pStart;
    uint8_t *pEnd;
    uint8_t cnt = 0;

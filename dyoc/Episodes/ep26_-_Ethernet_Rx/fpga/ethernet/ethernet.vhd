@@ -35,7 +35,7 @@ architecture Structural of ethernet is
    -- Therefore, the rst_cnt has a size of 21 bits, which means that
    -- 'eth_rst' is deasserted after 40 ms.
    signal eth_rst       : std_logic := '1';
-   signal eth_rst_cnt   : std_logic_vector(20 downto 0) := (others => '1');
+   signal eth_rst_cnt   : std_logic_vector(7 downto 0) := (others => '1');
 
    signal eth_rx_valid  : std_logic;
    signal eth_rx_sof    : std_logic;
@@ -152,10 +152,10 @@ begin
       rd_eof_i   => user_rx_eof,
       rd_data_i  => user_rx_data,
       rd_error_i => user_rx_error,
-
-      wren_o     => user_wren_o,
-      addr_o     => user_addr_o,
-      data_o     => user_data_o,
+      --
+      wr_en_o    => user_wren_o,
+      wr_addr_o  => user_addr_o,
+      wr_data_o  => user_data_o,
       memio_o    => user_memio_o
    );
    

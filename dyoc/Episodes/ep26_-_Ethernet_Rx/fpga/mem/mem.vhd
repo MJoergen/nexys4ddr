@@ -92,7 +92,7 @@ begin
    col_cs   <= '1' when a_addr_i(15 downto G_COL_SIZE)   = G_COL_MASK(   15 downto G_COL_SIZE)   else '0';
    memio_cs <= '1' when a_addr_i(15 downto G_MEMIO_SIZE) = G_MEMIO_MASK( 15 downto G_MEMIO_SIZE) else '0';
 
-   ram_wren   <= a_wren_i and ram_cs;
+   ram_wren   <= (a_wren_i and ram_cs) or b_eth_wren_i;
    char_wren  <= a_wren_i and char_cs;
    col_wren   <= a_wren_i and col_cs;
    memio_wren <= a_wren_i and memio_cs;

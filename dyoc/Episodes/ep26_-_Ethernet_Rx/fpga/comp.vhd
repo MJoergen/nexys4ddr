@@ -240,7 +240,7 @@ begin
       G_RAM_MASK   => X"0000",
       G_CHAR_MASK  => X"8000",
       G_COL_MASK   => X"A000",
-      G_MEMIO_MASK => X"7F00",
+      G_MEMIO_MASK => X"7FC0",
       --
       G_ROM_FILE   => "../rom.txt",
       --
