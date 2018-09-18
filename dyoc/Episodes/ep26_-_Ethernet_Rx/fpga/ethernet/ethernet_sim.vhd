@@ -6,16 +6,15 @@ use ieee.std_logic_unsigned.all;
 
 entity ethernet is
    port (
-      -- Must be 50 MHz
-      clk_i        : in  std_logic;
-
       -- Connected to user
+      user_clk_i   : in  std_logic;
       user_wren_o  : out std_logic;
       user_addr_o  : out std_logic_vector(15 downto 0);
       user_data_o  : out std_logic_vector( 7 downto 0);
       user_memio_o : out std_logic_vector(47 downto 0);
 
       -- Connected to PHY.
+      eth_clk_i    : in    std_logic;
       eth_txd_o    : out   std_logic_vector(1 downto 0);
       eth_txen_o   : out   std_logic;
       eth_rxd_i    : in    std_logic_vector(1 downto 0);
@@ -53,14 +52,14 @@ begin
       user_addr_o <= X"0000";
       user_data_o <= X"00";
       wait for 50 us;
-      wait until clk_i = '1';
+      wait until user_clk_i = '1';
 
       -- Make a burst of 64 writes.
       for i in 0 to 63 loop
          user_wren_o <= '1';
          user_addr_o <= X"7000" + i;
          user_data_o <= X"11" + i;
-         wait until clk_i = '1';
+         wait until user_clk_i = '1';
       end loop;
 
       -- Have a short pause.
@@ -73,14 +72,14 @@ begin
       user_addr_o <= X"0000";
       user_data_o <= X"00";
       wait for 20 us;
-      wait until clk_i = '1';
+      wait until user_clk_i = '1';
 
       -- Make a burst of 256 writes.
       for i in 0 to 255 loop
          user_wren_o <= '1';
          user_addr_o <= X"7040" + i;
          user_data_o <= X"22" + i;
-         wait until clk_i = '1';
+         wait until user_clk_i = '1';
       end loop;
 
       -- Stop any further stimuli.

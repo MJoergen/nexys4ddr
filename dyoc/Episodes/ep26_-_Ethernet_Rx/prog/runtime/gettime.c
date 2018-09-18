@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <time.h>
 
-//#include "gettime.h"
+#include "gettime.h"
 #include "getcycles.h"
 
 #define CLOCK_SPEED_MHZ 25
