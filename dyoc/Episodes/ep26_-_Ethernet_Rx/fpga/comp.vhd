@@ -99,6 +99,7 @@ architecture Structural of comp is
    signal memio_wr   : std_logic_vector(8*32-1 downto 0);
 
    signal vga_memio_wr : std_logic_vector(18*8-1 downto 0);
+   signal eth_memio_wr : std_logic_vector( 7*8-1 downto 0);
    signal irq_memio_wr : std_logic_vector( 1*8-1 downto 0);
    signal cpu_memio_wr : std_logic_vector( 1*8-1 downto 0);
 
@@ -326,6 +327,7 @@ begin
       user_wren_o  => eth_user_wren,
       user_addr_o  => eth_user_addr,
       user_data_o  => eth_user_data,
+      user_memio_i => eth_memio_wr,
       user_memio_o => eth_memio_rd,
       --
       eth_clk_i    => eth_clk,
@@ -367,11 +369,17 @@ begin
 
    -- 7FC0 - 7FCF : VGA_PALETTE
    -- 7FD0 - 7FD1 : VGA_PIX_Y_INT
-   -- 7FD2 - 7FDE : Not used
+   -- 7FD2 - 7FD3 : ETH_START
+   -- 7FD4 - 7FD5 : ETH_END
+   -- 7FD6 - 7FD7 : ETH_RD_PTR
+   -- 7FD8        : ETH_ENABLE
+   -- 7FD9        : CPU_CYC_LATCH
+   -- 7FD9 - 7FDE : Not used
    -- 7FDF        : IRQ_MASK
    vga_memio_wr <= memio_wr(17*8+7 downto 0*8);
-   cpu_memio_wr <= memio_wr(18*8+7 downto 18*8);
-   --              memio_wr(30*8+7 downto 19*8);      -- Not used
+   eth_memio_wr <= memio_wr(24*8+7 downto 18*8);
+   cpu_memio_wr <= memio_wr(25*8+7 downto 25*8);
+   --              memio_wr(30*8+7 downto 26*8);      -- Not used
    irq_memio_wr <= memio_wr(31*8+7 downto 31*8);
 
    -- 7FE0 - 7FE1 : VGA_PIX_X
@@ -379,7 +387,7 @@ begin
    -- 7FE4 - 7FE7 : CPU_CYC
    -- 7FE8        : KBD_DATA
    -- 7FE9        : Not used
-   -- 7FEA - 7FEB : ETH_ADDR
+   -- 7FEA - 7FEB : ETH_WR_PTR
    -- 7FEC - 7FED : ETH_CNT
    -- 7FEE        : ETH_ERR0
    -- 7FEF        : ETH_ERR1

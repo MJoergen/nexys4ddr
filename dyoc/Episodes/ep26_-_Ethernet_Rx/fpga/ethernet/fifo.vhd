@@ -15,16 +15,16 @@ entity fifo is
    port (
       wr_clk_i   : in  std_logic;
       wr_rst_i   : in  std_logic;
-      wr_en_i    : in  std_logic;
+      wr_en_i    : in  std_logic;   -- Push data into the fifo
       wr_data_i  : in  std_logic_vector(G_WIDTH-1 downto 0);
-      wr_afull_o : out std_logic;
+      wr_afull_o : out std_logic;   -- Don't push any data right now
       wr_error_o : out std_logic;
       --
       rd_clk_i   : in  std_logic;
       rd_rst_i   : in  std_logic;
-      rd_en_i    : in  std_logic;
+      rd_en_i    : in  std_logic;   -- Pull data from the fifo
       rd_data_o  : out std_logic_vector(G_WIDTH-1 downto 0);
-      rd_empty_o : out std_logic;
+      rd_empty_o : out std_logic;   -- Don't pull any data right now
       rd_error_o : out std_logic
       );
 end entity fifo;

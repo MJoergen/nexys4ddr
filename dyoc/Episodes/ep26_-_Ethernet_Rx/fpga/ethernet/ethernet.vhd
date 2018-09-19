@@ -11,6 +11,7 @@ entity ethernet is
       user_wren_o  : out std_logic;
       user_addr_o  : out std_logic_vector(15 downto 0);
       user_data_o  : out std_logic_vector( 7 downto 0);
+      user_memio_i : in  std_logic_vector(55 downto 0);
       user_memio_o : out std_logic_vector(47 downto 0);
 
       -- Connected to PHY.
@@ -156,6 +157,7 @@ begin
       wr_en_o    => user_wren_o,
       wr_addr_o  => user_addr_o,
       wr_data_o  => user_data_o,
+      memio_i    => user_memio_i,
       memio_o    => user_memio_o
    );
    

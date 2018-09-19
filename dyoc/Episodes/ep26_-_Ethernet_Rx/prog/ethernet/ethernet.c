@@ -11,36 +11,28 @@ static void putx8(uint8_t x)
 
 void main(void)
 {
-   uint16_t y = 0;
-   uint8_t *pStart;
-   uint8_t *pEnd;
-   uint8_t cnt = 0;
+   // Allocate receive buffer
+   uint8_t *pBuf = (uint8_t *) malloc(2000);
 
-   pStart = (uint8_t *) (MEMIO_STATUS->ethAddr);
-
-   while (1)
+   // Configure Ethernet DMA
+   MEMIO_CONFIG->ethStart  = (uint16_t) pBuf;
+   MEMIO_CONFIG->ethEnd    = (uint16_t) pBuf + 2000;
+   MEMIO_CONFIG->ethRdPtr  = MEMIO_CONFIG->ethStart;
+   MEMIO_CONFIG->ethEnable = 1;
+   
+   // Wait for data to be received, and print to the screen
+   while (MEMIO_CONFIG->ethRdPtr != MEMIO_STATUS->ethWrPtr)
    {
-      uint8_t x;
+      putx8(*(uint8_t *)MEMIO_CONFIG->ethRdPtr);
 
-      // Wait until a new packet has been received.
-      while (MEMIO_STATUS->ethCnt == y)
+      if (MEMIO_CONFIG->ethRdPtr < MEMIO_CONFIG->ethEnd)
       {
-         cnt += 1;
+         MEMIO_CONFIG->ethRdPtr += 1;
       }
-
-      pEnd = (uint8_t *) (MEMIO_STATUS->ethAddr);
-      y = MEMIO_STATUS->ethCnt;
-
-      // Dump first 40 bytes of packet onto screen
-      gotoxy(0, y%60);
-      for (x=0; x<40; ++x)
+      else
       {
-         uint8_t val = pStart[x];
-         putx8(val);
+         MEMIO_CONFIG->ethRdPtr = MEMIO_CONFIG->ethStart;
       }
-
-      // Next packet starts right after the previous
-      pStart = pEnd;
    }
 
 } // end of main
