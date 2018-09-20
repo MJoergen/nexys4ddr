@@ -13,9 +13,10 @@ static void putx8(uint8_t x)
 void main(void)
 {
    // Allocate receive buffer. This will never be free'd.
-   uint8_t *pBuf = (uint8_t *) malloc(2000);
+   uint8_t *pBuf = (uint8_t *) malloc(150);  // Fairly small buffer to test wrap-around.
 
    // Configure Ethernet DMA
+   MEMIO_CONFIG->ethEnable = 0;  // DMA must be disabled during configuration.
    MEMIO_CONFIG->ethStart  = (uint16_t) pBuf;
    MEMIO_CONFIG->ethEnd    = (uint16_t) pBuf + 2000;
    MEMIO_CONFIG->ethRdPtr  = MEMIO_CONFIG->ethStart;

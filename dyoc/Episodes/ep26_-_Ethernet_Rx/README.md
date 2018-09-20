@@ -120,7 +120,7 @@ two bytes in front of the packet with the total byte length.
 clock domain.
 * A DMA to write the data to the memory.
 
-## Data reception
+### Interface to the Ethernet PHY (Data reception)
 The PHY chip connects to the FPGA using the [RMII
 specification](https://en.wikipedia.org/wiki/Media-independent_interface#Reduced_media-independent_interface).
 So the first task is to convert this interface to something that fits easily
@@ -130,13 +130,45 @@ This is handled in ethernet/lan8720a/rmii\_rx.vhd.  This module takes care of:
 * 2-bit to 8-bit expansion (user data output every fourth clock cycle @ 50 Mhz).
 * CRC validation.
 * Framing with SOF/EOF.
-From this we see that data received from the PHY is at an equivalent clock rate
-of 12.5 MHz (assuming one byte pr. clock cycle). That means that provided the CPU
-can read from the fifo every second clock cycle, the fifo will not overflow.
 
-## Code organization
-A new folder 'ethernet' is added to contain everything related to the Ethernet
-port. A sub-folder 'lan8720a' contains the direct interface to the PHY.
+The output from this block is one byte pr clock cycle, with SOF asserted on the
+first byte of the MAC header and EOF asserted on the last byte of the CRC. Two
+error bits are provided (valid only at EOF) that indicate either a receiver
+error or a CRC error.
 
+### Header insertion
+This is handled in ethernet/strip\_crc.vhd. This module takes care of:
+* Stripping away 4 bytes of CRC at end of frame.
+* Prepending 2 bytes of header containing total number of bytes in this frame.
+* Maintaining statistics counters of received good and bad frames.
+* Discarding bad frames (containing errors, e.g. bad CRC).
 
+This module operates in a store-and-forward mode, where the entire frame is
+stored in an input buffer, until the last byte is received. This input buffer
+can contain any number of frames, but only a total amount of 2 Kbyte of data.
+
+The address of the first byte of the frame (SOF) is stored in the register
+start\_ptr.  If the frame is to be discarded, the current write pointer is
+reset to this start\_ptr.
+
+The address of the last byte of the frame (EOF) is stored in a separate FIFO.
+This is used to calculate the length of the frame.
+
+The data rate into this block is one byte every fourth clock cycle @ 50 MHz
+(corresponding to 100 Mbit/s).  The output rate is one byte every clock cycle,
+so the output is much faster than the input.  There should therefore be no risk
+of buffer overflow. Overflow can really only happen if a single frame larger
+than 2K is being received. The current implementation does not handle this
+situation, and will fail miserably.  However, maximum frame rate on Ethernet is
+1500 bytes, so this should not occur.
+
+### Clock crossing fifo
+This is handled in ethernet/fifo.vhd. This module takes care of:
+* Instantiating a Xilinx fifo primitive.
+* Latching read and write errors.
+
+### DMA
+This is handled in ethernet/dma.vhd. This module takes care of:
+* Generating write requests to CPU memory.
+* Maintaining a write pointer.
 
