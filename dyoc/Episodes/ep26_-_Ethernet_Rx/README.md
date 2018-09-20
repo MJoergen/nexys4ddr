@@ -109,6 +109,17 @@ receiver can pull data out of the fifo quickly enough, compared to how fast
 data it pushed into the fifo. This also influences the choice of how big the
 fifo should be,
 
+## Overall design strategy
+A number of blocks is needed in the design in order to facilitate reception
+of Ethernet frames. They are:
+* Interface to the Ethernet PHY - generating a byte stream with Start-Of-Frame
+and End-Of-Frame markers.
+* Header insertion - this strips away te CRC (and validates it), and inserts
+two bytes in front of the packet with the total byte length.
+* A fifo to provide for crossing from the Ethernet clock domain to the CPU
+clock domain.
+* A DMA to write the data to the memory.
+
 ## Data reception
 The PHY chip connects to the FPGA using the [RMII
 specification](https://en.wikipedia.org/wiki/Media-independent_interface#Reduced_media-independent_interface).

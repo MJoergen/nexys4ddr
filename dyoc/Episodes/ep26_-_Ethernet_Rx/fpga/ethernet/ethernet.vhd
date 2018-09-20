@@ -43,13 +43,12 @@ architecture Structural of ethernet is
    signal eth_rx_eof    : std_logic;
    signal eth_rx_data   : std_logic_vector(7 downto 0);
    signal eth_rx_error  : std_logic_vector(1 downto 0);
-   signal eth_fifo      : std_logic_vector(15 downto 0);
 
-   signal user_fifo     : std_logic_vector(15 downto 0);
+   signal eth_strip_valid : std_logic;
+   signal eth_strip_data  : std_logic_vector(7 downto 0);
+
    signal user_empty    : std_logic;
    signal user_rden     : std_logic;
-   signal user_rx_sof   : std_logic;
-   signal user_rx_eof   : std_logic;
    signal user_rx_data  : std_logic_vector(7 downto 0);
    signal user_rx_error : std_logic_vector(1 downto 0);
 
@@ -99,20 +98,22 @@ begin
    );
 
 
-   ------------------------------
-   -- Map fifo signals
-   ------------------------------
-
-   eth_fifo(15)           <= eth_rx_sof;
-   eth_fifo(14)           <= eth_rx_eof;
-   eth_fifo(13 downto 12) <= eth_rx_error;
-   eth_fifo(11 downto  8) <= (others => '0');
-   eth_fifo( 7 downto  0) <= eth_rx_data;
-
-   user_rx_sof   <= user_fifo(15);
-   user_rx_eof   <= user_fifo(14);
-   user_rx_error <= user_fifo(13 downto 12);
-   user_rx_data  <= user_fifo( 7 downto  0);
+   -------------------------------
+   -- CRC stripper and header insertion
+   -------------------------------
+   inst_strip_crc : entity work.strip_crc
+   port map (
+      clk_i       => eth_clk_i,
+      rst_i       => eth_rst_i,
+      rx_valid_i  => eth_rx_valid,
+      rx_sof_i    => eth_rx_sof,
+      rx_eof_i    => eth_rx_eof,
+      rx_data_i   => eth_rx_data,
+      rx_error_i  => eth_rx_error,
+      rx_error_o  => open,
+      out_valid_o => eth_strip_valid,
+      out_data_o  => eth_strip_data
+   );
 
 
    ------------------------------
@@ -126,14 +127,14 @@ begin
    port map (
       wr_clk_i   => eth_clk_i,
       wr_rst_i   => eth_rst,
-      wr_en_i    => eth_rx_valid,
-      wr_data_i  => eth_fifo,
+      wr_en_i    => eth_strip_valid,
+      wr_data_i  => eth_strip_data,
       wr_afull_o => open,  -- Ignored
       wr_error_o => open,  -- Ignored
       rd_clk_i   => user_clk_i,
       rd_rst_i   => '0',
       rd_en_i    => user_rden,
-      rd_data_o  => user_fifo,
+      rd_data_o  => user_rx_data,
       rd_empty_o => user_empty,
       rd_error_o => open   -- Ignored
    );
@@ -149,8 +150,6 @@ begin
       rd_empty_i => user_empty,
       rd_en_o    => user_rden,
       --
-      rd_sof_i   => user_rx_sof,
-      rd_eof_i   => user_rx_eof,
       rd_data_i  => user_rx_data,
       rd_error_i => user_rx_error,
       --
