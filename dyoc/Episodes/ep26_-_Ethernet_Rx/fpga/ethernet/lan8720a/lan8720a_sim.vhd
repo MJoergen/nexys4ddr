@@ -66,6 +66,12 @@ begin
             rx_eof_o <= '1';
          end if;
          wait until clk_i = '1';
+         rx_valid_o <= '0';
+         rx_sof_o   <= '0';
+         rx_eof_o   <= '0';
+         wait until clk_i = '1';
+         wait until clk_i = '1';
+         wait until clk_i = '1';
       end loop;
 
       -- Have a short pause.
@@ -90,6 +96,13 @@ begin
             if i=63 then
                rx_eof_o <= '1';
             end if;
+            -- Send data only every fourth clock cycle.
+            wait until clk_i = '1';
+            rx_valid_o <= '0';
+            rx_sof_o   <= '0';
+            rx_eof_o   <= '0';
+            wait until clk_i = '1';
+            wait until clk_i = '1';
             wait until clk_i = '1';
          end loop byte_loop;
       end loop pkt_loop;

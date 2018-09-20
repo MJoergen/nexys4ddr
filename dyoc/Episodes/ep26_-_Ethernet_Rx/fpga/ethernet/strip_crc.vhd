@@ -57,8 +57,8 @@ architecture Structural of strip_crc is
 
    -- Statistics
    signal cnt_good    : std_logic_vector(15 downto 0);
-   signal cnt_error   : std_logic_vector(15 downto 0);
-   signal cnt_crc_bad : std_logic_vector(15 downto 0);
+   signal cnt_error   : std_logic_vector( 7 downto 0);
+   signal cnt_crc_bad : std_logic_vector( 7 downto 0);
 
    -- Output interface
    signal out_valid : std_logic;
@@ -242,9 +242,12 @@ begin
 
 
    -- Connect output signals
-   out_valid_o <= out_valid;
-   out_data_o  <= out_data;
-   rx_error_o  <= rx_error;
+   out_valid_o   <= out_valid;
+   out_data_o    <= out_data;
+   cnt_good_o    <= cnt_good;
+   cnt_error_o   <= cnt_error;
+   cnt_crc_bad_o <= cnt_crc_bad;
+   rx_error_o    <= rx_error;
 
 end Structural;
 

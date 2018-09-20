@@ -79,7 +79,7 @@ begin
 
          -- During simulation we want the reset pulse to be much shorter.
          -- pragma synthesis_off
-         eth_rst_cnt(20 downto 3) <= (others => '0');
+         eth_rst_cnt(20 downto 4) <= (others => '0');
          -- pragma synthesis_on
       end if;
    end process proc_eth_rst;

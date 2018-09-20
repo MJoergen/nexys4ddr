@@ -47,27 +47,32 @@ begin
    eth_rdptr  <= memio_i(47 downto 32);   -- Current CPU read pointer.
    eth_enable <= memio_i(48);             -- DMA enable. Must be cleared before updating buffer location.
 
-   -- This generates a read on every second cycle.
+   -- This generates a read on every second cycle, unless buffer is full.
    proc_read : process (clk_i)
    begin
       if rising_edge(clk_i) then
          rd_en <= not rd_empty_i and not rd_en;
+         
+         -- Don't read any more, if buffer is full.
+         if wr_addr + 1 = eth_rdptr or (wr_addr + 1 = eth_end and eth_rdptr = eth_start) then
+            rd_en <= '0';
+         end if;
       end if;
    end process proc_read;
 
-   proc_write : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
+--   proc_write : process (clk_i)
+--   begin
+--      if rising_edge(clk_i) then
          wr_en   <= rd_en;
          wr_data <= rd_data_i;
-      end if;
-   end process proc_write;
+--      end if;
+--   end process proc_write;
 
    -- Prepare wr_addr for the next byte.
    proc_wr_addr : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if wr_en = '1' then
+         if rd_en = '1' then
             if wr_addr + 1 = eth_end then
                wr_addr <= eth_start;
             else

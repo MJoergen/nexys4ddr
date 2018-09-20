@@ -58,7 +58,7 @@ init:
    JSR zerobss             ; Clear BSS segment
    JSR copydata            ; Initialize DATA segment
    JSR initlib             ; Run constructors
-   ;JSR _clrscr             ; Clear screen
+   JSR _clrscr             ; Clear screen
 
 ; ---------------------------------------------------------------------------
 ; Enable timer interrupt
