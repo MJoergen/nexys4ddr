@@ -1,26 +1,28 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
---use ieee.numeric_std.all;
 
 -- This module strips the incoming frame of the MAC CRC (the last four bytes)
--- and prepends with a two-byte header containing the total number of bytes
--- (including header) stored in little-endian format.
+-- and prepends the frame with a two-byte header containing the total number of
+-- bytes (including header) stored in little-endian format.
 --
 -- This module operates in a store-and-forward mode, where the entire frame is
 -- stored in an input buffer, until the last byte is received.  Only valid
 -- frames are forwarded. In other words, errored frames are discarded.  The
--- address of the EOF is stored in a separate FIFO. If the frame is to be
--- discarded, the write pointer is reset to the start of the errored frame.
+-- address of the last byte of the frame (EOF) is stored in a separate FIFO.
+-- The address of the first byte of the frame (SOF) is stored in the register
+-- start_ptr.  If the frame is to be discarded, the current write pointer is
+-- reset to this start_ptr.
 --
 -- As soon as an entire frame has been received it is output. Since the input
--- buffer is limited in size we won't allow any flow control. This prevents the
--- input buffer from overflowing. Should the input buffer overflow, an error
--- is indicated, but no error handling is implemented here.
+-- buffer is limited in size we won't allow any flow control on the output
+-- interface.  Should the input buffer overflow (e.g. due to a long frame), an
+-- error is indicated, but no error handling is implemented here.
 --
--- Warning: Buffer overflow here will lead to corrupted packets. This is in
--- other words a permanent failure, and the rx_error_o output is therefore
--- latched high and can only be cleared upon reset.
+-- Warning: In the current implementation buffer overflow will lead to
+-- corrupted packets. This is in other words a permanent failure, and the
+-- rx_error_o output is therefore latched high and can only be cleared upon
+-- reset.
 --
 -- For simplicity, everything is in the same clock domain.
 
@@ -37,6 +39,11 @@ entity strip_crc is
       rx_error_i     : in  std_logic_vector(1 downto 0); -- Only valid @ EOF
       rx_error_o     : out std_logic;                    -- Input buffer overflow. Latched.
 
+      -- Statistics. All these counters saturate at their maximum value.
+      cnt_good_o     : out std_logic_vector(15 downto 0);
+      cnt_error_o    : out std_logic_vector( 7 downto 0);
+      cnt_crc_bad_o  : out std_logic_vector( 7 downto 0);
+
       -- Output interface
       out_valid_o    : out std_logic;
       out_data_o     : out std_logic_vector(7 downto 0)
@@ -45,7 +52,18 @@ end strip_crc;
 
 architecture Structural of strip_crc is
 
+   -- Input buffer overflow
    signal rx_error : std_logic := '0';
+
+   -- Statistics
+   signal cnt_good    : std_logic_vector(15 downto 0);
+   signal cnt_error   : std_logic_vector(15 downto 0);
+   signal cnt_crc_bad : std_logic_vector(15 downto 0);
+
+   -- Output interface
+   signal out_valid : std_logic;
+   signal out_data  : std_logic_vector(7 downto 0);
+
 
    -- The size of the input buffer is 2K. This fits nicely in a single BRAM.
    constant C_ADDR_SIZE : integer := 11;
@@ -54,16 +72,14 @@ architecture Structural of strip_crc is
 
    -- Current write pointer.
    signal wrptr     : std_logic_vector(C_ADDR_SIZE-1 downto 0) := (others => '0');
-
    -- Start of current frame.
    signal start_ptr : std_logic_vector(C_ADDR_SIZE-1 downto 0) := (others => '0');
-
    -- End of current frame.
    signal end_ptr   : std_logic_vector(C_ADDR_SIZE-1 downto 0) := (others => '0');
-
    -- Current read pointer.
    signal rdptr     : std_logic_vector(C_ADDR_SIZE-1 downto 0) := (others => '0');
 
+   -- Control fifo
    signal ctrl_wren   : std_logic;
    signal ctrl_wrdata : std_logic_vector(15 downto 0);
    signal ctrl_rden   : std_logic;
@@ -73,10 +89,39 @@ architecture Structural of strip_crc is
    type t_fsm_state is (IDLE_ST, LEN_MSB_ST, FWD_ST);
    signal fsm_state : t_fsm_state := IDLE_ST;
 
-   signal out_valid : std_logic;
-   signal out_data  : std_logic_vector(7 downto 0);
-
 begin
+
+   -- This process collects statistics of the packets received.
+   proc_stats : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if rx_valid_i = '1' and rx_eof_i = '1' then
+            if rx_error_i(0) = '1' then
+               -- Receiver error
+               if cnt_error /= X"FF" then     -- Saturate counter
+                  cnt_error <= cnt_error + 1;
+               end if;
+            elsif rx_error_i(1) = '1' then
+               -- CRC error
+               if cnt_crc_bad /= X"FF" then   -- Saturate counter
+                  cnt_crc_bad <= cnt_crc_bad + 1;
+               end if;
+            else
+               -- No errors
+               if cnt_good /= X"FFFF" then    -- Saturate counter
+                  cnt_good <= cnt_good + 1;
+               end if;
+            end if;
+         end if;
+
+         if rst_i = '1' then
+            cnt_good    <= (others => '0');
+            cnt_error   <= (others => '0');
+            cnt_crc_bad <= (others => '0');
+         end if;
+      end if;
+   end process proc_stats;
+
 
    -- This process stores the incoming data in the input buffer,
    -- and stores the pointer to EOF in a separate control fifo.
@@ -120,7 +165,8 @@ begin
 
    -- Instantiate the control fifo to contain the address of each EOF.
    -- This fifo will contain one entry for each frame in the input buffer,
-   -- so not very many entries in total. Therefore, we ignore any errors.
+   -- so not very many entries in total. Therefore, we can safely ignore any
+   -- write errors.
    inst_ctrl_fifo : entity work.fifo
    generic map (
       G_WIDTH => 16
@@ -142,7 +188,7 @@ begin
       );
 
 
-   -- This output process generates the output.
+   -- This process generates the output.
    proc_output : process (clk_i)
       variable frame_length_v : std_logic_vector(C_ADDR_SIZE-1 downto 0);
       variable end_ptr_v      : std_logic_vector(C_ADDR_SIZE-1 downto 0);
@@ -156,8 +202,10 @@ begin
             when IDLE_ST =>
                if ctrl_empty = '0' then
                   end_ptr_v := ctrl_rddata(C_ADDR_SIZE-1 downto 0);
-                  -- Calculate length including header.
-                  frame_length_v := end_ptr_v - rdptr + 3;
+                  -- Calculate length including two-byte header.
+                  -- 'rdptr' contains address of first byte.
+                  -- 'end_ptr_v' contains address of last byte.
+                  frame_length_v := end_ptr_v+1 - rdptr + 2;
 
                   -- An entire frame is now ready.
                   ctrl_rden <= '1';
@@ -172,7 +220,7 @@ begin
             when LEN_MSB_ST =>
                -- Transfer MSB of length
                out_valid <= '1';
-               out_data  <= (others => '0');
+               out_data(15 downto C_ADDR_SIZE-8) <= (others => '0');
                out_data(C_ADDR_SIZE-9 downto 0) <= frame_length_v(C_ADDR_SIZE-1 downto 8);
                fsm_state <= FWD_ST;
 
@@ -184,7 +232,6 @@ begin
                if rdptr = end_ptr then
                   fsm_state <= IDLE_ST;
                end if;
-
          end case;
 
          if rst_i = '1' then

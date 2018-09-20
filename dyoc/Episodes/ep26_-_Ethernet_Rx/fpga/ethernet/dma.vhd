@@ -2,9 +2,15 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
--- This is a simple DMA. It will generate write requests to the memory, whenever there is input data available.
--- Since this DMA has priority over the CPU, writes are only generated every second clock cycle, to avoid
--- starving the CPU for long periods.
+-- This is a simple DMA. It will generate write requests to the memory,
+-- whenever there is input data available.  Since this DMA has priority over
+-- the CPU, writes are only generated every second clock cycle, to avoid
+-- starving the CPU for long periods. This is still enough to provide
+-- an effective data rate of 100 Mbit/s (25MHz / 2 * 8 bits/byte).
+--
+-- The buffer location in memory is supplied in the configuration signal
+-- memio_i. Prior to changing this signal, the bit 48 (eth_enable) must be
+-- cleared.
 
 entity dma is
    port (
@@ -17,8 +23,7 @@ entity dma is
       wr_en_o    : out std_logic;
       wr_addr_o  : out std_logic_vector(15 downto 0);
       wr_data_o  : out std_logic_vector( 7 downto 0);
-      memio_i    : in  std_logic_vector(55 downto 0);
-      memio_o    : out std_logic_vector(47 downto 0)
+      memio_i    : in  std_logic_vector(55 downto 0)
    );
 end dma;
 
@@ -37,10 +42,10 @@ architecture Structural of dma is
 
 begin
 
-   eth_start  <= memio_i(15 downto  0);
-   eth_end    <= memio_i(31 downto 16);
-   eth_rdptr  <= memio_i(47 downto 32);
-   eth_enable <= memio_i(48);
+   eth_start  <= memio_i(15 downto  0);   -- Start of buffer.
+   eth_end    <= memio_i(31 downto 16);   -- End of buffer.
+   eth_rdptr  <= memio_i(47 downto 32);   -- Current CPU read pointer.
+   eth_enable <= memio_i(48);             -- DMA enable. Must be cleared before updating buffer location.
 
    -- This generates a read on every second cycle.
    proc_read : process (clk_i)
@@ -58,6 +63,7 @@ begin
       end if;
    end process proc_write;
 
+   -- Prepare wr_addr for the next byte.
    proc_wr_addr : process (clk_i)
    begin
       if rising_edge(clk_i) then
@@ -68,7 +74,8 @@ begin
                wr_addr <= wr_addr + 1;
             end if;
          end if;
-         if eth_enable = '0' then
+
+         if eth_enable = '0' then   -- Reset write pointer to beginning of new buffer location.
             wr_addr <= eth_start;
          end if;
       end if;
@@ -80,11 +87,6 @@ begin
    wr_en_o   <= wr_en;
    wr_addr_o <= wr_addr;
    wr_data_o <= wr_data;
-
-   memio_o(15 downto  0) <= wr_addr;
-   memio_o(31 downto 16) <= (others => '0');
-   memio_o(39 downto 32) <= (others => '0');
-   memio_o(47 downto 40) <= (others => '0');
 
 end Structural;
 

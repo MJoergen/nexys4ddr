@@ -77,20 +77,22 @@ begin
       wait for 60 us;
       wait until clk_i = '1';
 
-      -- Make a burst of 128 writes.
-      for i in 0 to 127 loop
-         rx_valid_o <= '1';
-         rx_sof_o   <= '0';
-         rx_eof_o   <= '0';
-         rx_data_o  <= X"22" + i;
-         if i=0 then
-            rx_sof_o <= '1';
-         end if;
-         if i=127 then
-            rx_eof_o <= '1';
-         end if;
-         wait until clk_i = '1';
-      end loop;
+      -- Make a burst of four minimum packets back-to-back.
+      pkt_loop : for pkt in 0 to 3 loop
+         byte_loop : for i in 0 to 63 loop
+            rx_valid_o <= '1';
+            rx_sof_o   <= '0';
+            rx_eof_o   <= '0';
+            rx_data_o  <= X"22" + i + pkt;
+            if i=0 then
+               rx_sof_o <= '1';
+            end if;
+            if i=63 then
+               rx_eof_o <= '1';
+            end if;
+            wait until clk_i = '1';
+         end loop byte_loop;
+      end loop pkt_loop;
 
       -- Stop any further stimuli.
       rx_valid_o <= '0';

@@ -36,13 +36,14 @@ architecture Structural of ethernet is
    -- Therefore, the rst_cnt has a size of 21 bits, which means that
    -- 'eth_rst' is deasserted after 40 ms.
    signal eth_rst       : std_logic := '1';
-   signal eth_rst_cnt   : std_logic_vector(7 downto 0) := (others => '1');
+   signal eth_rst_cnt   : std_logic_vector(20 downto 0) := (others => '1');
 
    signal eth_rx_valid  : std_logic;
    signal eth_rx_sof    : std_logic;
    signal eth_rx_eof    : std_logic;
    signal eth_rx_data   : std_logic_vector(7 downto 0);
    signal eth_rx_error  : std_logic_vector(1 downto 0);
+   signal eth_overflow  : std_logic;
 
    signal eth_strip_valid : std_logic;
    signal eth_strip_data  : std_logic_vector(7 downto 0);
@@ -51,6 +52,15 @@ architecture Structural of ethernet is
    signal user_rden     : std_logic;
    signal user_rx_data  : std_logic_vector(7 downto 0);
    signal user_rx_error : std_logic_vector(1 downto 0);
+
+   signal user_dma_wren : std_logic;
+   signal user_dma_addr : std_logic_vector(15 downto 0);
+   signal user_dma_data : std_logic_vector( 7 downto 0);
+
+   -- Statistics counters
+   signal eth_cnt_good    : std_logic_vector(15 downto 0);
+   signal eth_cnt_error   : std_logic_vector( 7 downto 0);
+   signal eth_cnt_crc_bad : std_logic_vector( 7 downto 0);
 
 begin
 
@@ -66,6 +76,11 @@ begin
          else
             eth_rst <= '0';
          end if;
+
+         -- During simulation we want the reset pulse to be much shorter.
+         -- pragma synthesis_off
+         eth_rst_cnt(20 downto 3) <= (others => '0');
+         -- pragma synthesis_on
       end if;
    end process proc_eth_rst;
    
@@ -103,17 +118,22 @@ begin
    -------------------------------
    inst_strip_crc : entity work.strip_crc
    port map (
-      clk_i       => eth_clk_i,
-      rst_i       => eth_rst,
-      rx_enable_i => user_memio_i(48), -- DMA enable
-      rx_valid_i  => eth_rx_valid,
-      rx_sof_i    => eth_rx_sof,
-      rx_eof_i    => eth_rx_eof,
-      rx_data_i   => eth_rx_data,
-      rx_error_i  => eth_rx_error,
-      rx_error_o  => open,
-      out_valid_o => eth_strip_valid,
-      out_data_o  => eth_strip_data
+      clk_i         => eth_clk_i,
+      rst_i         => eth_rst,
+      rx_enable_i   => user_memio_i(48), -- DMA enable
+      rx_valid_i    => eth_rx_valid,
+      rx_sof_i      => eth_rx_sof,
+      rx_eof_i      => eth_rx_eof,
+      rx_data_i     => eth_rx_data,
+      rx_error_i    => eth_rx_error,
+      rx_error_o    => eth_overflow,
+      --
+      cnt_good_o    => eth_cnt_good,
+      cnt_error_o   => eth_cnt_error,
+      cnt_crc_bad_o => eth_cnt_crc_bad,
+      --
+      out_valid_o   => eth_strip_valid,
+      out_data_o    => eth_strip_data
    );
 
 
@@ -154,12 +174,23 @@ begin
       rd_data_i  => user_rx_data,
       rd_error_i => user_rx_error,
       --
-      wr_en_o    => user_wren_o,
-      wr_addr_o  => user_addr_o,
-      wr_data_o  => user_data_o,
-      memio_i    => user_memio_i,
-      memio_o    => user_memio_o
+      wr_en_o    => user_dma_wren,
+      wr_addr_o  => user_dma_addr,
+      wr_data_o  => user_dma_data,
+      memio_i    => user_memio_i
    );
+
+   -- Connect output signals
+
+   user_wren_o <= user_dma_wren;
+   user_addr_o <= user_dma_addr;
+   user_data_o <= user_dma_data;
+
+   user_memio_o(15 downto  0) <= user_dma_addr;
+   user_memio_o(30 downto 16) <= eth_cnt_good(14 downto 0);
+   user_memio_o(31)           <= eth_overflow;
+   user_memio_o(39 downto 32) <= eth_cnt_error;
+   user_memio_o(47 downto 40) <= eth_cnt_crc_bad;
    
 end Structural;
 
