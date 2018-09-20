@@ -220,7 +220,7 @@ begin
             when LEN_MSB_ST =>
                -- Transfer MSB of length
                out_valid <= '1';
-               out_data(15 downto C_ADDR_SIZE-8) <= (others => '0');
+               out_data(7 downto C_ADDR_SIZE-8) <= (others => '0');
                out_data(C_ADDR_SIZE-9 downto 0) <= frame_length_v(C_ADDR_SIZE-1 downto 8);
                fsm_state <= FWD_ST;
 
