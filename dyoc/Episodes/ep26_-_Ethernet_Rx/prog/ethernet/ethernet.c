@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdlib.h>
 #include <conio.h>
 #include "memorymap.h"
 
@@ -11,7 +12,7 @@ static void putx8(uint8_t x)
 
 void main(void)
 {
-   // Allocate receive buffer
+   // Allocate receive buffer. This will never be free'd.
    uint8_t *pBuf = (uint8_t *) malloc(2000);
 
    // Configure Ethernet DMA
@@ -21,8 +22,11 @@ void main(void)
    MEMIO_CONFIG->ethEnable = 1;
    
    // Wait for data to be received, and print to the screen
-   while (MEMIO_CONFIG->ethRdPtr != MEMIO_STATUS->ethWrPtr)
+   while (1)
    {
+      if (MEMIO_CONFIG->ethRdPtr == MEMIO_STATUS->ethWrPtr)
+         continue;   // Go back and wait for data
+
       putx8(*(uint8_t *)MEMIO_CONFIG->ethRdPtr);
 
       if (MEMIO_CONFIG->ethRdPtr < MEMIO_CONFIG->ethEnd)

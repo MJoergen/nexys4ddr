@@ -50,7 +50,7 @@ begin
       rx_eof_o   <= '0';
       rx_data_o  <= (others => '0');
       rx_error_o <= (others => '0');
-      wait for 80 us;
+      wait for 50 us;
       wait until clk_i = '1';
 
       -- Make a burst of 64 writes.
@@ -77,8 +77,8 @@ begin
       wait for 60 us;
       wait until clk_i = '1';
 
-      -- Make a burst of 256 writes.
-      for i in 0 to 255 loop
+      -- Make a burst of 128 writes.
+      for i in 0 to 127 loop
          rx_valid_o <= '1';
          rx_sof_o   <= '0';
          rx_eof_o   <= '0';
@@ -86,7 +86,7 @@ begin
          if i=0 then
             rx_sof_o <= '1';
          end if;
-         if i=255 then
+         if i=127 then
             rx_eof_o <= '1';
          end if;
          wait until clk_i = '1';

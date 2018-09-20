@@ -29,6 +29,7 @@ entity strip_crc is
       -- Input interface
       clk_i          : in  std_logic;
       rst_i          : in  std_logic;
+      rx_enable_i    : in  std_logic;                    -- Discard all packets if zero.
       rx_valid_i     : in  std_logic;
       rx_sof_i       : in  std_logic;
       rx_eof_i       : in  std_logic;
@@ -69,11 +70,11 @@ architecture Structural of strip_crc is
    signal ctrl_rddata : std_logic_vector(15 downto 0);
    signal ctrl_empty  : std_logic;
 
-   type t_fsm_state is (IDLE_ST, FWD_ST);
+   type t_fsm_state is (IDLE_ST, LEN_MSB_ST, FWD_ST);
    signal fsm_state : t_fsm_state := IDLE_ST;
 
-   signal out_ena  : std_logic;
-   signal out_data : std_logic_vector(7 downto 0);
+   signal out_valid : std_logic;
+   signal out_data  : std_logic_vector(7 downto 0);
 
 begin
 
@@ -96,7 +97,7 @@ begin
             wrptr <= wrptr + 1;
 
             if rx_eof_i = '1' then
-               if rx_error_i = "00" then
+               if rx_error_i = "00" and rx_enable_i = '1' then
                   -- Prepare for next frame (and strip CRC).
                   start_ptr   <= wrptr-3;
                   wrptr       <= wrptr-3;
@@ -143,7 +144,8 @@ begin
 
    -- This output process generates the output.
    proc_output : process (clk_i)
-      variable frame_lengtn_v : std_logic_vector(C_ADDR_SIZE-1 downto 0);
+      variable frame_length_v : std_logic_vector(C_ADDR_SIZE-1 downto 0);
+      variable end_ptr_v      : std_logic_vector(C_ADDR_SIZE-1 downto 0);
    begin
       if rising_edge(clk_i) then
          ctrl_rden <= '0';
@@ -153,17 +155,18 @@ begin
          case fsm_state is
             when IDLE_ST =>
                if ctrl_empty = '0' then
+                  end_ptr_v := ctrl_rddata(C_ADDR_SIZE-1 downto 0);
+                  -- Calculate length including header.
+                  frame_length_v := end_ptr_v - rdptr + 3;
+
                   -- An entire frame is now ready.
                   ctrl_rden <= '1';
-                  end_ptr   <= ctrl_rddata(C_ADDR_SIZE-1 downto 0);
-
-                  -- Calculate length including header.
-                  frame_length_v := end_ptr - rdptr + 3;
+                  end_ptr   <= end_ptr_v;
 
                   -- Transfer LSB of length
                   out_valid <= '1';
                   out_data  <= frame_length_v(7 downto 0);
-                  fsm_state <= FWD_ST;
+                  fsm_state <= LEN_MSB_ST;
                end if;
 
             when LEN_MSB_ST =>
@@ -192,9 +195,9 @@ begin
 
 
    -- Connect output signals
-   out_ena_o  <= out_ena;
-   out_data_o <= out_data;
-   rx_error_o <= rx_error;
+   out_valid_o <= out_valid;
+   out_data_o  <= out_data;
+   rx_error_o  <= rx_error;
 
 end Structural;
 

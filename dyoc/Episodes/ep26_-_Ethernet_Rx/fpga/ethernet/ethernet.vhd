@@ -104,7 +104,8 @@ begin
    inst_strip_crc : entity work.strip_crc
    port map (
       clk_i       => eth_clk_i,
-      rst_i       => eth_rst_i,
+      rst_i       => eth_rst,
+      rx_enable_i => user_memio_i(48), -- DMA enable
       rx_valid_i  => eth_rx_valid,
       rx_sof_i    => eth_rx_sof,
       rx_eof_i    => eth_rx_eof,
@@ -122,7 +123,7 @@ begin
 
    inst_fifo : entity work.fifo
    generic map (
-      G_WIDTH => 16
+      G_WIDTH => 8
    )
    port map (
       wr_clk_i   => eth_clk_i,
