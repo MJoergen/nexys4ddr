@@ -63,9 +63,9 @@ init:
 ; ---------------------------------------------------------------------------
 ; Enable timer interrupt
 
+   LDA IRQ_STATUS          ; Clear any pending interrupts, before enabling them.
    LDA #IRQ_TIMER_MASK | IRQ_VGA_MASK | IRQ_KBD_MASK
-   STA IRQ_MASK            ; Enable timer and keyboard interrupt
-   LDA IRQ_STATUS          ; Clear any pending interrupts
+   STA IRQ_MASK            ; Enable timer, VGA, and keyboard interrupt
    CLI                     ; Enable interrupt handling
 
 ; ---------------------------------------------------------------------------
