@@ -1,10 +1,12 @@
+XILINX_DIR = /opt/Xilinx/Vivado/2017.3
 XILINX_ISE_DIR = /opt/Xilinx/14.7/ISE_DS
 
-SRC  = comp.vhd ic.vhd\
+SRC  = comp.vhd \
+		 chipset/ic.vhd chipset/waiter.vhd chipset/timer.vhd \
 		 vga/overlay.vhd vga/chars.vhd vga/font.vhd vga/vga.vhd \
 		 mem/memio.vhd mem/dmem.vhd mem/ram.vhd mem/rom.vhd mem/mem.vhd \
 		 keyboard/ps2.vhd keyboard/scancode.vhd keyboard/keyboard.vhd \
-		 cpu/datapath.vhd cpu/ctl.vhd cpu/cpu.vhd cpu/alu.vhd
+		 cpu/zp.vhd cpu/sr.vhd cpu/regfile.vhd cpu/hilo.vhd cpu/pc.vhd cpu/cycle.vhd cpu/datapath.vhd cpu/ctl.vhd cpu/cpu.vhd cpu/alu.vhd
 XDC  = comp.xdc
 TB   = tb.vhd keyboard/ps2_tb.vhd
 WAVE = tb.ghw
@@ -49,6 +51,7 @@ sim: $(SRC) $(TB) $(ROM)
 clean:
 	rm -rf usage_statistics_webtalk.*
 	rm -rf vivado*
+	rm -rf *.o
 	rm -rf comp.bit
 	rm -rf comp.dcp
 	rm -rf .Xil

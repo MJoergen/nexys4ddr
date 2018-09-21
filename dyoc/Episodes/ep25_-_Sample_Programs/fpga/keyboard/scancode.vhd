@@ -48,7 +48,7 @@ architecture structural of scancode is
    signal shifted     : std_logic;
 
    signal ascii       : std_logic_vector(7 downto 0);
-   signal valid       : std_logic;
+   signal valid       : std_logic := '0';
 
 begin
 
