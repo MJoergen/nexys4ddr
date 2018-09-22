@@ -184,18 +184,19 @@ The data rate into this block is one byte every fourth clock cycle @ 50 MHz
 (corresponding to 100 Mbit/s).  The output rate is one byte every clock cycle,
 so the output is much faster than the input.  There should therefore be no risk
 of buffer overflow. Overflow can really only happen if a single frame larger
-than 2K is being received. The current implementation does not handle this
-situation, and will fail miserably.  However, maximum frame size on Ethernet is
-1500 bytes, so this should not occur.
+than 2K is being received or if the fifo is full. The current implementation
+does not handle this situation, and will fail miserably.  However, maximum
+frame size on Ethernet is 1500 bytes, so this should not occur.
 
 Inputs to this block are taken directly from the rmii\_rx block. However, the
-addition signal rx\_enable\_i is used to enable discarding of all frames. This
-is needed when configuring the DMA, see below.
+additional signal rx\_enable\_i is used to enable discarding of all frames.
+This is needed when configuring the DMA, see below.
 
 Another input to this block is out\_afull\_i, which is used as flow-control.
 When this signal is asserted, the fifo that comes next in line is full, and can
 accept no more data at the moment. This signal prevents reading from the input
-buffer, and is asserted for too long will cause the input buffer to overflow.
+buffer, and if it is asserted for too long will cause the input buffer to
+overflow.
 
 ### Clock crossing fifo
 This is handled in ethernet/fifo.vhd. This module takes care of:
@@ -208,18 +209,20 @@ This is handled in ethernet/dma.vhd. This module takes care of:
 * Maintaining a write pointer.
 
 As mentioned above, the CPU is responsible for allocating (e.g. using malloc) a
-chuck of contiguous memory, and configuring the DMA block. This is done by
-writing the start and end of the receive DMA buffer. Whenever data is received
-on the Ethernet port, the DMA will write data to the buffer, always maintaining
-a write pointer to instruct the CPU how much data has been received. And
-likewise the CPU maintains a read pointer to instruct the DMA where it is
-allowed to write to.  This prevents the DMA from overwriting data the CPU has
-not yet processed.
+chunk of contiguous memory, and configuring the DMA block. This is done by
+writing the start and end of the receive DMA buffer.  The DMA must be disabled
+while modifying these pointers.
+
+Whenever data is received on the Ethernet port, the DMA will write data to the
+buffer, always maintaining a write pointer to instruct the CPU how much data
+has been received. And likewise the CPU maintains a read pointer to instruct
+the DMA where it is allowed to write to.  This prevents the DMA from
+overwriting data the CPU has not yet processed.
 
 The whole design is put together in the file ethernet/ethernet.vhd.
 
 A choice must be made on how to handle the situation where the receive DMA
-buffer runs full, e.g. if the CPU is too long in processing a packet, while a
+buffer runs full, e.g. if the CPU is too slow in processing a packet, while a
 burst of subsequent packets are received. The current implementation will stop
 reading from the fifo (the signal user\_rden remains low), which will then fill
 up (as indicated by the signal eth\_fifo\_afull). Eventually the input buffer
