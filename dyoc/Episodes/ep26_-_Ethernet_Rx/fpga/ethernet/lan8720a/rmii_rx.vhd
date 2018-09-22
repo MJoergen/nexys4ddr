@@ -82,7 +82,7 @@ architecture Structural of rmii_rx is
       variable res_v : std_logic_vector(31 downto 0);
    begin
       res_v := old_crc;
-      for i in 0 to 1 loop
+      for i in 0 to 1 loop -- process each bit one-at-a-time.
          if dibits(i) = res_v(31) then
             res_v :=  res_v(30 downto 0) & '0';
          else
@@ -157,14 +157,14 @@ begin
          user_sof_o       <= valid and sof;
          user_eof_o       <= valid and (phy_rxerr_i or not phy_crsdv_i);
          user_error_o(0)  <= valid and phy_rxerr_i; -- Receiver error
-         user_error_o(1)  <= '0';                   -- CRC error
+         user_error_o(1)  <= '0';                   -- No CRC error
          user_data_o      <= data;
 
          -- Are we at the end of frame, and no receiver error?
          if valid = '1' and phy_crsdv_i = '0' and phy_rxerr_i = '0' then
-            user_error_o(1) <= '1'; -- Assume CRC error...
-            if crc = CRC_CORRECT then
-               user_error_o(1) <= '0'; -- Clear CRC error
+            -- Check for CRC error
+            if crc /= CRC_CORRECT then
+               user_error_o(1) <= '1';
             end if;
          end if;
       end if;

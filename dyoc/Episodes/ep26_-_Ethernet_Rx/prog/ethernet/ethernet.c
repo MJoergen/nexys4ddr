@@ -3,7 +3,7 @@
 #include <conio.h>
 #include "memorymap.h"
 
-#define BUF_SIZE 150
+#define BUF_SIZE 8000
 
 void putx8(uint8_t x)
 {

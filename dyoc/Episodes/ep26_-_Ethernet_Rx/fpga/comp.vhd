@@ -17,7 +17,7 @@ use ieee.numeric_std.all;
 
 entity comp is
    generic (
-      G_SIM_MODEL : boolean := false;
+      G_SIM_MODEL : boolean := false;  -- This is set to true in the simulation test bench.
       G_FONT_FILE : string := "font8x8.txt"
    );
    port (
@@ -128,12 +128,12 @@ begin
    -- this is close enough.
    --------------------------------------------------
 
-   p_vga_cnt : process (clk_i)
+   p_clk_cnt : process (clk_i)
    begin
       if rising_edge(clk_i) then
          clk_cnt <= clk_cnt + 1;
       end if;
-   end process p_vga_cnt;
+   end process p_clk_cnt;
 
    eth_clk <= clk_cnt(0);
    vga_clk <= clk_cnt(1);
@@ -142,6 +142,7 @@ begin
    --------------------------------------------------
    -- Generate Reset
    --------------------------------------------------
+
    p_rst : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
@@ -188,7 +189,7 @@ begin
    port map (
       clk_i   => vga_clk,
       inc_i   => sw_i,
-      wait_o  => sys_Wait
+      wait_o  => sys_wait
    );
 
    -- Generate wait signal for the CPU.
@@ -279,7 +280,7 @@ begin
 
    i_vga : entity work.vga
    generic map (
-      G_FONT_FILE => "font8x8.txt"
+      G_FONT_FILE => G_FONT_FILE
    )
    port map (
       clk_i     => vga_clk,
@@ -345,24 +346,6 @@ begin
 
 
    --------------------------------------------------
-   -- Clock domain crossing
-   --------------------------------------------------
-
---   xpm_cdc_array_single_inst: XPM_CDC_ARRAY_SINGLE
---   generic map (
---                  DEST_SYNC_FF   => 2,
---                  SIM_ASSERT_CHK => 1,
---                  SRC_INPUT_REG  => 0, -- integer; 0=do not register input, 1=register input
---                  WIDTH          => 32*16 -- integer; range: 1-1024
---               )
---   port map (
---               src_clk  => '0',   -- Not used
---               src_in   => eth_smi_data,
---               dest_clk => vga_clk,
---               dest_out => smi_memio_rd
---            );
-
-   --------------------------------------------------
    -- Memory Mapped I/O
    -- This must match the mapping in prog/include/memorymap.h
    --------------------------------------------------
@@ -396,6 +379,7 @@ begin
    memio_rd( 3*8+7 downto  0*8) <= vga_memio_rd;
    memio_rd( 7*8+7 downto  4*8) <= cpu_memio_rd;
    memio_rd( 8*8+7 downto  8*8) <= kbd_memio_rd;
+   memio_rd( 9*8+7 downto  9*8) <= (others => '0');   -- Not used
    memio_rd(15*8+7 downto 10*8) <= eth_memio_rd;
    memio_rd(30*8+7 downto 16*8) <= (others => '0');   -- Not used
    memio_rd(31*8+7 downto 31*8) <= irq_memio_rd;

@@ -54,19 +54,15 @@ begin
          rd_en <= not rd_empty_i and not rd_en;
          
          -- Don't read any more, if buffer is full.
-         if wr_addr + 1 = eth_rdptr or (wr_addr + 1 = eth_end and eth_rdptr = eth_start) then
+         if wr_addr + 1 = eth_rdptr or
+            (wr_addr + 1 = eth_end and eth_rdptr = eth_start) then
             rd_en <= '0';
          end if;
       end if;
    end process proc_read;
 
---   proc_write : process (clk_i)
---   begin
---      if rising_edge(clk_i) then
-         wr_en   <= rd_en;
-         wr_data <= rd_data_i;
---      end if;
---   end process proc_write;
+   wr_en   <= rd_en;
+   wr_data <= rd_data_i;
 
    -- Prepare wr_addr for the next byte.
    proc_wr_addr : process (clk_i)

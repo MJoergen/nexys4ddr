@@ -45,6 +45,7 @@ entity strip_crc is
       cnt_crc_bad_o  : out std_logic_vector( 7 downto 0);
 
       -- Output interface
+      out_afull_i    : in  std_logic;                    -- Output buffer is full.
       out_valid_o    : out std_logic;
       out_data_o     : out std_logic_vector(7 downto 0)
    );
@@ -79,7 +80,7 @@ architecture Structural of strip_crc is
    -- Current read pointer.
    signal rdptr     : std_logic_vector(C_ADDR_SIZE-1 downto 0) := (others => '0');
 
-   -- Control fifo
+   -- Control fifo, contains address of each EOF.
    signal ctrl_wren   : std_logic;
    signal ctrl_wrdata : std_logic_vector(15 downto 0);
    signal ctrl_rden   : std_logic;
@@ -138,6 +139,7 @@ begin
                rx_error <= '1';
             end if;
 
+            -- Write data to buffer
             rx_buf(conv_integer(wrptr)) <= rx_data_i;
             wrptr <= wrptr + 1;
 
@@ -146,6 +148,7 @@ begin
                   -- Prepare for next frame (and strip CRC).
                   start_ptr   <= wrptr-3;
                   wrptr       <= wrptr-3;
+                  -- Write the EOF address to control fifo
                   ctrl_wrdata(C_ADDR_SIZE-1 downto 0) <= wrptr-4; -- Subtract 4 to discard CRC.
                   ctrl_wren   <= '1';
                else
@@ -198,41 +201,43 @@ begin
          out_valid <= '0';
          out_data  <= (others => '0');
 
-         case fsm_state is
-            when IDLE_ST =>
-               if ctrl_empty = '0' then
-                  end_ptr_v := ctrl_rddata(C_ADDR_SIZE-1 downto 0);
-                  -- Calculate length including two-byte header.
-                  -- 'rdptr' contains address of first byte.
-                  -- 'end_ptr_v' contains address of last byte.
-                  frame_length_v := end_ptr_v+1 - rdptr + 2;
+         if out_afull_i = '0' then
+            case fsm_state is
+               when IDLE_ST =>
+                  if ctrl_empty = '0' then
+                     end_ptr_v := ctrl_rddata(C_ADDR_SIZE-1 downto 0);
+                     -- Calculate length including two-byte header.
+                     -- 'rdptr' contains address of first byte.
+                     -- 'end_ptr_v' contains address of last byte.
+                     frame_length_v := end_ptr_v+1 - rdptr + 2;
 
-                  -- An entire frame is now ready.
-                  ctrl_rden <= '1';
-                  end_ptr   <= end_ptr_v;
+                     -- An entire frame is now ready.
+                     ctrl_rden <= '1';
+                     end_ptr   <= end_ptr_v;
 
-                  -- Transfer LSB of length
+                     -- Transfer LSB of length
+                     out_valid <= '1';
+                     out_data  <= frame_length_v(7 downto 0);
+                     fsm_state <= LEN_MSB_ST;
+                  end if;
+
+               when LEN_MSB_ST =>
+                  -- Transfer MSB of length
                   out_valid <= '1';
-                  out_data  <= frame_length_v(7 downto 0);
-                  fsm_state <= LEN_MSB_ST;
-               end if;
+                  out_data(7 downto C_ADDR_SIZE-8) <= (others => '0');
+                  out_data(C_ADDR_SIZE-9 downto 0) <= frame_length_v(C_ADDR_SIZE-1 downto 8);
+                  fsm_state <= FWD_ST;
 
-            when LEN_MSB_ST =>
-               -- Transfer MSB of length
-               out_valid <= '1';
-               out_data(7 downto C_ADDR_SIZE-8) <= (others => '0');
-               out_data(C_ADDR_SIZE-9 downto 0) <= frame_length_v(C_ADDR_SIZE-1 downto 8);
-               fsm_state <= FWD_ST;
-
-            when FWD_ST =>
-               -- Transfer frame data
-               out_valid <= '1';
-               out_data  <= rx_buf(conv_integer(rdptr));
-               rdptr     <= rdptr + 1;
-               if rdptr = end_ptr then
-                  fsm_state <= IDLE_ST;
-               end if;
-         end case;
+               when FWD_ST =>
+                  -- Transfer frame data
+                  out_valid <= '1';
+                  out_data  <= rx_buf(conv_integer(rdptr));
+                  rdptr     <= rdptr + 1;
+                  if rdptr = end_ptr then
+                     fsm_state <= IDLE_ST;
+                  end if;
+            end case;
+         end if;
 
          if rst_i = '1' then
             fsm_state <= IDLE_ST;

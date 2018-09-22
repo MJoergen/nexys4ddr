@@ -48,6 +48,8 @@ architecture Structural of ethernet is
    signal eth_strip_valid : std_logic;
    signal eth_strip_data  : std_logic_vector(7 downto 0);
 
+   signal eth_fifo_afull : std_logic;
+
    signal user_empty    : std_logic;
    signal user_rden     : std_logic;
    signal user_rx_data  : std_logic_vector(7 downto 0);
@@ -91,25 +93,25 @@ begin
 
    inst_phy : entity work.lan8720a
    port map (
-      clk_i          => eth_clk_i,
-      rst_i          => eth_rst,
+      clk_i        => eth_clk_i,
+      rst_i        => eth_rst,
       -- Rx interface
-      rx_valid_o     => eth_rx_valid,
-      rx_sof_o       => eth_rx_sof,
-      rx_eof_o       => eth_rx_eof,
-      rx_data_o      => eth_rx_data,
-      rx_error_o     => eth_rx_error,
+      rx_valid_o   => eth_rx_valid,
+      rx_sof_o     => eth_rx_sof,
+      rx_eof_o     => eth_rx_eof,
+      rx_data_o    => eth_rx_data,
+      rx_error_o   => eth_rx_error,
       -- External pins to the LAN 8720A PHY
-      eth_txd_o      => eth_txd_o,
-      eth_txen_o     => eth_txen_o,
-      eth_rxd_i      => eth_rxd_i,
-      eth_rxerr_i    => eth_rxerr_i,
-      eth_crsdv_i    => eth_crsdv_i,
-      eth_intn_i     => eth_intn_i,
-      eth_mdio_io    => eth_mdio_io,
-      eth_mdc_o      => eth_mdc_o,
-      eth_rstn_o     => eth_rstn_o,
-      eth_refclk_o   => eth_refclk_o
+      eth_txd_o    => eth_txd_o,
+      eth_txen_o   => eth_txen_o,
+      eth_rxd_i    => eth_rxd_i,
+      eth_rxerr_i  => eth_rxerr_i,
+      eth_crsdv_i  => eth_crsdv_i,
+      eth_intn_i   => eth_intn_i,
+      eth_mdio_io  => eth_mdio_io,
+      eth_mdc_o    => eth_mdc_o,
+      eth_rstn_o   => eth_rstn_o,
+      eth_refclk_o => eth_refclk_o
    );
 
 
@@ -132,6 +134,7 @@ begin
       cnt_error_o   => eth_cnt_error,
       cnt_crc_bad_o => eth_cnt_crc_bad,
       --
+      out_afull_i   => eth_fifo_afull,
       out_valid_o   => eth_strip_valid,
       out_data_o    => eth_strip_data
    );
@@ -150,7 +153,7 @@ begin
       wr_rst_i   => eth_rst,
       wr_en_i    => eth_strip_valid,
       wr_data_i  => eth_strip_data,
-      wr_afull_o => open,  -- Ignored
+      wr_afull_o => eth_fifo_afull,
       wr_error_o => open,  -- Ignored
       rd_clk_i   => user_clk_i,
       rd_rst_i   => '0',
