@@ -137,7 +137,7 @@ begin
 
    i_overlay : entity work.overlay
    generic map (
-      G_FONT_FILE => "font8x8.txt"
+      G_FONT_FILE => G_FONT_FILE
    )
    port map (
       clk_i     => clk_i,

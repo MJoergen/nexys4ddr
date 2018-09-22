@@ -16,21 +16,21 @@
 // Memory mapped IO
 typedef struct
 {
-   uint8_t  vgaPalette[16];
-   uint16_t vgaPixYInt;
-   uint8_t  cpuCycLatch;
+   uint8_t  vgaPalette[16];   // 7FC0 - 7FCF
+   uint16_t vgaPixYInt;       // 7FD0 - 7FD1
+   uint8_t  cpuCycLatch;      // 7FD2
    uint8_t  _reserved[12];
-   uint8_t  irqMask;
+   uint8_t  irqMask;          // 7FDF
 } t_memio_config;
 
 typedef struct
 {
-   uint16_t vgaPixX;
-   uint16_t vgaPixY;
-   uint32_t cpuCyc;
-   uint8_t  kbdData;
+   uint16_t vgaPixX;          // 7FE0 - 7FE1
+   uint16_t vgaPixY;          // 7FE2 - 7FE3
+   uint32_t cpuCyc;           // 7FE4 - 7FE7
+   uint8_t  kbdData;          // 7FE8
    uint8_t  _reserved[22];
-   uint8_t  irqStatus;
+   uint8_t  irqStatus;        // 7FFF
 } t_memio_status;
 
 #define MEMIO_CONFIG ((t_memio_config *) 0x7FC0)

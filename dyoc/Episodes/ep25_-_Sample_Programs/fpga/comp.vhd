@@ -16,6 +16,7 @@ use ieee.numeric_std.all;
 
 entity comp is
    generic (
+      G_SIM_MODEL : boolean := false;  -- This is set to true in the simulation test bench.
       G_FONT_FILE : string := "font8x8.txt"
    );
    port (
@@ -251,7 +252,7 @@ begin
 
    i_vga : entity work.vga
    generic map (
-      G_FONT_FILE => "font8x8.txt"
+      G_FONT_FILE => G_FONT_FILE
    )
    port map (
       clk_i     => vga_clk,
@@ -296,7 +297,8 @@ begin
 
    -- 7FC0 - 7FCF : VGA_PALETTE
    -- 7FD0 - 7FD1 : VGA_PIX_Y_INT
-   -- 7FD2 - 7FDE : Not used
+   -- 7FD2        : CPU_CYC_LATCH
+   -- 7FD3 - 7FDE : Not used
    -- 7FDF        : IRQ_MASK
    vga_memio_wr <= memio_wr(17*8+7 downto 0*8);
    cpu_memio_wr <= memio_wr(18*8+7 downto 18*8);

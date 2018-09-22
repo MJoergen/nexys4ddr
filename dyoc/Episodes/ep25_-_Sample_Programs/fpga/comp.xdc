@@ -39,7 +39,6 @@ set_property -dict { PACKAGE_PIN B2  IOSTANDARD LVCMOS33 } [get_ports { ps2_data
 set_property PULLUP TRUE [get_ports { ps2_clk_i } ]
 set_property PULLUP TRUE [get_ports { ps2_data_i } ]
 
-
 # Clock definition
 create_clock -name sys_clk -period 10.00 [get_ports {clk_i}];                          # 100 MHz
 create_generated_clock -name vga_clk -source [get_ports {clk_i}] -divide_by 4 [get_pins {vga_cnt_reg[1]/Q}];   # 25 Mhz
