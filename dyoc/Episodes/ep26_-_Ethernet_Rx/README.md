@@ -228,3 +228,12 @@ reading from the fifo (the signal user\_rden remains low), which will then fill
 up (as indicated by the signal eth\_fifo\_afull). Eventually the input buffer
 in strip\_crc.vhd will fill up and generate the persistent error eth\_overflow.
 
+## Updates to the memory block
+Since we now have two independent processes writing to the memory, i.e. the CPU
+and the Ethernet DMA, we need an arbitration between them. I've chosen to give
+the Ethernet DMA priority over the CPU, but at the same time, limit the DMA to
+only writing every second clock cycle. That way, the CPU will have to wait at
+most one clock cycle for a write to complete.
+
+The extra wait state is inserted in line 113 in mem/mem.vhd. The arbitration
+between CPU and DMA is handled in lines 128-140.
