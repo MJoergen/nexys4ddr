@@ -4,24 +4,24 @@ use ieee.std_logic_unsigned.all;
 
 entity cpu is
    port (
-      clk_i   : in  std_logic;
+      clk_i    : in  std_logic;
 
       -- Memory interface
-      addr_o  : out std_logic_vector(15 downto 0);
-      data_i  : in  std_logic_vector(7 downto 0);
-      rden_o  : out std_logic;
-      data_o  : out std_logic_vector(7 downto 0);
-      wren_o  : out std_logic;
+      addr_o   : out std_logic_vector(15 downto 0);
+      data_i   : in  std_logic_vector(7 downto 0);
+      rden_o   : out std_logic;
+      data_o   : out std_logic_vector(7 downto 0);
+      wren_o   : out std_logic;
       -- The "wait_i" is '1' when the memory is not ready.
       -- While this is so, the CPU just stands still, waiting.
-      wait_i  : in  std_logic;
-      memio_o : out std_logic_vector( 4*8-1 downto 0);
-      memio_i : in  std_logic_vector( 1*8-1 downto 0);
+      wait_i   : in  std_logic;
+      memio_o  : out std_logic_vector( 4*8-1 downto 0);
+      memio_i  : in  std_logic_vector( 1*8-1 downto 0);
 
       -- Hardware interrupts
-      irq_i   : in  std_logic;
-      nmi_i   : in  std_logic;
-      rst_i   : in  std_logic;
+      irq_i    : in  std_logic;
+      nmi_i    : in  std_logic;
+      rst_i    : in  std_logic;
 
       -- Debug output
       invalid_o : out std_logic_vector(7 downto 0);   -- First invalid instruction encountered
