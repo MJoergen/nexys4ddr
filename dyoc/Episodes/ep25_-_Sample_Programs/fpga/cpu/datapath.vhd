@@ -278,7 +278,7 @@ begin
    addr_o <= addr;
    data_o <= data;
    wren_o <= wren and not wait_i;
-   rden_o <= mem and not wren;
+   rden_o <= mem and (not wren or alu_sel_i(4));
    sri_o  <= sr(SR_I);
 
 end architecture structural;
