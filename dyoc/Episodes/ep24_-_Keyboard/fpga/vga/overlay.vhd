@@ -184,7 +184,7 @@ begin
 
    i_font : entity work.font
    generic map (
-      G_FONT_FILE => "font8x8.txt"
+      G_FONT_FILE => G_FONT_FILE
    )
    port map (
       char_i   => char,

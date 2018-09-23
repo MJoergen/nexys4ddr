@@ -15,16 +15,27 @@ use ieee.numeric_std.all;
 -- CPU debug overlay is switched off.
 
 entity comp is
+   generic (
+      G_SIM_MODEL : boolean := false;  -- This is set to true in the simulation test bench.
+      G_FONT_FILE : string := "font8x8.txt"
+   );
    port (
       clk_i      : in  std_logic;                      -- 100 MHz
 
-      sw_i       : in  std_logic_vector(7 downto 0);
-      led_o      : out std_logic_vector(7 downto 0);
+      -- CPU reset (push button). Active low.
       rstn_i     : in  std_logic;
 
+      -- Input switches
+      sw_i       : in  std_logic_vector(7 downto 0);
+
+      -- Output LED's
+      led_o      : out std_logic_vector(7 downto 0);
+
+      -- Keyboard / mouse
       ps2_clk_i  : in  std_logic;
       ps2_data_i : in  std_logic;
 
+      -- Output to VGA monitor
       vga_hs_o   : out std_logic;
       vga_vs_o   : out std_logic;
       vga_col_o  : out std_logic_vector(7 downto 0)    -- RRRGGGBB
@@ -34,13 +45,13 @@ end comp;
 architecture Structural of comp is
 
    -- Clock divider for VGA
-   signal vga_cnt  : std_logic_vector(1 downto 0) := (others => '0');
+   signal clk_cnt  : std_logic_vector(1 downto 0) := (others => '0');
    signal vga_clk  : std_logic;
 
    -- Reset
    signal rst : std_logic := '1';   -- Make sure reset is asserted after power-up.
 
-   -- Generate pause signal
+   -- Wait signal is used to slow down the CPU
    signal sys_wait      : std_logic;
 
    -- VGA debug overlay
@@ -49,8 +60,8 @@ architecture Structural of comp is
 
    -- Data Path signals
    signal cpu_addr  : std_logic_vector(15 downto 0);
-   signal mem_data  : std_logic_vector(7 downto 0);
-   signal cpu_data  : std_logic_vector(7 downto 0);
+   signal mem_data  : std_logic_vector( 7 downto 0);
+   signal cpu_data  : std_logic_vector( 7 downto 0);
    signal cpu_rden  : std_logic;
    signal cpu_wren  : std_logic;
    signal cpu_debug : std_logic_vector(175 downto 0);
@@ -94,14 +105,14 @@ begin
    -- This is close enough to 25.175 MHz needed by VGA.
    --------------------------------------------------
 
-   p_vga_cnt : process (clk_i)
+   p_clk_cnt : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         vga_cnt <= vga_cnt + 1;
+         clk_cnt <= clk_cnt + 1;
       end if;
-   end process p_vga_cnt;
+   end process p_clk_cnt;
 
-   vga_clk <= vga_cnt(1);
+   vga_clk <= clk_cnt(1);
 
 
    --------------------------------------------------
@@ -117,7 +128,37 @@ begin
 
 
    --------------------------------------------------
-   -- Generate wait signal to control execution speed
+   -- Instantiate interrupt controller
+   --------------------------------------------------
+
+   i_ic : entity work.ic
+   port map (
+      clk_i   => vga_clk,
+      irq_i   => ic_irq,    -- Eight independent interrupt sources
+      irq_o   => cpu_irq,   -- Overall CPU interrupt
+
+      mask_i     => irq_memio_wr,      -- IRQ mask
+      stat_o     => irq_memio_rd,      -- IRQ status
+      stat_clr_i => irq_memio_rden     -- Reading from IRQ status
+   );
+
+
+   --------------------------------------------------
+   -- Generate timer interrupt
+   --------------------------------------------------
+
+   i_timer : entity work.timer
+   generic map (
+      G_TIMER_CNT => 250000    -- Generate interrupt every 0.01 seconds
+   )
+   port map (
+      clk_i => vga_clk,
+      irq_o => timer_irq
+   );
+
+
+   --------------------------------------------------
+   -- Instantiate Waiter
    --------------------------------------------------
 
    i_waiter : entity work.waiter
@@ -179,7 +220,6 @@ begin
       G_COL_MASK   => X"A000",
       G_MEMIO_MASK => X"7FC0",
       --
-      G_FONT_FILE  => "font8x8.txt",
       G_ROM_FILE   => "../rom.txt",
       --
       G_MEMIO_INIT => X"00000000000000000000000000000000" &
@@ -207,26 +247,13 @@ begin
 
 
    --------------------------------------------------
-   -- Instantiate interrupt controller
-   --------------------------------------------------
-
-   i_ic : entity work.ic
-   port map (
-      clk_i   => vga_clk,
-      irq_i   => ic_irq,    -- Eight independent interrupt sources
-      irq_o   => cpu_irq,   -- Overall CPU interrupt
-
-      mask_i     => irq_memio_wr,      -- IRQ mask
-      stat_o     => irq_memio_rd,      -- IRQ status
-      stat_clr_i => irq_memio_rden     -- Reading from IRQ status
-   );
-
-
-   --------------------------------------------------
    -- Instantiate VGA module
    --------------------------------------------------
 
    i_vga : entity work.vga
+   generic map (
+      G_FONT_FILE => G_FONT_FILE
+   )
    port map (
       clk_i     => vga_clk,
       overlay_i => vga_overlay_en,
@@ -264,27 +291,14 @@ begin
 
 
    --------------------------------------------------
-   -- Generate timer interrupt
-   --------------------------------------------------
-
-   i_timer : entity work.timer
-   generic map (
-      G_TIMER_CNT => 250000    -- Generate interrupt every 0.01 seconds
-   )
-   port map (
-      clk_i => vga_clk,
-      irq_o => timer_irq
-   );
-
-
-   --------------------------------------------------
    -- Memory Mapped I/O
-   -- This must match the mapping in prog/memorymap.h
+   -- This must match the mapping in prog/include/memorymap.h
    --------------------------------------------------
 
    -- 7FC0 - 7FCF : VGA_PALETTE
    -- 7FD0 - 7FD1 : VGA_PIX_Y_INT
-   -- 7FD2 - 7FDE : Not used
+   -- 7FD2        : CPU_CYC_LATCH
+   -- 7FD3 - 7FDE : Not used
    -- 7FDF        : IRQ_MASK
    vga_memio_wr <= memio_wr(17*8+7 downto 0*8);
    cpu_memio_wr <= memio_wr(18*8+7 downto 18*8);
