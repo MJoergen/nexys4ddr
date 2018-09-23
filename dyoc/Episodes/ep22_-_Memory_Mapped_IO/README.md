@@ -56,6 +56,12 @@ can be used to perform precise timing calculations. Not sure it will be
 needed, but it's a small feature to implement.
 
 
+## A small fix in the CPU
+Performing an INC instruction on a memory mapped IO causes a write to memory,
+whereas the read is implicit. This prevents the generation of the necessary
+wait state. Therefore, this is fixed in the cpu/datapath.vhd line 281.
+
+
 ## Cool graphical effects :-)
 With just the above, the CPU can create nice horizontal lines on the screen.
 The idea is to change the colour palette, i.e. the default background colour,
