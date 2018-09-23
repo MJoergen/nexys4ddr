@@ -30,39 +30,38 @@ end entity cpu;
 
 architecture structural of cpu is
 
-   signal cyc_cnt  : std_logic_vector(31 downto 0);
-   signal ar_sel   : std_logic;
-   signal hi_sel   : std_logic_vector(2 downto 0);
-   signal lo_sel   : std_logic_vector(2 downto 0);
-   signal pc_sel   : std_logic_vector(5 downto 0);
-   signal addr_sel : std_logic_vector(3 downto 0);
-   signal data_sel : std_logic_vector(2 downto 0);
-   signal alu_sel  : std_logic_vector(4 downto 0);
-   signal sr_sel   : std_logic_vector(3 downto 0);
-   signal sp_sel   : std_logic_vector(1 downto 0);
-   signal xr_sel   : std_logic;
-   signal yr_sel   : std_logic;
-   signal reg_sel  : std_logic_vector(1 downto 0);
-   signal zp_sel   : std_logic_vector(1 downto 0);
-   signal sri      : std_logic;
+   signal cyc_cnt   : std_logic_vector(31 downto 0);
+   signal cyc_latch : std_logic;
+   signal ar_sel    : std_logic;
+   signal hi_sel    : std_logic_vector(2 downto 0);
+   signal lo_sel    : std_logic_vector(2 downto 0);
+   signal pc_sel    : std_logic_vector(5 downto 0);
+   signal addr_sel  : std_logic_vector(3 downto 0);
+   signal data_sel  : std_logic_vector(2 downto 0);
+   signal alu_sel   : std_logic_vector(4 downto 0);
+   signal sr_sel    : std_logic_vector(3 downto 0);
+   signal sp_sel    : std_logic_vector(1 downto 0);
+   signal xr_sel    : std_logic;
+   signal yr_sel    : std_logic;
+   signal reg_sel   : std_logic_vector(1 downto 0);
+   signal zp_sel    : std_logic_vector(1 downto 0);
+   signal sri       : std_logic;
 
 begin
 
    -----------------
-   -- Statistics
+   -- Instantiate cycle counter
    -----------------
 
-   -- Cycle counter
-   p_cyc_cnt : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         cyc_cnt <= cyc_cnt + 1;
+   inst_cycle : entity work.cycle
+   port map (
+      clk_i     => clk_i,
+      rst_i     => rst_i,
+      latch_i   => cyc_latch,
+      cyc_cnt_o => cyc_cnt
+   );
 
-         if rst_i = '1' then
-            cyc_cnt <= (others => '0');
-         end if;
-      end if;
-   end process p_cyc_cnt;
+   cyc_latch <= not memio_i(0);
 
 
    -----------------

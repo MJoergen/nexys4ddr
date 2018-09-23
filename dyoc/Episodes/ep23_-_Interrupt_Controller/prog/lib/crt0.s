@@ -57,9 +57,9 @@ init:
 ; ---------------------------------------------------------------------------
 ; Enable timer interrupt
 
+   LDA IRQ_STATUS          ; Clear any pending interrupts, before enabling them.
    LDA #IRQ_TIMER_MASK     ; Enable timer interrupt
    STA IRQ_MASK
-   LDA IRQ_STATUS          ; Clear any pending interrupts
    CLI                     ; Enable interrupt handling
 
 ; ---------------------------------------------------------------------------
