@@ -47,7 +47,8 @@ entity strip_crc is
       -- Output interface
       out_afull_i    : in  std_logic;                    -- Output buffer is full.
       out_valid_o    : out std_logic;
-      out_data_o     : out std_logic_vector(7 downto 0)
+      out_data_o     : out std_logic_vector(7 downto 0);
+      out_eof_o      : out std_logic
    );
 end strip_crc;
 
@@ -64,6 +65,7 @@ architecture Structural of strip_crc is
    -- Output interface
    signal out_valid : std_logic;
    signal out_data  : std_logic_vector(7 downto 0);
+   signal out_eof   : std_logic;
 
 
    -- The size of the input buffer is 2K. This fits nicely in a single BRAM.
@@ -179,6 +181,7 @@ begin
       wr_rst_i    => rst_i,
       wr_en_i     => ctrl_wren,
       wr_data_i   => ctrl_wrdata,
+      wr_sb_i     => "00",
       wr_afull_o  => open,
       wr_error_o  => open,
       --
@@ -186,6 +189,7 @@ begin
       rd_rst_i    => rst_i,
       rd_en_i     => ctrl_rden,
       rd_data_o   => ctrl_rddata,
+      rd_sb_o     => open,
       rd_empty_o  => ctrl_empty,
       rd_error_o  => open
       );
@@ -200,6 +204,7 @@ begin
          ctrl_rden <= '0';
          out_valid <= '0';
          out_data  <= (others => '0');
+         out_eof   <= '0';
 
          if out_afull_i = '0' then
             case fsm_state is
@@ -234,6 +239,7 @@ begin
                   out_data  <= rx_buf(conv_integer(rdptr));
                   rdptr     <= rdptr + 1;
                   if rdptr = end_ptr then
+                     out_eof   <= '1';
                      fsm_state <= IDLE_ST;
                   end if;
             end case;
@@ -249,6 +255,7 @@ begin
    -- Connect output signals
    out_valid_o   <= out_valid;
    out_data_o    <= out_data;
+   out_eof_o     <= out_eof;
    cnt_good_o    <= cnt_good;
    cnt_error_o   <= cnt_error;
    cnt_crc_bad_o <= cnt_crc_bad;

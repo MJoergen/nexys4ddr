@@ -18,11 +18,12 @@ entity dma is
       rd_empty_i : in  std_logic;
       rd_en_o    : out std_logic;
       rd_data_i  : in  std_logic_vector(7 downto 0);
-      rd_error_i : in  std_logic_vector(1 downto 0);
+      rd_eof_i   : in  std_logic;
 
       wr_en_o    : out std_logic;
       wr_addr_o  : out std_logic_vector(15 downto 0);
       wr_data_o  : out std_logic_vector( 7 downto 0);
+      wr_ptr_o   : out std_logic_vector(15 downto 0);
       memio_i    : in  std_logic_vector(55 downto 0)
    );
 end dma;
@@ -32,6 +33,8 @@ architecture Structural of dma is
    signal wr_en   : std_logic;
    signal wr_addr : std_logic_vector(15 downto 0);
    signal wr_data : std_logic_vector( 7 downto 0);
+   signal wr_ptr  : std_logic_vector(15 downto 0);
+   signal wr_ptr_update : std_logic;
 
    signal rd_en   : std_logic := '0';
 
@@ -82,12 +85,28 @@ begin
       end if;
    end process proc_wr_addr;
 
+   proc_wr_ptr : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         -- Set a flag so the wr_ptr will be updated on the next clock cycle,
+         -- because then the wr_addr will point to the address after the last byte of the frame.
+         wr_ptr_update <= rd_en and rd_eof_i;
+         if wr_ptr_update = '1' then
+            wr_ptr <= wr_addr;
+         end if;
+         if eth_enable = '0' then   -- Reset write pointer to beginning of new buffer location.
+            wr_ptr <= eth_start;
+         end if;
+      end if;
+   end process proc_wr_ptr;
+
 
    -- Drive output signals
    rd_en_o   <= rd_en;
    wr_en_o   <= wr_en;
    wr_addr_o <= wr_addr;
    wr_data_o <= wr_data;
+   wr_ptr_o  <= wr_ptr;
 
 end Structural;
 

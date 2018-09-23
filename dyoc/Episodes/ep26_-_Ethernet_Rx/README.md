@@ -215,9 +215,10 @@ while modifying these pointers.
 
 Whenever data is received on the Ethernet port, the DMA will write data to the
 buffer, always maintaining a write pointer to instruct the CPU how much data
-has been received. And likewise the CPU maintains a read pointer to instruct
-the DMA where it is allowed to write to.  This prevents the DMA from
-overwriting data the CPU has not yet processed.
+has been received. The writer pointer seen by the CPU is updated only when a
+frame has been completely received and written to memory.  Likewise, the CPU
+maintains a read pointer to instruct the DMA where it is allowed to write to.
+This prevents the DMA from overwriting data the CPU has not yet processed.
 
 The whole design is put together in the file ethernet/ethernet.vhd.
 

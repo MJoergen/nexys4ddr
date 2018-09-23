@@ -47,17 +47,20 @@ architecture Structural of ethernet is
 
    signal eth_strip_valid : std_logic;
    signal eth_strip_data  : std_logic_vector(7 downto 0);
+   signal eth_strip_eof   : std_logic_vector(0 downto 0);
 
    signal eth_fifo_afull : std_logic;
 
    signal user_empty    : std_logic;
    signal user_rden     : std_logic;
    signal user_rx_data  : std_logic_vector(7 downto 0);
+   signal user_rx_eof   : std_logic_vector(0 downto 0);
    signal user_rx_error : std_logic_vector(1 downto 0);
 
-   signal user_dma_wren : std_logic;
-   signal user_dma_addr : std_logic_vector(15 downto 0);
-   signal user_dma_data : std_logic_vector( 7 downto 0);
+   signal user_dma_wren  : std_logic;
+   signal user_dma_addr  : std_logic_vector(15 downto 0);
+   signal user_dma_data  : std_logic_vector( 7 downto 0);
+   signal user_dma_wrptr : std_logic_vector(15 downto 0);
 
    -- Statistics counters
    signal eth_cnt_good    : std_logic_vector(15 downto 0);
@@ -136,7 +139,8 @@ begin
       --
       out_afull_i   => eth_fifo_afull,
       out_valid_o   => eth_strip_valid,
-      out_data_o    => eth_strip_data
+      out_data_o    => eth_strip_data,
+      out_eof_o     => eth_strip_eof(0)
    );
 
 
@@ -153,12 +157,14 @@ begin
       wr_rst_i   => eth_rst,
       wr_en_i    => eth_strip_valid,
       wr_data_i  => eth_strip_data,
+      wr_sb_i    => eth_strip_eof,
       wr_afull_o => eth_fifo_afull,
       wr_error_o => open,  -- Ignored
       rd_clk_i   => user_clk_i,
       rd_rst_i   => '0',
       rd_en_i    => user_rden,
       rd_data_o  => user_rx_data,
+      rd_sb_o    => user_rx_eof,
       rd_empty_o => user_empty,
       rd_error_o => open   -- Ignored
    );
@@ -175,11 +181,12 @@ begin
       rd_en_o    => user_rden,
       --
       rd_data_i  => user_rx_data,
-      rd_error_i => user_rx_error,
+      rd_eof_i   => user_rx_eof(0),
       --
       wr_en_o    => user_dma_wren,
       wr_addr_o  => user_dma_addr,
       wr_data_o  => user_dma_data,
+      wr_ptr_o   => user_dma_wrptr,
       memio_i    => user_memio_i
    );
 
@@ -189,7 +196,7 @@ begin
    user_addr_o <= user_dma_addr;
    user_data_o <= user_dma_data;
 
-   user_memio_o(15 downto  0) <= user_dma_addr;
+   user_memio_o(15 downto  0) <= user_dma_wrptr;
    user_memio_o(30 downto 16) <= eth_cnt_good(14 downto 0);
    user_memio_o(31)           <= eth_overflow;
    user_memio_o(39 downto 32) <= eth_cnt_error;

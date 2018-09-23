@@ -17,6 +17,7 @@ entity fifo is
       wr_rst_i   : in  std_logic;
       wr_en_i    : in  std_logic;   -- Push data into the fifo
       wr_data_i  : in  std_logic_vector(G_WIDTH-1 downto 0);
+      wr_sb_i    : in  std_logic_vector(G_WIDTH/8-1 downto 0);
       wr_afull_o : out std_logic;   -- Don't push any data right now
       wr_error_o : out std_logic;
       --
@@ -24,6 +25,7 @@ entity fifo is
       rd_rst_i   : in  std_logic;
       rd_en_i    : in  std_logic;   -- Pull data from the fifo
       rd_data_o  : out std_logic_vector(G_WIDTH-1 downto 0);
+      rd_sb_o    : out std_logic_vector(G_WIDTH/8-1 downto 0);
       rd_empty_o : out std_logic;   -- Don't pull any data right now
       rd_error_o : out std_logic
       );
@@ -35,16 +37,18 @@ architecture behavioral of fifo is
    signal async_rst  : std_logic;
 
    -- Signals valid @ wr_clk_i
-   signal wr_fifo    : std_logic_vector(63 downto 0);
-   signal wr_afull   : std_logic;
-   signal wr_error   : std_logic;
-   signal wr_error_l : std_logic;
+   signal wr_fifo_di  : std_logic_vector(63 downto 0);
+   signal wr_fifo_dip : std_logic_vector( 7 downto 0);
+   signal wr_afull    : std_logic;
+   signal wr_error    : std_logic;
+   signal wr_error_l  : std_logic;
 
    -- Signals valid @ rd_clk_i
-   signal rd_fifo    : std_logic_vector(63 downto 0);
-   signal rd_empty   : std_logic;
-   signal rd_error   : std_logic;
-   signal rd_error_l : std_logic;
+   signal rd_fifo_do  : std_logic_vector(63 downto 0);
+   signal rd_fifo_dop : std_logic_vector( 7 downto 0);
+   signal rd_empty    : std_logic;
+   signal rd_error    : std_logic;
+   signal rd_error_l  : std_logic;
 
 begin  -- architecture behavioral
 
@@ -52,8 +56,10 @@ begin  -- architecture behavioral
    async_rst <= wr_rst_i or rd_rst_i;
 
    -- Prepare input data
-   wr_fifo(G_WIDTH-1 downto 0) <= wr_data_i;
-   wr_fifo(63 downto G_WIDTH)  <= (others => '0');
+   wr_fifo_di(G_WIDTH-1 downto 0)    <= wr_data_i;
+   wr_fifo_di(63 downto G_WIDTH)     <= (others => '0');
+   wr_fifo_dip(G_WIDTH/8-1 downto 0) <= wr_sb_i;
+   wr_fifo_dip(7 downto G_WIDTH/8)   <= (others => '0');
 
    -- Instantiate the Xilinx fifo
    inst_FIFO18E1 : FIFO36E1
@@ -62,8 +68,8 @@ begin  -- architecture behavioral
          DATA_WIDTH              => (G_WIDTH*9)/8,
          EN_SYN                  => false)
       PORT MAP (
-         DI            => wr_fifo,
-         DIP           => (others => '0'),
+         DI            => wr_fifo_di,
+         DIP           => wr_fifo_dip,
          WREN          => wr_en_i,
          WRCLK         => wr_clk_i,
          RDEN          => rd_en_i,
@@ -71,8 +77,8 @@ begin  -- architecture behavioral
          RST           => async_rst,
          RSTREG        => '0',
          REGCE         => '0',
-         DO            => rd_fifo,
-         DOP           => open,
+         DO            => rd_fifo_do,
+         DOP           => rd_fifo_dop,
          FULL          => open,
          ALMOSTFULL    => wr_afull,
          EMPTY         => rd_empty,
@@ -113,7 +119,8 @@ begin  -- architecture behavioral
    -- Drive output siganls
    wr_afull_o <= wr_afull;
    wr_error_o <= wr_error_l;
-   rd_data_o  <= rd_fifo(G_WIDTH-1 downto 0);
+   rd_data_o  <= rd_fifo_do(G_WIDTH-1 downto 0);
+   rd_sb_o    <= rd_fifo_dop(G_WIDTH/8-1 downto 0);
    rd_empty_o <= rd_empty;
    rd_error_o <= rd_error_l;
 
