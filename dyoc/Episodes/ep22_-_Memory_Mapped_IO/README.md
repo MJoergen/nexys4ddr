@@ -59,7 +59,7 @@ needed, but it's a small feature to implement.
 ## Cool graphical effects :-)
 With just the above, the CPU can create nice horizontal lines on the screen.
 The idea is to change the colour palette, i.e. the default background colour,
-in a manner to the current VGA pixel coordinate.
+in a manner synchronous to the current VGA pixel coordinate.
 
 Unfortunately, the VGA output is not quite stable, and there is a substantial
 amount of flickering. This is due to the fact that the CPU and the VGA are
