@@ -19,7 +19,6 @@ entity mem is
       G_CHAR_MASK : std_logic_vector(15 downto 0);  -- Value of upper bits in CHAR address
       G_COL_MASK  : std_logic_vector(15 downto 0);  -- Value of upper bits in COL address
       --
-      G_FONT_FILE : string;           -- Contains the contents of the FONT memory.
       G_ROM_FILE  : string            -- Contains the contents of the ROM memory.
    );
    port (
@@ -169,7 +168,7 @@ begin
                ram_data  when ram_cs  = '1' else
                char_data when char_cs = '1' else
                col_data  when col_cs  = '1' else
-               X"00";
+               X"00";   -- Default value is needed to avoid inferring a latch.
   
 end Structural;
 

@@ -2833,7 +2833,8 @@ begin
    end process p_nmi_d;
 
    -- Combinatorial lookup in ROM
-   ctl <= ADDR_PC + PC_INC when cnt = 0 else
+   ctl <= NOP when invalid_inst /= 0 else
+          ADDR_PC + PC_INC when cnt = 0 else
           rom(conv_integer(ir)*8 + conv_integer(cnt));
 
    -- Drive output signals
