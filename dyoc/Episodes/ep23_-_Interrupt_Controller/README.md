@@ -72,6 +72,10 @@ allow the CPU to control on which line to generate interrupt. This is done by
 adding two more bytes to the Memory Mapped IO. The interrupt is generated at the
 end of the requested line, and is done in lines 170-172 of vga/vga.vhd.
 
+## Chipset support
+A new directory, called 'chipset', will include the interrupt controller, the timer,
+and the wait state generator.
+
 ## Changes to the software
 
 A substantial number of changes to the software is needed to support the new

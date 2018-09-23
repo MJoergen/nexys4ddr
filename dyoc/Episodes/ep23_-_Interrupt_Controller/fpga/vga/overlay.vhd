@@ -74,8 +74,8 @@ architecture Structural of overlay is
    constant COL_GREEN : std_logic_vector(7 downto 0) := B"000_111_00";
    constant COL_BLUE  : std_logic_vector(7 downto 0) := B"000_000_11";
 
-
    signal digits_r : std_logic_vector(175 downto 0);
+
 
    -- Character coordinates
    signal char_col : integer range 0 to H_TOTAL/16-1;

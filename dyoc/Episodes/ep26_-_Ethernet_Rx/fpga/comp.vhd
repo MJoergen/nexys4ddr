@@ -1,7 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
-use ieee.numeric_std.all;
 
 -- This is the top level module. The ports on this entity are mapped directly
 -- to pins on the FPGA.
@@ -32,7 +31,7 @@ entity comp is
       -- Output LED's
       led_o        : out std_logic_vector(7 downto 0);
 
-      -- Keyboard / mouse
+      -- Keyboard
       ps2_clk_i    : in  std_logic;
       ps2_data_i   : in  std_logic;
 
@@ -168,7 +167,7 @@ begin
 
 
    --------------------------------------------------
-   -- Generate timer interrupt
+   -- Instantiate Timer
    --------------------------------------------------
 
    i_timer : entity work.timer
@@ -245,7 +244,6 @@ begin
       G_MEMIO_MASK => X"7FC0",
       --
       G_ROM_FILE   => "../rom.txt",
-      --
       G_MEMIO_INIT => X"00000000000000000000000000000000" &
                       X"FFFCE3E0433C1E178C82803022110A00"
    )
@@ -319,7 +317,7 @@ begin
 
 
    ------------------------------
-   -- Instantiate Ethernet modul
+   -- Instantiate Ethernet module
    ------------------------------
 
    inst_ethernet : entity work.ethernet

@@ -102,6 +102,7 @@ begin
    --------------------------------------------------
    -- Generate Reset
    --------------------------------------------------
+
    p_rst : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
@@ -156,6 +157,7 @@ begin
       memio_o   => cpu_memio_rd,
       memio_i   => cpu_memio_wr
    );
+
 
    --------------------------------------------------
    -- Instantiate memory

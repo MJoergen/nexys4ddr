@@ -125,6 +125,7 @@ begin
       end if;
    end process;
 
+
    --------------------------------------------------
    -- Calculate character coordinates, within 40x30
    --------------------------------------------------
