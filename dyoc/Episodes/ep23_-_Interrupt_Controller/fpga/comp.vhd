@@ -76,6 +76,7 @@ architecture Structural of comp is
 
    signal vga_memio_wr : std_logic_vector(18*8-1 downto 0);
    signal irq_memio_wr : std_logic_vector( 1*8-1 downto 0);
+   signal cpu_memio_wr : std_logic_vector( 1*8-1 downto 0);
 
    signal vga_memio_rd : std_logic_vector( 4*8-1 downto 0);
    signal cpu_memio_rd : std_logic_vector( 4*8-1 downto 0);
@@ -187,7 +188,8 @@ begin
       irq_i     => cpu_irq,
       nmi_i     => '0', -- Not used at the moment
       rst_i     => rst,
-      memio_o   => cpu_memio_rd
+      memio_o   => cpu_memio_rd,
+      memio_i   => cpu_memio_wr
    );
 
 
@@ -268,10 +270,12 @@ begin
 
    -- 7FC0 - 7FCF : VGA_PALETTE
    -- 7FD0 - 7FD1 : VGA_PIX_Y_INT
-   -- 7FD2 - 7FDE : Not used
+   -- 7FD2        : CPU_CYC_LATCH
+   -- 7FD3 - 7FDE : Not used
    -- 7FDF        : IRQ_MASK
    vga_memio_wr <= memio_wr(17*8+7 downto 0*8);
-   --              memio_wr(30*8+7 downto 18*8);      -- Not used
+   cpu_memio_wr <= memio_wr(18*8+7 downto 18*8);
+   --              memio_wr(30*8+7 downto 19*8);      -- Not used
    irq_memio_wr <= memio_wr(31*8+7 downto 31*8);
 
    -- 7FE0 - 7FE1 : VGA_PIX_X
