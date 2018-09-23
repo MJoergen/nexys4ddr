@@ -21,7 +21,6 @@ entity mem is
       G_COL_MASK   : std_logic_vector(15 downto 0);  -- Value of upper bits in COL address
       G_MEMIO_MASK : std_logic_vector(15 downto 0);  -- Value of upper bits in MEMIO address
       --
-      G_FONT_FILE  : string;           -- Contains the contents of the FONT memory.
       G_ROM_FILE   : string;           -- Contains the contents of the ROM memory.
       --
       -- Initial contents of the Memory Mapped I/O
@@ -203,7 +202,7 @@ begin
                ram_data   when ram_cs   = '1' else
                char_data  when char_cs  = '1' else
                col_data   when col_cs   = '1' else
-               X"00";
+               X"00";   -- Default value is needed to avoid inferring a latch.
   
 end Structural;
 

@@ -74,6 +74,8 @@ architecture Structural of overlay is
    constant COL_GREEN : std_logic_vector(7 downto 0) := B"000_111_00";
    constant COL_BLUE  : std_logic_vector(7 downto 0) := B"000_000_11";
 
+   signal digits_r : std_logic_vector(175 downto 0);
+
 
    -- Character coordinates
    signal char_col : integer range 0 to H_TOTAL/16-1;
@@ -112,6 +114,18 @@ architecture Structural of overlay is
 
 begin
 
+   ---------------------------------------
+   -- Register the input for better timing
+   ---------------------------------------
+
+   process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         digits_r <= digits_i;
+      end if;
+   end process;
+
+
    --------------------------------------------------
    -- Calculate character coordinates, within 40x30
    --------------------------------------------------
@@ -124,13 +138,13 @@ begin
    -- Calculate value of digit at current position ('0' or '1')
    --------------------------------------------------
 
-   process (char_row, char_col, nibble_offset, nibble_index, digits_i)
+   process (char_row, char_col, nibble_offset, nibble_index, digits_r)
    begin
       if char_row >= DIGITS_CHAR_Y and char_row < DIGITS_CHAR_Y+NUM_ROWS and
          char_col >= DIGITS_CHAR_X and char_col < DIGITS_CHAR_X+4 then
          nibble_offset <= (char_row - DIGITS_CHAR_Y)*4 + (char_col - DIGITS_CHAR_X);
          nibble_index  <= 4*NUM_ROWS-1 - nibble_offset;
-         nibble        <= digits_i(4*nibble_index+3 downto 4*nibble_index);
+         nibble        <= digits_r(4*nibble_index+3 downto 4*nibble_index);
       else
          nibble_offset <= 0;
          nibble_index  <= 0;
@@ -171,7 +185,7 @@ begin
 
    i_font : entity work.font
    generic map (
-      G_FONT_FILE => "font8x8.txt"
+      G_FONT_FILE => G_FONT_FILE
    )
    port map (
       char_i   => char,

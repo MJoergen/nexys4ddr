@@ -9,6 +9,9 @@ use ieee.std_logic_unsigned.all;
 -- 25.175 MHz. It will work with a clock rate of 25.0 MHz.
 
 entity vga is
+   generic (
+      G_FONT_FILE : string
+   );
    port (
       clk_i       : in  std_logic;    -- Expects 25.175 MHz
 
@@ -99,7 +102,7 @@ begin
 
    i_chars : entity work.chars
    generic map (
-      G_FONT_FILE => "font8x8.txt"
+      G_FONT_FILE => G_FONT_FILE
    )
    port map (
       clk_i       => clk_i,
@@ -128,7 +131,7 @@ begin
 
    i_overlay : entity work.overlay
    generic map (
-      G_FONT_FILE => "font8x8.txt"
+      G_FONT_FILE => G_FONT_FILE
    )
    port map (
       clk_i     => clk_i,

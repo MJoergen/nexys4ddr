@@ -17,6 +17,7 @@
 
 // Writeable 7FC0 - 7FDF
 #define VGA_PALETTE      ((uint8_t *)  0x7FC0)  // array of 16 bytes
+#define CPU_CYC_LATCH    ((uint8_t *)  0x7FD0)
 
 // Readonly 7FE0 - 7FFF
 #define VGA_PIX_X        ((uint16_t *) 0x7FE0)
