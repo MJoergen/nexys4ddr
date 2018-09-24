@@ -1,0 +1,201 @@
+[*]
+[*] GTKWave Analyzer v3.3.89 (w)1999-2018 BSI
+[*] Sun Sep 23 06:30:28 2018
+[*]
+[dumpfile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep26_-_Ethernet_Rx/fpga/tb.ghw"
+[dumpfile_mtime] "Sun Sep 23 06:21:44 2018"
+[dumpfile_size] 6157820
+[savefile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep26_-_Ethernet_Rx/fpga/tb.gtkw"
+[timestart] 124056000000
+[size] 1920 1103
+[pos] 1868 33
+*-28.833021 125502000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.tb.
+[treeopen] top.tb.inst_comp.
+[treeopen] top.tb.inst_comp.i_mem.
+[treeopen] top.tb.inst_comp.i_mem.i_ram.
+[treeopen] top.tb.inst_comp.inst_ethernet.
+[treeopen] top.tb.inst_comp.inst_ethernet.inst_dma.
+[treeopen] top.tb.inst_comp.inst_ethernet.inst_phy.
+[treeopen] top.tb.inst_comp.inst_ethernet.inst_strip_crc.
+[sst_width] 255
+[signals_width] 303
+[sst_expanded] 1
+[sst_vpaned_height] 299
+@28
+top.tb.clk
+@800200
+-CPU
+@28
+top.tb.inst_comp.i_cpu.irq_i
+@22
+#{top.tb.inst_comp.i_cpu.inst_datapath.pc[15:0]} top.tb.inst_comp.i_cpu.inst_datapath.pc[15] top.tb.inst_comp.i_cpu.inst_datapath.pc[14] top.tb.inst_comp.i_cpu.inst_datapath.pc[13] top.tb.inst_comp.i_cpu.inst_datapath.pc[12] top.tb.inst_comp.i_cpu.inst_datapath.pc[11] top.tb.inst_comp.i_cpu.inst_datapath.pc[10] top.tb.inst_comp.i_cpu.inst_datapath.pc[9] top.tb.inst_comp.i_cpu.inst_datapath.pc[8] top.tb.inst_comp.i_cpu.inst_datapath.pc[7] top.tb.inst_comp.i_cpu.inst_datapath.pc[6] top.tb.inst_comp.i_cpu.inst_datapath.pc[5] top.tb.inst_comp.i_cpu.inst_datapath.pc[4] top.tb.inst_comp.i_cpu.inst_datapath.pc[3] top.tb.inst_comp.i_cpu.inst_datapath.pc[2] top.tb.inst_comp.i_cpu.inst_datapath.pc[1] top.tb.inst_comp.i_cpu.inst_datapath.pc[0]
+#{top.tb.inst_comp.i_cpu.inst_ctl.ir[7:0]} top.tb.inst_comp.i_cpu.inst_ctl.ir[7] top.tb.inst_comp.i_cpu.inst_ctl.ir[6] top.tb.inst_comp.i_cpu.inst_ctl.ir[5] top.tb.inst_comp.i_cpu.inst_ctl.ir[4] top.tb.inst_comp.i_cpu.inst_ctl.ir[3] top.tb.inst_comp.i_cpu.inst_ctl.ir[2] top.tb.inst_comp.i_cpu.inst_ctl.ir[1] top.tb.inst_comp.i_cpu.inst_ctl.ir[0]
+#{top.tb.inst_comp.i_cpu.inst_datapath.ar[7:0]} top.tb.inst_comp.i_cpu.inst_datapath.ar[7] top.tb.inst_comp.i_cpu.inst_datapath.ar[6] top.tb.inst_comp.i_cpu.inst_datapath.ar[5] top.tb.inst_comp.i_cpu.inst_datapath.ar[4] top.tb.inst_comp.i_cpu.inst_datapath.ar[3] top.tb.inst_comp.i_cpu.inst_datapath.ar[2] top.tb.inst_comp.i_cpu.inst_datapath.ar[1] top.tb.inst_comp.i_cpu.inst_datapath.ar[0]
+#{top.tb.inst_comp.i_cpu.inst_datapath.xr[7:0]} top.tb.inst_comp.i_cpu.inst_datapath.xr[7] top.tb.inst_comp.i_cpu.inst_datapath.xr[6] top.tb.inst_comp.i_cpu.inst_datapath.xr[5] top.tb.inst_comp.i_cpu.inst_datapath.xr[4] top.tb.inst_comp.i_cpu.inst_datapath.xr[3] top.tb.inst_comp.i_cpu.inst_datapath.xr[2] top.tb.inst_comp.i_cpu.inst_datapath.xr[1] top.tb.inst_comp.i_cpu.inst_datapath.xr[0]
+#{top.tb.inst_comp.i_cpu.inst_datapath.yr[7:0]} top.tb.inst_comp.i_cpu.inst_datapath.yr[7] top.tb.inst_comp.i_cpu.inst_datapath.yr[6] top.tb.inst_comp.i_cpu.inst_datapath.yr[5] top.tb.inst_comp.i_cpu.inst_datapath.yr[4] top.tb.inst_comp.i_cpu.inst_datapath.yr[3] top.tb.inst_comp.i_cpu.inst_datapath.yr[2] top.tb.inst_comp.i_cpu.inst_datapath.yr[1] top.tb.inst_comp.i_cpu.inst_datapath.yr[0]
+#{top.tb.inst_comp.i_cpu.inst_datapath.sp[7:0]} top.tb.inst_comp.i_cpu.inst_datapath.sp[7] top.tb.inst_comp.i_cpu.inst_datapath.sp[6] top.tb.inst_comp.i_cpu.inst_datapath.sp[5] top.tb.inst_comp.i_cpu.inst_datapath.sp[4] top.tb.inst_comp.i_cpu.inst_datapath.sp[3] top.tb.inst_comp.i_cpu.inst_datapath.sp[2] top.tb.inst_comp.i_cpu.inst_datapath.sp[1] top.tb.inst_comp.i_cpu.inst_datapath.sp[0]
+#{top.tb.inst_comp.i_cpu.addr_o[15:0]} top.tb.inst_comp.i_cpu.addr_o[15] top.tb.inst_comp.i_cpu.addr_o[14] top.tb.inst_comp.i_cpu.addr_o[13] top.tb.inst_comp.i_cpu.addr_o[12] top.tb.inst_comp.i_cpu.addr_o[11] top.tb.inst_comp.i_cpu.addr_o[10] top.tb.inst_comp.i_cpu.addr_o[9] top.tb.inst_comp.i_cpu.addr_o[8] top.tb.inst_comp.i_cpu.addr_o[7] top.tb.inst_comp.i_cpu.addr_o[6] top.tb.inst_comp.i_cpu.addr_o[5] top.tb.inst_comp.i_cpu.addr_o[4] top.tb.inst_comp.i_cpu.addr_o[3] top.tb.inst_comp.i_cpu.addr_o[2] top.tb.inst_comp.i_cpu.addr_o[1] top.tb.inst_comp.i_cpu.addr_o[0]
+@28
+top.tb.inst_comp.i_cpu.rden_o
+@22
+#{top.tb.inst_comp.i_cpu.data_i[7:0]} top.tb.inst_comp.i_cpu.data_i[7] top.tb.inst_comp.i_cpu.data_i[6] top.tb.inst_comp.i_cpu.data_i[5] top.tb.inst_comp.i_cpu.data_i[4] top.tb.inst_comp.i_cpu.data_i[3] top.tb.inst_comp.i_cpu.data_i[2] top.tb.inst_comp.i_cpu.data_i[1] top.tb.inst_comp.i_cpu.data_i[0]
+@28
+top.tb.inst_comp.i_cpu.wren_o
+@22
+#{top.tb.inst_comp.i_cpu.data_o[7:0]} top.tb.inst_comp.i_cpu.data_o[7] top.tb.inst_comp.i_cpu.data_o[6] top.tb.inst_comp.i_cpu.data_o[5] top.tb.inst_comp.i_cpu.data_o[4] top.tb.inst_comp.i_cpu.data_o[3] top.tb.inst_comp.i_cpu.data_o[2] top.tb.inst_comp.i_cpu.data_o[1] top.tb.inst_comp.i_cpu.data_o[0]
+@1000200
+-CPU
+@28
+top.tb.inst_comp.i_mem.memio_cs
+@c00022
+#{top.tb.inst_comp.i_ic.irq_i[7:0]} top.tb.inst_comp.i_ic.irq_i[7] top.tb.inst_comp.i_ic.irq_i[6] top.tb.inst_comp.i_ic.irq_i[5] top.tb.inst_comp.i_ic.irq_i[4] top.tb.inst_comp.i_ic.irq_i[3] top.tb.inst_comp.i_ic.irq_i[2] top.tb.inst_comp.i_ic.irq_i[1] top.tb.inst_comp.i_ic.irq_i[0]
+@28
+top.tb.inst_comp.i_ic.irq_i[7]
+top.tb.inst_comp.i_ic.irq_i[6]
+top.tb.inst_comp.i_ic.irq_i[5]
+top.tb.inst_comp.i_ic.irq_i[4]
+top.tb.inst_comp.i_ic.irq_i[3]
+top.tb.inst_comp.i_ic.irq_i[2]
+top.tb.inst_comp.i_ic.irq_i[1]
+top.tb.inst_comp.i_ic.irq_i[0]
+@1401200
+-group_end
+@22
+#{top.tb.inst_comp.i_ic.mask_i[7:0]} top.tb.inst_comp.i_ic.mask_i[7] top.tb.inst_comp.i_ic.mask_i[6] top.tb.inst_comp.i_ic.mask_i[5] top.tb.inst_comp.i_ic.mask_i[4] top.tb.inst_comp.i_ic.mask_i[3] top.tb.inst_comp.i_ic.mask_i[2] top.tb.inst_comp.i_ic.mask_i[1] top.tb.inst_comp.i_ic.mask_i[0]
+@c00022
+#{top.tb.inst_comp.i_ic.irq_latch[7:0]} top.tb.inst_comp.i_ic.irq_latch[7] top.tb.inst_comp.i_ic.irq_latch[6] top.tb.inst_comp.i_ic.irq_latch[5] top.tb.inst_comp.i_ic.irq_latch[4] top.tb.inst_comp.i_ic.irq_latch[3] top.tb.inst_comp.i_ic.irq_latch[2] top.tb.inst_comp.i_ic.irq_latch[1] top.tb.inst_comp.i_ic.irq_latch[0]
+@28
+top.tb.inst_comp.i_ic.irq_latch[7]
+top.tb.inst_comp.i_ic.irq_latch[6]
+top.tb.inst_comp.i_ic.irq_latch[5]
+top.tb.inst_comp.i_ic.irq_latch[4]
+top.tb.inst_comp.i_ic.irq_latch[3]
+top.tb.inst_comp.i_ic.irq_latch[2]
+top.tb.inst_comp.i_ic.irq_latch[1]
+top.tb.inst_comp.i_ic.irq_latch[0]
+@1401200
+-group_end
+@28
+top.tb.inst_comp.i_mem.ram_cs
+top.tb.inst_comp.i_mem.char_cs
+top.tb.inst_comp.i_mem.char_wren
+@800200
+-RAM
+@28
+top.tb.inst_comp.i_mem.i_ram.clk_i
+top.tb.inst_comp.i_mem.i_ram.wren_i
+@22
+#{top.tb.inst_comp.i_mem.i_ram.wr_addr_i[14:0]} top.tb.inst_comp.i_mem.i_ram.wr_addr_i[14] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[13] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[12] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[11] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[10] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[9] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[8] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[7] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[6] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[5] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[4] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[3] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[2] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[1] top.tb.inst_comp.i_mem.i_ram.wr_addr_i[0]
+#{top.tb.inst_comp.i_mem.i_ram.data_i[7:0]} top.tb.inst_comp.i_mem.i_ram.data_i[7] top.tb.inst_comp.i_mem.i_ram.data_i[6] top.tb.inst_comp.i_mem.i_ram.data_i[5] top.tb.inst_comp.i_mem.i_ram.data_i[4] top.tb.inst_comp.i_mem.i_ram.data_i[3] top.tb.inst_comp.i_mem.i_ram.data_i[2] top.tb.inst_comp.i_mem.i_ram.data_i[1] top.tb.inst_comp.i_mem.i_ram.data_i[0]
+@1000200
+-RAM
+@800200
+-Ethernet
+@28
+top.tb.inst_comp.inst_ethernet.user_clk_i
+top.tb.inst_comp.inst_ethernet.user_wren_o
+@22
+#{top.tb.inst_comp.inst_ethernet.user_addr_o[15:0]} top.tb.inst_comp.inst_ethernet.user_addr_o[15] top.tb.inst_comp.inst_ethernet.user_addr_o[14] top.tb.inst_comp.inst_ethernet.user_addr_o[13] top.tb.inst_comp.inst_ethernet.user_addr_o[12] top.tb.inst_comp.inst_ethernet.user_addr_o[11] top.tb.inst_comp.inst_ethernet.user_addr_o[10] top.tb.inst_comp.inst_ethernet.user_addr_o[9] top.tb.inst_comp.inst_ethernet.user_addr_o[8] top.tb.inst_comp.inst_ethernet.user_addr_o[7] top.tb.inst_comp.inst_ethernet.user_addr_o[6] top.tb.inst_comp.inst_ethernet.user_addr_o[5] top.tb.inst_comp.inst_ethernet.user_addr_o[4] top.tb.inst_comp.inst_ethernet.user_addr_o[3] top.tb.inst_comp.inst_ethernet.user_addr_o[2] top.tb.inst_comp.inst_ethernet.user_addr_o[1] top.tb.inst_comp.inst_ethernet.user_addr_o[0]
+#{top.tb.inst_comp.inst_ethernet.user_data_o[7:0]} top.tb.inst_comp.inst_ethernet.user_data_o[7] top.tb.inst_comp.inst_ethernet.user_data_o[6] top.tb.inst_comp.inst_ethernet.user_data_o[5] top.tb.inst_comp.inst_ethernet.user_data_o[4] top.tb.inst_comp.inst_ethernet.user_data_o[3] top.tb.inst_comp.inst_ethernet.user_data_o[2] top.tb.inst_comp.inst_ethernet.user_data_o[1] top.tb.inst_comp.inst_ethernet.user_data_o[0]
+@c00022
+#{top.tb.inst_comp.inst_ethernet.user_memio_o[47:0]} top.tb.inst_comp.inst_ethernet.user_memio_o[47] top.tb.inst_comp.inst_ethernet.user_memio_o[46] top.tb.inst_comp.inst_ethernet.user_memio_o[45] top.tb.inst_comp.inst_ethernet.user_memio_o[44] top.tb.inst_comp.inst_ethernet.user_memio_o[43] top.tb.inst_comp.inst_ethernet.user_memio_o[42] top.tb.inst_comp.inst_ethernet.user_memio_o[41] top.tb.inst_comp.inst_ethernet.user_memio_o[40] top.tb.inst_comp.inst_ethernet.user_memio_o[39] top.tb.inst_comp.inst_ethernet.user_memio_o[38] top.tb.inst_comp.inst_ethernet.user_memio_o[37] top.tb.inst_comp.inst_ethernet.user_memio_o[36] top.tb.inst_comp.inst_ethernet.user_memio_o[35] top.tb.inst_comp.inst_ethernet.user_memio_o[34] top.tb.inst_comp.inst_ethernet.user_memio_o[33] top.tb.inst_comp.inst_ethernet.user_memio_o[32] top.tb.inst_comp.inst_ethernet.user_memio_o[31] top.tb.inst_comp.inst_ethernet.user_memio_o[30] top.tb.inst_comp.inst_ethernet.user_memio_o[29] top.tb.inst_comp.inst_ethernet.user_memio_o[28] top.tb.inst_comp.inst_ethernet.user_memio_o[27] top.tb.inst_comp.inst_ethernet.user_memio_o[26] top.tb.inst_comp.inst_ethernet.user_memio_o[25] top.tb.inst_comp.inst_ethernet.user_memio_o[24] top.tb.inst_comp.inst_ethernet.user_memio_o[23] top.tb.inst_comp.inst_ethernet.user_memio_o[22] top.tb.inst_comp.inst_ethernet.user_memio_o[21] top.tb.inst_comp.inst_ethernet.user_memio_o[20] top.tb.inst_comp.inst_ethernet.user_memio_o[19] top.tb.inst_comp.inst_ethernet.user_memio_o[18] top.tb.inst_comp.inst_ethernet.user_memio_o[17] top.tb.inst_comp.inst_ethernet.user_memio_o[16] top.tb.inst_comp.inst_ethernet.user_memio_o[15] top.tb.inst_comp.inst_ethernet.user_memio_o[14] top.tb.inst_comp.inst_ethernet.user_memio_o[13] top.tb.inst_comp.inst_ethernet.user_memio_o[12] top.tb.inst_comp.inst_ethernet.user_memio_o[11] top.tb.inst_comp.inst_ethernet.user_memio_o[10] top.tb.inst_comp.inst_ethernet.user_memio_o[9] top.tb.inst_comp.inst_ethernet.user_memio_o[8] top.tb.inst_comp.inst_ethernet.user_memio_o[7] top.tb.inst_comp.inst_ethernet.user_memio_o[6] top.tb.inst_comp.inst_ethernet.user_memio_o[5] top.tb.inst_comp.inst_ethernet.user_memio_o[4] top.tb.inst_comp.inst_ethernet.user_memio_o[3] top.tb.inst_comp.inst_ethernet.user_memio_o[2] top.tb.inst_comp.inst_ethernet.user_memio_o[1] top.tb.inst_comp.inst_ethernet.user_memio_o[0]
+@28
+top.tb.inst_comp.inst_ethernet.user_memio_o[47]
+top.tb.inst_comp.inst_ethernet.user_memio_o[46]
+top.tb.inst_comp.inst_ethernet.user_memio_o[45]
+top.tb.inst_comp.inst_ethernet.user_memio_o[44]
+top.tb.inst_comp.inst_ethernet.user_memio_o[43]
+top.tb.inst_comp.inst_ethernet.user_memio_o[42]
+top.tb.inst_comp.inst_ethernet.user_memio_o[41]
+top.tb.inst_comp.inst_ethernet.user_memio_o[40]
+top.tb.inst_comp.inst_ethernet.user_memio_o[39]
+top.tb.inst_comp.inst_ethernet.user_memio_o[38]
+top.tb.inst_comp.inst_ethernet.user_memio_o[37]
+top.tb.inst_comp.inst_ethernet.user_memio_o[36]
+top.tb.inst_comp.inst_ethernet.user_memio_o[35]
+top.tb.inst_comp.inst_ethernet.user_memio_o[34]
+top.tb.inst_comp.inst_ethernet.user_memio_o[33]
+top.tb.inst_comp.inst_ethernet.user_memio_o[32]
+top.tb.inst_comp.inst_ethernet.user_memio_o[31]
+top.tb.inst_comp.inst_ethernet.user_memio_o[30]
+top.tb.inst_comp.inst_ethernet.user_memio_o[29]
+top.tb.inst_comp.inst_ethernet.user_memio_o[28]
+top.tb.inst_comp.inst_ethernet.user_memio_o[27]
+top.tb.inst_comp.inst_ethernet.user_memio_o[26]
+top.tb.inst_comp.inst_ethernet.user_memio_o[25]
+top.tb.inst_comp.inst_ethernet.user_memio_o[24]
+top.tb.inst_comp.inst_ethernet.user_memio_o[23]
+top.tb.inst_comp.inst_ethernet.user_memio_o[22]
+top.tb.inst_comp.inst_ethernet.user_memio_o[21]
+top.tb.inst_comp.inst_ethernet.user_memio_o[20]
+top.tb.inst_comp.inst_ethernet.user_memio_o[19]
+top.tb.inst_comp.inst_ethernet.user_memio_o[18]
+top.tb.inst_comp.inst_ethernet.user_memio_o[17]
+top.tb.inst_comp.inst_ethernet.user_memio_o[16]
+top.tb.inst_comp.inst_ethernet.user_memio_o[15]
+top.tb.inst_comp.inst_ethernet.user_memio_o[14]
+top.tb.inst_comp.inst_ethernet.user_memio_o[13]
+top.tb.inst_comp.inst_ethernet.user_memio_o[12]
+top.tb.inst_comp.inst_ethernet.user_memio_o[11]
+top.tb.inst_comp.inst_ethernet.user_memio_o[10]
+top.tb.inst_comp.inst_ethernet.user_memio_o[9]
+top.tb.inst_comp.inst_ethernet.user_memio_o[8]
+top.tb.inst_comp.inst_ethernet.user_memio_o[7]
+top.tb.inst_comp.inst_ethernet.user_memio_o[6]
+top.tb.inst_comp.inst_ethernet.user_memio_o[5]
+top.tb.inst_comp.inst_ethernet.user_memio_o[4]
+top.tb.inst_comp.inst_ethernet.user_memio_o[3]
+top.tb.inst_comp.inst_ethernet.user_memio_o[2]
+top.tb.inst_comp.inst_ethernet.user_memio_o[1]
+top.tb.inst_comp.inst_ethernet.user_memio_o[0]
+@1401200
+-group_end
+@22
+#{top.tb.inst_comp.inst_ethernet.user_memio_i[55:0]} top.tb.inst_comp.inst_ethernet.user_memio_i[55] top.tb.inst_comp.inst_ethernet.user_memio_i[54] top.tb.inst_comp.inst_ethernet.user_memio_i[53] top.tb.inst_comp.inst_ethernet.user_memio_i[52] top.tb.inst_comp.inst_ethernet.user_memio_i[51] top.tb.inst_comp.inst_ethernet.user_memio_i[50] top.tb.inst_comp.inst_ethernet.user_memio_i[49] top.tb.inst_comp.inst_ethernet.user_memio_i[48] top.tb.inst_comp.inst_ethernet.user_memio_i[47] top.tb.inst_comp.inst_ethernet.user_memio_i[46] top.tb.inst_comp.inst_ethernet.user_memio_i[45] top.tb.inst_comp.inst_ethernet.user_memio_i[44] top.tb.inst_comp.inst_ethernet.user_memio_i[43] top.tb.inst_comp.inst_ethernet.user_memio_i[42] top.tb.inst_comp.inst_ethernet.user_memio_i[41] top.tb.inst_comp.inst_ethernet.user_memio_i[40] top.tb.inst_comp.inst_ethernet.user_memio_i[39] top.tb.inst_comp.inst_ethernet.user_memio_i[38] top.tb.inst_comp.inst_ethernet.user_memio_i[37] top.tb.inst_comp.inst_ethernet.user_memio_i[36] top.tb.inst_comp.inst_ethernet.user_memio_i[35] top.tb.inst_comp.inst_ethernet.user_memio_i[34] top.tb.inst_comp.inst_ethernet.user_memio_i[33] top.tb.inst_comp.inst_ethernet.user_memio_i[32] top.tb.inst_comp.inst_ethernet.user_memio_i[31] top.tb.inst_comp.inst_ethernet.user_memio_i[30] top.tb.inst_comp.inst_ethernet.user_memio_i[29] top.tb.inst_comp.inst_ethernet.user_memio_i[28] top.tb.inst_comp.inst_ethernet.user_memio_i[27] top.tb.inst_comp.inst_ethernet.user_memio_i[26] top.tb.inst_comp.inst_ethernet.user_memio_i[25] top.tb.inst_comp.inst_ethernet.user_memio_i[24] top.tb.inst_comp.inst_ethernet.user_memio_i[23] top.tb.inst_comp.inst_ethernet.user_memio_i[22] top.tb.inst_comp.inst_ethernet.user_memio_i[21] top.tb.inst_comp.inst_ethernet.user_memio_i[20] top.tb.inst_comp.inst_ethernet.user_memio_i[19] top.tb.inst_comp.inst_ethernet.user_memio_i[18] top.tb.inst_comp.inst_ethernet.user_memio_i[17] top.tb.inst_comp.inst_ethernet.user_memio_i[16] top.tb.inst_comp.inst_ethernet.user_memio_i[15] top.tb.inst_comp.inst_ethernet.user_memio_i[14] top.tb.inst_comp.inst_ethernet.user_memio_i[13] top.tb.inst_comp.inst_ethernet.user_memio_i[12] top.tb.inst_comp.inst_ethernet.user_memio_i[11] top.tb.inst_comp.inst_ethernet.user_memio_i[10] top.tb.inst_comp.inst_ethernet.user_memio_i[9] top.tb.inst_comp.inst_ethernet.user_memio_i[8] top.tb.inst_comp.inst_ethernet.user_memio_i[7] top.tb.inst_comp.inst_ethernet.user_memio_i[6] top.tb.inst_comp.inst_ethernet.user_memio_i[5] top.tb.inst_comp.inst_ethernet.user_memio_i[4] top.tb.inst_comp.inst_ethernet.user_memio_i[3] top.tb.inst_comp.inst_ethernet.user_memio_i[2] top.tb.inst_comp.inst_ethernet.user_memio_i[1] top.tb.inst_comp.inst_ethernet.user_memio_i[0]
+@1000200
+-Ethernet
+@800200
+-DMA
+@28
+top.tb.inst_comp.inst_ethernet.inst_dma.rd_empty_i
+top.tb.inst_comp.inst_ethernet.inst_dma.rd_en_o
+top.tb.inst_comp.inst_ethernet.inst_dma.rd_eof_i
+@22
+#{top.tb.inst_comp.inst_ethernet.inst_dma.rd_data_i[7:0]} top.tb.inst_comp.inst_ethernet.inst_dma.rd_data_i[7] top.tb.inst_comp.inst_ethernet.inst_dma.rd_data_i[6] top.tb.inst_comp.inst_ethernet.inst_dma.rd_data_i[5] top.tb.inst_comp.inst_ethernet.inst_dma.rd_data_i[4] top.tb.inst_comp.inst_ethernet.inst_dma.rd_data_i[3] top.tb.inst_comp.inst_ethernet.inst_dma.rd_data_i[2] top.tb.inst_comp.inst_ethernet.inst_dma.rd_data_i[1] top.tb.inst_comp.inst_ethernet.inst_dma.rd_data_i[0]
+#{top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[55:0]} top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[55] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[54] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[53] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[52] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[51] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[50] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[49] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[48] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[47] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[46] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[45] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[44] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[43] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[42] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[41] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[40] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[39] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[38] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[37] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[36] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[35] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[34] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[33] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[32] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[31] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[30] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[29] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[28] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[27] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[26] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[25] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[24] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[23] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[22] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[21] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[20] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[19] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[18] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[17] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[16] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[15] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[14] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[13] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[12] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[11] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[10] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[9] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[8] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[7] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[6] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[5] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[4] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[3] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[2] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[1] top.tb.inst_comp.inst_ethernet.inst_dma.memio_i[0]
+@28
+top.tb.inst_comp.inst_ethernet.inst_dma.wr_en_o
+@22
+#{top.tb.inst_comp.inst_ethernet.inst_dma.wr_addr_o[15:0]} top.tb.inst_comp.inst_ethernet.inst_dma.wr_addr_o[15] top.tb.inst_comp.inst_ethernet.inst_dma.wr_addr_o[14] top.tb.inst_comp.inst_ethernet.inst_dma.wr_addr_o[13] top.tb.inst_comp.inst_ethernet.inst_dma.wr_addr_o[12] top.tb.inst_comp.inst_ethernet.inst_dma.wr_addr_o[11] top.tb.inst_comp.inst_ethernet.inst_dma.wr_addr_o[10] top.tb.inst_comp.inst_ethernet.inst_dma.wr_addr_o[9] top.tb.inst_comp.inst_ethernet.inst_dma.wr_addr_o[8] top.tb.inst_comp.inst_ethernet.inst_dma.wr_addr_o[7] top.tb.inst_comp.inst_ethernet.inst_dma.wr_addr_o[6] top.tb.inst_comp.inst_ethernet.inst_dma.wr_addr_o[5] top.tb.inst_comp.inst_ethernet.inst_dma.wr_addr_o[4] top.tb.inst_comp.inst_ethernet.inst_dma.wr_addr_o[3] top.tb.inst_comp.inst_ethernet.inst_dma.wr_addr_o[2] top.tb.inst_comp.inst_ethernet.inst_dma.wr_addr_o[1] top.tb.inst_comp.inst_ethernet.inst_dma.wr_addr_o[0]
+#{top.tb.inst_comp.inst_ethernet.inst_dma.wr_data_o[7:0]} top.tb.inst_comp.inst_ethernet.inst_dma.wr_data_o[7] top.tb.inst_comp.inst_ethernet.inst_dma.wr_data_o[6] top.tb.inst_comp.inst_ethernet.inst_dma.wr_data_o[5] top.tb.inst_comp.inst_ethernet.inst_dma.wr_data_o[4] top.tb.inst_comp.inst_ethernet.inst_dma.wr_data_o[3] top.tb.inst_comp.inst_ethernet.inst_dma.wr_data_o[2] top.tb.inst_comp.inst_ethernet.inst_dma.wr_data_o[1] top.tb.inst_comp.inst_ethernet.inst_dma.wr_data_o[0]
+#{top.tb.inst_comp.inst_ethernet.inst_dma.wr_ptr_o[15:0]} top.tb.inst_comp.inst_ethernet.inst_dma.wr_ptr_o[15] top.tb.inst_comp.inst_ethernet.inst_dma.wr_ptr_o[14] top.tb.inst_comp.inst_ethernet.inst_dma.wr_ptr_o[13] top.tb.inst_comp.inst_ethernet.inst_dma.wr_ptr_o[12] top.tb.inst_comp.inst_ethernet.inst_dma.wr_ptr_o[11] top.tb.inst_comp.inst_ethernet.inst_dma.wr_ptr_o[10] top.tb.inst_comp.inst_ethernet.inst_dma.wr_ptr_o[9] top.tb.inst_comp.inst_ethernet.inst_dma.wr_ptr_o[8] top.tb.inst_comp.inst_ethernet.inst_dma.wr_ptr_o[7] top.tb.inst_comp.inst_ethernet.inst_dma.wr_ptr_o[6] top.tb.inst_comp.inst_ethernet.inst_dma.wr_ptr_o[5] top.tb.inst_comp.inst_ethernet.inst_dma.wr_ptr_o[4] top.tb.inst_comp.inst_ethernet.inst_dma.wr_ptr_o[3] top.tb.inst_comp.inst_ethernet.inst_dma.wr_ptr_o[2] top.tb.inst_comp.inst_ethernet.inst_dma.wr_ptr_o[1] top.tb.inst_comp.inst_ethernet.inst_dma.wr_ptr_o[0]
+@1000200
+-DMA
+@800200
+-Strip CRC
+@28
+top.tb.inst_comp.inst_ethernet.inst_strip_crc.rx_enable_i
+top.tb.inst_comp.inst_ethernet.inst_strip_crc.rx_valid_i
+top.tb.inst_comp.inst_ethernet.inst_strip_crc.rx_sof_i
+top.tb.inst_comp.inst_ethernet.inst_strip_crc.rx_eof_i
+@22
+#{top.tb.inst_comp.inst_ethernet.inst_strip_crc.rx_data_i[7:0]} top.tb.inst_comp.inst_ethernet.inst_strip_crc.rx_data_i[7] top.tb.inst_comp.inst_ethernet.inst_strip_crc.rx_data_i[6] top.tb.inst_comp.inst_ethernet.inst_strip_crc.rx_data_i[5] top.tb.inst_comp.inst_ethernet.inst_strip_crc.rx_data_i[4] top.tb.inst_comp.inst_ethernet.inst_strip_crc.rx_data_i[3] top.tb.inst_comp.inst_ethernet.inst_strip_crc.rx_data_i[2] top.tb.inst_comp.inst_ethernet.inst_strip_crc.rx_data_i[1] top.tb.inst_comp.inst_ethernet.inst_strip_crc.rx_data_i[0]
+@28
+#{top.tb.inst_comp.inst_ethernet.inst_strip_crc.rx_error_i[1:0]} top.tb.inst_comp.inst_ethernet.inst_strip_crc.rx_error_i[1] top.tb.inst_comp.inst_ethernet.inst_strip_crc.rx_error_i[0]
+top.tb.inst_comp.inst_ethernet.inst_strip_crc.rx_error_o
+top.tb.inst_comp.inst_ethernet.inst_strip_crc.out_valid_o
+@22
+#{top.tb.inst_comp.inst_ethernet.inst_strip_crc.out_data_o[7:0]} top.tb.inst_comp.inst_ethernet.inst_strip_crc.out_data_o[7] top.tb.inst_comp.inst_ethernet.inst_strip_crc.out_data_o[6] top.tb.inst_comp.inst_ethernet.inst_strip_crc.out_data_o[5] top.tb.inst_comp.inst_ethernet.inst_strip_crc.out_data_o[4] top.tb.inst_comp.inst_ethernet.inst_strip_crc.out_data_o[3] top.tb.inst_comp.inst_ethernet.inst_strip_crc.out_data_o[2] top.tb.inst_comp.inst_ethernet.inst_strip_crc.out_data_o[1] top.tb.inst_comp.inst_ethernet.inst_strip_crc.out_data_o[0]
+@28
+top.tb.inst_comp.inst_ethernet.inst_strip_crc.out_eof_o
+@22
+#{top.tb.inst_comp.inst_ethernet.inst_strip_crc.start_ptr[10:0]} top.tb.inst_comp.inst_ethernet.inst_strip_crc.start_ptr[10] top.tb.inst_comp.inst_ethernet.inst_strip_crc.start_ptr[9] top.tb.inst_comp.inst_ethernet.inst_strip_crc.start_ptr[8] top.tb.inst_comp.inst_ethernet.inst_strip_crc.start_ptr[7] top.tb.inst_comp.inst_ethernet.inst_strip_crc.start_ptr[6] top.tb.inst_comp.inst_ethernet.inst_strip_crc.start_ptr[5] top.tb.inst_comp.inst_ethernet.inst_strip_crc.start_ptr[4] top.tb.inst_comp.inst_ethernet.inst_strip_crc.start_ptr[3] top.tb.inst_comp.inst_ethernet.inst_strip_crc.start_ptr[2] top.tb.inst_comp.inst_ethernet.inst_strip_crc.start_ptr[1] top.tb.inst_comp.inst_ethernet.inst_strip_crc.start_ptr[0]
+#{top.tb.inst_comp.inst_ethernet.inst_strip_crc.end_ptr[10:0]} top.tb.inst_comp.inst_ethernet.inst_strip_crc.end_ptr[10] top.tb.inst_comp.inst_ethernet.inst_strip_crc.end_ptr[9] top.tb.inst_comp.inst_ethernet.inst_strip_crc.end_ptr[8] top.tb.inst_comp.inst_ethernet.inst_strip_crc.end_ptr[7] top.tb.inst_comp.inst_ethernet.inst_strip_crc.end_ptr[6] top.tb.inst_comp.inst_ethernet.inst_strip_crc.end_ptr[5] top.tb.inst_comp.inst_ethernet.inst_strip_crc.end_ptr[4] top.tb.inst_comp.inst_ethernet.inst_strip_crc.end_ptr[3] top.tb.inst_comp.inst_ethernet.inst_strip_crc.end_ptr[2] top.tb.inst_comp.inst_ethernet.inst_strip_crc.end_ptr[1] top.tb.inst_comp.inst_ethernet.inst_strip_crc.end_ptr[0]
+#{top.tb.inst_comp.inst_ethernet.inst_strip_crc.wrptr[10:0]} top.tb.inst_comp.inst_ethernet.inst_strip_crc.wrptr[10] top.tb.inst_comp.inst_ethernet.inst_strip_crc.wrptr[9] top.tb.inst_comp.inst_ethernet.inst_strip_crc.wrptr[8] top.tb.inst_comp.inst_ethernet.inst_strip_crc.wrptr[7] top.tb.inst_comp.inst_ethernet.inst_strip_crc.wrptr[6] top.tb.inst_comp.inst_ethernet.inst_strip_crc.wrptr[5] top.tb.inst_comp.inst_ethernet.inst_strip_crc.wrptr[4] top.tb.inst_comp.inst_ethernet.inst_strip_crc.wrptr[3] top.tb.inst_comp.inst_ethernet.inst_strip_crc.wrptr[2] top.tb.inst_comp.inst_ethernet.inst_strip_crc.wrptr[1] top.tb.inst_comp.inst_ethernet.inst_strip_crc.wrptr[0]
+#{top.tb.inst_comp.inst_ethernet.inst_strip_crc.rdptr[10:0]} top.tb.inst_comp.inst_ethernet.inst_strip_crc.rdptr[10] top.tb.inst_comp.inst_ethernet.inst_strip_crc.rdptr[9] top.tb.inst_comp.inst_ethernet.inst_strip_crc.rdptr[8] top.tb.inst_comp.inst_ethernet.inst_strip_crc.rdptr[7] top.tb.inst_comp.inst_ethernet.inst_strip_crc.rdptr[6] top.tb.inst_comp.inst_ethernet.inst_strip_crc.rdptr[5] top.tb.inst_comp.inst_ethernet.inst_strip_crc.rdptr[4] top.tb.inst_comp.inst_ethernet.inst_strip_crc.rdptr[3] top.tb.inst_comp.inst_ethernet.inst_strip_crc.rdptr[2] top.tb.inst_comp.inst_ethernet.inst_strip_crc.rdptr[1] top.tb.inst_comp.inst_ethernet.inst_strip_crc.rdptr[0]
+@1000200
+-Strip CRC
+[pattern_trace] 1
+[pattern_trace] 0
