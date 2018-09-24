@@ -12,7 +12,7 @@ use ieee.std_logic_unsigned.all;
 -- memio_i. Prior to changing this signal, the bit 48 (eth_enable) must be
 -- cleared.
 
-entity dma is
+entity rx_dma is
    port (
       clk_i      : in  std_logic;
       rd_empty_i : in  std_logic;
@@ -26,9 +26,9 @@ entity dma is
       wr_ptr_o   : out std_logic_vector(15 downto 0);
       memio_i    : in  std_logic_vector(55 downto 0)
    );
-end dma;
+end rx_dma;
 
-architecture Structural of dma is
+architecture Structural of rx_dma is
 
    signal wr_en   : std_logic;
    signal wr_addr : std_logic_vector(15 downto 0);

@@ -16,6 +16,13 @@ entity lan8720a is
       rx_data_o    : out   std_logic_vector(7 downto 0);
       rx_error_o   : out   std_logic_vector(1 downto 0);
 
+      -- Tx interface
+      tx_empty_i   : in  std_logic;
+      tx_rden_o    : out std_logic;
+      tx_data_i    : in  std_logic_vector(7 downto 0);
+      tx_eof_i     : in  std_logic;
+      tx_err_o     : out std_logic;
+
       -- Connected to the LAN8720A Ethernet PHY.
       eth_txd_o    : out   std_logic_vector(1 downto 0);
       eth_txen_o   : out   std_logic;
@@ -33,6 +40,9 @@ end lan8720a;
 architecture Structural of lan8720a is
 
 begin
+
+   tx_rden_o <= not tx_empty_i;
+   tx_err_o  <= '0';
 
    -- These signals are not used
    eth_txd_o    <= (others => '0');

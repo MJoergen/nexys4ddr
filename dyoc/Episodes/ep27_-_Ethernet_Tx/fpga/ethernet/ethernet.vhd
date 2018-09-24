@@ -13,6 +13,7 @@ entity ethernet is
       user_data_o  : out std_logic_vector( 7 downto 0);
       user_memio_i : in  std_logic_vector(55 downto 0);
       user_memio_o : out std_logic_vector(47 downto 0);
+      user_memio_clear_o : out std_logic;
 
       -- Connected to PHY.
       eth_clk_i    : in    std_logic; -- Must be 50 MHz
@@ -45,6 +46,12 @@ architecture Structural of ethernet is
    signal eth_rx_error  : std_logic_vector(1 downto 0);
    signal eth_overflow  : std_logic;
 
+   signal eth_tx_empty  : std_logic;
+   signal eth_tx_rden   : std_logic;
+   signal eth_tx_data   : std_logic_vector(7 downto 0);
+   signal eth_tx_eof    : std_logic;
+   signal eth_tx_err    : std_logic;
+
    signal eth_strip_valid : std_logic;
    signal eth_strip_data  : std_logic_vector(7 downto 0);
    signal eth_strip_eof   : std_logic_vector(0 downto 0);
@@ -57,10 +64,19 @@ architecture Structural of ethernet is
    signal user_rx_eof   : std_logic_vector(0 downto 0);
    signal user_rx_error : std_logic_vector(1 downto 0);
 
-   signal user_dma_wren  : std_logic;
-   signal user_dma_addr  : std_logic_vector(15 downto 0);
-   signal user_dma_data  : std_logic_vector( 7 downto 0);
-   signal user_dma_wrptr : std_logic_vector(15 downto 0);
+   signal user_rx_dma_wren  : std_logic;
+   signal user_rx_dma_addr  : std_logic_vector(15 downto 0);
+   signal user_rx_dma_data  : std_logic_vector( 7 downto 0);
+   signal user_rx_dma_wrptr : std_logic_vector(15 downto 0);
+
+   signal user_tx_dma_addr : std_logic_vector(15 downto 0);
+   signal user_tx_dma_rden : std_logic;
+   signal user_tx_dma_data : std_logic_vector( 7 downto 0);
+
+   signal user_tx_afull : std_logic;
+   signal user_tx_valid : std_logic;
+   signal user_tx_data  : std_logic_vector(7 downto 0);
+   signal user_tx_eof   : std_logic_vector(0 downto 0);
 
    -- Statistics counters
    signal eth_cnt_good    : std_logic_vector(15 downto 0);
@@ -104,6 +120,12 @@ begin
       rx_eof_o     => eth_rx_eof,
       rx_data_o    => eth_rx_data,
       rx_error_o   => eth_rx_error,
+      -- Tx interface
+      tx_empty_i   => eth_tx_empty,
+      tx_rden_o    => eth_tx_rden,
+      tx_data_i    => eth_tx_data,
+      tx_eof_i     => eth_tx_eof,
+      tx_err_o     => eth_tx_err,
       -- External pins to the LAN 8720A PHY
       eth_txd_o    => eth_txd_o,
       eth_txen_o   => eth_txen_o,
@@ -145,10 +167,10 @@ begin
 
 
    ------------------------------
-   -- Instantiate fifo to cross clock domain
+   -- Instantiate receive fifo to cross clock domain
    ------------------------------
 
-   inst_fifo : entity work.fifo
+   inst_rx_fifo : entity work.fifo
    generic map (
       G_WIDTH => 8
    )
@@ -171,10 +193,10 @@ begin
 
 
    ------------------------------
-   -- Instantiate DMA
+   -- Instantiate receive DMA
    ------------------------------
 
-   inst_dma : entity work.dma
+   inst_rx_dma : entity work.rx_dma
    port map (
       clk_i      => user_clk_i,
       rd_empty_i => user_empty,
@@ -183,20 +205,68 @@ begin
       rd_data_i  => user_rx_data,
       rd_eof_i   => user_rx_eof(0),
       --
-      wr_en_o    => user_dma_wren,
-      wr_addr_o  => user_dma_addr,
-      wr_data_o  => user_dma_data,
-      wr_ptr_o   => user_dma_wrptr,
+      wr_en_o    => user_rx_dma_wren,
+      wr_addr_o  => user_rx_dma_addr,
+      wr_data_o  => user_rx_dma_data,
+      wr_ptr_o   => user_rx_dma_wrptr,
       memio_i    => user_memio_i
    );
 
+
+   ------------------------------
+   -- Instantiate transmit DMA
+   ------------------------------
+
+   inst_tx_dma : entity work.tx_dma
+   port map (
+      clk_i         => user_clk_i,
+      memio_i       => user_memio_i,
+      memio_clear_o => user_memio_clear_o,
+      --
+      rd_addr_o     => user_tx_dma_addr,
+      rd_en_o       => user_tx_dma_rden,
+      rd_data_i     => user_tx_dma_data,
+      --
+      wr_afull_i    => user_tx_afull,
+      wr_valid_o    => user_tx_valid,
+      wr_data_o     => user_tx_data,
+      wr_eof_o      => user_tx_eof(0)
+   );
+
+
+   ------------------------------
+   -- Instantiate transmit fifo to cross clock domain
+   ------------------------------
+
+   inst_tx_fifo : entity work.fifo
+   generic map (
+      G_WIDTH => 8
+   )
+   port map (
+      wr_clk_i   => user_clk_i,
+      wr_rst_i   => '0',
+      wr_en_i    => user_tx_valid,
+      wr_data_i  => user_tx_data,
+      wr_sb_i    => user_tx_eof,
+      wr_afull_o => user_tx_afull,
+      wr_error_o => open,  -- Ignored
+      rd_clk_i   => eth_clk_i,
+      rd_rst_i   => eth_rst,
+      rd_en_i    => eth_tx_rden,
+      rd_data_o  => eth_tx_data,
+      rd_sb_o    => eth_tx_eof,
+      rd_empty_o => eth_tx_empty,
+      rd_error_o => open   -- Ignored
+   );
+
+
    -- Connect output signals
 
-   user_wren_o <= user_dma_wren;
-   user_addr_o <= user_dma_addr;
-   user_data_o <= user_dma_data;
+   user_wren_o <= user_rx_dma_wren;
+   user_addr_o <= user_rx_dma_addr;
+   user_data_o <= user_rx_dma_data;
 
-   user_memio_o(15 downto  0) <= user_dma_wrptr;
+   user_memio_o(15 downto  0) <= user_rx_dma_wrptr;
    user_memio_o(30 downto 16) <= eth_cnt_good(14 downto 0);
    user_memio_o(31)           <= eth_overflow;
    user_memio_o(39 downto 32) <= eth_cnt_error;
