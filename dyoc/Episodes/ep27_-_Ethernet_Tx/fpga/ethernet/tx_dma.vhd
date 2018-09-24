@@ -57,29 +57,40 @@ begin
          case fsm_state is
             when IDLE_ST =>
                if memio_i(0) = '1' then
-                  rd_addr   <= memio_i(23 downto 8);
-                  rd_en     <= '1';
-                  fsm_state <= LEN_LO_ST;
+                  if rd_en = '0' then  -- Only read every other clock cycle.
+                     rd_addr   <= memio_i(23 downto 8);
+                     rd_en     <= '1';
+                     fsm_state <= LEN_LO_ST;
+                  end if;
                end if;
 
             when LEN_LO_ST =>
-               rd_len(7 downto 0) <= rd_data_i;
-               rd_addr   <= rd_addr + 1;
-               rd_en     <= '1';
-               fsm_state <= LEN_HI_ST;
+               if rd_en = '1' then  -- Only read every other clock cycle.
+                  rd_len(7 downto 0) <= rd_data_i;
+               else
+                  rd_addr   <= rd_addr + 1;
+                  rd_en     <= '1';
+                  fsm_state <= LEN_HI_ST;
+               end if;
 
             when LEN_HI_ST =>
-               rd_len(15 downto 8) <= rd_data_i;
-               rd_addr   <= rd_addr + 1;
-               rd_en     <= '1';
-               fsm_state <= DATA_ST;
+               if rd_en = '1' then  -- Only read every other clock cycle.
+                  rd_len(15 downto 8) <= rd_data_i;
+               else
+                  rd_addr   <= rd_addr + 1;
+                  rd_en     <= '1';
+                  fsm_state <= DATA_ST;
+               end if;
 
             when DATA_ST =>
                if rd_len /= 0 then
-                  wr_data   <= rd_data_i;
-                  wr_valid  <= '1';
-                  rd_addr   <= rd_addr + 1;
-                  rd_en     <= '1';
+                  if rd_en = '1' then  -- Only read every other clock cycle.
+                     wr_data   <= rd_data_i;
+                  else
+                     wr_valid  <= '1';
+                     rd_addr   <= rd_addr + 1;
+                     rd_en     <= '1';
+                  end if;
                else
                   memio_clear <= '1';
                   fsm_state   <= IDLE_ST;

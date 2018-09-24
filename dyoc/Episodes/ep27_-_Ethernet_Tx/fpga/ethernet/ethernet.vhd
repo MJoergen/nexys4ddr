@@ -7,12 +7,15 @@ use ieee.std_logic_unsigned.all;
 entity ethernet is
    port (
       -- Connected to user
-      user_clk_i   : in  std_logic;
-      user_wren_o  : out std_logic;
-      user_addr_o  : out std_logic_vector(15 downto 0);
-      user_data_o  : out std_logic_vector( 7 downto 0);
-      user_memio_i : in  std_logic_vector(79 downto 0);
-      user_memio_o : out std_logic_vector(47 downto 0);
+      user_clk_i     : in  std_logic;
+      user_wr_en_o   : out std_logic;
+      user_wr_addr_o : out std_logic_vector(15 downto 0);
+      user_wr_data_o : out std_logic_vector( 7 downto 0);
+      user_rd_en_o   : out std_logic;
+      user_rd_addr_o : out std_logic_vector(15 downto 0);
+      user_rd_data_i : in  std_logic_vector( 7 downto 0);
+      user_memio_i   : in  std_logic_vector(79 downto 0);
+      user_memio_o   : out std_logic_vector(47 downto 0);
       user_memio_clear_o : out std_logic;
 
       -- Connected to PHY.
@@ -262,9 +265,13 @@ begin
 
    -- Connect output signals
 
-   user_wren_o <= user_rx_dma_wren;
-   user_addr_o <= user_rx_dma_addr;
-   user_data_o <= user_rx_dma_data;
+   user_wr_en_o   <= user_rx_dma_wren;
+   user_wr_addr_o <= user_rx_dma_addr;
+   user_wr_data_o <= user_rx_dma_data;
+
+   user_rd_en_o     <= user_tx_dma_rden;
+   user_rd_addr_o   <= user_tx_dma_addr;
+   user_tx_dma_data <= user_rd_data_i;
 
    user_memio_o(15 downto  0) <= user_rx_dma_wrptr;
    user_memio_o(30 downto 16) <= eth_cnt_good(14 downto 0);

@@ -88,9 +88,12 @@ architecture Structural of comp is
    signal col_data  : std_logic_vector( 7 downto 0);
 
    -- Interface between Ethernet and Memory
-   signal eth_user_wren : std_logic;
-   signal eth_user_addr : std_logic_vector(15 downto 0);
-   signal eth_user_data : std_logic_vector( 7 downto 0);
+   signal eth_user_wr_en   : std_logic;
+   signal eth_user_wr_addr : std_logic_vector(15 downto 0);
+   signal eth_user_wr_data : std_logic_vector( 7 downto 0);
+   signal eth_user_rd_en   : std_logic;
+   signal eth_user_rd_addr : std_logic_vector(15 downto 0);
+   signal eth_user_rd_data : std_logic_vector( 7 downto 0);
 
    -- Memory Mapped I/O
    signal memio_rd    : std_logic_vector(8*32-1 downto 0);
@@ -264,9 +267,12 @@ begin
       b_col_addr_i  => col_addr,
       b_col_data_o  => col_data,
       --
-      b_eth_wren_i   => eth_user_wren,
-      b_eth_addr_i   => eth_user_addr,
-      b_eth_data_i   => eth_user_data,
+      b_eth_wr_en_i   => eth_user_wr_en,
+      b_eth_wr_addr_i => eth_user_wr_addr,
+      b_eth_wr_data_i => eth_user_wr_data,
+      b_eth_rd_en_i   => eth_user_rd_en,
+      b_eth_rd_addr_i => eth_user_rd_addr,
+      b_eth_rd_data_o => eth_user_rd_data,
       --
       b_memio_rd_i    => memio_rd,    -- To MEMIO
       b_memio_rden_o  => memio_rden,  -- To MEMIO
@@ -326,9 +332,12 @@ begin
    inst_ethernet : entity work.ethernet
    port map (
       user_clk_i         => vga_clk,
-      user_wren_o        => eth_user_wren,
-      user_addr_o        => eth_user_addr,
-      user_data_o        => eth_user_data,
+      user_wr_en_o       => eth_user_wr_en,
+      user_wr_addr_o     => eth_user_wr_addr,
+      user_wr_data_o     => eth_user_wr_data,
+      user_rd_en_o       => eth_user_rd_en,
+      user_rd_addr_o     => eth_user_rd_addr,
+      user_rd_data_i     => eth_user_rd_data,
       user_memio_i       => eth_memio_wr,
       user_memio_o       => eth_memio_rd,
       user_memio_clear_o => eth_memio_clear,
