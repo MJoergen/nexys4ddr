@@ -11,7 +11,7 @@ entity ethernet is
       user_wren_o  : out std_logic;
       user_addr_o  : out std_logic_vector(15 downto 0);
       user_data_o  : out std_logic_vector( 7 downto 0);
-      user_memio_i : in  std_logic_vector(55 downto 0);
+      user_memio_i : in  std_logic_vector(79 downto 0);
       user_memio_o : out std_logic_vector(47 downto 0);
       user_memio_clear_o : out std_logic;
 
@@ -49,7 +49,7 @@ architecture Structural of ethernet is
    signal eth_tx_empty  : std_logic;
    signal eth_tx_rden   : std_logic;
    signal eth_tx_data   : std_logic_vector(7 downto 0);
-   signal eth_tx_eof    : std_logic;
+   signal eth_tx_eof    : std_logic_vector(0 downto 0);
    signal eth_tx_err    : std_logic;
 
    signal eth_strip_valid : std_logic;
@@ -124,7 +124,7 @@ begin
       tx_empty_i   => eth_tx_empty,
       tx_rden_o    => eth_tx_rden,
       tx_data_i    => eth_tx_data,
-      tx_eof_i     => eth_tx_eof,
+      tx_eof_i     => eth_tx_eof(0),
       tx_err_o     => eth_tx_err,
       -- External pins to the LAN 8720A PHY
       eth_txd_o    => eth_txd_o,
@@ -209,7 +209,7 @@ begin
       wr_addr_o  => user_rx_dma_addr,
       wr_data_o  => user_rx_dma_data,
       wr_ptr_o   => user_rx_dma_wrptr,
-      memio_i    => user_memio_i
+      memio_i    => user_memio_i(55 downto 0)
    );
 
 
@@ -220,7 +220,7 @@ begin
    inst_tx_dma : entity work.tx_dma
    port map (
       clk_i         => user_clk_i,
-      memio_i       => user_memio_i,
+      memio_i       => user_memio_i(79 downto 56),
       memio_clear_o => user_memio_clear_o,
       --
       rd_addr_o     => user_tx_dma_addr,

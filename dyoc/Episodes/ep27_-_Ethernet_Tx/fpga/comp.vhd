@@ -93,20 +93,22 @@ architecture Structural of comp is
    signal eth_user_data : std_logic_vector( 7 downto 0);
 
    -- Memory Mapped I/O
-   signal memio_rd   : std_logic_vector(8*32-1 downto 0);
-   signal memio_rden : std_logic_vector(  32-1 downto 0);
-   signal memio_wr   : std_logic_vector(8*32-1 downto 0);
+   signal memio_rd    : std_logic_vector(8*32-1 downto 0);
+   signal memio_rden  : std_logic_vector(  32-1 downto 0);
+   signal memio_wr    : std_logic_vector(8*32-1 downto 0);
+   signal memio_clear : std_logic_vector(  32-1 downto 0);
 
-   signal vga_memio_wr : std_logic_vector(18*8-1 downto 0);
-   signal eth_memio_wr : std_logic_vector( 7*8-1 downto 0);
-   signal irq_memio_wr : std_logic_vector( 1*8-1 downto 0);
-   signal cpu_memio_wr : std_logic_vector( 1*8-1 downto 0);
+   signal vga_memio_wr    : std_logic_vector(18*8-1 downto 0);
+   signal eth_memio_wr    : std_logic_vector(10*8-1 downto 0);
+   signal eth_memio_clear : std_logic;
+   signal irq_memio_wr    : std_logic_vector( 1*8-1 downto 0);
+   signal cpu_memio_wr    : std_logic_vector( 1*8-1 downto 0);
 
-   signal vga_memio_rd : std_logic_vector( 4*8-1 downto 0);
-   signal cpu_memio_rd : std_logic_vector( 4*8-1 downto 0);
-   signal kbd_memio_rd : std_logic_vector( 1*8-1 downto 0);
-   signal eth_memio_rd : std_logic_vector( 6*8-1 downto 0);
-   signal irq_memio_rd : std_logic_vector( 1*8-1 downto 0);
+   signal vga_memio_rd   : std_logic_vector( 4*8-1 downto 0);
+   signal cpu_memio_rd   : std_logic_vector( 4*8-1 downto 0);
+   signal kbd_memio_rd   : std_logic_vector( 1*8-1 downto 0);
+   signal eth_memio_rd   : std_logic_vector( 6*8-1 downto 0);
+   signal irq_memio_rd   : std_logic_vector( 1*8-1 downto 0);
    signal irq_memio_rden : std_logic;
 
    -- Interrupt controller
@@ -266,9 +268,10 @@ begin
       b_eth_addr_i   => eth_user_addr,
       b_eth_data_i   => eth_user_data,
       --
-      b_memio_rd_i   => memio_rd,    -- To MEMIO
-      b_memio_rden_o => memio_rden,  -- To MEMIO
-      b_memio_wr_o   => memio_wr     -- From MEMIO
+      b_memio_rd_i    => memio_rd,    -- To MEMIO
+      b_memio_rden_o  => memio_rden,  -- To MEMIO
+      b_memio_wr_o    => memio_wr,    -- From MEMIO
+      b_memio_clear_i => memio_clear  -- From MEMIO
    );
 
 
@@ -322,12 +325,13 @@ begin
 
    inst_ethernet : entity work.ethernet
    port map (
-      user_clk_i   => vga_clk,
-      user_wren_o  => eth_user_wren,
-      user_addr_o  => eth_user_addr,
-      user_data_o  => eth_user_data,
-      user_memio_i => eth_memio_wr,
-      user_memio_o => eth_memio_rd,
+      user_clk_i         => vga_clk,
+      user_wren_o        => eth_user_wren,
+      user_addr_o        => eth_user_addr,
+      user_data_o        => eth_user_data,
+      user_memio_i       => eth_memio_wr,
+      user_memio_o       => eth_memio_rd,
+      user_memio_clear_o => eth_memio_clear,
       --
       eth_clk_i    => eth_clk,
       eth_txd_o    => eth_txd_o,
@@ -354,14 +358,17 @@ begin
    -- 7FD4 - 7FD5 : ETH_END
    -- 7FD6 - 7FD7 : ETH_RD_PTR
    -- 7FD8        : ETH_ENABLE
-   -- 7FD9        : CPU_CYC_LATCH
-   -- 7FD9 - 7FDE : Not used
+   -- 7FD9        : ETH_TX_CTRL
+   -- 7FDA - 7FDB : ETH_TX_PTR
+   -- 7FDC        : CPU_CYC_LATCH
+   -- 7FDD - 7FDE : Not used
    -- 7FDF        : IRQ_MASK
    vga_memio_wr <= memio_wr(17*8+7 downto 0*8);
-   eth_memio_wr <= memio_wr(24*8+7 downto 18*8);
-   cpu_memio_wr <= memio_wr(25*8+7 downto 25*8);
-   --              memio_wr(30*8+7 downto 26*8);      -- Not used
+   eth_memio_wr <= memio_wr(27*8+7 downto 18*8);
+   cpu_memio_wr <= memio_wr(28*8+7 downto 28*8);
+   --              memio_wr(30*8+7 downto 29*8);      -- Not used
    irq_memio_wr <= memio_wr(31*8+7 downto 31*8);
+   memio_clear  <= (25 => eth_memio_clear, others => '0');  -- ETH_TX_CTRL
 
    -- 7FE0 - 7FE1 : VGA_PIX_X
    -- 7FE2 - 7FE3 : VGA_PIX_Y

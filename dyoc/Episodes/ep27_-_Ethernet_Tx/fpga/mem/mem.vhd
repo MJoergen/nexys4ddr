@@ -27,27 +27,28 @@ entity mem is
       G_MEMIO_INIT : std_logic_vector(8*32-1 downto 0)
    );
    port (
-      clk_i          : in  std_logic;
+      clk_i           : in  std_logic;
 
       -- Port A - connected to CPU
-      a_addr_i       : in  std_logic_vector(15 downto 0);
-      a_data_o       : out std_logic_vector( 7 downto 0);
-      a_rden_i       : in  std_logic;
-      a_data_i       : in  std_logic_vector( 7 downto 0);
-      a_wren_i       : in  std_logic;
-      a_wait_o       : out std_logic;
+      a_addr_i        : in  std_logic_vector(15 downto 0);
+      a_data_o        : out std_logic_vector( 7 downto 0);
+      a_rden_i        : in  std_logic;
+      a_data_i        : in  std_logic_vector( 7 downto 0);
+      a_wren_i        : in  std_logic;
+      a_wait_o        : out std_logic;
 
       -- Port B - connected to VGA, Ethernet, and Memory Mapped I/O
-      b_char_addr_i  : in  std_logic_vector(12 downto 0);
-      b_char_data_o  : out std_logic_vector( 7 downto 0);
-      b_col_addr_i   : in  std_logic_vector(12 downto 0);
-      b_col_data_o   : out std_logic_vector( 7 downto 0);
-      b_eth_wren_i   : in  std_logic;
-      b_eth_addr_i   : in  std_logic_vector(15 downto 0);
-      b_eth_data_i   : in  std_logic_vector( 7 downto 0);
-      b_memio_wr_o   : out std_logic_vector(8*32-1 downto 0);
-      b_memio_rd_i   : in  std_logic_vector(8*32-1 downto 0);
-      b_memio_rden_o : out std_logic_vector(  32-1 downto 0)
+      b_char_addr_i   : in  std_logic_vector(12 downto 0);
+      b_char_data_o   : out std_logic_vector( 7 downto 0);
+      b_col_addr_i    : in  std_logic_vector(12 downto 0);
+      b_col_data_o    : out std_logic_vector( 7 downto 0);
+      b_eth_wren_i    : in  std_logic;
+      b_eth_addr_i    : in  std_logic_vector(15 downto 0);
+      b_eth_data_i    : in  std_logic_vector( 7 downto 0);
+      b_memio_wr_o    : out std_logic_vector(8*32-1 downto 0);
+      b_memio_clear_i : in  std_logic_vector(  32-1 downto 0);
+      b_memio_rd_i    : in  std_logic_vector(8*32-1 downto 0);
+      b_memio_rden_o  : out std_logic_vector(  32-1 downto 0)
    );
 end mem;
 
@@ -166,13 +167,14 @@ begin
       G_INIT_VAL  => G_MEMIO_INIT
    )
    port map (
-      clk_i     => clk_i,
-      a_addr_i  => a_addr_i(G_MEMIO_SIZE-1 downto 0),
-      a_data_o  => memio_data,
-      a_data_i  => a_data_i,
-      a_wren_i  => memio_wren,
-      b_memio_o => b_memio_wr_o, -- From MEMIO
-      b_memio_i => b_memio_rd_i  -- To MEMIO
+      clk_i           => clk_i,
+      a_addr_i        => a_addr_i(G_MEMIO_SIZE-1 downto 0),
+      a_data_o        => memio_data,
+      a_data_i        => a_data_i,
+      a_wren_i        => memio_wren,
+      b_memio_o       => b_memio_wr_o, -- From MEMIO
+      b_memio_clear_i => b_memio_clear_i,
+      b_memio_i       => b_memio_rd_i  -- To MEMIO
    );
 
 

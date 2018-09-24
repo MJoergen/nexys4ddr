@@ -56,8 +56,8 @@ begin
          wr_valid    <= '0';
          case fsm_state is
             when IDLE_ST =>
-               if memio_i(16) = '1' then
-                  rd_addr   <= memio_i(15 downto 0);
+               if memio_i(0) = '1' then
+                  rd_addr   <= memio_i(23 downto 8);
                   rd_en     <= '1';
                   fsm_state <= LEN_LO_ST;
                end if;

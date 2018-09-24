@@ -19,6 +19,7 @@
 // the size of the buffer must be in 'BUF_SIZE'.
 #define ADD_PTR(ptr, inc) ((ptr)+(inc) < pBufEnd ? (ptr)+(inc) : (ptr) + (inc) - BUF_SIZE)
 
+#if 0
 // Write a single byte in hexadecimal.
 void putx8(uint8_t x)
 {
@@ -33,6 +34,7 @@ void putx16(uint16_t x)
    putx8((x>>8) & 0xFF);
    putx8((x>>0) & 0xFF);
 }
+#endif
 
 void main(void)
 {
@@ -62,44 +64,18 @@ void main(void)
    while (1)
    {
       uint8_t  *wrPtr;
-      uint16_t pktLen;
-      uint8_t  i;
 
       dummy_counter += 1;   // This generates a write to the main memory.
       wrPtr = (uint8_t *)(MEMIO_STATUS->ethWrPtr); // Check if data is present in buffer.
       if (rdPtr == wrPtr)
          continue;   // No? Then go back and wait for data
 
-      // The actual value of wrPtr cannot be trusted, because reading it takes two 
-      // read operations, and the value of wrPtr may be updated in between the two
-      // reads. We circumvent this by using the length given in the frame header.
+      if (MEMIO_CONFIG->ethTxCtrl)
+         continue;
 
-      // Length of this frame in bytes.
-      pktLen = (RD_BUF(rdPtr+1) << 8) + RD_BUF(rdPtr);
+      MEMIO_CONFIG->ethTxPtr = (uint16_t) rdPtr;
+      MEMIO_CONFIG->ethTxCtrl = 1;
 
-      // Show the pointer locations of the received Ethernet frame.
-      putx16((uint16_t)rdPtr);
-      cputs("-");
-      putx16((uint16_t)pktLen);
-      cputs(":");
-
-      // Show the first 16 bytes of the received Ethernet frame. This includes the
-      // two byte length field, and the 14 bytes MAC header.
-      for (i=0; i<16; ++i)
-      {
-         putx8(RD_BUF(rdPtr+i));
-      }
-
-      // Advance the read pointer to start of next frame.
-      rdPtr = ADD_PTR(rdPtr, pktLen);
-
-      cputs(" -> ");
-      putx16((uint16_t)rdPtr);
-
-      cputs("\n\r");
-
-      // Instruct DMA that CPU is finished with this frame.
-      MEMIO_CONFIG->ethRdPtr = rdPtr;
    }
 
 } // end of main
