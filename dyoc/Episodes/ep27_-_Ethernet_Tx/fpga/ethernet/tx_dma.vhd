@@ -41,6 +41,7 @@ architecture Structural of tx_dma is
 
    signal wr_valid    : std_logic;
    signal wr_data     : std_logic_vector( 7 downto 0);
+   signal wr_eof      : std_logic;
 
    -- State machine to control the MAC framing
    type t_fsm_state is (IDLE_ST, LEN_LO_ST, LEN_HI_ST, DATA_ST);
@@ -54,6 +55,7 @@ begin
          memio_clear <= '0';
          rd_en       <= '0';
          wr_valid    <= '0';
+         wr_eof      <= '0';
          case fsm_state is
             when IDLE_ST =>
                if memio_i(0) = '1' then
@@ -78,21 +80,27 @@ begin
                   rd_len(15 downto 8) <= rd_data_i;
                else
                   rd_addr   <= rd_addr + 1;
+                  rd_len    <= rd_len - 1;
                   rd_en     <= '1';
                   fsm_state <= DATA_ST;
                end if;
 
             when DATA_ST =>
-               if rd_len /= 0 then
+               if rd_len /= 1 then
                   if rd_en = '1' then  -- Only read every other clock cycle.
                      wr_data   <= rd_data_i;
                   else
+                     if rd_len = 2 then
+                        wr_eof <= '1';
+                        memio_clear <= '1';
+                     else
+                        rd_addr   <= rd_addr + 1;
+                        rd_len    <= rd_len - 1;
+                     end if;
                      wr_valid  <= '1';
-                     rd_addr   <= rd_addr + 1;
                      rd_en     <= '1';
                   end if;
                else
-                  memio_clear <= '1';
                   fsm_state   <= IDLE_ST;
                end if;
 
@@ -106,6 +114,7 @@ begin
    rd_en_o       <= rd_en;
    wr_valid_o    <= wr_valid;
    wr_data_o     <= wr_data;
+   wr_eof_o      <= wr_eof;
 
 end Structural;
 

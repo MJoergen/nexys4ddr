@@ -13,13 +13,15 @@
 // the size of the buffer must be in 'BUF_SIZE'.
 #define RD_BUF(ptr) ((ptr) < pBufEnd ? *(ptr) : *((ptr)-BUF_SIZE))
 
+#define RD_BUF_OFFSET(ptr, offset) ((ptr)+(offset) < pBufEnd ? *((ptr)+(offset)) : *((ptr)+(offset)-BUF_SIZE))
+
 // This macro increments the pointer by a given number of bytes, while
 // automatically taking care of wrap around.
 // The end of the buffer must be in the variable 'pBufEnd', and
 // the size of the buffer must be in 'BUF_SIZE'.
 #define ADD_PTR(ptr, inc) ((ptr)+(inc) < pBufEnd ? (ptr)+(inc) : (ptr) + (inc) - BUF_SIZE)
 
-#if 0
+#if 1
 // Write a single byte in hexadecimal.
 void putx8(uint8_t x)
 {
@@ -70,12 +72,50 @@ void main(void)
       if (rdPtr == wrPtr)
          continue;   // No? Then go back and wait for data
 
-      if (MEMIO_CONFIG->ethTxCtrl)
+      // Skip past the length field
+      rdPtr = ADD_PTR(rdPtr, 2);
+
+      putx16(rdPtr);
+
+      // Ok, we have received a packet. Now decode it.
+      if (RD_BUF_OFFSET(rdPtr, 12) != 0x08)
+         continue;
+      if (RD_BUF_OFFSET(rdPtr, 13) != 0x06)
          continue;
 
-      MEMIO_CONFIG->ethTxPtr = (uint16_t) rdPtr;
-      MEMIO_CONFIG->ethTxCtrl = 1;
+      cputs("ARP\n\r");
 
+      // It is an ARP packet, now check the protocols
+      if (RD_BUF_OFFSET(rdPtr, 14) != 0x00)
+         continue;
+      if (RD_BUF_OFFSET(rdPtr, 15) != 0x01)
+         continue;
+      if (RD_BUF_OFFSET(rdPtr, 16) != 0x08)
+         continue;
+      if (RD_BUF_OFFSET(rdPtr, 17) != 0x00)
+         continue;
+      if (RD_BUF_OFFSET(rdPtr, 18) != 0x06)
+         continue;
+      if (RD_BUF_OFFSET(rdPtr, 19) != 0x04)
+         continue;
+      if (RD_BUF_OFFSET(rdPtr, 20) != 0x00)
+         continue;
+      if (RD_BUF_OFFSET(rdPtr, 21) != 0x01)
+         continue;
+
+      cputs("Request\n\r");
+
+      // It is an ARP request, now check the IP address
+      if (RD_BUF_OFFSET(rdPtr, 38) != 0xc0)
+         continue;
+      if (RD_BUF_OFFSET(rdPtr, 39) != 0xa8)
+         continue;
+      if (RD_BUF_OFFSET(rdPtr, 40) != 0x01)
+         continue;
+      if (RD_BUF_OFFSET(rdPtr, 41) != 0x4d)
+         continue;
+
+      cputs("Bingo!\n\r");
    }
 
 } // end of main

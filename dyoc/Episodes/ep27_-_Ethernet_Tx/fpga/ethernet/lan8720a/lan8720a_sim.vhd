@@ -39,6 +39,15 @@ end lan8720a;
 
 architecture Structural of lan8720a is
 
+   type frame_t is array (natural range <>) of std_logic_vector(7 downto 0);
+   constant frame : frame_t(0 to 41) :=
+      (X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"F4", x"6D",
+       X"04", X"D7", X"F3", X"CA", X"08", X"06", X"00", x"01",
+       X"08", X"00", X"06", X"04", X"00", X"01", X"F4", X"6D",
+       X"04", X"D7", X"F3", X"CA", X"C0", X"A8", X"01", X"2B",
+       X"00", X"00", X"00", X"00", X"00", X"00", X"C0", X"A8",
+       X"01", X"4D");
+
 begin
 
    tx_rden_o <= not tx_empty_i;
@@ -60,19 +69,19 @@ begin
       rx_eof_o   <= '0';
       rx_data_o  <= (others => '0');
       rx_error_o <= (others => '0');
-      wait for 50 us;
+      wait for 110 us;
       wait until clk_i = '1';
 
-      -- Make a burst of 64 writes.
-      for i in 0 to 63 loop
+      -- Write a single frame
+      for i in frame'low to frame'high loop
          rx_valid_o <= '1';
          rx_sof_o   <= '0';
          rx_eof_o   <= '0';
-         rx_data_o  <= X"11" + i;
-         if i=0 then
+         rx_data_o  <= frame(i);
+         if i=frame'low then
             rx_sof_o <= '1';
          end if;
-         if i=63 then
+         if i=frame'high then
             rx_eof_o <= '1';
          end if;
          wait until clk_i = '1';
@@ -83,39 +92,6 @@ begin
          wait until clk_i = '1';
          wait until clk_i = '1';
       end loop;
-
-      -- Have a short pause.
-      rx_valid_o <= '0';
-      rx_sof_o   <= '0';
-      rx_eof_o   <= '0';
-      rx_data_o  <= (others => '0');
-      rx_error_o <= (others => '0');
-      wait for 60 us;
-      wait until clk_i = '1';
-
-      -- Make a burst of four minimum packets back-to-back.
-      pkt_loop : for pkt in 0 to 3 loop
-         byte_loop : for i in 0 to 63 loop
-            rx_valid_o <= '1';
-            rx_sof_o   <= '0';
-            rx_eof_o   <= '0';
-            rx_data_o  <= X"22" + i + pkt;
-            if i=0 then
-               rx_sof_o <= '1';
-            end if;
-            if i=63 then
-               rx_eof_o <= '1';
-            end if;
-            -- Send data only every fourth clock cycle.
-            wait until clk_i = '1';
-            rx_valid_o <= '0';
-            rx_sof_o   <= '0';
-            rx_eof_o   <= '0';
-            wait until clk_i = '1';
-            wait until clk_i = '1';
-            wait until clk_i = '1';
-         end loop byte_loop;
-      end loop pkt_loop;
 
       -- Stop any further stimuli.
       rx_valid_o <= '0';

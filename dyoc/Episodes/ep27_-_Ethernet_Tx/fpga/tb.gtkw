@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.89 (w)1999-2018 BSI
-[*] Mon Sep 24 16:15:42 2018
+[*] Mon Sep 24 17:38:45 2018
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep27_-_Ethernet_Tx/fpga/tb.ghw"
-[dumpfile_mtime] "Mon Sep 24 15:44:09 2018"
-[dumpfile_size] 6719675
+[dumpfile_mtime] "Mon Sep 24 16:49:50 2018"
+[dumpfile_size] 6816519
 [savefile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep27_-_Ethernet_Tx/fpga/tb.gtkw"
-[timestart] 131929800000
-[size] 1920 970
+[timestart] 136882800000
+[size] 1920 1103
 [pos] 1868 33
-*-27.208099 132407000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-27.208099 137360000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.tb.
 [treeopen] top.tb.inst_comp.
@@ -18,7 +18,7 @@
 [treeopen] top.tb.inst_comp.inst_ethernet.inst_phy.
 [treeopen] top.tb.inst_comp.inst_ethernet.inst_rx_dma.
 [treeopen] top.tb.inst_comp.inst_ethernet.inst_strip_crc.
-[treeopen] top.tb.inst_comp.inst_ethernet.inst_tx_dma.
+[treeopen] top.tb.inst_comp.inst_ethernet.inst_tx_fifo.
 [sst_width] 335
 [signals_width] 303
 [sst_expanded] 1
@@ -201,10 +201,32 @@ top.tb.inst_comp.inst_ethernet.inst_tx_dma.memio_i[0]
 -group_end
 @28
 top.tb.inst_comp.inst_ethernet.inst_tx_dma.fsm_state
-@23
+@22
 #{top.tb.inst_comp.inst_ethernet.inst_tx_dma.rd_len[15:0]} top.tb.inst_comp.inst_ethernet.inst_tx_dma.rd_len[15] top.tb.inst_comp.inst_ethernet.inst_tx_dma.rd_len[14] top.tb.inst_comp.inst_ethernet.inst_tx_dma.rd_len[13] top.tb.inst_comp.inst_ethernet.inst_tx_dma.rd_len[12] top.tb.inst_comp.inst_ethernet.inst_tx_dma.rd_len[11] top.tb.inst_comp.inst_ethernet.inst_tx_dma.rd_len[10] top.tb.inst_comp.inst_ethernet.inst_tx_dma.rd_len[9] top.tb.inst_comp.inst_ethernet.inst_tx_dma.rd_len[8] top.tb.inst_comp.inst_ethernet.inst_tx_dma.rd_len[7] top.tb.inst_comp.inst_ethernet.inst_tx_dma.rd_len[6] top.tb.inst_comp.inst_ethernet.inst_tx_dma.rd_len[5] top.tb.inst_comp.inst_ethernet.inst_tx_dma.rd_len[4] top.tb.inst_comp.inst_ethernet.inst_tx_dma.rd_len[3] top.tb.inst_comp.inst_ethernet.inst_tx_dma.rd_len[2] top.tb.inst_comp.inst_ethernet.inst_tx_dma.rd_len[1] top.tb.inst_comp.inst_ethernet.inst_tx_dma.rd_len[0]
+@28
+top.tb.inst_comp.inst_ethernet.inst_tx_dma.wr_valid_o
+@22
+#{top.tb.inst_comp.inst_ethernet.inst_tx_dma.wr_data_o[7:0]} top.tb.inst_comp.inst_ethernet.inst_tx_dma.wr_data_o[7] top.tb.inst_comp.inst_ethernet.inst_tx_dma.wr_data_o[6] top.tb.inst_comp.inst_ethernet.inst_tx_dma.wr_data_o[5] top.tb.inst_comp.inst_ethernet.inst_tx_dma.wr_data_o[4] top.tb.inst_comp.inst_ethernet.inst_tx_dma.wr_data_o[3] top.tb.inst_comp.inst_ethernet.inst_tx_dma.wr_data_o[2] top.tb.inst_comp.inst_ethernet.inst_tx_dma.wr_data_o[1] top.tb.inst_comp.inst_ethernet.inst_tx_dma.wr_data_o[0]
+@28
+top.tb.inst_comp.inst_ethernet.inst_tx_dma.wr_eof_o
 @1000200
 -Tx DMA
+@800201
+-Tx FIFO
+@29
+top.tb.inst_comp.inst_ethernet.inst_tx_fifo.wr_en_i
+@23
+#{top.tb.inst_comp.inst_ethernet.inst_tx_fifo.wr_data_i[7:0]} top.tb.inst_comp.inst_ethernet.inst_tx_fifo.wr_data_i[7] top.tb.inst_comp.inst_ethernet.inst_tx_fifo.wr_data_i[6] top.tb.inst_comp.inst_ethernet.inst_tx_fifo.wr_data_i[5] top.tb.inst_comp.inst_ethernet.inst_tx_fifo.wr_data_i[4] top.tb.inst_comp.inst_ethernet.inst_tx_fifo.wr_data_i[3] top.tb.inst_comp.inst_ethernet.inst_tx_fifo.wr_data_i[2] top.tb.inst_comp.inst_ethernet.inst_tx_fifo.wr_data_i[1] top.tb.inst_comp.inst_ethernet.inst_tx_fifo.wr_data_i[0]
+@29
+top.tb.inst_comp.inst_ethernet.inst_tx_fifo.wr_sb_i[0]
+top.tb.inst_comp.inst_ethernet.inst_tx_fifo.rd_empty_o
+top.tb.inst_comp.inst_ethernet.inst_tx_fifo.rd_en_i
+@23
+#{top.tb.inst_comp.inst_ethernet.inst_tx_fifo.rd_data_o[7:0]} top.tb.inst_comp.inst_ethernet.inst_tx_fifo.rd_data_o[7] top.tb.inst_comp.inst_ethernet.inst_tx_fifo.rd_data_o[6] top.tb.inst_comp.inst_ethernet.inst_tx_fifo.rd_data_o[5] top.tb.inst_comp.inst_ethernet.inst_tx_fifo.rd_data_o[4] top.tb.inst_comp.inst_ethernet.inst_tx_fifo.rd_data_o[3] top.tb.inst_comp.inst_ethernet.inst_tx_fifo.rd_data_o[2] top.tb.inst_comp.inst_ethernet.inst_tx_fifo.rd_data_o[1] top.tb.inst_comp.inst_ethernet.inst_tx_fifo.rd_data_o[0]
+@29
+top.tb.inst_comp.inst_ethernet.inst_tx_fifo.rd_sb_o[0]
+@1000201
+-Tx FIFO
 @800200
 -Mem
 @28
