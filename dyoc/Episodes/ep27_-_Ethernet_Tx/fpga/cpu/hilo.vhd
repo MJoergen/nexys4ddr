@@ -35,10 +35,10 @@ architecture structural of hilo is
    signal hilo_inc_s  : std_logic_vector(15 downto 0);
 
    -- Address Hi register
-   signal hi : std_logic_vector(7 downto 0);
+   signal hi : std_logic_vector(7 downto 0) := (others => '0');
    
    -- Address Lo register
-   signal lo : std_logic_vector(7 downto 0);
+   signal lo : std_logic_vector(7 downto 0) := (others => '0');
 
 begin
 

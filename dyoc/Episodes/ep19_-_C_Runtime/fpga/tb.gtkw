@@ -1,44 +1,44 @@
 [*]
 [*] GTKWave Analyzer v3.3.89 (w)1999-2018 BSI
-[*] Wed May 30 12:58:50 2018
+[*] Tue Sep 25 19:05:59 2018
 [*]
-[dumpfile] "/home/mike/git/nexys4ddr/dyoc/ep19_-_C_Runtime/tb.ghw"
-[dumpfile_mtime] "Wed May 30 12:58:30 2018"
-[dumpfile_size] 2133315
-[savefile] "/home/mike/git/nexys4ddr/dyoc/ep19_-_C_Runtime/tb.gtkw"
-[timestart] 0
+[dumpfile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep19_-_C_Runtime/fpga/tb.ghw"
+[dumpfile_mtime] "Tue Sep 25 18:56:33 2018"
+[dumpfile_size] 663134
+[savefile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep19_-_C_Runtime/fpga/tb.gtkw"
+[timestart] 473500000
 [size] 1920 1103
 [pos] 1868 33
-*-34.363823 2979100000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-25.456932 630000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.tb.
 [treeopen] top.tb.i_cpu.
-[treeopen] top.tb.i_cpu.inst_ctl.
 [treeopen] top.tb.i_cpu.inst_datapath.
 [treeopen] top.tb.i_mem.
-[treeopen] top.tb.i_mem.i_ram.
 [treeopen] top.tb.i_mem.i_ram.mem.
 [sst_width] 255
 [signals_width] 253
 [sst_expanded] 1
 [sst_vpaned_height] 299
-@28
-top.tb.clk
-@22
-#{top.tb.cpu_addr[15:0]} top.tb.cpu_addr[15] top.tb.cpu_addr[14] top.tb.cpu_addr[13] top.tb.cpu_addr[12] top.tb.cpu_addr[11] top.tb.cpu_addr[10] top.tb.cpu_addr[9] top.tb.cpu_addr[8] top.tb.cpu_addr[7] top.tb.cpu_addr[6] top.tb.cpu_addr[5] top.tb.cpu_addr[4] top.tb.cpu_addr[3] top.tb.cpu_addr[2] top.tb.cpu_addr[1] top.tb.cpu_addr[0]
-#{top.tb.mem_data[7:0]} top.tb.mem_data[7] top.tb.mem_data[6] top.tb.mem_data[5] top.tb.mem_data[4] top.tb.mem_data[3] top.tb.mem_data[2] top.tb.mem_data[1] top.tb.mem_data[0]
-@28
-top.tb.cpu_wren
-@22
-#{top.tb.cpu_data[7:0]} top.tb.cpu_data[7] top.tb.cpu_data[6] top.tb.cpu_data[5] top.tb.cpu_data[4] top.tb.cpu_data[3] top.tb.cpu_data[2] top.tb.cpu_data[1] top.tb.cpu_data[0]
 @800200
 -CPU
+@28
+top.tb.i_cpu.clk_i
+top.tb.i_cpu.wait_i
+top.tb.i_cpu.rst_i
+top.tb.i_cpu.nmi_i
+top.tb.i_cpu.irq_i
 @22
 #{top.tb.i_cpu.inst_datapath.ar[7:0]} top.tb.i_cpu.inst_datapath.ar[7] top.tb.i_cpu.inst_datapath.ar[6] top.tb.i_cpu.inst_datapath.ar[5] top.tb.i_cpu.inst_datapath.ar[4] top.tb.i_cpu.inst_datapath.ar[3] top.tb.i_cpu.inst_datapath.ar[2] top.tb.i_cpu.inst_datapath.ar[1] top.tb.i_cpu.inst_datapath.ar[0]
 #{top.tb.i_cpu.inst_datapath.xr[7:0]} top.tb.i_cpu.inst_datapath.xr[7] top.tb.i_cpu.inst_datapath.xr[6] top.tb.i_cpu.inst_datapath.xr[5] top.tb.i_cpu.inst_datapath.xr[4] top.tb.i_cpu.inst_datapath.xr[3] top.tb.i_cpu.inst_datapath.xr[2] top.tb.i_cpu.inst_datapath.xr[1] top.tb.i_cpu.inst_datapath.xr[0]
 #{top.tb.i_cpu.inst_datapath.yr[7:0]} top.tb.i_cpu.inst_datapath.yr[7] top.tb.i_cpu.inst_datapath.yr[6] top.tb.i_cpu.inst_datapath.yr[5] top.tb.i_cpu.inst_datapath.yr[4] top.tb.i_cpu.inst_datapath.yr[3] top.tb.i_cpu.inst_datapath.yr[2] top.tb.i_cpu.inst_datapath.yr[1] top.tb.i_cpu.inst_datapath.yr[0]
 #{top.tb.i_cpu.inst_datapath.sr[7:0]} top.tb.i_cpu.inst_datapath.sr[7] top.tb.i_cpu.inst_datapath.sr[6] top.tb.i_cpu.inst_datapath.sr[5] top.tb.i_cpu.inst_datapath.sr[4] top.tb.i_cpu.inst_datapath.sr[3] top.tb.i_cpu.inst_datapath.sr[2] top.tb.i_cpu.inst_datapath.sr[1] top.tb.i_cpu.inst_datapath.sr[0]
 #{top.tb.i_cpu.inst_datapath.sp[7:0]} top.tb.i_cpu.inst_datapath.sp[7] top.tb.i_cpu.inst_datapath.sp[6] top.tb.i_cpu.inst_datapath.sp[5] top.tb.i_cpu.inst_datapath.sp[4] top.tb.i_cpu.inst_datapath.sp[3] top.tb.i_cpu.inst_datapath.sp[2] top.tb.i_cpu.inst_datapath.sp[1] top.tb.i_cpu.inst_datapath.sp[0]
+#{top.tb.i_cpu.inst_datapath.hi[7:0]} top.tb.i_cpu.inst_datapath.hi[7] top.tb.i_cpu.inst_datapath.hi[6] top.tb.i_cpu.inst_datapath.hi[5] top.tb.i_cpu.inst_datapath.hi[4] top.tb.i_cpu.inst_datapath.hi[3] top.tb.i_cpu.inst_datapath.hi[2] top.tb.i_cpu.inst_datapath.hi[1] top.tb.i_cpu.inst_datapath.hi[0]
+#{top.tb.i_cpu.inst_datapath.lo[7:0]} top.tb.i_cpu.inst_datapath.lo[7] top.tb.i_cpu.inst_datapath.lo[6] top.tb.i_cpu.inst_datapath.lo[5] top.tb.i_cpu.inst_datapath.lo[4] top.tb.i_cpu.inst_datapath.lo[3] top.tb.i_cpu.inst_datapath.lo[2] top.tb.i_cpu.inst_datapath.lo[1] top.tb.i_cpu.inst_datapath.lo[0]
+@23
+#{top.tb.i_cpu.inst_datapath.zp[7:0]} top.tb.i_cpu.inst_datapath.zp[7] top.tb.i_cpu.inst_datapath.zp[6] top.tb.i_cpu.inst_datapath.zp[5] top.tb.i_cpu.inst_datapath.zp[4] top.tb.i_cpu.inst_datapath.zp[3] top.tb.i_cpu.inst_datapath.zp[2] top.tb.i_cpu.inst_datapath.zp[1] top.tb.i_cpu.inst_datapath.zp[0]
+@22
 #{top.tb.i_cpu.inst_ctl.ir[7:0]} top.tb.i_cpu.inst_ctl.ir[7] top.tb.i_cpu.inst_ctl.ir[6] top.tb.i_cpu.inst_ctl.ir[5] top.tb.i_cpu.inst_ctl.ir[4] top.tb.i_cpu.inst_ctl.ir[3] top.tb.i_cpu.inst_ctl.ir[2] top.tb.i_cpu.inst_ctl.ir[1] top.tb.i_cpu.inst_ctl.ir[0]
 @28
 #{top.tb.i_cpu.inst_ctl.cnt[2:0]} top.tb.i_cpu.inst_ctl.cnt[2] top.tb.i_cpu.inst_ctl.cnt[1] top.tb.i_cpu.inst_ctl.cnt[0]
@@ -47,20 +47,22 @@ top.tb.cpu_wren
 #{top.tb.i_cpu.inst_ctl.invalid_inst[7:0]} top.tb.i_cpu.inst_ctl.invalid_inst[7] top.tb.i_cpu.inst_ctl.invalid_inst[6] top.tb.i_cpu.inst_ctl.invalid_inst[5] top.tb.i_cpu.inst_ctl.invalid_inst[4] top.tb.i_cpu.inst_ctl.invalid_inst[3] top.tb.i_cpu.inst_ctl.invalid_inst[2] top.tb.i_cpu.inst_ctl.invalid_inst[1] top.tb.i_cpu.inst_ctl.invalid_inst[0]
 @28
 #{top.tb.i_cpu.inst_ctl.cic[1:0]} top.tb.i_cpu.inst_ctl.cic[1] top.tb.i_cpu.inst_ctl.cic[0]
-top.tb.i_cpu.irq_i
-top.tb.i_cpu.nmi_i
-top.tb.i_cpu.rst_i
+@22
+#{top.tb.i_cpu.addr_sel[3:0]} top.tb.i_cpu.addr_sel[3] top.tb.i_cpu.addr_sel[2] top.tb.i_cpu.addr_sel[1] top.tb.i_cpu.addr_sel[0]
 @1000200
 -CPU
 @800200
 -Memory
+@28
+top.tb.i_mem.clk_i
+@22
+#{top.tb.i_mem.addr_i[15:0]} top.tb.i_mem.addr_i[15] top.tb.i_mem.addr_i[14] top.tb.i_mem.addr_i[13] top.tb.i_mem.addr_i[12] top.tb.i_mem.addr_i[11] top.tb.i_mem.addr_i[10] top.tb.i_mem.addr_i[9] top.tb.i_mem.addr_i[8] top.tb.i_mem.addr_i[7] top.tb.i_mem.addr_i[6] top.tb.i_mem.addr_i[5] top.tb.i_mem.addr_i[4] top.tb.i_mem.addr_i[3] top.tb.i_mem.addr_i[2] top.tb.i_mem.addr_i[1] top.tb.i_mem.addr_i[0]
+#{top.tb.i_mem.data_o[7:0]} top.tb.i_mem.data_o[7] top.tb.i_mem.data_o[6] top.tb.i_mem.data_o[5] top.tb.i_mem.data_o[4] top.tb.i_mem.data_o[3] top.tb.i_mem.data_o[2] top.tb.i_mem.data_o[1] top.tb.i_mem.data_o[0]
+@28
+top.tb.i_mem.wren_i
+@22
+#{top.tb.i_mem.data_i[7:0]} top.tb.i_mem.data_i[7] top.tb.i_mem.data_i[6] top.tb.i_mem.data_i[5] top.tb.i_mem.data_i[4] top.tb.i_mem.data_i[3] top.tb.i_mem.data_i[2] top.tb.i_mem.data_i[1] top.tb.i_mem.data_i[0]
 @1000200
 -Memory
-@24
-#{top.tb.i_mem.i_ram.mem[512][7:0]} top.tb.i_mem.i_ram.mem[512][7] top.tb.i_mem.i_ram.mem[512][6] top.tb.i_mem.i_ram.mem[512][5] top.tb.i_mem.i_ram.mem[512][4] top.tb.i_mem.i_ram.mem[512][3] top.tb.i_mem.i_ram.mem[512][2] top.tb.i_mem.i_ram.mem[512][1] top.tb.i_mem.i_ram.mem[512][0]
-@22
-#{top.tb.i_mem.i_ram.mem[4081][7:0]} top.tb.i_mem.i_ram.mem[4081][7] top.tb.i_mem.i_ram.mem[4081][6] top.tb.i_mem.i_ram.mem[4081][5] top.tb.i_mem.i_ram.mem[4081][4] top.tb.i_mem.i_ram.mem[4081][3] top.tb.i_mem.i_ram.mem[4081][2] top.tb.i_mem.i_ram.mem[4081][1] top.tb.i_mem.i_ram.mem[4081][0]
-@23
-#{top.tb.i_mem.i_ram.mem[4084][7:0]} top.tb.i_mem.i_ram.mem[4084][7] top.tb.i_mem.i_ram.mem[4084][6] top.tb.i_mem.i_ram.mem[4084][5] top.tb.i_mem.i_ram.mem[4084][4] top.tb.i_mem.i_ram.mem[4084][3] top.tb.i_mem.i_ram.mem[4084][2] top.tb.i_mem.i_ram.mem[4084][1] top.tb.i_mem.i_ram.mem[4084][0]
 [pattern_trace] 1
 [pattern_trace] 0

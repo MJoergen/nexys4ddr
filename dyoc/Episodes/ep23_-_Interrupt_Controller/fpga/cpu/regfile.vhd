@@ -33,13 +33,13 @@ architecture structural of regfile is
    constant REG_SP    : std_logic_vector(1 downto 0) := B"11";
 
    -- 'A' register
-   signal ar : std_logic_vector(7 downto 0);
+   signal ar : std_logic_vector(7 downto 0) := (others => '0');
 
    -- 'X' register
-   signal xr : std_logic_vector(7 downto 0);
+   signal xr : std_logic_vector(7 downto 0) := (others => '0');
 
    -- 'Y' register
-   signal yr : std_logic_vector(7 downto 0);
+   signal yr : std_logic_vector(7 downto 0) := (others => '0');
 
    -- Stack Pointer
    signal sp : std_logic_vector(7 downto 0) := X"FF";
