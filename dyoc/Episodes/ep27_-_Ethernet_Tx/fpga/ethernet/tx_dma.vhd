@@ -93,6 +93,7 @@ begin
                      if rd_len = 2 then
                         wr_eof <= '1';
                         memio_clear <= '1';
+                        fsm_state   <= IDLE_ST;
                      else
                         rd_addr   <= rd_addr + 1;
                         rd_len    <= rd_len - 1;

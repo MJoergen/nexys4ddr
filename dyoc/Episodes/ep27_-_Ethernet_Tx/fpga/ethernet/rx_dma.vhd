@@ -77,6 +77,12 @@ begin
             else
                wr_addr <= wr_addr + 1;
             end if;
+
+            -- If end of packet, check if remaining buffer can support a full frame.
+            -- If not, reset write pointer to end of frame.
+            if rd_eof_i = '1' and (eth_end - wr_addr) < 1500 then
+               wr_addr <= eth_end - 1;
+            end if;
          end if;
 
          if eth_enable = '0' then   -- Reset write pointer to beginning of new buffer location.
