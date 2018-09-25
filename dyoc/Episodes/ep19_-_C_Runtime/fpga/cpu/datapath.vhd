@@ -146,13 +146,13 @@ architecture structural of datapath is
    signal pc : std_logic_vector(15 downto 0);
 
    -- 'A' register
-   signal ar : std_logic_vector(7 downto 0);
+   signal ar : std_logic_vector(7 downto 0) := (others => '0');
 
    -- 'X' register
-   signal xr : std_logic_vector(7 downto 0);
+   signal xr : std_logic_vector(7 downto 0) := (others => '0');
 
    -- 'Y' register
-   signal yr : std_logic_vector(7 downto 0);
+   signal yr : std_logic_vector(7 downto 0) := (others => '0');
 
    -- Stack Pointer
    signal sp : std_logic_vector(7 downto 0) := X"FF";
@@ -161,10 +161,10 @@ architecture structural of datapath is
    signal sr : std_logic_vector(7 downto 0) := (others => '0');
 
    -- Address Hi register
-   signal hi : std_logic_vector(7 downto 0);
+   signal hi : std_logic_vector(7 downto 0) := (others => '0');
    
    -- Address Lo register
-   signal lo : std_logic_vector(7 downto 0);
+   signal lo : std_logic_vector(7 downto 0) := (others => '0');
 
    -- Zero-page register
    signal zp : std_logic_vector(7 downto 0);
