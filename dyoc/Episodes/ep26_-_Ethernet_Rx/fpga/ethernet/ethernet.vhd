@@ -174,7 +174,7 @@ begin
    -- Instantiate DMA
    ------------------------------
 
-   inst_dma : entity work.dma
+   inst_rx_dma : entity work.rx_dma
    port map (
       clk_i      => user_clk_i,
       rd_empty_i => user_empty,

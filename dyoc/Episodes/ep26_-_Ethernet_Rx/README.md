@@ -238,3 +238,20 @@ most one clock cycle for a write to complete.
 
 The extra wait state is inserted in line 113 in mem/mem.vhd. The arbitration
 between CPU and DMA is handled in lines 128-140.
+
+## Test program
+The program enters a busy loop polling the write pointer from the DMA. When
+the write pointer is updated an entire Ethernet frame has been received. The
+firdt 16 bytes (including the 2 byte length field) are printed to screen,
+and the read pointer is updated.
+
+Note that the value read from the write pointer may not be valid, due to
+a race condition. Because the CPU accesses the memory only 1 byte at a time,
+the write pointer may be updated between reading the first and the second
+byte. Instead, the CPU relies on the correctness of the length field.
+
+Note also that the receiver effectively operates in promiscuous mode, i.e.
+performs no filtering of MAC addresses. This is not really necessary,
+because the Nexyx board is connected to a switch, and the switch performs
+automatically the MAC address filtering.
+

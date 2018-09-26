@@ -12,7 +12,7 @@ use ieee.std_logic_unsigned.all;
 -- memio_i. Prior to changing this signal, the bit 48 (eth_enable) must be
 -- cleared.
 
-entity dma is
+entity rx_dma is
    port (
       clk_i      : in  std_logic;
       rd_empty_i : in  std_logic;
@@ -26,9 +26,9 @@ entity dma is
       wr_ptr_o   : out std_logic_vector(15 downto 0);
       memio_i    : in  std_logic_vector(55 downto 0)
    );
-end dma;
+end rx_dma;
 
-architecture Structural of dma is
+architecture Structural of rx_dma is
 
    signal wr_en   : std_logic;
    signal wr_addr : std_logic_vector(15 downto 0);
@@ -76,6 +76,12 @@ begin
                wr_addr <= eth_start;
             else
                wr_addr <= wr_addr + 1;
+            end if;
+
+            -- If end of packet, check if remaining buffer can support a full frame.
+            -- If not, reset write pointer to end of frame.
+            if rd_eof_i = '1' and (eth_end - wr_addr) < 1500 then
+               wr_addr <= eth_end - 1;
             end if;
          end if;
 
