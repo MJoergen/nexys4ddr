@@ -60,6 +60,27 @@ build/$(PROGRAM):
 
 
 #####################################
+# Generate bit-file and program FPGA
+#####################################
+
+XILINX_ISE_DIR = /opt/Xilinx/14.7/ISE_DS
+BIT = ../fpga/comp.bit
+BMM = ../fpga/comp.bmm
+ROM = ../rom.txt
+MEM = comp.mem
+
+comp.bit: $(BIT) $(BMM) $(MEM)
+	bash -c "source $(XILINX_ISE_DIR)/settings64.sh ; data2mem -bm $(BMM) -bt $(BIT) -bd $(MEM) -o b comp.bit"
+
+$(MEM): $(ROM)
+	echo "@C000" > $(MEM)
+	cat $(ROM) >> $(MEM)
+
+fpga: comp.bit
+	djtgcfg prog -d Nexys4DDR -i 0 --file $<
+
+
+#####################################
 # Cleanup
 #####################################
 
