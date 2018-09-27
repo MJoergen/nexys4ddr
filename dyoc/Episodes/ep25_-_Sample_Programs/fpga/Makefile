@@ -1,33 +1,23 @@
 XILINX_DIR = /opt/Xilinx/Vivado/2017.3
-XILINX_ISE_DIR = /opt/Xilinx/14.7/ISE_DS
 
 SRC  = chipset/ic.vhd chipset/waiter.vhd chipset/timer.vhd \
 		 vga/overlay.vhd vga/chars.vhd vga/font.vhd vga/vga.vhd \
 		 mem/memio.vhd mem/dmem.vhd mem/ram.vhd mem/rom.vhd mem/mem.vhd \
 		 keyboard/ps2.vhd keyboard/scancode.vhd keyboard/keyboard.vhd \
 		 cpu/zp.vhd cpu/sr.vhd cpu/regfile.vhd cpu/hilo.vhd cpu/pc.vhd cpu/cycle.vhd cpu/datapath.vhd cpu/ctl.vhd cpu/cpu.vhd cpu/alu.vhd \
-       comp.vhd
+		 comp.vhd
 XDC  = comp.xdc
 TB   = tb.vhd keyboard/ps2_tb.vhd
 WAVE = tb.ghw
 SAVE = tb.gtkw
-
-BIT = ../../ep24_-_Keyboard/fpga/comp.bit
-BMM = ../../ep24_-_Keyboard/fpga/comp.bmm
-ROM = ../rom.txt
-MEM = comp.mem
 
 
 #####################################
 # Generate bit-file and program FPGA
 #####################################
 
-comp.bit: $(BIT) $(BMM) $(MEM)
-	bash -c "source $(XILINX_ISE_DIR)/settings64.sh ; data2mem -bm $(BMM) -bt $(BIT) -bd $(MEM) -o b comp.bit"
-
-$(MEM): $(ROM)
-	echo "@C000" > $(MEM)
-	cat $(ROM) >> $(MEM)
+comp.bit: comp.tcl $(SRC) $(XDC) ../rom.txt
+	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $<"
 
 fpga: comp.bit
 	djtgcfg prog -d Nexys4DDR -i 0 --file $<
@@ -37,10 +27,10 @@ fpga: comp.bit
 # Simulation
 #####################################
 
-sim: $(SRC) $(TB) $(ROM)
+sim: $(SRC) $(TB) ../rom.txt
 	ghdl -i --work=work $(SRC) $(TB)
 	ghdl -m --ieee=synopsys -fexplicit tb
-	ghdl -r tb --assert-level=error --wave=$(WAVE) --stop-time=250us
+	ghdl -r tb --assert-level=error --wave=$(WAVE) --stop-time=200us
 	gtkwave $(WAVE) $(SAVE)
 
 
@@ -52,11 +42,9 @@ clean:
 	rm -rf usage_statistics_webtalk.*
 	rm -rf vivado*
 	rm -rf *.o
-	rm -rf comp.bit
 	rm -rf comp.dcp
 	rm -rf .Xil
 	rm -rf .cache
 	rm -rf work-obj93.cf
 	rm -rf tb
 	rm -rf tb.ghw
-	rm -rf $(MEM)
