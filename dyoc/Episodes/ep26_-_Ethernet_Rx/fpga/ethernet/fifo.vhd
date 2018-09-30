@@ -6,7 +6,7 @@ library unisim;
 use unisim.vcomponents.all;
 
 -- This module is a wrapper for the Xilinx-specific FIFO.
--- The error signals are latches, i.e. are only cleared on reset.
+-- The error signals are latched, i.e. are only cleared on reset.
 
 entity fifo is
    generic (

@@ -63,7 +63,7 @@ Mhz clock output to the PHY.
 
 ## Adding top level ports
 The first we need is to connect the PHY signals to our design. In comp.vhd
-(lines 39-49) we add the ports to our entity declaration, and we must remember
+(lines 38-48) we add the ports to our entity declaration, and we must remember
 to add them to the constraint file comp.xdc (lines 39-50) as well. The signal
 names and pin names are copied from the schematic linked to above.
 
@@ -74,7 +74,7 @@ MHz, Now we additionally have to interface to the Ethernet PHY, which runs at
 50 Mhz. So our design will now contain two different "clock domains", i.e.
 different areas of the design will be controlled by different clocks.
 
-The Ethernet clock is generated in comp.vhd (line 138) using the same clock
+The Ethernet clock is generated in comp.vhd (line 137) using the same clock
 divider as for the VGA clock. Additionally, all clock signals must be described
 in the constraint file as well, i.e. in comp.xdc line 58.
 
@@ -91,10 +91,11 @@ fifo's, one for transmitting data to the PHY, and one for receiving data from
 the PHY.
 
 The file ethernet/fifo.vhd contains a wrapper for the Xilinx primitive. It is
-usually a good idea to create wrappers around primitives, because it makes it
-possible to choose more descriptive port names and improved error handling.
-Note how the fifo has two different clocks, one for the write port and one
-for the read port.
+usually a good idea to create wrappers around vendor-specific primitives,
+because it makes it possible to migrate the design to other boards later.
+Additionally, it gives us the option to choose more descriptive port names and
+improved error handling.  Note how the fifo has two different clocks, one for
+the write port and one for the read port.
 
 Note how the write side has a wr\_afull\_o port. It is up to the user not to
 write any more data to the fifo, when this signal is asserted. However, if it
@@ -103,27 +104,32 @@ Similarly, the read side has a rd\_empty\_o port. Data should not be read from
 the fifo when this signal is asserted. Again, an error signal is latched on
 rd\_error\_o.
 
-It is fairly straightforward to design the system so that one doesn't read
-from an empty fifo. However, avoiding writing to a full fifo requires an
-understanding of the global system architecture. One must consider, whether the
-receiver can pull data out of the fifo quickly enough, compared to how fast
-data it pushed into the fifo. This also influences the choice of how big the
-fifo should be. In general, one should consider how to handle situations where
-data is received faster than can be processed. In the current implementation a
-simple overflow occurs leading to a persistent error that can only be cleared
-by reset.
+It is fairly straightforward to design the system so that one doesn't read from
+an empty fifo. However, avoiding writing to a full fifo requires an
+understanding of the global system architecture. Additionally, when designing
+with fifos one must consider, whether the receiver can pull data out of the
+fifo quickly enough, compared to how fast data is pushed into the fifo. This
+also influences the choice of how big the fifo should be. In general, one
+should consider how to handle situations where data is received from external
+interfaces faster than can be processed. In the current implementation a simple
+overflow occurs leading to a persistent error that can only be cleared by
+reset.
 
 ## Overall design strategy for receiving data from the Ethernet.
-The implementation I've chosen here has the FPGA writing the received
-Ethernet frames directly to RAM, without requiring any assistance from the CPU.
-This is called Direct Memory Access. To make this work we must allocate a
-certain area in memory and configure the DMA block to write only to this
-memory area.
+The implementation I've chosen here has the FPGA writing the received Ethernet
+frames directly to RAM, without requiring any assistance from the CPU.  This is
+called Direct Memory Access. To make this work we must allocate a certain area
+in memory and design a RxDMA module to write to this memory area.
 
-Then we must decide on a data format. Particularly, we must be able to
-distinguish where one frame ends and another frame begins.  I've chosen to
-prepend each frame with a two-byte header that contains the total number of
-bytes in the frame, including the header.
+Then we must decide on a format of the data written to the memory.  Initially,
+we have two requirement:
+* We must be able to distinguish where one frame ends and another frame begins. 
+* Each frame must be in a contiguous (un-fragmented) block of memory.
+I've chosen to prepend each frame with a two-byte header that contains the
+total number of bytes in the frame, including the header. This allows the
+software to 'hop' from one frame to the next.  Whenever the remainder of the
+buffer is less than 1502 bytes (the maximum ethernet frame plus two byte
+header), the next frame will automatically start from the beginning again.
 
 The design must also be robust and handle error situations gracefully, e.g.  by
 discarding frames that have an incorrect CRC.
