@@ -105,7 +105,7 @@ architecture Structural of comp is
    signal vga_memio_rd : std_logic_vector( 4*8-1 downto 0);
    signal cpu_memio_rd : std_logic_vector( 4*8-1 downto 0);
    signal kbd_memio_rd : std_logic_vector( 1*8-1 downto 0);
-   signal eth_memio_rd : std_logic_vector( 6*8-1 downto 0);
+   signal eth_memio_rd : std_logic_vector( 7*8-1 downto 0);
    signal irq_memio_rd : std_logic_vector( 1*8-1 downto 0);
    signal irq_memio_rden : std_logic;
 
@@ -372,14 +372,15 @@ begin
    -- 7FEC - 7FED : ETH_CNT
    -- 7FEE        : ETH_ERR0
    -- 7FEF        : ETH_ERR1
-   -- 7FF0 - 7FFE : Not used
+   -- 7FF0        : ETH_OVERFLOW
+   -- 7FF1 - 7FFE : Not used
    -- 7FFF        : IRQ_STATUS
    memio_rd( 3*8+7 downto  0*8) <= vga_memio_rd;
    memio_rd( 7*8+7 downto  4*8) <= cpu_memio_rd;
    memio_rd( 8*8+7 downto  8*8) <= kbd_memio_rd;
    memio_rd( 9*8+7 downto  9*8) <= (others => '0');   -- Not used
-   memio_rd(15*8+7 downto 10*8) <= eth_memio_rd;
-   memio_rd(30*8+7 downto 16*8) <= (others => '0');   -- Not used
+   memio_rd(16*8+7 downto 10*8) <= eth_memio_rd;
+   memio_rd(30*8+7 downto 17*8) <= (others => '0');   -- Not used
    memio_rd(31*8+7 downto 31*8) <= irq_memio_rd;
    irq_memio_rden <= memio_rden(31);
 

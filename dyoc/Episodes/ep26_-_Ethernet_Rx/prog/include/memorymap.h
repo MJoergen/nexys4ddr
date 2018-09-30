@@ -38,7 +38,8 @@ typedef struct
    uint16_t ethCnt;           // 7FEC - 7FED
    uint8_t  ethErr0;          // 7FEE
    uint8_t  ethErr1;          // 7FEF
-   uint8_t  _reserved2[22];
+   uint8_t  ethOverflow;      // 7FF0
+   uint8_t  _reserved2[14];
    uint8_t  irqStatus;        // 7FFF
 } t_memio_status;
 

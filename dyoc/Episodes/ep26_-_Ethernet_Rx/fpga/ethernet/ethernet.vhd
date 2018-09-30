@@ -12,7 +12,7 @@ entity ethernet is
       user_addr_o  : out std_logic_vector(15 downto 0);
       user_data_o  : out std_logic_vector( 7 downto 0);
       user_memio_i : in  std_logic_vector(55 downto 0);
-      user_memio_o : out std_logic_vector(47 downto 0);
+      user_memio_o : out std_logic_vector(55 downto 0);
 
       -- Connected to PHY.
       eth_clk_i    : in    std_logic; -- Must be 50 MHz
@@ -43,7 +43,6 @@ architecture Structural of ethernet is
    signal eth_rx_eof    : std_logic;
    signal eth_rx_data   : std_logic_vector(7 downto 0);
    signal eth_rx_error  : std_logic_vector(1 downto 0);
-   signal eth_overflow  : std_logic;
 
    signal eth_strip_valid : std_logic;
    signal eth_strip_data  : std_logic_vector(7 downto 0);
@@ -63,9 +62,10 @@ architecture Structural of ethernet is
    signal user_dma_wrptr : std_logic_vector(15 downto 0);
 
    -- Statistics counters
-   signal eth_cnt_good    : std_logic_vector(15 downto 0);
-   signal eth_cnt_error   : std_logic_vector( 7 downto 0);
-   signal eth_cnt_crc_bad : std_logic_vector( 7 downto 0);
+   signal eth_cnt_good     : std_logic_vector(15 downto 0);
+   signal eth_cnt_error    : std_logic_vector( 7 downto 0);
+   signal eth_cnt_crc_bad  : std_logic_vector( 7 downto 0);
+   signal eth_cnt_overflow : std_logic_vector( 7 downto 0);
 
 begin
 
@@ -123,24 +123,24 @@ begin
    -------------------------------
    inst_strip_crc : entity work.strip_crc
    port map (
-      clk_i         => eth_clk_i,
-      rst_i         => eth_rst,
-      rx_enable_i   => user_memio_i(48), -- DMA enable
-      rx_valid_i    => eth_rx_valid,
-      rx_sof_i      => eth_rx_sof,
-      rx_eof_i      => eth_rx_eof,
-      rx_data_i     => eth_rx_data,
-      rx_error_i    => eth_rx_error,
-      rx_error_o    => eth_overflow,
+      clk_i          => eth_clk_i,
+      rst_i          => eth_rst,
+      rx_enable_i    => user_memio_i(48), -- DMA enable
+      rx_valid_i     => eth_rx_valid,
+      rx_sof_i       => eth_rx_sof,
+      rx_eof_i       => eth_rx_eof,
+      rx_data_i      => eth_rx_data,
+      rx_error_i     => eth_rx_error,
       --
-      cnt_good_o    => eth_cnt_good,
-      cnt_error_o   => eth_cnt_error,
-      cnt_crc_bad_o => eth_cnt_crc_bad,
+      cnt_good_o     => eth_cnt_good,
+      cnt_error_o    => eth_cnt_error,
+      cnt_crc_bad_o  => eth_cnt_crc_bad,
+      cnt_overflow_o => eth_cnt_overflow,
       --
-      out_afull_i   => eth_fifo_afull,
-      out_valid_o   => eth_strip_valid,
-      out_data_o    => eth_strip_data,
-      out_eof_o     => eth_strip_eof(0)
+      out_afull_i    => '1', -- eth_fifo_afull,
+      out_valid_o    => eth_strip_valid,
+      out_data_o     => eth_strip_data,
+      out_eof_o      => eth_strip_eof(0)
    );
 
 
@@ -197,10 +197,10 @@ begin
    user_data_o <= user_dma_data;
 
    user_memio_o(15 downto  0) <= user_dma_wrptr;
-   user_memio_o(30 downto 16) <= eth_cnt_good(14 downto 0);
-   user_memio_o(31)           <= eth_overflow;
+   user_memio_o(31 downto 16) <= eth_cnt_good;
    user_memio_o(39 downto 32) <= eth_cnt_error;
    user_memio_o(47 downto 40) <= eth_cnt_crc_bad;
+   user_memio_o(55 downto 48) <= eth_cnt_overflow;
    
 end Structural;
 

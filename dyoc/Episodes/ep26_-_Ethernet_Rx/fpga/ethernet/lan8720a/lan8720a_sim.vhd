@@ -83,8 +83,8 @@ begin
       wait for 60 us;
       wait until clk_i = '1';
 
-      -- Make a burst of four minimum packets back-to-back.
-      pkt_loop : for pkt in 0 to 3 loop
+      -- Make a burst of six 64-byte packets back-to-back.
+      pkt_loop : for pkt in 0 to 5 loop
          byte_loop : for i in 0 to 63 loop
             rx_valid_o <= '1';
             rx_sof_o   <= '0';

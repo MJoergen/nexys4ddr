@@ -14,16 +14,6 @@ use ieee.std_logic_unsigned.all;
 -- start_ptr.  If the frame is to be discarded, the current write pointer is
 -- reset to this start_ptr.
 --
--- As soon as an entire frame has been received it is output. Since the input
--- buffer is limited in size we won't allow any flow control on the output
--- interface.  Should the input buffer overflow (e.g. due to a long frame), an
--- error is indicated, but no error handling is implemented here.
---
--- Warning: In the current implementation buffer overflow will lead to
--- corrupted packets. This is in other words a permanent failure, and the
--- rx_error_o output is therefore latched high and can only be cleared upon
--- reset.
---
 -- For simplicity, everything is in the same clock domain.
 
 entity strip_crc is
@@ -37,12 +27,12 @@ entity strip_crc is
       rx_eof_i       : in  std_logic;
       rx_data_i      : in  std_logic_vector(7 downto 0);
       rx_error_i     : in  std_logic_vector(1 downto 0); -- Only valid @ EOF
-      rx_error_o     : out std_logic;                    -- Input buffer overflow. Latched.
 
       -- Statistics. All these counters saturate at their maximum value.
       cnt_good_o     : out std_logic_vector(15 downto 0);
       cnt_error_o    : out std_logic_vector( 7 downto 0);
       cnt_crc_bad_o  : out std_logic_vector( 7 downto 0);
+      cnt_overflow_o : out std_logic_vector( 7 downto 0);
 
       -- Output interface
       out_afull_i    : in  std_logic;                    -- Output buffer is full.
@@ -54,13 +44,18 @@ end strip_crc;
 
 architecture Structural of strip_crc is
 
+   signal rx_valid_d : std_logic;
+   signal rx_eof_d   : std_logic;
+   signal rx_error_d : std_logic_vector(1 downto 0);
+
    -- Input buffer overflow
    signal rx_error : std_logic := '0';
 
    -- Statistics
-   signal cnt_good    : std_logic_vector(15 downto 0);
-   signal cnt_error   : std_logic_vector( 7 downto 0);
-   signal cnt_crc_bad : std_logic_vector( 7 downto 0);
+   signal cnt_good     : std_logic_vector(15 downto 0);
+   signal cnt_error    : std_logic_vector( 7 downto 0);
+   signal cnt_crc_bad  : std_logic_vector( 7 downto 0);
+   signal cnt_overflow : std_logic_vector( 7 downto 0);
 
    -- Output interface
    signal out_valid : std_logic;
@@ -69,7 +64,7 @@ architecture Structural of strip_crc is
 
 
    -- The size of the input buffer is 2K. This fits nicely in a single BRAM.
-   constant C_ADDR_SIZE : integer := 11;
+   constant C_ADDR_SIZE : integer := 8; -- 11;
    type t_buf is array (0 to 2**C_ADDR_SIZE-1) of std_logic_vector(7 downto 0);
    signal rx_buf : t_buf := (others => (others => '0'));
 
@@ -94,6 +89,18 @@ architecture Structural of strip_crc is
 
 begin
 
+--   -- This process delays the input signals for one clock
+--   -- cycle to synchronize them with the signal rx_error.
+--   proc_delay : process (clk_i)
+--   begin
+--      if rising_edge(clk_i) then
+--         rx_valid_d <= rx_valid_i;
+--         rx_eof_d   <= rx_eof_i;
+--         rx_error_d <= rx_error_i;
+--      end if;
+--   end process proc_delay;
+
+
    -- This process collects statistics of the packets received.
    proc_stats : process (clk_i)
    begin
@@ -109,6 +116,11 @@ begin
                if cnt_crc_bad /= X"FF" then   -- Saturate counter
                   cnt_crc_bad <= cnt_crc_bad + 1;
                end if;
+            elsif rx_error = '1' then
+               -- Buffer error
+               if cnt_overflow /= X"FF" then   -- Saturate counter
+                  cnt_overflow <= cnt_overflow + 1;
+               end if;
             else
                -- No errors
                if cnt_good /= X"FFFF" then    -- Saturate counter
@@ -118,9 +130,10 @@ begin
          end if;
 
          if rst_i = '1' then
-            cnt_good    <= (others => '0');
-            cnt_error   <= (others => '0');
-            cnt_crc_bad <= (others => '0');
+            cnt_good     <= (others => '0');
+            cnt_error    <= (others => '0');
+            cnt_crc_bad  <= (others => '0');
+            cnt_overflow <= (others => '0');
          end if;
       end if;
    end process proc_stats;
@@ -135,18 +148,18 @@ begin
          ctrl_wrdata <= (others => '0');
 
          if rx_valid_i = '1' then
-            -- Check for buffer overflow, but ignore error.
-            -- TBD: Discard overflowed frame instead of corrupting existing frames.
-            if wrptr + 1 = rdptr then
+            -- Check for buffer overflow.
+            if wrptr + 1 = rdptr or rx_enable_i = '0' then
+               -- Discard overflowed frame.
                rx_error <= '1';
+            else
+               -- Write data to buffer
+               rx_buf(conv_integer(wrptr)) <= rx_data_i;
+               wrptr <= wrptr + 1;
             end if;
 
-            -- Write data to buffer
-            rx_buf(conv_integer(wrptr)) <= rx_data_i;
-            wrptr <= wrptr + 1;
-
             if rx_eof_i = '1' then
-               if rx_error_i = "00" and rx_enable_i = '1' then
+               if rx_error_i = "00" and rx_enable_i = '1' and rx_error = '0' and wrptr+1 /= rdptr then
                   -- Prepare for next frame (and strip CRC).
                   start_ptr   <= wrptr-3;
                   wrptr       <= wrptr-3;
@@ -156,6 +169,7 @@ begin
                else
                   wrptr <= start_ptr;  -- Discard this frame.
                end if;
+               rx_error <= '0';
             end if;
          end if;
 
@@ -195,7 +209,7 @@ begin
       );
 
 
-   -- This process generates the output.
+   -- This process generates the output stream.
    proc_output : process (clk_i)
       variable frame_length_v : std_logic_vector(C_ADDR_SIZE-1 downto 0);
       variable end_ptr_v      : std_logic_vector(C_ADDR_SIZE-1 downto 0);
@@ -206,7 +220,7 @@ begin
          out_data  <= (others => '0');
          out_eof   <= '0';
 
-         if out_afull_i = '0' then
+         if out_afull_i = '0' then  -- Pause, if receiver is not ready.
             case fsm_state is
                when IDLE_ST =>
                   if ctrl_empty = '0' then
@@ -253,13 +267,14 @@ begin
 
 
    -- Connect output signals
-   out_valid_o   <= out_valid;
-   out_data_o    <= out_data;
-   out_eof_o     <= out_eof;
-   cnt_good_o    <= cnt_good;
-   cnt_error_o   <= cnt_error;
-   cnt_crc_bad_o <= cnt_crc_bad;
-   rx_error_o    <= rx_error;
+   out_valid_o    <= out_valid;
+   out_data_o     <= out_data;
+   out_eof_o      <= out_eof;
+
+   cnt_good_o     <= cnt_good;
+   cnt_error_o    <= cnt_error;
+   cnt_crc_bad_o  <= cnt_crc_bad;
+   cnt_overflow_o <= cnt_overflow;
 
 end Structural;
 

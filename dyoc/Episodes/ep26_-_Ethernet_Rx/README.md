@@ -122,28 +122,38 @@ called Direct Memory Access. To make this work we must allocate a certain area
 in memory and design a RxDMA module to write to this memory area.
 
 Then we must decide on a format of the data written to the memory.  Initially,
-we have two requirement:
+we have two requirements:
 * We must be able to distinguish where one frame ends and another frame begins. 
 * Each frame must be in a contiguous (un-fragmented) block of memory.
+* The design must be robust and handle error situations gracefully.
+
 I've chosen to prepend each frame with a two-byte header that contains the
 total number of bytes in the frame, including the header. This allows the
-software to 'hop' from one frame to the next.  Whenever the remainder of the
-buffer is less than 1502 bytes (the maximum ethernet frame plus two byte
-header), the next frame will automatically start from the beginning again.
+software to 'hop' from one frame to the next, and thus takes care of the first
+requirement above.
 
-The design must also be robust and handle error situations gracefully, e.g.  by
-discarding frames that have an incorrect CRC.
+To ensure the second requirement, I've chosen to use bit 15 in the length field
+as follows:
+* bit 15 = 0: The next frame starts right after this frame
+* bit 15 = 1: The next frame starts at the beginning of the receive buffer.
+
+In other words, it is the RxDMA that decides where the next frame starts, and
+indicates this in the two-byte header. Software must correctly decode this
+header to calculate the start of the next frame.
 
 A number of blocks is needed in the design in order to facilitate all this.  In
 the following sections each block will be described in detail.  The list of
 blocks are:
 * Interface to the Ethernet PHY - generating a byte stream with Start-Of-Frame
-and End-Of-Frame markers, see lan8720a/rmii\_rx.vhd.
-* Header insertion - this strips away the CRC (and validates it), and inserts
-two bytes in front of the packet with the total byte length, see strip\_crc.vhd
-* A fifo to provide for crossing from the Ethernet clock domain to the CPU
-clock domain, see fifo.vhd.
-* A DMA to write the data to the memory, see dma.vhd.
+  and End-Of-Frame markers, as well as sideband information about CRC
+  correctness, see lan8720a/rmii\_rx.vhd.
+* Header insertion - this strips away the CRC, discards packets with incorrect
+  CRC, and inserts two bytes in front of the packet with the total byte length,
+  see strip\_crc.vhd
+* A fifo for crossing from the Ethernet clock domain to the CPU clock domain,
+  see fifo.vhd.
+* A RxDMA to write the data to the memory, including figuring out where in
+  memory, see rx\_dma.vhd.
 
 All the above files are placed in the directory 'ethernet', and connected
 together in the wrapper file ethernet/ethernet.vhd.
@@ -151,10 +161,11 @@ together in the wrapper file ethernet/ethernet.vhd.
 ### Interface to the Ethernet PHY (Data reception)
 The PHY chip connects to the FPGA using the [RMII
 specification](https://en.wikipedia.org/wiki/Media-independent_interface#Reduced_media-independent_interface).
-So the first task is to convert this interface to something that fits easily
-into the fifo (needed for the clock domain crossing).
+So the first task is to convert the RMII interface to something that more easily
+fits into the 8-bit oriented design of our computer.
 
-This is handled in ethernet/lan8720a/rmii\_rx.vhd.  This module takes care of:
+This conversion is handled in ethernet/lan8720a/rmii\_rx.vhd.  This module
+takes care of:
 * 2-bit to 8-bit expansion (user data is output every fourth clock cycle @ 50 Mhz).
 * CRC validation.
 * Framing with SOF/EOF.
@@ -164,16 +175,20 @@ first byte of the MAC header and EOF asserted on the last byte of the CRC. Two
 error bits are provided (valid only at EOF) that indicate either a receiver
 error or a CRC error.
 
+
 ### Header insertion
 This is handled in ethernet/strip\_crc.vhd. This module takes care of:
 * Stripping away 4 bytes of CRC at end of frame.
 * Prepending 2 bytes of header containing total number of bytes in this frame.
 * Maintaining statistics counters of received good and bad frames.
-* Discarding bad frames (containing errors, e.g. bad CRC).
+* Discarding bad frames (e.g. incorrect CRC).
 
 This module operates in a store-and-forward mode, where the entire frame is
 stored in an input buffer, until the last byte is received. This input buffer
 can contain any number of frames, but only a total amount of 2 Kbyte of data.
+It is therefore important, when designing the system, that we know how to
+handle buffer overrun.
+
 The buffer is actually a ring buffer, with a write pointer and a read pointer.
 When either pointer reaches the end of the buffer, the pointers wrap around to
 the beginning. Since the buffer size is a power of 2, no extra logic is
@@ -188,15 +203,12 @@ This is used to calculate the length of the frame.
 
 The data rate into this block is one byte every fourth clock cycle @ 50 MHz
 (corresponding to 100 Mbit/s).  The output rate is one byte every clock cycle,
-so the output is much faster than the input.  There should therefore be no risk
-of buffer overflow. Overflow can really only happen if a single frame larger
-than 2K is being received or if the fifo is full. The current implementation
-does not handle this situation, and will fail miserably.  However, maximum
-frame size on Ethernet is 1500 bytes, so this should not occur.
+so the output is much faster than the input. However, if the receiver does not
+accept any data, then the ring buffer can indeed overflow.
 
 Inputs to this block are taken directly from the rmii\_rx block. However, the
-additional signal rx\_enable\_i is used to enable discarding of all frames.
-This is needed when configuring the DMA, see below.
+additional control signal rx\_enable\_i is used to enable discarding of all
+frames.  This is needed when configuring the RxDMA, see below.
 
 Another input to this block is out\_afull\_i, which is used as flow-control.
 When this signal is asserted, the fifo that comes next in line is full, and can
@@ -209,8 +221,8 @@ This is handled in ethernet/fifo.vhd. This module takes care of:
 * Instantiating a Xilinx fifo primitive.
 * Latching read and write errors.
 
-### DMA
-This is handled in ethernet/dma.vhd. This module takes care of:
+### RxDMA
+This is handled in ethernet/rx\_dma.vhd. This module takes care of:
 * Generating write requests to CPU memory.
 * Maintaining a write pointer.
 
