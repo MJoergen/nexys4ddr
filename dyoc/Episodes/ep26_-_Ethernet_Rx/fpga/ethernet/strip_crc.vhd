@@ -44,10 +44,6 @@ end strip_crc;
 
 architecture Structural of strip_crc is
 
-   signal rx_valid_d : std_logic;
-   signal rx_eof_d   : std_logic;
-   signal rx_error_d : std_logic_vector(1 downto 0);
-
    -- Input buffer overflow
    signal rx_error : std_logic := '0';
 
@@ -63,8 +59,8 @@ architecture Structural of strip_crc is
    signal out_eof   : std_logic;
 
 
-   -- The size of the input buffer is 2K. This fits nicely in a single BRAM.
-   constant C_ADDR_SIZE : integer := 8; -- 11;
+   -- The size of the input buffer is 2K bytes. This fits nicely in a single BRAM.
+   constant C_ADDR_SIZE : integer := 11;
    type t_buf is array (0 to 2**C_ADDR_SIZE-1) of std_logic_vector(7 downto 0);
    signal rx_buf : t_buf := (others => (others => '0'));
 
@@ -84,22 +80,11 @@ architecture Structural of strip_crc is
    signal ctrl_rddata : std_logic_vector(15 downto 0);
    signal ctrl_empty  : std_logic;
 
+   -- State machine for header insertion.
    type t_fsm_state is (IDLE_ST, LEN_MSB_ST, FWD_ST);
    signal fsm_state : t_fsm_state := IDLE_ST;
 
 begin
-
---   -- This process delays the input signals for one clock
---   -- cycle to synchronize them with the signal rx_error.
---   proc_delay : process (clk_i)
---   begin
---      if rising_edge(clk_i) then
---         rx_valid_d <= rx_valid_i;
---         rx_eof_d   <= rx_eof_i;
---         rx_error_d <= rx_error_i;
---      end if;
---   end process proc_delay;
-
 
    -- This process collects statistics of the packets received.
    proc_stats : process (clk_i)
@@ -148,7 +133,7 @@ begin
          ctrl_wrdata <= (others => '0');
 
          if rx_valid_i = '1' then
-            -- Check for buffer overflow.
+            -- Check for buffer overflow or for disabled RxDMA.
             if wrptr + 1 = rdptr or rx_enable_i = '0' then
                -- Discard overflowed frame.
                rx_error <= '1';
