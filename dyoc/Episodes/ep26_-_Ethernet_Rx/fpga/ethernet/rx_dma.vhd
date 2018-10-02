@@ -59,7 +59,7 @@ begin
          -- Don't read any more, if buffer is full.
          if eth_enable = '1' then
             if wr_addr + 1 = eth_rdptr or
-               (wr_addr + 1 = eth_end and eth_rdptr = eth_start) then
+               (wr_addr = eth_end and eth_rdptr = eth_start) then
                rd_en <= '0';
             end if;
          end if;
@@ -74,7 +74,7 @@ begin
    begin
       if rising_edge(clk_i) then
          if wr_en = '1' then
-            if wr_addr + 1 = eth_end then
+            if wr_addr = eth_end then
                wr_addr <= eth_start;
             else
                wr_addr <= wr_addr + 1;
@@ -83,7 +83,7 @@ begin
             -- If end of packet, check if remaining buffer can support a full frame.
             -- If not, reset write pointer to end of frame.
             if rd_eof_i = '1' and (eth_end - wr_addr) < 1500 then
-               wr_addr <= eth_end - 1;
+               wr_addr <= eth_end;
             end if;
          end if;
 

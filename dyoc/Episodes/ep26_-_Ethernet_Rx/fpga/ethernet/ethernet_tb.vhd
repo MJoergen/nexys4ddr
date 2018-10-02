@@ -166,7 +166,7 @@ begin
       wait until user_clk = '1';
 
       -----------------------------------------------
-      -- Test 1 : Receive frame while DMA is disabled
+      -- Test 1 : Receive first frame while DMA is disabled
       -- Expected behaviour: Frame is discarded
       -----------------------------------------------
 
@@ -194,7 +194,7 @@ begin
 
       -- Configure DMA for 1600 bytes of receive buffer space
       user_rxdma_start <= X"2000";
-      user_rxdma_end   <= X"2000" + 1600;
+      user_rxdma_end   <= X"2000" + 1700;
       user_rxdma_rdptr <= X"2000";
       wait until user_clk = '1';
       user_rxdma_enable <= '1';
@@ -204,8 +204,9 @@ begin
 
 
       -----------------------------------------------
-      -- Test 3 : Receive first frame
+      -- Test 3 : Receive second frame
       -- Expected behaviour: Frame is written to memory
+      --                     Write pointer is updated
       -----------------------------------------------
 
       -- Send frame
@@ -237,22 +238,64 @@ begin
 
 
       -----------------------------------------------
-      -- Test 4 : Receive second frame
-      -- Expected behaviour: Frame is held back
+      -- Test 4 : Receive third frame
+      -- Expected behaviour: Frame is written to memory
+      --                     Write pointer is now end of buffer
       -----------------------------------------------
 
       -- Send frame
       for i in 0 to 127 loop
-         tx_data(8*i+7 downto 8*i) <= std_logic_vector(to_unsigned(i+32, 8));
+         tx_data(8*i+7 downto 8*i) <= std_logic_vector(to_unsigned(i+64, 8));
       end loop;
       tx_len   <= X"0080"; -- Number of bytes to send
       tx_start <= '1';
       wait until tx_done = '1';  -- Wait until data has been transferred on PHY signals
       tx_start <= '0';
-      wait for 30 us;             -- Wait until data has been received in RAM.
+      wait until user_dma_wrptr /= X"2082";  -- Wait until RxDMA is finished
+
+      -- Verify DMA write pointer
+      assert user_dma_wrptr = user_rxdma_end;
 
       -- Verify statistics counters
-      assert user_cnt_good     = 1;
+      assert user_cnt_good     = 2;
+      assert user_cnt_error    = 0;
+      assert user_cnt_crc_bad  = 0;
+      assert user_cnt_overflow = 1;
+
+      -- Verify memory contents.
+      assert ram(0) = X"82";  -- Length includes 2-byte header.
+      assert ram(1) = X"00";
+      for i in 0 to 127 loop
+         assert ram(i+2) = std_logic_vector(to_unsigned(i+32, 8)) report "i=" & integer'image(i);
+      end loop;
+      assert ram(130) = X"82";  -- Length includes 2-byte header.
+      assert ram(131) = X"00";
+      for i in 0 to 127 loop
+         assert ram(i+132) = std_logic_vector(to_unsigned(i+64, 8)) report "i=" & integer'image(i);
+      end loop;
+      assert ram(260) = "XXXXXXXX";
+
+
+      -----------------------------------------------
+      -- Test 5 : Receive fourth frame
+      -- Expected behaviour: Frame is held back
+      -----------------------------------------------
+
+      -- Send frame
+      for i in 0 to 127 loop
+         tx_data(8*i+7 downto 8*i) <= std_logic_vector(to_unsigned(i+96, 8));
+      end loop;
+      tx_len   <= X"0080"; -- Number of bytes to send
+      tx_start <= '1';
+      wait until tx_done = '1';  -- Wait until data has been transferred on PHY signals
+      tx_start <= '0';
+      wait for 10 us;            -- Wait some time while RxDMA processes data.
+
+      -- Verify DMA write pointer is untouched.
+      assert user_dma_wrptr = user_rxdma_end;
+
+      -- Verify statistics counters
+      assert user_cnt_good     = 3;
       assert user_cnt_error    = 0;
       assert user_cnt_crc_bad  = 0;
       assert user_cnt_overflow = 1;
@@ -263,10 +306,44 @@ begin
       for i in 0 to 127 loop
          assert ram(i+2) = std_logic_vector(to_unsigned(i+32, 8));
       end loop;
-      assert ram(130) = "XXXXXXXX";
+      assert ram(130) = X"82";  -- Length includes 2-byte header.
+      assert ram(131) = X"00";
+      for i in 0 to 127 loop
+         assert ram(i+132) = std_logic_vector(to_unsigned(i+64, 8)) report "i=" & integer'image(i);
+      end loop;
+      assert ram(260) = "XXXXXXXX";
 
-      -- Verify DMA write pointer is untouched.
-      assert user_dma_wrptr = X"2082";
+
+      -----------------------------------------------
+      -- Test 6 : Update CPU read pointer
+      -- Expected behaviour: Frame is written to memory
+      -----------------------------------------------
+
+      -- Update CPU read pointer
+      user_rxdma_rdptr <= X"2082";
+      wait until user_dma_wrptr /= user_rxdma_end; -- Wait until frame has been transferred to RAM.
+
+      -- Verify DMA write pointer is updated
+      assert user_dma_wrptr = user_rxdma_rdptr;
+
+      -- Verify statistics counters
+      assert user_cnt_good     = 3;
+      assert user_cnt_error    = 0;
+      assert user_cnt_crc_bad  = 0;
+      assert user_cnt_overflow = 1;
+
+      -- Verify first frame is untouched.
+      assert ram(0) = X"82";  -- Length includes 2-byte header.
+      assert ram(1) = X"00";
+      for i in 0 to 127 loop
+         assert ram(i+2) = std_logic_vector(to_unsigned(i+96, 8));
+      end loop;
+      assert ram(130) = X"82";  -- Length includes 2-byte header.
+      assert ram(131) = X"00";
+      for i in 0 to 127 loop
+         assert ram(i+132) = std_logic_vector(to_unsigned(i+64, 8)) report "i=" & integer'image(i);
+      end loop;
+      assert ram(260) = "XXXXXXXX";
 
 
       -----------------------------------------------
