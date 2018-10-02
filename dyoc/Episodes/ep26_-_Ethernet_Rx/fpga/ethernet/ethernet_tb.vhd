@@ -11,10 +11,10 @@ end entity ethernet_tb;
 architecture Structural of ethernet_tb is
 
    -- Controls the traffic input to Ethernet.
-   signal data  : std_logic_vector(128*8-1 downto 0);
-   signal len   : std_logic_vector(15 downto 0);
-   signal start : std_logic;
-   signal done  : std_logic;
+   signal tx_data  : std_logic_vector(128*8-1 downto 0);
+   signal tx_len   : std_logic_vector( 15     downto 0);
+   signal tx_start : std_logic;
+   signal tx_done  : std_logic;
 
    -- Connected to DUT
    signal user_clk       : std_logic;  -- 25 MHz
@@ -23,6 +23,7 @@ architecture Structural of ethernet_tb is
    signal user_data      : std_logic_vector( 7 downto 0);
    signal user_memio_in  : std_logic_vector(55 downto 0);
    signal user_memio_out : std_logic_vector(55 downto 0);
+   --
    signal eth_clk        : std_logic;  -- 50 MHz
    signal eth_rst        : std_logic;
    signal eth_txd        : std_logic_vector(1 downto 0);
@@ -44,23 +45,25 @@ architecture Structural of ethernet_tb is
    signal user_cnt_overflow : std_logic_vector( 7 downto 0);
 
    -- This defines a type containing an array of bytes
-   type ram_t is array (0 to 4095) of std_logic_vector(7 downto 0);
+   type ram_t is array (0 to 2047) of std_logic_vector(7 downto 0);
 
    -- Initialize memory contents
-   signal ram : ram_t := (others => (others => '0'));
+   signal ram : ram_t;
 
-   signal ram_clear : std_logic := '0';
+   signal ram_clear : std_logic;
+
+   signal test_running : std_logic := '1';
 
 begin
 
-   -- Compose user_memio_in signal
+   -- Connect user_memio_in signal
    user_memio_in(15 downto  0) <= user_rxdma_start;
    user_memio_in(31 downto 16) <= user_rxdma_end;
    user_memio_in(47 downto 32) <= user_rxdma_rdptr;
    user_memio_in(48)           <= user_rxdma_enable;
    user_memio_in(55 downto 49) <= (others => '0');
 
-   -- Decompose user_memio_out signal
+   -- Connect user_memio_out signal
    user_dma_wrptr    <= user_memio_out(15 downto  0);
    user_cnt_good     <= user_memio_out(31 downto 16);
    user_cnt_error    <= user_memio_out(39 downto 32);
@@ -70,21 +73,27 @@ begin
    -- Generate user clock 25 MHz
    proc_user_clk : process
    begin
-      user_clk <= '1', '0' after 2 ns;
-      wait for 4 ns;
+      user_clk <= '1', '0' after 20 ns;
+      wait for 40 ns;
+      if test_running = '0' then
+         wait;
+      end if;
    end process proc_user_clk;
 
    -- Generate eth clock 50 MHz
    proc_eth_clk : process
    begin
-      eth_clk <= '1', '0' after 1 ns;
-      wait for 2 ns;
+      eth_clk <= '1', '0' after 10 ns;
+      wait for 20 ns;
+      if test_running = '0' then
+         wait;
+      end if;
    end process proc_eth_clk;
 
-   -- Generate eth clock 50 MHz
+   -- Generate eth reset for 5 clock cycles
    proc_eth_rst : process
    begin
-      eth_rst <= '1', '0' after 10 ns;
+      eth_rst <= '1', '0' after 100 ns;
       wait;
    end process proc_eth_rst;
 
@@ -94,8 +103,8 @@ begin
    begin
       if rising_edge(user_clk) then
          if user_wren = '1' then
-            assert user_addr(15 downto 12) = X"2";
-            ram(conv_integer(user_addr(11 downto 0))) <= user_data;
+            assert user_addr(15 downto 11) = "00100";
+            ram(conv_integer(user_addr(10 downto 0))) <= user_data;
          end if;
          if ram_clear = '1' then
             ram <= (others => (others => 'X'));
@@ -108,10 +117,10 @@ begin
    port map (
       clk_i      => eth_clk,
       rst_i      => eth_rst,
-      data_i     => data,
-      len_i      => len,
-      start_i    => start,
-      done_o     => done,
+      data_i     => tx_data,
+      len_i      => tx_len,
+      start_i    => tx_start,
+      done_o     => tx_done,
       eth_txd_o  => eth_rxd,
       eth_txen_o => eth_crsdv
    );
@@ -139,9 +148,15 @@ begin
       eth_refclk_o => open
    );
    
+
+   --------------------
+   -- Main test program
+   --------------------
+
    proc_test : process
    begin
       -- Clear RAM
+      wait until user_clk = '0';
       ram_clear <= '1';
       wait until user_clk = '1';
       ram_clear <= '0';
@@ -150,7 +165,7 @@ begin
       user_rxdma_enable <= '0';
       wait until user_clk = '1';
 
-      -- Configure DMA
+      -- Configure DMA for 200 bytes of receive buffer space
       user_rxdma_start <= X"2000";
       user_rxdma_end   <= X"2000" + 200;
       user_rxdma_rdptr <= X"2000";
@@ -162,17 +177,31 @@ begin
 
       -- Wait while test runs
       for i in 0 to 127 loop
-         data(8*i+7 downto 8*i) <= std_logic_vector(to_unsigned(i+32, 8));
+         tx_data(8*i+7 downto 8*i) <= std_logic_vector(to_unsigned(i+32, 8));
       end loop;
-      len   <= X"0011";
-      start <= '1';
-      wait until done = '1';
+      tx_len   <= X"0011"; -- Number of bytes to send
+      tx_start <= '1';
+      wait until tx_done = '1';  -- Wait until data has been transferred on PHY signals
+      report "Before wait for";
+      wait for 3 us;           -- Wait until data has been received in RAM.
+      report "After wait for";
 
-      wait for 60 ns;
-      assert user_cnt_good     = 0;
+      -- Verify statistics counters
+      assert user_cnt_good     = 1;
       assert user_cnt_error    = 0;
       assert user_cnt_crc_bad  = 0;
-      assert user_cnt_overflow = 1;
+      assert user_cnt_overflow = 0;
+
+      -- Verify memory contents.
+      assert ram(0) = X"13";  -- Length includes 2-byte header.
+      assert ram(1) = X"00";
+      for i in 0 to 16 loop
+         assert ram(i+2) = std_logic_vector(to_unsigned(i+32, 8));
+      end loop;
+      assert ram(19) = "XXXXXXXX";
+
+      test_running <= '0';
+      wait;
 
    end process proc_test;
 

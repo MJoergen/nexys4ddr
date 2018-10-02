@@ -137,7 +137,7 @@ begin
       cnt_crc_bad_o  => eth_cnt_crc_bad,
       cnt_overflow_o => eth_cnt_overflow,
       --
-      out_afull_i    => '1', -- eth_fifo_afull,
+      out_afull_i    => eth_fifo_afull,
       out_valid_o    => eth_strip_valid,
       out_data_o     => eth_strip_data,
       out_eof_o      => eth_strip_eof(0)
