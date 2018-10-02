@@ -1,7 +1,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
+--use ieee.std_logic_textio.all;
 use ieee.numeric_std.all;
+use std.textio.all;
 
 -- This module is a test bench for the Ethernet module.
 
@@ -26,8 +28,6 @@ architecture Structural of ethernet_tb is
    --
    signal eth_clk        : std_logic;  -- 50 MHz
    signal eth_rst        : std_logic;
-   signal eth_txd        : std_logic_vector(1 downto 0);
-   signal eth_txen       : std_logic;
    signal eth_rxd        : std_logic_vector(1 downto 0);
    signal eth_crsdv      : std_logic;
 
@@ -136,8 +136,8 @@ begin
       user_memio_i => user_memio_in,
       user_memio_o => user_memio_out,
       eth_clk_i    => eth_clk,
-      eth_txd_o    => eth_txd,
-      eth_txen_o   => eth_txen,
+      eth_txd_o    => open,
+      eth_txen_o   => open,
       eth_rxd_i    => eth_rxd,
       eth_rxerr_i  => '0',
       eth_crsdv_i  => eth_crsdv,
@@ -165,15 +165,10 @@ begin
       user_rxdma_enable <= '0';
       wait until user_clk = '1';
 
-      -- Configure DMA for 200 bytes of receive buffer space
-      user_rxdma_start <= X"2000";
-      user_rxdma_end   <= X"2000" + 200;
-      user_rxdma_rdptr <= X"2000";
-      wait until user_clk = '1';
-      user_rxdma_enable <= '1';
-      wait until user_clk = '1';
-
-      assert user_dma_wrptr = X"2000";
+      -----------------------------------------------
+      -- Test 1 : Receive frame while DMA is disabled
+      -- Expected behaviour: Frame is discarded
+      -----------------------------------------------
 
       -- Wait while test runs
       for i in 0 to 127 loop
@@ -182,24 +177,103 @@ begin
       tx_len   <= X"0011"; -- Number of bytes to send
       tx_start <= '1';
       wait until tx_done = '1';  -- Wait until data has been transferred on PHY signals
-      report "Before wait for";
-      wait for 3 us;           -- Wait until data has been received in RAM.
-      report "After wait for";
+      tx_start <= '0';
+      wait for 3 us;             -- Wait until data has been received in RAM.
+
+      -- Verify statistics counters
+      assert user_cnt_good     = 0;
+      assert user_cnt_error    = 0;
+      assert user_cnt_crc_bad  = 0;
+      assert user_cnt_overflow = 1;
+
+
+      -----------------------------------------------
+      -- Test 2 : Enable DMA
+      -- Expected behaviour: DMA write pointer updated
+      -----------------------------------------------
+
+      -- Configure DMA for 1600 bytes of receive buffer space
+      user_rxdma_start <= X"2000";
+      user_rxdma_end   <= X"2000" + 1600;
+      user_rxdma_rdptr <= X"2000";
+      wait until user_clk = '1';
+      user_rxdma_enable <= '1';
+      wait until user_clk = '1';
+
+      assert user_dma_wrptr = X"2000";
+
+
+      -----------------------------------------------
+      -- Test 3 : Receive first frame
+      -- Expected behaviour: Frame is written to memory
+      -----------------------------------------------
+
+      -- Send frame
+      for i in 0 to 127 loop
+         tx_data(8*i+7 downto 8*i) <= std_logic_vector(to_unsigned(i+32, 8));
+      end loop;
+      tx_len   <= X"0080"; -- Number of bytes to send
+      tx_start <= '1';
+      wait until tx_done = '1';  -- Wait until data has been transferred on PHY signals
+      tx_start <= '0';
+      wait until user_dma_wrptr /= X"2000";  -- Wait until RxDMA is finished
+
+      -- Verify DMA write pointer
+      assert user_dma_wrptr = X"2082";
 
       -- Verify statistics counters
       assert user_cnt_good     = 1;
       assert user_cnt_error    = 0;
       assert user_cnt_crc_bad  = 0;
-      assert user_cnt_overflow = 0;
+      assert user_cnt_overflow = 1;
 
       -- Verify memory contents.
-      assert ram(0) = X"13";  -- Length includes 2-byte header.
+      assert ram(0) = X"82";  -- Length includes 2-byte header.
       assert ram(1) = X"00";
-      for i in 0 to 16 loop
+      for i in 0 to 127 loop
+         assert ram(i+2) = std_logic_vector(to_unsigned(i+32, 8)) report "i=" & integer'image(i);
+      end loop;
+      assert ram(130) = "XXXXXXXX";
+
+
+      -----------------------------------------------
+      -- Test 4 : Receive second frame
+      -- Expected behaviour: Frame is held back
+      -----------------------------------------------
+
+      -- Send frame
+      for i in 0 to 127 loop
+         tx_data(8*i+7 downto 8*i) <= std_logic_vector(to_unsigned(i+32, 8));
+      end loop;
+      tx_len   <= X"0080"; -- Number of bytes to send
+      tx_start <= '1';
+      wait until tx_done = '1';  -- Wait until data has been transferred on PHY signals
+      tx_start <= '0';
+      wait for 30 us;             -- Wait until data has been received in RAM.
+
+      -- Verify statistics counters
+      assert user_cnt_good     = 1;
+      assert user_cnt_error    = 0;
+      assert user_cnt_crc_bad  = 0;
+      assert user_cnt_overflow = 1;
+
+      -- Verify first frame is untouched.
+      assert ram(0) = X"82";  -- Length includes 2-byte header.
+      assert ram(1) = X"00";
+      for i in 0 to 127 loop
          assert ram(i+2) = std_logic_vector(to_unsigned(i+32, 8));
       end loop;
-      assert ram(19) = "XXXXXXXX";
+      assert ram(130) = "XXXXXXXX";
 
+      -- Verify DMA write pointer is untouched.
+      assert user_dma_wrptr = X"2082";
+
+
+      -----------------------------------------------
+      -- END OF TEST
+      -----------------------------------------------
+
+      report "Test completed";
       test_running <= '0';
       wait;
 

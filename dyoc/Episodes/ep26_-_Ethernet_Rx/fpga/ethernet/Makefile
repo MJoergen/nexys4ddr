@@ -17,7 +17,7 @@ sim: $(SRC)
 	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/primitive/*.vhd
 	ghdl -i --work=work $(SRC) $(TB)
 	ghdl -m --ieee=synopsys -fexplicit ethernet_tb
-	ghdl -r ethernet_tb --assert-level=error --wave=$(WAVE) --stop-time=10us
+	ghdl -r ethernet_tb --assert-level=error --wave=$(WAVE) --stop-time=50us
 	gtkwave $(WAVE) $(SAVE)
 
 
