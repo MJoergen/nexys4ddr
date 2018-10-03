@@ -8,8 +8,8 @@ use ieee.numeric_std.all;
 -- https://en.wikipedia.org/wiki/Media-independent_interface#Reduced_media-independent_interface
 --
 -- This module takes care of:
--- * 2-bit to 8-bit expansion (user data output every fourth clock cycle).
--- * CRC validation.
+-- * 2-bit to 8-bit conversion.
+-- * CRC validation/stripping.
 -- * Framing with VALID and EOF.
 --
 -- In case of receiver error the current frame is terminated (EOF=1) and
@@ -17,8 +17,7 @@ use ieee.numeric_std.all;
 -- of errors are reported: Rx error and CRC error. In both cases, the
 -- user is expected to discard the frame.
 --
--- Data forwarded is stripped of the MAC preample and Inter-Frame-Gap. The MAC
--- CRC remains though.
+-- Data forwarded is stripped of the MAC preample, CRC, and Inter-Frame-Gap.
 --
 -- The data received from the PHY is preceeded by an 8-byte preamble in hex: 55
 -- 55 55 55 55 55 55 D5.  Some of the preample dibits may be lost.  Data is
@@ -164,7 +163,7 @@ begin
    begin
       if rising_edge(clk_i) then
          -- Make sure all data is cleared. This is not strictly necessary, but it makes
-         -- debugging easier, when EOF is zero outside valid data.
+         -- debugging easier, when e.g. EOF is zero outside valid data.
          stages(0) <= STAGE_DEFAULT;
          if valid = '1' then
             stages(0).valid   <= '1';
@@ -184,12 +183,13 @@ begin
       end if;
    end process proc_out;
 
-   -- Generate signals for stages 1 to 4.
+   -- Generate signals for stages 1 to 5.
    proc_pipe : process (clk_i)
    begin
       if rising_edge(clk_i) then
          stages(5) <= STAGE_DEFAULT;
 
+         -- Move pipeline forward one stage.
          if stages(0).valid = '1' then
             stages(1) <= stages(0);
             stages(2) <= stages(1);
