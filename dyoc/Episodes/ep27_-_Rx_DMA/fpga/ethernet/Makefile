@@ -34,6 +34,6 @@ clean:
 	rm -rf .cache
 	rm -rf work-obj93.cf
 	rm -rf unisim-obj93.cf
-	rm -rf tb
-	rm -rf tb.ghw
+	rm -rf ethernet_tb
+	rm -rf ethernet_tb.ghw
 

@@ -1,5 +1,5 @@
 # Design Your Own Computer
-# Episode 26 : "Ethernet Rx"
+# Episode 27 : "Rx DMA"
  
 Welcome to "Design Your Own Computer".  In this episode we'll start
 adding support for the Ethernet PHY. This first version will
