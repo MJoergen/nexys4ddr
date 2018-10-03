@@ -1,6 +1,6 @@
 XILINX_DIR = /opt/Xilinx/Vivado/2017.3
 
-SRC  = rmii_rx.vhd rmii_tx.vhd lan8720a_tb.vhd
+SRC  = rmii_rx.vhd rmii_tx.vhd lan8720a.vhd lan8720a_tb.vhd
 WAVE = lan8720a_tb.ghw
 SAVE = lan8720a_tb.gtkw
 
@@ -15,7 +15,7 @@ sim: $(SRC)
 	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/primitive/*.vhd
 	ghdl -i --work=work $(SRC) $(TB)
 	ghdl -m --ieee=synopsys -fexplicit lan8720a_tb
-	ghdl -r lan8720a_tb --assert-level=error --wave=$(WAVE) --stop-time=100us
+	ghdl -r lan8720a_tb --assert-level=error --wave=$(WAVE) --stop-time=1us
 	gtkwave $(WAVE) $(SAVE)
 
 

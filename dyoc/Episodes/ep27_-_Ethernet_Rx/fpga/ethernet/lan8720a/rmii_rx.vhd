@@ -8,17 +8,16 @@ use ieee.numeric_std.all;
 -- https://en.wikipedia.org/wiki/Media-independent_interface#Reduced_media-independent_interface
 --
 -- This module takes care of:
--- * 2-bit to 8-bit expansion (user data output every fourth clock cycle).
--- * CRC validation.
--- * Framing with SOF/EOF.
+-- * 2-bit to 8-bit conversion.
+-- * CRC validation/stripping.
+-- * Framing with VALID and EOF.
 --
 -- In case of receiver error the current frame is terminated (EOF=1) and
 -- the error type can be sampled in the user_error_o signal. Two types
 -- of errors are reported: Rx error and CRC error. In both cases, the
 -- user is expected to discard the frame.
 --
--- Data forwarded is stripped of the MAC preample and Inter-Frame-Gap. The MAC
--- CRC remains though.
+-- Data forwarded is stripped of the MAC preample, CRC, and Inter-Frame-Gap.
 --
 -- The data received from the PHY is preceeded by an 8-byte preamble in hex: 55
 -- 55 55 55 55 55 55 D5.  Some of the preample dibits may be lost.  Data is
@@ -40,7 +39,6 @@ entity rmii_rx is
 
       -- Connected to user logic
       user_valid_o : out std_logic;    -- Remaining user_* fields are valid.
-      user_sof_o   : out std_logic;    -- Start of frame. Asserted on first byte.
       user_eof_o   : out std_logic;    -- End of frame. Asserted on last byte.
       user_data_o  : out std_logic_vector(7 downto 0);
       user_error_o : out std_logic_vector(1 downto 0);   -- Must only be sampled @ EOF.
@@ -72,7 +70,6 @@ architecture Structural of rmii_rx is
 
    -- Output signals
    signal valid : std_logic := '0';
-   signal sof   : std_logic;
    signal data  : std_logic_vector(7 downto 0);
 
    -- Update CRC with two bits of data
@@ -91,6 +88,24 @@ architecture Structural of rmii_rx is
       end loop;
       return res_v;
    end function new_crc;
+
+   type stage_t is record
+      valid : std_logic;                        -- Remaining fields are valid.
+      eof   : std_logic;                        -- End of frame. Asserted on last byte.
+      data  : std_logic_vector(7 downto 0);
+      err   : std_logic_vector(1 downto 0);     -- Must only be sampled @ EOF.
+   end record stage_t;
+
+   constant STAGE_DEFAULT : stage_t := (
+      valid => '0',
+      eof   => '0',
+      data  => (others => '0'),
+      err   => (others => '0')
+   );
+
+   type stage_vector_t is array (natural range<>) of stage_t;
+
+   signal stages : stage_vector_t(5 downto 0) := (others => STAGE_DEFAULT);
 
 begin
 
@@ -118,7 +133,6 @@ begin
             when PRE1_ST =>
                if data = X"D5" then
                   dibit_cnt <= 0;
-                  sof       <= '1';
                   fsm_state <= PAYLOAD_ST;
                end if;
                if newdata_v = X"D5" then
@@ -129,9 +143,6 @@ begin
                end if;
 
             when PAYLOAD_ST =>
-               if dibit_cnt = 3 then
-                  sof <= '0'; -- Clear SOF after the first byte.
-               end if;
                if phy_crsdv_i = '0' or phy_rxerr_i = '1' then
                   fsm_state <= IDLE_ST;
                end if;
@@ -147,28 +158,65 @@ begin
    valid <= '1' when fsm_state = PAYLOAD_ST and dibit_cnt = 3 else
             '0';
 
-   -- Register output signals
+   -- Generate signals for stage 0
    proc_out : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         user_valid_o     <= valid;
-         -- It is not really necessary to 'and' SOF and EOF with valid, but it makes
-         -- debugging easier, when SOF and EOF are zero outside valid data.
-         user_sof_o       <= valid and sof;
-         user_eof_o       <= valid and (phy_rxerr_i or not phy_crsdv_i);
-         user_error_o(0)  <= valid and phy_rxerr_i; -- Receiver error
-         user_error_o(1)  <= '0';                   -- No CRC error
-         user_data_o      <= data;
+         -- Make sure all data is cleared. This is not strictly necessary, but it makes
+         -- debugging easier, when e.g. EOF is zero outside valid data.
+         stages(0) <= STAGE_DEFAULT;
+         if valid = '1' then
+            stages(0).valid   <= '1';
+            stages(0).eof     <= phy_rxerr_i or not phy_crsdv_i;
+            stages(0).err(0)  <= phy_rxerr_i; -- Receiver error
+            stages(0).err(1)  <= '0';                   -- No CRC error
+            stages(0).data    <= data;
 
-         -- Are we at the end of frame, and no receiver error?
-         if valid = '1' and phy_crsdv_i = '0' and phy_rxerr_i = '0' then
-            -- Check for CRC error
-            if crc /= CRC_CORRECT then
-               user_error_o(1) <= '1';
+            -- Are we at the end of frame, and no receiver error?
+            if phy_crsdv_i = '0' and phy_rxerr_i = '0' then
+               -- Check for CRC error
+               if crc /= CRC_CORRECT then
+                  stages(0).err(1) <= '1';
+               end if;
             end if;
          end if;
       end if;
    end process proc_out;
+
+   -- Generate signals for stages 1 to 5.
+   proc_pipe : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         stages(5) <= STAGE_DEFAULT;
+
+         -- Move pipeline forward one stage.
+         if stages(0).valid = '1' then
+            stages(1) <= stages(0);
+            stages(2) <= stages(1);
+            stages(3) <= stages(2);
+            stages(4) <= stages(3);
+            stages(5) <= stages(4);
+         end if;
+
+         -- Strip away CRC
+         if stages(0).valid = '1' and stages(0).eof = '1' then
+            stages(1).valid <= '0';
+            stages(1).eof   <= '0';
+            stages(2).valid <= '0';
+            stages(2).eof   <= '0';
+            stages(3).valid <= '0';
+            stages(3).eof   <= '0';
+            stages(4).valid <= '0';
+            stages(4).eof   <= '0';
+            stages(5).eof   <= '1';
+         end if;
+      end if;
+   end process proc_pipe;
+
+   user_valid_o <= stages(5).valid;
+   user_eof_o   <= stages(5).eof;
+   user_data_o  <= stages(5).data;
+   user_error_o <= stages(5).err;
 
 end Structural;
 

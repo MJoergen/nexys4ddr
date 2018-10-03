@@ -1,7 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
-use ieee.numeric_std.all;
 
 -- This module interfaces to the LAN8720A Ethernet PHY, see:
 -- http://ww1.microchip.com/downloads/en/DeviceDoc/8720a.pdf
@@ -34,10 +33,16 @@ entity lan8720a is
 
       -- Rx interface
       rx_valid_o   : out   std_logic;
-      rx_sof_o     : out   std_logic;
       rx_eof_o     : out   std_logic;
       rx_data_o    : out   std_logic_vector(7 downto 0);
       rx_error_o   : out   std_logic_vector(1 downto 0);
+
+      -- Tx interface
+      tx_empty_i   : in    std_logic;
+      tx_rden_o    : out   std_logic;
+      tx_data_i    : in    std_logic_vector(7 downto 0);
+      tx_eof_i     : in    std_logic;
+      tx_err_o     : out   std_logic;
 
       -- Connected to the LAN8720A Ethernet PHY.
       eth_txd_o    : out   std_logic_vector(1 downto 0);
@@ -62,7 +67,6 @@ begin
          clk_i        => clk_i,
          rst_i        => rst_i,
          user_valid_o => rx_valid_o,
-         user_sof_o   => rx_sof_o,
          user_eof_o   => rx_eof_o,
          user_data_o  => rx_data_o,
          user_error_o => rx_error_o,
@@ -72,12 +76,22 @@ begin
          phy_intn_i   => eth_intn_i
       );
 
+   inst_rmii_tx : entity work.rmii_tx
+      port map (
+         clk_i        => clk_i,
+         rst_i        => rst_i,
+         user_empty_i => tx_empty_i,
+         user_rden_o  => tx_rden_o,
+         user_data_i  => tx_data_i,
+         user_eof_i   => tx_eof_i,
+         user_err_o   => tx_err_o,
+         eth_txd_o    => eth_txd_o,
+         eth_txen_o   => eth_txen_o 
+      );
+
    eth_refclk_o <= clk_i;
    eth_rstn_o   <= not rst_i;
 
-   -- TBD
-   eth_txd_o   <= "00";
-   eth_txen_o  <= '0';
    eth_mdio_io <= 'Z';  -- High impedance state, i.e. disconnected.
    eth_mdc_o   <= '0';
 

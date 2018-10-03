@@ -1,19 +1,19 @@
 [*]
 [*] GTKWave Analyzer v3.3.89 (w)1999-2018 BSI
-[*] Tue Oct  2 19:50:09 2018
+[*] Wed Oct  3 05:23:22 2018
 [*]
-[dumpfile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep26_-_Ethernet_Rx/fpga/ethernet/lan8720a/lan8720a_tb.ghw"
-[dumpfile_mtime] "Tue Oct  2 19:47:26 2018"
-[dumpfile_size] 815193
-[savefile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep26_-_Ethernet_Rx/fpga/ethernet/lan8720a/lan8720a_tb.gtkw"
+[dumpfile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep26_-_Ethernet_PHY/fpga/ethernet/lan8720a/lan8720a_tb.ghw"
+[dumpfile_mtime] "Wed Oct  3 05:23:07 2018"
+[dumpfile_size] 38513
+[savefile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep26_-_Ethernet_PHY/fpga/ethernet/lan8720a/lan8720a_tb.gtkw"
 [timestart] 0
 [size] 1590 807
 [pos] -1 -1
-*-24.867653 41100000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-26.954973 41100000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.lan8720a_tb.
-[sst_width] 229
-[signals_width] 176
+[sst_width] 255
+[signals_width] 210
 [sst_expanded] 1
 [sst_vpaned_height] 211
 @28
