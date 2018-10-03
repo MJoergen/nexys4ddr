@@ -2,28 +2,26 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
--- This module strips the incoming frame of the MAC CRC (the last four bytes)
--- and prepends the frame with a two-byte header containing the total number of
--- bytes (including header) stored in little-endian format.
+-- This module prepends the frame with a two-byte header containing the total
+-- number of bytes (including header) stored in little-endian format.
 --
 -- This module operates in a store-and-forward mode, where the entire frame is
 -- stored in an input buffer, until the last byte is received.  Only valid
 -- frames are forwarded. In other words, errored frames are discarded.  The
 -- address of the last byte of the frame (EOF) is stored in a separate FIFO.
--- The address of the first byte of the frame (SOF) is stored in the register
+-- The address of the first byte of the frame is stored in the register
 -- start_ptr.  If the frame is to be discarded, the current write pointer is
 -- reset to this start_ptr.
 --
 -- For simplicity, everything is in the same clock domain.
 
-entity strip_crc is
+entity rx_header is
    port (
       -- Input interface
       clk_i          : in  std_logic;
       rst_i          : in  std_logic;
       rx_enable_i    : in  std_logic;                    -- Discard all packets if zero.
       rx_valid_i     : in  std_logic;
-      rx_sof_i       : in  std_logic;
       rx_eof_i       : in  std_logic;
       rx_data_i      : in  std_logic_vector(7 downto 0);
       rx_error_i     : in  std_logic_vector(1 downto 0); -- Only valid @ EOF
@@ -40,9 +38,9 @@ entity strip_crc is
       out_data_o     : out std_logic_vector(7 downto 0);
       out_eof_o      : out std_logic
    );
-end strip_crc;
+end rx_header;
 
-architecture Structural of strip_crc is
+architecture Structural of rx_header is
 
    -- Input buffer overflow
    signal rx_error : std_logic := '0';
@@ -145,11 +143,11 @@ begin
 
             if rx_eof_i = '1' then
                if rx_error_i = "00" and rx_enable_i = '1' and rx_error = '0' and wrptr+1 /= rdptr then
-                  -- Prepare for next frame (and strip CRC).
-                  start_ptr   <= wrptr-3;
-                  wrptr       <= wrptr-3;
+                  -- Prepare for next frame.
+                  start_ptr   <= wrptr+1;
+                  wrptr       <= wrptr+1;
                   -- Write the EOF address to control fifo
-                  ctrl_wrdata(C_ADDR_SIZE-1 downto 0) <= wrptr-4; -- Subtract 4 to discard CRC.
+                  ctrl_wrdata(C_ADDR_SIZE-1 downto 0) <= wrptr;
                   ctrl_wren   <= '1';
                else
                   wrptr <= start_ptr;  -- Discard this frame.

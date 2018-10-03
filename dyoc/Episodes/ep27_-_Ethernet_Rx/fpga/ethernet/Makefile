@@ -1,6 +1,6 @@
 XILINX_DIR = /opt/Xilinx/Vivado/2017.3
 
-SRC  = ethernet.vhd rx_dma.vhd fifo.vhd strip_crc.vhd \
+SRC  = ethernet.vhd rx_dma.vhd fifo.vhd rx_header.vhd \
        ethernet_tb.vhd lan8720a/lan8720a.vhd lan8720a/rmii_rx.vhd lan8720a/rmii_tx.vhd \
 		 sim_tx.vhd
 WAVE = ethernet_tb.ghw

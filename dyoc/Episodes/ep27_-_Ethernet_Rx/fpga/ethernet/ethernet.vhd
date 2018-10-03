@@ -39,10 +39,15 @@ architecture Structural of ethernet is
    signal eth_rst_cnt   : std_logic_vector(20 downto 0) := (others => '1');
 
    signal eth_rx_valid  : std_logic;
-   signal eth_rx_sof    : std_logic;
    signal eth_rx_eof    : std_logic;
    signal eth_rx_data   : std_logic_vector(7 downto 0);
    signal eth_rx_error  : std_logic_vector(1 downto 0);
+
+   signal eth_tx_empty  : std_logic;
+   signal eth_tx_rden   : std_logic;
+   signal eth_tx_data   : std_logic_vector(7 downto 0);
+   signal eth_tx_eof    : std_logic;
+   signal eth_tx_err    : std_logic;
 
    signal eth_strip_valid : std_logic;
    signal eth_strip_data  : std_logic_vector(7 downto 0);
@@ -100,10 +105,15 @@ begin
       rst_i        => eth_rst,
       -- Rx interface
       rx_valid_o   => eth_rx_valid,
-      rx_sof_o     => eth_rx_sof,
       rx_eof_o     => eth_rx_eof,
       rx_data_o    => eth_rx_data,
       rx_error_o   => eth_rx_error,
+      -- Tx interface
+      tx_empty_i   => eth_tx_empty,
+      tx_rden_o    => eth_tx_rden,
+      tx_data_i    => eth_tx_data,
+      tx_eof_i     => eth_tx_eof,
+      tx_err_o     => eth_tx_err,
       -- External pins to the LAN 8720A PHY
       eth_txd_o    => eth_txd_o,
       eth_txen_o   => eth_txen_o,
@@ -119,15 +129,14 @@ begin
 
 
    -------------------------------
-   -- CRC stripper and header insertion
+   -- Header insertion
    -------------------------------
-   inst_strip_crc : entity work.strip_crc
+   inst_rx_header : entity work.rx_header
    port map (
       clk_i          => eth_clk_i,
       rst_i          => eth_rst,
       rx_enable_i    => user_memio_i(48), -- DMA enable
       rx_valid_i     => eth_rx_valid,
-      rx_sof_i       => eth_rx_sof,
       rx_eof_i       => eth_rx_eof,
       rx_data_i      => eth_rx_data,
       rx_error_i     => eth_rx_error,
