@@ -36,12 +36,26 @@ set_property -dict { PACKAGE_PIN C12 IOSTANDARD LVCMOS33 } [get_ports { rstn_i }
 set_property -dict { PACKAGE_PIN F4  IOSTANDARD LVCMOS33 } [get_ports { ps2_clk_i }];        # PS2_CLK
 set_property -dict { PACKAGE_PIN B2  IOSTANDARD LVCMOS33 } [get_ports { ps2_data_i }];       # PS2_DATA
 
+set_property -dict { PACKAGE_PIN A9  IOSTANDARD LVCMOS33 } [get_ports { eth_mdio_io  }];     # ETH_MDIO
+set_property -dict { PACKAGE_PIN C9  IOSTANDARD LVCMOS33 } [get_ports { eth_mdc_o    }];     # ETH_MDC
+set_property -dict { PACKAGE_PIN B3  IOSTANDARD LVCMOS33 } [get_ports { eth_rstn_o   }];     # ETH_RSTN
+set_property -dict { PACKAGE_PIN D10 IOSTANDARD LVCMOS33 } [get_ports { eth_rxd_i[1] }];     # ETH_RXD[1]
+set_property -dict { PACKAGE_PIN C11 IOSTANDARD LVCMOS33 } [get_ports { eth_rxd_i[0] }];     # ETH_RXD[0]
+set_property -dict { PACKAGE_PIN C10 IOSTANDARD LVCMOS33 } [get_ports { eth_rxerr_i  }];     # ETH_RXERR
+set_property -dict { PACKAGE_PIN A10 IOSTANDARD LVCMOS33 } [get_ports { eth_txd_o[0] }];     # ETH_TXD[0]
+set_property -dict { PACKAGE_PIN A8  IOSTANDARD LVCMOS33 } [get_ports { eth_txd_o[1] }];     # ETH_TXD[1]
+set_property -dict { PACKAGE_PIN B9  IOSTANDARD LVCMOS33 } [get_ports { eth_txen_o   }];     # ETH_TXEN
+set_property -dict { PACKAGE_PIN D9  IOSTANDARD LVCMOS33 } [get_ports { eth_crsdv_i  }];     # ETH_CRSDV
+set_property -dict { PACKAGE_PIN B8  IOSTANDARD LVCMOS33 } [get_ports { eth_intn_i   }];     # ETH_INTN
+set_property -dict { PACKAGE_PIN D5  IOSTANDARD LVCMOS33 } [get_ports { eth_refclk_o }];     # ETH_REFCLK
+
 set_property PULLUP TRUE [get_ports { ps2_clk_i } ]
 set_property PULLUP TRUE [get_ports { ps2_data_i } ]
 
 # Clock definition
 create_clock -name sys_clk -period 10.00 [get_ports {clk_i}];                          # 100 MHz
 create_generated_clock -name vga_clk -source [get_ports {clk_i}] -divide_by 4 [get_pins {vga_cnt_reg[1]/Q}];   # 25 Mhz
+create_generated_clock -name eth_clk -source [get_ports {clk_i}] -divide_by 2 [get_pins {clk_cnt_reg[0]/Q}];   # 50 Mhz
 
 # Configuration Bank Voltage Select
 set_property CFGBVS VCCO [current_design]

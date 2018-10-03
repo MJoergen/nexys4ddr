@@ -6,7 +6,8 @@ use ieee.std_logic_unsigned.all;
 -- to pins on the FPGA.
 --
 -- In this version the design can execute all instructions.
--- It additionally features a 80x60 character display.
+-- It additionally features a 80x60 character display and connects to an
+-- onboard Ethernet PHY.
 --
 -- The speed of the execution is controlled by the slide switches.
 -- Simultaneously, the CPU debug is shown as an overlay over the text screen.
@@ -34,6 +35,18 @@ entity comp is
       ps2_clk_i  : in  std_logic;
       ps2_data_i : in  std_logic;
 
+      -- Connected to Ethernet PHY
+      eth_txd_o    : out   std_logic_vector(1 downto 0);
+      eth_txen_o   : out   std_logic;
+      eth_rxd_i    : in    std_logic_vector(1 downto 0);
+      eth_rxerr_i  : in    std_logic;
+      eth_crsdv_i  : in    std_logic;
+      eth_intn_i   : in    std_logic;
+      eth_mdio_io  : inout std_logic;
+      eth_mdc_o    : out   std_logic;
+      eth_rstn_o   : out   std_logic;
+      eth_refclk_o : out   std_logic;
+   
       -- Output to VGA monitor
       vga_hs_o   : out std_logic;
       vga_vs_o   : out std_logic;
@@ -43,9 +56,10 @@ end comp;
 
 architecture Structural of comp is
 
-   -- Clock divider for VGA
-   signal clk_cnt : std_logic_vector(1 downto 0) := (others => '0');
-   signal vga_clk : std_logic;
+   -- Clock divider for VGA and Ethnernet
+   signal clk_cnt  : std_logic_vector(1 downto 0) := (others => '0');
+   signal vga_clk  : std_logic;
+   signal eth_clk  : std_logic;
 
    -- Reset
    signal rst : std_logic := '1';   -- Make sure reset is asserted after power-up.
@@ -100,8 +114,10 @@ architecture Structural of comp is
 begin
 
    --------------------------------------------------
-   -- Divide input clock by 4, from 100 MHz to 25 MHz
-   -- This is close enough to 25.175 MHz needed by VGA.
+   -- Divide input clock (100 MHz) by 2 and 4, to generate
+   -- 50 MHz (for Ethernet) and 25 MHz (for VGA).
+   -- The VGA clock should ideally be 25.175 MHz, but
+   -- this is close enough.
    --------------------------------------------------
 
    p_clk_cnt : process (clk_i)
@@ -111,6 +127,7 @@ begin
       end if;
    end process p_clk_cnt;
 
+   eth_clk <= clk_cnt(0);
    vga_clk <= clk_cnt(1);
 
 
