@@ -5,7 +5,7 @@ read_vhdl { \
    mem/memio.vhd mem/dmem.vhd mem/ram.vhd mem/rom.vhd mem/mem.vhd \
    keyboard/ps2.vhd keyboard/scancode.vhd keyboard/keyboard.vhd \
    cpu/zp.vhd cpu/sr.vhd cpu/regfile.vhd cpu/hilo.vhd cpu/pc.vhd cpu/cycle.vhd cpu/datapath.vhd cpu/ctl.vhd cpu/cpu.vhd cpu/alu.vhd \
-   ethernet/ethernet.vhd ethernet/lan8720a/lan8720a.vhd ethernet/lan8720a/rmii_tx.vhd ethernet/lan8720a/rmii_rx.vhd \
+   ethernet/ethernet.vhd ethernet/lan8720a/lan8720a.vhd ethernet/lan8720a/rmii_rx.vhd ethernet/lan8720a/rmii_tx.vhd \
    comp.vhd}
 read_xdc comp.xdc
 synth_design -top comp -part xc7a100tcsg324-1 -flatten_hierarchy none
