@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 
--- This is a testbench for the LAN8720A Ethernet PHY. The porpose
+-- This is a testbench for the LAN8720A Ethernet PHY. The purpose
 -- is to verify the interface to the PHY.
 
 entity lan8720a_tb is
@@ -11,25 +11,21 @@ end lan8720a_tb;
 
 architecture simulation of lan8720a_tb is
 
+   -- Signals connected to DUT.
    signal clk       : std_logic;
    signal rst       : std_logic;
-
    signal rx_valid  : std_logic;
    signal rx_sof    : std_logic;
    signal rx_eof    : std_logic;
    signal rx_data   : std_logic_vector(7 downto 0);
    signal rx_error  : std_logic_vector(1 downto 0);
-
    signal tx_empty  : std_logic;
    signal tx_rden   : std_logic;
    signal tx_data   : std_logic_vector(7 downto 0);
    signal tx_eof    : std_logic;
    signal tx_err    : std_logic;
-
    signal eth_rxd   : std_logic_vector(1 downto 0);
-   signal eth_rxerr : std_logic;
    signal eth_crsdv : std_logic;
-   signal eth_intn  : std_logic;
    signal eth_txd   : std_logic_vector(1 downto 0);
    signal eth_txen  : std_logic;
 
@@ -85,8 +81,50 @@ begin
       end loop byte_loop;
    end process sim_tx_proc;
 
+
+   ---------------------------
+   -- Validate data received
+   ---------------------------
+
+   sim_rx_proc : process
+   begin
+      -- Verify frame 1
+      byte_loop_1 : for i in 0 to 15 loop
+         wait until rx_valid = '1';
+         assert rx_error = "00";
+
+         if i = 0 then
+            assert rx_sof = '1';
+         end if;
+
+         assert rx_data = std_logic_vector(to_unsigned(i+12, 8));
+
+         if i = 15 then
+            assert rx_eof = '1';
+         end if;
+      end loop byte_loop_1;
+
+      -- Verify frame 2
+      byte_loop_2 : for i in 0 to 31 loop
+         wait until rx_valid = '1';
+         assert rx_error = "00";
+
+         if i = 0 then
+            assert rx_sof = '1';
+         end if;
+
+         assert rx_data = std_logic_vector(to_unsigned(i+22, 8));
+
+         if i = 31 then
+            assert rx_eof = '1';
+         end if;
+      end loop byte_loop_2;
+
+   end process sim_rx_proc;
+
+
    --------------------
-   -- Interface to PHY
+   -- Instantiate the DUT
    --------------------
 
    inst_lan8720a : entity work.lan8720a
@@ -122,8 +160,6 @@ begin
 
    eth_rxd   <= eth_txd;
    eth_crsdv <= eth_txen;
-   eth_rxerr <= '0';
-   eth_intn  <= '0';
 
 
    ----------------------------------
@@ -156,6 +192,7 @@ begin
       wait until done = '1';
       start <= '0';
       wait until rx_valid = '1' and rx_eof = '1';
+      wait until clk = '1';
 
       -- Stop test
       report "Test completed";
