@@ -37,7 +37,10 @@ architecture simulation of lan8720a_tb is
 
 begin
 
-   -- Generate clock
+   ----------------------------
+   -- Generate clock and reset
+   ----------------------------
+
    proc_clk : process
    begin
       clk <= '1', '0' after 1 ns;
@@ -47,7 +50,6 @@ begin
       end if;
    end process proc_clk;
 
-   -- Generate reset
    proc_rst : process
    begin
       rst <= '1', '0' after 20 ns;

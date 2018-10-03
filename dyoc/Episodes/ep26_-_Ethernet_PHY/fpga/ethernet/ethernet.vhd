@@ -66,6 +66,7 @@ begin
    -- For now, just tie this signal to a constant value.
    eth_tx_empty <= '1';
 
+
    ------------------------------
    -- Ethernet LAN 8720A PHY
    ------------------------------
