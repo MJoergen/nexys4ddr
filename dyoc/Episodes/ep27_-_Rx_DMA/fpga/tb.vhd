@@ -106,6 +106,25 @@ begin
    );
 
 
+   --------------------------------------------------
+   -- Instantiate PHY
+   --------------------------------------------------
+
+   inst_lan8720a_sim : entity work.lan8720a_sim
+   port map (
+      eth_txd_i    => eth_txd,
+      eth_txen_i   => eth_txen,
+      eth_rxd_o    => eth_rxd,
+      eth_rxerr_o  => eth_rxerr,
+      eth_crsdv_o  => eth_crsdv,
+      eth_intn_o   => eth_intn,
+      eth_mdio_io  => eth_mdio,
+      eth_mdc_i    => eth_mdc,
+      eth_rstn_i   => eth_rstn,
+      eth_refclk_i => eth_refclk
+   );
+
+
    ---------------------
    -- Generate PS/2 data
    ---------------------

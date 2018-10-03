@@ -6,11 +6,10 @@ SRC  = chipset/ic.vhd chipset/waiter.vhd chipset/timer.vhd \
 		 keyboard/ps2.vhd keyboard/scancode.vhd keyboard/keyboard.vhd \
 		 cpu/zp.vhd cpu/sr.vhd cpu/regfile.vhd cpu/hilo.vhd cpu/pc.vhd cpu/cycle.vhd cpu/datapath.vhd cpu/ctl.vhd cpu/cpu.vhd cpu/alu.vhd \
        ethernet/ethernet.vhd ethernet/lan8720a/lan8720a.vhd ethernet/lan8720a/rmii_rx.vhd ethernet/lan8720a/rmii_tx.vhd \
-       ethernet/rx_dma.vhd ethernet/rx_fifo.vhd ethernet/rx_header.vhd \
+       ethernet/rx_dma.vhd ethernet/fifo.vhd ethernet/rx_header.vhd \
 		 comp.vhd
 XDC  = comp.xdc
-SYNTH = ethernet/lan8720a/lan8720a.vhd ethernet/lan8720a/rmii_rx.vhd
-TB   = tb.vhd keyboard/ps2_tb.vhd ethernet/lan8720a/lan8720a_sim.vhd
+TB   = tb.vhd keyboard/ps2_tb.vhd ethernet/lan8720a_sim.vhd ethernet/sim_tx.vhd
 WAVE = tb.ghw
 SAVE = tb.gtkw
 
@@ -19,7 +18,7 @@ SAVE = tb.gtkw
 # Generate bit-file and program FPGA
 #####################################
 
-comp.bit: comp.tcl $(SRC) $(SYNTH) $(XDC) ../rom.txt
+comp.bit: comp.tcl $(SRC) $(XDC) ../rom.txt
 	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $<"
 
 fpga: comp.bit
