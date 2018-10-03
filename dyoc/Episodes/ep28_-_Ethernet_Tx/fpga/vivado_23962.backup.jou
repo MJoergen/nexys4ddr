@@ -1,0 +1,11 @@
+#-----------------------------------------------------------
+# Vivado v2017.3 (64-bit)
+# SW Build 2018833 on Wed Oct  4 19:58:07 MDT 2017
+# IP Build 2016188 on Wed Oct  4 21:52:56 MDT 2017
+# Start of session at: Thu Sep 27 09:06:59 2018
+# Process ID: 23962
+# Current directory: /home/mfj/git/nexys4ddr/dyoc/Episodes/ep27_-_Ethernet_Tx/fpga
+# Command line: vivado -mode tcl -source comp.tcl
+# Log file: /home/mfj/git/nexys4ddr/dyoc/Episodes/ep27_-_Ethernet_Tx/fpga/vivado.log
+# Journal file: /home/mfj/git/nexys4ddr/dyoc/Episodes/ep27_-_Ethernet_Tx/fpga/vivado.jou
+#-----------------------------------------------------------

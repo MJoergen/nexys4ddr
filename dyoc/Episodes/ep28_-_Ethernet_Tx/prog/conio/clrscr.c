@@ -7,7 +7,7 @@
 
 void clrscr(void)
 {
-   memset(MEM_CHAR, ' ', H_CHARS*V_CHARS);
+   //memset(MEM_CHAR, ' ', H_CHARS*V_CHARS);
    gotoxy(0, 0);
 } // end of clrscr
 
