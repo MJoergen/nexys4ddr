@@ -77,23 +77,40 @@ The Ethernet clock is generated in comp.vhd (line 137) using the same clock
 divider as for the VGA clock. Additionally, all clock signals must be described
 in the constraint file as well, i.e. in comp.xdc line 58.
 
-## Interface to the Ethernet PHY (Data reception)
+## Interface to the Ethernet PHY
 The PHY chip connects to the FPGA using the [RMII
 specification](https://en.wikipedia.org/wiki/Media-independent_interface#Reduced_media-independent_interface).
 So the first task is to convert the RMII interface to something that more easily
 fits into the 8-bit oriented design of our computer.
 
-This conversion is handled in ethernet/lan8720a/lan8720a.vhd.  This module take care of:
-* 2-bit to 8-bit conversion (user data is output every fourth clock cycle @ 50 Mhz).
-* CRC generation and validation.
-* Framing with SOF/EOF.
+This conversion is handled in ethernet/lan8720a/lan8720a.vhd.  This module takes care of:
+* 2-bit to 8-bit conversion.
+* CRC generation/appending and validation/stripping.
+* Framing with VALID and EOF.
 
-The interface to this block is one byte pr. clock cycle, with SOF asserted on
-the first byte of the MAC header and EOF asserted on the last byte.  When
-transmitting, the user should not append a CRC, this is done automatically.  On
-reception, the CRC remains, but there is no need to validate the CRC, as this
-has already been done.  Two error bits are provided on reception (valid only at
-EOF) that indicate either a receiver error or a CRC error.
+The interface to this block is one byte pr. each clock cycle where VALID is
+true, and EOF is asserted on the last byte.  Two error bits are provided on
+reception (valid only at EOF) that indicate either a receiver error or a CRC
+error.
 
-## Testing
+## Testing in simulation
+To make simulation time faster, I've added a new Makefile under
+fpga/ethernet/lan8720a to perform a unit test on the LAN8720A interface module.
+This test sends two Ethernet frames through the LAN8720A Tx interface,
+simulates a loopback in the PHY (because the Rx and Tx signals on the PHY as -
+for this purpose - identical), receives the frames through the LAN8720A Rx
+interface and validates the received result.
+
+This is not quite enough to verify correct operation, but it does verify
+that EOF is handled correctly. Furthermore, in the waveform it can be seen that
+a CRC is appended in the Tx direction and stripped in the Rx direction.
+
+## Testing on hardware
+Even though we have connected the signals at top level, we have not connected
+the signals from the lan8720a interface module. It therefore doesn't make sense
+to test the current design on the board. However, since we now have added the
+PHY signals to the top level, and we have added generation of clock and reset,
+then the PHY will now be reset in default mode. This means that it will
+autonegotiate link. Connecting the board to an Ethernet switch will allow the
+PHY to establish link, and that will show up on the LED's on the board.
 
