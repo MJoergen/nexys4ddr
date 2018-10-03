@@ -95,6 +95,9 @@ begin
       end if;
    end process proc_eth_rst;
    
+   -- For now, just tie this signal to a constant value.
+   eth_tx_empty <= '1';
+
 
    ------------------------------
    -- Ethernet LAN 8720A PHY
@@ -182,7 +185,7 @@ begin
 
 
    ------------------------------
-   -- Instantiate DMA
+   -- Instantiate Rx DMA
    ------------------------------
 
    inst_rx_dma : entity work.rx_dma
