@@ -15,7 +15,6 @@ architecture simulation of lan8720a_tb is
    signal clk       : std_logic;
    signal rst       : std_logic;
    signal rx_valid  : std_logic;
-   signal rx_sof    : std_logic;
    signal rx_eof    : std_logic;
    signal rx_data   : std_logic_vector(7 downto 0);
    signal rx_error  : std_logic_vector(1 downto 0);
@@ -93,14 +92,12 @@ begin
          wait until rx_valid = '1';
          assert rx_error = "00";
 
-         if i = 0 then
-            assert rx_sof = '1';
-         end if;
-
          assert rx_data = std_logic_vector(to_unsigned(i+12, 8));
 
          if i = 15 then
             assert rx_eof = '1';
+         else
+            assert rx_eof = '0';
          end if;
       end loop byte_loop_1;
 
@@ -109,14 +106,12 @@ begin
          wait until rx_valid = '1';
          assert rx_error = "00";
 
-         if i = 0 then
-            assert rx_sof = '1';
-         end if;
-
          assert rx_data = std_logic_vector(to_unsigned(i+22, 8));
 
          if i = 31 then
             assert rx_eof = '1';
+         else
+            assert rx_eof = '0';
          end if;
       end loop byte_loop_2;
 
@@ -132,7 +127,6 @@ begin
       clk_i        => clk,
       rst_i        => rst,
       rx_valid_o   => rx_valid,
-      rx_sof_o     => rx_sof,
       rx_eof_o     => rx_eof,
       rx_data_o    => rx_data,
       rx_error_o   => rx_error,

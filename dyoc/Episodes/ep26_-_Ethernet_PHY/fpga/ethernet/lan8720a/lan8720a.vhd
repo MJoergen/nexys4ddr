@@ -33,7 +33,6 @@ entity lan8720a is
 
       -- Rx interface
       rx_valid_o   : out   std_logic;
-      rx_sof_o     : out   std_logic;
       rx_eof_o     : out   std_logic;
       rx_data_o    : out   std_logic_vector(7 downto 0);
       rx_error_o   : out   std_logic_vector(1 downto 0);
@@ -68,7 +67,6 @@ begin
          clk_i        => clk_i,
          rst_i        => rst_i,
          user_valid_o => rx_valid_o,
-         user_sof_o   => rx_sof_o,
          user_eof_o   => rx_eof_o,
          user_data_o  => rx_data_o,
          user_error_o => rx_error_o,

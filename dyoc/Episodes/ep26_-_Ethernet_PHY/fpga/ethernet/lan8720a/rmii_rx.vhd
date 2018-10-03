@@ -10,7 +10,7 @@ use ieee.numeric_std.all;
 -- This module takes care of:
 -- * 2-bit to 8-bit expansion (user data output every fourth clock cycle).
 -- * CRC validation.
--- * Framing with SOF/EOF.
+-- * Framing with VALID and EOF.
 --
 -- In case of receiver error the current frame is terminated (EOF=1) and
 -- the error type can be sampled in the user_error_o signal. Two types
@@ -40,7 +40,6 @@ entity rmii_rx is
 
       -- Connected to user logic
       user_valid_o : out std_logic;    -- Remaining user_* fields are valid.
-      user_sof_o   : out std_logic;    -- Start of frame. Asserted on first byte.
       user_eof_o   : out std_logic;    -- End of frame. Asserted on last byte.
       user_data_o  : out std_logic_vector(7 downto 0);
       user_error_o : out std_logic_vector(1 downto 0);   -- Must only be sampled @ EOF.
@@ -72,7 +71,6 @@ architecture Structural of rmii_rx is
 
    -- Output signals
    signal valid : std_logic := '0';
-   signal sof   : std_logic;
    signal data  : std_logic_vector(7 downto 0);
 
    -- Update CRC with two bits of data
@@ -94,7 +92,6 @@ architecture Structural of rmii_rx is
 
    type stage_t is record
       valid : std_logic;                        -- Remaining fields are valid.
-      sof   : std_logic;                        -- Start of frame. Asserted on first byte.
       eof   : std_logic;                        -- End of frame. Asserted on last byte.
       data  : std_logic_vector(7 downto 0);
       err   : std_logic_vector(1 downto 0);     -- Must only be sampled @ EOF.
@@ -102,7 +99,6 @@ architecture Structural of rmii_rx is
 
    constant STAGE_DEFAULT : stage_t := (
       valid => '0',
-      sof   => '0',
       eof   => '0',
       data  => (others => '0'),
       err   => (others => '0')
@@ -138,7 +134,6 @@ begin
             when PRE1_ST =>
                if data = X"D5" then
                   dibit_cnt <= 0;
-                  sof       <= '1';
                   fsm_state <= PAYLOAD_ST;
                end if;
                if newdata_v = X"D5" then
@@ -149,9 +144,6 @@ begin
                end if;
 
             when PAYLOAD_ST =>
-               if dibit_cnt = 3 then
-                  sof <= '0'; -- Clear SOF after the first byte.
-               end if;
                if phy_crsdv_i = '0' or phy_rxerr_i = '1' then
                   fsm_state <= IDLE_ST;
                end if;
@@ -172,11 +164,10 @@ begin
    begin
       if rising_edge(clk_i) then
          -- Make sure all data is cleared. This is not strictly necessary, but it makes
-         -- debugging easier, when SOF and EOF are zero outside valid data.
+         -- debugging easier, when EOF is zero outside valid data.
          stages(0) <= STAGE_DEFAULT;
          if valid = '1' then
             stages(0).valid   <= '1';
-            stages(0).sof     <= sof;
             stages(0).eof     <= phy_rxerr_i or not phy_crsdv_i;
             stages(0).err(0)  <= phy_rxerr_i; -- Receiver error
             stages(0).err(1)  <= '0';                   -- No CRC error
@@ -223,7 +214,6 @@ begin
    end process proc_pipe;
 
    user_valid_o <= stages(5).valid;
-   user_sof_o   <= stages(5).sof;
    user_eof_o   <= stages(5).eof;
    user_data_o  <= stages(5).data;
    user_error_o <= stages(5).err;
