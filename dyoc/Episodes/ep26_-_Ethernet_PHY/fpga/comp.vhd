@@ -305,6 +305,26 @@ begin
    );
 
 
+   ------------------------------
+   -- Instantiate Ethernet module
+   ------------------------------
+
+   inst_ethernet : entity work.ethernet
+   port map (
+      eth_clk_i    => eth_clk,
+      eth_txd_o    => eth_txd_o,
+      eth_txen_o   => eth_txen_o,
+      eth_rxd_i    => eth_rxd_i,
+      eth_rxerr_i  => eth_rxerr_i,
+      eth_crsdv_i  => eth_crsdv_i,
+      eth_intn_i   => eth_intn_i,
+      eth_mdio_io  => eth_mdio_io,
+      eth_mdc_o    => eth_mdc_o,
+      eth_rstn_o   => eth_rstn_o,
+      eth_refclk_o => eth_refclk_o
+   );
+
+
    --------------------------------------------------
    -- Memory Mapped I/O
    -- This must match the mapping in prog/include/memorymap.h
