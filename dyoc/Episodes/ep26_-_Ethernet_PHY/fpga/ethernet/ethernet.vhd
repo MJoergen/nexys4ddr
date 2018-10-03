@@ -32,7 +32,6 @@ architecture Structural of ethernet is
 
    -- Connected to the PHY
    signal eth_rx_valid  : std_logic;
-   signal eth_rx_sof    : std_logic;
    signal eth_rx_eof    : std_logic;
    signal eth_rx_data   : std_logic_vector(7 downto 0);
    signal eth_rx_error  : std_logic_vector(1 downto 0);
@@ -64,6 +63,8 @@ begin
       end if;
    end process proc_eth_rst;
    
+   -- For now, just tie this signal to a constant value.
+   eth_tx_empty <= '1';
 
    ------------------------------
    -- Ethernet LAN 8720A PHY
@@ -75,7 +76,6 @@ begin
       rst_i        => eth_rst,
       -- Rx interface
       rx_valid_o   => eth_rx_valid,
-      rx_sof_o     => eth_rx_sof,
       rx_eof_o     => eth_rx_eof,
       rx_data_o    => eth_rx_data,
       rx_error_o   => eth_rx_error,
