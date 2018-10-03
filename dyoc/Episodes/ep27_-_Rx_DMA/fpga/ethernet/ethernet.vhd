@@ -38,29 +38,30 @@ architecture Structural of ethernet is
    signal eth_rst       : std_logic := '1';
    signal eth_rst_cnt   : std_logic_vector(20 downto 0) := (others => '1');
 
+   -- Connected to the PHY
    signal eth_rx_valid  : std_logic;
    signal eth_rx_eof    : std_logic;
    signal eth_rx_data   : std_logic_vector(7 downto 0);
    signal eth_rx_error  : std_logic_vector(1 downto 0);
-
    signal eth_tx_empty  : std_logic;
    signal eth_tx_rden   : std_logic;
    signal eth_tx_data   : std_logic_vector(7 downto 0);
    signal eth_tx_eof    : std_logic;
    signal eth_tx_err    : std_logic;
 
-   signal eth_strip_valid : std_logic;
-   signal eth_strip_data  : std_logic_vector(7 downto 0);
-   signal eth_strip_eof   : std_logic_vector(0 downto 0);
+   -- Connection from rx_header to fifo
+   signal eth_header_valid : std_logic;
+   signal eth_header_data  : std_logic_vector(7 downto 0);
+   signal eth_header_eof   : std_logic_vector(0 downto 0);
+   signal eth_fifo_afull   : std_logic;
 
-   signal eth_fifo_afull : std_logic;
+   -- Connection from fifo to rx_dma
+   signal user_fifo_empty : std_logic;
+   signal user_fifo_data  : std_logic_vector(7 downto 0);
+   signal user_fifo_eof   : std_logic_vector(0 downto 0);
+   signal user_dma_rden   : std_logic;
 
-   signal user_empty    : std_logic;
-   signal user_rden     : std_logic;
-   signal user_rx_data  : std_logic_vector(7 downto 0);
-   signal user_rx_eof   : std_logic_vector(0 downto 0);
-   signal user_rx_error : std_logic_vector(1 downto 0);
-
+   -- Output from rx_dma
    signal user_dma_wren  : std_logic;
    signal user_dma_addr  : std_logic_vector(15 downto 0);
    signal user_dma_data  : std_logic_vector( 7 downto 0);
@@ -147,9 +148,9 @@ begin
       cnt_overflow_o => eth_cnt_overflow,
       --
       out_afull_i    => eth_fifo_afull,
-      out_valid_o    => eth_strip_valid,
-      out_data_o     => eth_strip_data,
-      out_eof_o      => eth_strip_eof(0)
+      out_valid_o    => eth_header_valid,
+      out_data_o     => eth_header_data,
+      out_eof_o      => eth_header_eof(0)
    );
 
 
@@ -164,17 +165,18 @@ begin
    port map (
       wr_clk_i   => eth_clk_i,
       wr_rst_i   => eth_rst,
-      wr_en_i    => eth_strip_valid,
-      wr_data_i  => eth_strip_data,
-      wr_sb_i    => eth_strip_eof,
+      wr_en_i    => eth_header_valid,
+      wr_data_i  => eth_header_data,
+      wr_sb_i    => eth_header_eof,
       wr_afull_o => eth_fifo_afull,
       wr_error_o => open,  -- Ignored
+      --
       rd_clk_i   => user_clk_i,
       rd_rst_i   => '0',
-      rd_en_i    => user_rden,
-      rd_data_o  => user_rx_data,
-      rd_sb_o    => user_rx_eof,
-      rd_empty_o => user_empty,
+      rd_en_i    => user_dma_rden,
+      rd_data_o  => user_fifo_data,
+      rd_sb_o    => user_fifo_eof,
+      rd_empty_o => user_fifo_empty,
       rd_error_o => open   -- Ignored
    );
 
@@ -186,11 +188,11 @@ begin
    inst_rx_dma : entity work.rx_dma
    port map (
       clk_i      => user_clk_i,
-      rd_empty_i => user_empty,
-      rd_en_o    => user_rden,
+      rd_empty_i => user_fifo_empty,
+      rd_en_o    => user_dma_rden,
       --
-      rd_data_i  => user_rx_data,
-      rd_eof_i   => user_rx_eof(0),
+      rd_data_i  => user_fifo_data,
+      rd_eof_i   => user_fifo_eof(0),
       --
       wr_en_o    => user_dma_wren,
       wr_addr_o  => user_dma_addr,
