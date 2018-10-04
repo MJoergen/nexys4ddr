@@ -8,11 +8,11 @@ received on the Ethernet port.
 In this and the following episodes we'll build a web-server on the Nexys 4 DDR
 board.
 
-## Overall design strategy for receiving data from the Ethernet.
+## Frame format in memory
 The implementation I've chosen here has the FPGA writing the received Ethernet
 frames directly to RAM, without requiring any assistance from the CPU.  This is
 called Direct Memory Access. To make this work we must allocate a certain area
-in memory and design a RxDMA module to write to this memory area.
+in memory and design an Rx DMA module to write to this memory area.
 
 Then we must decide on a format of the data written to the memory.  Initially,
 we have two requirements:
@@ -22,30 +22,31 @@ we have two requirements:
 
 I've chosen to prepend each frame with a two-byte header that contains the
 total number of bytes in the frame, including the header. This allows the
-software to 'hop' from one frame to the next, and thus takes care of the first
-requirement above.
+software to easily determine where the next frame begins, and thus takes care
+of the first requirement above.
 
-To ensure the second requirement, I've chosen to use bit 15 in the length field
+Note that the length field therefore serves two different purposes: It
+indicates the length of the current frame, and it is used to calculate the
+beginning of the next frame, assuming frames are back-to-back.
+
+To ensure the second requirement, I've decided to use bit 15 in the length field
 as follows:
 * bit 15 = 0: The next frame starts right after this frame
 * bit 15 = 1: The next frame starts at the beginning of the receive buffer.
 
-In other words, it is the RxDMA that decides where the next frame starts, and
+In other words, it is the Rx DMA that decides where the next frame starts, and
 indicates this in the two-byte header. Software must correctly decode this
 header to calculate the start of the next frame.
 
+## Overall design strategy for receiving data from the Ethernet.
 A number of blocks is needed in the design in order to facilitate all this.  In
 the following sections each block will be described in detail.  The list of
 blocks are:
-* Interface to the Ethernet PHY - generating a byte stream with Start-Of-Frame
-  and End-Of-Frame markers, as well as sideband information about CRC
-  correctness, see lan8720a/rmii\_rx.vhd.
-* Header insertion - this strips away the CRC, discards packets with incorrect
-  CRC, and inserts two bytes in front of the packet with the total byte length,
-  see strip\_crc.vhd
+* Header insertion - this discards packets with errors and inserts two bytes
+  in front of the packet with the total byte length, see rx\_header.vhd.
 * A fifo for crossing from the Ethernet clock domain to the CPU clock domain,
-  see fifo.vhd.
-* A RxDMA to write the data to the memory, including figuring out where in
+  see fifo.vhd. More about this in the next section.
+* An Rx DMA to write the data to the memory, including figuring out where in
   memory, see rx\_dma.vhd.
 
 All the above files are placed in the directory 'ethernet', and connected
@@ -89,8 +90,7 @@ overflow occurs leading to a persistent error that can only be cleared by
 reset.
 
 ### Header insertion
-This is handled in ethernet/strip\_crc.vhd. This module takes care of:
-* Stripping away 4 bytes of CRC at end of frame.
+This is handled in ethernet/rx\_header.vhd. This module takes care of:
 * Prepending 2 bytes of header containing total number of bytes in this frame.
 * Maintaining statistics counters of received good and bad frames.
 * Discarding bad frames (e.g. incorrect CRC).
@@ -133,7 +133,7 @@ This is handled in ethernet/fifo.vhd. This module takes care of:
 * Instantiating a Xilinx fifo primitive.
 * Latching read and write errors.
 
-### RxDMA
+### Rx DMA
 This is handled in ethernet/rx\_dma.vhd. This module takes care of:
 * Generating write requests to CPU memory.
 * Maintaining a write pointer.
@@ -157,7 +157,7 @@ buffer runs full, e.g. if the CPU is too slow in processing a packet, while a
 burst of subsequent packets are received. The current implementation will stop
 reading from the fifo (the signal user\_rden remains low), which will then fill
 up (as indicated by the signal eth\_fifo\_afull). Eventually the input buffer
-in strip\_crc.vhd will fill up and generate the persistent error eth\_overflow.
+in rx\_header.vhd will fill up and generate the persistent error eth\_overflow.
 
 ## Updates to the memory block
 Since we now have two independent processes writing to the memory, i.e. the CPU
@@ -169,7 +169,9 @@ most one clock cycle for a write to complete.
 The extra wait state is inserted in line 113 in mem/mem.vhd. The arbitration
 between CPU and DMA is handled in lines 128-140.
 
-## Test program
+## Unit testing in simulation
+
+## Test program to run on hardware
 The program enters a busy loop polling the write pointer from the DMA. When
 the write pointer is updated an entire Ethernet frame has been received. The
 firdt 16 bytes (including the 2 byte length field) are printed to screen,
