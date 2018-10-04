@@ -4,7 +4,7 @@ use ieee.std_logic_unsigned.all;
 
 -- This module generates Ethernet traffic.
 
-entity sim_tx is
+entity phy_sim is
    port (
       clk_i      : in  std_logic;
       rst_i      : in  std_logic;
@@ -15,9 +15,9 @@ entity sim_tx is
       eth_txd_o  : out std_logic_vector(1 downto 0);
       eth_txen_o : out std_logic
    );
-end entity sim_tx;
+end entity phy_sim;
 
-architecture simulation of sim_tx is
+architecture simulation of phy_sim is
 
    signal user_empty : std_logic;
    signal user_rden  : std_logic;
