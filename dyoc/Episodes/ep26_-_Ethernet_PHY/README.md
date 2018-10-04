@@ -178,3 +178,9 @@ in the overlay should increment, and you should see the link activity diode
 on the Nexys4DDR board blink once every second. This little demonstration shows
 that the CRC calculation is correct.
 
+## Congratulations!
+You can now send data to and from the Ethernet PHY in byte-oriented frames.
+The next two episodes will make it possible for the CPU to control reception
+and transmission of Ethernet frames.
+
+
