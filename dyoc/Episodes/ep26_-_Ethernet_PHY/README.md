@@ -107,10 +107,18 @@ a CRC is appended in the Tx direction and stripped in the Rx direction.
 
 ## Testing on hardware
 Even though we have connected the signals at top level, we have not connected
-the signals from the lan8720a interface module. It therefore doesn't make sense
-to test the current design on the board. However, since we now have added the
-PHY signals to the top level, and we have added generation of clock and reset,
-then the PHY will now be reset in default mode. This means that it will
-autonegotiate link. Connecting the board to an Ethernet switch will allow the
-PHY to establish link, and that will show up on the LED's on the board.
+the signals from the lan8720a interface module.  However, since we now have
+added the PHY signals to the top level, and we have added generation of clock
+and reset, then the PHY will now be reset in default mode. This means that it
+will autonegotiate link. Connecting the board to an Ethernet switch will allow
+the PHY to establish link, and that will show up on the LED's on the board.
+
+Furthermore, I've added a counter that will increment whenever an Ethernet
+frame is received without any errors. This counter is shown on the overlay, and
+should increment occasionally, whenever a broadcast frame is sent on the local
+switch. You can induce such traffic by issuing a ping command to an unknown
+IP address. This will send an ARP request once every second. The 'ETH' counter
+in the overlay should increment, and you should see the link activity diode
+on the Nexys4DDR board blink once every second. This little demonstration shows
+that the CRC calculation is correct.
 

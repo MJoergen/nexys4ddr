@@ -16,7 +16,7 @@ entity vga is
       clk_i       : in  std_logic;    -- Expects 25.175 MHz
 
       overlay_i   : in  std_logic;
-      digits_i    : in  std_logic_vector(191 downto 0);
+      digits_i    : in  std_logic_vector(207 downto 0);
 
       char_addr_o : out std_logic_vector(12 downto 0);
       char_data_i : in  std_logic_vector( 7 downto 0);

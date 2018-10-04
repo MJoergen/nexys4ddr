@@ -49,3 +49,7 @@ clean:
 	rm -rf work-obj93.cf
 	rm -rf tb
 	rm -rf tb.ghw
+	rm -rf comp.bit
+	rm -rf comp.bmm
+	rm -rf fsm_encoding.os
+

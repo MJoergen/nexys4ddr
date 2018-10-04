@@ -69,7 +69,7 @@ architecture Structural of comp is
 
    -- VGA debug overlay
    signal vga_overlay_en : std_logic;
-   signal vga_overlay    : std_logic_vector(191 downto 0);
+   signal vga_overlay    : std_logic_vector(207 downto 0);
 
    -- Data Path signals
    signal cpu_addr  : std_logic_vector(15 downto 0);
@@ -110,6 +110,7 @@ architecture Structural of comp is
    signal timer_irq : std_logic := '0';
 
    signal kbd_debug : std_logic_vector(15 downto 0);
+   signal eth_debug : std_logic_vector(15 downto 0);
 
 begin
 
@@ -321,7 +322,8 @@ begin
       eth_mdio_io  => eth_mdio_io,
       eth_mdc_o    => eth_mdc_o,
       eth_rstn_o   => eth_rstn_o,
-      eth_refclk_o => eth_refclk_o
+      eth_refclk_o => eth_refclk_o,
+      eth_debug_o  => eth_debug
    );
 
 
@@ -370,6 +372,7 @@ begin
 
    vga_overlay(175 downto   0) <= cpu_debug;
    vga_overlay(191 downto 176) <= kbd_debug;
+   vga_overlay(207 downto 192) <= eth_debug;
 
 end architecture Structural;
 

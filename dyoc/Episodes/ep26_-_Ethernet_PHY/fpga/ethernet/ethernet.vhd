@@ -17,7 +17,9 @@ entity ethernet is
       eth_mdio_io  : inout std_logic;
       eth_mdc_o    : out   std_logic;
       eth_rstn_o   : out   std_logic;
-      eth_refclk_o : out   std_logic
+      eth_refclk_o : out   std_logic;
+      -- Connected to overlay
+      eth_debug_o  : out   std_logic_vector(15 downto 0)
    );
 end ethernet;
 
@@ -40,6 +42,8 @@ architecture Structural of ethernet is
    signal eth_tx_data   : std_logic_vector(7 downto 0);
    signal eth_tx_eof    : std_logic;
    signal eth_tx_err    : std_logic;
+
+   signal eth_debug : std_logic_vector(15 downto 0);
 
 begin
 
@@ -65,6 +69,8 @@ begin
    
    -- For now, just tie this signal to a constant value.
    eth_tx_empty <= '1';
+   eth_tx_eof   <= '0';
+   eth_tx_data  <= (others => '0');
 
 
    ------------------------------
@@ -98,6 +104,17 @@ begin
       eth_rstn_o   => eth_rstn_o,
       eth_refclk_o => eth_refclk_o
    );
+
+   proc_debug : process (eth_clk_i)
+   begin
+      if rising_edge(eth_clk_i) then
+         if eth_rx_valid = '1' and eth_rx_eof = '1' and eth_rx_error = "00" then
+            eth_debug <= eth_debug + 1;
+         end if;
+      end if;
+   end process proc_debug;
+
+   eth_debug_o <= eth_debug;
    
 end Structural;
 
