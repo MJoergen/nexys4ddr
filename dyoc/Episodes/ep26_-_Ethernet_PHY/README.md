@@ -157,6 +157,9 @@ frames come back out exactly as they were, with no error indications.
 This test validates the operation of the interface, but does not verify the CRC
 calculation. Only that it is consistent in both directions.
 
+To run the simulation, run the command "make sim" in the directory
+fpga/ethernet/lan8720a.
+
 ## Testing on hardware
 Even though we have connected the signals at top level, we have not connected
 the signals from the lan8720a interface module to the rest of the computer.

@@ -41,11 +41,11 @@ architecture simulation of lan8720a_tb is
    signal sim_tx_len   : std_logic_vector(15 downto 0);
    signal sim_tx_data  : std_logic_vector(128*8-1 downto 0);
 
-   signal sim_rx_start : std_logic;
-   signal sim_rx_done  : std_logic;
+   -- Signals for reception of the Ethernet frames.
    signal sim_rx_len   : std_logic_vector(15 downto 0);
    signal sim_rx_data  : std_logic_vector(128*8-1 downto 0);
 
+   -- Signal to control execution of the testbench.
    signal test_running : std_logic := '1';
 
 begin
@@ -166,6 +166,7 @@ begin
       sim_tx_start <= '0';
       wait until rx_valid = '1' and rx_eof = '1';
       wait until rx_valid = '0';
+      -- Validate received frame
       assert sim_rx_len  = sim_tx_len;
       assert sim_rx_data = sim_tx_data;
 
@@ -182,11 +183,12 @@ begin
       sim_tx_start <= '0';
       wait until rx_valid = '1' and rx_eof = '1';
       wait until rx_valid = '0';
+      -- Validate received frame
       assert sim_rx_len  = sim_tx_len;
       assert sim_rx_data = sim_tx_data;
-      wait until clk = '1';
 
       -- Stop test
+      wait until clk = '1';
       report "Test completed";
       test_running <= '0';
       wait;
