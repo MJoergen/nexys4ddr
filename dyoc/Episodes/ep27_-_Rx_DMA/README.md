@@ -1,9 +1,8 @@
 # Design Your Own Computer
 # Episode 27 : "Rx DMA"
  
-Welcome to "Design Your Own Computer".  In this episode we'll
-add the Rx DMA to allow the CPU to process received frames
-received on the Ethernet port.
+Welcome to "Design Your Own Computer".  In this episode we'll add the Rx DMA to
+allow the CPU to process frames received on the Ethernet port.
 
 In this and the following episodes we'll build a web-server on the Nexys 4 DDR
 board.
@@ -15,7 +14,7 @@ called Direct Memory Access. To make this work we must allocate a certain area
 in memory and design an Rx DMA module to write to this memory area.
 
 Then we must decide on a format of the data written to the memory.  Initially,
-we have two requirements:
+we have three requirements:
 * We must be able to distinguish where one frame ends and another frame begins. 
 * Each frame must be in a contiguous (un-fragmented) block of memory.
 * The design must be robust and handle error situations gracefully.
@@ -27,16 +26,40 @@ of the first requirement above.
 
 Note that the length field therefore serves two different purposes: It
 indicates the length of the current frame, and it is used to calculate the
-beginning of the next frame, assuming frames are back-to-back.
+beginning of the next frame. The latter assumes that frames are back-to-back.
 
-To ensure the second requirement, I've decided to use bit 15 in the length field
-as follows:
+To ensure the second requirement, I've decided to use bit 15 in the length
+field as follows:
 * bit 15 = 0: The next frame starts right after this frame
 * bit 15 = 1: The next frame starts at the beginning of the receive buffer.
 
 In other words, it is the Rx DMA that decides where the next frame starts, and
 indicates this in the two-byte header. Software must correctly decode this
 header to calculate the start of the next frame.
+
+## Interface to CPU
+The CPU is responsible for allocating memory for the receive buffer. The CPU
+must then instruct the Rx DMA where the receive buffer is located. On the other
+hand, the Rx DMA must instruct the CPU when a new frame has been written into
+this receive buffer.  This leads to the following memory mapped registers:
+* ETH\_START  : Address of first byte of receive buffer.
+* ETH\_END    : Address of last byte of receive buffer plus one.
+* ETH\_ENABLE : One bit to enable/disable the Rx DMA.
+* ETH\_WRPTR  : Address of last byte written to memory plus one.
+* ETH\_RDPTR  : The current CPU read pointer.
+
+Both the write pointer ETH\_WRPTR and the read pointer ETH\_RDPTR will point to
+addresses within the allocated receive buffer, i.e. between ETH\_START and
+ETH\_END inclusive.
+
+In others words ETH\_WRPTR points to the first byte of the next frame (not yet
+received), whereas ETH\_RDPTR points to the first byte of the current frame.
+When ETH\_WRPTR and ETH\_RDPTR are equal, then the receive buffer is completely
+empty.
+
+When the Rx DMA writes to the receive buffer, it must ensure that ETH\_WRPTR
+never reaches ETH\_RDPTR. So the receive buffer is full, when ETH\_WRPTR =
+ETH\_RDPTR - 1.
 
 ## Overall design strategy for receiving data from the Ethernet.
 A number of blocks is needed in the design in order to facilitate all this.  In
@@ -170,6 +193,11 @@ The extra wait state is inserted in line 113 in mem/mem.vhd. The arbitration
 between CPU and DMA is handled in lines 128-140.
 
 ## Unit testing in simulation
+Due to the complexity it is beneficial to have a separate testbench to just
+test this new data path. So the testbench will be ethernet\_tb.vhd and will
+test the Ethernet wrapper module.
+
+In order to generate traffic on the Ethernet port, a PHY simulator will be used.
 
 ## Test program to run on hardware
 The program enters a busy loop polling the write pointer from the DMA. When
