@@ -1,6 +1,7 @@
 XILINX_DIR = /opt/Xilinx/Vivado/2017.3
 
-SRC  = rmii_rx.vhd rmii_tx.vhd lan8720a.vhd lan8720a_tb.vhd
+SRC  = rmii_rx.vhd rmii_tx.vhd lan8720a.vhd
+TB   = lan8720a_tb.vhd sim_tx.vhd sim_rx.vhd
 WAVE = lan8720a_tb.ghw
 SAVE = lan8720a_tb.gtkw
 

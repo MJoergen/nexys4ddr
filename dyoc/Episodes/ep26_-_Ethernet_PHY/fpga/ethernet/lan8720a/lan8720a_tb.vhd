@@ -5,6 +5,13 @@ use ieee.numeric_std.all;
 
 -- This is a testbench for the LAN8720A Ethernet PHY. The purpose
 -- is to verify the interface to the PHY.
+--
+-- The testbench performs the following:
+-- * Generates Ethernet frames for transmission
+-- * Sends the frames through the transmit path of the interface module.
+-- * Performs a loopback on the PHY side of the interface module.
+-- * Stores the frames from the receive path of the interface module.
+-- * Compares the received frames with the transmitted frames.
 
 entity lan8720a_tb is
 end lan8720a_tb;
@@ -28,10 +35,16 @@ architecture simulation of lan8720a_tb is
    signal eth_txd   : std_logic_vector(1 downto 0);
    signal eth_txen  : std_logic;
 
-   signal start : std_logic;
-   signal done  : std_logic;
-   signal len   : std_logic_vector(15 downto 0);
-   signal data  : std_logic_vector(128*8-1 downto 0);
+   -- Signals to control the generation of the Ethernet frames for transmission.
+   signal sim_tx_start : std_logic;
+   signal sim_tx_done  : std_logic;
+   signal sim_tx_len   : std_logic_vector(15 downto 0);
+   signal sim_tx_data  : std_logic_vector(128*8-1 downto 0);
+
+   signal sim_rx_start : std_logic;
+   signal sim_rx_done  : std_logic;
+   signal sim_rx_len   : std_logic_vector(15 downto 0);
+   signal sim_rx_data  : std_logic_vector(128*8-1 downto 0);
 
    signal test_running : std_logic := '1';
 
@@ -57,67 +70,22 @@ begin
    end process proc_rst;
 
 
-   -----------------------------
-   -- Generate data to send
-   -----------------------------
+   ---------------------------------
+   -- Instantiate traffic generator
+   ---------------------------------
 
-   sim_tx_proc : process
-   begin
-      tx_empty <= '1';
-      tx_data  <= (others => '0');
-      tx_eof   <= '0';
-      done     <= '1';
+   inst_sim_tx : entity work.sim_tx
+   port map (
+      sim_start_i => sim_tx_start,
+      sim_data_i  => sim_tx_data,
+      sim_len_i   => sim_tx_len,
+      sim_done_o  => sim_tx_done,
 
-      wait until start = '1';
-      done     <= '0';
-      tx_empty <= '0';
-
-      byte_loop : for i in 0 to conv_integer(len)-1 loop
-         tx_data <= data(8*i+7 downto 8*i);
-         if i=conv_integer(len)-1 then
-            tx_eof <= '1';
-         end if;
-
-         wait until tx_rden = '1';
-      end loop byte_loop;
-   end process sim_tx_proc;
-
-
-   ---------------------------
-   -- Validate data received
-   ---------------------------
-
-   sim_rx_proc : process
-   begin
-      -- Verify frame 1
-      byte_loop_1 : for i in 0 to 15 loop
-         wait until rx_valid = '1';
-         assert rx_error = "00";
-
-         assert rx_data = std_logic_vector(to_unsigned(i+12, 8));
-
-         if i = 15 then
-            assert rx_eof = '1';
-         else
-            assert rx_eof = '0';
-         end if;
-      end loop byte_loop_1;
-
-      -- Verify frame 2
-      byte_loop_2 : for i in 0 to 31 loop
-         wait until rx_valid = '1';
-         assert rx_error = "00";
-
-         assert rx_data = std_logic_vector(to_unsigned(i+22, 8));
-
-         if i = 31 then
-            assert rx_eof = '1';
-         else
-            assert rx_eof = '0';
-         end if;
-      end loop byte_loop_2;
-
-   end process sim_rx_proc;
+      tx_empty_o  => tx_empty,
+      tx_data_o   => tx_data,
+      tx_eof_o    => tx_eof,
+      tx_rden_i   => tx_rden
+   );
 
 
    --------------------
@@ -158,6 +126,22 @@ begin
    eth_crsdv <= eth_txen;
 
 
+   ---------------------------------
+   -- Instantiate traffic receiver
+   ---------------------------------
+
+   inst_sim_rx : entity work.sim_rx
+   port map (
+      sim_data_o  => sim_rx_data,
+      sim_len_o   => sim_rx_len,
+
+      rx_valid_i  => rx_valid,
+      rx_data_i   => rx_data,
+      rx_eof_i    => rx_eof,
+      rx_error_i  => rx_error
+   );
+
+
    ----------------------------------
    -- Main test procedure starts here
    ----------------------------------
@@ -165,29 +149,41 @@ begin
    main_test_proc : process
    begin
       -- Wait until reset is complete
-      start <= '0';
+      sim_tx_start <= '0';
       wait until rst = '0';
       wait until clk = '1';
 
       -- Send one frame (16 bytes)
-      for i in 0 to 127 loop
-         data(8*i+7 downto 8*i) <= std_logic_vector(to_unsigned(i+12, 8));
+      for i in 0 to 15 loop
+         sim_tx_data(8*i+7 downto 8*i) <= std_logic_vector(to_unsigned(i+12, 8));
       end loop;
-      len   <= X"0010";
-      start <= '1';
-      wait until done = '1';
-      start <= '0';
+      for i in 16 to 127 loop
+         sim_tx_data(8*i+7 downto 8*i) <= (others => 'X');
+      end loop;
+      sim_tx_len   <= X"0010";
+      sim_tx_start <= '1';
+      wait until sim_tx_done = '1';
+      sim_tx_start <= '0';
       wait until rx_valid = '1' and rx_eof = '1';
+      wait until rx_valid = '0';
+      assert sim_rx_len  = sim_tx_len;
+      assert sim_rx_data = sim_tx_data;
 
       -- Send another frame (32 bytes)
-      for i in 0 to 127 loop
-         data(8*i+7 downto 8*i) <= std_logic_vector(to_unsigned(i+22, 8));
+      for i in 0 to 31 loop
+         sim_tx_data(8*i+7 downto 8*i) <= std_logic_vector(to_unsigned(i+22, 8));
       end loop;
-      len   <= X"0020";
-      start <= '1';
-      wait until done = '1';
-      start <= '0';
+      for i in 32 to 127 loop
+         sim_tx_data(8*i+7 downto 8*i) <= (others => 'X');
+      end loop;
+      sim_tx_len   <= X"0020";
+      sim_tx_start <= '1';
+      wait until sim_tx_done = '1';
+      sim_tx_start <= '0';
       wait until rx_valid = '1' and rx_eof = '1';
+      wait until rx_valid = '0';
+      assert sim_rx_len  = sim_tx_len;
+      assert sim_rx_data = sim_tx_data;
       wait until clk = '1';
 
       -- Stop test
