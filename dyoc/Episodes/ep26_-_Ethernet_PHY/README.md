@@ -73,9 +73,16 @@ MHz, Now we additionally have to interface to the Ethernet PHY, which runs at
 50 Mhz. So our design will now contain two different "clock domains", i.e.
 different areas of the design will be controlled by different clocks.
 
-The Ethernet clock is generated in comp.vhd (line 137) using the same clock
+The Ethernet clock is generated in comp.vhd (line 131) using the same clock
 divider as for the VGA clock. Additionally, all clock signals must be described
 in the constraint file as well, i.e. in comp.xdc line 58.
+
+## Clocking
+In this first version there will be no communication between the two clock
+domains described. However, in the next episode we'll be transferring data
+(ethernet frames) between the VGA and ETH clock domains, and we'll then have to
+deal with issues related to clock domain crossing. In this episode, we can ignore
+all these issues.
 
 ## Interface to the Ethernet PHY
 The PHY chip connects to the FPGA using the [RMII
@@ -83,15 +90,53 @@ specification](https://en.wikipedia.org/wiki/Media-independent_interface#Reduced
 So the first task is to convert the RMII interface to something that more easily
 fits into the 8-bit oriented design of our computer.
 
-This conversion is handled in ethernet/lan8720a/lan8720a.vhd.  This module takes care of:
+Eventually, we want the computer to automatically copy the received ethernet
+frames directly to memory, and similarly automatically read ethernet frames for
+transmission directly from memory. This is called Direct Memory Access (DMA).
+
+Therefore, we will need a convinient interface to and from the Ethernet PHY.
+The interface we would like should have the following features:
+* One byte is transferred at a time (i.e. one byte pr. clock cycle).
+* There should be a 'valid' signal allowing for clock cycles without and byte transfer.
+* There should be a 'eof' signal to indicate the last byte of an Ethernet frame.
+* CRC calculation and validation should be done automatically.
+
+To convert from the this interface to the RMII interface (and back), I've written
+the module ethernet/lan8720a/lan8720a.vhd.  This module takes care of:
 * 2-bit to 8-bit conversion.
 * CRC generation/appending and validation/stripping.
 * Framing with VALID and EOF.
 
-The interface to this block is one byte pr. each clock cycle where VALID is
-true, and EOF is asserted on the last byte.  Two error bits are provided on
-reception (valid only at EOF) that indicate either a receiver error or a CRC
-error.
+The above can be described using the following signals when receiving from the
+Ethernet PHY:
+* rx\_valid\_o : 1 bit.
+* rx\_data\_o  : 8 bits.
+* rx\_eof\_o   : 1 bit.
+* rx\_error\_o : 2 bits (one for receive error from the PHY, one for CRC error).
+
+The two error bits are provided on reception (valid only at EOF) that indicate
+either a receiver error or a CRC error.  The received data has already been
+stripped of the MAC CRC.
+
+When transmitting Ethernet frames to the PHY, the following interface will be used:
+* tx\_empty\_i   : in    std\_logic;
+* tx\_data\_i    : in    std\_logic\_vector(7 downto 0);
+* tx\_eof\_i     : in    std\_logic;
+* tx\_rden\_o    : out   std\_logic;
+* tx\_err\_o     : out   std\_logic;
+
+The 'empty' signal is deasserted, when the application has data to send. The
+'rden' signal is asserted when the current values in 'data' and 'eof' have
+been consumed.
+
+Note that during transmission it is now possible to "pause" in the middle of a
+frame.  In other words, the transmitter must have the entire frame ready before
+initiating transfer. If the 'empty' signal is asserted in the middle of a frame,
+the 'err' signal is reported back to indicate the error condition. This means
+the current frame has been aborted.
+
+The application should not provide any MAC CRC. This will be automatically
+calculated and appended the current frame data.
 
 ## Testing in simulation
 To make simulation time faster, I've added a new Makefile under
