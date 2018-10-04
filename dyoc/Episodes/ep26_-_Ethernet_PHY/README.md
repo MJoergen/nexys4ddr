@@ -77,7 +77,7 @@ The Ethernet clock is generated in comp.vhd (line 131) using the same clock
 divider as for the VGA clock. Additionally, all clock signals must be described
 in the constraint file as well, i.e. in comp.xdc line 58.
 
-## Clocking
+## Clock domain crossing
 In this first version there will be no communication between the two clock
 domains described. However, in the next episode we'll be transferring data
 (ethernet frames) between the VGA and ETH clock domains, and we'll then have to
