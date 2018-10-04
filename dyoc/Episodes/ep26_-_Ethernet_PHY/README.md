@@ -97,26 +97,28 @@ transmission directly from memory. This is called Direct Memory Access (DMA).
 Therefore, we will need a convenient interface to and from the Ethernet PHY.
 The interface we would like should have the following features:
 * One byte is transferred at a time (i.e. one byte pr. clock cycle).
-* There should be a 'valid' signal allowing for clock cycles without and byte transfer.
-* There should be a 'eof' signal to indicate the last byte of an Ethernet frame.
+* There should be a 'valid' signal allowing for clock cycles without any byte
+  transfer.
+* There should be a 'eof' signal to indicate the last byte of an Ethernet frame
+  ("End Of Frame").
 * CRC calculation and validation should be done automatically.
 
-To convert from the this interface to the RMII interface (and back), I've written
-the module ethernet/lan8720a/lan8720a.vhd.  This module takes care of:
-* 2-bit to 8-bit conversion.
+To convert from this interface to the RMII interface (and back), I've written
+the module ethernet/lan8720a/lan8720a.vhd, which takes care of:
+* 2-bit (RMII) to 8-bit (byte) conversion.
 * CRC generation/appending and validation/stripping.
 * Framing with VALID and EOF.
 
-The above can be described using the following signals when receiving from the
-Ethernet PHY:
+Therefore, we require the following signals when receiving from the Ethernet
+PHY:
 * rx\_valid\_o : 1 bit.
 * rx\_data\_o  : 8 bits.
 * rx\_eof\_o   : 1 bit.
-* rx\_error\_o : 2 bits (one for receive error from the PHY, one for CRC error).
+* rx\_error\_o : 2 bits (one bit for receive error from the PHY, one bit for
+  CRC error).
 
-The two error bits are provided on reception (valid only at EOF) that indicate
-either a receiver error or a CRC error.  The received data has already been
-stripped of the MAC CRC.
+The two error bits are valid only on the last byte of the freame, i.e. when
+both EOF and VALID are asserted.
 
 When transmitting Ethernet frames to the PHY, the following interface will be used:
 * tx\_empty\_i   : in    std\_logic;
@@ -126,33 +128,39 @@ When transmitting Ethernet frames to the PHY, the following interface will be us
 * tx\_err\_o     : out   std\_logic;
 
 The 'empty' signal is deasserted, when the application has data to send. The
-'rden' signal is asserted when the current values in 'data' and 'eof' have
-been consumed.
+'rden' ("Read Enable") signal is asserted when the current values in 'data' and
+'eof' have been consumed.
 
-Note that during transmission it is now possible to "pause" in the middle of a
-frame.  In other words, the transmitter must have the entire frame ready before
-initiating transfer. If the 'empty' signal is asserted in the middle of a frame,
-the 'err' signal is reported back to indicate the error condition. This means
-the current frame has been aborted.
+Note that during transmission it is not allowed to pause in the middle of a
+frame, i.e. to assert the 'empty' signal.  In other words, the transmitter must
+have the entire frame ready before initiating transfer. If the 'empty' signal
+is asserted in the middle of a frame, the 'err' signal is reported back to
+indicate the error condition. The consequence is that the current frame is
+aborted.
 
-The application should not provide any MAC CRC. This will be automatically
-calculated and appended the current frame data.
-
-## Testing in simulation
+## Unit testing in simulation
 To make simulation time faster, I've added a new Makefile under
-fpga/ethernet/lan8720a to perform a unit test on the LAN8720A interface module.
-This test sends two Ethernet frames through the LAN8720A Tx interface,
-simulates a loopback in the PHY (because the Rx and Tx signals on the PHY as -
-for this purpose - identical), receives the frames through the LAN8720A Rx
-interface and validates the received result.
+fpga/ethernet/lan8720a to perform a unit test just on the LAN8720A interface
+module.  The testbench instantiates the interface module and simulates the
+Ethernet PHY by simply looping back the Rx and Tx signals.  This loopback
+works precisely because the Rx signals (rxd and crsdv) map directly
+to the corresponding Tx signals (txd and txen).
 
-This is not quite enough to verify correct operation, but it does verify
-that EOF is handled correctly. Furthermore, in the waveform it can be seen that
-a CRC is appended in the Tx direction and stripped in the Rx direction.
+The testbench generates transmit data, sends it through the transmit path of
+the interface module, has the data loopback through the non-existing PHY, and
+back into the receive path of the interface module, and finally stored in a
+local signal.
+
+The test sends two Ethernet frames through this setup, and verifies that both
+frames come back out exactly as they were, with no error indications.
+
+This test validates the operation of the interface, but does not verify the CRC
+calculation. Only that it is consistent in both directions.
 
 ## Testing on hardware
 Even though we have connected the signals at top level, we have not connected
-the signals from the lan8720a interface module.  However, since we now have
+the signals from the lan8720a interface module to the rest of the computer.
+This will be the topic for the next two episodes.  However, since we now have
 added the PHY signals to the top level, and we have added generation of clock
 and reset, then the PHY will now be reset in default mode. This means that it
 will autonegotiate link. Connecting the board to an Ethernet switch will allow

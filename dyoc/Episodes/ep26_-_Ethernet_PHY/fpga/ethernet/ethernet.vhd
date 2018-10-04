@@ -67,10 +67,10 @@ begin
       end if;
    end process proc_eth_rst;
    
-   -- For now, just tie this signal to a constant value.
+   -- For now, just tie the transmit signals to a constant value.
    eth_tx_empty <= '1';
-   eth_tx_eof   <= '0';
    eth_tx_data  <= (others => '0');
+   eth_tx_eof   <= '0';
 
 
    ------------------------------
@@ -105,15 +105,23 @@ begin
       eth_refclk_o => eth_refclk_o
    );
 
+   ----------------------------------------------------------------------------
+   -- Debug counter to count the number of valid frames (no receive errors and
+   -- no CRC errors).
+   ----------------------------------------------------------------------------
    proc_debug : process (eth_clk_i)
    begin
       if rising_edge(eth_clk_i) then
          if eth_rx_valid = '1' and eth_rx_eof = '1' and eth_rx_error = "00" then
             eth_debug <= eth_debug + 1;
          end if;
+         if eth_rst = '1' then
+            eth_debug <= (others => '0');
+         end if;
       end if;
    end process proc_debug;
 
+   -- Connect output signal
    eth_debug_o <= eth_debug;
    
 end Structural;
