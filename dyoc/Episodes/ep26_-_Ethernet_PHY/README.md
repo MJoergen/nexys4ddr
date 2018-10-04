@@ -94,7 +94,7 @@ Eventually, we want the computer to automatically copy the received ethernet
 frames directly to memory, and similarly automatically read ethernet frames for
 transmission directly from memory. This is called Direct Memory Access (DMA).
 
-Therefore, we will need a convinient interface to and from the Ethernet PHY.
+Therefore, we will need a convenient interface to and from the Ethernet PHY.
 The interface we would like should have the following features:
 * One byte is transferred at a time (i.e. one byte pr. clock cycle).
 * There should be a 'valid' signal allowing for clock cycles without and byte transfer.
