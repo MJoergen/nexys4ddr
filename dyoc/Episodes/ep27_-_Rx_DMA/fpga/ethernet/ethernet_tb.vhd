@@ -22,9 +22,6 @@ architecture Structural of ethernet_tb is
    signal eth_rst        : std_logic;
    signal eth_rxd        : std_logic_vector(1 downto 0);
    signal eth_crsdv      : std_logic;
-   signal eth_rxerr      : std_logic;
-   signal eth_rstn       : std_logic;
-   signal eth_refclk     : std_logic;
 
    alias user_rxdma_start  : std_logic_vector(15 downto 0) is user_memio_in( 15 downto  0);
    alias user_rxdma_end    : std_logic_vector(15 downto 0) is user_memio_in( 31 downto 16);
@@ -131,13 +128,13 @@ begin
       eth_txd_o    => open,   -- We're ignoring transmit for now
       eth_txen_o   => open,   -- We're ignoring transmit for now
       eth_rxd_i    => eth_rxd,
-      eth_rxerr_i  => eth_rxerr,
+      eth_rxerr_i  => '0',
       eth_crsdv_i  => eth_crsdv,
       eth_intn_i   => '0',
       eth_mdio_io  => open,
       eth_mdc_o    => open,
-      eth_rstn_o   => eth_rstn,
-      eth_refclk_o => eth_refclk
+      eth_rstn_o   => open,
+      eth_refclk_o => open
    );
    
 
