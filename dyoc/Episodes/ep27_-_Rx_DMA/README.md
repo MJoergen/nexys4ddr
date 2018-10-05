@@ -28,38 +28,46 @@ Note that the length field therefore serves two different purposes: It
 indicates the length of the current frame, and it is used to calculate the
 beginning of the next frame. The latter assumes that frames are back-to-back.
 
-To ensure the second requirement, I've decided to use bit 15 in the length
-field as follows:
-* bit 15 = 0: The next frame starts right after this frame
-* bit 15 = 1: The next frame starts at the beginning of the receive buffer.
+To ensure the second requirement, I've decided to always allow room for at
+least a full maximum size Ethernet frame (i.e. 1514 bytes Ethernet frame plus 2
+bytes header).  This means that if the space at the end of the receive buffer
+is too small, new frames will automatically start at the beginning of the frame
+(if there is space available).
 
-In other words, it is the Rx DMA that decides where the next frame starts, and
-indicates this in the two-byte header. Software must correctly decode this
-header to calculate the start of the next frame.
+The above design is similar to the bi-partite ring buffer, aka the
+[https://www.codeproject.com/Articles/3479/The-Bip-Buffer-The-Circular-Buffer-with-a-Twist](Bip
+Buffer).  Note that the CPU mau be completely agnostic about the current free
+space in the receive buffer. The CPU will be told where the next frame begins,
+as explained in the following section.
 
 ## Interface to CPU
 The CPU is responsible for allocating memory for the receive buffer. The CPU
 must then instruct the Rx DMA where the receive buffer is located. On the other
 hand, the Rx DMA must instruct the CPU when a new frame has been written into
 this receive buffer.  This leads to the following memory mapped registers:
-* ETH\_START  : Address of first byte of receive buffer.
-* ETH\_END    : Address of last byte of receive buffer plus one.
-* ETH\_ENABLE : One bit to enable/disable the Rx DMA.
-* ETH\_WRPTR  : Address of last byte written to memory plus one.
-* ETH\_RDPTR  : The current CPU read pointer.
+* ETH\_ENABLE    (R/W) : One bit to enable/disable the Rx DMA.
+* ETH\_DMA\_PTR  (R/W) : Address of first byte of receive buffer.
+* ETH\_DMA\_SIZE (R/W) : Number of bytes in receive buffer.
+* ETH\_CPU\_PTR  (R/W) : The current CPU read pointer (first byte not processed).
+* ETH\_BUF\_PTR  (RO)  : Address of current bytes to be processed by the CPU.
+* ETH\_BUF\_SIZE (RO)  : Number of bytes ready to be processed by the CPU.
 
-Both the write pointer ETH\_WRPTR and the read pointer ETH\_RDPTR will point to
-addresses within the allocated receive buffer, i.e. between ETH\_START and
-ETH\_END inclusive.
+To initialize the Rx DMA, the CPU must write the address and size of receive
+buffer into the registers ETH\_DMA\_PTR and ETH\_DMA\_SIZE, as well as setting
+the current CPU pointer ETH\_CPU\_PTR to the beginning of the buffer, i.e. the
+same value as ETH\_DMA\_PTR. Then the CPU can enable the Rx DMA by writing a
+0x01 to the register ETH\_ENABLE.
 
-In others words ETH\_WRPTR points to the first byte of the next frame (not yet
-received), whereas ETH\_RDPTR points to the first byte of the current frame.
-When ETH\_WRPTR and ETH\_RDPTR are equal, then the receive buffer is completely
-empty.
+The Rx DMA will then automatically set ETH\_BUF\_PTR to equal the start of the
+receive buffer and set the value ETH\_BUF\_SIZE to zero.
 
-When the Rx DMA writes to the receive buffer, it must ensure that ETH\_WRPTR
-never reaches ETH\_RDPTR. So the receive buffer is full, when ETH\_WRPTR =
-ETH\_RDPTR - 1.
+When data is receiver the regsiter ETH\_BUF\_SIZE will increase. Whenever this
+value is nonzero, this tells the CPU that there is data ready in the buffer.
+When the CPU has processed the received data, the CPU must update the value of
+ETH\_CPU\_PTR, e.g. by setting it equal to ETH\_BUF\_PTR + ETH\_BUF\_SIZE.
+
+The Rx DMA will automatically adjust the value of ETH\_BUF\_PTR and
+ETH\_BUF\_SIZE.
 
 ## Overall design strategy for receiving data from the Ethernet.
 A number of blocks is needed in the design in order to facilitate all this.  In
@@ -181,6 +189,13 @@ burst of subsequent packets are received. The current implementation will stop
 reading from the fifo (the signal user\_rden remains low), which will then fill
 up (as indicated by the signal eth\_fifo\_afull). Eventually the input buffer
 in rx\_header.vhd will fill up and generate the persistent error eth\_overflow.
+
+When the Rx DMA writes to the receive buffer, it must ensure that ETH\_WRPTR
+never reaches ETH\_RDPTR. So the receive buffer is full, when ETH\_WRPTR =
+ETH\_RDPTR - 1.
+
+If there is less than 1516 bytes left in the receive buffer, then the
+next frame will start at ETH\_START.
 
 ## Updates to the memory block
 Since we now have two independent processes writing to the memory, i.e. the CPU
