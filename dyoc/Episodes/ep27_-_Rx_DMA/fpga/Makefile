@@ -9,7 +9,7 @@ SRC  = chipset/ic.vhd chipset/waiter.vhd chipset/timer.vhd \
        ethernet/rx_dma.vhd ethernet/fifo.vhd ethernet/rx_header.vhd \
 		 comp.vhd
 XDC  = comp.xdc
-TB   = tb.vhd keyboard/ps2_tb.vhd ethernet/lan8720a_sim.vhd ethernet/sim_tx.vhd
+TB   = tb.vhd keyboard/ps2_tb.vhd ethernet/phy_sim.vhd
 WAVE = tb.ghw
 SAVE = tb.gtkw
 

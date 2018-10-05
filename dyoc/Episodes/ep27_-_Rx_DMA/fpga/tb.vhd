@@ -36,6 +36,12 @@ architecture Structural of tb is
    signal eth_rstn   : std_logic;
    signal eth_refclk : std_logic;
    
+   -- Controls the traffic input to Ethernet.
+   signal sim_data  : std_logic_vector(128*8-1 downto 0);
+   signal sim_len   : std_logic_vector( 15     downto 0);
+   signal sim_start : std_logic := '0';
+   signal sim_done  : std_logic;
+
 begin
    
    --------------------------------------------------
@@ -75,14 +81,14 @@ begin
       rstn_i       => rstn,
       ps2_clk_i    => ps2_clk,
       ps2_data_i   => ps2_data,
-      eth_txd_o    => eth_txd,
-      eth_txen_o   => eth_txen,
+      eth_txd_o    => open,   -- We're ignoring transmit for now
+      eth_txen_o   => open,   -- We're ignoring transmit for now
       eth_rxd_i    => eth_rxd,
-      eth_rxerr_i  => eth_rxerr,
+      eth_rxerr_i  => '0',
       eth_crsdv_i  => eth_crsdv,
-      eth_intn_i   => eth_intn,
-      eth_mdio_io  => eth_mdio,
-      eth_mdc_o    => eth_mdc,
+      eth_intn_i   => '0',
+      eth_mdio_io  => open,
+      eth_mdc_o    => open,
       eth_rstn_o   => eth_rstn,
       eth_refclk_o => eth_refclk,
       vga_hs_o     => vga_hs,
@@ -106,22 +112,21 @@ begin
    );
 
 
-   --------------------------------------------------
-   -- Instantiate PHY
-   --------------------------------------------------
+   ---------------------------------
+   -- Instantiate PHY simulator
+   ---------------------------------
 
-   inst_lan8720a_sim : entity work.lan8720a_sim
+   inst_phy_sim : entity work.phy_sim
    port map (
-      eth_txd_i    => eth_txd,
-      eth_txen_i   => eth_txen,
-      eth_rxd_o    => eth_rxd,
-      eth_rxerr_o  => eth_rxerr,
-      eth_crsdv_o  => eth_crsdv,
-      eth_intn_o   => eth_intn,
-      eth_mdio_io  => eth_mdio,
-      eth_mdc_i    => eth_mdc,
+      sim_data_i   => sim_data,
+      sim_len_i    => sim_len,
+      sim_start_i  => sim_start,
+      sim_done_o   => sim_done,
+      --
+      eth_refclk_i => eth_refclk,
       eth_rstn_i   => eth_rstn,
-      eth_refclk_i => eth_refclk
+      eth_txd_o    => eth_rxd,
+      eth_txen_o   => eth_crsdv
    );
 
 

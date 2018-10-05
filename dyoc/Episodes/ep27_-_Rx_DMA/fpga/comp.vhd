@@ -106,6 +106,14 @@ architecture Structural of comp is
    signal memio_rden : std_logic_vector(  32-1 downto 0);
    signal memio_wr   : std_logic_vector(8*32-1 downto 0);
 
+   signal cpu_cyc        : std_logic_vector(31 downto 0);
+   signal cpu_cyc_latch  : std_logic_vector( 7 downto 0);
+   signal vga_palette    : std_logic_vector(127 downto 0);
+   signal vga_pix_y_line : std_logic_vector( 15 downto 0);
+   signal vga_pix_x      : std_logic_vector(15 downto 0);
+   signal vga_pix_y      : std_logic_vector(15 downto 0);
+   signal kbd_data       : std_logic_vector( 7 downto 0);
+
    signal irq_mask   : std_logic_vector(7 downto 0);
    signal irq_status : std_logic_vector(7 downto 0);
    signal irq_memio_rden : std_logic;
@@ -161,8 +169,8 @@ begin
       irq_i   => ic_irq,    -- Eight independent interrupt sources
       irq_o   => cpu_irq,   -- Overall CPU interrupt
 
-      mask_i     => irq_memio_wr,      -- IRQ mask
-      stat_o     => irq_memio_rd,      -- IRQ status
+      mask_i     => irq_mask,      -- IRQ mask
+      stat_o     => irq_status,      -- IRQ status
       stat_clr_i => irq_memio_rden     -- Reading from IRQ status
    );
 
@@ -221,8 +229,8 @@ begin
       irq_i     => cpu_irq,
       nmi_i     => '0', -- Not used at the moment
       rst_i     => rst,
-      memio_o   => cpu_memio_rd,
-      memio_i   => cpu_memio_wr
+      memio_o   => cpu_cyc,
+      memio_i   => cpu_cyc_latch
    );
 
 
@@ -263,9 +271,9 @@ begin
       b_col_addr_i  => col_addr,
       b_col_data_o  => col_data,
       --
-      b_eth_wren_i   => eth_user_wren,
-      b_eth_addr_i   => eth_user_addr,
-      b_eth_data_i   => eth_user_data,
+      b_eth_wren_i   => cpu_eth_ram_wren,
+      b_eth_addr_i   => cpu_eth_ram_addr,
+      b_eth_data_i   => cpu_eth_ram_data,
       --
       b_memio_rd_i   => memio_rd,    -- To MEMIO
       b_memio_rden_o => memio_rden,  -- To MEMIO
@@ -294,9 +302,11 @@ begin
       col_addr_o  => col_addr,
       col_data_i  => col_data,
 
-      memio_i => vga_memio_wr,
-      memio_o => vga_memio_rd,
-      irq_o   => vga_irq
+      palette_i    => vga_palette,
+      pix_y_line_i => vga_pix_y_line,
+      pix_x_o      => vga_pix_x,
+      pix_y_o      => vga_pix_y,
+      irq_o        => vga_irq
    );
 
 
@@ -310,7 +320,7 @@ begin
       ps2_clk_i  => ps2_clk_i,
       ps2_data_i => ps2_data_i,
 
-      data_o     => kbd_memio_rd,
+      data_o     => kbd_data,
       irq_o      => kbd_irq,
 
       debug_o    => kbd_debug
@@ -368,7 +378,7 @@ begin
    -- 7FDF        : IRQ_MASK
 
    vga_palette          <= memio_wr(15*8+7 downto  0*8);
-   vga_pix_y_int        <= memio_wr(17*8+7 downto 16*8);
+   vga_pix_y_line       <= memio_wr(17*8+7 downto 16*8);
    cpu_cyc_latch        <= memio_wr(18*8+7 downto 18*8);
    cpu_eth_rxdma_enable <= memio_wr(19*8);
    cpu_eth_rxdma_ptr    <= memio_wr(21*8+7 downto 20*8);
@@ -396,12 +406,12 @@ begin
    memio_rd( 7*8+7 downto  4*8) <= cpu_cyc;
    memio_rd( 8*8+7 downto  8*8) <= kbd_data;
    memio_rd( 9*8+7 downto  9*8) <= (others => '0');   -- Not used
-   memio_rd(11*8+7 downto 10*8) <= eth_rxbuf_ptr;
-   memio_rd(13*8+7 downto 12*8) <= eth_rxbuf_size;
-   memio_rd(15*8+7 downto 14*8) <= eth_rxcnt;
-   memio_rd(16*8+7 downto 16*8) <= eth_rxerr0;
-   memio_rd(17*8+7 downto 17*8) <= eth_rxerr1;
-   memio_rd(18*8+7 downto 18*8) <= eth_rxoverflow;
+   memio_rd(11*8+7 downto 10*8) <= cpu_eth_rxbuf_ptr;
+   memio_rd(13*8+7 downto 12*8) <= cpu_eth_rxbuf_size;
+   memio_rd(15*8+7 downto 14*8) <= cpu_eth_rxcnt_good;
+   memio_rd(16*8+7 downto 16*8) <= cpu_eth_rxcnt_error;
+   memio_rd(17*8+7 downto 17*8) <= cpu_eth_rxcnt_crc_bad;
+   memio_rd(18*8+7 downto 18*8) <= cpu_eth_rxcnt_overflow;
    memio_rd(30*8+7 downto 19*8) <= (others => '0');   -- Not used
    memio_rd(31*8+7 downto 31*8) <= irq_status;
    irq_memio_rden <= memio_rden(31);

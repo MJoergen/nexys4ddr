@@ -13,30 +13,29 @@ entity vga is
       G_FONT_FILE : string
    );
    port (
-      clk_i       : in  std_logic;    -- Expects 25.175 MHz
+      clk_i        : in  std_logic;    -- Expects 25.175 MHz
 
-      overlay_i   : in  std_logic;
-      digits_i    : in  std_logic_vector(191 downto 0);
+      overlay_i    : in  std_logic;
+      digits_i     : in  std_logic_vector(191 downto 0);
 
-      char_addr_o : out std_logic_vector(12 downto 0);
-      char_data_i : in  std_logic_vector( 7 downto 0);
-      col_addr_o  : out std_logic_vector(12 downto 0);
-      col_data_i  : in  std_logic_vector( 7 downto 0);
+      char_addr_o  : out std_logic_vector(12 downto 0);
+      char_data_i  : in  std_logic_vector( 7 downto 0);
+      col_addr_o   : out std_logic_vector(12 downto 0);
+      col_data_i   : in  std_logic_vector( 7 downto 0);
 
-      memio_i     : in  std_logic_vector(18*8-1 downto 0);
-      memio_o     : out std_logic_vector( 4*8-1 downto 0);
-      irq_o       : out std_logic;
+      palette_i    : in  std_logic_vector(127 downto 0);
+      pix_y_line_i : in  std_logic_vector( 15 downto 0);
+      pix_x_o      : out std_logic_vector(15 downto 0);
+      pix_y_o      : out std_logic_vector(15 downto 0);
+      irq_o        : out std_logic;
 
-      vga_hs_o    : out std_logic;
-      vga_vs_o    : out std_logic;
-      vga_col_o   : out std_logic_vector(7 downto 0)
+      vga_hs_o     : out std_logic;
+      vga_vs_o     : out std_logic;
+      vga_col_o    : out std_logic_vector(7 downto 0)
    );
 end vga;
 
 architecture Structural of vga is
-
-   signal colour_palette       : std_logic_vector(16*8-1 downto 0);
-   signal pix_y_line_interrupt : std_logic_vector(15 downto 0);
 
    -- Define constants used for 640x480 @ 60 Hz.
    -- Requires a clock of 25.175 MHz.
@@ -121,7 +120,7 @@ begin
       col_addr_o  => col_addr_o,
       col_data_i  => col_data_i,
 
-      palette_i   => colour_palette,
+      palette_i   => palette_i,
 
       pix_x_o     => char_pix_x,
       pix_y_o     => char_pix_y,
@@ -162,16 +161,13 @@ begin
    -- Memory Mapped I/O
    --------------------
 
-   colour_palette       <= memio_i(15*8+7 downto  0*8);
-   pix_y_line_interrupt <= memio_i(17*8+7 downto 16*8);
-
-   memio_o( 7 downto  0) <= pix_x(7 downto 0);
-   memio_o(15 downto  8) <= "000000" & pix_x(9 downto 8);
-   memio_o(23 downto 16) <= pix_y(7 downto 0);
-   memio_o(31 downto 24) <= "000000" & pix_y(9 downto 8);
+   pix_x_o( 9 downto  0) <= pix_x;
+   pix_x_o(15 downto 10) <= (others => '0');
+   pix_y_o( 9 downto  0) <= pix_y;
+   pix_y_o(15 downto 10) <= (others => '0');
 
    -- Generate interrupt at end of the requested line.
-   irq_o <= '1' when pix_y = pix_y_line_interrupt and pix_x = H_PIXELS else
+   irq_o <= '1' when pix_y = pix_y_line_i and pix_x = H_PIXELS else
             '0';
 
 end architecture Structural;
