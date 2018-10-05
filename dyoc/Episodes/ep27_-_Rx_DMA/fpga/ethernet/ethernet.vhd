@@ -69,12 +69,6 @@ architecture Structural of ethernet is
    signal user_rxfifo_eof   : std_logic_vector(0 downto 0);
    signal user_rxdma_rden   : std_logic;
 
-   -- Output from rx_dma
-   signal user_rxdma_wren  : std_logic;
-   signal user_rxdma_addr  : std_logic_vector(15 downto 0);
-   signal user_rxdma_data  : std_logic_vector( 7 downto 0);
-   signal user_rxdma_wrptr : std_logic_vector(15 downto 0);
-
 begin
 
    ------------------------------
@@ -147,10 +141,10 @@ begin
       rx_data_i      => eth_rx_data,
       rx_error_i     => eth_rx_error,
       --
-      cnt_good_o     => user_cnt_good_o,
-      cnt_error_o    => user_cnt_error_o,
-      cnt_crc_bad_o  => user_cnt_crc_bad_o,
-      cnt_overflow_o => user_cnt_overflow_o,
+      cnt_good_o     => user_rxcnt_good_o,
+      cnt_error_o    => user_rxcnt_error_o,
+      cnt_crc_bad_o  => user_rxcnt_crc_bad_o,
+      cnt_overflow_o => user_rxcnt_overflow_o,
       --
       out_afull_i    => eth_rxfifo_afull,
       out_valid_o    => eth_rxheader_valid,
@@ -199,9 +193,9 @@ begin
       rd_data_i    => user_rxfifo_data,
       rd_eof_i     => user_rxfifo_eof(0),
       --
-      wr_en_o      => user_rxdma_wren,
-      wr_addr_o    => user_rxdma_addr,
-      wr_data_o    => user_rxdma_data,
+      wr_en_o      => user_ram_wren_o,
+      wr_addr_o    => user_ram_addr_o,
+      wr_data_o    => user_ram_data_o,
       --
       dma_enable_i => user_rxdma_enable_i,
       dma_ptr_i    => user_rxdma_ptr_i,
@@ -210,12 +204,6 @@ begin
       buf_ptr_o    => user_rxbuf_ptr_o,
       buf_size_o   => user_rxbuf_size_o
    );
-
-   -- Connect output signals
-   user_wren_o <= user_rxdma_wren;
-   user_addr_o <= user_rxdma_addr;
-   user_data_o <= user_rxdma_data;
-
 
 end Structural;
 

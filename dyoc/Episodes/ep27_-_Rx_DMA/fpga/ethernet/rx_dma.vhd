@@ -46,7 +46,12 @@ architecture Structural of rx_dma is
    signal wr_data  : std_logic_vector( 7 downto 0);
 
    signal buf_ptr  : std_logic_vector(15 downto 0);
+   signal buf_end  : std_logic_vector(15 downto 0);
    signal buf_size : std_logic_vector(15 downto 0);
+
+   signal rd_eof_d       : std_logic;
+   signal wait_for_cpu   : std_logic;
+   signal wait_for_cpu_d : std_logic;
 
 begin
 
@@ -64,11 +69,13 @@ begin
          if wr_en = '1' then
             wr_addr <= wr_addr + 1;
 
-            -- If end of packet, check if remaining buffer can support a full frame.
-            -- If not, reset write pointer to start of receive buffer.
-            if rd_eof_i = '1' and (dma_ptr_i + dma_size_i - wr_addr) < X"0600" then
+            if rd_eof_i = '1' and (dma_ptr_i + dma_size_i - wr_addr) < X"0600" and wait_for_cpu = '0' then
                wr_addr <= dma_ptr_i;
             end if;
+         end if;
+
+         if wait_for_cpu_d = '1' and wait_for_cpu = '0' then
+            wr_addr <= dma_ptr_i;
          end if;
 
          if dma_enable_i = '0' then   -- Reset write pointer to beginning of new buffer location.
@@ -76,6 +83,24 @@ begin
          end if;
       end if;
    end process proc_wr_addr;
+
+
+   proc_wait_for_cpu : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if rd_eof_i = '1' and (dma_ptr_i + dma_size_i - wr_addr) < X"0600" then
+            if cpu_ptr_i /= wr_addr then
+               wait_for_cpu <= '1';
+            end if; 
+         end if;
+
+         if cpu_ptr_i = wr_addr then
+            wait_for_cpu <= '0';
+         end if; 
+
+         wait_for_cpu_d <= wait_for_cpu;
+      end if;
+   end process proc_wait_for_cpu;
 
 
    ----------------------------------------------
@@ -88,27 +113,56 @@ begin
       if rising_edge(clk_i) then
          rd_en <= not rd_empty_i and not rd_en;
          
-         -- Don't read any more, if buffer is full.
          if dma_enable_i = '1' then
-            if wr_addr + 1 = cpu_ptr_i or
-               (wr_addr = dma_ptr_i + dma_size_i) then
+            -- Don't send any more, if we've reached the CPU pointer.
+            if wr_addr + 1 = cpu_ptr_i then
+               rd_en <= '0';
+            end if;
+
+            -- Don't start a new frame if not room.
+            if wait_for_cpu = '1' then
                rd_en <= '0';
             end if;
          end if;
+
+         rd_eof_d <= rd_eof_i;
       end if;
    end process proc_read;
 
 
-   proc_buf_ptr : process (clk_i)
+   proc_buf_end : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wr_en = '1' and rd_eof_i = '1' then
-            buf_size <= wr_addr + 1 - buf_ptr;
+            buf_end <= wr_addr + 1;
+         end if;
+
+         if dma_enable_i = '0' then
+            buf_end <= dma_ptr_i;
+         end if;
+      end if;
+   end process proc_buf_end;
+
+   proc_buf_size : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         buf_size <= buf_end - cpu_ptr_i;
+
+         if dma_enable_i = '0' then
+            buf_size <= (others => '0');
+         end if;
+      end if;
+   end process proc_buf_size;
+
+   proc_buf_ptr : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if wr_addr + 1 > cpu_ptr_i then
+            buf_ptr <= cpu_ptr_i;
          end if;
 
          if dma_enable_i = '0' then   -- Reset write pointer to beginning of new buffer location.
-            buf_ptr  <= dma_ptr_i;
-            buf_size <= (others => '0');
+            buf_ptr <= dma_ptr_i;
          end if;
       end if;
    end process proc_buf_ptr;
