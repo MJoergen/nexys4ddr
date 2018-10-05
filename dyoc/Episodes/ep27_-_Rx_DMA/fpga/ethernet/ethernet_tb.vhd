@@ -12,20 +12,20 @@ end entity ethernet_tb;
 architecture Structural of ethernet_tb is
 
    -- Connected to DUT
-   signal user_clk          : std_logic;  -- 25 MHz
-   signal user_wren         : std_logic;
-   signal user_addr         : std_logic_vector(15 downto 0);
-   signal user_data         : std_logic_vector( 7 downto 0);
-   signal user_rxdma_enable : std_logic;
-   signal user_rxdma_ptr    : std_logic_vector(15 downto 0);
-   signal user_rxdma_size   : std_logic_vector(15 downto 0);
-   signal user_rxcpu_ptr    : std_logic_vector(15 downto 0);
-   signal user_rxbuf_ptr    : std_logic_vector(15 downto 0);
-   signal user_rxbuf_size   : std_logic_vector(15 downto 0);
-   signal user_cnt_good     : std_logic_vector(15 downto 0);
-   signal user_cnt_error    : std_logic_vector( 7 downto 0);
-   signal user_cnt_crc_bad  : std_logic_vector( 7 downto 0);
-   signal user_cnt_overflow : std_logic_vector( 7 downto 0);
+   signal user_clk            : std_logic;  -- 25 MHz
+   signal user_ram_wren       : std_logic;
+   signal user_ram_addr       : std_logic_vector(15 downto 0);
+   signal user_ram_data       : std_logic_vector( 7 downto 0);
+   signal user_rxdma_enable   : std_logic;
+   signal user_rxdma_ptr      : std_logic_vector(15 downto 0);
+   signal user_rxdma_size     : std_logic_vector(15 downto 0);
+   signal user_rxcpu_ptr      : std_logic_vector(15 downto 0);
+   signal user_rxbuf_ptr      : std_logic_vector(15 downto 0);
+   signal user_rxbuf_size     : std_logic_vector(15 downto 0);
+   signal user_rxcnt_good     : std_logic_vector(15 downto 0);
+   signal user_rxcnt_error    : std_logic_vector( 7 downto 0);
+   signal user_rxcnt_crc_bad  : std_logic_vector( 7 downto 0);
+   signal user_rxcnt_overflow : std_logic_vector( 7 downto 0);
    --
    signal eth_clk           : std_logic;  -- 50 MHz
    signal eth_refclk        : std_logic;
@@ -80,9 +80,9 @@ begin
    inst_ram_sim : entity work.ram_sim
    port map (
       clk_i   => user_clk,
-      wren_i  => user_wren,
-      addr_i  => user_addr,
-      data_i  => user_data,
+      wren_i  => user_ram_wren,
+      addr_i  => user_ram_addr,
+      data_i  => user_ram_data,
       clear_i => sim_ram_clear,
       ram_o   => sim_ram
    );
@@ -112,20 +112,20 @@ begin
 
    inst_ethernet : entity work.ethernet
    port map (
-      user_clk_i          => user_clk,
-      user_wren_o         => user_wren,
-      user_addr_o         => user_addr,
-      user_data_o         => user_data,
-      user_rxdma_enable_i => user_rxdma_enable,
-      user_rxdma_ptr_i    => user_rxdma_ptr,
-      user_rxdma_size_i   => user_rxdma_size,
-      user_rxcpu_ptr_i    => user_rxcpu_ptr,
-      user_rxbuf_ptr_o    => user_rxbuf_ptr,
-      user_rxbuf_size_o   => user_rxbuf_size,
-      user_cnt_good_o     => user_cnt_good,
-      user_cnt_error_o    => user_cnt_error,
-      user_cnt_crc_bad_o  => user_cnt_crc_bad,
-      user_cnt_overflow_o => user_cnt_overflow,
+      user_clk_i            => user_clk,
+      user_ram_wren_o       => user_ram_wren,
+      user_ram_addr_o       => user_ram_addr,
+      user_ram_data_o       => user_ram_data,
+      user_rxdma_enable_i   => user_rxdma_enable,
+      user_rxdma_ptr_i      => user_rxdma_ptr,
+      user_rxdma_size_i     => user_rxdma_size,
+      user_rxcpu_ptr_i      => user_rxcpu_ptr,
+      user_rxbuf_ptr_o      => user_rxbuf_ptr,
+      user_rxbuf_size_o     => user_rxbuf_size,
+      user_rxcnt_good_o     => user_rxcnt_good,
+      user_rxcnt_error_o    => user_rxcnt_error,
+      user_rxcnt_crc_bad_o  => user_rxcnt_crc_bad,
+      user_rxcnt_overflow_o => user_rxcnt_overflow,
       --
       eth_clk_i           => eth_clk,
       eth_txd_o           => open,   -- We're ignoring transmit for now
@@ -177,10 +177,10 @@ begin
       wait for 3 us;                -- Wait until data has been received in sim_ram.
 
       -- Verify statistics counters
-      assert user_cnt_good     = 0;
-      assert user_cnt_error    = 0;
-      assert user_cnt_crc_bad  = 0;
-      assert user_cnt_overflow = 1;
+      assert user_rxcnt_good     = 0;
+      assert user_rxcnt_error    = 0;
+      assert user_rxcnt_crc_bad  = 0;
+      assert user_rxcnt_overflow = 1;
 
 
       -----------------------------------------------
@@ -222,10 +222,10 @@ begin
       assert user_rxbuf_size = X"82";
 
       -- Verify statistics counters
-      assert user_cnt_good     = 1;
-      assert user_cnt_error    = 0;
-      assert user_cnt_crc_bad  = 0;
-      assert user_cnt_overflow = 1;
+      assert user_rxcnt_good     = 1;
+      assert user_rxcnt_error    = 0;
+      assert user_rxcnt_crc_bad  = 0;
+      assert user_rxcnt_overflow = 1;
 
       -- Verify memory contents.
       assert sim_ram(15 downto 0) = X"0082";  -- Length includes 2-byte header.
@@ -257,10 +257,10 @@ begin
       assert user_rxbuf_size = X"F4";
 
       -- Verify statistics counters
-      assert user_cnt_good     = 2;
-      assert user_cnt_error    = 0;
-      assert user_cnt_crc_bad  = 0;
-      assert user_cnt_overflow = 1;
+      assert user_rxcnt_good     = 2;
+      assert user_rxcnt_error    = 0;
+      assert user_rxcnt_crc_bad  = 0;
+      assert user_rxcnt_overflow = 1;
 
       -- Verify memory contents.
       assert sim_ram(15 downto 0) = X"0082";  -- Length includes 2-byte header.
@@ -294,10 +294,10 @@ begin
       assert user_rxbuf_size = X"F4";
 
       -- Verify statistics counters
-      assert user_cnt_good     = 3;
-      assert user_cnt_error    = 0;
-      assert user_cnt_crc_bad  = 0;
-      assert user_cnt_overflow = 1;
+      assert user_rxcnt_good     = 3;
+      assert user_rxcnt_error    = 0;
+      assert user_rxcnt_crc_bad  = 0;
+      assert user_rxcnt_overflow = 1;
 
       -- Verify previous frames are untouched.
       assert sim_ram(15 downto 0) = X"0082";  -- Length includes 2-byte header.
@@ -328,10 +328,10 @@ begin
       wait for 10 us;            -- Wait some time while RxDMA processes data.
 
       -- Verify statistics counters
-      assert user_cnt_good     = 3;
-      assert user_cnt_error    = 0;
-      assert user_cnt_crc_bad  = 0;
-      assert user_cnt_overflow = 1;
+      assert user_rxcnt_good     = 3;
+      assert user_rxcnt_error    = 0;
+      assert user_rxcnt_crc_bad  = 0;
+      assert user_rxcnt_overflow = 1;
 
       -- Verify first frame is untouched.
 
@@ -361,10 +361,10 @@ begin
       assert user_rxbuf_size = X"62";
 
       -- Verify statistics counters
-      assert user_cnt_good     = 3;
-      assert user_cnt_error    = 0;
-      assert user_cnt_crc_bad  = 0;
-      assert user_cnt_overflow = 1;
+      assert user_rxcnt_good     = 3;
+      assert user_rxcnt_error    = 0;
+      assert user_rxcnt_crc_bad  = 0;
+      assert user_rxcnt_overflow = 1;
 
       -- Verify first frame is untouched.
 

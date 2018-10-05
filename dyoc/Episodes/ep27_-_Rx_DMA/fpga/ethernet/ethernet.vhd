@@ -7,20 +7,20 @@ use ieee.std_logic_unsigned.all;
 entity ethernet is
    port (
       -- Connected to user
-      user_clk_i          : in  std_logic;
-      user_wren_o         : out std_logic;
-      user_addr_o         : out std_logic_vector(15 downto 0);
-      user_data_o         : out std_logic_vector( 7 downto 0);
-      user_rxdma_enable_i : in  std_logic;
-      user_rxdma_ptr_i    : in  std_logic_vector(15 downto 0);
-      user_rxdma_size_i   : in  std_logic_vector(15 downto 0);
-      user_rxcpu_ptr_i    : in  std_logic_vector(15 downto 0);
-      user_rxbuf_ptr_o    : out std_logic_vector(15 downto 0);
-      user_rxbuf_size_o   : out std_logic_vector(15 downto 0);
-      user_cnt_good_o     : out std_logic_vector(15 downto 0);
-      user_cnt_error_o    : out std_logic_vector( 7 downto 0);
-      user_cnt_crc_bad_o  : out std_logic_vector( 7 downto 0);
-      user_cnt_overflow_o : out std_logic_vector( 7 downto 0);
+      user_clk_i            : in  std_logic;
+      user_ram_wren_o       : out std_logic;
+      user_ram_addr_o       : out std_logic_vector(15 downto 0);
+      user_ram_data_o       : out std_logic_vector( 7 downto 0);
+      user_rxdma_enable_i   : in  std_logic;
+      user_rxdma_ptr_i      : in  std_logic_vector(15 downto 0);
+      user_rxdma_size_i     : in  std_logic_vector(15 downto 0);
+      user_rxcpu_ptr_i      : in  std_logic_vector(15 downto 0);
+      user_rxbuf_ptr_o      : out std_logic_vector(15 downto 0);
+      user_rxbuf_size_o     : out std_logic_vector(15 downto 0);
+      user_rxcnt_good_o     : out std_logic_vector(15 downto 0);
+      user_rxcnt_error_o    : out std_logic_vector( 7 downto 0);
+      user_rxcnt_crc_bad_o  : out std_logic_vector( 7 downto 0);
+      user_rxcnt_overflow_o : out std_logic_vector( 7 downto 0);
 
       -- Connected to PHY.
       eth_clk_i           : in    std_logic; -- Must be 50 MHz
