@@ -34,11 +34,11 @@ bytes header).  This means that if the space at the end of the receive buffer
 is too small, new frames will automatically start at the beginning of the frame
 (if there is space available).
 
-The above design is similar to the bi-partite ring buffer, aka the
-[https://www.codeproject.com/Articles/3479/The-Bip-Buffer-The-Circular-Buffer-with-a-Twist](Bip
-Buffer).  Note that the CPU mau be completely agnostic about the current free
-space in the receive buffer. The CPU will be told where the next frame begins,
-as explained in the following section.
+The above design is similar to the bi-partite ring buffer, aka the [Bip
+buffer](https://www.codeproject.com/Articles/3479/The-Bip-Buffer-The-Circular-Buffer-with-a-Twist).
+Note that the CPU mau be completely agnostic about the current free space in
+the receive buffer. The CPU will be told where the next frame begins, as
+explained in the following section.
 
 ## Interface to CPU
 The CPU is responsible for allocating memory for the receive buffer. The CPU
