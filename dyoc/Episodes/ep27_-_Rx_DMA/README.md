@@ -45,12 +45,12 @@ The CPU is responsible for allocating memory for the receive buffer. The CPU
 must then instruct the Rx DMA where the receive buffer is located. On the other
 hand, the Rx DMA must instruct the CPU when a new frame has been written into
 this receive buffer.  This leads to the following memory mapped registers:
-* ETH\_ENABLE    (R/W) : One bit to enable/disable the Rx DMA.
-* ETH\_DMA\_PTR  (R/W) : Address of first byte of receive buffer.
-* ETH\_DMA\_SIZE (R/W) : Number of bytes in receive buffer.
-* ETH\_CPU\_PTR  (R/W) : The current CPU read pointer (first byte not processed).
-* ETH\_BUF\_PTR  (RO)  : Address of current bytes to be processed by the CPU.
-* ETH\_BUF\_SIZE (RO)  : Number of bytes ready to be processed by the CPU.
+* ETH\_RXDMA\_ENABLE  (R/W) : One bit to enable/disable the Rx DMA.
+* ETH\_RXDMA\_PTR     (R/W) : Address of first byte of receive buffer.
+* ETH\_RXDMA\_SIZE    (R/W) : Number of bytes in receive buffer.
+* ETH\_RXCPU\_PTR     (R/W) : The current CPU read pointer (first byte not processed).
+* ETH\_RXBUF\_PTR     (RO)  : Address of current bytes to be processed by the CPU.
+* ETH\_RXBUF\_SIZE    (RO)  : Number of bytes ready to be processed by the CPU.
 
 To initialize the Rx DMA, the CPU must write the address and size of receive
 buffer into the registers ETH\_DMA\_PTR and ETH\_DMA\_SIZE, as well as setting
