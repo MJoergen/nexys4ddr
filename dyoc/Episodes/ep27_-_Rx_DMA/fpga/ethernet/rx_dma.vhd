@@ -14,41 +14,41 @@ use ieee.std_logic_unsigned.all;
 
 entity rx_dma is
    port (
-      clk_i      : in  std_logic;
-      rd_empty_i : in  std_logic;
-      rd_en_o    : out std_logic;
-      rd_data_i  : in  std_logic_vector(7 downto 0);
-      rd_eof_i   : in  std_logic;
+      clk_i        : in  std_logic;
 
-      wr_en_o    : out std_logic;
-      wr_addr_o  : out std_logic_vector(15 downto 0);
-      wr_data_o  : out std_logic_vector( 7 downto 0);
-      wr_ptr_o   : out std_logic_vector(15 downto 0);
-      memio_i    : in  std_logic_vector(55 downto 0)
+      -- Connected to Rx FIFO
+      rd_empty_i   : in  std_logic;
+      rd_en_o      : out std_logic;
+      rd_data_i    : in  std_logic_vector(7 downto 0);
+      rd_eof_i     : in  std_logic;
+
+      -- Connected to RAM
+      wr_en_o      : out std_logic;
+      wr_addr_o    : out std_logic_vector(15 downto 0);
+      wr_data_o    : out std_logic_vector( 7 downto 0);
+
+      -- Connector to memio
+      dma_enable_i : in  std_logic;
+      dma_ptr_i    : in  std_logic_vector(15 downto 0);
+      dma_size_i   : in  std_logic_vector(15 downto 0);
+      cpu_ptr_i    : in  std_logic_vector(15 downto 0);
+      buf_ptr_o    : out std_logic_vector(15 downto 0);
+      buf_size_o   : out std_logic_vector(15 downto 0)
    );
 end rx_dma;
 
 architecture Structural of rx_dma is
 
-   signal wr_en   : std_logic;
-   signal wr_addr : std_logic_vector(15 downto 0);
-   signal wr_data : std_logic_vector( 7 downto 0);
-   signal wr_ptr  : std_logic_vector(15 downto 0);
-   signal wr_ptr_update : std_logic;
+   signal rd_en    : std_logic := '0';
 
-   signal rd_en   : std_logic := '0';
+   signal wr_en    : std_logic;
+   signal wr_addr  : std_logic_vector(15 downto 0);
+   signal wr_data  : std_logic_vector( 7 downto 0);
 
-   signal eth_start  : std_logic_vector(15 downto 0);
-   signal eth_end    : std_logic_vector(15 downto 0);
-   signal eth_rdptr  : std_logic_vector(15 downto 0);
-   signal eth_enable : std_logic;
+   signal buf_ptr  : std_logic_vector(15 downto 0);
+   signal buf_size : std_logic_vector(15 downto 0);
 
 begin
-
-   eth_start  <= memio_i(15 downto  0);   -- Start of buffer.
-   eth_end    <= memio_i(31 downto 16);   -- End of buffer.
-   eth_rdptr  <= memio_i(47 downto 32);   -- Current CPU read pointer.
-   eth_enable <= memio_i(48);             -- DMA enable. Must be cleared before updating buffer location.
 
    -- This generates a read on every second cycle, unless buffer is full.
    proc_read : process (clk_i)

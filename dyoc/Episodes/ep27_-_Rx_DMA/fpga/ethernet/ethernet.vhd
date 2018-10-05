@@ -7,25 +7,33 @@ use ieee.std_logic_unsigned.all;
 entity ethernet is
    port (
       -- Connected to user
-      user_clk_i   : in  std_logic;
-      user_wren_o  : out std_logic;
-      user_addr_o  : out std_logic_vector(15 downto 0);
-      user_data_o  : out std_logic_vector( 7 downto 0);
-      user_memio_i : in  std_logic_vector(55 downto 0);
-      user_memio_o : out std_logic_vector(55 downto 0);
+      user_clk_i          : in  std_logic;
+      user_wren_o         : out std_logic;
+      user_addr_o         : out std_logic_vector(15 downto 0);
+      user_data_o         : out std_logic_vector( 7 downto 0);
+      user_rxdma_enable_i : in  std_logic;
+      user_rxdma_ptr_i    : in  std_logic_vector(15 downto 0);
+      user_rxdma_size_i   : in  std_logic_vector(15 downto 0);
+      user_rxcpu_ptr_i    : in  std_logic_vector(15 downto 0);
+      user_rxbuf_ptr_o    : out std_logic_vector(15 downto 0);
+      user_rxbuf_size_o   : out std_logic_vector(15 downto 0);
+      user_cnt_good_o     : out std_logic_vector(15 downto 0);
+      user_cnt_error_o    : out std_logic_vector( 7 downto 0);
+      user_cnt_crc_bad_o  : out std_logic_vector( 7 downto 0);
+      user_cnt_overflow_o : out std_logic_vector( 7 downto 0);
 
       -- Connected to PHY.
-      eth_clk_i    : in    std_logic; -- Must be 50 MHz
-      eth_txd_o    : out   std_logic_vector(1 downto 0);
-      eth_txen_o   : out   std_logic;
-      eth_rxd_i    : in    std_logic_vector(1 downto 0);
-      eth_rxerr_i  : in    std_logic;
-      eth_crsdv_i  : in    std_logic;
-      eth_intn_i   : in    std_logic;
-      eth_mdio_io  : inout std_logic;
-      eth_mdc_o    : out   std_logic;
-      eth_rstn_o   : out   std_logic;
-      eth_refclk_o : out   std_logic
+      eth_clk_i           : in    std_logic; -- Must be 50 MHz
+      eth_txd_o           : out   std_logic_vector(1 downto 0);
+      eth_txen_o          : out   std_logic;
+      eth_rxd_i           : in    std_logic_vector(1 downto 0);
+      eth_rxerr_i         : in    std_logic;
+      eth_crsdv_i         : in    std_logic;
+      eth_intn_i          : in    std_logic;
+      eth_mdio_io         : inout std_logic;
+      eth_mdc_o           : out   std_logic;
+      eth_rstn_o          : out   std_logic;
+      eth_refclk_o        : out   std_logic
    );
 end ethernet;
 
@@ -49,29 +57,23 @@ architecture Structural of ethernet is
    signal eth_tx_eof    : std_logic;
    signal eth_tx_err    : std_logic;
 
-   -- Connection from rx_header to fifo
-   signal eth_header_valid : std_logic;
-   signal eth_header_data  : std_logic_vector(7 downto 0);
-   signal eth_header_eof   : std_logic_vector(0 downto 0);
-   signal eth_fifo_afull   : std_logic;
+   -- Connection from rx_header to rxfifo
+   signal eth_rxheader_valid : std_logic;
+   signal eth_rxheader_data  : std_logic_vector(7 downto 0);
+   signal eth_rxheader_eof   : std_logic_vector(0 downto 0);
+   signal eth_rxfifo_afull   : std_logic;
 
-   -- Connection from fifo to rx_dma
-   signal user_fifo_empty : std_logic;
-   signal user_fifo_data  : std_logic_vector(7 downto 0);
-   signal user_fifo_eof   : std_logic_vector(0 downto 0);
-   signal user_dma_rden   : std_logic;
+   -- Connection from rxfifo to rx_dma
+   signal user_rxfifo_empty : std_logic;
+   signal user_rxfifo_data  : std_logic_vector(7 downto 0);
+   signal user_rxfifo_eof   : std_logic_vector(0 downto 0);
+   signal user_rxdma_rden   : std_logic;
 
    -- Output from rx_dma
-   signal user_dma_wren  : std_logic;
-   signal user_dma_addr  : std_logic_vector(15 downto 0);
-   signal user_dma_data  : std_logic_vector( 7 downto 0);
-   signal user_dma_wrptr : std_logic_vector(15 downto 0);
-
-   -- Statistics counters
-   signal eth_cnt_good     : std_logic_vector(15 downto 0);
-   signal eth_cnt_error    : std_logic_vector( 7 downto 0);
-   signal eth_cnt_crc_bad  : std_logic_vector( 7 downto 0);
-   signal eth_cnt_overflow : std_logic_vector( 7 downto 0);
+   signal user_rxdma_wren  : std_logic;
+   signal user_rxdma_addr  : std_logic_vector(15 downto 0);
+   signal user_rxdma_data  : std_logic_vector( 7 downto 0);
+   signal user_rxdma_wrptr : std_logic_vector(15 downto 0);
 
 begin
 
@@ -139,21 +141,21 @@ begin
    port map (
       clk_i          => eth_clk_i,
       rst_i          => eth_rst,
-      rx_enable_i    => user_memio_i(48), -- DMA enable
+      rx_enable_i    => user_rxdma_enable_i,
       rx_valid_i     => eth_rx_valid,
       rx_eof_i       => eth_rx_eof,
       rx_data_i      => eth_rx_data,
       rx_error_i     => eth_rx_error,
       --
-      cnt_good_o     => eth_cnt_good,
-      cnt_error_o    => eth_cnt_error,
-      cnt_crc_bad_o  => eth_cnt_crc_bad,
-      cnt_overflow_o => eth_cnt_overflow,
+      cnt_good_o     => user_cnt_good,
+      cnt_error_o    => user_cnt_error,
+      cnt_crc_bad_o  => user_cnt_crc_bad,
+      cnt_overflow_o => user_cnt_overflow,
       --
-      out_afull_i    => eth_fifo_afull,
-      out_valid_o    => eth_header_valid,
-      out_data_o     => eth_header_data,
-      out_eof_o      => eth_header_eof(0)
+      out_afull_i    => eth_rxfifo_afull,
+      out_valid_o    => eth_rxheader_valid,
+      out_data_o     => eth_rxheader_data,
+      out_eof_o      => eth_rxheader_eof(0)
    );
 
 
@@ -161,25 +163,25 @@ begin
    -- Instantiate fifo to cross clock domain
    ------------------------------
 
-   inst_fifo : entity work.fifo
+   inst_rxfifo : entity work.fifo
    generic map (
       G_WIDTH => 8
    )
    port map (
       wr_clk_i   => eth_clk_i,
       wr_rst_i   => eth_rst,
-      wr_en_i    => eth_header_valid,
-      wr_data_i  => eth_header_data,
-      wr_sb_i    => eth_header_eof,
-      wr_afull_o => eth_fifo_afull,
+      wr_en_i    => eth_rxheader_valid,
+      wr_data_i  => eth_rxheader_data,
+      wr_sb_i    => eth_rxheader_eof,
+      wr_afull_o => eth_rxfifo_afull,
       wr_error_o => open,  -- Ignored
       --
       rd_clk_i   => user_clk_i,
       rd_rst_i   => '0',
-      rd_en_i    => user_dma_rden,
-      rd_data_o  => user_fifo_data,
-      rd_sb_o    => user_fifo_eof,
-      rd_empty_o => user_fifo_empty,
+      rd_en_i    => user_rxdma_rden,
+      rd_data_o  => user_rxfifo_data,
+      rd_sb_o    => user_rxfifo_eof,
+      rd_empty_o => user_rxfifo_empty,
       rd_error_o => open   -- Ignored
    );
 
@@ -190,31 +192,30 @@ begin
 
    inst_rx_dma : entity work.rx_dma
    port map (
-      clk_i      => user_clk_i,
-      rd_empty_i => user_fifo_empty,
-      rd_en_o    => user_dma_rden,
+      clk_i        => user_clk_i,
+      rd_empty_i   => user_rxfifo_empty,
+      rd_en_o      => user_rxdma_rden,
       --
-      rd_data_i  => user_fifo_data,
-      rd_eof_i   => user_fifo_eof(0),
+      rd_data_i    => user_rxfifo_data,
+      rd_eof_i     => user_rxfifo_eof(0),
       --
-      wr_en_o    => user_dma_wren,
-      wr_addr_o  => user_dma_addr,
-      wr_data_o  => user_dma_data,
-      wr_ptr_o   => user_dma_wrptr,
-      memio_i    => user_memio_i
+      wr_en_o      => user_rxdma_wren,
+      wr_addr_o    => user_rxdma_addr,
+      wr_data_o    => user_rxdma_data,
+      --
+      dma_enable_i => user_rxdma_enable_i,
+      dma_ptr_i    => user_rxdma_ptr_i,
+      dma_size_i   => user_rxdma_size_i,
+      cpu_ptr_i    => user_rxcpu_ptr_i,
+      buf_ptr_o    => user_rxbuf_ptr_o,
+      buf_size_o   => user_rxbuf_size_o
    );
 
    -- Connect output signals
+   user_wren_o <= user_rxdma_wren;
+   user_addr_o <= user_rxdma_addr;
+   user_data_o <= user_rxdma_data;
 
-   user_wren_o <= user_dma_wren;
-   user_addr_o <= user_dma_addr;
-   user_data_o <= user_dma_data;
 
-   user_memio_o(15 downto  0) <= user_dma_wrptr;
-   user_memio_o(31 downto 16) <= eth_cnt_good;
-   user_memio_o(39 downto 32) <= eth_cnt_error;
-   user_memio_o(47 downto 40) <= eth_cnt_crc_bad;
-   user_memio_o(55 downto 48) <= eth_cnt_overflow;
-   
 end Structural;
 

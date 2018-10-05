@@ -6,14 +6,15 @@ use ieee.std_logic_unsigned.all;
 
 entity phy_sim is
    port (
-      clk_i      : in  std_logic;
-      rst_i      : in  std_logic;
-      data_i     : in  std_logic_vector(128*8-1 downto 0);
-      len_i      : in  std_logic_vector(15 downto 0);
-      start_i    : in  std_logic;
-      done_o     : out std_logic;
-      eth_txd_o  : out std_logic_vector(1 downto 0);
-      eth_txen_o : out std_logic
+      sim_data_i   : in  std_logic_vector(128*8-1 downto 0);
+      sim_len_i    : in  std_logic_vector(15 downto 0);
+      sim_start_i  : in  std_logic;
+      sim_done_o   : out std_logic;
+      --
+      eth_refclk_i : in  std_logic;
+      eth_rstn_i   : in  std_logic;
+      eth_txd_o    : out std_logic_vector(1 downto 0);
+      eth_txen_o   : out std_logic
    );
 end entity phy_sim;
 
@@ -25,13 +26,17 @@ architecture simulation of phy_sim is
    signal user_eof   : std_logic;
    signal user_err   : std_logic;
 
+   signal rst : std_logic;
+
 begin
+
+   rst <= not eth_rstn_i;
 
    -- Instantiate Tx
    inst_rmii_tx : entity work.rmii_tx
    port map (
-      clk_i        => clk_i,
-      rst_i        => rst_i,
+      clk_i        => eth_refclk_i,
+      rst_i        => rst,
       user_empty_i => user_empty,
       user_rden_o  => user_rden,
       user_data_i  => user_data,
@@ -46,15 +51,15 @@ begin
       user_empty <= '1';
       user_data  <= (others => '0');
       user_eof   <= '0';
-      done_o     <= '1';
+      sim_done_o <= '1';
 
-      wait until start_i = '1';
-      done_o     <= '0';
+      wait until sim_start_i = '1';
+      sim_done_o <= '0';
       user_empty <= '0';
 
-      byte_loop : for i in 0 to conv_integer(len_i)-1 loop
-         user_data <= data_i(8*i+7 downto 8*i);
-         if i=conv_integer(len_i)-1 then
+      byte_loop : for i in 0 to conv_integer(sim_len_i)-1 loop
+         user_data <= sim_data_i(8*i+7 downto 8*i);
+         if i=conv_integer(sim_len_i)-1 then
             user_eof <= '1';
          end if;
 
