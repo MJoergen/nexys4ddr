@@ -27,7 +27,7 @@ entity rx_dma is
       wr_addr_o    : out std_logic_vector(15 downto 0);
       wr_data_o    : out std_logic_vector( 7 downto 0);
 
-      -- Connector to memio
+      -- Connected to memio
       dma_enable_i : in  std_logic;
       dma_ptr_i    : in  std_logic_vector(15 downto 0);
       dma_size_i   : in  std_logic_vector(15 downto 0);
@@ -50,71 +50,78 @@ architecture Structural of rx_dma is
 
 begin
 
-   -- This generates a read on every second cycle, unless buffer is full.
+   wr_en   <= rd_en;
+   wr_data <= rd_data_i;
+
+
+   -------------------------------------
+   -- Calculate the address to write the NEXT byte to.
+   -------------------------------------
+
+   proc_wr_addr : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if wr_en = '1' then
+            wr_addr <= wr_addr + 1;
+
+            -- If end of packet, check if remaining buffer can support a full frame.
+            -- If not, reset write pointer to start of receive buffer.
+            if rd_eof_i = '1' and (dma_ptr_i + dma_size_i - wr_addr) < X"0600" then
+               wr_addr <= dma_ptr_i;
+            end if;
+         end if;
+
+         if dma_enable_i = '0' then   -- Reset write pointer to beginning of new buffer location.
+            wr_addr <= dma_ptr_i;
+         end if;
+      end if;
+   end process proc_wr_addr;
+
+
+   ----------------------------------------------
+   -- This generates a read on every second cycle,
+   -- unless buffer is full.
+   ----------------------------------------------
+
    proc_read : process (clk_i)
    begin
       if rising_edge(clk_i) then
          rd_en <= not rd_empty_i and not rd_en;
          
          -- Don't read any more, if buffer is full.
-         if eth_enable = '1' then
-            if wr_addr + 1 = eth_rdptr or
-               (wr_addr = eth_end and eth_rdptr = eth_start) then
+         if dma_enable_i = '1' then
+            if wr_addr + 1 = cpu_ptr_i or
+               (wr_addr = dma_ptr_i + dma_size_i) then
                rd_en <= '0';
             end if;
          end if;
       end if;
    end process proc_read;
 
-   wr_en   <= rd_en;
-   wr_data <= rd_data_i;
 
-   -- Prepare wr_addr for the next byte.
-   proc_wr_addr : process (clk_i)
+   proc_buf_ptr : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if wr_en = '1' then
-            if wr_addr = eth_end then
-               wr_addr <= eth_start;
-            else
-               wr_addr <= wr_addr + 1;
-            end if;
 
-            -- If end of packet, check if remaining buffer can support a full frame.
-            -- If not, reset write pointer to end of frame.
-            if rd_eof_i = '1' and (eth_end - wr_addr) < 1500 then
-               wr_addr <= eth_end;
-            end if;
-         end if;
-
-         if eth_enable = '0' then   -- Reset write pointer to beginning of new buffer location.
-            wr_addr <= eth_start;
+         if dma_enable_i = '0' then   -- Reset write pointer to beginning of new buffer location.
+            buf_ptr <= dma_ptr_i;
          end if;
       end if;
-   end process proc_wr_addr;
-
-   proc_wr_ptr : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         -- Set a flag so the wr_ptr will be updated on the next clock cycle,
-         -- because then the wr_addr will point to the address after the last byte of the frame.
-         wr_ptr_update <= rd_en and rd_eof_i;
-         if wr_ptr_update = '1' then
-            wr_ptr <= wr_addr;
-         end if;
-         if eth_enable = '0' then   -- Reset write pointer to beginning of new buffer location.
-            wr_ptr <= eth_start;
-         end if;
-      end if;
-   end process proc_wr_ptr;
+   end process proc_buf_ptr;
 
 
-   -- Drive output signals
-   rd_en_o   <= rd_en;
-   wr_en_o   <= wr_en;
-   wr_addr_o <= wr_addr;
-   wr_data_o <= wr_data;
-   wr_ptr_o  <= wr_ptr;
+   --------------------------- 
+   -- Connect output signals
+   --------------------------- 
+
+   rd_en_o    <= rd_en;
+
+   wr_en_o    <= wr_en;
+   wr_addr_o  <= wr_addr;
+   wr_data_o  <= wr_data;
+
+   buf_ptr_o  <= buf_ptr;
+   buf_size_o <= buf_size;
 
 end Structural;
 

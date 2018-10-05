@@ -147,10 +147,10 @@ begin
       rx_data_i      => eth_rx_data,
       rx_error_i     => eth_rx_error,
       --
-      cnt_good_o     => user_cnt_good,
-      cnt_error_o    => user_cnt_error,
-      cnt_crc_bad_o  => user_cnt_crc_bad,
-      cnt_overflow_o => user_cnt_overflow,
+      cnt_good_o     => user_cnt_good_o,
+      cnt_error_o    => user_cnt_error_o,
+      cnt_crc_bad_o  => user_cnt_crc_bad_o,
+      cnt_overflow_o => user_cnt_overflow_o,
       --
       out_afull_i    => eth_rxfifo_afull,
       out_valid_o    => eth_rxheader_valid,

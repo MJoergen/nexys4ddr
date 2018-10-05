@@ -27,7 +27,8 @@ architecture Structural of ethernet_tb is
    signal user_cnt_crc_bad  : std_logic_vector( 7 downto 0);
    signal user_cnt_overflow : std_logic_vector( 7 downto 0);
    --
-   signal eth_refclk        : std_logic;  -- 50 MHz
+   signal eth_clk           : std_logic;  -- 50 MHz
+   signal eth_refclk        : std_logic;
    signal eth_rstn          : std_logic;
    signal eth_rxd           : std_logic_vector(1 downto 0);
    signal eth_crsdv         : std_logic;
@@ -189,7 +190,7 @@ begin
 
       -- Configure DMA for 1700 bytes of receive buffer space
       user_rxdma_ptr  <= X"2000";
-      user_rxdma_size <= 1700;
+      user_rxdma_size <= std_logic_vector(to_unsigned(1700, 16));
       user_rxcpu_ptr  <= X"2000";
       wait until user_clk = '1';
       user_rxdma_enable <= '1';
