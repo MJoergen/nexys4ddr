@@ -53,21 +53,21 @@ this receive buffer.  This leads to the following memory mapped registers:
 * ETH\_RXBUF\_SIZE    (RO)  : Number of bytes ready to be processed by the CPU.
 
 To initialize the Rx DMA, the CPU must write the address and size of receive
-buffer into the registers ETH\_DMA\_PTR and ETH\_DMA\_SIZE, as well as setting
-the current CPU pointer ETH\_CPU\_PTR to the beginning of the buffer, i.e. the
-same value as ETH\_DMA\_PTR. Then the CPU can enable the Rx DMA by writing a
-0x01 to the register ETH\_ENABLE.
+buffer into the registers ETH\_RXDMA\_PTR and ETH\_RXDMA\_SIZE, as well as setting
+the current CPU pointer ETH\_RXCPU\_PTR to the beginning of the buffer, i.e. the
+same value as ETH\_RXDMA\_PTR. Then the CPU can enable the Rx DMA by writing a
+0x01 to the register ETH\_RXDMA\_ENABLE.
 
-The Rx DMA will then automatically set ETH\_BUF\_PTR to equal the start of the
-receive buffer and set the value ETH\_BUF\_SIZE to zero.
+The Rx DMA will then automatically set ETH\_RXBUF\_PTR to equal the start of the
+receive buffer and set the value ETH\_RXBUF\_SIZE to zero.
 
-When data is receiver the regsiter ETH\_BUF\_SIZE will increase. Whenever this
+When data is receiver the regsiter ETH\_RXBUF\_SIZE will increase. Whenever this
 value is nonzero, this tells the CPU that there is data ready in the buffer.
 When the CPU has processed the received data, the CPU must update the value of
-ETH\_CPU\_PTR, e.g. by setting it equal to ETH\_BUF\_PTR + ETH\_BUF\_SIZE.
+ETH\_RXCPU\_PTR, e.g. by setting it equal to ETH\_RXBUF\_PTR + ETH\_RXBUF\_SIZE.
 
-The Rx DMA will automatically adjust the value of ETH\_BUF\_PTR and
-ETH\_BUF\_SIZE.
+The Rx DMA will automatically adjust the value of ETH\_RXBUF\_PTR and
+ETH\_RXBUF\_SIZE.
 
 ## Overall design strategy for receiving data from the Ethernet.
 A number of blocks is needed in the design in order to facilitate all this.  In
