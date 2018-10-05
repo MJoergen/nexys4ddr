@@ -102,9 +102,13 @@ begin
    proc_buf_ptr : process (clk_i)
    begin
       if rising_edge(clk_i) then
+         if wr_en = '1' and rd_eof_i = '1' then
+            buf_size <= wr_addr + 1 - buf_ptr;
+         end if;
 
          if dma_enable_i = '0' then   -- Reset write pointer to beginning of new buffer location.
-            buf_ptr <= dma_ptr_i;
+            buf_ptr  <= dma_ptr_i;
+            buf_size <= (others => '0');
          end if;
       end if;
    end process proc_buf_ptr;

@@ -215,6 +215,7 @@ begin
       wait until sim_done = '1';  -- Wait until data has been transferred on PHY signals
       sim_start <= '0';
       wait until user_rxbuf_size /= 0;  -- Wait until RxDMA is finished
+      wait until user_clk = '1';
 
       -- Verify DMA write pointer
       assert user_rxbuf_ptr  = X"2000";
@@ -249,6 +250,7 @@ begin
       wait until sim_done = '1';  -- Wait until data has been transferred on PHY signals
       sim_start <= '0';
       wait until user_rxbuf_size /= X"82";  -- Wait until RxDMA is finished
+      wait until user_clk = '1';
 
       -- Verify DMA write pointer
       assert user_rxbuf_ptr  = X"2000";
@@ -317,6 +319,7 @@ begin
       -- Update CPU read pointer, to release first frame.
       user_rxcpu_ptr   <= X"2082";
       wait until user_rxbuf_size /= X"F4"; -- Wait until frame has been transferred to sim_ram.
+      wait until user_clk = '1';
 
       -- Verify DMA pointers is updated
       assert user_rxbuf_ptr  = X"2082";
@@ -343,6 +346,7 @@ begin
       -- Update CPU read pointer, to release second frame.
       user_rxcpu_ptr   <= X"20F4";
       wait until user_rxbuf_size /= X"72";
+      wait until user_clk = '1';
 
       -- Verify DMA pointers is updated. Buffer is not empty
       assert user_rxbuf_ptr  = X"20F4";
@@ -350,6 +354,7 @@ begin
 
       -- Wait until frame has been transferred to memory.
       wait until user_rxbuf_size /= X"00";
+      wait until user_clk = '1';
 
       -- Verify DMA pointers is updated again
       assert user_rxbuf_ptr  = X"2000";
