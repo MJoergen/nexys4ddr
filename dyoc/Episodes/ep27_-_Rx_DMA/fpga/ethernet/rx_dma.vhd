@@ -8,8 +8,8 @@ use ieee.std_logic_unsigned.all;
 -- starving the CPU for long periods. This is still enough to provide
 -- an effective data rate of 100 Mbit/s (25MHz / 2 * 8 bits/byte).
 --
--- The buffer location in memory is supplied in the configuration signal
--- memio_i. Prior to changing this signal, the bit 48 (eth_enable) must be
+-- The buffer location in memory is supplied in the signals dma_ptr_i and
+-- dma_size_i. Prior to changing these signals, the dma_enable_i must be
 -- cleared.
 
 entity rx_dma is
@@ -39,133 +39,79 @@ end rx_dma;
 
 architecture Structural of rx_dma is
 
-   signal rd_en    : std_logic := '0';
-
+   -- Output signals
+   signal rd_en    : std_logic;
    signal wr_en    : std_logic;
    signal wr_addr  : std_logic_vector(15 downto 0);
    signal wr_data  : std_logic_vector( 7 downto 0);
-
    signal buf_ptr  : std_logic_vector(15 downto 0);
-   signal buf_end  : std_logic_vector(15 downto 0);
    signal buf_size : std_logic_vector(15 downto 0);
 
-   signal rd_eof_d       : std_logic;
-   signal wait_for_cpu   : std_logic;
-   signal wait_for_cpu_d : std_logic;
+   signal buf_start : std_logic_vector(15 downto 0);
+   signal buf_end   : std_logic_vector(15 downto 0);
+
+   type state_t is (IDLE_ST, DATA_ST, WAIT_ST);
+   signal state : state_t := IDLE_ST;
 
 begin
 
-   wr_en   <= rd_en;
-   wr_data <= rd_data_i;
-
-
-   -------------------------------------
-   -- Calculate the address to write the NEXT byte to.
-   -------------------------------------
-
-   proc_wr_addr : process (clk_i)
+   fsm_proc : process(clk_i)
    begin
       if rising_edge(clk_i) then
+
+         -- Default values
+         rd_en <= '0';
+         wr_en <= '0';
+
+         wr_data <= rd_data_i;
+
          if wr_en = '1' then
             wr_addr <= wr_addr + 1;
-
-            if rd_eof_i = '1' and (dma_ptr_i + dma_size_i - wr_addr) < X"0600" and wait_for_cpu = '0' then
-               wr_addr <= dma_ptr_i;
-            end if;
          end if;
 
-         if wait_for_cpu_d = '1' and wait_for_cpu = '0' then
-            wr_addr <= dma_ptr_i;
-         end if;
-
-         if dma_enable_i = '0' then   -- Reset write pointer to beginning of new buffer location.
-            wr_addr <= dma_ptr_i;
-         end if;
-      end if;
-   end process proc_wr_addr;
-
-
-   proc_wait_for_cpu : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if rd_eof_i = '1' and (dma_ptr_i + dma_size_i - wr_addr) < X"0600" then
-            if cpu_ptr_i /= wr_addr then
-               wait_for_cpu <= '1';
-            end if; 
-         end if;
-
-         if cpu_ptr_i = wr_addr then
-            wait_for_cpu <= '0';
-         end if; 
-
-         wait_for_cpu_d <= wait_for_cpu;
-      end if;
-   end process proc_wait_for_cpu;
-
-
-   ----------------------------------------------
-   -- This generates a read on every second cycle,
-   -- unless buffer is full.
-   ----------------------------------------------
-
-   proc_read : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         rd_en <= not rd_empty_i and not rd_en;
-         
-         if dma_enable_i = '1' then
-            -- Don't send any more, if we've reached the CPU pointer.
-            if wr_addr + 1 = cpu_ptr_i then
-               rd_en <= '0';
-            end if;
-
-            -- Don't start a new frame if not room.
-            if wait_for_cpu = '1' then
-               rd_en <= '0';
-            end if;
-         end if;
-
-         rd_eof_d <= rd_eof_i;
-      end if;
-   end process proc_read;
-
-
-   proc_buf_end : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if wr_en = '1' and rd_eof_i = '1' then
-            buf_end <= wr_addr + 1;
-         end if;
-
-         if dma_enable_i = '0' then
-            buf_end <= dma_ptr_i;
-         end if;
-      end if;
-   end process proc_buf_end;
-
-   proc_buf_size : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
+         buf_ptr  <= cpu_ptr_i;
          buf_size <= buf_end - cpu_ptr_i;
 
+         case state is
+            when IDLE_ST =>
+               if rd_empty_i = '0' and cpu_ptr_i = dma_ptr_i then
+                  buf_start <= dma_ptr_i;
+                  buf_end   <= dma_ptr_i;
+                  buf_size  <= (others => '0');
+                  wr_addr   <= dma_ptr_i;
+                  state     <= DATA_ST;
+               end if;
+
+            when DATA_ST =>
+               if rd_empty_i = '0' and rd_en = '0' then
+                  rd_en <= '1';
+                  wr_en <= '1';
+
+                  if rd_eof_i = '1' then
+                     buf_end  <= wr_addr + 1;
+                     state    <= WAIT_ST;
+                  end if;
+               end if;
+
+            when WAIT_ST =>
+               if cpu_ptr_i = buf_end then
+                  state   <= IDLE_ST;
+               end if;
+
+         end case;
+
          if dma_enable_i = '0' then
+            state    <= IDLE_ST;
+            wr_addr  <= dma_ptr_i;
+            wr_data  <= (others => '0');
+            buf_ptr  <= dma_ptr_i;
             buf_size <= (others => '0');
+
+            buf_start <= dma_ptr_i;
+            buf_end   <= dma_ptr_i;
          end if;
       end if;
-   end process proc_buf_size;
-
-   proc_buf_ptr : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if wr_addr + 1 > cpu_ptr_i then
-            buf_ptr <= cpu_ptr_i;
-         end if;
-
-         if dma_enable_i = '0' then   -- Reset write pointer to beginning of new buffer location.
-            buf_ptr <= dma_ptr_i;
-         end if;
-      end if;
-   end process proc_buf_ptr;
+   end process fsm_proc;
 
 
    --------------------------- 
@@ -173,11 +119,9 @@ begin
    --------------------------- 
 
    rd_en_o    <= rd_en;
-
    wr_en_o    <= wr_en;
    wr_addr_o  <= wr_addr;
    wr_data_o  <= wr_data;
-
    buf_ptr_o  <= buf_ptr;
    buf_size_o <= buf_size;
 
