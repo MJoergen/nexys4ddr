@@ -72,11 +72,11 @@ architecture Structural of comp is
 
    -- Memory Mapped I/O
    signal memio_rd   : std_logic_vector(8*32-1 downto 0);
-   signal memio_rden : std_logic_vector(  32-1 downto 0);
    signal memio_wr   : std_logic_vector(8*32-1 downto 0);
 
-   signal vga_memio_wr : std_logic_vector(16*8-1 downto 0);
-   signal vga_memio_rd : std_logic_vector( 4*8-1 downto 0);
+   signal vga_memio_palette : std_logic_vector(16*8-1 downto 0);
+   signal vga_memio_pix_x   : std_logic_vector( 2*8-1 downto 0);
+   signal vga_memio_pix_y   : std_logic_vector( 2*8-1 downto 0);
 
 begin
    
@@ -216,8 +216,9 @@ begin
       col_addr_o  => col_addr,
       col_data_i  => col_data,
 
-      memio_i => vga_memio_wr,
-      memio_o => vga_memio_rd
+      memio_palette_i => vga_memio_palette,
+      memio_pix_x_o   => vga_memio_pix_x,
+      memio_pix_y_o   => vga_memio_pix_y
    );
 
 
@@ -228,13 +229,14 @@ begin
 
    -- 7FC0 - 7FCF : VGA_PALETTE
    -- 7FD0 - 7FDF : Not used
-   vga_memio_wr <= memio_wr(15*8+7 downto  0*8);
-   --              memio_wr(31*8+7 downto 16*8);      -- Not used
+   vga_memio_palette <= memio_wr(15*8+7 downto  0*8);
+   --                   memio_wr(31*8+7 downto 16*8);      -- Not used
 
    -- 7FE0 - 7FE1 : VGA_PIX_X
    -- 7FE2 - 7FE3 : VGA_PIX_Y
    -- 7FE4 - 7FFF : Not used
-   memio_rd( 3*8+7 downto  0*8) <= vga_memio_rd;
+   memio_rd( 1*8+7 downto  0*8) <= vga_memio_pix_x;
+   memio_rd( 3*8+7 downto  2*8) <= vga_memio_pix_y;
    memio_rd(31*8+7 downto  4*8) <= (others => '0');   -- Not used
 
 end architecture Structural;

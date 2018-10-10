@@ -23,8 +23,9 @@ entity vga is
       col_addr_o  : out std_logic_vector(12 downto 0);
       col_data_i  : in  std_logic_vector( 7 downto 0);
 
-      memio_i     : in  std_logic_vector(16*8-1 downto 0);
-      memio_o     : out std_logic_vector( 4*8-1 downto 0);
+      memio_palette_i : in  std_logic_vector(16*8-1 downto 0);
+      memio_pix_x_o   : out std_logic_vector( 2*8-1 downto 0);
+      memio_pix_y_o   : out std_logic_vector( 2*8-1 downto 0);
 
       vga_hs_o    : out std_logic;
       vga_vs_o    : out std_logic;
@@ -33,8 +34,6 @@ entity vga is
 end vga;
 
 architecture Structural of vga is
-
-   signal colour_palette       : std_logic_vector(16*8-1 downto 0);
 
    -- Define constants used for 640x480 @ 60 Hz.
    -- Requires a clock of 25.175 MHz.
@@ -115,7 +114,7 @@ begin
       col_addr_o  => col_addr_o,
       col_data_i  => col_data_i,
 
-      palette_i   => colour_palette,
+      palette_i   => memio_palette_i,
 
       pix_x_o     => char_pix_x,
       pix_y_o     => char_pix_y,
@@ -156,13 +155,8 @@ begin
    -- Memory Mapped I/O
    --------------------
 
-   colour_palette       <= memio_i(15*8+7 downto  0*8);
-
-   memio_o( 7 downto  0) <= pix_x(7 downto 0);
-   memio_o(15 downto  8) <= "000000" & pix_x(9 downto 8);
-   memio_o(23 downto 16) <= pix_y(7 downto 0);
-   memio_o(31 downto 24) <= "000000" & pix_y(9 downto 8);
-
+   memio_pix_x_o <= "000000" & pix_x;
+   memio_pix_y_o <= "000000" & pix_y;
 
 end architecture Structural;
 

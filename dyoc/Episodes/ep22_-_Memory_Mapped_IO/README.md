@@ -18,8 +18,7 @@ We therefore choose the following writeable data:
 and the folowing readonly data:
 * 7FE0 - 7FE1 : VGA Pixel X coordinate
 * 7FE2 - 7FE3 : VGA Pixel Y coordinate
-* 7FE4 - 7FE7 : CPU Clock cycle counter
-* 7FE8 - 7FFF : Reserved
+* 7FE4 - 7FFF : Reserved
 
 Note that the Memory Mapped IO address range collides with the RAM address range.
 This effectively means that we can't use the last 64 bytes of the 32 Kbyte RAM.
@@ -30,7 +29,7 @@ Furthermore, we must instruct the C runtime library that these bytes of RAM are
 unavailable. This is done in line 15 of prog/ld.cfg.
 
 The Memory Map is implemented in mem/memio.vhd, but the actual memory map is
-inferred from the connections in lines 219-235 in fpga/comp.vhd.
+inferred from the connections in lines 225-240 in fpga/comp.vhd.
 
 ## VGA memory mapped I/O
 The colour palette consists of 16 bytes, where the byte at address 7FC0 maps to
