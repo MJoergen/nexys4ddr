@@ -78,13 +78,16 @@ architecture Structural of comp is
    signal memio_rden : std_logic_vector(  32-1 downto 0);
    signal memio_wr   : std_logic_vector(8*32-1 downto 0);
 
-   signal vga_memio_wr : std_logic_vector(18*8-1 downto 0);
-   signal irq_memio_wr : std_logic_vector( 1*8-1 downto 0);
+   signal vga_memio_palette   : std_logic_vector(16*8-1 downto 0);
+   signal vga_memio_pix_y_int : std_logic_vector( 2*8-1 downto 0);
+   signal vga_memio_pix_x     : std_logic_vector( 2*8-1 downto 0);
+   signal vga_memio_pix_y     : std_logic_vector( 2*8-1 downto 0);
 
-   signal vga_memio_rd : std_logic_vector( 4*8-1 downto 0);
-   signal kbd_memio_rd : std_logic_vector( 1*8-1 downto 0);
-   signal irq_memio_rd : std_logic_vector( 1*8-1 downto 0);
-   signal irq_memio_rden : std_logic;
+   signal kbd_memio_data : std_logic_vector( 1*8-1 downto 0);
+
+   signal irq_memio_mask   : std_logic_vector( 1*8-1 downto 0);
+   signal irq_memio_status : std_logic_vector( 1*8-1 downto 0);
+   signal irq_memio_clear  : std_logic;
 
    -- Interrupt controller
    signal ic_irq    : std_logic_vector(7 downto 0);
@@ -134,9 +137,9 @@ begin
       irq_i   => ic_irq,    -- Eight independent interrupt sources
       irq_o   => cpu_irq,   -- Overall CPU interrupt
 
-      mask_i     => irq_memio_wr,      -- IRQ mask
-      stat_o     => irq_memio_rd,      -- IRQ status
-      stat_clr_i => irq_memio_rden     -- Reading from IRQ status
+      mask_i     => irq_memio_mask,      -- IRQ mask
+      stat_o     => irq_memio_status,    -- IRQ status
+      stat_clr_i => irq_memio_clear      -- Reading from IRQ status
    );
 
 
@@ -261,9 +264,11 @@ begin
       col_addr_o  => col_addr,
       col_data_i  => col_data,
 
-      memio_i => vga_memio_wr,
-      memio_o => vga_memio_rd,
-      irq_o   => vga_irq
+      memio_palette_i   => vga_memio_palette,
+      memio_pix_y_int_i => vga_memio_pix_y_int,
+      memio_pix_x_o     => vga_memio_pix_x,
+      memio_pix_y_o     => vga_memio_pix_y,
+      irq_o             => vga_irq
    );
 
 
@@ -277,7 +282,7 @@ begin
       ps2_clk_i  => ps2_clk_i,
       ps2_data_i => ps2_data_i,
 
-      data_o     => kbd_memio_rd,
+      data_o     => kbd_memio_data,
       irq_o      => kbd_irq,
 
       debug_o    => kbd_debug
@@ -293,20 +298,22 @@ begin
    -- 7FD0 - 7FD1 : VGA_PIX_Y_INT
    -- 7FD2 - 7FDE : Not used
    -- 7FDF        : IRQ_MASK
-   vga_memio_wr <= memio_wr(17*8+7 downto 0*8);
-   --              memio_wr(30*8+7 downto 18*8);      -- Not used
-   irq_memio_wr <= memio_wr(31*8+7 downto 31*8);
+   vga_memio_palette   <= memio_wr(15*8+7 downto  0*8);
+   vga_memio_pix_y_int <= memio_wr(17*8+7 downto 16*8);
+   --                     memio_wr(30*8+7 downto 18*8);      -- Not used
+   irq_memio_mask      <= memio_wr(31*8+7 downto 31*8);
 
    -- 7FE0 - 7FE1 : VGA_PIX_X
    -- 7FE2 - 7FE3 : VGA_PIX_Y
    -- 7FE4        : KBD_DATA
    -- 7FE9 - 7FFE : Not used
    -- 7FFF        : IRQ_STATUS
-   memio_rd( 3*8+7 downto  0*8) <= vga_memio_rd;
-   memio_rd( 4*8+7 downto  4*8) <= kbd_memio_rd;
+   memio_rd( 1*8+7 downto  0*8) <= vga_memio_pix_x;
+   memio_rd( 3*8+7 downto  2*8) <= vga_memio_pix_y;
+   memio_rd( 4*8+7 downto  4*8) <= kbd_memio_data;
    memio_rd(30*8+7 downto  5*8) <= (others => '0');   -- Not used
-   memio_rd(31*8+7 downto 31*8) <= irq_memio_rd;
-   irq_memio_rden <= memio_rden(31);
+   memio_rd(31*8+7 downto 31*8) <= irq_memio_status;
+   irq_memio_clear <= memio_rden(31);
 
 
    -------------------------
