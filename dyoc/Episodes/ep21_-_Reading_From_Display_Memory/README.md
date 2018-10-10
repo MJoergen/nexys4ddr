@@ -45,6 +45,11 @@ lines 407-420 of cpu/datapath.vhd.
 I've chosen to make the CPU more modular, by splitting the large file
 cpu/datapath.vhd into a number of smaller files.
 
+## A small fix in the CPU
+Performing an INC instruction on a memory mapped IO causes a write to memory,
+whereas the read is implicit. This prevents the generation of the necessary
+wait state. Therefore, this is fixed in the cpu/datapath.vhd line 281.
+
 ## Other modifications
 One major reason for adding read support from display memory, is to
 allow screen scrolling. This is done in lib/write.c in lines 45-56.
