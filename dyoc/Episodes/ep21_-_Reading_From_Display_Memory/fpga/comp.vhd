@@ -90,6 +90,7 @@ begin
    --------------------------------------------------
    -- Generate Reset
    --------------------------------------------------
+
    p_rst : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
@@ -142,6 +143,7 @@ begin
       nmi_i     => '0', -- Not used at the moment
       rst_i     => rst
    );
+
 
    --------------------------------------------------
    -- Instantiate memory
