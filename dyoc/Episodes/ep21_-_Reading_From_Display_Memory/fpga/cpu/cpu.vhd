@@ -113,6 +113,5 @@ begin
       debug_o   => debug_o(63 downto 0)
    );
 
-
 end architecture structural;
 
