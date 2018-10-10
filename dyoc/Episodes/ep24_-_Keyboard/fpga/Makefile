@@ -42,9 +42,11 @@ clean:
 	rm -rf usage_statistics_webtalk.*
 	rm -rf vivado*
 	rm -rf *.o
+	rm -rf comp.bit
 	rm -rf comp.dcp
 	rm -rf .Xil
 	rm -rf .cache
 	rm -rf work-obj93.cf
 	rm -rf tb
 	rm -rf tb.ghw
+

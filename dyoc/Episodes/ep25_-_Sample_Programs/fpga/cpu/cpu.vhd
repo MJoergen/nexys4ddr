@@ -4,19 +4,19 @@ use ieee.std_logic_unsigned.all;
 
 entity cpu is
    port (
-      clk_i    : in  std_logic;
+      clk_i         : in  std_logic;
 
       -- Memory interface
-      addr_o   : out std_logic_vector(15 downto 0);
-      data_i   : in  std_logic_vector(7 downto 0);
-      rden_o   : out std_logic;
-      data_o   : out std_logic_vector(7 downto 0);
-      wren_o   : out std_logic;
+      addr_o        : out std_logic_vector(15 downto 0);
+      data_i        : in  std_logic_vector(7 downto 0);
+      rden_o        : out std_logic;
+      data_o        : out std_logic_vector(7 downto 0);
+      wren_o        : out std_logic;
       -- The "wait_i" is '1' when the memory is not ready.
       -- While this is so, the CPU just stands still, waiting.
-      wait_i   : in  std_logic;
-      memio_o  : out std_logic_vector( 4*8-1 downto 0);
-      memio_i  : in  std_logic_vector( 1*8-1 downto 0);
+      wait_i        : in  std_logic;
+      memio_cyc_o   : out std_logic_vector( 4*8-1 downto 0);
+      memio_latch_i : in  std_logic_vector( 1*8-1 downto 0);
 
       -- Hardware interrupts
       irq_i    : in  std_logic;
@@ -31,8 +31,6 @@ end entity cpu;
 
 architecture structural of cpu is
 
-   signal cyc_cnt   : std_logic_vector(31 downto 0);
-   signal cyc_latch : std_logic;
    signal ar_sel    : std_logic;
    signal hi_sel    : std_logic_vector(2 downto 0);
    signal lo_sel    : std_logic_vector(2 downto 0);
@@ -58,11 +56,10 @@ begin
    port map (
       clk_i     => clk_i,
       rst_i     => rst_i,
-      latch_i   => cyc_latch,
-      cyc_cnt_o => cyc_cnt
+      latch_i   => memio_latch_i,
+      cyc_cnt_o => memio_cyc_o
    );
 
-   cyc_latch <= not memio_i(0);
 
    -----------------
    -- Instantiate datapath
@@ -130,13 +127,6 @@ begin
       invalid_o => invalid_o,
       debug_o   => debug_o(63 downto 0)
    );
-
-
-   -----------------------
-   -- Drive Output Signals
-   -----------------------
-
-   memio_o(31 downto 0) <= cyc_cnt;
 
 end architecture structural;
 

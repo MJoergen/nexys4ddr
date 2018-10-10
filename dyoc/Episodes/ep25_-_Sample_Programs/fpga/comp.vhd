@@ -83,14 +83,14 @@ architecture Structural of comp is
    signal vga_memio_pix_x     : std_logic_vector( 2*8-1 downto 0);
    signal vga_memio_pix_y     : std_logic_vector( 2*8-1 downto 0);
 
+   signal kbd_memio_data : std_logic_vector( 1*8-1 downto 0);
+
    signal irq_memio_mask   : std_logic_vector( 1*8-1 downto 0);
    signal irq_memio_status : std_logic_vector( 1*8-1 downto 0);
    signal irq_memio_clear  : std_logic;
 
-   signal kbd_memio_data : std_logic_vector( 1*8-1 downto 0);
-
-   signal cpu_memio_wr : std_logic_vector( 1*8-1 downto 0);
-   signal cpu_memio_rd : std_logic_vector( 4*8-1 downto 0);
+   signal cpu_memio_latch : std_logic_vector( 1*8-1 downto 0);
+   signal cpu_memio_cyc   : std_logic_vector( 4*8-1 downto 0);
 
    -- Interrupt controller
    signal ic_irq    : std_logic_vector(7 downto 0);
@@ -188,20 +188,20 @@ begin
 
    i_cpu : entity work.cpu
    port map (
-      clk_i     => vga_clk,
-      wait_i    => cpu_wait,
-      addr_o    => cpu_addr,
-      rden_o    => cpu_rden,
-      data_i    => mem_data,
-      wren_o    => cpu_wren,
-      data_o    => cpu_data,
-      invalid_o => led_o,
-      debug_o   => cpu_debug,
-      irq_i     => cpu_irq,
-      nmi_i     => '0', -- Not used at the moment
-      rst_i     => rst,
-      memio_o   => cpu_memio_rd,
-      memio_i   => cpu_memio_wr
+      clk_i         => vga_clk,
+      wait_i        => cpu_wait,
+      addr_o        => cpu_addr,
+      rden_o        => cpu_rden,
+      data_i        => mem_data,
+      wren_o        => cpu_wren,
+      data_o        => cpu_data,
+      invalid_o     => led_o,
+      debug_o       => cpu_debug,
+      irq_i         => cpu_irq,
+      nmi_i         => '0', -- Not used at the moment
+      rst_i         => rst,
+      memio_cyc_o   => cpu_memio_cyc,
+      memio_latch_i => cpu_memio_latch
    );
 
 
@@ -306,7 +306,7 @@ begin
    -- 7FDF        : IRQ_MASK
    vga_memio_palette   <= memio_wr(15*8+7 downto  0*8);
    vga_memio_pix_y_int <= memio_wr(17*8+7 downto 16*8);
-   cpu_memio_wr        <= memio_wr(18*8+7 downto 18*8);
+   cpu_memio_latch     <= memio_wr(18*8+7 downto 18*8);
    --                     memio_wr(30*8+7 downto 19*8);      -- Not used
    irq_memio_mask      <= memio_wr(31*8+7 downto 31*8);
 
@@ -318,7 +318,7 @@ begin
    -- 7FFF        : IRQ_STATUS
    memio_rd( 1*8+7 downto  0*8) <= vga_memio_pix_x;
    memio_rd( 3*8+7 downto  2*8) <= vga_memio_pix_y;
-   memio_rd( 7*8+7 downto  4*8) <= cpu_memio_rd;
+   memio_rd( 7*8+7 downto  4*8) <= cpu_memio_cyc;
    memio_rd( 8*8+7 downto  8*8) <= kbd_memio_data;
    memio_rd(30*8+7 downto  9*8) <= (others => '0');   -- Not used
    memio_rd(31*8+7 downto 31*8) <= irq_memio_status;
