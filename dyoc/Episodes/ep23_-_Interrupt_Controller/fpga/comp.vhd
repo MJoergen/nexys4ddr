@@ -75,10 +75,8 @@ architecture Structural of comp is
 
    signal vga_memio_wr : std_logic_vector(18*8-1 downto 0);
    signal irq_memio_wr : std_logic_vector( 1*8-1 downto 0);
-   signal cpu_memio_wr : std_logic_vector( 1*8-1 downto 0);
 
    signal vga_memio_rd : std_logic_vector( 4*8-1 downto 0);
-   signal cpu_memio_rd : std_logic_vector( 4*8-1 downto 0);
    signal irq_memio_rd : std_logic_vector( 1*8-1 downto 0);
    signal irq_memio_rden : std_logic;
 
@@ -186,9 +184,7 @@ begin
       debug_o   => vga_overlay,
       irq_i     => cpu_irq,
       nmi_i     => '0', -- Not used at the moment
-      rst_i     => rst,
-      memio_o   => cpu_memio_rd,
-      memio_i   => cpu_memio_wr
+      rst_i     => rst
    );
 
 
@@ -269,22 +265,18 @@ begin
 
    -- 7FC0 - 7FCF : VGA_PALETTE
    -- 7FD0 - 7FD1 : VGA_PIX_Y_INT
-   -- 7FD2        : CPU_CYC_LATCH
-   -- 7FD3 - 7FDE : Not used
+   -- 7FD2 - 7FDE : Not used
    -- 7FDF        : IRQ_MASK
    vga_memio_wr <= memio_wr(17*8+7 downto 0*8);
-   cpu_memio_wr <= memio_wr(18*8+7 downto 18*8);
-   --              memio_wr(30*8+7 downto 19*8);      -- Not used
+   --              memio_wr(30*8+7 downto 18*8);      -- Not used
    irq_memio_wr <= memio_wr(31*8+7 downto 31*8);
 
    -- 7FE0 - 7FE1 : VGA_PIX_X
    -- 7FE2 - 7FE3 : VGA_PIX_Y
-   -- 7FE4 - 7FE7 : CPU_CYC
-   -- 7FE8 - 7FFE : Not used
+   -- 7FE4 - 7FFE : Not used
    -- 7FFF        : IRQ_STATUS
    memio_rd( 3*8+7 downto  0*8) <= vga_memio_rd;
-   memio_rd( 7*8+7 downto  4*8) <= cpu_memio_rd;
-   memio_rd(30*8+7 downto  8*8) <= (others => '0');   -- Not used
+   memio_rd(30*8+7 downto  4*8) <= (others => '0');   -- Not used
    memio_rd(31*8+7 downto 31*8) <= irq_memio_rd;
    irq_memio_rden <= memio_rden(31);
 

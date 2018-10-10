@@ -18,13 +18,11 @@
 // Writeable 7FC0 - 7FDF
 #define VGA_PALETTE      ((uint8_t *)  0x7FC0)  // array of 16 bytes
 #define VGA_PIX_Y_INT    ((uint16_t *) 0x7FD0)
-#define CPU_CYC_LATCH    ((uint8_t *)  0x7FD2)
 #define IRQ_MASK         ((uint8_t *)  0x7FDF)
 
 // Readonly 7FE0 - 7FFF
 #define VGA_PIX_X        ((uint16_t *) 0x7FE0)
 #define VGA_PIX_Y        ((uint16_t *) 0x7FE2)
-#define CPU_CYC          ((uint32_t *) 0x7FE4)
 #define IRQ_STATUS       ((uint8_t *)  0x7FFF)
 #define IRQ_TIMER_NUM    0
 #define IRQ_VGA_NUM      1
