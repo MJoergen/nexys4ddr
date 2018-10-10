@@ -76,11 +76,7 @@ architecture Structural of comp is
    signal memio_wr   : std_logic_vector(8*32-1 downto 0);
 
    signal vga_memio_wr : std_logic_vector(16*8-1 downto 0);
-   signal cpu_memio_wr : std_logic_vector( 1*8-1 downto 0);
-
    signal vga_memio_rd : std_logic_vector( 4*8-1 downto 0);
-   signal cpu_memio_rd : std_logic_vector( 4*8-1 downto 0);
-
 
 begin
    
@@ -153,9 +149,7 @@ begin
       debug_o   => vga_overlay,
       irq_i     => '0', -- Not used at the moment
       nmi_i     => '0', -- Not used at the moment
-      rst_i     => rst,
-      memio_o   => cpu_memio_rd,
-      memio_i   => cpu_memio_wr
+      rst_i     => rst
    );
 
 
@@ -233,19 +227,15 @@ begin
    --------------------------------------------------
 
    -- 7FC0 - 7FCF : VGA_PALETTE
-   -- 7FD0        : CPU_CYC_LATCH
-   -- 7FD1 - 7FDF : Not used
+   -- 7FD0 - 7FDF : Not used
    vga_memio_wr <= memio_wr(15*8+7 downto  0*8);
-   cpu_memio_wr <= memio_wr(16*8+7 downto 16*8);
-   --              memio_wr(31*8+7 downto 17*8);      -- Not used
+   --              memio_wr(31*8+7 downto 16*8);      -- Not used
 
    -- 7FE0 - 7FE1 : VGA_PIX_X
    -- 7FE2 - 7FE3 : VGA_PIX_Y
-   -- 7FE4 - 7FE7 : CPU_CYC
-   -- 7FE8 - 7FFF : Not used
+   -- 7FE4 - 7FFF : Not used
    memio_rd( 3*8+7 downto  0*8) <= vga_memio_rd;
-   memio_rd( 7*8+7 downto  4*8) <= cpu_memio_rd;
-   memio_rd(31*8+7 downto  8*8) <= (others => '0');   -- Not used
+   memio_rd(31*8+7 downto  4*8) <= (others => '0');   -- Not used
 
 end architecture Structural;
 

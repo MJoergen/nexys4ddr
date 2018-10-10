@@ -15,8 +15,6 @@ entity cpu is
       -- The "wait_i" is '1' when the memory is not ready.
       -- While this is so, the CPU just stands still, waiting.
       wait_i   : in  std_logic;
-      memio_o  : out std_logic_vector( 4*8-1 downto 0);
-      memio_i  : in  std_logic_vector( 1*8-1 downto 0);
 
       -- Hardware interrupts
       irq_i    : in  std_logic;
@@ -31,8 +29,6 @@ end entity cpu;
 
 architecture structural of cpu is
 
-   signal cyc_cnt   : std_logic_vector(31 downto 0);
-   signal cyc_latch : std_logic;
    signal ar_sel    : std_logic;
    signal hi_sel    : std_logic_vector(2 downto 0);
    signal lo_sel    : std_logic_vector(2 downto 0);
@@ -49,20 +45,6 @@ architecture structural of cpu is
    signal sri       : std_logic;
 
 begin
-
-   -----------------
-   -- Instantiate cycle counter
-   -----------------
-
-   inst_cycle : entity work.cycle
-   port map (
-      clk_i     => clk_i,
-      rst_i     => rst_i,
-      latch_i   => cyc_latch,
-      cyc_cnt_o => cyc_cnt
-   );
-
-   cyc_latch <= not memio_i(0);
 
    -----------------
    -- Instantiate datapath
@@ -130,13 +112,6 @@ begin
       invalid_o => invalid_o,
       debug_o   => debug_o(63 downto 0)
    );
-
-
-   -----------------------
-   -- Drive Output Signals
-   -----------------------
-
-   memio_o(31 downto 0) <= cyc_cnt;
 
 end architecture structural;
 
