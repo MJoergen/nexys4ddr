@@ -56,7 +56,7 @@ begin
    port map (
       clk_i     => clk_i,
       rst_i     => rst_i,
-      latch_i   => memio_latch_i,
+      latch_i   => memio_latch_i(0),
       cyc_cnt_o => memio_cyc_o
    );
 
