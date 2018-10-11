@@ -88,3 +88,6 @@ clean:
 	rm -rf build
 	rm -rf ../rom.txt
 	rm -rf a.out
+	rm -rf comp.bit
+	rm -rf comp.mem
+
