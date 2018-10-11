@@ -18,11 +18,11 @@ typedef struct
 {
    uint8_t  vgaPalette[16];   // 7FC0 - 7FCF
    uint16_t vgaPixYInt;       // 7FD0 - 7FD1
-   uint16_t ethStart;         // 7FD2 - 7FD3
-   uint16_t ethEnd;           // 7FD4 - 7FD5
-   uint16_t ethRdPtr;         // 7FD6 - 7FD7
-   uint8_t  ethEnable;        // 7FD8
-   uint8_t  cpuCycLatch;      // 7FD9
+   uint8_t  cpuCycLatch;      // 7FD2
+   uint8_t  ethRxdmaEnable;   // 7FD3
+   uint16_t ethRxdmaPtr;      // 7FD4 - 7FD5
+   uint16_t ethRxdmaSize;     // 7FD6 - 7FD7
+   uint16_t ethRxCpuPtr;      // 7FD8 - 7FD9
    uint8_t  _reserved[5];
    uint8_t  irqMask;          // 7FDF
 } t_memio_config;
@@ -34,12 +34,13 @@ typedef struct
    uint32_t cpuCyc;           // 7FE4 - 7FE7
    uint8_t  kbdData;          // 7FE8
    uint8_t  _reserved;
-   uint16_t ethWrPtr;         // 7FEA - 7FEB
-   uint16_t ethCnt;           // 7FEC - 7FED
-   uint8_t  ethErr0;          // 7FEE
-   uint8_t  ethErr1;          // 7FEF
-   uint8_t  ethOverflow;      // 7FF0
-   uint8_t  _reserved2[14];
+   uint16_t ethRxbufPtr;      // 7FEA - 7FEB
+   uint16_t ethRxbufSize;     // 7FEC - 7FED
+   uint16_t ethRxCnt;         // 7FEE - 7FEF
+   uint8_t  ethRxErr0;        // 7FF0
+   uint8_t  ethRxErr1;        // 7FF1
+   uint8_t  ethRxOverflow;    // 7FF2
+   uint8_t  _reserved2[12];
    uint8_t  irqStatus;        // 7FFF
 } t_memio_status;
 
