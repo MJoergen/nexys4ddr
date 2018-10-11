@@ -69,7 +69,7 @@ architecture Structural of comp is
 
    -- VGA debug overlay
    signal vga_overlay_en : std_logic;
-   signal vga_overlay    : std_logic_vector(191 downto 0);
+   signal vga_overlay    : std_logic_vector(207 downto 0);
 
    -- Data Path signals
    signal cpu_addr  : std_logic_vector(15 downto 0);
@@ -90,33 +90,35 @@ architecture Structural of comp is
    signal cpu_eth_ram_wren       : std_logic;
    signal cpu_eth_ram_addr       : std_logic_vector(15 downto 0);
    signal cpu_eth_ram_data       : std_logic_vector( 7 downto 0);
-   signal cpu_eth_rxdma_enable   : std_logic;
-   signal cpu_eth_rxdma_ptr      : std_logic_vector(15 downto 0);
-   signal cpu_eth_rxdma_size     : std_logic_vector(15 downto 0);
-   signal cpu_eth_rxcpu_ptr      : std_logic_vector(15 downto 0);
-   signal cpu_eth_rxbuf_ptr      : std_logic_vector(15 downto 0);
-   signal cpu_eth_rxbuf_size     : std_logic_vector(15 downto 0);
-   signal cpu_eth_rxcnt_good     : std_logic_vector(15 downto 0);
-   signal cpu_eth_rxcnt_error    : std_logic_vector( 7 downto 0);
-   signal cpu_eth_rxcnt_crc_bad  : std_logic_vector( 7 downto 0);
-   signal cpu_eth_rxcnt_overflow : std_logic_vector( 7 downto 0);
+   signal cpu_memio_eth_rxdma_enable   : std_logic;
+   signal cpu_memio_eth_rxdma_ptr      : std_logic_vector(15 downto 0);
+   signal cpu_memio_eth_rxdma_size     : std_logic_vector(15 downto 0);
+   signal cpu_memio_eth_rxcpu_ptr      : std_logic_vector(15 downto 0);
+   signal cpu_memio_eth_rxbuf_ptr      : std_logic_vector(15 downto 0);
+   signal cpu_memio_eth_rxbuf_size     : std_logic_vector(15 downto 0);
+   signal cpu_memio_eth_rxcnt_good     : std_logic_vector(15 downto 0);
+   signal cpu_memio_eth_rxcnt_error    : std_logic_vector( 7 downto 0);
+   signal cpu_memio_eth_rxcnt_crc_bad  : std_logic_vector( 7 downto 0);
+   signal cpu_memio_eth_rxcnt_overflow : std_logic_vector( 7 downto 0);
 
    -- Memory Mapped I/O
    signal memio_rd   : std_logic_vector(8*32-1 downto 0);
    signal memio_rden : std_logic_vector(  32-1 downto 0);
    signal memio_wr   : std_logic_vector(8*32-1 downto 0);
 
-   signal cpu_cyc        : std_logic_vector(31 downto 0);
-   signal cpu_cyc_latch  : std_logic_vector( 7 downto 0);
-   signal vga_palette    : std_logic_vector(127 downto 0);
-   signal vga_pix_y_line : std_logic_vector( 15 downto 0);
-   signal vga_pix_x      : std_logic_vector(15 downto 0);
-   signal vga_pix_y      : std_logic_vector(15 downto 0);
-   signal kbd_data       : std_logic_vector( 7 downto 0);
+   signal vga_memio_palette   : std_logic_vector(16*8-1 downto 0);
+   signal vga_memio_pix_y_int : std_logic_vector( 2*8-1 downto 0);
+   signal vga_memio_pix_x     : std_logic_vector( 2*8-1 downto 0);
+   signal vga_memio_pix_y     : std_logic_vector( 2*8-1 downto 0);
 
-   signal irq_mask   : std_logic_vector(7 downto 0);
-   signal irq_status : std_logic_vector(7 downto 0);
-   signal irq_memio_rden : std_logic;
+   signal kbd_memio_data : std_logic_vector( 1*8-1 downto 0);
+
+   signal irq_memio_mask   : std_logic_vector( 1*8-1 downto 0);
+   signal irq_memio_status : std_logic_vector( 1*8-1 downto 0);
+   signal irq_memio_clear  : std_logic;
+
+   signal cpu_memio_latch : std_logic_vector( 1*8-1 downto 0);
+   signal cpu_memio_cyc   : std_logic_vector( 4*8-1 downto 0);
 
    -- Interrupt controller
    signal ic_irq    : std_logic_vector(7 downto 0);
@@ -126,6 +128,7 @@ architecture Structural of comp is
    signal timer_irq : std_logic := '0';
 
    signal kbd_debug : std_logic_vector(15 downto 0);
+   signal eth_debug : std_logic_vector(15 downto 0);
 
 begin
 
@@ -169,9 +172,9 @@ begin
       irq_i   => ic_irq,    -- Eight independent interrupt sources
       irq_o   => cpu_irq,   -- Overall CPU interrupt
 
-      mask_i     => irq_mask,      -- IRQ mask
-      stat_o     => irq_status,      -- IRQ status
-      stat_clr_i => irq_memio_rden     -- Reading from IRQ status
+      mask_i     => irq_memio_mask,     -- IRQ mask
+      stat_o     => irq_memio_status,   -- IRQ status
+      stat_clr_i => irq_memio_clear     -- Reading from IRQ status
    );
 
 
@@ -217,20 +220,20 @@ begin
 
    i_cpu : entity work.cpu
    port map (
-      clk_i     => vga_clk,
-      wait_i    => cpu_wait,
-      addr_o    => cpu_addr,
-      rden_o    => cpu_rden,
-      data_i    => mem_data,
-      wren_o    => cpu_wren,
-      data_o    => cpu_data,
-      invalid_o => led_o,
-      debug_o   => cpu_debug,
-      irq_i     => cpu_irq,
-      nmi_i     => '0', -- Not used at the moment
-      rst_i     => rst,
-      memio_o   => cpu_cyc,
-      memio_i   => cpu_cyc_latch
+      clk_i         => vga_clk,
+      wait_i        => cpu_wait,
+      addr_o        => cpu_addr,
+      rden_o        => cpu_rden,
+      data_i        => mem_data,
+      wren_o        => cpu_wren,
+      data_o        => cpu_data,
+      invalid_o     => led_o,
+      debug_o       => cpu_debug,
+      irq_i         => cpu_irq,
+      nmi_i         => '0', -- Not used at the moment
+      rst_i         => rst,
+      memio_cyc_o   => cpu_memio_cyc,
+      memio_latch_i => cpu_memio_latch
    );
 
 
@@ -302,11 +305,11 @@ begin
       col_addr_o  => col_addr,
       col_data_i  => col_data,
 
-      palette_i    => vga_palette,
-      pix_y_line_i => vga_pix_y_line,
-      pix_x_o      => vga_pix_x,
-      pix_y_o      => vga_pix_y,
-      irq_o        => vga_irq
+      memio_palette_i   => vga_memio_palette,
+      memio_pix_y_int_i => vga_memio_pix_y_int,
+      memio_pix_x_o     => vga_memio_pix_x,
+      memio_pix_y_o     => vga_memio_pix_y,
+      irq_o             => vga_irq
    );
 
 
@@ -320,7 +323,7 @@ begin
       ps2_clk_i  => ps2_clk_i,
       ps2_data_i => ps2_data_i,
 
-      data_o     => kbd_data,
+      data_o     => kbd_memio_data,
       irq_o      => kbd_irq,
 
       debug_o    => kbd_debug
@@ -337,16 +340,16 @@ begin
       user_ram_wren_o       => cpu_eth_ram_wren,
       user_ram_addr_o       => cpu_eth_ram_addr,
       user_ram_data_o       => cpu_eth_ram_data,
-      user_rxdma_enable_i   => cpu_eth_rxdma_enable,
-      user_rxdma_ptr_i      => cpu_eth_rxdma_ptr,
-      user_rxdma_size_i     => cpu_eth_rxdma_size,
-      user_rxcpu_ptr_i      => cpu_eth_rxcpu_ptr,
-      user_rxbuf_ptr_o      => cpu_eth_rxbuf_ptr,
-      user_rxbuf_size_o     => cpu_eth_rxbuf_size,
-      user_rxcnt_good_o     => cpu_eth_rxcnt_good,
-      user_rxcnt_error_o    => cpu_eth_rxcnt_error,
-      user_rxcnt_crc_bad_o  => cpu_eth_rxcnt_crc_bad,
-      user_rxcnt_overflow_o => cpu_eth_rxcnt_overflow,
+      user_rxdma_enable_i   => cpu_memio_eth_rxdma_enable,
+      user_rxdma_ptr_i      => cpu_memio_eth_rxdma_ptr,
+      user_rxdma_size_i     => cpu_memio_eth_rxdma_size,
+      user_rxcpu_ptr_i      => cpu_memio_eth_rxcpu_ptr,
+      user_rxbuf_ptr_o      => cpu_memio_eth_rxbuf_ptr,
+      user_rxbuf_size_o     => cpu_memio_eth_rxbuf_size,
+      user_rxcnt_good_o     => cpu_memio_eth_rxcnt_good,
+      user_rxcnt_error_o    => cpu_memio_eth_rxcnt_error,
+      user_rxcnt_crc_bad_o  => cpu_memio_eth_rxcnt_crc_bad,
+      user_rxcnt_overflow_o => cpu_memio_eth_rxcnt_overflow,
       --
       eth_clk_i    => eth_clk,
       eth_txd_o    => eth_txd_o,
@@ -358,7 +361,8 @@ begin
       eth_mdio_io  => eth_mdio_io,
       eth_mdc_o    => eth_mdc_o,
       eth_rstn_o   => eth_rstn_o,
-      eth_refclk_o => eth_refclk_o
+      eth_refclk_o => eth_refclk_o,
+      eth_debug_o  => eth_debug
    );
 
 
@@ -376,16 +380,15 @@ begin
    -- 7FD8 - 7FD9 : ETH_RXCPU_PTR
    -- 7FDA - 7FDE : Not used
    -- 7FDF        : IRQ_MASK
-
-   vga_palette          <= memio_wr(15*8+7 downto  0*8);
-   vga_pix_y_line       <= memio_wr(17*8+7 downto 16*8);
-   cpu_cyc_latch        <= memio_wr(18*8+7 downto 18*8);
-   cpu_eth_rxdma_enable <= memio_wr(19*8);
-   cpu_eth_rxdma_ptr    <= memio_wr(21*8+7 downto 20*8);
-   cpu_eth_rxdma_size   <= memio_wr(23*8+7 downto 22*8);
-   cpu_eth_rxcpu_ptr    <= memio_wr(25*8+7 downto 24*8);
-   --                      memio_wr(30*8+7 downto 26*8);      -- Not used
-   irq_mask             <= memio_wr(31*8+7 downto 31*8);
+   vga_memio_palette          <= memio_wr(15*8+7 downto  0*8);
+   vga_memio_pix_y_int        <= memio_wr(17*8+7 downto 16*8);
+   cpu_memio_latch            <= memio_wr(18*8+7 downto 18*8);
+   cpu_memio_eth_rxdma_enable <= memio_wr(19*8);
+   cpu_memio_eth_rxdma_ptr    <= memio_wr(21*8+7 downto 20*8);
+   cpu_memio_eth_rxdma_size   <= memio_wr(23*8+7 downto 22*8);
+   cpu_memio_eth_rxcpu_ptr    <= memio_wr(25*8+7 downto 24*8);
+   --                            memio_wr(30*8+7 downto 26*8);      -- Not used
+   irq_memio_mask             <= memio_wr(31*8+7 downto 31*8);
 
    -- 7FE0 - 7FE1 : VGA_PIX_X
    -- 7FE2 - 7FE3 : VGA_PIX_Y
@@ -400,21 +403,20 @@ begin
    -- 7FF2        : ETH_RXOVERFLOW
    -- 7FF3 - 7FFE : Not used
    -- 7FFF        : IRQ_STATUS
-
-   memio_rd( 1*8+7 downto  0*8) <= vga_pix_x;
-   memio_rd( 3*8+7 downto  2*8) <= vga_pix_y;
-   memio_rd( 7*8+7 downto  4*8) <= cpu_cyc;
-   memio_rd( 8*8+7 downto  8*8) <= kbd_data;
+   memio_rd( 1*8+7 downto  0*8) <= vga_memio_pix_x;
+   memio_rd( 3*8+7 downto  2*8) <= vga_memio_pix_y;
+   memio_rd( 7*8+7 downto  4*8) <= cpu_memio_cyc;
+   memio_rd( 8*8+7 downto  8*8) <= kbd_memio_data;
    memio_rd( 9*8+7 downto  9*8) <= (others => '0');   -- Not used
-   memio_rd(11*8+7 downto 10*8) <= cpu_eth_rxbuf_ptr;
-   memio_rd(13*8+7 downto 12*8) <= cpu_eth_rxbuf_size;
-   memio_rd(15*8+7 downto 14*8) <= cpu_eth_rxcnt_good;
-   memio_rd(16*8+7 downto 16*8) <= cpu_eth_rxcnt_error;
-   memio_rd(17*8+7 downto 17*8) <= cpu_eth_rxcnt_crc_bad;
-   memio_rd(18*8+7 downto 18*8) <= cpu_eth_rxcnt_overflow;
+   memio_rd(11*8+7 downto 10*8) <= cpu_memio_eth_rxbuf_ptr;
+   memio_rd(13*8+7 downto 12*8) <= cpu_memio_eth_rxbuf_size;
+   memio_rd(15*8+7 downto 14*8) <= cpu_memio_eth_rxcnt_good;
+   memio_rd(16*8+7 downto 16*8) <= cpu_memio_eth_rxcnt_error;
+   memio_rd(17*8+7 downto 17*8) <= cpu_memio_eth_rxcnt_crc_bad;
+   memio_rd(18*8+7 downto 18*8) <= cpu_memio_eth_rxcnt_overflow;
    memio_rd(30*8+7 downto 19*8) <= (others => '0');   -- Not used
-   memio_rd(31*8+7 downto 31*8) <= irq_status;
-   irq_memio_rden <= memio_rden(31);
+   memio_rd(31*8+7 downto 31*8) <= irq_memio_status;
+   irq_memio_clear <= memio_rden(31);
 
 
    -------------------------
@@ -433,6 +435,7 @@ begin
 
    vga_overlay(175 downto   0) <= cpu_debug;
    vga_overlay(191 downto 176) <= kbd_debug;
+   vga_overlay(207 downto 192) <= eth_debug;
 
 end architecture Structural;
 

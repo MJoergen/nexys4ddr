@@ -39,7 +39,7 @@ begin
    p_cyc_latch : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if latch_i = '1' then
+         if latch_i = '0' then
             cyc_latch <= cyc_cnt;
          end if;
       end if;

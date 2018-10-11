@@ -13,25 +13,25 @@ entity vga is
       G_FONT_FILE : string
    );
    port (
-      clk_i        : in  std_logic;    -- Expects 25.175 MHz
+      clk_i       : in  std_logic;    -- Expects 25.175 MHz
 
-      overlay_i    : in  std_logic;
-      digits_i     : in  std_logic_vector(191 downto 0);
+      overlay_i   : in  std_logic;
+      digits_i    : in  std_logic_vector(207 downto 0);
 
-      char_addr_o  : out std_logic_vector(12 downto 0);
-      char_data_i  : in  std_logic_vector( 7 downto 0);
-      col_addr_o   : out std_logic_vector(12 downto 0);
-      col_data_i   : in  std_logic_vector( 7 downto 0);
+      char_addr_o : out std_logic_vector(12 downto 0);
+      char_data_i : in  std_logic_vector( 7 downto 0);
+      col_addr_o  : out std_logic_vector(12 downto 0);
+      col_data_i  : in  std_logic_vector( 7 downto 0);
 
-      palette_i    : in  std_logic_vector(127 downto 0);
-      pix_y_line_i : in  std_logic_vector( 15 downto 0);
-      pix_x_o      : out std_logic_vector(15 downto 0);
-      pix_y_o      : out std_logic_vector(15 downto 0);
-      irq_o        : out std_logic;
+      memio_palette_i   : in  std_logic_vector(16*8-1 downto 0);
+      memio_pix_y_int_i : in  std_logic_vector( 2*8-1 downto 0);
+      memio_pix_x_o     : out std_logic_vector( 2*8-1 downto 0);
+      memio_pix_y_o     : out std_logic_vector( 2*8-1 downto 0);
+      irq_o             : out std_logic;
 
-      vga_hs_o     : out std_logic;
-      vga_vs_o     : out std_logic;
-      vga_col_o    : out std_logic_vector(7 downto 0)
+      vga_hs_o    : out std_logic;
+      vga_vs_o    : out std_logic;
+      vga_col_o   : out std_logic_vector(7 downto 0)
    );
 end vga;
 
@@ -120,7 +120,7 @@ begin
       col_addr_o  => col_addr_o,
       col_data_i  => col_data_i,
 
-      palette_i   => palette_i,
+      palette_i   => memio_palette_i,
 
       pix_x_o     => char_pix_x,
       pix_y_o     => char_pix_y,
@@ -161,13 +161,11 @@ begin
    -- Memory Mapped I/O
    --------------------
 
-   pix_x_o( 9 downto  0) <= pix_x;
-   pix_x_o(15 downto 10) <= (others => '0');
-   pix_y_o( 9 downto  0) <= pix_y;
-   pix_y_o(15 downto 10) <= (others => '0');
+   memio_pix_x_o <= "000000" & pix_x;
+   memio_pix_y_o <= "000000" & pix_y;
 
    -- Generate interrupt at end of the requested line.
-   irq_o <= '1' when pix_y = pix_y_line_i and pix_x = H_PIXELS else
+   irq_o <= '1' when pix_y = memio_pix_y_int_i and pix_x = H_PIXELS else
             '0';
 
 end architecture Structural;
