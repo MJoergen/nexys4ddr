@@ -87,9 +87,12 @@ architecture Structural of comp is
    signal col_addr  : std_logic_vector(12 downto 0);
    signal col_data  : std_logic_vector( 7 downto 0);
 
-   signal cpu_eth_ram_wren       : std_logic;
-   signal cpu_eth_ram_addr       : std_logic_vector(15 downto 0);
-   signal cpu_eth_ram_data       : std_logic_vector( 7 downto 0);
+   signal cpu_eth_ram_wr_en   : std_logic;
+   signal cpu_eth_ram_wr_addr : std_logic_vector(15 downto 0);
+   signal cpu_eth_ram_wr_data : std_logic_vector( 7 downto 0);
+   signal cpu_eth_ram_rd_en   : std_logic;
+   signal cpu_eth_ram_rd_addr : std_logic_vector(15 downto 0);
+   signal cpu_eth_ram_rd_data : std_logic_vector( 7 downto 0);
    signal cpu_memio_eth_rxdma_enable   : std_logic;
    signal cpu_memio_eth_rxdma_ptr      : std_logic_vector(15 downto 0);
    signal cpu_memio_eth_rxdma_size     : std_logic_vector(15 downto 0);
@@ -100,11 +103,15 @@ architecture Structural of comp is
    signal cpu_memio_eth_rxcnt_error    : std_logic_vector( 7 downto 0);
    signal cpu_memio_eth_rxcnt_crc_bad  : std_logic_vector( 7 downto 0);
    signal cpu_memio_eth_rxcnt_overflow : std_logic_vector( 7 downto 0);
+   signal cpu_memio_eth_txdma_ptr      : std_logic_vector(15 downto 0);
+   signal cpu_memio_eth_txdma_ctrl     : std_logic_vector( 7 downto 0);
+   signal cpu_memio_eth_txdma_clear    : std_logic;
 
    -- Memory Mapped I/O
-   signal memio_rd   : std_logic_vector(8*32-1 downto 0);
-   signal memio_rden : std_logic_vector(  32-1 downto 0);
-   signal memio_wr   : std_logic_vector(8*32-1 downto 0);
+   signal memio_rd    : std_logic_vector(8*32-1 downto 0);
+   signal memio_rden  : std_logic_vector(  32-1 downto 0);
+   signal memio_wr    : std_logic_vector(8*32-1 downto 0);
+   signal memio_clear : std_logic_vector(  32-1 downto 0);
 
    signal vga_memio_palette   : std_logic_vector(16*8-1 downto 0);
    signal vga_memio_pix_y_int : std_logic_vector( 2*8-1 downto 0);
@@ -274,13 +281,17 @@ begin
       b_col_addr_i  => col_addr,
       b_col_data_o  => col_data,
       --
-      b_eth_wren_i   => cpu_eth_ram_wren,
-      b_eth_addr_i   => cpu_eth_ram_addr,
-      b_eth_data_i   => cpu_eth_ram_data,
+      b_eth_wr_en_i   => cpu_eth_ram_wr_en,
+      b_eth_wr_addr_i => cpu_eth_ram_wr_addr,
+      b_eth_wr_data_i => cpu_eth_ram_wr_data,
+      b_eth_rd_en_i   => cpu_eth_ram_rd_en,
+      b_eth_rd_addr_i => cpu_eth_ram_rd_addr,
+      b_eth_rd_data_o => cpu_eth_ram_rd_data,
       --
-      b_memio_rd_i   => memio_rd,    -- To MEMIO
-      b_memio_rden_o => memio_rden,  -- To MEMIO
-      b_memio_wr_o   => memio_wr     -- From MEMIO
+      b_memio_rd_i    => memio_rd,    -- To MEMIO
+      b_memio_rden_o  => memio_rden,  -- To MEMIO
+      b_memio_wr_o    => memio_wr,    -- From MEMIO
+      b_memio_clear_i => memio_clear
    );
 
 
@@ -337,9 +348,15 @@ begin
    inst_ethernet : entity work.ethernet
    port map (
       user_clk_i            => vga_clk,
-      user_ram_wren_o       => cpu_eth_ram_wren,
-      user_ram_addr_o       => cpu_eth_ram_addr,
-      user_ram_data_o       => cpu_eth_ram_data,
+      user_txdma_ram_rden_o => cpu_eth_ram_rd_en,
+      user_txdma_ram_addr_o => cpu_eth_ram_rd_addr,
+      user_txdma_ram_data_i => cpu_eth_ram_rd_data,
+      user_rxdma_ram_wren_o => cpu_eth_ram_wr_en,
+      user_rxdma_ram_addr_o => cpu_eth_ram_wr_addr,
+      user_rxdma_ram_data_o => cpu_eth_ram_wr_data,
+      user_txdma_ptr_i      => cpu_memio_eth_txdma_ptr,
+      user_txdma_ctrl_i     => cpu_memio_eth_txdma_ctrl,
+      user_txdma_clear_o    => cpu_memio_eth_txdma_clear,
       user_rxdma_enable_i   => cpu_memio_eth_rxdma_enable,
       user_rxdma_ptr_i      => cpu_memio_eth_rxdma_ptr,
       user_rxdma_size_i     => cpu_memio_eth_rxdma_size,
@@ -378,7 +395,9 @@ begin
    -- 7FD4 - 7FD5 : ETH_RXDMA_PTR
    -- 7FD6 - 7FD7 : ETH_RXDMA_SIZE
    -- 7FD8 - 7FD9 : ETH_RXCPU_PTR
-   -- 7FDA - 7FDE : Not used
+   -- 7FDA - 7FDB : ETH_TXDMA_PTR
+   -- 7FDC        : ETH_TXDMA_CTRL
+   -- 7FDD - 7FDE : Not used
    -- 7FDF        : IRQ_MASK
    vga_memio_palette          <= memio_wr(15*8+7 downto  0*8);
    vga_memio_pix_y_int        <= memio_wr(17*8+7 downto 16*8);
@@ -387,8 +406,11 @@ begin
    cpu_memio_eth_rxdma_ptr    <= memio_wr(21*8+7 downto 20*8);
    cpu_memio_eth_rxdma_size   <= memio_wr(23*8+7 downto 22*8);
    cpu_memio_eth_rxcpu_ptr    <= memio_wr(25*8+7 downto 24*8);
-   --                            memio_wr(30*8+7 downto 26*8);      -- Not used
+   cpu_memio_eth_txdma_ptr    <= memio_wr(27*8+7 downto 26*8);
+   cpu_memio_eth_txdma_ctrl   <= memio_wr(28*8+7 downto 28*8);
+   --                            memio_wr(30*8+7 downto 29*8);      -- Not used
    irq_memio_mask             <= memio_wr(31*8+7 downto 31*8);
+   memio_clear                <= (28 => cpu_memio_eth_txdma_clear, others => '0');  -- ETH_TX_CTRL
 
    -- 7FE0 - 7FE1 : VGA_PIX_X
    -- 7FE2 - 7FE3 : VGA_PIX_Y

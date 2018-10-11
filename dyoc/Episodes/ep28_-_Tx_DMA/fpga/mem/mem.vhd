@@ -27,27 +27,31 @@ entity mem is
       G_MEMIO_INIT : std_logic_vector(8*32-1 downto 0)
    );
    port (
-      clk_i          : in  std_logic;
+      clk_i           : in  std_logic;
 
       -- Port A - connected to CPU
-      a_addr_i       : in  std_logic_vector(15 downto 0);
-      a_data_o       : out std_logic_vector( 7 downto 0);
-      a_rden_i       : in  std_logic;
-      a_data_i       : in  std_logic_vector( 7 downto 0);
-      a_wren_i       : in  std_logic;
-      a_wait_o       : out std_logic;
+      a_addr_i        : in  std_logic_vector(15 downto 0);
+      a_data_o        : out std_logic_vector( 7 downto 0);
+      a_rden_i        : in  std_logic;
+      a_data_i        : in  std_logic_vector( 7 downto 0);
+      a_wren_i        : in  std_logic;
+      a_wait_o        : out std_logic;
 
       -- Port B - connected to VGA, Ethernet, and Memory Mapped I/O
-      b_char_addr_i  : in  std_logic_vector(12 downto 0);
-      b_char_data_o  : out std_logic_vector( 7 downto 0);
-      b_col_addr_i   : in  std_logic_vector(12 downto 0);
-      b_col_data_o   : out std_logic_vector( 7 downto 0);
-      b_eth_wren_i   : in  std_logic;
-      b_eth_addr_i   : in  std_logic_vector(15 downto 0);
-      b_eth_data_i   : in  std_logic_vector( 7 downto 0);
-      b_memio_wr_o   : out std_logic_vector(8*32-1 downto 0);
-      b_memio_rd_i   : in  std_logic_vector(8*32-1 downto 0);
-      b_memio_rden_o : out std_logic_vector(  32-1 downto 0)
+      b_char_addr_i   : in  std_logic_vector(12 downto 0);
+      b_char_data_o   : out std_logic_vector( 7 downto 0);
+      b_col_addr_i    : in  std_logic_vector(12 downto 0);
+      b_col_data_o    : out std_logic_vector( 7 downto 0);
+      b_eth_wr_en_i   : in  std_logic;
+      b_eth_wr_addr_i : in  std_logic_vector(15 downto 0);
+      b_eth_wr_data_i : in  std_logic_vector( 7 downto 0);
+      b_eth_rd_en_i   : in  std_logic;
+      b_eth_rd_addr_i : in  std_logic_vector(15 downto 0);
+      b_eth_rd_data_o : out std_logic_vector( 7 downto 0);
+      b_memio_wr_o    : out std_logic_vector(8*32-1 downto 0);
+      b_memio_clear_i : in  std_logic_vector(  32-1 downto 0);
+      b_memio_rd_i    : in  std_logic_vector(8*32-1 downto 0);
+      b_memio_rden_o  : out std_logic_vector(  32-1 downto 0)
    );
 end mem;
 
@@ -92,7 +96,7 @@ begin
    col_cs   <= '1' when a_addr_i(15 downto G_COL_SIZE)   = G_COL_MASK(   15 downto G_COL_SIZE)   else '0';
    memio_cs <= '1' when a_addr_i(15 downto G_MEMIO_SIZE) = G_MEMIO_MASK( 15 downto G_MEMIO_SIZE) else '0';
 
-   ram_wren   <= (a_wren_i and ram_cs   and not (a_wait and not a_wait_d)) or b_eth_wren_i;
+   ram_wren   <= (a_wren_i and ram_cs   and not (a_wait and not a_wait_d)) or b_eth_wr_en_i;
    char_wren  <=  a_wren_i and char_cs  and not (a_wait and not a_wait_d);
    col_wren   <=  a_wren_i and col_cs   and not (a_wait and not a_wait_d);
    memio_wren <=  a_wren_i and memio_cs and not (a_wait and not a_wait_d);
@@ -110,7 +114,7 @@ begin
    --------------------
 
    a_wait <= (a_rden_i and (char_cs or col_cs or memio_cs)) or
-             (a_wren_i and b_eth_wren_i and ram_cs);
+             (a_wren_i and b_eth_wr_en_i and ram_cs);
 
 
    p_a_wait_d : process (clk_i)
@@ -126,16 +130,16 @@ begin
    ram_rd_addr <= a_addr_i(G_RAM_SIZE-1 downto 0);
 
    -- Multiplex writes from CPU and Ethernet
-   process (a_wren_i, a_addr_i, a_data_i, b_eth_wren_i, b_eth_addr_i, b_eth_data_i)
+   process (a_wren_i, a_addr_i, a_data_i, b_eth_wr_en_i, b_eth_wr_addr_i, b_eth_wr_data_i)
    begin
       ram_wr_addr <= a_addr_i(G_RAM_SIZE-1 downto 0);
       ram_wr_data <= a_data_i;
       ram_wr_en   <= a_wren_i;
 
-      if b_eth_wren_i = '1' then
-         ram_wr_addr <= b_eth_addr_i(G_RAM_SIZE-1 downto 0);
-         ram_wr_data <= b_eth_data_i;
-         ram_wr_en   <= b_eth_wren_i;
+      if b_eth_wr_en_i = '1' then
+         ram_wr_addr <= b_eth_wr_addr_i(G_RAM_SIZE-1 downto 0);
+         ram_wr_data <= b_eth_wr_data_i;
+         ram_wr_en   <= b_eth_wr_en_i;
       end if;
    end process;
 
@@ -166,13 +170,14 @@ begin
       G_INIT_VAL  => G_MEMIO_INIT
    )
    port map (
-      clk_i     => clk_i,
-      a_addr_i  => a_addr_i(G_MEMIO_SIZE-1 downto 0),
-      a_data_o  => memio_data,
-      a_data_i  => a_data_i,
-      a_wren_i  => memio_wren,
-      b_memio_o => b_memio_wr_o, -- From MEMIO
-      b_memio_i => b_memio_rd_i  -- To MEMIO
+      clk_i           => clk_i,
+      a_addr_i        => a_addr_i(G_MEMIO_SIZE-1 downto 0),
+      a_data_o        => memio_data,
+      a_data_i        => a_data_i,
+      a_wren_i        => memio_wren,
+      b_memio_o       => b_memio_wr_o, -- From MEMIO
+      b_memio_clear_i => b_memio_clear_i,
+      b_memio_i       => b_memio_rd_i  -- To MEMIO
    );
 
 
@@ -232,7 +237,11 @@ begin
       wren_i    => ram_wren
    );
 
+   -- Connect output signals
 
+   b_eth_rd_data_o <= ram_data when b_eth_rd_en_i = '1' else
+                      X"00";   -- Default value is needed to avoid inferring a latch.
+   
    a_data_o <= rom_data   when rom_cs   = '1' else
                memio_data when memio_cs = '1' else
                ram_data   when ram_cs   = '1' else

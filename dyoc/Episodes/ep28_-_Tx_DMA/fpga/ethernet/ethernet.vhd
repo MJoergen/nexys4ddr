@@ -6,11 +6,20 @@ use ieee.std_logic_unsigned.all;
 
 entity ethernet is
    port (
-      -- Connected to user
       user_clk_i            : in  std_logic;
-      user_ram_wren_o       : out std_logic;
-      user_ram_addr_o       : out std_logic_vector(15 downto 0);
-      user_ram_data_o       : out std_logic_vector( 7 downto 0);
+
+      -- Connected to RAM
+      user_txdma_ram_rden_o : out std_logic;
+      user_txdma_ram_addr_o : out std_logic_vector(15 downto 0);
+      user_txdma_ram_data_i : in  std_logic_vector( 7 downto 0);
+      user_rxdma_ram_wren_o : out std_logic;
+      user_rxdma_ram_addr_o : out std_logic_vector(15 downto 0);
+      user_rxdma_ram_data_o : out std_logic_vector( 7 downto 0);
+
+      -- Connected to memio
+      user_txdma_ptr_i      : in  std_logic_vector(15 downto 0);
+      user_txdma_ctrl_i     : in  std_logic_vector( 7 downto 0);
+      user_txdma_clear_o    : out std_logic;
       user_rxdma_enable_i   : in  std_logic;
       user_rxdma_ptr_i      : in  std_logic_vector(15 downto 0);
       user_rxdma_size_i     : in  std_logic_vector(15 downto 0);
@@ -57,7 +66,7 @@ architecture Structural of ethernet is
    signal eth_tx_empty  : std_logic;
    signal eth_tx_rden   : std_logic;
    signal eth_tx_data   : std_logic_vector(7 downto 0);
-   signal eth_tx_eof    : std_logic;
+   signal eth_tx_eof    : std_logic_vector(0 downto 0);
    signal eth_tx_err    : std_logic;
 
    -- Connection from rx_header to rxfifo
@@ -72,6 +81,12 @@ architecture Structural of ethernet is
    signal user_rxfifo_eof   : std_logic_vector(0 downto 0);
    signal user_rxdma_rden   : std_logic;
 
+   -- Connection from tx_dma to txfifo
+   signal user_tx_afull : std_logic;
+   signal user_tx_valid : std_logic;
+   signal user_tx_data  : std_logic_vector(7 downto 0);
+   signal user_tx_eof   : std_logic_vector(0 downto 0);
+   
    signal eth_debug : std_logic_vector(15 downto 0);
 
 begin
@@ -96,9 +111,6 @@ begin
       end if;
    end process proc_eth_rst;
    
-   -- For now, just tie this signal to a constant value.
-   eth_tx_empty <= '1';
-
 
    ------------------------------
    -- Ethernet LAN 8720A PHY
@@ -117,7 +129,7 @@ begin
       tx_empty_i   => eth_tx_empty,
       tx_rden_o    => eth_tx_rden,
       tx_data_i    => eth_tx_data,
-      tx_eof_i     => eth_tx_eof,
+      tx_eof_i     => eth_tx_eof(0),
       tx_err_o     => eth_tx_err,
       -- External pins to the LAN 8720A PHY
       eth_txd_o    => eth_txd_o,
@@ -176,7 +188,7 @@ begin
 
 
    ------------------------------
-   -- Instantiate fifo to cross clock domain
+   -- Instantiate rxfifo to cross clock domain
    ------------------------------
 
    inst_rxfifo : entity work.fifo
@@ -215,9 +227,9 @@ begin
       rd_data_i    => user_rxfifo_data,
       rd_eof_i     => user_rxfifo_eof(0),
       --
-      wr_en_o      => user_ram_wren_o,
-      wr_addr_o    => user_ram_addr_o,
-      wr_data_o    => user_ram_data_o,
+      wr_en_o      => user_rxdma_ram_wren_o,
+      wr_addr_o    => user_rxdma_ram_addr_o,
+      wr_data_o    => user_rxdma_ram_data_o,
       --
       dma_enable_i => user_rxdma_enable_i,
       dma_ptr_i    => user_rxdma_ptr_i,
@@ -227,6 +239,56 @@ begin
       buf_size_o   => user_rxbuf_size_o
    );
 
+
+   ------------------------------
+   -- Instantiate Tx DMA
+   ------------------------------
+
+   inst_tx_dma : entity work.tx_dma
+   port map (
+      clk_i         => user_clk_i,
+      memio_ptr_i   => user_txdma_ptr_i,
+      memio_ctrl_i  => user_txdma_ctrl_i,
+      memio_clear_o => user_txdma_clear_o,
+      --
+      rd_addr_o     => user_txdma_ram_addr_o,
+      rd_en_o       => user_txdma_ram_rden_o,
+      rd_data_i     => user_txdma_ram_data_i,
+      --
+      wr_afull_i    => user_tx_afull,
+      wr_valid_o    => user_tx_valid,
+      wr_data_o     => user_tx_data,
+      wr_eof_o      => user_tx_eof(0)
+   );
+
+
+   ------------------------------
+   -- Instantiate txfifo to cross clock domain
+   ------------------------------
+
+   inst_tx_fifo : entity work.fifo
+   generic map (
+      G_WIDTH => 8
+   )
+   port map (
+      wr_clk_i   => user_clk_i,
+      wr_rst_i   => '0',
+      wr_en_i    => user_tx_valid,
+      wr_data_i  => user_tx_data,
+      wr_sb_i    => user_tx_eof,
+      wr_afull_o => user_tx_afull,
+      wr_error_o => open,  -- Ignored
+      rd_clk_i   => eth_clk_i,
+      rd_rst_i   => eth_rst,
+      rd_en_i    => eth_tx_rden,
+      rd_data_o  => eth_tx_data,
+      rd_sb_o    => eth_tx_eof,
+      rd_empty_o => eth_tx_empty,
+      rd_error_o => open   -- Ignored
+   );
+   
+
+   
 
    -- Connect output signal
    eth_debug_o <= eth_debug;
