@@ -36,7 +36,7 @@ is too small, new frames will automatically start at the beginning of the frame
 
 The above design is similar to the bi-partite ring buffer, aka the [Bip
 buffer](https://www.codeproject.com/Articles/3479/The-Bip-Buffer-The-Circular-Buffer-with-a-Twist).
-Note that the CPU mau be completely agnostic about the current free space in
+Note that the CPU may be completely agnostic about the current free space in
 the receive buffer. The CPU will be told where the next frame begins, as
 explained in the following section.
 
@@ -44,13 +44,18 @@ explained in the following section.
 The CPU is responsible for allocating memory for the receive buffer. The CPU
 must then instruct the Rx DMA where the receive buffer is located. On the other
 hand, the Rx DMA must instruct the CPU when a new frame has been written into
-this receive buffer.  This leads to the following memory mapped registers:
+this receive buffer and where it is written.  This leads to the following
+memory mapped registers:
 * ETH\_RXDMA\_ENABLE  (R/W) : One bit to enable/disable the Rx DMA.
 * ETH\_RXDMA\_PTR     (R/W) : Address of first byte of receive buffer.
-* ETH\_RXDMA\_SIZE    (R/W) : Number of bytes in receive buffer.
-* ETH\_RXCPU\_PTR     (R/W) : The current CPU read pointer (first byte not processed).
-* ETH\_RXBUF\_PTR     (RO)  : Address of current bytes to be processed by the CPU.
+* ETH\_RXDMA\_SIZE    (R/W) : Total number of available bytes in receive buffer.
+* ETH\_RXCPU\_PTR     (R/W) : The current CPU read pointer (first byte not yet
+  processed by the CPU).
+* ETH\_RXBUF\_PTR     (RO)  : Address of current frame(s) to be processed by the CPU.
 * ETH\_RXBUF\_SIZE    (RO)  : Number of bytes ready to be processed by the CPU.
+
+The purpose of the ETH\_RXCPU\_PTR is to prevent the Rx DMA from overwriting an
+Ethernet frame that the CPU has not yet finished processing.
 
 To initialize the Rx DMA, the CPU must write the address and size of receive
 buffer into the registers ETH\_RXDMA\_PTR and ETH\_RXDMA\_SIZE, as well as setting
@@ -59,12 +64,14 @@ same value as ETH\_RXDMA\_PTR. Then the CPU can enable the Rx DMA by writing a
 0x01 to the register ETH\_RXDMA\_ENABLE.
 
 The Rx DMA will then automatically set ETH\_RXBUF\_PTR to equal the start of the
-receive buffer and set the value ETH\_RXBUF\_SIZE to zero.
+receive buffer and set the value ETH\_RXBUF\_SIZE to zero. Indicating that there
+currently is nothing to do.
 
-When data is receiver the regsiter ETH\_RXBUF\_SIZE will increase. Whenever this
-value is nonzero, this tells the CPU that there is data ready in the buffer.
-When the CPU has processed the received data, the CPU must update the value of
-ETH\_RXCPU\_PTR, e.g. by setting it equal to ETH\_RXBUF\_PTR + ETH\_RXBUF\_SIZE.
+When a complete Ethernet frame has been received the register ETH\_RXBUF\_SIZE
+will be updated. Whenever this value is nonzero, this tells the CPU that there
+is data ready in the buffer.  When the CPU has processed the received data, the
+CPU must update the value of ETH\_RXCPU\_PTR, e.g. by setting it equal to
+ETH\_RXBUF\_PTR + ETH\_RXBUF\_SIZE.
 
 The Rx DMA will automatically adjust the value of ETH\_RXBUF\_PTR and
 ETH\_RXBUF\_SIZE.
@@ -116,21 +123,29 @@ with fifos one must consider, whether the receiver can pull data out of the
 fifo quickly enough, compared to how fast data is pushed into the fifo. This
 also influences the choice of how big the fifo should be. In general, one
 should consider how to handle situations where data is received from external
-interfaces faster than can be processed. In the current implementation a simple
-overflow occurs leading to a persistent error that can only be cleared by
-reset.
+interfaces faster than can be processed.
+
+A choice must be made on how to handle the situation where the receive DMA
+buffer runs full, e.g. if the CPU is too slow in processing a packet, while a
+burst of subsequent packets are received. The current implementation will stop
+reading from the fifo (the signal user\_rden remains low), which will then fill
+up (as indicated by the signal eth\_fifo\_afull). Eventually the input buffer
+in rx\_header.vhd will fill up and subsequent frames will be discarded and counted
+as overflow.
 
 ### Header insertion
 This is handled in ethernet/rx\_header.vhd. This module takes care of:
 * Prepending 2 bytes of header containing total number of bytes in this frame.
-* Maintaining statistics counters of received good and bad frames.
+* Maintaining statistics counters of received good and bad frames, as well as
+  overflow.
 * Discarding bad frames (e.g. incorrect CRC).
 
 This module operates in a store-and-forward mode, where the entire frame is
 stored in an input buffer, until the last byte is received. This input buffer
 can contain any number of frames, but only a total amount of 2 Kbyte of data.
-It is therefore important, when designing the system, that we know how to
-handle buffer overrun.
+It is therefore important, that this buffer can be emptied quickly before
+another frame fills up the buffer. Furthermore, when designing the system, we
+need to know how to handle buffer overrun.
 
 The buffer is actually a ring buffer, with a write pointer and a read pointer.
 When either pointer reaches the end of the buffer, the pointers wrap around to
@@ -146,8 +161,8 @@ This is used to calculate the length of the frame.
 
 The data rate into this block is one byte every fourth clock cycle @ 50 MHz
 (corresponding to 100 Mbit/s).  The output rate is one byte every clock cycle,
-so the output is much faster than the input. However, if the receiver does not
-accept any data, then the ring buffer can indeed overflow.
+so the output is much faster than the input. However, if the output receiver
+does not accept any data, then this ring buffer can indeed overflow.
 
 Inputs to this block are taken directly from the rmii\_rx block. However, the
 additional control signal rx\_enable\_i is used to enable discarding of all
@@ -171,31 +186,24 @@ This is handled in ethernet/rx\_dma.vhd. This module takes care of:
 
 As mentioned above, the CPU is responsible for allocating (e.g. using malloc) a
 chunk of contiguous memory, and configuring the DMA block. This is done by
-writing the start and end of the receive DMA buffer.  The DMA must be disabled
+writing the start and size of the receive DMA buffer.  The DMA must be disabled
 while modifying these pointers.
 
-Whenever data is received on the Ethernet port, the DMA will write data to the
-buffer, always maintaining a write pointer to instruct the CPU how much data
-has been received. The writer pointer seen by the CPU is updated only when a
-frame has been completely received and written to memory.  Likewise, the CPU
-maintains a read pointer to instruct the DMA where it is allowed to write to.
-This prevents the DMA from overwriting data the CPU has not yet processed.
+My first implementation of the Rx DMA failed to work correctly, so I changed
+the implementation to use a state machine. Additionally, I've simplified
+the working of the Rx DMA so that it is somewhat less than optimal, but on
+the other hand simpler to understand.
 
-The whole design is put together in the file ethernet/ethernet.vhd.
+So in the current implementation, when a single frame has been received, the Rx
+DMA updates the RX\_BUF\_SIZE register and then stops. I.e. no more frames are
+written to memory. When the CPU has processed the frame, the CPU must updated
+the RX\_CPU\_PTR to point to one past the last byte of the frame.  Then the CPU
+must reset the RX\_CPU\_PTR back to the original value (start of Rx DMA
+buffer), and this resets the RX DMA.
 
-A choice must be made on how to handle the situation where the receive DMA
-buffer runs full, e.g. if the CPU is too slow in processing a packet, while a
-burst of subsequent packets are received. The current implementation will stop
-reading from the fifo (the signal user\_rden remains low), which will then fill
-up (as indicated by the signal eth\_fifo\_afull). Eventually the input buffer
-in rx\_header.vhd will fill up and generate the persistent error eth\_overflow.
+It is possible to later optimize the implementation of the Rx DMA without
+altering the surrounding modules.
 
-When the Rx DMA writes to the receive buffer, it must ensure that ETH\_WRPTR
-never reaches ETH\_RDPTR. So the receive buffer is full, when ETH\_WRPTR =
-ETH\_RDPTR - 1.
-
-If there is less than 1516 bytes left in the receive buffer, then the
-next frame will start at ETH\_START.
 
 ## Updates to the memory block
 Since we now have two independent processes writing to the memory, i.e. the CPU
@@ -217,7 +225,7 @@ In order to generate traffic on the Ethernet port, a PHY simulator will be used.
 ## Test program to run on hardware
 The program enters a busy loop polling the write pointer from the DMA. When
 the write pointer is updated an entire Ethernet frame has been received. The
-firdt 16 bytes (including the 2 byte length field) are printed to screen,
+first 16 bytes (including the 2 byte length field) are printed to screen,
 and the read pointer is updated.
 
 Note that the value read from the write pointer may not be valid, due to
@@ -227,6 +235,6 @@ byte. Instead, the CPU relies on the correctness of the length field.
 
 Note also that the receiver effectively operates in promiscuous mode, i.e.
 performs no filtering of MAC addresses. This is not really necessary,
-because the Nexyx board is connected to a switch, and the switch performs
-automatically the MAC address filtering.
+because the Nexys board is probably connected to a switch, and the switch
+performs essentially all the necessary MAC address filtering.
 
