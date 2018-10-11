@@ -1,6 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 entity tb is
 end tb;
@@ -128,6 +129,37 @@ begin
       eth_txd_o    => eth_rxd,
       eth_txen_o   => eth_crsdv
    );
+
+
+   ---------------------
+   -- Generate Ethernet data
+   ---------------------
+
+   process
+   begin
+      wait for 110 us;            -- Wait until Rx DMA is ready.
+
+      -- Send frame
+      for i in 0 to 127 loop
+         sim_data(8*i+7 downto 8*i) <= std_logic_vector(to_unsigned(i+32, 8));
+      end loop;
+      sim_len   <= X"0080"; -- Number of bytes to send
+      sim_start <= '1';
+      wait until sim_done = '1';  -- Wait until data has been transferred on PHY signals
+      sim_start <= '0';
+      wait for 10 us;            -- Wait some time while RxDMA processes data.
+
+      -- Send frame
+      for i in 0 to 127 loop
+         sim_data(8*i+7 downto 8*i) <= std_logic_vector(to_unsigned(i+96, 8));
+      end loop;
+      sim_len   <= X"0060"; -- Number of bytes to send
+      sim_start <= '1';
+      wait until sim_done = '1';  -- Wait until data has been transferred on PHY signals
+      sim_start <= '0';
+
+      wait;
+   end process;
 
 
    ---------------------
