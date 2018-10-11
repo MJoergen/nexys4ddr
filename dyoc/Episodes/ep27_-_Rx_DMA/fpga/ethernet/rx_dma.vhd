@@ -74,12 +74,14 @@ begin
 
          case state is
             when IDLE_ST =>
-               if rd_empty_i = '0' and cpu_ptr_i = dma_ptr_i then
+               if cpu_ptr_i = dma_ptr_i then
                   buf_start <= dma_ptr_i;
                   buf_end   <= dma_ptr_i;
                   buf_size  <= (others => '0');
-                  wr_addr   <= dma_ptr_i;
-                  state     <= DATA_ST;
+                  if rd_empty_i = '0' then
+                     wr_addr   <= dma_ptr_i;
+                     state     <= DATA_ST;
+                  end if;
                end if;
 
             when DATA_ST =>
