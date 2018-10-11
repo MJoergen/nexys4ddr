@@ -67,41 +67,37 @@ void main(void)
    // Wait for data to be received, and print to the screen
    while (1)
    {
-      // There must be room for a complete Ethernet frame in buffer.
-      // If not, restart from beginning.
-
-//      putx16((uint16_t)rdPtr);
-//      cputs("-");
-
-      while (rdPtr == (uint8_t *)(MEMIO_STATUS->ethRxbufPtr)) // Repeat until data is received
+      // Wait until an ethernet frame has been received
+      while (MEMIO_STATUS->ethRxbufSize == 0)
       {
          dummy_counter += 1;   // This generates a write to the main memory.
       }
 
-      // The actual value of wrPtr cannot be trusted, because reading it takes two 
-      // read operations, and the value of wrPtr may be updated in between the two
-      // reads. Instead, we use the length given in the two-byte frame header.
+      // The actual value of ethRxbufSize cannot be trusted, because reading it
+      // takes two memory operations, and the value may be updated by the Rx
+      // DMA in between the two reads. Instead, we use the length given in the
+      // two-byte frame header.
 
       // Length of this frame in bytes.
       frmLen = *((uint16_t *) rdPtr);  // Read value as little-endian
 
-//      // Show the pointer locations of the received Ethernet frame.
-//      putx16((uint16_t)frmLen);
-//      cputs(":");
-//
-//      // Show the 14 bytes MAC header.
-//      for (i=2; i<16; ++i)
-//      {
-//         putx8(rdPtr[i]);
-//      }
+      // Show the pointer locations of the received Ethernet frame.
+      putx16((uint16_t)frmLen);
+      cputs(":");
 
-      // Advance the read pointer to start of next frame.
-      rdPtr += frmLen;
+      // Show the 14 bytes MAC header.
+      for (i=2; i<16; ++i)
+      {
+         putx8(rdPtr[i]);
+      }
 
-//      cputs("\n\r");
+      cputs("\n\r");
 
-      // Instruct DMA that CPU is finished with this frame.
-      MEMIO_CONFIG->ethRxCpuPtr = (uint16_t) rdPtr;
+      // Instruct Rx DMA that CPU is finished with this frame.
+      MEMIO_CONFIG->ethRxCpuPtr = (uint16_t) (rdPtr + frmLen);
+      while (MEMIO_STATUS->ethRxbufSize != 0)
+      { }
+      MEMIO_CONFIG->ethRxCpuPtr = (uint16_t) pBufStart;
    }
 
 } // end of main
