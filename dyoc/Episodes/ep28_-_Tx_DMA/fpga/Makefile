@@ -35,7 +35,7 @@ sim: $(SRC) $(TB) ../rom.txt
 	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/primitive/*.vhd
 	ghdl -i --work=work $(SRC) $(TB)
 	ghdl -m --ieee=synopsys -fexplicit tb
-	ghdl -r tb --assert-level=error --wave=$(WAVE) --stop-time=260us
+	ghdl -r tb --assert-level=error --wave=$(WAVE) --stop-time=300us
 	gtkwave $(WAVE) $(SAVE)
 
 

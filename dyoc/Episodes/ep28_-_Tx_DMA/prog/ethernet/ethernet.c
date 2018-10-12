@@ -40,6 +40,42 @@ const uint8_t arpHeader[10]   = {0x08, 0x06, 0x00, 0x01, 0x08, 0x00, 0x06, 0x04,
 const uint8_t myMacAddress[6] = {0x70, 0x4D, 0x7B, 0x11, 0x22, 0x33};  // AsustekC
 const uint8_t myIpAddress[4]  = {192, 168, 1, 77};
 
+void processFrame(uint8_t *rdPtr)
+{
+   cputs("Got frame.\n\r");
+
+   // Set read pointer to past the length field
+   rdPtr += 2;
+
+   if (memcmp(rdPtr+12, arpHeader, 10))
+      return;
+
+   cputs("Got ARP.\n\r");
+
+   if (memcmp(rdPtr+38, myIpAddress, 4))
+      return;
+
+   cputs("Bingo!\n\r");
+
+   // Build new MAC header
+   memcpy(rdPtr, rdPtr+6, 6);
+   memcpy(rdPtr+6, myMacAddress, 6);
+
+   // Build new ARP header
+   rdPtr[21] = 2; // ARP Reply
+   memcpy(rdPtr+32, rdPtr+22, 10); // Copy original senders MAC and IP address to the target.
+   memcpy(rdPtr+22, myMacAddress, 6);
+   memcpy(rdPtr+28, myIpAddress, 4);
+
+   // Send reply
+   MEMIO_CONFIG->ethTxPtr  = (uint16_t) rdPtr - 2;
+   MEMIO_CONFIG->ethTxCtrl = 1;
+
+   // Wait until frame has been consume by TxDMA.
+   while (MEMIO_CONFIG->ethTxCtrl)
+   {}
+} // end of processFrame
+
 void main(void)
 {
    // Allocate receive buffer. This will never be free'd.
@@ -67,37 +103,10 @@ void main(void)
       // Calculate length of frame
       frmLen = *((uint16_t *)rdPtr);  // Read as little-endian.
 
-      // Set read pointer to past the length field
-      rdPtr += 2;
-
-      if (memcmp(rdPtr+12, arpHeader, 10))
-         continue;
-
-      if (memcmp(rdPtr+38, myIpAddress, 4))
-         continue;
-
-      cputs("Bingo!\n\r");
-
-      // Build new MAC header
-      memcpy(rdPtr, rdPtr+6, 6);
-      memcpy(rdPtr+6, myMacAddress, 6);
-
-      // Build new ARP header
-      rdPtr[21] = 2; // ARP Reply
-      memcpy(rdPtr+32, rdPtr+22, 10); // Copy original senders MAC and IP address to the target.
-      memcpy(rdPtr+22, myMacAddress, 6);
-      memcpy(rdPtr+28, myIpAddress, 4);
-
-      // Send reply
-      MEMIO_CONFIG->ethTxPtr  = (uint16_t) rdPtr - 2;
-      MEMIO_CONFIG->ethTxCtrl = 1;
-
-      // Wait until frame has been consume by TxDMA.
-      while (MEMIO_CONFIG->ethTxCtrl)
-      {}
+      processFrame(rdPtr);
 
       // Release input buffer
-      MEMIO_CONFIG->ethRxCpuPtr = (uint16_t) (rdPtr + frmLen - 2);
+      MEMIO_CONFIG->ethRxCpuPtr = (uint16_t) (rdPtr + frmLen);
       while (MEMIO_STATUS->ethRxbufSize != 0)
       { }
       MEMIO_CONFIG->ethRxCpuPtr = (uint16_t) pBufStart;

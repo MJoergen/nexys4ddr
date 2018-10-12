@@ -138,22 +138,22 @@ begin
    process
       type frame_t is array (natural range <>) of std_logic_vector(7 downto 0);
 
-      constant frame : frame_t(0 to 45) :=
+      constant frame : frame_t(0 to 41) :=
          (X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"F4", x"6D",
           X"04", X"D7", X"F3", X"CA", X"08", X"06", X"00", x"01",
           X"08", X"00", X"06", X"04", X"00", X"01", X"F4", X"6D",
           X"04", X"D7", X"F3", X"CA", X"C0", X"A8", X"01", X"2B",
           X"00", X"00", X"00", X"00", X"00", X"00", X"C0", X"A8",
-          X"01", X"4D", X"CC", X"CC", X"CC", X"CC");  -- Must include 4 dummy bytes for CRC.
+          X"01", X"4D");
 
    begin
       wait for 120 us;            -- Wait until DMA's are initialized.
 
       -- Send frame
-      for i in 0 to 45 loop
+      for i in 0 to 41 loop
          sim_data(8*i+7 downto 8*i) <= frame(i);
       end loop;
-      sim_len   <= std_logic_vector(to_unsigned(46, 16)); -- Number of bytes to send
+      sim_len   <= std_logic_vector(to_unsigned(42, 16)); -- Number of bytes to send
       sim_start <= '1';
       wait until sim_done = '1';  -- Wait until data has been transferred on PHY signals
       sim_start <= '0';

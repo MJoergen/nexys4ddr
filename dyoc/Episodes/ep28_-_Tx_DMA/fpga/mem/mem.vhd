@@ -127,7 +127,15 @@ begin
    a_wait_o <= '1' when a_wait = '1' and a_wait_d = '0' else
                '0';
 
-   ram_rd_addr <= a_addr_i(G_RAM_SIZE-1 downto 0);
+   -- Multiplex read from CPU and Ethernet
+   process (a_addr_i, b_eth_rd_en_i, b_eth_rd_addr_i)
+   begin
+      ram_rd_addr <= a_addr_i(G_RAM_SIZE-1 downto 0);
+
+      if b_eth_rd_en_i = '1' then
+         ram_rd_addr <= b_eth_rd_addr_i(G_RAM_SIZE-1 downto 0);
+      end if;
+   end process;
 
    -- Multiplex writes from CPU and Ethernet
    process (a_wren_i, a_addr_i, a_data_i, b_eth_wr_en_i, b_eth_wr_addr_i, b_eth_wr_data_i)
