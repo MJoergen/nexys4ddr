@@ -1,27 +1,12 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <conio.h>
 #include "memorymap.h"
+#include "ethernet.h"
 
 // This is the number of bytes to use for the entire receive buffer. It should be
 // large enough to contain at least one complete frame, i.e. 1500 bytes.
 #define BUF_SIZE 1540
-
-// Write a single byte in hexadecimal.
-void putx8(uint8_t x)
-{
-   static const char hex[16] = "0123456789ABCDEF";
-   cputc(hex[(x>>4) & 0x0F]);
-   cputc(hex[(x>>0) & 0x0F]);
-}
-
-// Write a 16-bit value in hexadecimal.
-void putx16(uint16_t x)
-{
-   putx8((x>>8) & 0xFF);
-   putx8((x>>0) & 0xFF);
-}
 
 // This variable is only used during simulation, to test the arbitration
 // between CPU and Ethernet while writing to memory.
@@ -35,46 +20,6 @@ uint8_t *rdPtr;
 
 // Length of current frame
 uint16_t frmLen;
-
-const uint8_t arpHeader[10]   = {0x08, 0x06, 0x00, 0x01, 0x08, 0x00, 0x06, 0x04, 0x00, 0x01};
-const uint8_t myMacAddress[6] = {0x70, 0x4D, 0x7B, 0x11, 0x22, 0x33};  // AsustekC
-const uint8_t myIpAddress[4]  = {192, 168, 1, 77};
-
-void processFrame(uint8_t *rdPtr)
-{
-   cputs("Got frame.\n\r");
-
-   // Set read pointer to past the length field
-   rdPtr += 2;
-
-   if (memcmp(rdPtr+12, arpHeader, 10))
-      return;
-
-   cputs("Got ARP.\n\r");
-
-   if (memcmp(rdPtr+38, myIpAddress, 4))
-      return;
-
-   cputs("Bingo!\n\r");
-
-   // Build new MAC header
-   memcpy(rdPtr, rdPtr+6, 6);
-   memcpy(rdPtr+6, myMacAddress, 6);
-
-   // Build new ARP header
-   rdPtr[21] = 2; // ARP Reply
-   memcpy(rdPtr+32, rdPtr+22, 10); // Copy original senders MAC and IP address to the target.
-   memcpy(rdPtr+22, myMacAddress, 6);
-   memcpy(rdPtr+28, myIpAddress, 4);
-
-   // Send reply
-   MEMIO_CONFIG->ethTxPtr  = (uint16_t) rdPtr - 2;
-   MEMIO_CONFIG->ethTxCtrl = 1;
-
-   // Wait until frame has been consume by TxDMA.
-   while (MEMIO_CONFIG->ethTxCtrl)
-   {}
-} // end of processFrame
 
 void main(void)
 {
@@ -103,7 +48,7 @@ void main(void)
       // Calculate length of frame
       frmLen = *((uint16_t *)rdPtr);  // Read as little-endian.
 
-      processFrame(rdPtr);
+      processFrame(rdPtr+2, frmLen-2);
 
       // Release input buffer
       MEMIO_CONFIG->ethRxCpuPtr = (uint16_t) (rdPtr + frmLen);
