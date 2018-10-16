@@ -17,8 +17,9 @@ entity memio is
       a_wren_i : in  std_logic;
 
       -- Port B
-      b_memio_i : in  std_logic_vector(8*32-1 downto 0);  -- To MEMIO
-      b_memio_o : out std_logic_vector(8*32-1 downto 0)   -- From MEMIO
+      b_memio_i       : in  std_logic_vector(8*32-1 downto 0);  -- To MEMIO
+      b_memio_clear_i : in  std_logic_vector(  32-1 downto 0);
+      b_memio_o       : out std_logic_vector(8*32-1 downto 0)   -- From MEMIO
    );
 end memio;
 
@@ -41,6 +42,11 @@ begin
          if a_wren_i = '1' and a_addr_i(G_ADDR_BITS-1) = '0' then
             memio_r(addr_v*8+7 downto addr_v*8) <= a_data_i;
          end if;
+         for i in 0 to 31 loop
+            if b_memio_clear_i(i) = '1' then
+               memio_r(8*i+7 downto 8*i) <= G_INIT_VAL(8*i+7 downto 8*i);
+            end if;
+         end loop;
          a_data_o <= memio_s(addr_v*8+7 downto addr_v*8);
       end if;
    end process p_port_a;

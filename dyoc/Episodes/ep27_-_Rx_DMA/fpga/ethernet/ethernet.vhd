@@ -8,15 +8,13 @@ entity ethernet is
    port (
       -- Connected to user
       user_clk_i            : in  std_logic;
+      user_rst_i            : in  std_logic;
       user_ram_wren_o       : out std_logic;
       user_ram_addr_o       : out std_logic_vector(15 downto 0);
       user_ram_data_o       : out std_logic_vector( 7 downto 0);
-      user_rxdma_enable_i   : in  std_logic;
       user_rxdma_ptr_i      : in  std_logic_vector(15 downto 0);
-      user_rxdma_size_i     : in  std_logic_vector(15 downto 0);
-      user_rxcpu_ptr_i      : in  std_logic_vector(15 downto 0);
-      user_rxbuf_ptr_o      : out std_logic_vector(15 downto 0);
-      user_rxbuf_size_o     : out std_logic_vector(15 downto 0);
+      user_rxdma_enable_i   : in  std_logic;
+      user_rxdma_clear_o    : out std_logic;
       user_rxcnt_good_o     : out std_logic_vector(15 downto 0);
       user_rxcnt_error_o    : out std_logic_vector( 7 downto 0);
       user_rxcnt_crc_bad_o  : out std_logic_vector( 7 downto 0);
@@ -157,7 +155,6 @@ begin
    port map (
       clk_i          => eth_clk_i,
       rst_i          => eth_rst,
-      rx_enable_i    => user_rxdma_enable_i,
       rx_valid_i     => eth_rx_valid,
       rx_eof_i       => eth_rx_eof,
       rx_data_i      => eth_rx_data,
@@ -209,9 +206,9 @@ begin
    inst_rx_dma : entity work.rx_dma
    port map (
       clk_i        => user_clk_i,
+      rst_i        => user_rst_i,
       rd_empty_i   => user_rxfifo_empty,
       rd_en_o      => user_rxdma_rden,
-      --
       rd_data_i    => user_rxfifo_data,
       rd_eof_i     => user_rxfifo_eof(0),
       --
@@ -219,12 +216,9 @@ begin
       wr_addr_o    => user_ram_addr_o,
       wr_data_o    => user_ram_data_o,
       --
-      dma_enable_i => user_rxdma_enable_i,
       dma_ptr_i    => user_rxdma_ptr_i,
-      dma_size_i   => user_rxdma_size_i,
-      cpu_ptr_i    => user_rxcpu_ptr_i,
-      buf_ptr_o    => user_rxbuf_ptr_o,
-      buf_size_o   => user_rxbuf_size_o
+      dma_enable_i => user_rxdma_enable_i,
+      dma_clear_o  => user_rxdma_clear_o
    );
 
 

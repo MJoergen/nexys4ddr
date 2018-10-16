@@ -6,8 +6,8 @@ use ieee.std_logic_unsigned.all;
 
 entity phy_sim is
    port (
-      sim_data_i   : in  std_logic_vector(128*8-1 downto 0);
-      sim_len_i    : in  std_logic_vector(15 downto 0);
+      sim_data_i   : in  std_logic_vector(1600*8-1 downto 0);
+      sim_len_i    : in  std_logic_vector(  15     downto 0);
       sim_start_i  : in  std_logic;
       sim_done_o   : out std_logic;
       --

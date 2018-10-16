@@ -9,72 +9,55 @@ board.
 
 ## Frame format in memory
 The implementation I've chosen here has the FPGA writing the received Ethernet
-frames directly to RAM, without requiring any assistance from the CPU.  This is
-called Direct Memory Access. To make this work we must allocate a certain area
-in memory and design an Rx DMA module to write to this memory area.
+frames directly to RAM, without requiring any assistance from the CPU (except
+being told where in memory to write).  This is called Direct Memory Access. To
+make this work we must allocate a certain area in memory and design an Rx DMA
+module to write to this memory area.
 
 Then we must decide on a format of the data written to the memory.  Initially,
-we have three requirements:
-* We must be able to distinguish where one frame ends and another frame begins. 
+we have four requirements:
+* Only one frame is written to this chunk of memory.
 * Each frame must be in a contiguous (un-fragmented) block of memory.
-* The design must be robust and handle error situations gracefully.
+* We must be able to know, when a complete frame has been written.
+* We must be able to know the size of the frame (i.e. number of bytes).
+* We must be able to instruct the Rx DMA when we're finished reading the frame.
+
+The first requirement is made to keep the design as simple as possible. It is
+certainly possible to relax this requirement: For instance, allowing multiple
+frames written to memory back-to-back could lead to better performance.
+However, this episode is going to be very long anyway, so no need to complicate
+matters more. Performance is not a primary concern in this design!
 
 I've chosen to prepend each frame with a two-byte header that contains the
 total number of bytes in the frame, including the header. This allows the
-software to easily determine where the next frame begins, and thus takes care
-of the first requirement above.
+software to easily determine the number of bytes in the frame.
 
-Note that the length field therefore serves two different purposes: It
-indicates the length of the current frame, and it is used to calculate the
-beginning of the next frame. The latter assumes that frames are back-to-back.
-
-To ensure the second requirement, I've decided to always allow room for at
-least a full maximum size Ethernet frame (i.e. 1514 bytes Ethernet frame plus 2
-bytes header).  This means that if the space at the end of the receive buffer
-is too small, new frames will automatically start at the beginning of the frame
-(if there is space available).
-
-The above design is similar to the bi-partite ring buffer, aka the [Bip
-buffer](https://www.codeproject.com/Articles/3479/The-Bip-Buffer-The-Circular-Buffer-with-a-Twist).
-Note that the CPU may be completely agnostic about the current free space in
-the receive buffer. The CPU will be told where the next frame begins, as
-explained in the following section.
+The buffer space needed has to accommodate a full Ethernet frame incl header, i.e.
+1516 bytes. The Rx DMA will discard any frames that are longer than that.
 
 ## Interface to CPU
-The CPU is responsible for allocating memory for the receive buffer. The CPU
-must then instruct the Rx DMA where the receive buffer is located. On the other
-hand, the Rx DMA must instruct the CPU when a new frame has been written into
-this receive buffer and where it is written.  This leads to the following
-memory mapped registers:
-* ETH\_RXDMA\_ENABLE  (R/W) : One bit to enable/disable the Rx DMA.
-* ETH\_RXDMA\_PTR     (R/W) : Address of first byte of receive buffer.
-* ETH\_RXDMA\_SIZE    (R/W) : Total number of available bytes in receive buffer.
-* ETH\_RXCPU\_PTR     (R/W) : The current CPU read pointer (first byte not yet
-  processed by the CPU).
-* ETH\_RXBUF\_PTR     (RO)  : Address of current frame(s) to be processed by the CPU.
-* ETH\_RXBUF\_SIZE    (RO)  : Number of bytes ready to be processed by the CPU.
+The CPU is responsible for allocating memory (at least 1516 bytes) for the
+receive buffer. The CPU must then instruct the Rx DMA where the receive buffer
+is located and that the CPU is ready to receive the next Ethernet frame. On the
+other hand, the Rx DMA must instruct the CPU when a new frame has been written
+into this receive buffer.  This leads to the following memory mapped registers:
+* ETH\_RXDMA\_CTRL (R/W) : One bit to control the "owner" of the receive buffer.
+* ETH\_RXDMA\_PTR  (R/W) : Address of first byte of receive buffer.
 
-The purpose of the ETH\_RXCPU\_PTR is to prevent the Rx DMA from overwriting an
-Ethernet frame that the CPU has not yet finished processing.
+When the CPU has allocated the memory for the receive buffer and written the
+address to ETH\_RXDMA\_PTR, the CPU may now write the value '1' to
+ETH\_RXDMA\_CTRL.  This instructs the Rx DMA that it is now the "owner" of the
+buffer and may write data there. When an entire Ethernet frame has been written
+(including 2 byte header), the Rx DMA automatically clears the
+ETH\_RXDMA\_CTRL.
 
-To initialize the Rx DMA, the CPU must write the address and size of receive
-buffer into the registers ETH\_RXDMA\_PTR and ETH\_RXDMA\_SIZE, as well as setting
-the current CPU pointer ETH\_RXCPU\_PTR to the beginning of the buffer, i.e. the
-same value as ETH\_RXDMA\_PTR. Then the CPU can enable the Rx DMA by writing a
-0x01 to the register ETH\_RXDMA\_ENABLE.
+As long as ETH\_RXDMA\_CTRL is zero, the CPU "owns" the receive buffer, and the
+Rx DMA will not write any data. When the CPU has finished processing the
+received frame, the CPU may repeat the process by once again writing a '1' to
+ETH\_RXDMA\_CTRL.
 
-The Rx DMA will then automatically set ETH\_RXBUF\_PTR to equal the start of the
-receive buffer and set the value ETH\_RXBUF\_SIZE to zero. Indicating that there
-currently is nothing to do.
-
-When a complete Ethernet frame has been received the register ETH\_RXBUF\_SIZE
-will be updated. Whenever this value is nonzero, this tells the CPU that there
-is data ready in the buffer.  When the CPU has processed the received data, the
-CPU must update the value of ETH\_RXCPU\_PTR, e.g. by setting it equal to
-ETH\_RXBUF\_PTR + ETH\_RXBUF\_SIZE.
-
-The Rx DMA will automatically adjust the value of ETH\_RXBUF\_PTR and
-ETH\_RXBUF\_SIZE.
+Any Ethernet frames received while ETH\_RXDMA\_CTRL is cleared will be stored
+in internal FIFOs as explained below.
 
 ## Overall design strategy for receiving data from the Ethernet.
 A number of blocks is needed in the design in order to facilitate all this.  In
@@ -138,7 +121,7 @@ This is handled in ethernet/rx\_header.vhd. This module takes care of:
 * Prepending 2 bytes of header containing total number of bytes in this frame.
 * Maintaining statistics counters of received good and bad frames, as well as
   overflow.
-* Discarding bad frames (e.g. incorrect CRC).
+* Discarding bad frames (e.g. incorrect CRC or oversize).
 
 This module operates in a store-and-forward mode, where the entire frame is
 stored in an input buffer, until the last byte is received. This input buffer
@@ -183,27 +166,16 @@ This is handled in ethernet/fifo.vhd. This module takes care of:
 This is handled in ethernet/rx\_dma.vhd. This module takes care of:
 * Generating write requests to CPU memory.
 * Maintaining a write pointer.
+* Synchronizing with the CPU about who "owns" the receive buffer.
 
 As mentioned above, the CPU is responsible for allocating (e.g. using malloc) a
 chunk of contiguous memory, and configuring the DMA block. This is done by
-writing the start and size of the receive DMA buffer.  The DMA must be disabled
-while modifying these pointers.
+writing the start of the receive DMA buffer.
 
-My first implementation of the Rx DMA failed to work correctly, so I changed
-the implementation to use a state machine. Additionally, I've simplified
-the working of the Rx DMA so that it is somewhat less than optimal, but on
-the other hand simpler to understand.
-
-So in the current implementation, when a single frame has been received, the Rx
-DMA updates the RX\_BUF\_SIZE register and then stops. I.e. no more frames are
-written to memory. When the CPU has processed the frame, the CPU must updated
-the RX\_CPU\_PTR to point to one past the last byte of the frame.  Then the CPU
-must reset the RX\_CPU\_PTR back to the original value (start of Rx DMA
-buffer), and this resets the RX DMA.
-
-It is possible to later optimize the implementation of the Rx DMA without
-altering the surrounding modules.
-
+When the CPU is ready to receive an Ethernet frame, it writes to RXDMA\_ENABLE,
+which asserts the signal dma\_enable\_i.  When the frame has been written to
+RAM, the Rx DMA asserts the signal dma\_clear, which resets the register
+RXDMA\_ENABLE.
 
 ## Updates to the memory block
 Since we now have two independent processes writing to the memory, i.e. the CPU
@@ -215,12 +187,17 @@ most one clock cycle for a write to complete.
 The extra wait state is inserted in line 113 in mem/mem.vhd. The arbitration
 between CPU and DMA is handled in lines 128-140.
 
+Additionally, the Rx DMA needs to be able to clear the RXDMA\_ENABLE register.
+This means modifying the memio module.
+
 ## Unit testing in simulation
 Due to the complexity it is beneficial to have a separate testbench to just
 test this new data path. So the testbench will be ethernet\_tb.vhd and will
 test the Ethernet wrapper module.
 
-In order to generate traffic on the Ethernet port, a PHY simulator will be used.
+In order to generate traffic on the Ethernet port, a PHY simulator will be
+used.  Furthermore, a RAM simulator is added to receive the data written by the
+Rx DMA.
 
 ## Test program to run on hardware
 The program enters a busy loop polling the write pointer from the DMA. When

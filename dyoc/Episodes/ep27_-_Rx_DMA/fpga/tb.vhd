@@ -38,8 +38,8 @@ architecture Structural of tb is
    signal eth_refclk : std_logic;
    
    -- Controls the traffic input to Ethernet.
-   signal sim_data  : std_logic_vector(128*8-1 downto 0);
-   signal sim_len   : std_logic_vector( 15     downto 0);
+   signal sim_data  : std_logic_vector(1600*8-1 downto 0);
+   signal sim_len   : std_logic_vector(  15     downto 0);
    signal sim_start : std_logic := '0';
    signal sim_done  : std_logic;
 
@@ -136,27 +136,31 @@ begin
    ---------------------
 
    process
+
+      procedure send_frame(first : integer; length : integer) is
+      begin
+         sim_len <= std_logic_vector(to_unsigned(length, 16));
+         sim_data <= (others => 'X');
+         for i in 0 to length-1 loop
+            sim_data(8*i+7 downto 8*i) <= 
+               std_logic_vector(to_unsigned((i+first) mod 256, 8));
+         end loop;
+         sim_start <= '1';
+
+         -- Wait until data has been transferred on PHY signals
+         wait until sim_done = '1';
+         sim_start <= '0';
+         wait until eth_refclk = '1';
+      end procedure send_frame;
+
    begin
       wait for 110 us;            -- Wait until Rx DMA is ready.
 
-      -- Send frame
-      for i in 0 to 127 loop
-         sim_data(8*i+7 downto 8*i) <= std_logic_vector(to_unsigned(i+32, 8));
-      end loop;
-      sim_len   <= X"0080"; -- Number of bytes to send
-      sim_start <= '1';
-      wait until sim_done = '1';  -- Wait until data has been transferred on PHY signals
-      sim_start <= '0';
+      send_frame(32, 128);
+
       wait for 10 us;            -- Wait some time while RxDMA processes data.
 
-      -- Send frame
-      for i in 0 to 127 loop
-         sim_data(8*i+7 downto 8*i) <= std_logic_vector(to_unsigned(i+96, 8));
-      end loop;
-      sim_len   <= X"0060"; -- Number of bytes to send
-      sim_start <= '1';
-      wait until sim_done = '1';  -- Wait until data has been transferred on PHY signals
-      sim_start <= '0';
+      send_frame(64, 96);
 
       wait;
    end process;
