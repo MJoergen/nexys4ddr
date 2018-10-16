@@ -194,18 +194,13 @@ used.  Furthermore, a RAM simulator is added to receive the data written by the
 Rx DMA.
 
 ## Test program to run on hardware
-The program enters a busy loop polling the write pointer from the DMA. When
-the write pointer is updated an entire Ethernet frame has been received. The
-first 16 bytes (including the 2 byte length field) are printed to screen,
-and the read pointer is updated.
+The program enables the Rx DMA and enters a busy loop polling the RXDMA\_ENABLE
+register.  When this register reads zero, the first 16 bytes (including the 2
+byte length field) are printed to screen, and the whole process is repeated
+again.
 
-Note that the value read from the write pointer may not be valid, due to
-a race condition. Because the CPU accesses the memory only 1 byte at a time,
-the write pointer may be updated between reading the first and the second
-byte. Instead, the CPU relies on the correctness of the length field.
-
-Note also that the receiver effectively operates in promiscuous mode, i.e.
-performs no filtering of MAC addresses. This is not really necessary,
-because the Nexys board is probably connected to a switch, and the switch
+Note that the receiver effectively operates in promiscuous mode, i.e.  performs
+no filtering of MAC addresses. MAC address filtering is not really necessary,
+because the Nexys board is most likely connected to a switch, and the switch
 performs essentially all the necessary MAC address filtering.
 
