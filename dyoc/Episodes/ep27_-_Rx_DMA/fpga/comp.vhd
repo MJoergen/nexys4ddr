@@ -87,9 +87,9 @@ architecture Structural of comp is
    signal col_addr  : std_logic_vector(12 downto 0);
    signal col_data  : std_logic_vector( 7 downto 0);
 
-   signal cpu_eth_ram_wren       : std_logic;
-   signal cpu_eth_ram_addr       : std_logic_vector(15 downto 0);
-   signal cpu_eth_ram_data       : std_logic_vector( 7 downto 0);
+   signal cpu_eth_ram_wr_en   : std_logic;
+   signal cpu_eth_ram_wr_addr : std_logic_vector(15 downto 0);
+   signal cpu_eth_ram_wr_data : std_logic_vector( 7 downto 0);
    signal cpu_memio_eth_rxdma_enable   : std_logic;
    signal cpu_memio_eth_rxdma_clear    : std_logic;
    signal cpu_memio_eth_rxdma_ptr      : std_logic_vector(15 downto 0);
@@ -271,9 +271,9 @@ begin
       b_col_addr_i  => col_addr,
       b_col_data_o  => col_data,
       --
-      b_eth_wren_i   => cpu_eth_ram_wren,
-      b_eth_addr_i   => cpu_eth_ram_addr,
-      b_eth_data_i   => cpu_eth_ram_data,
+      b_eth_wr_en_i   => cpu_eth_ram_wr_en,
+      b_eth_wr_addr_i => cpu_eth_ram_wr_addr,
+      b_eth_wr_data_i => cpu_eth_ram_wr_data,
       --
       b_memio_rd_i    => memio_rd,    -- To MEMIO
       b_memio_rden_o  => memio_rden,  -- To MEMIO
@@ -336,9 +336,9 @@ begin
    port map (
       user_clk_i            => vga_clk,
       user_rst_i            => rst,
-      user_ram_wren_o       => cpu_eth_ram_wren,
-      user_ram_addr_o       => cpu_eth_ram_addr,
-      user_ram_data_o       => cpu_eth_ram_data,
+      user_rxdma_ram_wren_o => cpu_eth_ram_wr_en,
+      user_rxdma_ram_addr_o => cpu_eth_ram_wr_addr,
+      user_rxdma_ram_data_o => cpu_eth_ram_wr_data,
       user_rxdma_enable_i   => cpu_memio_eth_rxdma_enable,
       user_rxdma_clear_o    => cpu_memio_eth_rxdma_clear,
       user_rxdma_ptr_i      => cpu_memio_eth_rxdma_ptr,

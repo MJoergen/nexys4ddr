@@ -6,12 +6,15 @@ use ieee.std_logic_unsigned.all;
 
 entity ethernet is
    port (
-      -- Connected to user
       user_clk_i            : in  std_logic;
       user_rst_i            : in  std_logic;
-      user_ram_wren_o       : out std_logic;
-      user_ram_addr_o       : out std_logic_vector(15 downto 0);
-      user_ram_data_o       : out std_logic_vector( 7 downto 0);
+
+      -- Connected to RAM
+      user_rxdma_ram_wren_o : out std_logic;
+      user_rxdma_ram_addr_o : out std_logic_vector(15 downto 0);
+      user_rxdma_ram_data_o : out std_logic_vector( 7 downto 0);
+
+      -- Connected to memio
       user_rxdma_ptr_i      : in  std_logic_vector(15 downto 0);
       user_rxdma_enable_i   : in  std_logic;
       user_rxdma_clear_o    : out std_logic;
@@ -151,7 +154,7 @@ begin
 
 
    ------------------------------
-   -- Instantiate fifo to cross clock domain
+   -- Instantiate rxfifo to cross clock domain
    ------------------------------
 
    inst_rxfifo : entity work.fifo
@@ -190,9 +193,9 @@ begin
       rd_data_i    => user_rxfifo_data,
       rd_eof_i     => user_rxfifo_eof(0),
       --
-      wr_en_o      => user_ram_wren_o,
-      wr_addr_o    => user_ram_addr_o,
-      wr_data_o    => user_ram_data_o,
+      wr_en_o      => user_rxdma_ram_wren_o,
+      wr_addr_o    => user_rxdma_ram_addr_o,
+      wr_data_o    => user_rxdma_ram_data_o,
       --
       dma_ptr_i    => user_rxdma_ptr_i,
       dma_enable_i => user_rxdma_enable_i,
