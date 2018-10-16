@@ -17,7 +17,6 @@ module to write to this memory area.
 Then we must decide on a format of the data written to the memory.  Initially,
 we have four requirements:
 * Only one frame is written to this chunk of memory.
-* Each frame must be in a contiguous (un-fragmented) block of memory.
 * We must be able to know, when a complete frame has been written.
 * We must be able to know the size of the frame (i.e. number of bytes).
 * We must be able to instruct the Rx DMA when we're finished reading the frame.
