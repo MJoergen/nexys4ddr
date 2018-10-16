@@ -31,10 +31,7 @@ entity ethernet is
       eth_mdio_io  : inout std_logic;
       eth_mdc_o    : out   std_logic;
       eth_rstn_o   : out   std_logic;
-      eth_refclk_o : out   std_logic;
-
-      -- Connected to overlay
-      eth_debug_o : out   std_logic_vector(15 downto 0)
+      eth_refclk_o : out   std_logic
    );
 end ethernet;
 
@@ -69,8 +66,6 @@ architecture Structural of ethernet is
    signal user_rxfifo_data  : std_logic_vector(7 downto 0);
    signal user_rxfifo_eof   : std_logic_vector(0 downto 0);
    signal user_rxdma_rden   : std_logic;
-
-   signal eth_debug : std_logic_vector(15 downto 0);
 
 begin
 
@@ -130,23 +125,6 @@ begin
       eth_refclk_o => eth_refclk_o
    );
 
-
-   ----------------------------------------------------------------------------
-   -- Debug counter to count the number of valid frames (no receive errors and
-   -- no CRC errors).
-   ----------------------------------------------------------------------------
-   proc_debug : process (eth_clk_i)
-   begin
-      if rising_edge(eth_clk_i) then
-         if eth_rx_valid = '1' and eth_rx_eof = '1' and eth_rx_error = "00" then
-            eth_debug <= eth_debug + 1;
-         end if;
-         if eth_rst = '1' then
-            eth_debug <= (others => '0');
-         end if;
-      end if;
-   end process proc_debug;
-   
 
    -------------------------------
    -- Header insertion
@@ -220,10 +198,6 @@ begin
       dma_enable_i => user_rxdma_enable_i,
       dma_clear_o  => user_rxdma_clear_o
    );
-
-
-   -- Connect output signal
-   eth_debug_o <= eth_debug;
 
 end Structural;
 

@@ -126,7 +126,6 @@ architecture Structural of comp is
    signal timer_irq : std_logic := '0';
 
    signal kbd_debug : std_logic_vector(15 downto 0);
-   signal eth_debug : std_logic_vector(15 downto 0);
 
 begin
 
@@ -358,8 +357,7 @@ begin
       eth_mdio_io  => eth_mdio_io,
       eth_mdc_o    => eth_mdc_o,
       eth_rstn_o   => eth_rstn_o,
-      eth_refclk_o => eth_refclk_o,
-      eth_debug_o  => eth_debug
+      eth_refclk_o => eth_refclk_o
    );
 
 
