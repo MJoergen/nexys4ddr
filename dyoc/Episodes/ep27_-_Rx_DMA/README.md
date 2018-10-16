@@ -145,11 +145,7 @@ The data rate into this block is one byte every fourth clock cycle @ 50 MHz
 so the output is much faster than the input. However, if the output receiver
 does not accept any data, then this ring buffer can indeed overflow.
 
-Inputs to this block are taken directly from the rmii\_rx block. However, the
-additional control signal rx\_enable\_i is used to enable discarding of all
-frames.  This is needed when configuring the RxDMA, see below.
-
-Another input to this block is out\_afull\_i, which is used as flow-control.
+An extra input to this block is out\_afull\_i, which is used as flow-control.
 When this signal is asserted, the fifo that comes next in line is full, and can
 accept no more data at the moment. This signal prevents reading from the input
 buffer, and if it is asserted for too long will cause the input buffer to
