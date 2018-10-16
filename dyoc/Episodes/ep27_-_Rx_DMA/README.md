@@ -40,22 +40,22 @@ receive buffer. The CPU must then instruct the Rx DMA where the receive buffer
 is located and that the CPU is ready to receive the next Ethernet frame. On the
 other hand, the Rx DMA must instruct the CPU when a new frame has been written
 into this receive buffer.  This leads to the following memory mapped registers:
-* ETH\_RXDMA\_CTRL (R/W) : One bit to control the "owner" of the receive buffer.
-* ETH\_RXDMA\_PTR  (R/W) : Address of first byte of receive buffer.
+* ETH\_RXDMA\_ENABLE (R/W) : One bit to control the "owner" of the receive buffer.
+* ETH\_RXDMA\_PTR    (R/W) : Address of first byte of receive buffer.
 
 When the CPU has allocated the memory for the receive buffer and written the
 address to ETH\_RXDMA\_PTR, the CPU may now write the value '1' to
-ETH\_RXDMA\_CTRL.  This instructs the Rx DMA that it is now the "owner" of the
+ETH\_RXDMA\_ENABLE.  This instructs the Rx DMA that it is now the "owner" of the
 buffer and may write data there. When an entire Ethernet frame has been written
 (including 2 byte header), the Rx DMA automatically clears the
-ETH\_RXDMA\_CTRL.
+ETH\_RXDMA\_ENABLE.
 
-As long as ETH\_RXDMA\_CTRL is zero, the CPU "owns" the receive buffer, and the
+As long as ETH\_RXDMA\_ENABLE is zero, the CPU "owns" the receive buffer, and the
 Rx DMA will not write any data. When the CPU has finished processing the
 received frame, the CPU may repeat the process by once again writing a '1' to
-ETH\_RXDMA\_CTRL.
+ETH\_RXDMA\_ENABLE.
 
-Any Ethernet frames received while ETH\_RXDMA\_CTRL is cleared will be stored
+Any Ethernet frames received while ETH\_RXDMA\_ENABLE is cleared will be stored
 in internal FIFOs as explained below.
 
 ## Overall design strategy for receiving data from the Ethernet.
