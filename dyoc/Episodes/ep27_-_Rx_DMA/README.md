@@ -107,13 +107,12 @@ also influences the choice of how big the fifo should be. In general, one
 should consider how to handle situations where data is received from external
 interfaces faster than can be processed.
 
-A choice must be made on how to handle the situation where the receive DMA
-buffer runs full, e.g. if the CPU is too slow in processing a packet, while a
-burst of subsequent packets are received. The current implementation will stop
-reading from the fifo (the signal user\_rden remains low), which will then fill
-up (as indicated by the signal eth\_fifo\_afull). Eventually the input buffer
-in rx\_header.vhd will fill up and subsequent frames will be discarded and counted
-as overflow.
+A choice must be made on how to handle the situation where the CPU is too slow
+in processing a packet, while a burst of subsequent packets are received. The
+current implementation will stop reading from the fifo (the signal user\_rden
+remains low), which will then fill up (as indicated by the signal
+eth\_fifo\_afull). Eventually the input buffer in rx\_header.vhd will fill up
+and subsequent frames will be discarded and counted as overflow.
 
 ### Header insertion
 This is handled in ethernet/rx\_header.vhd. This module takes care of:
