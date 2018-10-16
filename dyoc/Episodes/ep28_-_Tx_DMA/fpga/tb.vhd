@@ -38,8 +38,8 @@ architecture Structural of tb is
    signal eth_refclk : std_logic;
    
    -- Controls the traffic input to Ethernet.
-   signal sim_data  : std_logic_vector(128*8-1 downto 0);
-   signal sim_len   : std_logic_vector( 15     downto 0);
+   signal sim_data  : std_logic_vector(1600*8-1 downto 0);
+   signal sim_len   : std_logic_vector(  15     downto 0);
    signal sim_start : std_logic := '0';
    signal sim_done  : std_logic;
 

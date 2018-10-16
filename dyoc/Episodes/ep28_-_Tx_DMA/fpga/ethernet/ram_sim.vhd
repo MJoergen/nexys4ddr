@@ -4,7 +4,7 @@ use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 use std.textio.all;
 
--- This module is a test bench for the Ethernet module.
+-- This module is part of the test bench for the Ethernet module.
 
 entity ram_sim is
    port (
@@ -17,7 +17,7 @@ entity ram_sim is
    );
 end entity ram_sim;
 
-architecture Structural of ram_sim is
+architecture simulation of ram_sim is
 
    -- Initialize memory contents
    signal ram : std_logic_vector(16383 downto 0);
@@ -31,6 +31,7 @@ begin
             assert addr_i(15 downto 11) = "00100";
             ram(conv_integer(addr_i(10 downto 0))*8+7 downto conv_integer(addr_i(10 downto 0))*8) <= data_i;
          end if;
+
          if clear_i = '1' then
             ram <= (others => 'X');
          end if;
@@ -40,5 +41,5 @@ begin
    -- Connect output signals
    ram_o <= ram;
 
-end Structural;
+end simulation;
 

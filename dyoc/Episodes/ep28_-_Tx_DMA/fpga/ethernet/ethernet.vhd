@@ -7,25 +7,23 @@ use ieee.std_logic_unsigned.all;
 entity ethernet is
    port (
       user_clk_i            : in  std_logic;
+      user_rst_i            : in  std_logic;
 
       -- Connected to RAM
-      user_txdma_ram_rden_o : out std_logic;
-      user_txdma_ram_addr_o : out std_logic_vector(15 downto 0);
-      user_txdma_ram_data_i : in  std_logic_vector( 7 downto 0);
-      user_rxdma_ram_wren_o : out std_logic;
-      user_rxdma_ram_addr_o : out std_logic_vector(15 downto 0);
-      user_rxdma_ram_data_o : out std_logic_vector( 7 downto 0);
+      user_txdma_ram_rd_en_o   : out std_logic;
+      user_txdma_ram_rd_addr_o : out std_logic_vector(15 downto 0);
+      user_txdma_ram_rd_data_i : in  std_logic_vector( 7 downto 0);
+      user_rxdma_ram_wr_en_o   : out std_logic;
+      user_rxdma_ram_wr_addr_o : out std_logic_vector(15 downto 0);
+      user_rxdma_ram_wr_data_o : out std_logic_vector( 7 downto 0);
 
       -- Connected to memio
       user_txdma_ptr_i      : in  std_logic_vector(15 downto 0);
       user_txdma_ctrl_i     : in  std_logic_vector( 7 downto 0);
       user_txdma_clear_o    : out std_logic;
-      user_rxdma_enable_i   : in  std_logic;
       user_rxdma_ptr_i      : in  std_logic_vector(15 downto 0);
-      user_rxdma_size_i     : in  std_logic_vector(15 downto 0);
-      user_rxcpu_ptr_i      : in  std_logic_vector(15 downto 0);
-      user_rxbuf_ptr_o      : out std_logic_vector(15 downto 0);
-      user_rxbuf_size_o     : out std_logic_vector(15 downto 0);
+      user_rxdma_enable_i   : in  std_logic;
+      user_rxdma_clear_o    : out std_logic;
       user_rxcnt_good_o     : out std_logic_vector(15 downto 0);
       user_rxcnt_error_o    : out std_logic_vector( 7 downto 0);
       user_rxcnt_crc_bad_o  : out std_logic_vector( 7 downto 0);
@@ -42,10 +40,7 @@ entity ethernet is
       eth_mdio_io  : inout std_logic;
       eth_mdc_o    : out   std_logic;
       eth_rstn_o   : out   std_logic;
-      eth_refclk_o : out   std_logic;
-
-      -- Connected to overlay
-      eth_debug_o : out   std_logic_vector(15 downto 0)
+      eth_refclk_o : out   std_logic
    );
 end ethernet;
 
@@ -87,8 +82,6 @@ architecture Structural of ethernet is
    signal user_tx_data  : std_logic_vector(7 downto 0);
    signal user_tx_eof   : std_logic_vector(0 downto 0);
    
-   signal eth_debug : std_logic_vector(15 downto 0);
-
 begin
 
    ------------------------------
@@ -145,23 +138,6 @@ begin
    );
 
 
-   ----------------------------------------------------------------------------
-   -- Debug counter to count the number of valid frames (no receive errors and
-   -- no CRC errors).
-   ----------------------------------------------------------------------------
-   proc_debug : process (eth_clk_i)
-   begin
-      if rising_edge(eth_clk_i) then
-         if eth_rx_valid = '1' and eth_rx_eof = '1' and eth_rx_error = "00" then
-            eth_debug <= eth_debug + 1;
-         end if;
-         if eth_rst = '1' then
-            eth_debug <= (others => '0');
-         end if;
-      end if;
-   end process proc_debug;
-   
-
    -------------------------------
    -- Header insertion
    -------------------------------
@@ -169,7 +145,6 @@ begin
    port map (
       clk_i          => eth_clk_i,
       rst_i          => eth_rst,
-      rx_enable_i    => user_rxdma_enable_i,
       rx_valid_i     => eth_rx_valid,
       rx_eof_i       => eth_rx_eof,
       rx_data_i      => eth_rx_data,
@@ -221,22 +196,19 @@ begin
    inst_rx_dma : entity work.rx_dma
    port map (
       clk_i        => user_clk_i,
+      rst_i        => user_rst_i,
       rd_empty_i   => user_rxfifo_empty,
       rd_en_o      => user_rxdma_rden,
-      --
       rd_data_i    => user_rxfifo_data,
       rd_eof_i     => user_rxfifo_eof(0),
       --
-      wr_en_o      => user_rxdma_ram_wren_o,
-      wr_addr_o    => user_rxdma_ram_addr_o,
-      wr_data_o    => user_rxdma_ram_data_o,
+      wr_en_o      => user_rxdma_ram_wr_en_o,
+      wr_addr_o    => user_rxdma_ram_wr_addr_o,
+      wr_data_o    => user_rxdma_ram_wr_data_o,
       --
-      dma_enable_i => user_rxdma_enable_i,
       dma_ptr_i    => user_rxdma_ptr_i,
-      dma_size_i   => user_rxdma_size_i,
-      cpu_ptr_i    => user_rxcpu_ptr_i,
-      buf_ptr_o    => user_rxbuf_ptr_o,
-      buf_size_o   => user_rxbuf_size_o
+      dma_enable_i => user_rxdma_enable_i,
+      dma_clear_o  => user_rxdma_clear_o
    );
 
 
@@ -251,9 +223,9 @@ begin
       memio_ctrl_i  => user_txdma_ctrl_i,
       memio_clear_o => user_txdma_clear_o,
       --
-      rd_addr_o     => user_txdma_ram_addr_o,
-      rd_en_o       => user_txdma_ram_rden_o,
-      rd_data_i     => user_txdma_ram_data_i,
+      rd_en_o       => user_txdma_ram_rd_en_o,
+      rd_addr_o     => user_txdma_ram_rd_addr_o,
+      rd_data_i     => user_txdma_ram_rd_data_i,
       --
       wr_afull_i    => user_tx_afull,
       wr_valid_o    => user_tx_valid,
@@ -287,11 +259,5 @@ begin
       rd_error_o => open   -- Ignored
    );
    
-
-   
-
-   -- Connect output signal
-   eth_debug_o <= eth_debug;
-
 end Structural;
 
