@@ -12,18 +12,18 @@ end entity ethernet_tb;
 architecture Structural of ethernet_tb is
 
    -- Connected to DUT
-   signal user_clk            : std_logic;  -- 25 MHz
-   signal user_rst            : std_logic;
-   signal user_ram_wren       : std_logic;
-   signal user_ram_addr       : std_logic_vector(15 downto 0);
-   signal user_ram_data       : std_logic_vector( 7 downto 0);
-   signal user_rxdma_ptr      : std_logic_vector(15 downto 0);
-   signal user_rxdma_enable   : std_logic;
-   signal user_rxdma_clear    : std_logic;
-   signal user_rxcnt_good     : std_logic_vector(15 downto 0);
-   signal user_rxcnt_error    : std_logic_vector( 7 downto 0);
-   signal user_rxcnt_crc_bad  : std_logic_vector( 7 downto 0);
-   signal user_rxcnt_overflow : std_logic_vector( 7 downto 0);
+   signal user_clk               : std_logic;  -- 25 MHz
+   signal user_rst               : std_logic;
+   signal user_rxdma_ram_wr_en   : std_logic;
+   signal user_rxdma_ram_wr_addr : std_logic_vector(15 downto 0);
+   signal user_rxdma_ram_wr_data : std_logic_vector( 7 downto 0);
+   signal user_rxdma_ptr         : std_logic_vector(15 downto 0);
+   signal user_rxdma_enable      : std_logic;
+   signal user_rxdma_clear       : std_logic;
+   signal user_rxcnt_good        : std_logic_vector(15 downto 0);
+   signal user_rxcnt_error       : std_logic_vector( 7 downto 0);
+   signal user_rxcnt_crc_bad     : std_logic_vector( 7 downto 0);
+   signal user_rxcnt_overflow    : std_logic_vector( 7 downto 0);
    --
    signal eth_clk           : std_logic;  -- 50 MHz
    signal eth_refclk        : std_logic;
@@ -87,9 +87,9 @@ begin
    inst_ram_sim : entity work.ram_sim
    port map (
       clk_i   => user_clk,
-      wren_i  => user_ram_wren,
-      addr_i  => user_ram_addr,
-      data_i  => user_ram_data,
+      wren_i  => user_rxdma_ram_wr_en,
+      addr_i  => user_rxdma_ram_wr_addr,
+      data_i  => user_rxdma_ram_wr_data,
       clear_i => sim_ram_clear,
       ram_o   => sim_ram
    );
@@ -119,18 +119,18 @@ begin
 
    inst_ethernet : entity work.ethernet
    port map (
-      user_clk_i            => user_clk,
-      user_rst_i            => user_rst,
-      user_ram_wren_o       => user_ram_wren,
-      user_ram_addr_o       => user_ram_addr,
-      user_ram_data_o       => user_ram_data,
-      user_rxdma_ptr_i      => user_rxdma_ptr,
-      user_rxdma_enable_i   => user_rxdma_enable,
-      user_rxdma_clear_o    => user_rxdma_clear,
-      user_rxcnt_good_o     => user_rxcnt_good,
-      user_rxcnt_error_o    => user_rxcnt_error,
-      user_rxcnt_crc_bad_o  => user_rxcnt_crc_bad,
-      user_rxcnt_overflow_o => user_rxcnt_overflow,
+      user_clk_i               => user_clk,
+      user_rst_i               => user_rst,
+      user_rxdma_ram_wr_en_o   => user_rxdma_ram_wr_en,
+      user_rxdma_ram_wr_addr_o => user_rxdma_ram_wr_addr,
+      user_rxdma_ram_wr_data_o => user_rxdma_ram_wr_data,
+      user_rxdma_ptr_i         => user_rxdma_ptr,
+      user_rxdma_enable_i      => user_rxdma_enable,
+      user_rxdma_clear_o       => user_rxdma_clear,
+      user_rxcnt_good_o        => user_rxcnt_good,
+      user_rxcnt_error_o       => user_rxcnt_error,
+      user_rxcnt_crc_bad_o     => user_rxcnt_crc_bad,
+      user_rxcnt_overflow_o    => user_rxcnt_overflow,
       --
       eth_clk_i           => eth_clk,
       eth_txd_o           => open,   -- We're ignoring transmit for now

@@ -10,9 +10,9 @@ entity ethernet is
       user_rst_i            : in  std_logic;
 
       -- Connected to RAM
-      user_rxdma_ram_wren_o : out std_logic;
-      user_rxdma_ram_addr_o : out std_logic_vector(15 downto 0);
-      user_rxdma_ram_data_o : out std_logic_vector( 7 downto 0);
+      user_rxdma_ram_wr_en_o   : out std_logic;
+      user_rxdma_ram_wr_addr_o : out std_logic_vector(15 downto 0);
+      user_rxdma_ram_wr_data_o : out std_logic_vector( 7 downto 0);
 
       -- Connected to memio
       user_rxdma_ptr_i      : in  std_logic_vector(15 downto 0);
@@ -193,9 +193,9 @@ begin
       rd_data_i    => user_rxfifo_data,
       rd_eof_i     => user_rxfifo_eof(0),
       --
-      wr_en_o      => user_rxdma_ram_wren_o,
-      wr_addr_o    => user_rxdma_ram_addr_o,
-      wr_data_o    => user_rxdma_ram_data_o,
+      wr_en_o      => user_rxdma_ram_wr_en_o,
+      wr_addr_o    => user_rxdma_ram_wr_addr_o,
+      wr_data_o    => user_rxdma_ram_wr_data_o,
       --
       dma_ptr_i    => user_rxdma_ptr_i,
       dma_enable_i => user_rxdma_enable_i,
