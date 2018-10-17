@@ -38,8 +38,9 @@ architecture Structural of ethernet_tb is
    signal sim_done  : std_logic;
 
    -- Used to clear the sim_ram between each test.
-   signal sim_ram       : std_logic_vector(16383 downto 0);
-   signal sim_ram_clear : std_logic;
+   signal sim_ram_in    : std_logic_vector(16383 downto 0);
+   signal sim_ram_out   : std_logic_vector(16383 downto 0);
+   signal sim_ram_init  : std_logic;
 
    -- Control the execution of the test.
    signal sim_test_running : std_logic := '1';
@@ -86,12 +87,13 @@ begin
 
    inst_ram_sim : entity work.ram_sim
    port map (
-      clk_i   => user_clk,
-      wren_i  => user_rxdma_ram_wr_en,
-      addr_i  => user_rxdma_ram_wr_addr,
-      data_i  => user_rxdma_ram_wr_data,
-      clear_i => sim_ram_clear,
-      ram_o   => sim_ram
+      clk_i      => user_clk,
+      wr_en_i    => user_rxdma_ram_wr_en,
+      wr_addr_i  => user_rxdma_ram_wr_addr,
+      wr_data_i  => user_rxdma_ram_wr_data,
+      ram_init_i => sim_ram_init,
+      ram_in_i   => sim_ram_in,
+      ram_out_o  => sim_ram_out
    );
 
 
@@ -171,13 +173,13 @@ begin
       procedure verify_frame(first : integer; length : integer) is
       begin
          -- Length includes 2-byte header.
-         assert sim_ram(15 downto 0) = std_logic_vector(to_unsigned(length+2, 16));
+         assert sim_ram_out(15 downto 0) = std_logic_vector(to_unsigned(length+2, 16));
 
          for i in 0 to length-1 loop
-            assert sim_ram((i+2)*8+7 downto (i+2)*8) = std_logic_vector(to_unsigned((i+first) mod 256, 8))
+            assert sim_ram_out((i+2)*8+7 downto (i+2)*8) = std_logic_vector(to_unsigned((i+first) mod 256, 8))
                report "i=" & integer'image(i);
          end loop;
-         assert sim_ram((length+2)*8+7 downto (length+2)*8) = "XXXXXXXX";
+         assert sim_ram_out((length+2)*8+7 downto (length+2)*8) = "XXXXXXXX";
       end procedure verify_frame;
 
    begin
@@ -192,9 +194,10 @@ begin
 
       -- Clear ram
       wait until user_clk = '1';
-      sim_ram_clear <= '1';
+      sim_ram_in <= (others => 'X');
+      sim_ram_init <= '1';
       wait until user_clk = '1';
-      sim_ram_clear <= '0';
+      sim_ram_init <= '0';
 
       assert user_rxdma_clear = '0';
 
@@ -303,9 +306,9 @@ begin
 
       -- Clear ram
       wait until user_clk = '1';
-      sim_ram_clear <= '1';
+      sim_ram_init <= '1';
       wait until user_clk = '1';
-      sim_ram_clear <= '0';
+      sim_ram_init <= '0';
 
       -- Send oversize frame
       send_frame(first => 70, length => 1515);
@@ -324,7 +327,7 @@ begin
       assert user_rxcnt_overflow = 1;
 
       -- Verify nothing is received
-      assert sim_ram(7 downto 0) = "XXXXXXXX";
+      assert sim_ram_out(7 downto 0) = "XXXXXXXX";
 
 
       -----------------------------------------------
