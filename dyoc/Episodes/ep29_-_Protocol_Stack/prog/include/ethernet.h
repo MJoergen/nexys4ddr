@@ -46,8 +46,8 @@ typedef struct
    uint16_t seq;
 } icmpheader_t;
 
-#define ntoh16(x) ((x<<8) | (x>>8))
-#define hton16(x) ((x<<8) | (x>>8))
+#define ntoh16(x) (((x & 0xFF)<<8) | (x>>8))
+#define hton16(x) (((x & 0xFF)<<8) | (x>>8))
 
 void processFrame(uint8_t *rdPtr, uint16_t frmLen);
 void processARP(uint8_t *rdPtr, uint16_t frmLen);
