@@ -69,7 +69,7 @@ architecture Structural of comp is
 
    -- VGA debug overlay
    signal vga_overlay_en : std_logic;
-   signal vga_overlay    : std_logic_vector(207 downto 0);
+   signal vga_overlay    : std_logic_vector(223 downto 0);
 
    -- Data Path signals
    signal cpu_addr  : std_logic_vector(15 downto 0);
@@ -94,17 +94,14 @@ architecture Structural of comp is
    signal cpu_eth_ram_rd_addr : std_logic_vector(15 downto 0);
    signal cpu_eth_ram_rd_data : std_logic_vector( 7 downto 0);
    signal cpu_memio_eth_rxdma_enable   : std_logic;
+   signal cpu_memio_eth_rxdma_clear    : std_logic;
    signal cpu_memio_eth_rxdma_ptr      : std_logic_vector(15 downto 0);
-   signal cpu_memio_eth_rxdma_size     : std_logic_vector(15 downto 0);
-   signal cpu_memio_eth_rxcpu_ptr      : std_logic_vector(15 downto 0);
-   signal cpu_memio_eth_rxbuf_ptr      : std_logic_vector(15 downto 0);
-   signal cpu_memio_eth_rxbuf_size     : std_logic_vector(15 downto 0);
    signal cpu_memio_eth_rxcnt_good     : std_logic_vector(15 downto 0);
    signal cpu_memio_eth_rxcnt_error    : std_logic_vector( 7 downto 0);
    signal cpu_memio_eth_rxcnt_crc_bad  : std_logic_vector( 7 downto 0);
    signal cpu_memio_eth_rxcnt_overflow : std_logic_vector( 7 downto 0);
    signal cpu_memio_eth_txdma_ptr      : std_logic_vector(15 downto 0);
-   signal cpu_memio_eth_txdma_ctrl     : std_logic_vector( 7 downto 0);
+   signal cpu_memio_eth_txdma_enable   : std_logic;
    signal cpu_memio_eth_txdma_clear    : std_logic;
 
    -- Memory Mapped I/O
@@ -135,7 +132,6 @@ architecture Structural of comp is
    signal timer_irq : std_logic := '0';
 
    signal kbd_debug : std_logic_vector(15 downto 0);
-   signal eth_debug : std_logic_vector(15 downto 0);
 
 begin
 
@@ -347,26 +343,24 @@ begin
 
    inst_ethernet : entity work.ethernet
    port map (
-      user_clk_i            => vga_clk,
-      user_txdma_ram_rden_o => cpu_eth_ram_rd_en,
-      user_txdma_ram_addr_o => cpu_eth_ram_rd_addr,
-      user_txdma_ram_data_i => cpu_eth_ram_rd_data,
-      user_rxdma_ram_wren_o => cpu_eth_ram_wr_en,
-      user_rxdma_ram_addr_o => cpu_eth_ram_wr_addr,
-      user_rxdma_ram_data_o => cpu_eth_ram_wr_data,
-      user_txdma_ptr_i      => cpu_memio_eth_txdma_ptr,
-      user_txdma_ctrl_i     => cpu_memio_eth_txdma_ctrl,
-      user_txdma_clear_o    => cpu_memio_eth_txdma_clear,
-      user_rxdma_enable_i   => cpu_memio_eth_rxdma_enable,
-      user_rxdma_ptr_i      => cpu_memio_eth_rxdma_ptr,
-      user_rxdma_size_i     => cpu_memio_eth_rxdma_size,
-      user_rxcpu_ptr_i      => cpu_memio_eth_rxcpu_ptr,
-      user_rxbuf_ptr_o      => cpu_memio_eth_rxbuf_ptr,
-      user_rxbuf_size_o     => cpu_memio_eth_rxbuf_size,
-      user_rxcnt_good_o     => cpu_memio_eth_rxcnt_good,
-      user_rxcnt_error_o    => cpu_memio_eth_rxcnt_error,
-      user_rxcnt_crc_bad_o  => cpu_memio_eth_rxcnt_crc_bad,
-      user_rxcnt_overflow_o => cpu_memio_eth_rxcnt_overflow,
+      user_clk_i               => vga_clk,
+      user_rst_i               => rst,
+      user_txdma_ram_rd_en_o   => cpu_eth_ram_rd_en,
+      user_txdma_ram_rd_addr_o => cpu_eth_ram_rd_addr,
+      user_txdma_ram_rd_data_i => cpu_eth_ram_rd_data,
+      user_rxdma_ram_wr_en_o   => cpu_eth_ram_wr_en,
+      user_rxdma_ram_wr_addr_o => cpu_eth_ram_wr_addr,
+      user_rxdma_ram_wr_data_o => cpu_eth_ram_wr_data,
+      user_txdma_ptr_i         => cpu_memio_eth_txdma_ptr,
+      user_txdma_enable_i      => cpu_memio_eth_txdma_enable,
+      user_txdma_clear_o       => cpu_memio_eth_txdma_clear,
+      user_rxdma_enable_i      => cpu_memio_eth_rxdma_enable,
+      user_rxdma_clear_o       => cpu_memio_eth_rxdma_clear,
+      user_rxdma_ptr_i         => cpu_memio_eth_rxdma_ptr,
+      user_rxcnt_good_o        => cpu_memio_eth_rxcnt_good,
+      user_rxcnt_error_o       => cpu_memio_eth_rxcnt_error,
+      user_rxcnt_crc_bad_o     => cpu_memio_eth_rxcnt_crc_bad,
+      user_rxcnt_overflow_o    => cpu_memio_eth_rxcnt_overflow,
       --
       eth_clk_i    => eth_clk,
       eth_txd_o    => eth_txd_o,
@@ -378,8 +372,7 @@ begin
       eth_mdio_io  => eth_mdio_io,
       eth_mdc_o    => eth_mdc_o,
       eth_rstn_o   => eth_rstn_o,
-      eth_refclk_o => eth_refclk_o,
-      eth_debug_o  => eth_debug
+      eth_refclk_o => eth_refclk_o
    );
 
 
@@ -393,50 +386,41 @@ begin
    -- 7FD2        : CPU_CYC_LATCH
    -- 7FD3        : ETH_RXDMA_ENABLE (bit 0)
    -- 7FD4 - 7FD5 : ETH_RXDMA_PTR
-   -- 7FD6 - 7FD7 : ETH_RXDMA_SIZE
-   -- 7FD8 - 7FD9 : ETH_RXCPU_PTR
-   -- 7FDA - 7FDB : ETH_TXDMA_PTR
-   -- 7FDC        : ETH_TXDMA_CTRL
-   -- 7FDD - 7FDE : Not used
+   -- 7FD6 - 7FD7 : ETH_TXDMA_PTR
+   -- 7FD8        : ETH_TXDMA_ENABLE
+   -- 7FD9 - 7FDE : Not used
    -- 7FDF        : IRQ_MASK
    vga_memio_palette          <= memio_wr(15*8+7 downto  0*8);
    vga_memio_pix_y_int        <= memio_wr(17*8+7 downto 16*8);
    cpu_memio_latch            <= memio_wr(18*8+7 downto 18*8);
    cpu_memio_eth_rxdma_enable <= memio_wr(19*8);
    cpu_memio_eth_rxdma_ptr    <= memio_wr(21*8+7 downto 20*8);
-   cpu_memio_eth_rxdma_size   <= memio_wr(23*8+7 downto 22*8);
-   cpu_memio_eth_rxcpu_ptr    <= memio_wr(25*8+7 downto 24*8);
-   cpu_memio_eth_txdma_ptr    <= memio_wr(27*8+7 downto 26*8);
-   cpu_memio_eth_txdma_ctrl   <= memio_wr(28*8+7 downto 28*8);
-   --                            memio_wr(30*8+7 downto 29*8);      -- Not used
+   cpu_memio_eth_txdma_ptr    <= memio_wr(23*8+7 downto 22*8);
+   cpu_memio_eth_txdma_enable <= memio_wr(24*8);
+   --                            memio_wr(30*8+7 downto 25*8);      -- Not used
    irq_memio_mask             <= memio_wr(31*8+7 downto 31*8);
-   memio_clear                <= (28 => cpu_memio_eth_txdma_clear, others => '0');  -- ETH_TX_CTRL
+   memio_clear                <= (19 => cpu_memio_eth_rxdma_clear,                  -- ETH_RXDMA_ENABLE
+                                  24 => cpu_memio_eth_txdma_clear, others => '0');  -- ETH_TXDMA_ENABLE
 
    -- 7FE0 - 7FE1 : VGA_PIX_X
    -- 7FE2 - 7FE3 : VGA_PIX_Y
    -- 7FE4 - 7FE7 : CPU_CYC
    -- 7FE8        : KBD_DATA
-   -- 7FE9        : Not used
-   -- 7FEA - 7FEB : ETH_RXBUF_PTR
-   -- 7FEC - 7FED : ETH_RXBUF_SIZE
-   -- 7FEE - 7FEF : ETH_RXCNT
-   -- 7FF0        : ETH_RXERR0
-   -- 7FF1        : ETH_RXERR1
-   -- 7FF2        : ETH_RXOVERFLOW
-   -- 7FF3 - 7FFE : Not used
+   -- 7FE9        : ETH_RXCNT_ERROR
+   -- 7FEA        : ETH_RXCNT_CRC_BAD
+   -- 7FEB        : ETH_RXCNT_OVERFLOW
+   -- 7FEC - 7FED : ETH_RXCNT_GOOD
+   -- 7FEE - 7FFE : Not used
    -- 7FFF        : IRQ_STATUS
    memio_rd( 1*8+7 downto  0*8) <= vga_memio_pix_x;
    memio_rd( 3*8+7 downto  2*8) <= vga_memio_pix_y;
    memio_rd( 7*8+7 downto  4*8) <= cpu_memio_cyc;
    memio_rd( 8*8+7 downto  8*8) <= kbd_memio_data;
-   memio_rd( 9*8+7 downto  9*8) <= (others => '0');   -- Not used
-   memio_rd(11*8+7 downto 10*8) <= cpu_memio_eth_rxbuf_ptr;
-   memio_rd(13*8+7 downto 12*8) <= cpu_memio_eth_rxbuf_size;
-   memio_rd(15*8+7 downto 14*8) <= cpu_memio_eth_rxcnt_good;
-   memio_rd(16*8+7 downto 16*8) <= cpu_memio_eth_rxcnt_error;
-   memio_rd(17*8+7 downto 17*8) <= cpu_memio_eth_rxcnt_crc_bad;
-   memio_rd(18*8+7 downto 18*8) <= cpu_memio_eth_rxcnt_overflow;
-   memio_rd(30*8+7 downto 19*8) <= (others => '0');   -- Not used
+   memio_rd( 9*8+7 downto  9*8) <= cpu_memio_eth_rxcnt_error;
+   memio_rd(10*8+7 downto 10*8) <= cpu_memio_eth_rxcnt_crc_bad;
+   memio_rd(11*8+7 downto 11*8) <= cpu_memio_eth_rxcnt_overflow;
+   memio_rd(13*8+7 downto 12*8) <= cpu_memio_eth_rxcnt_good;
+   memio_rd(30*8+7 downto 14*8) <= (others => '0');   -- Not used
    memio_rd(31*8+7 downto 31*8) <= irq_memio_status;
    irq_memio_clear <= memio_rden(31);
 
@@ -457,7 +441,11 @@ begin
 
    vga_overlay(175 downto   0) <= cpu_debug;
    vga_overlay(191 downto 176) <= kbd_debug;
-   vga_overlay(207 downto 192) <= eth_debug;
+   vga_overlay(207 downto 192) <= cpu_memio_eth_rxcnt_good;
+   vga_overlay(211 downto 208) <= cpu_memio_eth_rxcnt_error(3 downto 0);
+   vga_overlay(215 downto 212) <= cpu_memio_eth_rxcnt_crc_bad(3 downto 0);
+   vga_overlay(223 downto 216) <= cpu_memio_eth_rxcnt_overflow;
+   
 
 end architecture Structural;
 

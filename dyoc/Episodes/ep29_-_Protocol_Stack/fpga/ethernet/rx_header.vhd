@@ -20,7 +20,6 @@ entity rx_header is
       -- Input interface
       clk_i          : in  std_logic;
       rst_i          : in  std_logic;
-      rx_enable_i    : in  std_logic;                    -- Discard all packets if zero.
       rx_valid_i     : in  std_logic;
       rx_eof_i       : in  std_logic;
       rx_data_i      : in  std_logic_vector(7 downto 0);
@@ -131,8 +130,8 @@ begin
          ctrl_wrdata <= (others => '0');
 
          if rx_valid_i = '1' then
-            -- Check for buffer overflow or for disabled RxDMA.
-            if wrptr + 1 = rdptr or rx_enable_i = '0' then
+            -- Check for buffer overflow or for oversize frame
+            if wrptr + 1 = rdptr or (wrptr - start_ptr >= 1513 and rx_eof_i = '0') then
                -- Discard overflowed frame.
                rx_error <= '1';
             else
@@ -142,7 +141,7 @@ begin
             end if;
 
             if rx_eof_i = '1' then
-               if rx_error_i = "00" and rx_enable_i = '1' and rx_error = '0' and wrptr+1 /= rdptr then
+               if rx_error_i = "00" and rx_error = '0' and wrptr+1 /= rdptr then
                   -- Prepare for next frame.
                   start_ptr   <= wrptr+1;
                   wrptr       <= wrptr+1;
