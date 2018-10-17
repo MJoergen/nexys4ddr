@@ -17,6 +17,9 @@ architecture Structural of ethernet_tb is
    signal user_txdma_ram_rd_en   : std_logic;
    signal user_txdma_ram_rd_addr : std_logic_vector(15 downto 0);
    signal user_txdma_ram_rd_data : std_logic_vector( 7 downto 0);
+   signal user_txdma_ptr         : std_logic_vector(15 downto 0);
+   signal user_txdma_enable      : std_logic;
+   signal user_txdma_clear       : std_logic;
    signal user_rxdma_ram_wr_en   : std_logic;
    signal user_rxdma_ram_wr_addr : std_logic_vector(15 downto 0);
    signal user_rxdma_ram_wr_data : std_logic_vector( 7 downto 0);
@@ -33,16 +36,13 @@ architecture Structural of ethernet_tb is
    signal eth_rstn          : std_logic;
    signal eth_rxd           : std_logic_vector(1 downto 0);
    signal eth_crsdv         : std_logic;
-
-   -- Controls the traffic input to Ethernet.
-   signal sim_data  : std_logic_vector(1600*8-1 downto 0);
-   signal sim_len   : std_logic_vector(  15     downto 0);
-   signal sim_start : std_logic := '0';
-   signal sim_done  : std_logic;
+   signal eth_txd           : std_logic_vector(1 downto 0);
+   signal eth_txen          : std_logic;
 
    -- Used to clear the sim_ram between each test.
-   signal sim_ram       : std_logic_vector(16383 downto 0);
-   signal sim_ram_clear : std_logic;
+   signal sim_ram_in    : std_logic_vector(16383 downto 0);
+   signal sim_ram_out   : std_logic_vector(16383 downto 0);
+   signal sim_ram_init  : std_logic;
 
    -- Control the execution of the test.
    signal sim_test_running : std_logic := '1';
@@ -89,31 +89,25 @@ begin
 
    inst_ram_sim : entity work.ram_sim
    port map (
-      clk_i   => user_clk,
-      wren_i  => user_rxdma_ram_wr_en,
-      addr_i  => user_rxdma_ram_wr_addr,
-      data_i  => user_rxdma_ram_wr_data,
-      clear_i => sim_ram_clear,
-      ram_o   => sim_ram
+      clk_i      => user_clk,
+      wr_en_i    => user_rxdma_ram_wr_en,
+      wr_addr_i  => user_rxdma_ram_wr_addr,
+      wr_data_i  => user_rxdma_ram_wr_data,
+      rd_en_i    => user_txdma_ram_rd_en,
+      rd_addr_i  => user_txdma_ram_rd_addr,
+      rd_data_o  => user_txdma_ram_rd_data,
+      ram_init_i => sim_ram_init,
+      ram_in_i   => sim_ram_in,
+      ram_out_o  => sim_ram_out
    );
 
 
-   ---------------------------------
-   -- Instantiate PHY simulator
-   ---------------------------------
+   ----------------
+   -- PHY loopback
+   ----------------
 
-   inst_phy_sim : entity work.phy_sim
-   port map (
-      sim_data_i   => sim_data,
-      sim_len_i    => sim_len,
-      sim_start_i  => sim_start,
-      sim_done_o   => sim_done,
-      --
-      eth_refclk_i => eth_refclk,
-      eth_rstn_i   => eth_rstn,
-      eth_txd_o    => eth_rxd,
-      eth_txen_o   => eth_crsdv
-   );
+   eth_rxd   <= eth_txd;
+   eth_crsdv <= eth_txen;
 
 
    -------------------
@@ -127,6 +121,9 @@ begin
       user_txdma_ram_rd_en_o   => user_txdma_ram_rd_en,
       user_txdma_ram_rd_addr_o => user_txdma_ram_rd_addr,
       user_txdma_ram_rd_data_i => user_txdma_ram_rd_data,
+      user_txdma_ptr_i         => user_txdma_ptr,
+      user_txdma_enable_i      => user_txdma_enable,
+      user_txdma_clear_o       => user_txdma_clear,
       user_rxdma_ram_wr_en_o   => user_rxdma_ram_wr_en,
       user_rxdma_ram_wr_addr_o => user_rxdma_ram_wr_addr,
       user_rxdma_ram_wr_data_o => user_rxdma_ram_wr_data,
@@ -139,8 +136,8 @@ begin
       user_rxcnt_overflow_o    => user_rxcnt_overflow,
       --
       eth_clk_i           => eth_clk,
-      eth_txd_o           => open,   -- We're ignoring transmit for now
-      eth_txen_o          => open,   -- We're ignoring transmit for now
+      eth_txd_o           => eth_txd,
+      eth_txen_o          => eth_txen,
       eth_rxd_i           => eth_rxd,
       eth_rxerr_i         => '0',
       eth_crsdv_i         => eth_crsdv,
@@ -157,214 +154,98 @@ begin
    --------------------
 
    proc_test : process
-
-      procedure send_frame(first : integer; length : integer) is
+      
+      procedure send_frame(first : integer; length : integer; offset : integer) is
       begin
-         sim_len <= std_logic_vector(to_unsigned(length, 16));
-         sim_data <= (others => 'X');
+         sim_ram_in <= (others => 'X');
+         sim_ram_in(8*offset + 15 downto 8*offset + 0) <= std_logic_vector(to_unsigned(length+2, 16));
          for i in 0 to length-1 loop
-            sim_data(8*i+7 downto 8*i) <= 
+            sim_ram_in(8*(i+2+offset)+7 downto 8*(i+2+offset)) <= 
                std_logic_vector(to_unsigned((i+first) mod 256, 8));
          end loop;
-         sim_start <= '1';
+         sim_ram_init <= '1';
 
-         -- Wait until data has been transferred on PHY signals
-         wait until sim_done = '1';
-         sim_start <= '0';
-         wait until eth_refclk = '1';
+         -- Wait until memory has been updated
+         wait until user_clk = '1';
+         sim_ram_init <= '0';
+         wait until user_clk = '1';
+
+         assert user_txdma_clear = '0';
+         user_txdma_ptr    <= std_logic_vector(to_unsigned(offset, 16)) + X"2000";
+         user_txdma_enable <= '1';
+         wait until user_txdma_clear = '1';
+         user_txdma_enable <= '0';
+         wait until user_clk = '1';
+         wait until user_clk = '1';
+         assert user_txdma_clear = '0';
+
       end procedure send_frame;
 
-      procedure verify_frame(first : integer; length : integer) is
+      procedure receive_frame(first : integer; length : integer; offset : integer) is
       begin
-         -- Length includes 2-byte header.
-         assert sim_ram(15 downto 0) = std_logic_vector(to_unsigned(length+2, 16));
 
+         assert user_rxdma_clear = '0';
+         user_rxdma_ptr    <= std_logic_vector(to_unsigned(offset, 16)) + X"2000";
+         user_rxdma_enable <= '1';
+         wait until user_rxdma_clear = '1';
+         user_rxdma_enable <= '0';
+         wait until user_clk = '1';
+         wait until user_clk = '1';
+         assert user_rxdma_clear = '0';
+
+         assert sim_ram_out(8*offset + 15 downto 8*offset + 0) = std_logic_vector(to_unsigned(length+2, 16));
          for i in 0 to length-1 loop
-            assert sim_ram((i+2)*8+7 downto (i+2)*8) = std_logic_vector(to_unsigned((i+first) mod 256, 8))
+            assert sim_ram_out(8*(i+2+offset)+7 downto 8*(i+2+offset)) = 
+               std_logic_vector(to_unsigned((i+first) mod 256, 8))
                report "i=" & integer'image(i);
          end loop;
-         assert sim_ram((length+2)*8+7 downto (length+2)*8) = "XXXXXXXX";
-      end procedure verify_frame;
-      
+      end procedure receive_frame;
+
    begin
       -- Wait for reset
-      sim_start         <= '0';
       user_rxdma_enable <= '0';
       user_rxdma_ptr    <= (others => '0');
-      user_rxdma_size   <= (others => '0');
-      user_rxcpu_ptr    <= (others => '0');
       wait until eth_rstn = '1';
+      wait until user_clk = '1';
 
       -- Clear ram
+      sim_ram_in   <= (others => 'X');
+      sim_ram_init <= '1';
       wait until user_clk = '1';
-      sim_ram_clear <= '1';
-      wait until user_clk = '1';
-      sim_ram_clear <= '0';
-
-
-      -----------------------------------------------
-      -- Test 1 : Receive first frame while DMA is disabled
-      -- Expected behaviour: Frame is discarded
-      -----------------------------------------------
-
-      -- Wait while test runs
-      for i in 0 to 127 loop
-         sim_data(8*i+7 downto 8*i) <= std_logic_vector(to_unsigned(i+32, 8));
-      end loop;
-      sim_len   <= X"0011";         -- Number of bytes to send
-      sim_start <= '1';
-      wait until sim_done = '1';    -- Wait until data has been transferred on PHY signals
-      sim_start <= '0';
-      wait for 3 us;                -- Wait until data has (possibly) been received in ram.
-
-      -- Verify statistics counters
-      assert user_rxcnt_good     = 0;
-      assert user_rxcnt_error    = 0;
-      assert user_rxcnt_crc_bad  = 0;
-      assert user_rxcnt_overflow = 1;
-
-      -- Verify RAM unchanged
-      assert sim_ram(7 downto 0) = "XXXXXXXX";
-
-
-      -----------------------------------------------
-      -- Test 2 : Enable DMA
-      -- Expected behaviour: DMA rx pointers updated
-      -----------------------------------------------
-
-      -- Configure DMA for 1700 bytes of receive buffer space
-      user_rxdma_ptr  <= X"2000";
-      user_rxdma_size <= std_logic_vector(to_unsigned(1700, 16));
-      user_rxcpu_ptr  <= X"2000";
-      wait until user_clk = '1';
-      user_rxdma_enable <= '1';
+      sim_ram_init <= '0';
       wait until user_clk = '1';
 
-      assert user_rxbuf_ptr  = X"2000";
-      assert user_rxbuf_size = 0;
-
 
       -----------------------------------------------
-      -- Test 3 : Receive second frame
-      -- Expected behaviour: Frame is written to memory
-      --                     Write pointer is updated
+      -- Test 1 : Send a single frame
+      -- Expected behaviour: Frame is received
       -----------------------------------------------
 
-      -- Send frame
-      for i in 0 to 127 loop
-         sim_data(8*i+7 downto 8*i) <= std_logic_vector(to_unsigned(i+32, 8));
-      end loop;
-      sim_len   <= X"0080"; -- Number of bytes to send
-      sim_start <= '1';
-      wait until sim_done = '1';  -- Wait until data has been transferred on PHY signals
-      sim_start <= '0';
-      wait until user_rxbuf_size /= 0;  -- Wait until RxDMA is finished
-      wait until user_clk = '1';
-
-      -- Verify DMA write pointer
-      assert user_rxbuf_ptr  = X"2000";
-      assert user_rxbuf_size = X"82";
+      send_frame(first => 32, length => 100, offset => 1000);
+      receive_frame(first => 32, length => 100, offset => 600);
 
       -- Verify statistics counters
       assert user_rxcnt_good     = 1;
       assert user_rxcnt_error    = 0;
       assert user_rxcnt_crc_bad  = 0;
-      assert user_rxcnt_overflow = 1;
-
-      -- Verify memory contents.
-      assert sim_ram(15 downto 0) = X"0082";  -- Length includes 2-byte header.
-      for i in 0 to 127 loop
-         assert sim_ram((i+2)*8+7 downto (i+2)*8) = std_logic_vector(to_unsigned(i+32, 8)) report "i=" & integer'image(i);
-      end loop;
-      assert sim_ram(130*8+7 downto 130*8) = "XXXXXXXX";
+      assert user_rxcnt_overflow = 0;
 
 
       -----------------------------------------------
-      -- Test 4 : Release previous frame
-      -- Expected behaviour: Pointers updated, previous frame remains in memory.
+      -- Test 2 : Send two frames
+      -- Expected behaviour: Two frames are received
       -----------------------------------------------
 
-      -- Update CPU read pointer, to release second frame.
-      user_rxcpu_ptr   <= X"2082";
-      wait until user_clk = '1';
-      wait until user_clk = '1';
-
-      -- Verify DMA pointers is updated. Buffer is not empty
-      assert user_rxbuf_ptr  = X"2082";
-      assert user_rxbuf_size = X"00";
-
-      -- Verify previous frames are untouched.
-      assert sim_ram(15 downto 0) = X"0082";  -- Length includes 2-byte header.
-      for i in 0 to 127 loop
-         assert sim_ram((i+2)*8+7 downto (i+2)*8) = std_logic_vector(to_unsigned(i+32, 8)) report "i=" & integer'image(i);
-      end loop;
-      assert sim_ram(130*8+7 downto 130*8) = "XXXXXXXX";
-
-
-      -----------------------------------------------
-      -- Test 5 : Reset CPU pointer
-      -- Expected behaviour: Previous frame overwritten.
-      -----------------------------------------------
-
-      -- Reset CPU pointer.
-      wait for 1 us;
-      wait until user_clk = '1';
-      user_rxcpu_ptr   <= X"2000";
-      wait until user_clk = '1';
-      wait until user_clk = '1';
-      wait until user_clk = '1';
-
-      -- Verify DMA pointers is updated again
-      assert user_rxbuf_ptr  = X"2000";
-      assert user_rxbuf_size = X"00";
+      send_frame(first => 40, length => 90, offset => 800);
+      send_frame(first => 50, length => 80, offset => 400);
+      receive_frame(first => 40, length => 90, offset => 400);
+      receive_frame(first => 50, length => 80, offset => 800);
 
       -- Verify statistics counters
-      assert user_rxcnt_good     = 1;
+      assert user_rxcnt_good     = 3;
       assert user_rxcnt_error    = 0;
       assert user_rxcnt_crc_bad  = 0;
-      assert user_rxcnt_overflow = 1;
-
-      -- Verify previous frames are untouched.
-      assert sim_ram(15 downto 0) = X"0082";  -- Length includes 2-byte header.
-      for i in 0 to 127 loop
-         assert sim_ram((i+2)*8+7 downto (i+2)*8) = std_logic_vector(to_unsigned(i+32, 8)) report "i=" & integer'image(i);
-      end loop;
-      assert sim_ram(130*8+7 downto 130*8) = "XXXXXXXX";
-
-
-      -----------------------------------------------
-      -- Test 6 : Receive third frame
-      -- Expected behaviour: Frame is correctly received
-      -----------------------------------------------
-
-      -- Send frame
-      for i in 0 to 127 loop
-         sim_data(8*i+7 downto 8*i) <= std_logic_vector(to_unsigned(i+96, 8));
-      end loop;
-      sim_len   <= X"0060"; -- Number of bytes to send
-      sim_start <= '1';
-      wait until sim_done = '1';  -- Wait until data has been transferred on PHY signals
-      sim_start <= '0';
-      wait until user_rxbuf_size /= 0;  -- Wait until RxDMA is finished
-      wait until user_clk = '1';
-
-      -- Verify DMA write pointer is untouched.
-      assert user_rxbuf_ptr  = X"2000";
-      assert user_rxbuf_size = X"62";
-
-      -- Verify statistics counters
-      assert user_rxcnt_good     = 2;
-      assert user_rxcnt_error    = 0;
-      assert user_rxcnt_crc_bad  = 0;
-      assert user_rxcnt_overflow = 1;
-
-      -- Verify frame is correctly received.
-      assert sim_ram(15 downto 0) = X"0062";  -- Length includes 2-byte header.
-      for i in 0 to 95 loop
-         assert sim_ram((i+2)*8+7 downto (i+2)*8) = std_logic_vector(to_unsigned(i+96, 8)) report "i=" & integer'image(i);
-      end loop;
-      -- Verify previous frames are untouched.
-      assert sim_ram(98*8+7 downto 98*8) = std_logic_vector(to_unsigned(96+32, 8));
+      assert user_rxcnt_overflow = 0;
 
 
       -----------------------------------------------

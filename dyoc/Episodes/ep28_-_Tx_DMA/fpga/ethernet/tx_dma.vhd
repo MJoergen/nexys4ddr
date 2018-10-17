@@ -6,9 +6,9 @@ use ieee.std_logic_unsigned.all;
 -- prepare a contiguous memory area containing the Ethernet frame prepended
 -- with a two-byte header containing the length of the frame. Then the user
 -- must write the pointer to the start of this buffer to ETH_TX_PTR, and
--- then write a 1 to ETH_TX_CTRL.
+-- then write a 1 to ETH_TXDMA_ENABLE.
 -- When the Transmit DMA has read the contents of the memory, the value
--- of ETH_TX_CTRL will be cleared to zero.
+-- of ETH_TXDMA_ENABLE will be cleared to zero.
 --
 -- This module monitors the memio_i signal, waiting for bit 16 to become 1.
 -- Then it performs a series of reads from memory, and finally sets
@@ -16,20 +16,20 @@ use ieee.std_logic_unsigned.all;
 
 entity tx_dma is
    port (
-      clk_i         : in  std_logic;
+      clk_i          : in  std_logic;
 
-      memio_ptr_i   : in  std_logic_vector(15 downto 0);
-      memio_ctrl_i  : in  std_logic_vector( 7 downto 0);
-      memio_clear_o : out std_logic;
+      memio_ptr_i    : in  std_logic_vector(15 downto 0);
+      memio_enable_i : in  std_logic;
+      memio_clear_o  : out std_logic;
 
-      rd_addr_o     : out std_logic_vector(15 downto 0);
-      rd_en_o       : out std_logic;
-      rd_data_i     : in  std_logic_vector( 7 downto 0);
+      rd_addr_o      : out std_logic_vector(15 downto 0);
+      rd_en_o        : out std_logic;
+      rd_data_i      : in  std_logic_vector( 7 downto 0);
 
-      wr_afull_i    : in  std_logic;
-      wr_valid_o    : out std_logic;
-      wr_data_o     : out std_logic_vector( 7 downto 0);
-      wr_eof_o      : out std_logic
+      wr_afull_i     : in  std_logic;
+      wr_valid_o     : out std_logic;
+      wr_data_o      : out std_logic_vector( 7 downto 0);
+      wr_eof_o       : out std_logic
    );
 end tx_dma;
 
@@ -59,7 +59,7 @@ begin
          wr_eof      <= '0';
          case fsm_state is
             when IDLE_ST =>
-               if memio_ctrl_i(0) = '1' then
+               if memio_enable_i = '1' then
                   if rd_en = '0' then  -- Only read every other clock cycle.
                      rd_addr   <= memio_ptr_i;
                      rd_en     <= '1';

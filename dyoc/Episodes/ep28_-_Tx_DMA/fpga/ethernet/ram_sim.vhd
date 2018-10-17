@@ -8,12 +8,16 @@ use std.textio.all;
 
 entity ram_sim is
    port (
-      clk_i   : in  std_logic;
-      wren_i  : in  std_logic;
-      addr_i  : in  std_logic_vector(15 downto 0);
-      data_i  : in  std_logic_vector( 7 downto 0);
-      ram_o   : out std_logic_vector(16383 downto 0);
-      clear_i : in  std_logic
+      clk_i      : in  std_logic;
+      wr_en_i    : in  std_logic;
+      wr_addr_i  : in  std_logic_vector(15 downto 0);
+      wr_data_i  : in  std_logic_vector( 7 downto 0);
+      rd_en_i    : in  std_logic;
+      rd_addr_i  : in  std_logic_vector(15 downto 0);
+      rd_data_o  : out std_logic_vector( 7 downto 0);
+      ram_in_i   : in  std_logic_vector(16383 downto 0);
+      ram_out_o  : out std_logic_vector(16383 downto 0);
+      ram_init_i : in  std_logic
    );
 end entity ram_sim;
 
@@ -24,22 +28,33 @@ architecture simulation of ram_sim is
 
 begin
 
-   proc_ram : process (clk_i)
+   proc_write : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if wren_i = '1' then
-            assert addr_i(15 downto 11) = "00100";
-            ram(conv_integer(addr_i(10 downto 0))*8+7 downto conv_integer(addr_i(10 downto 0))*8) <= data_i;
+         if wr_en_i = '1' then
+            assert wr_addr_i(15 downto 11) = "00100";
+            ram(conv_integer(wr_addr_i(10 downto 0))*8+7 downto conv_integer(wr_addr_i(10 downto 0))*8) <= wr_data_i;
          end if;
 
-         if clear_i = '1' then
-            ram <= (others => 'X');
+         if ram_init_i = '1' then
+            ram <= ram_in_i;
          end if;
       end if;
-   end process proc_ram;
+   end process proc_write;
+
+   proc_read : process (clk_i)
+   begin
+      if falling_edge(clk_i) then
+         if rd_en_i = '1' then
+            assert rd_addr_i(15 downto 11) = "00100";
+            rd_data_o <= ram(conv_integer(rd_addr_i(10 downto 0))*8+7 downto conv_integer(rd_addr_i(10 downto 0))*8);
+         end if;
+      end if;
+   end process proc_read;
+
 
    -- Connect output signals
-   ram_o <= ram;
+   ram_out_o <= ram;
 
 end simulation;
 

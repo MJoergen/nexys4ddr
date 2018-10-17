@@ -19,7 +19,7 @@ entity ethernet is
 
       -- Connected to memio
       user_txdma_ptr_i      : in  std_logic_vector(15 downto 0);
-      user_txdma_ctrl_i     : in  std_logic_vector( 7 downto 0);
+      user_txdma_enable_i   : in  std_logic;
       user_txdma_clear_o    : out std_logic;
       user_rxdma_ptr_i      : in  std_logic_vector(15 downto 0);
       user_rxdma_enable_i   : in  std_logic;
@@ -218,19 +218,19 @@ begin
 
    inst_tx_dma : entity work.tx_dma
    port map (
-      clk_i         => user_clk_i,
-      memio_ptr_i   => user_txdma_ptr_i,
-      memio_ctrl_i  => user_txdma_ctrl_i,
-      memio_clear_o => user_txdma_clear_o,
+      clk_i          => user_clk_i,
+      memio_ptr_i    => user_txdma_ptr_i,
+      memio_enable_i => user_txdma_enable_i,
+      memio_clear_o  => user_txdma_clear_o,
       --
-      rd_en_o       => user_txdma_ram_rd_en_o,
-      rd_addr_o     => user_txdma_ram_rd_addr_o,
-      rd_data_i     => user_txdma_ram_rd_data_i,
+      rd_en_o        => user_txdma_ram_rd_en_o,
+      rd_addr_o      => user_txdma_ram_rd_addr_o,
+      rd_data_i      => user_txdma_ram_rd_data_i,
       --
-      wr_afull_i    => user_tx_afull,
-      wr_valid_o    => user_tx_valid,
-      wr_data_o     => user_tx_data,
-      wr_eof_o      => user_tx_eof(0)
+      wr_afull_i     => user_tx_afull,
+      wr_valid_o     => user_tx_valid,
+      wr_data_o      => user_tx_data,
+      wr_eof_o       => user_tx_eof(0)
    );
 
 
