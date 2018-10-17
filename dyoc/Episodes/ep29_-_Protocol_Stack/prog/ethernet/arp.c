@@ -25,7 +25,7 @@ void sendARPReply(const uint8_t mac[6], const uint8_t ip[4])
    arpHdr->htype = hton16(0x0001);
    arpHdr->ptype = hton16(0x0800);
    arpHdr->hlen = 6;
-   arpHdr->plen = 6;
+   arpHdr->plen = 4;
    arpHdr->oper = hton16(0x0002);
    memcpy(arpHdr->sha, myMacAddress, 6);
    memcpy(arpHdr->spa, myIpAddress, 4);
