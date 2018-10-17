@@ -101,7 +101,7 @@ architecture Structural of comp is
    signal cpu_memio_eth_rxcnt_crc_bad  : std_logic_vector( 7 downto 0);
    signal cpu_memio_eth_rxcnt_overflow : std_logic_vector( 7 downto 0);
    signal cpu_memio_eth_txdma_ptr      : std_logic_vector(15 downto 0);
-   signal cpu_memio_eth_txdma_ctrl     : std_logic_vector( 7 downto 0);
+   signal cpu_memio_eth_txdma_enable   : std_logic;
    signal cpu_memio_eth_txdma_clear    : std_logic;
 
    -- Memory Mapped I/O
@@ -352,7 +352,7 @@ begin
       user_rxdma_ram_wr_addr_o => cpu_eth_ram_wr_addr,
       user_rxdma_ram_wr_data_o => cpu_eth_ram_wr_data,
       user_txdma_ptr_i         => cpu_memio_eth_txdma_ptr,
-      user_txdma_ctrl_i        => cpu_memio_eth_txdma_ctrl,
+      user_txdma_enable_i      => cpu_memio_eth_txdma_enable,
       user_txdma_clear_o       => cpu_memio_eth_txdma_clear,
       user_rxdma_enable_i      => cpu_memio_eth_rxdma_enable,
       user_rxdma_clear_o       => cpu_memio_eth_rxdma_clear,
@@ -387,7 +387,7 @@ begin
    -- 7FD3        : ETH_RXDMA_ENABLE (bit 0)
    -- 7FD4 - 7FD5 : ETH_RXDMA_PTR
    -- 7FD6 - 7FD7 : ETH_TXDMA_PTR
-   -- 7FD8        : ETH_TXDMA_CTRL
+   -- 7FD8        : ETH_TXDMA_ENABLE
    -- 7FD9 - 7FDE : Not used
    -- 7FDF        : IRQ_MASK
    vga_memio_palette          <= memio_wr(15*8+7 downto  0*8);
@@ -396,11 +396,11 @@ begin
    cpu_memio_eth_rxdma_enable <= memio_wr(19*8);
    cpu_memio_eth_rxdma_ptr    <= memio_wr(21*8+7 downto 20*8);
    cpu_memio_eth_txdma_ptr    <= memio_wr(23*8+7 downto 22*8);
-   cpu_memio_eth_txdma_ctrl   <= memio_wr(24*8+7 downto 24*8);
+   cpu_memio_eth_txdma_enable <= memio_wr(24*8);
    --                            memio_wr(30*8+7 downto 25*8);      -- Not used
    irq_memio_mask             <= memio_wr(31*8+7 downto 31*8);
    memio_clear                <= (19 => cpu_memio_eth_rxdma_clear,                  -- ETH_RXDMA_ENABLE
-                                  28 => cpu_memio_eth_txdma_clear, others => '0');  -- ETH_TXDMA_CTRL
+                                  24 => cpu_memio_eth_txdma_clear, others => '0');  -- ETH_TXDMA_ENABLE
 
    -- 7FE0 - 7FE1 : VGA_PIX_X
    -- 7FE2 - 7FE3 : VGA_PIX_Y
