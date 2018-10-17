@@ -7,12 +7,12 @@
 
 // This variable is only used during simulation, to test the arbitration
 // between CPU and Ethernet while writing to memory.
-uint8_t dummy_counter = 0;
+uint8_t dummy_counter;
 
-// Start of receive buffer
+// Start of receive buffer.
 uint8_t *pBuf;
 
-// Length of current frame
+// Length of current frame (including frame header)
 uint16_t frmLen;
 
 const uint8_t arpHeader[10]   = {0x08, 0x06, 0x00, 0x01, 0x08, 0x00, 0x06, 0x04, 0x00, 0x01};
@@ -26,13 +26,15 @@ void processFrame(uint8_t *rdPtr)
    // Set read pointer to past the length field
    rdPtr += 2;
 
+   // Is it an ARP request?
    if (memcmp(rdPtr+12, arpHeader, 10))
-      return;
+      return;  // No
 
    printf("Got ARP.\n");
 
+   // Is the request for our IP address?
    if (memcmp(rdPtr+38, myIpAddress, 4))
-      return;
+      return;  // No
 
    printf("Bingo!\n");
 
@@ -50,7 +52,7 @@ void processFrame(uint8_t *rdPtr)
    MEMIO_CONFIG->ethTxPtr  = (uint16_t) rdPtr - 2;
    MEMIO_CONFIG->ethTxCtrl = 1;
 
-   // Wait until frame has been consume by TxDMA.
+   // Wait until frame has been consumed by TxDMA.
    while (MEMIO_CONFIG->ethTxCtrl)
    {}
 } // end of processFrame

@@ -152,6 +152,7 @@ begin
    process
       type frame_t is array (natural range <>) of std_logic_vector(7 downto 0);
 
+      -- ARP request
       constant tx_frame : frame_t(0 to 41) :=
          (X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"F4", x"6D",
           X"04", X"D7", X"F3", X"CA", X"08", X"06", X"00", x"01",
@@ -160,6 +161,7 @@ begin
           X"00", X"00", X"00", X"00", X"00", X"00", X"C0", X"A8",
           X"01", X"4D");
 
+      -- ARP reply
       constant rx_frame : frame_t(0 to 41) :=
          (X"F4", X"6D", X"04", X"D7", X"F3", X"CA", X"70", x"4D",
           X"7B", X"11", X"22", X"33", X"08", X"06", X"00", x"01",
