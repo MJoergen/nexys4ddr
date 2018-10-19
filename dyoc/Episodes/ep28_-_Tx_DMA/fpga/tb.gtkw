@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
-[*] Wed Oct 17 10:09:31 2018
+[*] Fri Oct 19 08:26:33 2018
 [*]
 [dumpfile] "/home/mfj/git/nexys4ddr/dyoc/Episodes/ep28_-_Tx_DMA/fpga/tb.ghw"
-[dumpfile_mtime] "Wed Oct 17 10:06:08 2018"
-[dumpfile_size] 8960410
+[dumpfile_mtime] "Fri Oct 19 07:31:17 2018"
+[dumpfile_size] 9157164
 [savefile] "/home/mfj/git/nexys4ddr/dyoc/Episodes/ep28_-_Tx_DMA/fpga/tb.gtkw"
-[timestart] 0
+[timestart] 232470000000
 [size] 1855 1103
 [pos] 1868 33
-*-35.458656 295420000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-33.458656 297530000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.tb.
 [treeopen] top.tb.inst_comp.
@@ -17,7 +17,7 @@
 [treeopen] top.tb.inst_comp.i_mem.i_ram.
 [treeopen] top.tb.inst_comp.inst_ethernet.
 [treeopen] top.tb.inst_comp.inst_ethernet.inst_phy.
-[treeopen] top.tb.inst_comp.inst_ethernet.inst_tx_dma.
+[treeopen] top.tb.inst_comp.inst_ethernet.inst_phy.inst_rmii_tx.
 [sst_width] 255
 [signals_width] 303
 [sst_expanded] 1
@@ -111,9 +111,7 @@ top.tb.inst_comp.inst_ethernet.inst_rx_dma.wr_en_o
 -Tx DMA
 @28
 top.tb.inst_comp.inst_ethernet.inst_tx_dma.memio_enable_i
-@29
 top.tb.inst_comp.inst_ethernet.inst_tx_dma.memio_clear_o
-@28
 top.tb.inst_comp.inst_ethernet.inst_tx_dma.wr_afull_i
 top.tb.inst_comp.inst_ethernet.inst_tx_dma.wr_valid_o
 @22
@@ -122,5 +120,10 @@ top.tb.inst_comp.inst_ethernet.inst_tx_dma.wr_valid_o
 top.tb.inst_comp.inst_ethernet.inst_tx_dma.wr_eof_o
 @1000200
 -Tx DMA
+@22
+#{top.tb.inst_comp.inst_ethernet.inst_phy.inst_rmii_tx.cnt_begin[7:0]} top.tb.inst_comp.inst_ethernet.inst_phy.inst_rmii_tx.cnt_begin[7] top.tb.inst_comp.inst_ethernet.inst_phy.inst_rmii_tx.cnt_begin[6] top.tb.inst_comp.inst_ethernet.inst_phy.inst_rmii_tx.cnt_begin[5] top.tb.inst_comp.inst_ethernet.inst_phy.inst_rmii_tx.cnt_begin[4] top.tb.inst_comp.inst_ethernet.inst_phy.inst_rmii_tx.cnt_begin[3] top.tb.inst_comp.inst_ethernet.inst_phy.inst_rmii_tx.cnt_begin[2] top.tb.inst_comp.inst_ethernet.inst_phy.inst_rmii_tx.cnt_begin[1] top.tb.inst_comp.inst_ethernet.inst_phy.inst_rmii_tx.cnt_begin[0]
+#{top.tb.inst_comp.inst_ethernet.inst_phy.inst_rmii_tx.cnt_end[7:0]} top.tb.inst_comp.inst_ethernet.inst_phy.inst_rmii_tx.cnt_end[7] top.tb.inst_comp.inst_ethernet.inst_phy.inst_rmii_tx.cnt_end[6] top.tb.inst_comp.inst_ethernet.inst_phy.inst_rmii_tx.cnt_end[5] top.tb.inst_comp.inst_ethernet.inst_phy.inst_rmii_tx.cnt_end[4] top.tb.inst_comp.inst_ethernet.inst_phy.inst_rmii_tx.cnt_end[3] top.tb.inst_comp.inst_ethernet.inst_phy.inst_rmii_tx.cnt_end[2] top.tb.inst_comp.inst_ethernet.inst_phy.inst_rmii_tx.cnt_end[1] top.tb.inst_comp.inst_ethernet.inst_phy.inst_rmii_tx.cnt_end[0]
+@29
+top.tb.inst_comp.inst_ethernet.inst_phy.inst_rmii_tx.user_err_o
 [pattern_trace] 1
 [pattern_trace] 0

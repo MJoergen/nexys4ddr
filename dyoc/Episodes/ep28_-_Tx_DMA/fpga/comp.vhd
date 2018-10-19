@@ -69,7 +69,7 @@ architecture Structural of comp is
 
    -- VGA debug overlay
    signal vga_overlay_en : std_logic;
-   signal vga_overlay    : std_logic_vector(239 downto 0);
+   signal vga_overlay    : std_logic_vector(255 downto 0);
 
    -- Data Path signals
    signal cpu_addr  : std_logic_vector(15 downto 0);
@@ -102,6 +102,8 @@ architecture Structural of comp is
    signal cpu_memio_eth_rxcnt_overflow : std_logic_vector( 7 downto 0);
    signal cpu_memio_eth_txcnt_start    : std_logic_vector( 7 downto 0);
    signal cpu_memio_eth_txcnt_end      : std_logic_vector( 7 downto 0);
+   signal cpu_memio_eth_tx_begin       : std_logic_vector( 7 downto 0);
+   signal cpu_memio_eth_tx_end         : std_logic_vector( 7 downto 0);
    signal cpu_memio_eth_txdma_ptr      : std_logic_vector(15 downto 0);
    signal cpu_memio_eth_txdma_enable   : std_logic;
    signal cpu_memio_eth_txdma_clear    : std_logic;
@@ -365,6 +367,8 @@ begin
       user_rxcnt_overflow_o    => cpu_memio_eth_rxcnt_overflow,
       user_txcnt_start_o       => cpu_memio_eth_txcnt_start,
       user_txcnt_end_o         => cpu_memio_eth_txcnt_end,
+      user_tx_begin_o          => cpu_memio_eth_tx_begin,
+      user_tx_end_o            => cpu_memio_eth_tx_end,
       --
       eth_clk_i    => eth_clk,
       eth_txd_o    => eth_txd_o,
@@ -451,6 +455,8 @@ begin
    vga_overlay(223 downto 216) <= cpu_memio_eth_rxcnt_overflow;
    vga_overlay(231 downto 224) <= cpu_memio_eth_txcnt_start;
    vga_overlay(239 downto 232) <= cpu_memio_eth_txcnt_end;
+   vga_overlay(247 downto 240) <= cpu_memio_eth_tx_begin;
+   vga_overlay(255 downto 248) <= cpu_memio_eth_tx_end;
    
 
 end architecture Structural;
