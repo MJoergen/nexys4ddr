@@ -28,6 +28,8 @@ entity ethernet is
       user_rxcnt_error_o    : out std_logic_vector( 7 downto 0);
       user_rxcnt_crc_bad_o  : out std_logic_vector( 7 downto 0);
       user_rxcnt_overflow_o : out std_logic_vector( 7 downto 0);
+      user_txcnt_start_o    : out std_logic_vector( 7 downto 0);
+      user_txcnt_end_o      : out std_logic_vector( 7 downto 0);
 
       -- Connected to PHY.
       eth_clk_i    : in    std_logic; -- Must be 50 MHz
@@ -219,6 +221,7 @@ begin
    inst_tx_dma : entity work.tx_dma
    port map (
       clk_i          => user_clk_i,
+      rst_i          => user_rst_i,
       memio_ptr_i    => user_txdma_ptr_i,
       memio_enable_i => user_txdma_enable_i,
       memio_clear_o  => user_txdma_clear_o,
@@ -230,7 +233,10 @@ begin
       wr_afull_i     => user_tx_afull,
       wr_valid_o     => user_tx_valid,
       wr_data_o      => user_tx_data,
-      wr_eof_o       => user_tx_eof(0)
+      wr_eof_o       => user_tx_eof(0),
+
+      cnt_start_o    => user_txcnt_start_o,
+      cnt_end_o      => user_txcnt_end_o
    );
 
 

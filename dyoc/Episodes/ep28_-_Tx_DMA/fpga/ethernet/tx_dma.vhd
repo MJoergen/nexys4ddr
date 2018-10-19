@@ -5,18 +5,15 @@ use ieee.std_logic_unsigned.all;
 -- This is a simple Transmit DMA.  To send an Ethernet frame, the user must
 -- prepare a contiguous memory area containing the Ethernet frame prepended
 -- with a two-byte header containing the length of the frame. Then the user
--- must write the pointer to the start of this buffer to ETH_TX_PTR, and
+-- must write the pointer to the start of this buffer to ETH_TXDMA_PTR, and
 -- then write a 1 to ETH_TXDMA_ENABLE.
 -- When the Transmit DMA has read the contents of the memory, the value
 -- of ETH_TXDMA_ENABLE will be cleared to zero.
---
--- This module monitors the memio_i signal, waiting for bit 16 to become 1.
--- Then it performs a series of reads from memory, and finally sets
--- memio_clear_o to 1.
 
 entity tx_dma is
    port (
       clk_i          : in  std_logic;
+      rst_i          : in  std_logic;
 
       memio_ptr_i    : in  std_logic_vector(15 downto 0);
       memio_enable_i : in  std_logic;
@@ -29,7 +26,10 @@ entity tx_dma is
       wr_afull_i     : in  std_logic;
       wr_valid_o     : out std_logic;
       wr_data_o      : out std_logic_vector( 7 downto 0);
-      wr_eof_o       : out std_logic
+      wr_eof_o       : out std_logic;
+
+      cnt_start_o    : out std_logic_vector( 7 downto 0);
+      cnt_end_o      : out std_logic_vector( 7 downto 0)
    );
 end tx_dma;
 
@@ -48,6 +48,9 @@ architecture Structural of tx_dma is
    type t_fsm_state is (IDLE_ST, LEN_LO_ST, LEN_HI_ST, DATA_ST);
    signal fsm_state : t_fsm_state := IDLE_ST;
 
+   signal cnt_start : std_logic_vector(7 downto 0) := (others => '0');
+   signal cnt_end   : std_logic_vector(7 downto 0) := (others => '0');
+
 begin
 
    proc_read : process (clk_i)
@@ -57,6 +60,7 @@ begin
          rd_en       <= '0';
          wr_valid    <= '0';
          wr_eof      <= '0';
+
          case fsm_state is
             when IDLE_ST =>
                if memio_enable_i = '1' then
@@ -64,6 +68,7 @@ begin
                      rd_addr   <= memio_ptr_i;
                      rd_en     <= '1';
                      fsm_state <= LEN_LO_ST;
+                     cnt_start <= cnt_start + 1;
                   end if;
                end if;
 
@@ -93,6 +98,7 @@ begin
                   else
                      if rd_len = 2 then
                         wr_eof <= '1';
+                        cnt_end <= cnt_end + 1;
                         memio_clear <= '1';
                         fsm_state   <= IDLE_ST;
                      else
@@ -105,8 +111,11 @@ begin
                else
                   fsm_state   <= IDLE_ST;
                end if;
-
          end case;
+
+         if rst_i = '1' then
+            fsm_state   <= IDLE_ST;
+         end if;
       end if;
    end process proc_read;
 
@@ -117,6 +126,9 @@ begin
    wr_valid_o    <= wr_valid;
    wr_data_o     <= wr_data;
    wr_eof_o      <= wr_eof;
+
+   cnt_start_o   <= cnt_start;
+   cnt_end_o     <= cnt_end;
 
 end Structural;
 
