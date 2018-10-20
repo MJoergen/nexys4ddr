@@ -6,8 +6,6 @@
 #include "memorymap.h"
 #include "ethernet.h"
 
-const uint8_t arpHeaderRequest[8] = {0x00, 0x01, 0x08, 0x00, 0x06, 0x04, 0x00, 0x01};
-const uint8_t arpHeaderReply[8]   = {0x00, 0x01, 0x08, 0x00, 0x06, 0x04, 0x00, 0x02};
 const uint8_t myMacAddress[6] = {0x70, 0x4D, 0x7B, 0x11, 0x22, 0x33};  // AsustekC
 const uint8_t myIpAddress[4]  = {192, 168, 1, 77};
 
@@ -46,23 +44,7 @@ void sendARPReply(const uint8_t mac[6], const uint8_t ip[4])
       *((uint16_t *)pkt) = 62;
    }
 
-   assert (MEMIO_CONFIG->ethTxdmaEnable == 0);
-
-   printf("Length = %d\n", *((uint16_t *)pkt));
-
-   // Send reply
-   MEMIO_CONFIG->ethTxdmaPtr    = (uint16_t) pkt;
-   MEMIO_CONFIG->ethTxdmaEnable = 1;
-
-   // Wait until frame has been consumed by TxDMA.
-   while (MEMIO_CONFIG->ethTxdmaEnable == 1)
-   {
-      counter += 1;
-   }
-
-   assert (MEMIO_CONFIG->ethTxdmaEnable == 0);
-
-   printf("counter = %d\n", counter);
+   txFrame(pkt);
 
    free(pkt);
 } // end of sendARPReply
@@ -70,26 +52,34 @@ void sendARPReply(const uint8_t mac[6], const uint8_t ip[4])
 
 void processARP(uint8_t *rdPtr, uint16_t frmLen)
 {
+   arpheader_t *arpHdr = (arpheader_t *) (rdPtr+14);
+
    if (frmLen < 42)
    {
       printf("Undersized ARP.\n");
       while(1) {} // Infinite loop to indicate error
    }
 
-   if (memcmp(rdPtr+14, arpHeaderRequest, 8))
+   if (
+      arpHdr->htype != hton16(0x0001) ||
+      arpHdr->ptype != hton16(0x0800) ||
+      arpHdr->hlen != 6 ||
+      arpHdr->plen != 4 ||
+      arpHdr->oper != hton16(0x0001)
+   )
    {
-      printf("Malformened ARP.\n");
+      printf("Malformed ARP.\n");
       while(1) {} // Infinite loop to indicate error
    }
 
-   printf("Got ARP for IP address: %d.%d.%d.%d\n", rdPtr[38], rdPtr[39], rdPtr[40], rdPtr[41]);
+   printf("Got ARP for IP address: %d.%d.%d.%d\n", arpHdr->tpa[0], arpHdr->tpa[1], arpHdr->tpa[2], arpHdr->tpa[3]);
 
-   if (memcmp(rdPtr+38, myIpAddress, 4))
+   if (memcmp(arpHdr->tpa, myIpAddress, 4))
       return;
 
    printf("Bingo!\n");
 
-   sendARPReply(rdPtr+22, rdPtr+28);
+   sendARPReply(arpHdr->sha, arpHdr->spa);
 
 } // end of processARP
 

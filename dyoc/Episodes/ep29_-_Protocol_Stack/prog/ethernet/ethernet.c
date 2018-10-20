@@ -52,3 +52,20 @@ void main(void)
 
 } // end of main
 
+void txFrame(uint8_t *pkt)
+{
+   assert (MEMIO_CONFIG->ethTxdmaEnable == 0);
+
+   // Send reply
+   MEMIO_CONFIG->ethTxdmaPtr    = (uint16_t) pkt;
+   MEMIO_CONFIG->ethTxdmaEnable = 1;
+
+   // Wait until frame has been consumed by TxDMA.
+   while (MEMIO_CONFIG->ethTxdmaEnable == 1)
+   {
+   }
+
+   assert (MEMIO_CONFIG->ethTxdmaEnable == 0);
+
+} // end of txFrame
+

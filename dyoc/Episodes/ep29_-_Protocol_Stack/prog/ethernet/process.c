@@ -5,7 +5,7 @@
 
 void processFrame(uint8_t *rdPtr, uint16_t frmLen)
 {
-   uint16_t typeLen;
+   macheader_t *macHdr = (macheader_t *) (rdPtr);
 
    if (frmLen < 14)
    {
@@ -19,13 +19,11 @@ void processFrame(uint8_t *rdPtr, uint16_t frmLen)
       while(1) {} // Infinite loop to indicate error
    }
 
-   typeLen = (rdPtr[12] << 8) | rdPtr[13];
-
-   switch (typeLen)
+   switch (ntoh16(macHdr->typeLen))
    {
       case 0x0806 : processARP(rdPtr, frmLen); break;
       case 0x0800 : processIP(rdPtr, frmLen); break;
-      default     : printf("Unknown typelen: 0x%04x\n", typeLen); break;
+      default     : printf("Unknown typelen: 0x%04x\n", ntoh16(macHdr->typeLen)); break;
    }
 } // end of processFrame
 

@@ -33,8 +33,8 @@ typedef struct
    uint8_t  ttl;        // time to live
    uint8_t  protocol;   // protocol
    uint16_t chksum;     // header checksum
-   uint32_t srcIP;      // source address
-   uint32_t destIP;     // destination address
+   uint8_t  srcIP[4];   // source address
+   uint8_t  destIP[4];  // destination address
 } ipheader_t;
 
 typedef struct
@@ -55,3 +55,6 @@ void processICMP(uint8_t *rdPtr, uint16_t frmLen);
 void processIP(uint8_t *rdPtr, uint16_t frmLen);
 void processUDP(uint8_t *rdPtr, uint16_t frmLen);
 void processTCP(uint8_t *rdPtr, uint16_t frmLen);
+uint16_t calcChecksum(uint16_t *ptr, uint16_t len);
+void txFrame(uint8_t *pkt);
+
