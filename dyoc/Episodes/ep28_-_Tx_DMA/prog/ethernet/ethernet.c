@@ -21,6 +21,8 @@ const uint8_t myIpAddress[4]  = {192, 168, 1, 77};
 
 void processFrame(uint8_t *rdPtr)
 {
+   uint8_t counter = 0;
+
    printf("Got frame\n");
 
    // Set read pointer to past the length field
@@ -48,13 +50,19 @@ void processFrame(uint8_t *rdPtr)
    memcpy(rdPtr+22, myMacAddress, 6);
    memcpy(rdPtr+28, myIpAddress, 4);
 
+   printf("Length = %d\n", *((uint16_t *)(rdPtr-2)));
+
    // Send reply
-   MEMIO_CONFIG->ethTxPtr  = (uint16_t) rdPtr - 2;
-   MEMIO_CONFIG->ethTxCtrl = 1;
+   MEMIO_CONFIG->ethTxdmaPtr  = (uint16_t) rdPtr - 2;
+   MEMIO_CONFIG->ethTxdmaEnable = 1;
 
    // Wait until frame has been consumed by TxDMA.
-   while (MEMIO_CONFIG->ethTxCtrl)
-   {}
+   while (MEMIO_CONFIG->ethTxdmaEnable)
+   {
+      counter += 1;
+   }
+
+   printf("counter = %d\n", counter);
 } // end of processFrame
 
 void main(void)

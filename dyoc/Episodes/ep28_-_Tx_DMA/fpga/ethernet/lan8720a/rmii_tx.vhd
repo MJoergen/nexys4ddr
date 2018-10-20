@@ -138,6 +138,7 @@ begin
                   if user_empty_i = '1' then
                      report "Data not available" severity failure;
                      cur_byte  <= (others => '0');
+                     byte_cnt  <= 11;
                      fsm_state <= IFG_ST;
                      eth_txen  <= '0';
                      rden      <= '0';
@@ -155,6 +156,7 @@ begin
                   if user_empty_i = '1' then
                      report "Data not available" severity failure;
                      cur_byte  <= (others => '0');
+                     byte_cnt  <= 11;
                      fsm_state <= IFG_ST;
                      eth_txen  <= '0';
                      rden      <= '0';
@@ -179,6 +181,7 @@ begin
                      -- Only 11 octets, because the next state is always the idle state.
                      byte_cnt  <= 11;
                      cur_byte  <= (others => '0');
+                     cnt_end   <= cnt_end + 1;
                      fsm_state <= IFG_ST;
                      eth_txen  <= '0';
                   else
@@ -188,7 +191,6 @@ begin
                when IFG_ST =>
                   if byte_cnt = 1 then
                      fsm_state <= IDLE_ST;
-                     cnt_end <= cnt_end + 1;
                   else
                      byte_cnt <= byte_cnt - 1;
                   end if;

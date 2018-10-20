@@ -104,6 +104,7 @@ architecture Structural of comp is
    signal cpu_memio_eth_txcnt_end      : std_logic_vector( 7 downto 0);
    signal cpu_memio_eth_tx_begin       : std_logic_vector( 7 downto 0);
    signal cpu_memio_eth_tx_end         : std_logic_vector( 7 downto 0);
+   signal cpu_memio_eth_tx_err         : std_logic;
    signal cpu_memio_eth_txdma_ptr      : std_logic_vector(15 downto 0);
    signal cpu_memio_eth_txdma_enable   : std_logic;
    signal cpu_memio_eth_txdma_clear    : std_logic;
@@ -369,6 +370,7 @@ begin
       user_txcnt_end_o         => cpu_memio_eth_txcnt_end,
       user_tx_begin_o          => cpu_memio_eth_tx_begin,
       user_tx_end_o            => cpu_memio_eth_tx_end,
+      user_tx_err_o            => cpu_memio_eth_tx_err,
       --
       eth_clk_i    => eth_clk,
       eth_txd_o    => eth_txd_o,
@@ -456,7 +458,7 @@ begin
    vga_overlay(231 downto 224) <= cpu_memio_eth_txcnt_start;
    vga_overlay(239 downto 232) <= cpu_memio_eth_txcnt_end;
    vga_overlay(247 downto 240) <= cpu_memio_eth_tx_begin;
-   vga_overlay(255 downto 248) <= cpu_memio_eth_tx_end;
+   vga_overlay(255 downto 248) <= cpu_memio_eth_tx_end or (7 downto 0 => cpu_memio_eth_tx_err);
    
 
 end architecture Structural;

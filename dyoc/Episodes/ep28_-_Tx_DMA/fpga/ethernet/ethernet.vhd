@@ -32,6 +32,7 @@ entity ethernet is
       user_txcnt_end_o      : out std_logic_vector( 7 downto 0);
       user_tx_begin_o       : out std_logic_vector( 7 downto 0);
       user_tx_end_o         : out std_logic_vector( 7 downto 0);
+      user_tx_err_o         : out std_logic;
 
       -- Connected to PHY.
       eth_clk_i    : in    std_logic; -- Must be 50 MHz
@@ -66,7 +67,6 @@ architecture Structural of ethernet is
    signal eth_tx_rden   : std_logic;
    signal eth_tx_data   : std_logic_vector(7 downto 0);
    signal eth_tx_eof    : std_logic_vector(0 downto 0);
-   signal eth_tx_err    : std_logic;
 
    -- Connection from rx_header to rxfifo
    signal eth_rxheader_valid : std_logic;
@@ -127,7 +127,7 @@ begin
       tx_rden_o    => eth_tx_rden,
       tx_data_i    => eth_tx_data,
       tx_eof_i     => eth_tx_eof(0),
-      tx_err_o     => eth_tx_err,
+      tx_err_o     => user_tx_err_o,
       tx_begin_o   => user_tx_begin_o,
       tx_end_o     => user_tx_end_o,
       -- External pins to the LAN 8720A PHY
