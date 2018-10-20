@@ -5,15 +5,11 @@
 #include "memorymap.h"
 #include "ethernet.h"
 
-// This is the number of bytes to use for the entire receive buffer. It should be
-// large enough to contain at least one complete frame, i.e. 1500 bytes.
-#define BUF_SIZE 1540
-
 // This variable is only used during simulation, to test the arbitration
 // between CPU and Ethernet while writing to memory.
-uint8_t dummy_counter = 0;
+uint8_t dummy_counter;
 
-// Start of receive buffer
+// Start of receive buffer.
 uint8_t *pBuf;
 
 // Current read pointer of the CPU

@@ -1,6 +1,8 @@
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <assert.h>
 #include "memorymap.h"
 #include "ethernet.h"
 
@@ -11,7 +13,9 @@ const uint8_t myIpAddress[4]  = {192, 168, 1, 77};
 
 void sendARPReply(const uint8_t mac[6], const uint8_t ip[4])
 {
-   uint8_t pkt[28+14+2];   // Allocate space for the packet
+   uint8_t counter = 0;
+
+   uint8_t *pkt = (uint8_t *) malloc(1516); // Allocate space for the packet
 
    macheader_t *macHdr = (macheader_t *) (pkt+2);     // Start of MAC header
    arpheader_t *arpHdr = (arpheader_t *) &macHdr[1];   // Start of ARP header
@@ -35,13 +39,32 @@ void sendARPReply(const uint8_t mac[6], const uint8_t ip[4])
    // Fill in length
    *((uint16_t *)pkt) = (uint8_t *) &arpHdr[1] - pkt;
 
+   // Pad packet if length is less than 60 bytes.
+   if (*((uint16_t *)pkt) < 62)
+   {
+      memset(pkt + *((uint16_t *)pkt), 0, 62 - *((uint16_t *)pkt));
+      *((uint16_t *)pkt) = 62;
+   }
+
+   assert (MEMIO_CONFIG->ethTxdmaEnable == 0);
+
+   printf("Length = %d\n", *((uint16_t *)pkt));
+
    // Send reply
-   MEMIO_CONFIG->ethTxPtr  = (uint16_t) pkt;
-   MEMIO_CONFIG->ethTxCtrl = 1;
+   MEMIO_CONFIG->ethTxdmaPtr    = (uint16_t) pkt;
+   MEMIO_CONFIG->ethTxdmaEnable = 1;
 
    // Wait until frame has been consumed by TxDMA.
-   while (MEMIO_CONFIG->ethTxCtrl)
-   {}
+   while (MEMIO_CONFIG->ethTxdmaEnable == 1)
+   {
+      counter += 1;
+   }
+
+   assert (MEMIO_CONFIG->ethTxdmaEnable == 0);
+
+   printf("counter = %d\n", counter);
+
+   free(pkt);
 } // end of sendARPReply
 
 

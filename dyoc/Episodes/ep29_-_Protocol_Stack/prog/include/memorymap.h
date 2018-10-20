@@ -21,8 +21,8 @@ typedef struct
    uint8_t  cpuCycLatch;      // 7FD2
    uint8_t  ethRxdmaEnable;   // 7FD3
    uint16_t ethRxdmaPtr;      // 7FD4 - 7FD5
-   uint16_t ethTxPtr;         // 7FD6 - 7FD7
-   uint8_t  ethTxCtrl;        // 7FD8
+   uint16_t ethTxdmaPtr;      // 7FD6 - 7FD7
+   uint8_t  ethTxdmaEnable;   // 7FD8
    uint8_t  _reserved[6];
    uint8_t  irqMask;          // 7FDF
 } t_memio_config;
