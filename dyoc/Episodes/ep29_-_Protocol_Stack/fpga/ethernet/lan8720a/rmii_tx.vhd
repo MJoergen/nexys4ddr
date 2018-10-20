@@ -9,7 +9,8 @@ use ieee.numeric_std.all;
 -- When transmitting, packets must be preceeded by an 8-byte preamble
 -- in hex: 55 55 55 55 55 55 55 D5
 -- Each byte is transmitted with LSB first.
--- Frames are appended with a 32-bit CRC, and then followed by 12 bytes of interpacket gap (idle).
+-- Frames are appended with a 32-bit CRC, and then followed by 12 bytes of
+-- interpacket gap (idle).
 --
 -- Timing (from the data sheet):
 -- On the transmit side: The MAC controller drives the transmit data onto the
@@ -17,6 +18,9 @@ use ieee.numeric_std.all;
 -- transceivers RMII block on the rising edge of REF_CLK. The data is in the
 -- form of 2-bit wide 50MHz data. 
 -- SSD (/J/K/) is "Sent for rising TXEN".
+--
+-- The above means that the output from this block is clocked on the falling
+-- edge of REF_CLK.
 
 entity rmii_tx is
    port (
@@ -29,6 +33,9 @@ entity rmii_tx is
       user_data_i  : in  std_logic_vector(7 downto 0);
       user_eof_i   : in  std_logic;
       user_err_o   : out std_logic;
+
+      cnt_begin_o  : out std_logic_vector(7 downto 0);
+      cnt_end_o    : out std_logic_vector(7 downto 0);
 
       -- Connected to PHY
       eth_txd_o    : out std_logic_vector(1 downto 0);
@@ -75,6 +82,9 @@ architecture Structural of rmii_tx is
       return res_v;
    end function new_crc;
 
+   signal cnt_begin : std_logic_vector(7 downto 0) := (others => '0');
+   signal cnt_end   : std_logic_vector(7 downto 0) := (others => '0');
+
 begin
 
    -- Generate MAC framing
@@ -104,6 +114,7 @@ begin
                      byte_cnt  <= 7;
                      cur_byte  <= X"55";
                      fsm_state <= PRE1_ST;
+                     cnt_begin <= cnt_begin + 1;
                      eth_txen  <= '1';
                   end if;
 
@@ -127,6 +138,7 @@ begin
                   if user_empty_i = '1' then
                      report "Data not available" severity failure;
                      cur_byte  <= (others => '0');
+                     byte_cnt  <= 11;
                      fsm_state <= IFG_ST;
                      eth_txen  <= '0';
                      rden      <= '0';
@@ -144,6 +156,7 @@ begin
                   if user_empty_i = '1' then
                      report "Data not available" severity failure;
                      cur_byte  <= (others => '0');
+                     byte_cnt  <= 11;
                      fsm_state <= IFG_ST;
                      eth_txen  <= '0';
                      rden      <= '0';
@@ -168,6 +181,7 @@ begin
                      -- Only 11 octets, because the next state is always the idle state.
                      byte_cnt  <= 11;
                      cur_byte  <= (others => '0');
+                     cnt_end   <= cnt_end + 1;
                      fsm_state <= IFG_ST;
                      eth_txen  <= '0';
                   else
@@ -198,6 +212,9 @@ begin
 
    user_rden_o <= rden;
    user_err_o  <= err;
+
+   cnt_begin_o <= cnt_begin;
+   cnt_end_o   <= cnt_end;
 
 end Structural;
 

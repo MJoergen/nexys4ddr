@@ -192,6 +192,8 @@ begin
 
       report "Test completed";
 
+      wait for 10 us;
+
       test_running <= '0';
       wait;
    end process;
