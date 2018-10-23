@@ -1,9 +1,14 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-#include "ethernet.h"
+#include "ip4.h"
+#include "icmp.h"
+#include "udp.h"
+#include "inet.h"
 
-uint16_t calcChecksum(uint16_t *ptr, uint16_t len)
+const uint8_t myIpAddress[4]  = {192, 168, 1, 77};
+
+uint16_t ip_calcChecksum(uint16_t *ptr, uint16_t len)
 {
    uint16_t i;
    uint32_t checksum = 0;
@@ -17,16 +22,20 @@ uint16_t calcChecksum(uint16_t *ptr, uint16_t len)
 
    retVal = ~(checksum & 0xFFFF);
 
-   //printf("checksum=%04x\n", retVal);
-
    return retVal;
 } // end of calcChecksum
 
-void processIP(uint8_t *rdPtr, uint16_t frmLen)
+void ip_tx(uint8_t *ip, uint8_t *ptr, uint16_t length)
 {
-   ipheader_t *ipHdr = (ipheader_t *) (rdPtr+14);
+} // end of ip_tx
 
-   if (frmLen < 34)
+void ip_rx(uint8_t *ptr, uint16_t length)
+{
+   ipheader_t *ipHdr = (ipheader_t *) ptr;
+   uint8_t *nextPtr    = ptr + sizeof(ipheader_t);
+   uint16_t nextLength = length - sizeof(ipheader_t);
+
+   if (length < 34)
    {
       printf("Undersized IP.\n");
       while(1) {} // Infinite loop to indicate error
@@ -36,6 +45,13 @@ void processIP(uint8_t *rdPtr, uint16_t frmLen)
    if ((ipHdr->verIHL & 0xF0) != 0x40)
    {
       printf("Unexpected IP version field: %02x\n", ipHdr->verIHL);
+      return;
+   }
+
+   // Check IP header length
+   if ((ipHdr->verIHL & 0x0F) != 0x05)
+   {
+      printf("Unexpected IP header length: %02x\n", ipHdr->verIHL);
       return;
    }
 
@@ -54,24 +70,24 @@ void processIP(uint8_t *rdPtr, uint16_t frmLen)
    }
 
    // Check IP header checksum
-   if (calcChecksum((uint16_t *) ipHdr, 10) != 0)
+   if (ip_calcChecksum((uint16_t *) ipHdr, 10) != 0)
    {
       printf("IP header checksum error\n");
       return;
    }
 
    // Check IP length
-   if (ntoh16(ipHdr->totLen) != frmLen - 14)
+   if (ntohs(ipHdr->totLen) != length - 14)
    {
-      printf("Incorrect IP length: 0x%04x. Expected: 0x%04x\n", ntoh16(ipHdr->totLen), frmLen - 14);
+      printf("Incorrect IP length: 0x%04x. Expected: 0x%04x\n", ntohs(ipHdr->totLen), length - 14);
       return;
    }
 
    switch (ipHdr->protocol)
    {
-      case 0x01 : processICMP(rdPtr, frmLen); break;
-      case 0x11 : processUDP(rdPtr, frmLen); break;
-      default   : printf("Unknown protocol: 0x%02x\n", ipHdr->protocol); break;
+      case IP4_PROTOCOL_ICMP : icmp_rx(ipHdr->srcIP, nextPtr, nextLength); break;
+      case IP4_PROTOCOL_UDP  : udp_rx(ipHdr->srcIP, nextPtr, nextLength); break;
+      default                : printf("Unknown protocol: 0x%02x\n", ipHdr->protocol); break;
    }
-} // end of processIP
+} // end of ip_tx
 

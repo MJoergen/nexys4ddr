@@ -1,10 +1,14 @@
 #include <stdint.h>
-#include <string.h>
 #include <stdio.h>
-#include "ethernet.h"
+#include "udp.h"
 
-void processUDP(uint8_t *rdPtr, uint16_t frmLen)
+void udp_rx(uint8_t *ip, uint8_t *ptr, uint16_t length)
 {
-   printf("UDP!\n");
-} // end of processICMP
+   printf("udp_rx!\n");
+} // end of udp_rx
+
+void udp_tx(uint8_t *ip, uint8_t *ptr, uint16_t length)
+{
+   printf("udp_tx!\n");
+} // end of udp_tx
 

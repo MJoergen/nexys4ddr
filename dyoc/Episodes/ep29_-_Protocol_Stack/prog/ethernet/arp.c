@@ -1,71 +1,65 @@
 #include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
 #include <stdio.h>
-#include <assert.h>
-#include "memorymap.h"
-#include "ethernet.h"
+#include <string.h>  // memcpy
+#include <stdlib.h>  // malloc
+#include "arp.h"
+#include "mac.h"
+#include "ip4.h"
+#include "inet.h"
 
-const uint8_t myMacAddress[6] = {0x70, 0x4D, 0x7B, 0x11, 0x22, 0x33};  // AsustekC
-const uint8_t myIpAddress[4]  = {192, 168, 1, 77};
-
-void sendARPReply(const uint8_t mac[6], const uint8_t ip[4])
+void arp_tx(uint16_t oper, uint8_t *dstMac, uint8_t *dstIp)
 {
-   uint8_t counter = 0;
-
-   uint8_t *pkt = (uint8_t *) malloc(1516); // Allocate space for the packet
-
-   macheader_t *macHdr = (macheader_t *) (pkt+2);     // Start of MAC header
-   arpheader_t *arpHdr = (arpheader_t *) &macHdr[1];   // Start of ARP header
-
-   // Fill in MAC header
-   memcpy(macHdr->destMac, mac, 6);
-   memcpy(macHdr->srcMac, myMacAddress, 6);
-   macHdr->typeLen = hton16(0x0806);
+   // Allocate space for the packet, including space for frame header and MAC header.
+   arpheader_t *arpHdr = (arpheader_t *) malloc(sizeof(arpheader_t) + sizeof(macheader_t) + 2);
 
    // FIll in ARP header
-   arpHdr->htype = hton16(0x0001);
-   arpHdr->ptype = hton16(0x0800);
-   arpHdr->hlen = 6;
-   arpHdr->plen = 4;
-   arpHdr->oper = hton16(0x0002);
-   memcpy(arpHdr->sha, myMacAddress, 6);
-   memcpy(arpHdr->spa, myIpAddress, 4);
-   memcpy(arpHdr->tha, mac, 6);
-   memcpy(arpHdr->tpa, ip, 4);
+   arpHdr->htype = htons(ARP_HTYPE_MAC);
+   arpHdr->ptype = htons(ARP_PTYPE_IP4);
+   arpHdr->hlen = ARP_HLEN_MAC;
+   arpHdr->plen = ARP_PLEN_IP4;
+   arpHdr->oper = htons(oper);
 
-   // Fill in length
-   *((uint16_t *)pkt) = (uint8_t *) &arpHdr[1] - pkt;
-
-   // Pad packet if length is less than 60 bytes.
-   if (*((uint16_t *)pkt) < 62)
+   switch (oper)
    {
-      memset(pkt + *((uint16_t *)pkt), 0, 62 - *((uint16_t *)pkt));
-      *((uint16_t *)pkt) = 62;
-   }
+      case ARP_OPER_REPLY : 
+         memcpy(arpHdr->sha, myMacAddress, 6);
+         memcpy(arpHdr->spa, myIpAddress, 4);
+         memcpy(arpHdr->tha, dstMac, 6);
+         memcpy(arpHdr->tpa, dstIp, 4);
+         break;
 
-   txFrame(pkt);
+      case ARP_OPER_REQUEST : 
+         memcpy(arpHdr->sha, myMacAddress, 6);
+         memcpy(arpHdr->spa, myIpAddress, 4);
+         memset(arpHdr->tha, 0, 6);
+         memcpy(arpHdr->tpa, dstIp, 4);
+         break;
 
-   free(pkt);
-} // end of sendARPReply
+      default :
+         break;
+   } // end of switch
 
+   mac_tx(dstMac, MAC_TYPELEN_ARP, (uint8_t *) arpHdr, sizeof(arpheader_t));
 
-void processARP(uint8_t *rdPtr, uint16_t frmLen)
+   free(arpHdr);
+} // end of arp_reply_tx
+
+void arp_rx(uint8_t *ptr, uint16_t length)
 {
-   arpheader_t *arpHdr = (arpheader_t *) (rdPtr+14);
+   arpheader_t *arpHdr = (arpheader_t *) ptr;
 
-   if (frmLen < 42)
+   if (length < sizeof(arpheader_t))
    {
       printf("Undersized ARP.\n");
       while(1) {} // Infinite loop to indicate error
    }
 
    if (
-      arpHdr->htype != hton16(0x0001) ||
-      arpHdr->ptype != hton16(0x0800) ||
-      arpHdr->hlen != 6 ||
-      arpHdr->plen != 4 ||
-      arpHdr->oper != hton16(0x0001)
+      arpHdr->htype != htons(ARP_HTYPE_MAC) ||
+      arpHdr->ptype != htons(ARP_PTYPE_IP4) ||
+      arpHdr->hlen != ARP_HLEN_MAC ||
+      arpHdr->plen != ARP_PLEN_IP4 ||
+      arpHdr->oper != htons(ARP_OPER_REQUEST)
    )
    {
       printf("Malformed ARP.\n");
@@ -77,9 +71,7 @@ void processARP(uint8_t *rdPtr, uint16_t frmLen)
    if (memcmp(arpHdr->tpa, myIpAddress, 4))
       return;
 
-   printf("Bingo!\n");
+   arp_tx(ARP_OPER_REPLY, arpHdr->sha, arpHdr->spa);
 
-   sendARPReply(arpHdr->sha, arpHdr->spa);
-
-} // end of processARP
+} // end of arp_rx
 

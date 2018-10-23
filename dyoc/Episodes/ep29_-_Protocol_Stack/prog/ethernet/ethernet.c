@@ -1,22 +1,11 @@
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 #include <assert.h>
 #include "memorymap.h"
-#include "ethernet.h"
-
-// This variable is only used during simulation, to test the arbitration
-// between CPU and Ethernet while writing to memory.
-uint8_t dummy_counter;
+#include "eth.h"
 
 // Start of receive buffer.
 uint8_t *pBuf;
-
-// Current read pointer of the CPU
-uint8_t *rdPtr;
-
-// Length of current frame
-uint16_t frmLen;
 
 void main(void)
 {
@@ -40,32 +29,10 @@ void main(void)
 
       // Wait until an ethernet frame has been received
       while (MEMIO_CONFIG->ethRxdmaEnable == 1)
-      {
-         dummy_counter += 1;   // This generates a write to the main memory.
-      }
+      { }
 
-      // Calculate length of frame
-      frmLen = *((uint16_t *)pBuf);  // Read as little-endian.
-
-      processFrame(pBuf+2, frmLen-2);
+      eth_rx(pBuf);
    }
 
 } // end of main
-
-void txFrame(uint8_t *pkt)
-{
-   assert (MEMIO_CONFIG->ethTxdmaEnable == 0);
-
-   // Send reply
-   MEMIO_CONFIG->ethTxdmaPtr    = (uint16_t) pkt;
-   MEMIO_CONFIG->ethTxdmaEnable = 1;
-
-   // Wait until frame has been consumed by TxDMA.
-   while (MEMIO_CONFIG->ethTxdmaEnable == 1)
-   {
-   }
-
-   assert (MEMIO_CONFIG->ethTxdmaEnable == 0);
-
-} // end of txFrame
 
