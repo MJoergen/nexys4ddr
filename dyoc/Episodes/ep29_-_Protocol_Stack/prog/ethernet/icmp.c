@@ -7,7 +7,7 @@
 #include "ip4.h"
 #include "mac.h"
 
-void icmp_tx(uint8_t *ip, uint8_t *ptr, uint16_t length)
+void icmp_tx(uint8_t *ip, uint8_t type, uint8_t *ptr, uint16_t length)
 {
    // Allocate space for the packet, including space for frame header, MAC, and IP header.
    icmpheader_t *icmpHdr = (icmpheader_t *) malloc(length + sizeof(icmpheader_t) + 
@@ -15,11 +15,11 @@ void icmp_tx(uint8_t *ip, uint8_t *ptr, uint16_t length)
 
    // Fill in ICMP header
    memcpy(icmpHdr+1, ptr, length);
-   icmpHdr->type = 0;
+   icmpHdr->type = type;
    icmpHdr->chksum = 0;
    icmpHdr->chksum = ip_calcChecksum((uint16_t *) icmpHdr, (length+sizeof(icmpheader_t))/2);
 
-   ip_tx(ip, (uint8_t *) icmpHdr, length);
+   ip_tx(ip, IP4_PROTOCOL_ICMP, (uint8_t *) icmpHdr, length);
 
    free(icmpHdr);
 } // end of sendARPReply
@@ -57,7 +57,7 @@ void icmp_rx(uint8_t *ip, uint8_t *ptr, uint16_t length)
 
    printf("ICMP!\n");
 
-   icmp_tx(ip, (uint8_t *) icmpHdr, length);
+   icmp_tx(ip, ICMP_TYPE_REPLY, (uint8_t *) icmpHdr, length);
 
 } // end of processICMP
 

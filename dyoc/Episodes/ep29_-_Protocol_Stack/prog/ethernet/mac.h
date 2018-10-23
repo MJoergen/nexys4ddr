@@ -15,7 +15,17 @@ typedef struct
 
 extern const uint8_t myMacAddress[6];
 
+// When called, this function processes a MAC frame.
+// ptr    : Points to first byte of MAC header.
+// length : Total number of bytes in MAC frame (excl CRC).
+// This function will decode the typeLen field in the MAC header and call e.g. arp_rx.
 void mac_rx(uint8_t *ptr, uint16_t length);
+
+// dstMac  : Which MAC address to send the payload to.
+// typeLen : What does the payload contain
+// ptr     : Points to first byte of payload (e.g. IP header).
+// length  : Number of bytes in payload
+// Note: This function assumes that there are 14 free bytes in front of 'ptr'.
 void mac_tx(uint8_t *dstMac, uint16_t typeLen, uint8_t *ptr, uint16_t length);
 
 #endif // _ETHERNET_MAC_H_

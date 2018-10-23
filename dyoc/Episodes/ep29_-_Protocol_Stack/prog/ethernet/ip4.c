@@ -6,6 +6,7 @@
 #include "udp.h"
 #include "inet.h"
 
+// The hard-coded IP address of this device.
 const uint8_t myIpAddress[4]  = {192, 168, 1, 77};
 
 uint16_t ip_calcChecksum(uint16_t *ptr, uint16_t len)
@@ -25,13 +26,24 @@ uint16_t ip_calcChecksum(uint16_t *ptr, uint16_t len)
    return retVal;
 } // end of calcChecksum
 
-void ip_tx(uint8_t *ip, uint8_t *ptr, uint16_t length)
+// ip       : Which IP address to send the payload to.
+// protocol : What does the payload contain.
+// ptr      : Points to first byte of payload (e.g. ICMP header).
+// length   : Number of bytes in payload.
+// Note: This function assumes that there are 34 free bytes in front of 'ptr'.
+void ip_tx(uint8_t *ip, uint8_t protocol, uint8_t *ptr, uint16_t length)
 {
 } // end of ip_tx
 
+// When called, this function processes an IP packet.
+// ptr    : Points to first byte of IP header.
+// length : Total number of bytes in IP packet (including payload).
+// This function will first check if the header checksum is valid and if the
+// destination IP address matches ours.
+// Then it will decode the protocol field in the IP header and call e.g. icmp_rx.
 void ip_rx(uint8_t *ptr, uint16_t length)
 {
-   ipheader_t *ipHdr = (ipheader_t *) ptr;
+   ipheader_t *ipHdr   = (ipheader_t *) ptr;
    uint8_t *nextPtr    = ptr + sizeof(ipheader_t);
    uint16_t nextLength = length - sizeof(ipheader_t);
 
