@@ -188,7 +188,9 @@ begin
          assert sim_rx_data(8*i+7 downto 8*i) = rx_frame(i)
             report "i=" & integer'image(i);
       end loop;
-      assert sim_rx_data(8*42+7 downto 8*42) = "XXXXXXXX";
+      -- Check padding up to 60 bytes.
+      assert sim_rx_data(8*59+7 downto 8*42) = (159 downto 0 => '0');
+      assert sim_rx_data(8*60+7 downto 8*60) = "XXXXXXXX";
 
       report "Test completed";
 

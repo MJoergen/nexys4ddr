@@ -23,7 +23,15 @@ typedef struct
 #define ARP_OPER_REQUEST   1
 #define ARP_OPER_REPLY     2
 
+// When called, this function processes an ARP frame.
+// ptr    : Points to first byte of ARP header.
+// length : Total number of bytes in ARP frame (header and payload combined).
+// This function will decode the ARP packet and possibly call e.g. arp_tx.
 void arp_rx(uint8_t *ptr, uint16_t length);
+
+// oper    : Which type of ARP packet to send.
+// dstMac  : Which MAC address to send to.
+// dstIp   : Which IP address to send to.
 void arp_tx(uint16_t oper, uint8_t *dstMac, uint8_t *dstIp);
 
 #endif // _ETHERNET_ARP_H_
