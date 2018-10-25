@@ -46,7 +46,6 @@ void ip_tx(uint8_t *ip, uint8_t protocol, uint8_t *ptr, uint16_t length)
    if (!mac)
    {
       // Mac address not found.
-      printf("Unknown IP address. Sending ARP request\n");
 
       // Send an ARP request
       arp_tx(ARP_OPER_REQUEST, 0, ip);

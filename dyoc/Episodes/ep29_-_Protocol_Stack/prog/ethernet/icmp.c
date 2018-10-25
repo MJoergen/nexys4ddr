@@ -9,9 +9,11 @@
 
 void icmp_tx(uint8_t *ip, uint8_t type, uint16_t id, uint16_t seq, uint8_t *ptr, uint16_t length)
 {
+   // Number of bytes in front of ICMP header.
+   uint16_t headroom = sizeof(ipheader_t) + sizeof(macheader_t) + 2;
+
    // Allocate space for the packet, including space for frame header, MAC, and IP header.
-   icmpheader_t *icmpHdr = (icmpheader_t *) malloc(length + sizeof(icmpheader_t) + 
-         sizeof(ipheader_t) + sizeof(macheader_t) + 2);
+   icmpheader_t *icmpHdr = (icmpheader_t *) ((uint8_t *) malloc(headroom + sizeof(icmpheader_t) + length) + headroom);
 
    // Fill in ICMP header
    icmpHdr->type   = type;
@@ -58,8 +60,6 @@ void icmp_rx(uint8_t *ip, uint8_t *ptr, uint16_t length)
       printf("Unexpected ICMP code\n");
       return;
    }
-
-   printf("ICMP!\n");
 
    icmp_tx(ip, ICMP_TYPE_REPLY, icmpHdr->id, icmpHdr->seq,
          (uint8_t *) &icmpHdr[1], length - sizeof(icmpheader_t));

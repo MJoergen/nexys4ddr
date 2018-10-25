@@ -39,8 +39,6 @@ void arp_rx(uint8_t *ptr, uint16_t length)
          if (memcmp(arpHdr->tpa, ip_myIpAddress, 4))
             return;
 
-         printf("Got ARP request!\n");
-
          // Insert source IP and MAC address into our ARP table.
          arp_table_insert(arpHdr->spa, arpHdr->sha);
 
@@ -53,8 +51,6 @@ void arp_rx(uint8_t *ptr, uint16_t length)
 
          if (memcmp(arpHdr->tpa, ip_myIpAddress, 4))
             return;
-
-         printf("Got ARP reply!\n");
 
          // Insert source IP and MAC address into our ARP table.
          arp_table_insert(arpHdr->spa, arpHdr->sha);
