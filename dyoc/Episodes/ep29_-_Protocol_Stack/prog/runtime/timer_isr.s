@@ -1,6 +1,8 @@
 .setcpu		"6502"
 .export		timer_isr      ; Used in lib/irq.s
 .export     _timer         ; 16-bit counter
+.export     timer_init
+.export     timer_read
 
 ; The interrupt routine must be written entirely in assembler, because the C
 ; code is not re-entrant.
@@ -24,5 +26,13 @@ timer_isr:
    INC _timer+1
 nowrap:
 
+   RTS
+
+timer_init:
+   RTS
+
+timer_read:
+   LDX _timer+1
+   LDA _timer
    RTS
 

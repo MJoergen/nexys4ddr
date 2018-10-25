@@ -1,6 +1,7 @@
 .setcpu		"6502"
 .export		kbd_isr              ; Used in lib/irq.s
 .export     _kbd_buffer_count, _kbd_buffer, _kbd_buffer_size
+.export     check_for_abort_key
 
 ; The interrupt routine must be written entirely in assembler, because the C code is not re-entrant.
 ; Therefore, one shouldn't call C functions from this routine.
@@ -47,5 +48,18 @@ kbd_isr:
 end:
 
    PLA                           ; Restore A-register
+   RTS
+
+check_for_abort_key:
+   LDA _kbd_buffer_count
+   BEQ no_key                    ; Jump if no keys in buffer
+   TAY
+   LDA _kbd_buffer-1,Y           ; Get last key pressed
+   CMP #$03                      ; Is it ^C ?
+   BNE no_key                    ; Jump if not
+   SEC                           ; Last key pressed was ^C
+   RTS
+no_key:
+   CLC                           ; Abort key not pressed
    RTS
 
