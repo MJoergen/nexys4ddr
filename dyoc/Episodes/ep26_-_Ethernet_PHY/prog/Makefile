@@ -16,7 +16,7 @@ LIBSOURCES += $(wildcard runtime/*.c)
 LIBSOURCES += $(wildcard runtime/*.s)
 
 # Specify include directories
-INCLUDE = -I include
+INCLUDE = -I inc
 
 # Generate list of object files
 OBJECTS := $(sort $(addsuffix .o, $(basename $(addprefix build/, $(SOURCES)))))
