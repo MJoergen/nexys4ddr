@@ -24,6 +24,7 @@ entity ethernet is
       user_rxdma_ptr_i      : in  std_logic_vector(15 downto 0);
       user_rxdma_enable_i   : in  std_logic;
       user_rxdma_clear_o    : out std_logic;
+      user_rxdma_pending_o  : out std_logic;
       user_rxcnt_good_o     : out std_logic_vector(15 downto 0);
       user_rxcnt_error_o    : out std_logic_vector( 7 downto 0);
       user_rxcnt_crc_bad_o  : out std_logic_vector( 7 downto 0);
@@ -217,6 +218,7 @@ begin
       dma_clear_o  => user_rxdma_clear_o
    );
 
+   user_rxdma_pending_o <= not user_rxfifo_empty;
 
    ------------------------------
    -- Instantiate Tx DMA

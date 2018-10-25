@@ -26,6 +26,7 @@ architecture Structural of ethernet_tb is
    signal user_rxdma_ptr         : std_logic_vector(15 downto 0);
    signal user_rxdma_enable      : std_logic;
    signal user_rxdma_clear       : std_logic;
+   signal user_rxdma_pending     : std_logic;
    signal user_rxcnt_good        : std_logic_vector(15 downto 0);
    signal user_rxcnt_error       : std_logic_vector( 7 downto 0);
    signal user_rxcnt_crc_bad     : std_logic_vector( 7 downto 0);
@@ -130,6 +131,7 @@ begin
       user_rxdma_ptr_i         => user_rxdma_ptr,
       user_rxdma_enable_i      => user_rxdma_enable,
       user_rxdma_clear_o       => user_rxdma_clear,
+      user_rxdma_pending_o     => user_rxdma_pending,
       user_rxcnt_good_o        => user_rxcnt_good,
       user_rxcnt_error_o       => user_rxcnt_error,
       user_rxcnt_crc_bad_o     => user_rxcnt_crc_bad,
@@ -221,8 +223,10 @@ begin
       -- Expected behaviour: Frame is received
       -----------------------------------------------
 
+      assert user_rxdma_pending = '0';
       send_frame(first => 32, length => 100, offset => 1000);
       receive_frame(first => 32, length => 100, offset => 600);
+      assert user_rxdma_pending = '0';
 
       -- Verify statistics counters
       assert user_rxcnt_good     = 1;
@@ -236,10 +240,13 @@ begin
       -- Expected behaviour: Two frames are received
       -----------------------------------------------
 
+      assert user_rxdma_pending = '0';
       send_frame(first => 40, length => 90, offset => 800);
       send_frame(first => 50, length => 80, offset => 400);
       receive_frame(first => 40, length => 90, offset => 400);
+      assert user_rxdma_pending = '1';
       receive_frame(first => 50, length => 80, offset => 800);
+      assert user_rxdma_pending = '0';
 
       -- Verify statistics counters
       assert user_rxcnt_good     = 3;
