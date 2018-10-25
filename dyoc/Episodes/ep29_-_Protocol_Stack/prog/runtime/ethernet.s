@@ -1,6 +1,6 @@
 ; Wrapper for Contiki ethernet driver
 
-.include "../common.inc"
+.include "../inc/common.inc"
 
 .export eth_init
 .export eth_rx
