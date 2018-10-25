@@ -17,9 +17,9 @@ end timer;
 
 architecture Structural of timer is
 
-   constant C_TIMER_CNT : std_logic_vector(17 downto 0) := std_logic_vector(to_unsigned(G_TIMER_CNT, 18));
+   constant C_TIMER_CNT : std_logic_vector(14 downto 0) := std_logic_vector(to_unsigned(G_TIMER_CNT, 15));
 
-   signal cnt_r : std_logic_vector(17 downto 0) := (others => '0');
+   signal cnt_r : std_logic_vector(14 downto 0) := (others => '0');
    signal irq_r : std_logic := '0';
 
 begin

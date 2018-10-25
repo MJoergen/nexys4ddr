@@ -50,20 +50,23 @@ each bit in the signal corresponds to one of the read-only bytes of the Memory
 Mapped IO. The signal is generated in lines 94-99 of mem/mem.vhd.
 
 ### Timer counter
-I've chosen to generate timer interrupts at 100 times per second. Too many
+I've chosen to generate timer interrupts at 1000 times per second. Too many
 interrupts will slow down the program execution, while too few interrupts will
-give a poorer timer resolution. One hundred interrupts per second seems like
-a reasonable compromise.
+give a poorer timer resolution. One thousand interrupts per second seems like a
+reasonable compromise.
 
-Since the FPGA is running at 25 MHz, we need to generate an interrupt every 250
+Since the FPGA is running at 25 MHz, we need to generate an interrupt every 25
 thousand clock cycles. This is achieved by having a counter that wraps around
-upon reaching the value 250000. This value can be represented in 18 bits,
-since 2^18 = 262144.
+upon reaching the value 25000. This value can be represented in 15 bits, since
+2^15 = 32768.
 
-The counter is declared in lines 87-93 of fpga/comp.vhd, and the timer interrupt
-is generated in lines 253-268.
+The counter is declared in lines 87-93 of fpga/comp.vhd, and the timer
+interrupt is generated in lines 253-268.
 
-There will be no support for reading the 18-bit timer interrupt counter.
+There will be no support for reading the 15-bit timer interrupt counter, nor
+will there be support for configuring the interval between timer interrupts.
+These are simple things to add, but no need to clutter the project with
+features not needed.
 
 ### VGA module
 We would like the VGA module to be a source for generating interrupts based on the
@@ -73,8 +76,8 @@ adding two more bytes to the Memory Mapped IO. The interrupt is generated at the
 end of the requested line, and is done in lines 170-172 of vga/vga.vhd.
 
 ## Chipset support
-A new directory, called 'chipset', will include the interrupt controller, the timer,
-and the wait state generator.
+A new directory, called 'chipset', will include the interrupt controller, the
+timer, and the wait state generator.
 
 ## Changes to the software
 
@@ -124,8 +127,8 @@ handwritten entirely in assembly.  Additionally, they MUST preserve the
 contents of the 'A' and 'Y' registers.
 
 The timer interrupt service routine in lib/timer\_isr.s maintains a two-byte
-counter that is updated every 0.01 seconds. It wraps around every approx.
-ten minutes.
+counter that is updated every millisecond. It wraps around approximately every
+minute.
 
 ### Library support
 To install a new interrupt service routine, the function sys\_set\_vga\_irq()
@@ -145,8 +148,8 @@ stored as the next interrupt line.  This way, an interrupt is generated after
 each VGA line, which happens every 800 clock cycles (the horizontal pixel
 count).
 
-In order to use the clock() function, it is necessary to define the
-constant CLOCKS\_PER\_SEC, because this constant is platform dependent.
-The option I've chosen is to define the symbol \_\_ATMOS\_\_ in line 11 of
-src/main.c.
+The clock() function returns the number of clock ticks, i.e. number of
+interrupts. To convert to seconds, we must divide by the number of interrupts
+per second. This constant is conveniently represented using the define
+CLOCKS\_PER\_SEC. This is done in line 11 of src/main.c.
 

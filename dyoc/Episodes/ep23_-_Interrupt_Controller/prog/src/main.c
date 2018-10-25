@@ -8,7 +8,7 @@
 // At the same time, it maintains a visual pattern synchronous with the
 // VGA output, using interrupts.
 
-#define __ATMOS__       // Set the correct value (100) for CLOCKS_PER_SEC
+#define CLOCKS_PER_SEC 1000
 
 #include <stdint.h>
 #include <stdio.h>

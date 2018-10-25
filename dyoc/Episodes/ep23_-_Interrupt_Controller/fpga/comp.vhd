@@ -139,7 +139,7 @@ begin
 
    i_timer : entity work.timer
    generic map (
-      G_TIMER_CNT => 250000    -- Generate interrupt every 0.01 seconds
+      G_TIMER_CNT => 25000    -- Generate interrupt every millisecond.
    )
    port map (
       clk_i => vga_clk,
