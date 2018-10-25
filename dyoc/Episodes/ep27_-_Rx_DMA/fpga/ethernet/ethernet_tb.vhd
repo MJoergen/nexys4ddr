@@ -20,6 +20,7 @@ architecture Structural of ethernet_tb is
    signal user_rxdma_ptr         : std_logic_vector(15 downto 0);
    signal user_rxdma_enable      : std_logic;
    signal user_rxdma_clear       : std_logic;
+   signal user_rxdma_pending     : std_logic;
    signal user_rxcnt_good        : std_logic_vector(15 downto 0);
    signal user_rxcnt_error       : std_logic_vector( 7 downto 0);
    signal user_rxcnt_crc_bad     : std_logic_vector( 7 downto 0);
@@ -129,6 +130,7 @@ begin
       user_rxdma_ptr_i         => user_rxdma_ptr,
       user_rxdma_enable_i      => user_rxdma_enable,
       user_rxdma_clear_o       => user_rxdma_clear,
+      user_rxdma_pending_o     => user_rxdma_pending,
       user_rxcnt_good_o        => user_rxcnt_good,
       user_rxcnt_error_o       => user_rxcnt_error,
       user_rxcnt_crc_bad_o     => user_rxcnt_crc_bad,

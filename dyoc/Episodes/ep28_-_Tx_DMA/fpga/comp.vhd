@@ -95,6 +95,7 @@ architecture Structural of comp is
    signal cpu_eth_ram_rd_data : std_logic_vector( 7 downto 0);
    signal cpu_memio_eth_rxdma_enable   : std_logic;
    signal cpu_memio_eth_rxdma_clear    : std_logic;
+   signal cpu_memio_eth_rxdma_pending  : std_logic;
    signal cpu_memio_eth_rxdma_ptr      : std_logic_vector(15 downto 0);
    signal cpu_memio_eth_rxcnt_good     : std_logic_vector(15 downto 0);
    signal cpu_memio_eth_rxcnt_error    : std_logic_vector( 7 downto 0);
@@ -192,7 +193,7 @@ begin
 
    i_timer : entity work.timer
    generic map (
-      G_TIMER_CNT => 250000    -- Generate interrupt every 0.01 seconds
+      G_TIMER_CNT => 25000    -- Generate interrupt every millisecond
    )
    port map (
       clk_i => vga_clk,
@@ -361,6 +362,7 @@ begin
       user_txdma_clear_o       => cpu_memio_eth_txdma_clear,
       user_rxdma_enable_i      => cpu_memio_eth_rxdma_enable,
       user_rxdma_clear_o       => cpu_memio_eth_rxdma_clear,
+      user_rxdma_pending_o     => cpu_memio_eth_rxdma_pending,
       user_rxdma_ptr_i         => cpu_memio_eth_rxdma_ptr,
       user_rxcnt_good_o        => cpu_memio_eth_rxcnt_good,
       user_rxcnt_error_o       => cpu_memio_eth_rxcnt_error,
@@ -420,7 +422,8 @@ begin
    -- 7FEA        : ETH_RXCNT_CRC_BAD
    -- 7FEB        : ETH_RXCNT_OVERFLOW
    -- 7FEC - 7FED : ETH_RXCNT_GOOD
-   -- 7FEE - 7FFE : Not used
+   -- 7FEE        : ETH_RXDMA_PENDING
+   -- 7FEF - 7FFE : Not used
    -- 7FFF        : IRQ_STATUS
    memio_rd( 1*8+7 downto  0*8) <= vga_memio_pix_x;
    memio_rd( 3*8+7 downto  2*8) <= vga_memio_pix_y;
@@ -430,7 +433,8 @@ begin
    memio_rd(10*8+7 downto 10*8) <= cpu_memio_eth_rxcnt_crc_bad;
    memio_rd(11*8+7 downto 11*8) <= cpu_memio_eth_rxcnt_overflow;
    memio_rd(13*8+7 downto 12*8) <= cpu_memio_eth_rxcnt_good;
-   memio_rd(30*8+7 downto 14*8) <= (others => '0');   -- Not used
+   memio_rd(14*8+7 downto 14*8) <= (7 downto 1 => '0', 0 => cpu_memio_eth_rxdma_pending);
+   memio_rd(30*8+7 downto 15*8) <= (others => '0');   -- Not used
    memio_rd(31*8+7 downto 31*8) <= irq_memio_status;
    irq_memio_clear <= memio_rden(31);
 

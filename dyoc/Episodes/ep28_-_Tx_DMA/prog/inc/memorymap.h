@@ -37,7 +37,8 @@ typedef struct
    uint8_t  ethRxErr1;        // 7FEA
    uint8_t  ethRxOverflow;    // 7FEB
    uint16_t ethRxCnt;         // 7FEC - 7FED
-   uint8_t  _reserved2[17];
+   uint8_t  ethRxPending;     // 7FEE
+   uint8_t  _reserved2[16];
    uint8_t  irqStatus;        // 7FFF
 } t_memio_status;
 
