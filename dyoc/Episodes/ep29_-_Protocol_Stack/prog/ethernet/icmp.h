@@ -28,7 +28,7 @@ void icmp_rx(uint8_t *ip, uint8_t *ptr, uint16_t length);
 // ptr      : Points to first byte of payload.
 // length   : Number of bytes in payload.
 // Note: This function assumes that there are 42 free bytes in front of 'ptr'.
-void icmp_tx(uint8_t *ip, uint8_t type, uint8_t *ptr, uint16_t length);
+void icmp_tx(uint8_t *ip, uint8_t type, uint16_t id, uint16_t seq, uint8_t *ptr, uint16_t length);
 
 #endif // _ETHERNET_ICMP_H_
 

@@ -21,7 +21,7 @@ typedef struct
 #define IP4_PROTOCOL_UDP  0x11
 
 // Contain the (hard-coded) IP address of this device.
-extern const uint8_t myIpAddress[4];
+extern const uint8_t ip_myIpAddress[4];
 
 uint16_t ip_calcChecksum(uint16_t *ptr, uint16_t len);
 

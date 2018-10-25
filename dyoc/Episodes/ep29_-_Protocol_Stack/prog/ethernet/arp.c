@@ -6,6 +6,7 @@
 #include "mac.h"
 #include "ip4.h"
 #include "inet.h"
+#include "arp_table.h"
 
 // When called, this function processes an ARP frame.
 // ptr    : Points to first byte of ARP header.
@@ -25,22 +26,45 @@ void arp_rx(uint8_t *ptr, uint16_t length)
       arpHdr->htype != htons(ARP_HTYPE_MAC) ||
       arpHdr->ptype != htons(ARP_PTYPE_IP4) ||
       arpHdr->hlen != ARP_HLEN_MAC ||
-      arpHdr->plen != ARP_PLEN_IP4 ||
-      arpHdr->oper != htons(ARP_OPER_REQUEST)
-   )
+      arpHdr->plen != ARP_PLEN_IP4)
    {
       printf("Malformed ARP.\n");
       while(1) {} // Infinite loop to indicate error
    }
 
-//   printf("Got ARP for IP address: %d.%d.%d.%d\n", arpHdr->tpa[0], arpHdr->tpa[1], arpHdr->tpa[2], arpHdr->tpa[3]);
+   switch (arpHdr->oper)
+   {
+      case htons(ARP_OPER_REQUEST) : 
 
-   if (memcmp(arpHdr->tpa, myIpAddress, 4))
-      return;
+         if (memcmp(arpHdr->tpa, ip_myIpAddress, 4))
+            return;
 
-   // Send an ARP reply
-   arp_tx(ARP_OPER_REPLY, arpHdr->sha, arpHdr->spa);
+         printf("Got ARP request!\n");
 
+         // Insert source IP and MAC address into our ARP table.
+         arp_table_insert(arpHdr->spa, arpHdr->sha);
+
+         // Send an ARP reply
+         arp_tx(ARP_OPER_REPLY, arpHdr->sha, arpHdr->spa);
+
+         break;
+
+      case htons(ARP_OPER_REPLY) : 
+
+         if (memcmp(arpHdr->tpa, ip_myIpAddress, 4))
+            return;
+
+         printf("Got ARP reply!\n");
+
+         // Insert source IP and MAC address into our ARP table.
+         arp_table_insert(arpHdr->spa, arpHdr->sha);
+
+         break;
+
+      default :
+         printf("Malformed ARP.\n");
+         while(1) {} // Infinite loop to indicate error
+   }
 } // end of arp_rx
 
 
@@ -65,15 +89,15 @@ void arp_tx(uint16_t oper, uint8_t *dstMac, uint8_t *dstIp)
    switch (oper)
    {
       case ARP_OPER_REPLY : 
-         memcpy(arpHdr->sha, myMacAddress, 6);
-         memcpy(arpHdr->spa, myIpAddress, 4);
+         memcpy(arpHdr->sha, mac_myMacAddress, 6);
+         memcpy(arpHdr->spa, ip_myIpAddress, 4);
          memcpy(arpHdr->tha, dstMac, 6);
          memcpy(arpHdr->tpa, dstIp, 4);
          break;
 
       case ARP_OPER_REQUEST : 
-         memcpy(arpHdr->sha, myMacAddress, 6);
-         memcpy(arpHdr->spa, myIpAddress, 4);
+         memcpy(arpHdr->sha, mac_myMacAddress, 6);
+         memcpy(arpHdr->spa, ip_myIpAddress, 4);
          memset(arpHdr->tha, 0, 6);
          memcpy(arpHdr->tpa, dstIp, 4);
          break;

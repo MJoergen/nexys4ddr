@@ -5,9 +5,14 @@
 #include "icmp.h"
 #include "udp.h"
 #include "inet.h"
+#include "mac.h"
+#include "arp_table.h"
+#include "arp.h"
 
 // The hard-coded IP address of this device.
-const uint8_t myIpAddress[4]  = {192, 168, 1, 77};
+const uint8_t ip_myIpAddress[4]  = {192, 168, 1, 77};
+
+uint16_t ip_id;
 
 uint16_t ip_calcChecksum(uint16_t *ptr, uint16_t len)
 {
@@ -33,7 +38,46 @@ uint16_t ip_calcChecksum(uint16_t *ptr, uint16_t len)
 // Note: This function assumes that there are 34 free bytes in front of 'ptr'.
 void ip_tx(uint8_t *ip, uint8_t protocol, uint8_t *ptr, uint16_t length)
 {
+   uint8_t *mac;  // Destination MAC address
+   ipheader_t *ipHdr;
+
+   // Find the MAC address associated with the IP address.
+   mac = arp_table_lookup(ip);
+   if (!mac)
+   {
+      // Mac address not found.
+      printf("Unknown IP address. Sending ARP request\n");
+
+      // Send an ARP request
+      arp_tx(ARP_OPER_REQUEST, 0, ip);
+
+      // While we're waiting for the ARP reply to return, we'll
+      // just drop the tx packet for now.
+      // We're relying on the protocol layer above to retransmit the
+      // packet later on.
+      return;
+   }
+
+   ip_id++; // Update sequence number
+
+   ipHdr = (ipheader_t *) (ptr - sizeof(ipheader_t));
+
+   // FIll in IP header
+   ipHdr->verIHL     = 0x45;
+   ipHdr->dscp       = 0;
+   ipHdr->totLen     = htons(length + sizeof(ipheader_t));
+   ipHdr->id         = htons(ip_id);
+   ipHdr->frag       = 0;
+   ipHdr->ttl        = 255;
+   ipHdr->protocol   = protocol;
+   ipHdr->chksum     = 0;
+   memcpy(ipHdr->srcIP, ip_myIpAddress, 4);
+   memcpy(ipHdr->destIP, ip, 4);
+   ipHdr->chksum = ip_calcChecksum((uint16_t *) ipHdr, sizeof(ipheader_t)/2);
+
+   mac_tx(mac, MAC_TYPELEN_IP4, (uint8_t *) ipHdr, length + sizeof(ipheader_t));
 } // end of ip_tx
+
 
 // When called, this function processes an IP packet.
 // ptr    : Points to first byte of IP header.
@@ -68,9 +112,8 @@ void ip_rx(uint8_t *ptr, uint16_t length)
    }
 
    // Check IP address
-   if (memcmp(ipHdr->destIP, myIpAddress, 4))
+   if (memcmp(ipHdr->destIP, ip_myIpAddress, 4))
    {
-      printf("Not my IP address: %d.%d.%d.%d\n", ipHdr->destIP[0], ipHdr->destIP[1], ipHdr->destIP[2], ipHdr->destIP[3]);
       return;
    }
 
@@ -89,9 +132,9 @@ void ip_rx(uint8_t *ptr, uint16_t length)
    }
 
    // Check IP length
-   if (ntohs(ipHdr->totLen) != length - 14)
+   if (ntohs(ipHdr->totLen) != length)
    {
-      printf("Incorrect IP length: 0x%04x. Expected: 0x%04x\n", ntohs(ipHdr->totLen), length - 14);
+      printf("Incorrect IP length: 0x%04x. Expected: 0x%04x\n", ntohs(ipHdr->totLen), length);
       return;
    }
 
@@ -101,5 +144,5 @@ void ip_rx(uint8_t *ptr, uint16_t length)
       case IP4_PROTOCOL_UDP  : udp_rx(ipHdr->srcIP, nextPtr, nextLength); break;
       default                : printf("Unknown protocol: 0x%02x\n", ipHdr->protocol); break;
    }
-} // end of ip_tx
+} // end of ip_rx
 

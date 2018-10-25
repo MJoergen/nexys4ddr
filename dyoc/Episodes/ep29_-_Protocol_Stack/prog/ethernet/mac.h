@@ -13,7 +13,7 @@ typedef struct
 #define MAC_TYPELEN_IP4 0x0800
 #define MAC_TYPELEN_ARP 0x0806
 
-extern const uint8_t myMacAddress[6];
+extern const uint8_t mac_myMacAddress[6];
 
 // When called, this function processes a MAC frame.
 // ptr    : Points to first byte of MAC header.

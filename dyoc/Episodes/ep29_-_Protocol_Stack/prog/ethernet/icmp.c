@@ -7,22 +7,26 @@
 #include "ip4.h"
 #include "mac.h"
 
-void icmp_tx(uint8_t *ip, uint8_t type, uint8_t *ptr, uint16_t length)
+void icmp_tx(uint8_t *ip, uint8_t type, uint16_t id, uint16_t seq, uint8_t *ptr, uint16_t length)
 {
    // Allocate space for the packet, including space for frame header, MAC, and IP header.
    icmpheader_t *icmpHdr = (icmpheader_t *) malloc(length + sizeof(icmpheader_t) + 
          sizeof(ipheader_t) + sizeof(macheader_t) + 2);
 
    // Fill in ICMP header
-   memcpy(icmpHdr+1, ptr, length);
-   icmpHdr->type = type;
+   icmpHdr->type   = type;
+   icmpHdr->code   = 0;
    icmpHdr->chksum = 0;
+   icmpHdr->id     = id;
+   icmpHdr->seq    = seq;
+   memcpy(icmpHdr+1, ptr, length);
+
    icmpHdr->chksum = ip_calcChecksum((uint16_t *) icmpHdr, (length+sizeof(icmpheader_t))/2);
 
-   ip_tx(ip, IP4_PROTOCOL_ICMP, (uint8_t *) icmpHdr, length);
+   ip_tx(ip, IP4_PROTOCOL_ICMP, (uint8_t *) icmpHdr, length + sizeof(icmpheader_t));
 
    free(icmpHdr);
-} // end of sendARPReply
+} // end of icmp_tx
 
 void icmp_rx(uint8_t *ip, uint8_t *ptr, uint16_t length)
 {
@@ -35,7 +39,7 @@ void icmp_rx(uint8_t *ip, uint8_t *ptr, uint16_t length)
    }
 
    // Check ICMP header checksum
-   if (ip_calcChecksum((uint16_t *) icmpHdr, (length-sizeof(icmpheader_t))/2))
+   if (ip_calcChecksum((uint16_t *) icmpHdr, length/2))
    {
       printf("ICMP header checksum error\n");
       return;
@@ -57,7 +61,8 @@ void icmp_rx(uint8_t *ip, uint8_t *ptr, uint16_t length)
 
    printf("ICMP!\n");
 
-   icmp_tx(ip, ICMP_TYPE_REPLY, (uint8_t *) icmpHdr, length);
+   icmp_tx(ip, ICMP_TYPE_REPLY, icmpHdr->id, icmpHdr->seq,
+         (uint8_t *) &icmpHdr[1], length - sizeof(icmpheader_t));
 
-} // end of processICMP
+} // end of icmp_rx
 
