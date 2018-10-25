@@ -1,5 +1,5 @@
 # Include directory
-INCLUDE = include
+INCLUDE = inc
 
 
 #####################################
