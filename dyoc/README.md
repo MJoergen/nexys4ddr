@@ -83,6 +83,15 @@ control e.g. background colour.
     interface.
 25. [**"Sample Programs"**](Episodes/ep25_-_Sample_Programs).
     We now demonstrate some sample programs for our new computer.
+### Ethernet ###
+26. [**"Ethernet PHY"**](Episodes/ep26_-_Ethernet_PHY).
+    Here we start communicating with the Ethernet PHY.
+27. [**"Rx DMA"**](Episodes/ep27_-_Rx_DMA).
+    Now we can receive Ethernet frames.
+28. [**"Tx DMA"**](Episodes/ep28_-_Tx_DMA).
+    Now we can send Ethernet frames.
+29. [**"Protocol Stack"**](Episodes/ep29_-_Protocol_Stack).
+    Now we can reply to ping!
 
 More to come soon...
 
