@@ -20,7 +20,7 @@ architecture Structural of ethernet_tb is
    signal user_rxdma_ptr         : std_logic_vector(15 downto 0);
    signal user_rxdma_enable      : std_logic;
    signal user_rxdma_clear       : std_logic;
-   signal user_rxdma_pending     : std_logic;
+   signal user_rxdma_pending     : std_logic_vector( 7 downto 0);
    signal user_rxcnt_good        : std_logic_vector(15 downto 0);
    signal user_rxcnt_error       : std_logic_vector( 7 downto 0);
    signal user_rxcnt_crc_bad     : std_logic_vector( 7 downto 0);
@@ -202,6 +202,7 @@ begin
       sim_ram_init <= '0';
 
       assert user_rxdma_clear = '0';
+      assert user_rxdma_pending = X"00";
 
       -----------------------------------------------
       -- Test 1 : Receive one frame
@@ -222,6 +223,7 @@ begin
       wait until user_clk = '1';
       wait until user_clk = '1';
       assert user_rxdma_clear = '0';
+      assert user_rxdma_pending = X"00";
 
       -- Verify statistics counters
       assert user_rxcnt_good     = 1;
@@ -249,6 +251,7 @@ begin
       wait for 5 us;
 
       -- Wait until first frame has been received
+      assert user_rxdma_pending = X"01";
       if user_rxdma_clear = '0' then
          wait until user_rxdma_clear = '1';
       end if;
@@ -278,6 +281,7 @@ begin
       user_rxdma_enable <= '1';
 
       -- Wait until second frame has been received
+      assert user_rxdma_pending = X"01";
       if user_rxdma_clear = '0' then
          wait until user_rxdma_clear = '1';
       end if;
@@ -292,6 +296,7 @@ begin
       assert user_rxcnt_error    = 0;
       assert user_rxcnt_crc_bad  = 0;
       assert user_rxcnt_overflow = 0;
+      assert user_rxdma_pending  = X"00";
 
       -- Verify second frame
       verify_frame(first => 90, length => 120);
@@ -319,8 +324,9 @@ begin
       wait for 10 us;
       wait until user_clk = '1';
 
-      assert user_rxdma_clear = '0';
-      assert user_rxdma_enable = '1';
+      assert user_rxdma_clear   = '0';
+      assert user_rxdma_enable  = '1';
+      assert user_rxdma_pending = X"00";
 
       -- Verify statistics counters
       assert user_rxcnt_good     = 3;
@@ -357,6 +363,7 @@ begin
       assert user_rxcnt_error    = 0;
       assert user_rxcnt_crc_bad  = 0;
       assert user_rxcnt_overflow = 1;
+      assert user_rxdma_pending  = X"00";
 
       -- Verify memory contents.
       verify_frame(first => 34, length => 1514);
