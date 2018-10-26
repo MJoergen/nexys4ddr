@@ -193,11 +193,38 @@ In order to generate traffic on the Ethernet port, a PHY simulator will be
 used.  Furthermore, a RAM simulator is added to receive the data written by the
 Rx DMA.
 
+## Software implementation
+The goal is to write a driver that can support the ip65 protocol stack
+implementation. To do this, we must write functions eth\_init() and eth\_rx().
+
+### eth\_init()
+The function is responsible for configuring the FPGA. In our case, this amounts
+to allocating a buffer for the Rx DMA, and writing the address of this buffer
+to the memio register ETH\_RXDMA\_PTR.
+
+### eth\_rx()
+This function must receive an Ethernet frame from the Rx DMA. It does this by
+first polling the register ETH\_RX\_PENDING. If zero, the function just returnes.
+If nonzero, however, the Rx DMA is instructed to transfer one packet, by writing
+to the memio register ETH\_RXDMA\_ENABLE. Once this variable has been cleared
+again by the FPGA (indicating the entire Ethernet frame has been transferred),
+this function returns.
+
+### Difference between asssembly and C code
+The ip65 protocol stack is written entirely in 6502 assembly. However, 
+the test programs I'm writing are in C. The 6502 C compiler I'm using prepends
+an underscore character (\_) in front of C names (functions and variables).
+
+This means that the actual assembly implementation is in the file runtime/eth.s,
+while an additional assembly -> C wrapper is written in ethernet/eth\_c.s. This
+wrapper is only temporary, and will be removed when we start using the ip65
+protocol stack.
+
 ## Test program to run on hardware
-The program enables the Rx DMA and enters a busy loop polling the RXDMA\_ENABLE
-register.  When this register reads zero, the first 16 bytes (including the 2
-byte length field) are printed to screen, and the whole process is repeated
-again.
+The test program initially calls eth\_init(), and then enters a busy loop
+repeatedly calling eth\_rx(), until this function returns zero (indicating
+a frame is ready). The first few bytes of the receive buffer are then printed
+to the screen, and the process repeats.
 
 Note that the receiver effectively operates in promiscuous mode, i.e.  performs
 no filtering of MAC addresses. MAC address filtering is not really necessary,

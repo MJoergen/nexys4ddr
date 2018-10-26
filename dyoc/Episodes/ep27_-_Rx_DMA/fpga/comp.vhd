@@ -92,7 +92,7 @@ architecture Structural of comp is
    signal cpu_eth_ram_wr_data : std_logic_vector( 7 downto 0);
    signal cpu_memio_eth_rxdma_enable   : std_logic;
    signal cpu_memio_eth_rxdma_clear    : std_logic;
-   signal cpu_memio_eth_rxdma_pending  : std_logic;
+   signal cpu_memio_eth_rxdma_pending  : std_logic_vector( 7 downto 0);
    signal cpu_memio_eth_rxdma_ptr      : std_logic_vector(15 downto 0);
    signal cpu_memio_eth_rxcnt_good     : std_logic_vector(15 downto 0);
    signal cpu_memio_eth_rxcnt_error    : std_logic_vector( 7 downto 0);
@@ -342,7 +342,7 @@ begin
       user_rxdma_ram_wr_data_o => cpu_eth_ram_wr_data,
       user_rxdma_enable_i      => cpu_memio_eth_rxdma_enable,
       user_rxdma_clear_o       => cpu_memio_eth_rxdma_clear,
-      user_rxdma_pending_o     => cpu_memio_eth_rxdma_pending,
+      user_rxdma_pending_o     => cpu_memio_eth_rxdma_pending(0),
       user_rxdma_ptr_i         => cpu_memio_eth_rxdma_ptr,
       user_rxcnt_good_o        => cpu_memio_eth_rxcnt_good,
       user_rxcnt_error_o       => cpu_memio_eth_rxcnt_error,
@@ -403,7 +403,7 @@ begin
    memio_rd(10*8+7 downto 10*8) <= cpu_memio_eth_rxcnt_crc_bad;
    memio_rd(11*8+7 downto 11*8) <= cpu_memio_eth_rxcnt_overflow;
    memio_rd(13*8+7 downto 12*8) <= cpu_memio_eth_rxcnt_good;
-   memio_rd(14*8+7 downto 14*8) <= (7 downto 1 => '0', 0 => cpu_memio_eth_rxdma_pending);
+   memio_rd(14*8+7 downto 14*8) <= cpu_memio_eth_rxdma_pending;
    memio_rd(30*8+7 downto 15*8) <= (others => '0');   -- Not used
    memio_rd(31*8+7 downto 31*8) <= irq_memio_status;
    irq_memio_clear <= memio_rden(31);
