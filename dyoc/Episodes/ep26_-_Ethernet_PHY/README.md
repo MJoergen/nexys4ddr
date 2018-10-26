@@ -5,7 +5,10 @@ Welcome to "Design Your Own Computer".  In this episode we'll implement
 the low-level connection to the Ethernet PHY.
 
 In this and the following episodes we'll build a web-server on the Nexys 4 DDR
-board.
+board. To achieve this we need to add support for Ethernet in the FPGA and
+additionally we need to write software running on the 6502 processor that
+implements the TCP/IP protocol stack. The latter will be handled by the
+ip65 project, more on that in a later episode.
 
 ## Connecting up the Ethernet port
 
@@ -182,5 +185,4 @@ that the CRC calculation is correct.
 You can now send data to and from the Ethernet PHY in byte-oriented frames.
 The next two episodes will make it possible for the CPU to control reception
 and transmission of Ethernet frames.
-
 

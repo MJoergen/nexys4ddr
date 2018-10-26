@@ -13,6 +13,8 @@ that was used in e.g. the Commodore 64 computer from the 1980's. There is
 an abundance of information on this processor on the Internet. In later episodes
 I'll provide more links.
 
+In the end I would like to build a web server that can run on this computer.
+
 Of course, the ultimate goal is to have fun building stuff!
 
 ## Overall design ##
@@ -22,6 +24,7 @@ The computer we're building will be running on an FPGA board, and inside the FPG
 * Memory (RAM and ROM)
 * 6502 CPU
 * Keyboard interface
+* Ethernet interface
 
 We will be designing and building these blocks roughly in the above order.
 
@@ -111,6 +114,7 @@ Make sure that the FPGA board you buy has (at least) the following features:
 * VGA connector
 * USB input connector (for keyboard)
 * Crystal oscillator
+* Ethernet PHY (optional)
 
 ### FPGA toolchain (software) ###
 
