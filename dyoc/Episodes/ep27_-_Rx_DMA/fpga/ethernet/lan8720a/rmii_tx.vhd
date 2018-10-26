@@ -127,6 +127,7 @@ begin
                   if user_empty_i = '1' then
                      report "Data not available" severity failure;
                      cur_byte  <= (others => '0');
+                     byte_cnt  <= 11;
                      fsm_state <= IFG_ST;
                      eth_txen  <= '0';
                      rden      <= '0';
@@ -144,6 +145,7 @@ begin
                   if user_empty_i = '1' then
                      report "Data not available" severity failure;
                      cur_byte  <= (others => '0');
+                     byte_cnt  <= 11;
                      fsm_state <= IFG_ST;
                      eth_txen  <= '0';
                      rden      <= '0';
