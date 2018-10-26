@@ -56,7 +56,7 @@ eth_rx:
 @2:   rts
 
 
-; transmit a packet
+; send a packet
 ; inputs:
 ; eth_outp: packet to send
 ; eth_outp_len: length of packet to send
