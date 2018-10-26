@@ -246,7 +246,7 @@ begin
       receive_frame(first => 40, length => 90, offset => 400);
       assert user_rxdma_pending = X"01";
       receive_frame(first => 50, length => 80, offset => 800);
-      assert user_rxdma_pending = X"00"';
+      assert user_rxdma_pending = X"00";
 
       -- Verify statistics counters
       assert user_rxcnt_good     = 3;
