@@ -33,6 +33,7 @@ eth_init:
 ; and eth_inp_len contains the length of the packet
 eth_rx:
       lda ethRxPending
+      eor #1                  ; Invert bit 0, so '0' means pending.
       ror a                   ; Move bit 0 to carry
       bcs @2                  ; Jump if no packet is ready
       lda #1

@@ -342,7 +342,7 @@ begin
       user_rxdma_ram_wr_data_o => cpu_eth_ram_wr_data,
       user_rxdma_enable_i      => cpu_memio_eth_rxdma_enable,
       user_rxdma_clear_o       => cpu_memio_eth_rxdma_clear,
-      user_rxdma_pending_o     => cpu_memio_eth_rxdma_pending(0),
+      user_rxdma_pending_o     => cpu_memio_eth_rxdma_pending,
       user_rxdma_ptr_i         => cpu_memio_eth_rxdma_ptr,
       user_rxcnt_good_o        => cpu_memio_eth_rxcnt_good,
       user_rxcnt_error_o       => cpu_memio_eth_rxcnt_error,
