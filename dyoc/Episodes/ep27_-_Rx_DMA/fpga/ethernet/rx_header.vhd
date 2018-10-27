@@ -83,7 +83,7 @@ architecture Structural of rx_header is
 
 begin
 
-   -- This process collects statistics of the packets received.
+   -- This process collects statistics of the frames received.
    proc_stats : process (clk_i)
    begin
       if rising_edge(clk_i) then
