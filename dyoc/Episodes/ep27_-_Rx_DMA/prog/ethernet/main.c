@@ -39,8 +39,8 @@ void main(void)
       // Show the pointer locations of the received Ethernet frame.
       printf("%04x:", eth_inp_len);
 
-      // Show the 14 bytes MAC header.
-      for (i=0; i<14; ++i)
+      // Show the first 34 bytes of the Ethernet frame (14 bytes MAC header and 20 bytes IP header).
+      for (i=0; i<34; ++i)
       {
          printf("%02x", eth_inp[i]);
       }
