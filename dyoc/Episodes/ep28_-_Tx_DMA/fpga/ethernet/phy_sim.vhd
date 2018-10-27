@@ -37,7 +37,6 @@ architecture simulation of phy_sim is
    signal user_tx_rden  : std_logic;
    signal user_tx_data  : std_logic_vector(7 downto 0);
    signal user_tx_eof   : std_logic;
-   signal user_tx_err   : std_logic;
 
    signal sim_tx_done : std_logic;
 
@@ -96,7 +95,6 @@ begin
       user_rden_o  => user_tx_rden,
       user_data_i  => user_tx_data,
       user_eof_i   => user_tx_eof,
-      user_err_o   => user_tx_err,
       eth_txd_o    => eth_txd_o,
       eth_txen_o   => eth_txen_o
    );

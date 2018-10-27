@@ -103,9 +103,6 @@ architecture Structural of comp is
    signal cpu_memio_eth_rxcnt_overflow : std_logic_vector( 7 downto 0);
    signal cpu_memio_eth_txcnt_start    : std_logic_vector( 7 downto 0);
    signal cpu_memio_eth_txcnt_end      : std_logic_vector( 7 downto 0);
-   signal cpu_memio_eth_tx_begin       : std_logic_vector( 7 downto 0);
-   signal cpu_memio_eth_tx_end         : std_logic_vector( 7 downto 0);
-   signal cpu_memio_eth_tx_err         : std_logic;
    signal cpu_memio_eth_txdma_ptr      : std_logic_vector(15 downto 0);
    signal cpu_memio_eth_txdma_enable   : std_logic;
    signal cpu_memio_eth_txdma_clear    : std_logic;
@@ -370,9 +367,6 @@ begin
       user_rxcnt_overflow_o    => cpu_memio_eth_rxcnt_overflow,
       user_txcnt_start_o       => cpu_memio_eth_txcnt_start,
       user_txcnt_end_o         => cpu_memio_eth_txcnt_end,
-      user_tx_begin_o          => cpu_memio_eth_tx_begin,
-      user_tx_end_o            => cpu_memio_eth_tx_end,
-      user_tx_err_o            => cpu_memio_eth_tx_err,
       --
       eth_clk_i    => eth_clk,
       eth_txd_o    => eth_txd_o,
