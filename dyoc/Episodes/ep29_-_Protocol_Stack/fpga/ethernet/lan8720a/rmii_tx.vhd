@@ -32,10 +32,6 @@ entity rmii_tx is
       user_rden_o  : out std_logic;
       user_data_i  : in  std_logic_vector(7 downto 0);
       user_eof_i   : in  std_logic;
-      user_err_o   : out std_logic;
-
-      cnt_begin_o  : out std_logic_vector(7 downto 0);
-      cnt_end_o    : out std_logic_vector(7 downto 0);
 
       -- Connected to PHY
       eth_txd_o    : out std_logic_vector(1 downto 0);
@@ -49,7 +45,6 @@ architecture Structural of rmii_tx is
 -- https://en.wikipedia.org/wiki/Cyclic_redundancy_check
    constant CRC_POLYNOMIAL : std_logic_vector(31 downto 0) := X"04C11DB7";
 
-   signal err        : std_logic := '0';
    signal eth_txen   : std_logic := '0';
    signal rden       : std_logic := '0';
 
@@ -82,9 +77,6 @@ architecture Structural of rmii_tx is
       return res_v;
    end function new_crc;
 
-   signal cnt_begin : std_logic_vector(7 downto 0) := (others => '0');
-   signal cnt_end   : std_logic_vector(7 downto 0) := (others => '0');
-
 begin
 
    -- Generate MAC framing
@@ -114,7 +106,6 @@ begin
                      byte_cnt  <= 7;
                      cur_byte  <= X"55";
                      fsm_state <= PRE1_ST;
-                     cnt_begin <= cnt_begin + 1;
                      eth_txen  <= '1';
                   end if;
 
@@ -142,7 +133,6 @@ begin
                      fsm_state <= IFG_ST;
                      eth_txen  <= '0';
                      rden      <= '0';
-                     err       <= '1';
                   end if;
 
                when PAYLOAD_ST =>
@@ -160,7 +150,6 @@ begin
                      fsm_state <= IFG_ST;
                      eth_txen  <= '0';
                      rden      <= '0';
-                     err       <= '1';
                   end if;
 
                when LAST_ST => 
@@ -181,7 +170,6 @@ begin
                      -- Only 11 octets, because the next state is always the idle state.
                      byte_cnt  <= 11;
                      cur_byte  <= (others => '0');
-                     cnt_end   <= cnt_end + 1;
                      fsm_state <= IFG_ST;
                      eth_txen  <= '0';
                   else
@@ -200,7 +188,6 @@ begin
 
          if rst_i = '1' then
             fsm_state  <= IDLE_ST;
-            err        <= '0';
             twobit_cnt <= (others => '0');
          end if;
       end if;
@@ -211,10 +198,6 @@ begin
    eth_txen_o  <= eth_txen;
 
    user_rden_o <= rden;
-   user_err_o  <= err;
-
-   cnt_begin_o <= cnt_begin;
-   cnt_end_o   <= cnt_end;
 
 end Structural;
 

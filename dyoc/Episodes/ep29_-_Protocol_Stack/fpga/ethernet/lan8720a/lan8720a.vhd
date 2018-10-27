@@ -42,9 +42,6 @@ entity lan8720a is
       tx_rden_o    : out   std_logic;
       tx_data_i    : in    std_logic_vector(7 downto 0);
       tx_eof_i     : in    std_logic;
-      tx_err_o     : out   std_logic;
-      tx_begin_o   : out   std_logic_vector(7 downto 0);
-      tx_end_o     : out   std_logic_vector(7 downto 0);
 
       -- Connected to the LAN8720A Ethernet PHY.
       eth_txd_o    : out   std_logic_vector(1 downto 0);
@@ -86,9 +83,6 @@ begin
          user_rden_o  => tx_rden_o,
          user_data_i  => tx_data_i,
          user_eof_i   => tx_eof_i,
-         user_err_o   => tx_err_o,
-         cnt_begin_o  => tx_begin_o,
-         cnt_end_o    => tx_end_o,
          eth_txd_o    => eth_txd_o,
          eth_txen_o   => eth_txen_o 
       );

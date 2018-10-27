@@ -31,9 +31,6 @@ entity ethernet is
       user_rxcnt_overflow_o : out std_logic_vector( 7 downto 0);
       user_txcnt_start_o    : out std_logic_vector( 7 downto 0);
       user_txcnt_end_o      : out std_logic_vector( 7 downto 0);
-      user_tx_begin_o       : out std_logic_vector( 7 downto 0);
-      user_tx_end_o         : out std_logic_vector( 7 downto 0);
-      user_tx_err_o         : out std_logic;
 
       -- Connected to PHY.
       eth_clk_i    : in    std_logic; -- Must be 50 MHz
@@ -128,9 +125,6 @@ begin
       tx_rden_o    => eth_tx_rden,
       tx_data_i    => eth_tx_data,
       tx_eof_i     => eth_tx_eof(0),
-      tx_err_o     => user_tx_err_o,
-      tx_begin_o   => user_tx_begin_o,
-      tx_end_o     => user_tx_end_o,
       -- External pins to the LAN 8720A PHY
       eth_txd_o    => eth_txd_o,
       eth_txen_o   => eth_txen_o,

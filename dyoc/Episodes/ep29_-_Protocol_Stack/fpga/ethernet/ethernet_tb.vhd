@@ -160,7 +160,7 @@ begin
       procedure send_frame(first : integer; length : integer; offset : integer) is
       begin
          sim_ram_in <= (others => 'X');
-         sim_ram_in(8*offset + 15 downto 8*offset + 0) <= std_logic_vector(to_unsigned(length+2, 16));
+         sim_ram_in(8*offset + 15 downto 8*offset + 0) <= std_logic_vector(to_unsigned(length, 16));
          for i in 0 to length-1 loop
             sim_ram_in(8*(i+2+offset)+7 downto 8*(i+2+offset)) <= 
                std_logic_vector(to_unsigned((i+first) mod 256, 8));
@@ -195,7 +195,7 @@ begin
          wait until user_clk = '1';
          assert user_rxdma_clear = '0';
 
-         assert sim_ram_out(8*offset + 15 downto 8*offset + 0) = std_logic_vector(to_unsigned(length+2, 16));
+         assert sim_ram_out(8*offset + 15 downto 8*offset + 0) = std_logic_vector(to_unsigned(length, 16));
          for i in 0 to length-1 loop
             assert sim_ram_out(8*(i+2+offset)+7 downto 8*(i+2+offset)) = 
                std_logic_vector(to_unsigned((i+first) mod 256, 8))
