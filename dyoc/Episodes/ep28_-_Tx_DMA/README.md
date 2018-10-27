@@ -10,7 +10,7 @@ board.
 ## Interface to CPU
 The process of sending a frame is similar to receiving a frame:
 * The CPU writes the frame in memory, prepended with a two-byte header
-  containing length of frame including header.
+  containing length of frame excluding header.
 * The CPU writes the address of the header to the ETH\_TXDMA\_PTR register.
 * The CPU writes 1 to the ETH\_TXDMA\_ENABLE register.
 * When the Tx DMA has finished reading the frame from memory, it will
@@ -22,11 +22,11 @@ To make this work a new file tx\_dma.vhd is added.
 Furthermore, a number of new signals have been added to the memio module.
 
 ## Testing in simulation
-The unit testbench ethernet\_tb has been modified. Now packets are initiated
+The unit testbench ethernet\_tb has been modified. Now frames are initiated
 from the Tx DMA, sent out to the PHY, and then looped back into the FPGA and
 received via the Rx DMA.
 
-The main testbench tb has been modified too. Here packets are received from the
+The main testbench tb has been modified too. Here frames are received from the
 PHY, written to memory by the Rx DMA, processed by the CPU and a new frame sent
 for tranmission via the Tx DMA, and finally sent out to the PHY.
 

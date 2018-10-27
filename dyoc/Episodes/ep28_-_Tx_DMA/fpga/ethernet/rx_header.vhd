@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
 -- This module prepends the frame with a two-byte header containing the total
--- number of bytes (including header) stored in little-endian format.
+-- number of bytes (excluding header) stored in little-endian format.
 --
 -- This module operates in a store-and-forward mode, where the entire frame is
 -- stored in an input buffer, until the last byte is received.  Only valid
@@ -83,7 +83,7 @@ architecture Structural of rx_header is
 
 begin
 
-   -- This process collects statistics of the packets received.
+   -- This process collects statistics of the frames received.
    proc_stats : process (clk_i)
    begin
       if rising_edge(clk_i) then
@@ -207,10 +207,10 @@ begin
                when IDLE_ST =>
                   if ctrl_empty = '0' then
                      end_ptr_v := ctrl_rddata(C_ADDR_SIZE-1 downto 0);
-                     -- Calculate length including two-byte header.
+                     -- Calculate length excluding two-byte header.
                      -- 'rdptr' contains address of first byte.
                      -- 'end_ptr_v' contains address of last byte.
-                     frame_length_v := end_ptr_v+1 - rdptr + 2;
+                     frame_length_v := end_ptr_v+1 - rdptr;
 
                      -- An entire frame is now ready.
                      ctrl_rden <= '1';

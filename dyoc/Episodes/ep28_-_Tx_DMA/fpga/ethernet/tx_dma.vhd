@@ -86,17 +86,16 @@ begin
                   rd_len(15 downto 8) <= rd_data_i;
                else
                   rd_addr   <= rd_addr + 1;
-                  rd_len    <= rd_len - 1;
                   rd_en     <= '1';
                   fsm_state <= DATA_ST;
                end if;
 
             when DATA_ST =>
-               if rd_len /= 1 then
+               if rd_len /= 0 then
                   if rd_en = '1' then  -- Only read every other clock cycle.
                      wr_data   <= rd_data_i;
                   else
-                     if rd_len = 2 then
+                     if rd_len = 1 then
                         wr_eof <= '1';
                         cnt_end <= cnt_end + 1;
                         memio_clear <= '1';
