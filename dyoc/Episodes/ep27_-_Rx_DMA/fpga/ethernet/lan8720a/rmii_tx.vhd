@@ -9,7 +9,8 @@ use ieee.numeric_std.all;
 -- When transmitting, packets must be preceeded by an 8-byte preamble
 -- in hex: 55 55 55 55 55 55 55 D5
 -- Each byte is transmitted with LSB first.
--- Frames are appended with a 32-bit CRC, and then followed by 12 bytes of interpacket gap (idle).
+-- Frames are appended with a 32-bit CRC, and then followed by 12 bytes of
+-- interpacket gap (idle).
 --
 -- Timing (from the data sheet):
 -- On the transmit side: The MAC controller drives the transmit data onto the
@@ -17,6 +18,9 @@ use ieee.numeric_std.all;
 -- transceivers RMII block on the rising edge of REF_CLK. The data is in the
 -- form of 2-bit wide 50MHz data. 
 -- SSD (/J/K/) is "Sent for rising TXEN".
+--
+-- The above means that the output from this block is clocked on the falling
+-- edge of REF_CLK.
 
 entity rmii_tx is
    port (
@@ -28,7 +32,6 @@ entity rmii_tx is
       user_rden_o  : out std_logic;
       user_data_i  : in  std_logic_vector(7 downto 0);
       user_eof_i   : in  std_logic;
-      user_err_o   : out std_logic;
 
       -- Connected to PHY
       eth_txd_o    : out std_logic_vector(1 downto 0);
@@ -42,7 +45,6 @@ architecture Structural of rmii_tx is
 -- https://en.wikipedia.org/wiki/Cyclic_redundancy_check
    constant CRC_POLYNOMIAL : std_logic_vector(31 downto 0) := X"04C11DB7";
 
-   signal err        : std_logic := '0';
    signal eth_txen   : std_logic := '0';
    signal rden       : std_logic := '0';
 
@@ -131,7 +133,6 @@ begin
                      fsm_state <= IFG_ST;
                      eth_txen  <= '0';
                      rden      <= '0';
-                     err       <= '1';
                   end if;
 
                when PAYLOAD_ST =>
@@ -149,7 +150,6 @@ begin
                      fsm_state <= IFG_ST;
                      eth_txen  <= '0';
                      rden      <= '0';
-                     err       <= '1';
                   end if;
 
                when LAST_ST => 
@@ -188,7 +188,6 @@ begin
 
          if rst_i = '1' then
             fsm_state  <= IDLE_ST;
-            err        <= '0';
             twobit_cnt <= (others => '0');
          end if;
       end if;
@@ -199,7 +198,6 @@ begin
    eth_txen_o  <= eth_txen;
 
    user_rden_o <= rden;
-   user_err_o  <= err;
 
 end Structural;
 

@@ -57,7 +57,6 @@ architecture Structural of ethernet is
    signal eth_tx_rden   : std_logic;
    signal eth_tx_data   : std_logic_vector(7 downto 0);
    signal eth_tx_eof    : std_logic;
-   signal eth_tx_err    : std_logic;
 
    -- Connection from rx_header to rxfifo
    signal eth_rxheader_valid : std_logic;
@@ -115,7 +114,6 @@ begin
       tx_rden_o    => eth_tx_rden,
       tx_data_i    => eth_tx_data,
       tx_eof_i     => eth_tx_eof,
-      tx_err_o     => eth_tx_err,
       -- External pins to the LAN 8720A PHY
       eth_txd_o    => eth_txd_o,
       eth_txen_o   => eth_txen_o,
