@@ -62,8 +62,8 @@ in internal FIFOs as explained below.
 A number of blocks is needed in the design in order to facilitate all this.  In
 the following sections each block will be described in detail.  The list of
 blocks are:
-* Header insertion - this discards packets with errors and inserts two bytes
-  in front of the packet with the total byte length, see rx\_header.vhd.
+* Header insertion - this discards frames with errors and inserts two bytes
+  in front of the frame with the total frame length, see rx\_header.vhd.
 * A fifo for crossing from the Ethernet clock domain to the CPU clock domain,
   see fifo.vhd. More about this in the next section.
 * An Rx DMA to write the data to the memory, including figuring out where in
@@ -108,7 +108,7 @@ should consider how to handle situations where data is received from external
 interfaces faster than can be processed.
 
 A choice must be made on how to handle the situation where the CPU is too slow
-in processing a packet, while a burst of subsequent packets are received. The
+in processing a frame, while a burst of subsequent frames are received. The
 current implementation will stop reading from the fifo (the signal user\_rden
 remains low), which will then fill up (as indicated by the signal
 eth\_fifo\_afull). Eventually the input buffer in rx\_header.vhd will fill up
@@ -205,7 +205,7 @@ to the memio register ETH\_RXDMA\_PTR.
 ### eth\_rx()
 This function must receive an Ethernet frame from the Rx DMA. It does this by
 first polling the register ETH\_RX\_PENDING. If zero, the function just returnes.
-If nonzero, however, the Rx DMA is instructed to transfer one packet, by writing
+If nonzero, however, the Rx DMA is instructed to transfer one frame, by writing
 to the memio register ETH\_RXDMA\_ENABLE. Once this variable has been cleared
 again by the FPGA (indicating the entire Ethernet frame has been transferred),
 this function returns.

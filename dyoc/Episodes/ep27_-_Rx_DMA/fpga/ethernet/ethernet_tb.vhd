@@ -174,8 +174,7 @@ begin
 
       procedure verify_frame(first : integer; length : integer) is
       begin
-         -- Length includes 2-byte header.
-         assert sim_ram_out(15 downto 0) = std_logic_vector(to_unsigned(length+2, 16));
+         assert sim_ram_out(15 downto 0) = std_logic_vector(to_unsigned(length, 16));
 
          for i in 0 to length-1 loop
             assert sim_ram_out((i+2)*8+7 downto (i+2)*8) = std_logic_vector(to_unsigned((i+first) mod 256, 8))
