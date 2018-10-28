@@ -2,15 +2,23 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
+Library xpm;
+use xpm.vcomponents.all;
+
 -- This is the top level module. The ports on this entity are mapped directly
 -- to pins on the FPGA.
-
--- In this version the design can display 6 hexadecimal digits (3 bytes) on the
--- VGA output. The first 2 bytes show the value of the address bus connected to
--- the internal memory.  The last byte shows the value read from the memory.
-
--- The address bus increments automatically. The speed is controlled by the
--- slide switches.
+--
+-- In this version the design can execute a single instruction (LDA #)
+-- from the memory.
+-- Additionally, the CPU registers are shown on the VGA display.
+-- The registers shown are:
+-- * Data read from memory (1 byte)
+-- * 'A' register (1 byte)
+-- * Program Counter (2 bytes)
+-- * Instruction Register (1 byte)
+-- * Instruction Cycle Counter (1 byte).
+--
+-- The speed of the execution is controlled by the slide switches.
 
 entity comp is
    port (
@@ -26,119 +34,85 @@ end comp;
 
 architecture Structural of comp is
 
-   -- Clock divider for VGA
-   signal vga_cnt  : std_logic_vector(1 downto 0) := (others => '0');
-   signal vga_clk  : std_logic;
+   -- MAIN Clock domain
+   signal main_clk     : std_logic;
+   signal main_wait    : std_logic;
+   signal main_overlay : std_logic_vector(23 downto 0);
 
-   -- Generate pause signal
-   -- 25 bits corresponds to 25Mhz / 2^25 = 1 Hz approx.
-   signal mem_wait_cnt  : std_logic_vector(24 downto 0) := (others => '0');
-   signal mem_wait      : std_logic;
-
-   -- Memory signals
-   signal mem_addr : std_logic_vector(15 downto 0);
-   signal mem_data : std_logic_vector(7 downto 0);
-
-   -- Input to VGA block
-   signal digits   : std_logic_vector(23 downto 0);
-
-   -- Output from VGA block
-   signal vga_hs   : std_logic;
-   signal vga_vs   : std_logic;
-   signal vga_col  : std_logic_vector(7 downto 0);
+   -- VGA Clock doamin
+   signal vga_clk      : std_logic;
+   signal vga_overlay  : std_logic_vector(23 downto 0);
 
 begin
    
    --------------------------------------------------
-   -- Divide input clock by 4, from 100 MHz to 25 MHz
-   -- This is close enough to 25.175 MHz.
+   -- Instantiate Clock generation
    --------------------------------------------------
 
-   p_vga_cnt : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         vga_cnt <= vga_cnt + 1;
-      end if;
-   end process p_vga_cnt;
-
-   vga_clk <= vga_cnt(1);
+   clk_inst : entity work.clk_wiz_0_clk_wiz
+   port map (
+      clk_in1  => clk_i,
+      eth_clk  => open, -- Not needed yet.
+      vga_clk  => vga_clk,
+      main_clk => main_clk
+   ); -- clk_inst
 
    
    --------------------------------------------------
-   -- Generate wait signal
+   -- Instantiate Waiter
    --------------------------------------------------
 
-   process (vga_clk)
-   begin
-      if rising_edge(vga_clk) then
-         mem_wait_cnt <= mem_wait_cnt + sw_i;
-      end if;
-   end process;
-
-   -- Check for wrap around of counter.
-   mem_wait <= '0' when (mem_wait_cnt + sw_i) < mem_wait_cnt else '1';
-
-   
-   --------------------------------------------------
-   -- Generate memory address
-   --------------------------------------------------
-   
-   p_addr : process (vga_clk)
-   begin
-      if rising_edge(vga_clk) then
-         if mem_wait = '0' then
-            mem_addr <= mem_addr + 1;
-         end if;
-      end if;
-   end process p_addr;
+   waiter_inst : entity work.waiter
+   port map (
+      clk_i  => main_clk,
+      sw_i   => sw_i,
+      wait_o => main_wait
+   ); -- waiter_inst
 
 
    --------------------------------------------------
-   -- Instantiate memory
+   -- Instantiate main
    --------------------------------------------------
-   
-   i_mem : entity work.mem
+
+   main_inst : entity work.main
+   port map (
+      clk_i     => main_clk,
+      wait_i    => main_wait,
+      overlay_o => main_overlay
+   ); -- main_inst
+
+
+   --------------------------------------------------
+   -- Instantiate clock crossing from MAIN to VGA
+   --------------------------------------------------
+
+   xpm_cdc_array_single_inst: xpm_cdc_array_single
    generic map (
-      G_ADDR_BITS => 4  -- 16 bytes
+      DEST_SYNC_FF   => 2,
+      SIM_ASSERT_CHK => 1,
+      SRC_INPUT_REG  => 1,
+      WIDTH          => 24 
    )
    port map (
-      clk_i  => vga_clk,
-      addr_i => mem_addr(3 downto 0),  -- Only select the relevant address bits
-      data_o => mem_data,
-      wren_i => '0',             -- Unused at the moment
-      data_i => (others => '0')  -- Unused at the moment
-   );
+      src_clk  => main_clk,
+      src_in   => main_overlay,
+      dest_clk => vga_clk,
+      dest_out => vga_overlay
+   ); -- xpm_cdc_array_single_inst
 
 
    --------------------------------------------------
-   -- Generate data to be shown on VGA
+   -- Instantiate VGA module
    --------------------------------------------------
 
-   digits(23 downto 8) <= mem_addr;
-   digits( 7 downto 0) <= mem_data;
-
-
-   --------------------------------------------------
-   -- Generate VGA module
-   --------------------------------------------------
-
-   i_vga : entity work.vga
+   vga_inst : entity work.vga
    port map (
       clk_i     => vga_clk,
-      digits_i  => digits,
-      vga_hs_o  => vga_hs,
-      vga_vs_o  => vga_vs,
-      vga_col_o => vga_col
-   );
-
-
-   --------------------------------------------------
-   -- Drive output signals
-   --------------------------------------------------
-
-   vga_hs_o  <= vga_hs;
-   vga_vs_o  <= vga_vs;
-   vga_col_o <= vga_col;
+      digits_i  => vga_overlay,
+      vga_hs_o  => vga_hs_o,
+      vga_vs_o  => vga_vs_o,
+      vga_col_o => vga_col_o
+   ); -- vga_inst
 
 end architecture Structural;
 
