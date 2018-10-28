@@ -20,8 +20,8 @@ entity cpu is
       -- While this is so, the CPU just stands still, waiting.
       wait_i  : in  std_logic;
 
-      -- Debug output
-      debug_o : out std_logic_vector(95 downto 0)
+      -- Overlay output
+      overlay_o : out std_logic_vector(95 downto 0)
    );
 end entity cpu;
 
@@ -57,7 +57,7 @@ begin
       addr_sel_i => addr_sel,
       data_sel_i => data_sel,
 
-      debug_o => debug_o(95 downto 16)
+      debug_o => overlay_o(95 downto 16)
    );
 
 
@@ -79,7 +79,7 @@ begin
       addr_sel_o => addr_sel,
       data_sel_o => data_sel,
 
-      debug_o => debug_o(15 downto 0)
+      debug_o => overlay_o(15 downto 0)
    );
 
 

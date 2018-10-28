@@ -1,0 +1,55 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+
+entity main is
+   port (
+      clk_i     : in  std_logic;
+      wait_i    : in  std_logic;
+      overlay_o : out std_logic_vector(95 downto 0)
+   );
+end main;
+
+architecture Structural of main is
+
+   -- Data Path signals
+   signal cpu_addr  : std_logic_vector(15 downto 0);
+   signal mem_data  : std_logic_vector(7 downto 0);
+   signal cpu_data  : std_logic_vector(7 downto 0);
+   signal cpu_wren  : std_logic;
+
+begin
+   
+   --------------------------------------------------
+   -- Instantiate CPU
+   --------------------------------------------------
+   
+   cpu_inst : entity work.cpu
+   port map (
+      clk_i     => clk_i,
+      wait_i    => wait_i,
+      addr_o    => cpu_addr,
+      data_i    => mem_data,
+      wren_o    => cpu_wren,
+      data_o    => cpu_data,
+      overlay_o => overlay_o
+   ); -- cpu_inst
+
+   --------------------------------------------------
+   -- Instantiate memory
+   --------------------------------------------------
+   
+   mem_inst : entity work.mem
+   generic map (
+      G_ADDR_BITS => 4  -- 16 bytes
+   )
+   port map (
+      clk_i  => clk_i,
+      addr_i => cpu_addr(3 downto 0),  -- Only select the relevant address bits
+      data_o => mem_data,
+      wren_i => cpu_wren,
+      data_i => cpu_data
+   ); -- mem_inst
+
+end architecture Structural;
+
