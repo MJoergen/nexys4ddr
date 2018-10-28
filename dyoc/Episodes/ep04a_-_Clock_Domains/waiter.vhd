@@ -13,8 +13,8 @@ end waiter;
 architecture Structural of waiter is
 
    -- Generate pause signal
-   -- 25 bits corresponds to 25Mhz / 2^25 = 1 Hz approx.
-   signal cnt : std_logic_vector(24 downto 0) := (others => '0');
+   -- 26 bits corresponds to 55Mhz / 2^26 = 1 Hz approx.
+   signal cnt : std_logic_vector(25 downto 0) := (others => '0');
 
 begin
    
