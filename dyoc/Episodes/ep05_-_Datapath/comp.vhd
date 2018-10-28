@@ -42,9 +42,6 @@ architecture Structural of comp is
    -- VGA Clock doamin
    signal vga_clk      : std_logic;
    signal vga_overlay  : std_logic_vector(47 downto 0);
-   signal vga_hs       : std_logic;
-   signal vga_vs       : std_logic;
-   signal vga_col      : std_logic_vector(7 downto 0);
 
 begin
    
