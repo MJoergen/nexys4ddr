@@ -23,3 +23,5 @@ clean:
 	rm -rf comp.dcp
 	rm -rf .Xil
 	rm -rf .cache
+	rm -rf timing_summary.rpt
+
