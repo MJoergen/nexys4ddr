@@ -11,14 +11,16 @@ use ieee.numeric_std.all;
 
 entity digits is
    generic (
-      G_FONT_FILE : string
+      G_OVERLAY_BITS : integer;
+      G_FONT_FILE    : string
    );
    port (
       clk_i     : in  std_logic;
 
+      digits_i  : in  std_logic_vector(G_OVERLAY_BITS-1 downto 0);
+
       pix_x_i   : in  std_logic_vector(9 downto 0);
       pix_y_i   : in  std_logic_vector(9 downto 0);
-      digits_i  : in  std_logic_vector(127 downto 0);
 
       vga_hs_o  : out std_logic;
       vga_vs_o  : out std_logic;
