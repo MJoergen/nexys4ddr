@@ -13,10 +13,13 @@ use ieee.std_logic_unsigned.all;
 -- slide switches.
 
 entity main is
+   generic (
+      G_OVERLAY_BITS : integer
+   );
    port (
       clk_i     : in  std_logic;
       wait_i    : in  std_logic;
-      overlay_o : out std_logic_vector(23 downto 0)
+      overlay_o : out std_logic_vector(G_OVERLAY_BITS-1 downto 0)
    );
 end main;
 
