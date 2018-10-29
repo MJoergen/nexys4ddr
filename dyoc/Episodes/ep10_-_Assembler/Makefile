@@ -1,13 +1,14 @@
 XILINX_DIR = /opt/Xilinx/Vivado/2017.3
 
-SRC  = comp.vhd \
-       vga/vga.vhd vga/digits.vhd vga/font.vhd \
-       mem/mem.vhd \
-       cpu/cpu.vhd cpu/datapath.vhd cpu/ctl.vhd cpu/alu.vhd
+MAIN = main.vhd \
+		 vga/vga.vhd vga/digits.vhd vga/font.vhd \
+		 cpu/cpu.vhd cpu/datapath.vhd cpu/ctl.vhd cpu/alu.vhd \
+		 mem/mem.vhd
+SRC  = comp.vhd clk.vhd waiter.vhd $(MAIN)
 XDC  = comp.xdc
-TB   = tb.vhd
-WAVE = tb.ghw
-SAVE = tb.gtkw
+TB   = main_tb.vhd
+WAVE = main_tb.ghw
+SAVE = main_tb.gtkw
 
 
 #####################################
@@ -37,10 +38,10 @@ mem/mem.txt: mem/mem.bin
 # Simulation
 #####################################
 
-sim: $(SRC) $(TB) mem/mem.txt
-	ghdl -i --work=work $(SRC) $(TB)
-	ghdl -m --ieee=synopsys -fexplicit tb
-	ghdl -r tb --assert-level=error --wave=$(WAVE) --stop-time=40us
+sim: $(MAIN) $(TB) mem/mem.txt
+	ghdl -i --work=work $(MAIN) $(TB)
+	ghdl -m --ieee=synopsys -fexplicit main_tb
+	ghdl -r main_tb --assert-level=error --wave=$(WAVE) --stop-time=40us
 	gtkwave $(WAVE) $(SAVE)
 
 
@@ -53,8 +54,9 @@ clean:
 	rm -rf .cache
 	rm -rf *.o
 	rm -rf work-obj93.cf
-	rm -rf tb
-	rm -rf tb.ghw
+	rm -rf main_tb
+	rm -rf main_tb.ghw
 	rm -rf mem/mem.o
 	rm -rf mem/mem.bin
 	rm -rf mem/mem.txt
+
