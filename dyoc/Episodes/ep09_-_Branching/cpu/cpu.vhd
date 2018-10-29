@@ -8,6 +8,9 @@ use ieee.std_logic_unsigned.all;
 -- without updating internal registers.
 
 entity cpu is
+   generic (
+      G_OVERLAY_BITS : integer
+   );
    port (
       clk_i   : in  std_logic;
 
@@ -20,9 +23,9 @@ entity cpu is
       -- While this is so, the CPU just stands still, waiting.
       wait_i  : in  std_logic;
 
-      -- Debug output
+      -- Overlay output
       invalid_o : out std_logic_vector(7 downto 0);   -- First invalid instruction encountered
-      debug_o   : out std_logic_vector(143 downto 0)
+      overlay_o : out std_logic_vector(G_OVERLAY_BITS-1 downto 0)
    );
 end entity cpu;
 
@@ -62,7 +65,7 @@ begin
       alu_sel_i  => alu_sel,
       sr_sel_i   => sr_sel,
 
-      debug_o => debug_o(143 downto 48)
+      debug_o => overlay_o(143 downto 48)
    );
 
 
@@ -87,7 +90,7 @@ begin
       sr_sel_o   => sr_sel,
 
       invalid_o => invalid_o,
-      debug_o   => debug_o(47 downto 0)
+      debug_o   => overlay_o(47 downto 0)
    );
 
 
