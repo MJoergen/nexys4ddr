@@ -26,6 +26,7 @@ entity comp is
       clk_i     : in  std_logic;                      -- 100 MHz
 
       sw_i      : in  std_logic_vector(7 downto 0);
+      led_o     : out std_logic_vector(7 downto 0);
 
       vga_hs_o  : out std_logic;
       vga_vs_o  : out std_logic;
@@ -84,6 +85,7 @@ begin
    port map (
       clk_i     => main_clk,
       wait_i    => main_wait,
+      led_o     => led_o,
       overlay_o => main_overlay
    ); -- main_inst
 
