@@ -8,6 +8,9 @@ use ieee.std_logic_unsigned.all;
 -- without updating internal registers.
 
 entity cpu is
+   generic (
+      G_OVERLAY_BITS : integer
+   );
    port (
       clk_i   : in  std_logic;
 
@@ -22,7 +25,7 @@ entity cpu is
 
       -- Debug output
       invalid_o : out std_logic_vector(7 downto 0);   -- First invalid instruction encountered
-      debug_o   : out std_logic_vector(111 downto 0)
+      overlay_o : out std_logic_vector(G_OVERLAY_BITS-1 downto 0)
    );
 end entity cpu;
 
@@ -58,7 +61,7 @@ begin
       addr_sel_i => addr_sel,
       data_sel_i => data_sel,
 
-      debug_o => debug_o(111 downto 32)
+      debug_o => overlay_o(111 downto 32)
    );
 
 
@@ -81,7 +84,7 @@ begin
       data_sel_o => data_sel,
 
       invalid_o => invalid_o,
-      debug_o   => debug_o(31 downto 0)
+      debug_o   => overlay_o(31 downto 0)
    );
 
 
