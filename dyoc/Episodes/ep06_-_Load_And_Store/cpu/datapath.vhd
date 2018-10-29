@@ -43,10 +43,10 @@ architecture structural of datapath is
    -- 'A' register
    signal ar : std_logic_vector(7 downto 0);
 
-   -- Adress Hi register
+   -- Address Hi register
    signal hi : std_logic_vector(7 downto 0);
    
-   -- Adress Lo register
+   -- Address Lo register
    signal lo : std_logic_vector(7 downto 0);
 
    signal addr : std_logic_vector(15 downto 0);
