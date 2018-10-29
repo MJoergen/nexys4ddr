@@ -39,14 +39,16 @@ end comp;
 
 architecture Structural of comp is
 
+   constant C_OVERLAY_BITS : integer := 96;
+
    -- MAIN Clock domain
    signal main_clk     : std_logic;
    signal main_wait    : std_logic;
-   signal main_overlay : std_logic_vector(95 downto 0);
+   signal main_overlay : std_logic_vector(C_OVERLAY_BITS-1 downto 0);
 
    -- VGA Clock doamin
    signal vga_clk      : std_logic;
-   signal vga_overlay  : std_logic_vector(95 downto 0);
+   signal vga_overlay  : std_logic_vector(C_OVERLAY_BITS-1 downto 0);
 
 begin
    
@@ -80,6 +82,9 @@ begin
    --------------------------------------------------
 
    main_inst : entity work.main
+   generic map (
+      G_OVERLAY_BITS => C_OVERLAY_BITS
+   )
    port map (
       clk_i     => main_clk,
       wait_i    => main_wait,
@@ -96,7 +101,7 @@ begin
       DEST_SYNC_FF   => 2,
       SIM_ASSERT_CHK => 1,
       SRC_INPUT_REG  => 1,
-      WIDTH          => 96
+      WIDTH          => C_OVERLAY_BITS
    )
    port map (
       src_clk  => main_clk,
@@ -111,6 +116,9 @@ begin
    --------------------------------------------------
 
    vga_inst : entity work.vga
+   generic map (
+      G_OVERLAY_BITS => C_OVERLAY_BITS
+   )
    port map (
       clk_i     => vga_clk,
       digits_i  => vga_overlay,

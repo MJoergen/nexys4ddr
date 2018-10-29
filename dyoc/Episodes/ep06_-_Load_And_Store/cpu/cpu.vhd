@@ -8,6 +8,9 @@ use ieee.std_logic_unsigned.all;
 -- without updating internal registers.
 
 entity cpu is
+   generic (
+      G_OVERLAY_BITS : integer
+   );
    port (
       clk_i   : in  std_logic;
 
@@ -21,7 +24,7 @@ entity cpu is
       wait_i  : in  std_logic;
 
       -- Overlay output
-      overlay_o : out std_logic_vector(95 downto 0)
+      overlay_o : out std_logic_vector(G_OVERLAY_BITS-1 downto 0)
    );
 end entity cpu;
 
