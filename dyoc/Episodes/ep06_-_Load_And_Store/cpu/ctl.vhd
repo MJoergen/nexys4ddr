@@ -94,7 +94,7 @@ begin
            '0';
 
    -----------------
-   -- Debug Output
+   -- Overlay Output
    -----------------
 
    debug_o( 2 downto  0) <= cnt;    -- One byte
