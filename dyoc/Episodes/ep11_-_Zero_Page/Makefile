@@ -51,6 +51,7 @@ clean:
 	rm -rf comp.bit
 	rm -rf comp.dcp
 	rm -rf .Xil
+	rm -rf timing_summary.rpt
 	rm -rf .cache
 	rm -rf *.o
 	rm -rf work-obj93.cf
