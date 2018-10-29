@@ -11,4 +11,6 @@ place_design
 route_design
 write_checkpoint -force comp.dcp
 write_bitstream -force comp.bit
+report_methodology
+report_timing_summary -file timing_summary.rpt
 exit
