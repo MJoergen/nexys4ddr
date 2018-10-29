@@ -41,7 +41,7 @@ mem/mem.txt: mem/mem.bin
 sim: $(MAIN) $(TB) mem/mem.txt
 	ghdl -i --work=work $(MAIN) $(TB)
 	ghdl -m --ieee=synopsys -fexplicit main_tb
-	ghdl -r main_tb --assert-level=error --wave=$(WAVE) --stop-time=40us
+	ghdl -r main_tb --assert-level=error --wave=$(WAVE) --stop-time=20us
 	gtkwave $(WAVE) $(SAVE)
 
 
