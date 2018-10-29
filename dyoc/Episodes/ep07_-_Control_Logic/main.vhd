@@ -9,6 +9,7 @@ entity main is
    port (
       clk_i     : in  std_logic;
       wait_i    : in  std_logic;
+      led_o     : out std_logic_vector(7 downto 0);
       overlay_o : out std_logic_vector(G_OVERLAY_BITS-1 downto 0)
    );
 end main;
@@ -38,6 +39,7 @@ begin
       data_i    => mem_data,
       wren_o    => cpu_wren,
       data_o    => cpu_data,
+      invalid_o => led_o,
       overlay_o => overlay_o
    ); -- cpu_inst
 
