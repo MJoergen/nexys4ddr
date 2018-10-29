@@ -3,10 +3,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
 entity main is
+   generic (
+      G_OVERLAY_BITS : integer
+   );
    port (
       clk_i     : in  std_logic;
       wait_i    : in  std_logic;
-      overlay_o : out std_logic_vector(47 downto 0)
+      overlay_o : out std_logic_vector(G_OVERLAY_BITS-1 downto 0)
    );
 end main;
 
@@ -25,6 +28,9 @@ begin
    --------------------------------------------------
    
    cpu_inst : entity work.cpu
+   generic map (
+      G_OVERLAY_BITS => G_OVERLAY_BITS 
+   )
    port map (
       clk_i     => clk_i,
       wait_i    => wait_i,
