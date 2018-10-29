@@ -23,7 +23,7 @@ entity cpu is
       -- While this is so, the CPU just stands still, waiting.
       wait_i  : in  std_logic;
 
-      -- Debug output
+      -- Overlay output
       overlay_o : out std_logic_vector(G_OVERLAY_BITS-1 downto 0)
    );
 end entity cpu;

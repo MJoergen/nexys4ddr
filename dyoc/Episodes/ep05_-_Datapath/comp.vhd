@@ -53,10 +53,10 @@ begin
 
    clk_inst : entity work.clk_wiz_0_clk_wiz
    port map (
-      clk_in1  => clk_i,      -- 100 MHz
-      eth_clk  => open,
-      vga_clk  => vga_clk,    -- 25 MHz
-      main_clk => main_clk    -- 30 MHz
+      clk_in1  => clk_i,
+      eth_clk  => open, -- Not needed yet.
+      vga_clk  => vga_clk,
+      main_clk => main_clk
    ); -- clk_inst
 
    

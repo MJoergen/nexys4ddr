@@ -29,7 +29,7 @@ architecture structural of ctl is
 begin
 
    -----------------
-   -- Debug Output
+   -- Overlay Output
    -----------------
 
    debug_o( 2 downto  0) <= cnt;    -- One byte

@@ -2,8 +2,8 @@ XILINX_DIR = /opt/Xilinx/Vivado/2017.3
 
 SRC = comp.vhd clk.vhd waiter.vhd main.vhd \
 		vga/vga.vhd vga/digits.vhd vga/font.vhd \
-		mem/mem.vhd \
-		cpu/cpu.vhd cpu/datapath.vhd cpu/ctl.vhd
+		cpu/cpu.vhd cpu/datapath.vhd cpu/ctl.vhd \
+		mem/mem.vhd
 XDC = comp.xdc
 
 #####################################
