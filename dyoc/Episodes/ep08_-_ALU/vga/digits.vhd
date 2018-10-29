@@ -36,7 +36,7 @@ architecture Structural of digits is
    -- http://caxapa.ru/thumbs/361638/DMTv1r11.pdf
 
    -- Number of rows of text on screen
-   constant NUM_ROWS : integer := digits_i'length / 16;
+   constant NUM_ROWS : integer := G_OVERLAY_BITS / 16;
 
    -- Define pixel counter range
    constant H_TOTAL  : integer := 800;
