@@ -22,6 +22,6 @@ clean:
 	rm -rf comp.bit
 	rm -rf comp.dcp
 	rm -rf .Xil
-	rm -rf .cache
 	rm -rf timing_summary.rpt
+	rm -rf .cache
 
