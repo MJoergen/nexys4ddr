@@ -5,13 +5,15 @@ use ieee.std_logic_unsigned.all;
 entity datapath is
    port (
       clk_i   : in  std_logic;
-      wait_i  : in  std_logic;
 
+      -- Memory interface
+      wait_i  : in  std_logic;
       addr_o  : out std_logic_vector(15 downto 0);
       data_i  : in  std_logic_vector(7 downto 0);
       data_o  : out std_logic_vector(7 downto 0);
       wren_o  : out std_logic;
 
+      -- Control signals
       ar_sel_i   : in  std_logic;
       hi_sel_i   : in  std_logic;
       lo_sel_i   : in  std_logic;
@@ -19,6 +21,7 @@ entity datapath is
       addr_sel_i : in  std_logic_vector(1 downto 0);
       data_sel_i : in  std_logic_vector(1 downto 0);
 
+      -- Debug output containing internal registers
       debug_o : out std_logic_vector(79 downto 0)
    );
 end entity datapath;
@@ -49,6 +52,7 @@ architecture structural of datapath is
    -- Address Lo register
    signal lo : std_logic_vector(7 downto 0);
 
+   -- Output signals to memory
    signal addr : std_logic_vector(15 downto 0);
    signal data : std_logic_vector(7 downto 0);
    signal wren : std_logic;

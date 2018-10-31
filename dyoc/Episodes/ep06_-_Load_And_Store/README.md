@@ -59,3 +59,29 @@ All the control signals are generated in lines 62-94 of cpu/ctl.vhd.
 In the next episode we'll see how to implement the control logic in a manner
 that is easier to read and to maintain.
 
+Map of control signals
+
+      | Data  |    |    |    |      | Data   |
+ ADDR | Input | AR | HI | LO |  PC  | Output | Last
+------+-------+----+----+----+------+--------+------
+  PC  | A9    | 0  |  0 |  0 | INC  | NOP    |  0
+  PC  | 01    | 1  |  0 |  0 | INC  | NOP    |  1
+      | 
+  PC  | 8D    | 0  |  0 |  0 | INC  | NOP    |  0
+  PC  | 0F    | 0  |  0 |  1 | INC  | NOP    |  0
+  PC  | 00    | 0  |  1 |  0 | INC  | NOP    |  0
+ HILO | --    | 0  |  0 |  0 | NOP  | AR     |  1
+      | 
+  PC  | A9    | 0  |  0 |  0 | INC  | NOP    |  0
+  PC  | 01    | 1  |  0 |  0 | INC  | NOP    |  1
+      | 
+  PC  | AD    | 0  |  0 |  0 | INC  | NOP    |  0
+  PC  | 0F    | 0  |  0 |  1 | INC  | NOP    |  0
+  PC  | 00    | 0  |  1 |  0 | INC  | NOP    |  0
+ HILO | 01    | 1  |  0 |  0 | NOP  | NOP    |  1
+      | 
+  PC  | 4C    | 0  |  0 |  0 | INC  | NOP    |  0
+  PC  | 02    | 0  |  0 |  1 | INC  | NOP    |  0
+  PC  | 00    | 0  |  1 |  0 | INC  | NOP    |  0
+  NOP | --    | 0  |  0 |  0 | HILO | NOP    |  1
+
