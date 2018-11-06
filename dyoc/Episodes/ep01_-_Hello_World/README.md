@@ -50,7 +50,9 @@ to give the constants names that are recognizable from the above VESA standard.
 
 ## Block diagram
 The diagram below shows the overall structure of the design:
+
 ![Block diagram](Block_diagram.png "Block diagram")
+
 The design will be split into three different blocks:
 * Clock generation
 * Pixel coordinates
