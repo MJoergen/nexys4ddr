@@ -12,14 +12,14 @@ entity dmem is
       G_INIT_VAL  : std_logic_vector(7 downto 0) := X"00"
    );
    port (
-      clk_i  : in  std_logic;
-
       -- Port A
+      a_clk_i  : in  std_logic;
       a_addr_i : in  std_logic_vector(G_ADDR_BITS-1 downto 0);
       a_data_i : in  std_logic_vector(7 downto 0);
       a_wren_i : in  std_logic;
 
       -- Port B
+      b_clk_i  : in  std_logic;
       b_addr_i : in  std_logic_vector(G_ADDR_BITS-1 downto 0);
       b_data_o : out std_logic_vector(7 downto 0)
    );
@@ -36,9 +36,9 @@ architecture Structural of dmem is
 begin
   
    -- Port A
-   p_port_a : process (clk_i)
+   p_port_a : process (a_clk_i)
    begin
-      if rising_edge(clk_i) then
+      if rising_edge(a_clk_i) then
          if a_wren_i = '1' then
             mem(conv_integer(a_addr_i)) <= a_data_i;
          end if;
@@ -46,9 +46,9 @@ begin
    end process p_port_a;
 
    -- Port B
-   p_port_b : process (clk_i)
+   p_port_b : process (b_clk_i)
    begin
-      if rising_edge(clk_i) then
+      if rising_edge(b_clk_i) then
          b_data_o <= mem(conv_integer(b_addr_i));
       end if;
    end process p_port_b;
