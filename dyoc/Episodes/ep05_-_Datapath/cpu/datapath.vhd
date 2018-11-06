@@ -5,15 +5,18 @@ use ieee.std_logic_unsigned.all;
 entity datapath is
    port (
       clk_i   : in  std_logic;
-      wait_i  : in  std_logic;
 
+      -- Memory interface
+      wait_i  : in  std_logic;
       addr_o  : out std_logic_vector(15 downto 0);
       data_i  : in  std_logic_vector(7 downto 0);
       data_o  : out std_logic_vector(7 downto 0);
       wren_o  : out std_logic;
 
+      -- Control signals
       a_sel_i : in  std_logic;
 
+      -- Debug output containing internal registers
       debug_o : out std_logic_vector(31 downto 0)
    );
 end entity datapath;

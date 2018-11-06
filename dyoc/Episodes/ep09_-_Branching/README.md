@@ -51,11 +51,16 @@ next episode.
 
 ## Simulation support
 By now it is becoming increasingly time consuming to build a bit file every
-time you want to test it. In the Makefile in lines 13-17 I've added a new
-target "sim" that will simulate the behaviour of the CPU and display a waveform.
-In order to use this feature, you need to install GHDL. If you're running Linux
-it may already be available in your distribution, otherwise it can be found
-here: <https://github.com/ghdl/ghdl>.
+time you want to test it. In the Makefile in lines 30-34 I've added a new
+target "sim" that will simulate the behaviour of the MAIN module and display a
+waveform.  In order to use this feature, you need to install GHDL. If you're
+running Linux it may already be available in your distribution, otherwise it
+can be found here: <https://github.com/ghdl/ghdl>.
+
+The simulation testbench is in the file main\_tb.vhd.  Notice how the
+simulation only instantiates the MAIN block and not the entire COMP design.
+This means that the VGA module will not be a part of the simulation. This
+reduces considerably the simulation time.
 
 Furthermore, in order to display the waveform, you need the tool GTKWAVE found
 here <http://gtkwave.sourceforge.net/>. It too may already be available in your

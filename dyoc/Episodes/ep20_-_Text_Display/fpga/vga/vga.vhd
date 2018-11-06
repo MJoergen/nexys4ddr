@@ -10,13 +10,14 @@ use ieee.std_logic_unsigned.all;
 
 entity vga is
    generic (
-      G_FONT_FILE : string
+      G_OVERLAY_BITS : integer;
+      G_FONT_FILE    : string
    );
    port (
       clk_i       : in  std_logic;    -- Expects 25.175 MHz
 
       overlay_i   : in  std_logic;
-      digits_i    : in  std_logic_vector(175 downto 0);
+      digits_i    : in  std_logic_vector(G_OVERLAY_BITS-1 downto 0);
 
       char_addr_o : out std_logic_vector(12 downto 0);
       char_data_i : in  std_logic_vector( 7 downto 0);
@@ -128,7 +129,8 @@ begin
 
    i_overlay : entity work.overlay
    generic map (
-      G_FONT_FILE => G_FONT_FILE
+      G_OVERLAY_BITS => G_OVERLAY_BITS,
+      G_FONT_FILE    => G_FONT_FILE
    )
    port map (
       clk_i     => clk_i,

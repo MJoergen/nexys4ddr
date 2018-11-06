@@ -48,7 +48,17 @@ in the VESA monitor timing standard.
 The relevant timing parameters are defined in lines 23-36 in comp.vhd. I've tried
 to give the constants names that are recognizable from the above VESA standard.
 
-## Clock input
+## Block diagram
+The diagram below shows the overall structure of the design:
+
+![Block diagram](Block_diagram.png "Block diagram")
+
+The design will be split into three different blocks:
+* Clock generation
+* Pixel coordinates
+* Sync and colour
+
+### Clock generation
 The VGA timing for this particular screen resolution requires a pixel clock of
 (approximately) 25 Mhz. However, the crytal oscillator on the FPGA board need
 not have this precise frequency. On the Nexys 4 DDR board the oscillator has a
@@ -60,13 +70,13 @@ There are ways to achieve clock rates that are rational multiples of the input c
 rate, but to keep this simple (and portable) we'll just stick with this
 simple frequency divider.
 
-## Pixel counters
+### Pixel coordinates
 In the VHDL code we will have two pixel counters, x and y, where y is positive
 down. They will count from 0 to 799 in the x-direction and from 0 to 524 in the
 y-direction. These counters are generated in lines 83-109 in comp.vhd. And in
 lines 112-141 we generate the two synchronization signals.
 
-## Colour pattern
+### Sync and colour
 In this design we just start with a simple checkboard pattern. This can be achieved
 by a simple XOR of the x and y coordinates. This is done in lines 138-156 in comp.vhd.
 
