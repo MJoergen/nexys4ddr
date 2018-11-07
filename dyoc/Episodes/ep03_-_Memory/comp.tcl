@@ -1,5 +1,5 @@
 # This is a tcl command script for the Vivado tool chain
-read_vhdl {comp.vhd \
+read_vhdl {comp.vhd waiter.vhd \
    vga/digits.vhd vga/vga.vhd \
    mem/mem.vhd}
 read_xdc comp.xdc
