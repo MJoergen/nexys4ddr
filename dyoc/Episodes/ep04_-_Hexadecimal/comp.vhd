@@ -30,12 +30,8 @@ architecture Structural of comp is
    signal vga_cnt  : std_logic_vector(1 downto 0) := (others => '0');
    signal vga_clk  : std_logic;
 
-   -- Generate pause signal
-   -- 25 bits corresponds to 25Mhz / 2^25 = 1 Hz approx.
-   signal mem_wait_cnt  : std_logic_vector(24 downto 0) := (others => '0');
-   signal mem_wait      : std_logic;
-
    -- Memory signals
+   signal mem_wait : std_logic;
    signal mem_addr : std_logic_vector(15 downto 0);
    signal mem_data : std_logic_vector(7 downto 0);
 
@@ -63,15 +59,12 @@ begin
    -- Generate wait signal
    --------------------------------------------------
 
-   process (vga_clk)
-   begin
-      if rising_edge(vga_clk) then
-         mem_wait_cnt <= mem_wait_cnt + sw_i;
-      end if;
-   end process;
-
-   -- Check for wrap around of counter.
-   mem_wait <= '0' when (mem_wait_cnt + sw_i) < mem_wait_cnt else '1';
+   waiter_inst : entity work.waiter
+   port map (
+      clk_i  => vga_clk,
+      sw_i   => sw_i,
+      wait_o => mem_wait
+   ); -- waiter_inst
 
    
    --------------------------------------------------
