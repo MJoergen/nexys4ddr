@@ -47,7 +47,7 @@ begin
    -- Instantiate digits generator
    --------------------------------------------------
 
-   i_digits : entity work.digits
+   digits_inst : entity work.digits
    port map (
       clk_i     => clk_i,
       digits_i  => digits_i,
@@ -56,7 +56,7 @@ begin
       vga_hs_o  => vga_hs_o,
       vga_vs_o  => vga_vs_o,
       vga_col_o => vga_col_o
-   );
+   ); -- digits_inst
 
 end architecture Structural;
 

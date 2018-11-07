@@ -164,7 +164,7 @@ begin
       if rising_edge(clk_i) then
 
          -- Set the default screen background colour
-         vga.col <= COL_BLACK;
+         vga.col <= COL_GREY;
 
          -- Are we within the borders of the text?
          if char_row = DIGITS_CHAR_Y and

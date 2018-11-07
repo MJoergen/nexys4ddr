@@ -45,12 +45,12 @@ begin
    -- This is close enough to 25.175 MHz.
    --------------------------------------------------
 
-   p_vga_cnt : process (clk_i)
+   vga_cnt_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          vga_cnt <= vga_cnt + 1;
       end if;
-   end process p_vga_cnt;
+   end process vga_cnt_proc;
 
    vga_clk <= vga_cnt(1);
 
@@ -71,21 +71,21 @@ begin
    -- Generate memory address
    --------------------------------------------------
    
-   p_addr : process (vga_clk)
+   mem_addr_proc : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
          if mem_wait = '0' then
             mem_addr <= mem_addr + 1;
          end if;
       end if;
-   end process p_addr;
+   end process mem_addr_proc;
 
 
    --------------------------------------------------
    -- Instantiate memory
    --------------------------------------------------
    
-   i_mem : entity work.mem
+   mem_inst : entity work.mem
    generic map (
       G_ADDR_BITS => 4  -- 16 bytes
    )
@@ -95,7 +95,7 @@ begin
       data_o => mem_data,
       wren_i => '0',             -- Unused at the moment
       data_i => (others => '0')  -- Unused at the moment
-   );
+   ); -- mem_inst
 
 
    --------------------------------------------------
@@ -110,14 +110,14 @@ begin
    -- Generate VGA module
    --------------------------------------------------
 
-   i_vga : entity work.vga
+   vga_inst : entity work.vga
    port map (
       clk_i     => vga_clk,
       digits_i  => digits,
       vga_hs_o  => vga_hs_o,
       vga_vs_o  => vga_vs_o,
       vga_col_o => vga_col_o
-   );
+   ); -- vga_inst
 
 end architecture Structural;
 

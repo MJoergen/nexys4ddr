@@ -34,12 +34,12 @@ begin
    -- This is close enough to 25.175 MHz.
    --------------------------------------------------
 
-   p_vga_cnt : process (clk_i)
+   vga_cnt_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          vga_cnt <= vga_cnt + 1;
       end if;
-   end process p_vga_cnt;
+   end process vga_cnt_proc;
 
    vga_clk <= vga_cnt(1);
 
@@ -48,14 +48,14 @@ begin
    -- Instantiate VGA module
    --------------------------------------------------
 
-   i_vga : entity work.vga
+   vga_inst : entity work.vga
    port map (
       clk_i     => vga_clk,
       digits_i  => sw_i,
       vga_hs_o  => vga_hs_o,
       vga_vs_o  => vga_vs_o,
       vga_col_o => vga_col_o
-   );
+   ); -- vga_inst
 
 end architecture Structural;
 
