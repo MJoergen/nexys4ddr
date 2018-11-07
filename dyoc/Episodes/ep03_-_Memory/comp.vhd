@@ -38,11 +38,6 @@ architecture Structural of comp is
    -- Input to VGA block
    signal digits   : std_logic_vector(23 downto 0);
 
-   -- Output from VGA block
-   signal vga_hs   : std_logic;
-   signal vga_vs   : std_logic;
-   signal vga_col  : std_logic_vector(7 downto 0);
-
 begin
    
    --------------------------------------------------
@@ -119,19 +114,10 @@ begin
    port map (
       clk_i     => vga_clk,
       digits_i  => digits,
-      vga_hs_o  => vga_hs,
-      vga_vs_o  => vga_vs,
-      vga_col_o => vga_col
+      vga_hs_o  => vga_hs_o,
+      vga_vs_o  => vga_vs_o,
+      vga_col_o => vga_col_o
    );
-
-
-   --------------------------------------------------
-   -- Drive output signals
-   --------------------------------------------------
-
-   vga_hs_o  <= vga_hs;
-   vga_vs_o  <= vga_vs;
-   vga_col_o <= vga_col;
 
 end architecture Structural;
 

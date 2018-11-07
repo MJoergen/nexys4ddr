@@ -82,6 +82,7 @@ architecture Structural of digits is
    -- Define colours
    constant COL_BLACK : std_logic_vector(7 downto 0) := B"000_000_00";
    constant COL_DARK  : std_logic_vector(7 downto 0) := B"001_001_01";
+   constant COL_GREY  : std_logic_vector(7 downto 0) := B"010_010_01";
    constant COL_WHITE : std_logic_vector(7 downto 0) := B"111_111_11";
    constant COL_RED   : std_logic_vector(7 downto 0) := B"111_000_00";
    constant COL_GREEN : std_logic_vector(7 downto 0) := B"000_111_00";
