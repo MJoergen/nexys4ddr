@@ -1,9 +1,9 @@
 # This is a tcl command script for the Vivado tool chain
 read_vhdl { \
    comp.vhd clk.vhd waiter.vhd main.vhd \
-   vga/font.vhd vga/digits.vhd vga/vga.vhd \
+   vga/font.vhd vga/digits.vhd vga/vga.vhd vga/pix.vhd \
    cpu/datapath.vhd cpu/ctl.vhd cpu/cpu.vhd \
-   mem/mem.vhd
+   mem/mem.vhd \
 }
 read_xdc comp.xdc
 set_property XPM_LIBRARIES {XPM_CDC} [current_project]

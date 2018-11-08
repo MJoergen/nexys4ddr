@@ -117,6 +117,7 @@ begin
 
    vga_inst : entity work.vga
    generic map (
+      G_FONT_FILE    => "font8x8.txt",
       G_OVERLAY_BITS => C_OVERLAY_BITS
    )
    port map (
