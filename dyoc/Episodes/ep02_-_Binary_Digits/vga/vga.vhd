@@ -26,8 +26,8 @@ end vga;
 architecture Structural of vga is
 
    -- Pixel counters
-   signal pix_x : std_logic_vector(9 downto 0) := (others => '0');
-   signal pix_y : std_logic_vector(9 downto 0) := (others => '0');
+   signal pix_x : std_logic_vector(9 downto 0);
+   signal pix_y : std_logic_vector(9 downto 0);
 
 begin
    

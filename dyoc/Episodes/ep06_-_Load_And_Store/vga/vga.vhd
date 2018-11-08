@@ -14,8 +14,8 @@ use ieee.std_logic_unsigned.all;
 
 entity vga is
    generic (
-      G_FONT_FILE    : string;
-      G_OVERLAY_BITS : integer
+      G_OVERLAY_BITS : integer;
+      G_FONT_FILE    : string
    );
    port (
       clk_i     : in  std_logic;

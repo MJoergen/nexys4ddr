@@ -39,9 +39,9 @@ architecture structural of cpu is
 
 begin
 
-   -----------------
+   ------------------------
    -- Instantiate datapath
-   -----------------
+   ------------------------
 
    datapath_inst : entity work.datapath
    port map (
@@ -64,9 +64,9 @@ begin
    ); -- datapath_inst
 
 
-   -----------------
+   -----------------------------
    -- Instantiate control logic
-   -----------------
+   -----------------------------
 
    ctl_inst : entity work.ctl
    port map (
