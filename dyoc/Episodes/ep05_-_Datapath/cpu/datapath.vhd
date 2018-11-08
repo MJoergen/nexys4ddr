@@ -36,7 +36,7 @@ begin
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
-            pc <= pc + 1;                 -- Increment program counter every clock cycle
+            pc <= pc + 1;  -- Increment program counter every clock cycle
          end if;
       end if;
    end process p_pc;
@@ -54,9 +54,9 @@ begin
    end process p_ar;
 
 
-   -----------------
+   ------------------------
    -- Drive output signals
-   -----------------
+   ------------------------
 
    addr_o <= pc;
    wren_o <= '0';
