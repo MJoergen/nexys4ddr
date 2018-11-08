@@ -125,9 +125,9 @@ begin
            '0';
 
 
-   -----------------
+   ------------------------
    -- Drive output signals
-   -----------------
+   ------------------------
 
    debug_o(15 downto  0) <= pc;     -- Two bytes
    debug_o(23 downto 16) <= ar;     -- One byte
