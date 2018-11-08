@@ -43,7 +43,7 @@ begin
    -- Instantiate datapath
    -----------------
 
-   inst_datapath : entity work.datapath
+   datapath_inst : entity work.datapath
    port map (
       clk_i   => clk_i,
       wait_i  => wait_i,
@@ -61,14 +61,14 @@ begin
       data_sel_i => data_sel,
 
       debug_o => overlay_o(95 downto 16)
-   );
+   ); -- datapath_inst
 
 
    -----------------
    -- Instantiate control logic
    -----------------
 
-   inst_ctl : entity work.ctl
+   ctl_inst : entity work.ctl
    port map (
       clk_i   => clk_i,
       wait_i  => wait_i,
@@ -83,7 +83,7 @@ begin
       data_sel_o => data_sel,
 
       debug_o => overlay_o(15 downto 0)
-   );
+   ); -- ctl_inst
 
 
 end architecture structural;
