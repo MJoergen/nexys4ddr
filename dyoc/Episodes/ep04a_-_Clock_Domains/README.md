@@ -50,6 +50,7 @@ lines 76-886 of comp.vhd
 ## Block diagram
 The overall structure of the computer in the present state is given in the
 following block diagram.
+
 ![Block Diagram](Block_Diagram.png "Block Diagram")
 
 ## Signal naming convention
