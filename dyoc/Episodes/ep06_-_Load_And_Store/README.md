@@ -61,6 +61,7 @@ that is easier to read and to maintain.
 
 Map of control signals:
 
+```
       | Data  |    |    |    |      | Data   |
  ADDR | Input | AR | HI | LO |  PC  | Output | Last
 ------+-------+----+----+----+------+--------+------
@@ -84,4 +85,5 @@ Map of control signals:
   PC  | 02    | 0  |  0 |  1 | INC  | NOP    |  0
   PC  | 00    | 0  |  1 |  0 | INC  | NOP    |  0
   NOP | --    | 0  |  0 |  0 | HILO | NOP    |  1
+```
 
