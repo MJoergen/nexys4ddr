@@ -39,26 +39,26 @@ The file name containing the font is passed as a generic in line 9 of
 vga/font.vhd.
 
 Notice that line 51 in vga/font.vhd (reading the font data) is similar to line
-60 in mem/mem.vhd (reading from memory), except that here it is not in a
+80 in mem/mem.vhd (reading from memory), except that here it is not in a
 clocked process.  In a later episode we'll change the font implementation into
 a RAM that the CPU can read from and write to.  This will enable the program
 running on the CPU to update the character font.
 
 ## Showing hexadecimal digits.
 
-Lines 111-113 in vga/digits.vhd have changed to read four bits at a time from the
+Lines 117-119 in vga/digits.vhd have changed to read four bits at a time from the
 input data. This is because a single hexadecimal digit consists of four bits.
 
-The ASCII code is calculated in lines 120-121.
+The ASCII code is calculated in lines 126-127.
 
-Line 142 has been changed, because of the way the font is stored in the text
+Line 149 has been changed, because of the way the font is stored in the text
 file.  In the previous episode, the MSB of the font data corresponded to the
 left most pixel.  But in the font data copied from the above web page, the MSB
 is the right most pixel.  To be consistent, the font data should have been changed
 (and that can easily be done by a small separate program), but I decided this
 extra processing was annoying.
 
-Line 161 has been changed, to reflect that there are now only six characters
+Line 167 has been changed, to reflect that there are now only six characters
 displayed on the screen.
 
 And that is it! We are now in a position where we can display data on the screen

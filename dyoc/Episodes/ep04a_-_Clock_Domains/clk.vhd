@@ -57,7 +57,7 @@
 ------------------------------------------------------------------------------
 -- _eth_clk____50.000______0.000______50.0______145.943_____94.994
 -- _vga_clk____25.000______0.000______50.0______169.602_____94.994
--- _main_clk___30.000______0.000______50.0______163.613_____94.994
+-- _main_clk___70.000______0.000______50.0______163.613_____94.994
 --
 ------------------------------------------------------------------------------
 -- Input Clock   Freq (MHz)    Input Jitter (UI)
@@ -137,15 +137,15 @@ clk_in1_clk_wiz_0 <= clk_in1;
     CLKFBOUT_MULT_F      => 10.500,
     CLKFBOUT_PHASE       => 0.000,
     CLKFBOUT_USE_FINE_PS => FALSE,
-    CLKOUT0_DIVIDE_F     => 21.000, -- ETH
+    CLKOUT0_DIVIDE_F     => 21.000, -- ETH @ 50 MHz
     CLKOUT0_PHASE        => 0.000,
     CLKOUT0_DUTY_CYCLE   => 0.500,
     CLKOUT0_USE_FINE_PS  => FALSE,
-    CLKOUT1_DIVIDE       => 42,     -- VGA
+    CLKOUT1_DIVIDE       => 42,     -- VGA @ 25 MHz
     CLKOUT1_PHASE        => 0.000,
     CLKOUT1_DUTY_CYCLE   => 0.500,
     CLKOUT1_USE_FINE_PS  => FALSE,
-    CLKOUT2_DIVIDE       => 20,     -- MAIN
+    CLKOUT2_DIVIDE       => 15,     -- MAIN @ 70 MHz
     CLKOUT2_PHASE        => 0.000,
     CLKOUT2_DUTY_CYCLE   => 0.500,
     CLKOUT2_USE_FINE_PS  => FALSE,
