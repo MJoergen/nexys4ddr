@@ -44,6 +44,12 @@ implement is "LDA #", called "Load A-register immediate".  This is a two-byte
 instruction, the first byte contains the value 0xA9, and the second byte
 contains a value that will be copied into the 'A' register.
 
+## Block diagram
+The following is a block diagram of the datapath module so far. This will
+be greatly expanded on in future episodes.
+
+![Datapath](Datapath.png "Datapath")
+
 ## Data Path
 In order to read the instructions from memory, the CPU must present the Program
 Counter to the address pins. This happens in line 61 in cpu/datapath.vhd.
