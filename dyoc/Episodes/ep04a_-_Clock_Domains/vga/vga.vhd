@@ -13,7 +13,8 @@ use ieee.std_logic_unsigned.all;
 
 entity vga is
    generic (
-      G_OVERLAY_BITS : integer
+      G_OVERLAY_BITS : integer;
+      G_FONT_FILE    : string
    );
    port (
       clk_i     : in  std_logic;
@@ -53,7 +54,7 @@ begin
    digits_inst : entity work.digits
    generic map (
       G_OVERLAY_BITS => G_OVERLAY_BITS,
-      G_FONT_FILE    => "font8x8.txt"
+      G_FONT_FILE    => G_FONT_FILE
    )
    port map (
       clk_i     => clk_i,
