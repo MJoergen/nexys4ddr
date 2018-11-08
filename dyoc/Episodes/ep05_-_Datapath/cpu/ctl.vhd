@@ -39,7 +39,7 @@ begin
 
 
    -- Instruction Cycle Counter
-   p_cnt : process (clk_i)
+   cnt_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -50,10 +50,10 @@ begin
             end if;
          end if;
       end if;
-   end process p_cnt;
+   end process cnt_proc;
 
    -- Instruction Register
-   p_ir : process (clk_i)
+   ir_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -62,7 +62,7 @@ begin
             end if;
          end if;
       end if;
-   end process p_ir;
+   end process ir_proc;
 
    -- Generate Control Signals
    a_sel_o <= '1' when cnt = 1 and ir = X"A9" else   -- Load 'A' register in second cycle of the "LDA #" instruction.
