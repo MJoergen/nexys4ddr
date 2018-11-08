@@ -87,6 +87,5 @@ begin
       debug_o   => overlay_o(31 downto 0)
    ); -- ctl_inst
 
-
 end architecture structural;
 
