@@ -30,10 +30,6 @@ end entity datapath;
 
 architecture structural of datapath is
 
-   constant PC_NOP   : std_logic_vector(1 downto 0) := B"00";
-   constant PC_INC   : std_logic_vector(1 downto 0) := B"01";
-   constant PC_HL    : std_logic_vector(1 downto 0) := B"10";
-   --
    constant ADDR_NOP : std_logic_vector(1 downto 0) := B"00";
    constant ADDR_PC  : std_logic_vector(1 downto 0) := B"01";
    constant ADDR_HL  : std_logic_vector(1 downto 0) := B"10";
@@ -41,13 +37,12 @@ architecture structural of datapath is
    constant DATA_NOP : std_logic_vector(1 downto 0) := B"00";
    constant DATA_AR  : std_logic_vector(1 downto 0) := B"01";
 
-
    -- Output from ALU
    signal alu_ar : std_logic_vector(7 downto 0);
    signal alu_sr : std_logic_vector(7 downto 0);
    
    -- Program Counter
-   signal pc : std_logic_vector(15 downto 0) := (others => '0');
+   signal pc : std_logic_vector(15 downto 0);
 
    -- 'A' register
    signal ar : std_logic_vector(7 downto 0);
@@ -68,7 +63,10 @@ architecture structural of datapath is
 
 begin
 
+   -------------------
    -- Instantiate ALU
+   -------------------
+
    alu_inst : entity work.alu
    port map (
       a_i    => ar,
@@ -79,68 +77,76 @@ begin
       sr_o   => alu_sr
    ); -- alu_inst
 
-   -- Program Counter
-   pc_proc : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if wait_i = '0' then
-            case pc_sel_i is
-               when PC_NOP => null;
-               when PC_INC => pc <= pc + 1;
-               when PC_HL  => pc <= hi & lo;
-               when others => null;
-            end case;
-         end if;
-      end if;
-   end process pc_proc;
 
-   -- 'A' register
-   ar_proc : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if wait_i = '0' then
-            if ar_sel_i = '1' then
-               ar <= alu_ar;
-            end if;
-         end if;
-      end if;
-   end process ar_proc;
+   -------------------------------
+   -- Instantiate program Counter
+   -------------------------------
 
-   -- Status register
-   sr_proc : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if wait_i = '0' then
-            if sr_sel_i = '1' then
-               sr <= alu_sr;
-            end if;
-         end if;
-      end if;
-   end process sr_proc;
+   pc_inst : entity work.pc
+   port map (
+      clk_i    => clk_i,
+      wait_i   => wait_i,
+      pc_sel_i => pc_sel_i,
+      hi_i     => hi,
+      lo_i     => lo,
+      pc_o     => pc
+   ); -- pc_inst
 
-   -- 'Hi' register
-   hi_proc : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if wait_i = '0' then
-            if hi_sel_i = '1' then
-               hi <= data_i;
-            end if;
-         end if;
-      end if;
-   end process hi_proc;
 
-   -- 'Lo' register
-   lo_proc : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if wait_i = '0' then
-            if lo_sel_i = '1' then
-               lo <= data_i;
-            end if;
-         end if;
-      end if;
-   end process lo_proc;
+   ----------------------------
+   -- Instantiate 'A' register
+   ----------------------------
+
+   ar_inst : entity work.ar
+   port map (
+      clk_i    => clk_i,
+      wait_i   => wait_i,
+      ar_sel_i => ar_sel_i,
+      alu_ar_i => alu_ar,
+      ar_o     => ar
+   ); -- ar_inst
+
+
+   -------------------------------
+   -- Instantiate status register
+   -------------------------------
+
+   sr_inst : entity work.sr
+   port map (
+      clk_i     => clk_i,
+      wait_i    => wait_i,
+      sr_sel_i  => sr_sel_i,
+      alu_sr_i  => alu_sr,
+      sr_o      => sr
+   ); -- sr_inst
+
+
+   -----------------------------
+   -- Instantiate 'Hi' register
+   -----------------------------
+
+   hi_inst : entity work.hi
+   port map (
+      clk_i    => clk_i,
+      wait_i   => wait_i,
+      hi_sel_i => hi_sel_i,
+      data_i   => data_i,
+      hi_o     => hi
+   ); -- hi_inst
+
+
+   -----------------------------
+   -- Instantiate 'Lo' register
+   -----------------------------
+
+   lo_inst : entity work.lo
+   port map (
+      clk_i    => clk_i,
+      wait_i   => wait_i,
+      lo_sel_i => lo_sel_i,
+      data_i   => data_i,
+      lo_o     => lo
+   ); -- lo_inst
 
 
    -- Output multiplexers
@@ -157,9 +163,9 @@ begin
            '0';
 
 
-   -----------------
+   ------------------------
    -- Drive output signals
-   -----------------
+   ------------------------
 
    debug_o(15 downto  0) <= pc;     -- Two bytes
    debug_o(23 downto 16) <= ar;     -- One byte

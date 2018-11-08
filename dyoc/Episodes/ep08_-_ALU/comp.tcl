@@ -2,7 +2,7 @@
 read_vhdl { \
    comp.vhd waiter.vhd clk.vhd main.vhd \
    vga/vga.vhd vga/digits.vhd vga/pix.vhd vga/font.vhd \
-   cpu/cpu.vhd cpu/datapath.vhd cpu/ctl.vhd cpu/alu.vhd \
+   cpu/cpu.vhd cpu/datapath.vhd cpu/ctl.vhd cpu/pc.vhd cpu/ar.vhd cpu/hi.vhd cpu/lo.vhd cpu/alu.vhd cpu/sr.vhd \
    mem/mem.vhd \
 }
 read_xdc comp.xdc
