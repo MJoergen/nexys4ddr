@@ -26,6 +26,8 @@ end comp;
 
 architecture Structural of comp is
 
+   constant C_FONT_FILE : string := "font8x8.txt";
+
    -- Clock divider for VGA
    signal vga_cnt  : std_logic_vector(1 downto 0) := (others => '0');
    signal vga_clk  : std_logic;
@@ -111,6 +113,9 @@ begin
    --------------------------------------------------
 
    vga_inst : entity work.vga
+   generic map (
+      G_FONT_FILE => C_FONT_FILE
+   )
    port map (
       clk_i     => vga_clk,
       digits_i  => digits,

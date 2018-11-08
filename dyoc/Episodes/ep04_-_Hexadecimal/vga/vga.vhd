@@ -12,6 +12,9 @@ use ieee.std_logic_unsigned.all;
 -- converted from the input signal digits_i.
 
 entity vga is
+   generic (
+      G_FONT_FILE : string
+   );
    port (
       clk_i     : in  std_logic;
 
@@ -49,7 +52,7 @@ begin
 
    digits_inst : entity work.digits
    generic map (
-      G_FONT_FILE => "font8x8.txt"
+      G_FONT_FILE => G_FONT_FILE
    )
    port map (
       clk_i     => clk_i,
