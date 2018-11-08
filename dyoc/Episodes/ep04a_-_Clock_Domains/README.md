@@ -47,6 +47,11 @@ on a single clock only.
 The main module is implemented in the file main.vhd, and is instantiated in
 lines 76-886 of comp.vhd
 
+## Block diagram
+The overall structure of the computer in the present state is given in the
+following block diagram.
+![Block Diagram](Block_Diagram.png "Block Diagram")
+
 ## Signal naming convention
 To help keep the signals and clock domains organized, all signals in comp.vhd
 will have their names prefixed with the clock domain. So e.g. all signals
