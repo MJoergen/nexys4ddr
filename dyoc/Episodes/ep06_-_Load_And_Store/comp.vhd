@@ -40,6 +40,7 @@ end comp;
 architecture Structural of comp is
 
    constant C_OVERLAY_BITS : integer := 96;
+   constant C_FONT_FILE    : string := "font8x8.txt";
 
    -- MAIN Clock domain
    signal main_clk     : std_logic;
@@ -117,8 +118,8 @@ begin
 
    vga_inst : entity work.vga
    generic map (
-      G_FONT_FILE    => "font8x8.txt",
-      G_OVERLAY_BITS => C_OVERLAY_BITS
+      G_OVERLAY_BITS => C_OVERLAY_BITS,
+      G_FONT_FILE    => C_FONT_FILE
    )
    port map (
       clk_i     => vga_clk,
