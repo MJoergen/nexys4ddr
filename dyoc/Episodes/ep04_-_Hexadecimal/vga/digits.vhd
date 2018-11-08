@@ -131,14 +131,14 @@ begin
    -- Calculate bitmap (64 bits) of digit at current position
    --------------------------------------------------
 
-   i_font : entity work.font
+   font_inst : entity work.font
    generic map (
       G_FONT_FILE => "font8x8.txt"
    )
    port map (
       char_i   => char,
       bitmap_o => bitmap
-   );
+   ); -- font_inst
 
 
    --------------------------------------------------
