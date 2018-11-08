@@ -54,8 +54,8 @@ architecture structural of ctl is
    alias pc_sel    : std_logic_vector(1 downto 0) is ctl(4 downto 3);
    alias addr_sel  : std_logic_vector(1 downto 0) is ctl(6 downto 5);
    alias data_sel  : std_logic_vector(1 downto 0) is ctl(8 downto 7);
-   alias last      : std_logic                    is ctl(9);
-   alias invalid   : std_logic                    is ctl(10);
+   alias last_s    : std_logic                    is ctl(9);
+   alias invalid_s : std_logic                    is ctl(10);
 
    signal rom : t_rom := (
 
@@ -2632,7 +2632,7 @@ begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
             cnt <= cnt + 1;
-            if last = '1' then
+            if last_s = '1' then
                cnt <= (others => '0');
             end if;
          end if;
@@ -2654,7 +2654,7 @@ begin
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
-            if invalid = '1' then
+            if invalid_s = '1' then
                if invalid_inst = X"00" then
                   invalid_inst <= ir;
                end if;
