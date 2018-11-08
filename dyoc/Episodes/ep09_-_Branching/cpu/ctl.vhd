@@ -82,8 +82,8 @@ architecture structural of ctl is
    alias pc_sel    : std_logic_vector(5 downto 0) is ctl(8 downto 3);
    alias addr_sel  : std_logic_vector(2 downto 0) is ctl(11 downto 9);
    alias data_sel  : std_logic_vector(2 downto 0) is ctl(14 downto 12);
-   alias last_s    : std_logic                    is ctl(15);
-   alias invalid_s : std_logic                    is ctl(16);
+   alias last      : std_logic                    is ctl(15);
+   alias invalid   : std_logic                    is ctl(16);
    alias alu_sel   : std_logic_vector(2 downto 0) is ctl(19 downto 17);
    alias sr_sel    : std_logic_vector(3 downto 0) is ctl(23 downto 20);
 
@@ -2656,19 +2656,19 @@ architecture structural of ctl is
 
 begin
 
-   p_cnt : process (clk_i)
+   cnt_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
             cnt <= cnt + 1;
-            if last_s = '1' then
+            if last = '1' then
                cnt <= (others => '0');
             end if;
          end if;
       end if;
-   end process p_cnt;
+   end process cnt_proc;
 
-   p_ir : process (clk_i)
+   ir_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -2677,20 +2677,20 @@ begin
             end if;
          end if;
       end if;
-   end process p_ir;
+   end process ir_proc;
 
-   p_invalid : process (clk_i)
+   invalid_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
-            if invalid_s = '1' then
+            if invalid = '1' then
                if invalid_inst = X"00" then
                   invalid_inst <= ir;
                end if;
             end if;
          end if;
       end if;
-   end process p_invalid;
+   end process invalid_proc;
 
    -- Combinatorial lookup in ROM
    ctl <= ADDR_PC + PC_INC when cnt = 0 else

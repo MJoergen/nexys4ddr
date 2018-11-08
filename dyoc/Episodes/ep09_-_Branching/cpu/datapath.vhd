@@ -107,7 +107,7 @@ architecture structural of datapath is
 begin
 
    -- Instantiate ALU
-   i_alu : entity work.alu
+   alu_inst : entity work.alu
    port map (
       a_i    => ar,
       b_i    => data_i,
@@ -115,10 +115,10 @@ begin
       func_i => alu_sel_i,
       a_o    => alu_ar,
       sr_o   => alu_sr
-   );
+   ); -- alu_inst
 
    -- Program Counter
-   p_pc : process (clk_i)
+   pc_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -143,10 +143,10 @@ begin
             end case;
          end if;
       end if;
-   end process p_pc;
+   end process pc_proc;
 
    -- 'A' register
-   p_ar : process (clk_i)
+   ar_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -155,10 +155,10 @@ begin
             end if;
          end if;
       end if;
-   end process p_ar;
+   end process ar_proc;
 
    -- Status register
-   p_sr : process (clk_i)
+   sr_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -176,10 +176,10 @@ begin
             end case;
          end if;
       end if;
-   end process p_sr;
+   end process sr_proc;
 
    -- 'Hi' register
-   p_hi : process (clk_i)
+   hi_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -188,10 +188,10 @@ begin
             end if;
          end if;
       end if;
-   end process p_hi;
+   end process hi_proc;
 
    -- 'Lo' register
-   p_lo : process (clk_i)
+   lo_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -200,7 +200,7 @@ begin
             end if;
          end if;
       end if;
-   end process p_lo;
+   end process lo_proc;
 
 
    -- Output multiplexers
