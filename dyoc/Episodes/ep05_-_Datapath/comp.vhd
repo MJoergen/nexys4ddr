@@ -35,7 +35,7 @@ end comp;
 architecture Structural of comp is
 
    constant C_OVERLAY_BITS : integer := 48;
-   constant C_FONT_FILE    ; string  := "font8x8.txt";
+   constant C_FONT_FILE    : string  := "font8x8.txt";
 
    -- MAIN Clock domain
    signal main_clk     : std_logic;
