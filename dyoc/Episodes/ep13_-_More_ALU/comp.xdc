@@ -1,4 +1,6 @@
 # This file is specific for the Nexys 4 DDR board.
+# See page 7 of the hardware schematic diagram at:
+# https://reference.digilentinc.com/_media/reference/programmable-logic/nexys-4-ddr/nexys-4-ddr_sch.pdf
 
 # Pin assignment
 set_property -dict { PACKAGE_PIN A4  IOSTANDARD LVCMOS33 } [get_ports { vga_col_o[7] }];     # VGA_R3

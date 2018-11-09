@@ -8,7 +8,7 @@ use xpm.vcomponents.all;
 -- This is the top level module. The ports on this entity are mapped directly
 -- to pins on the FPGA.
 --
--- In this version the design can execute 64 instructions.
+-- In this version the design can execute 45 instructions.
 --
 -- Additionally, the CPU registers are shown on the VGA display.
 -- The registers shown are:
@@ -37,6 +37,7 @@ end comp;
 architecture Structural of comp is
 
    constant C_OVERLAY_BITS : integer := 144;
+   constant C_FONT_FILE    : string := "font8x8.txt";
 
    -- MAIN Clock domain
    signal main_clk     : std_logic;
@@ -115,7 +116,8 @@ begin
 
    vga_inst : entity work.vga
    generic map (
-      G_OVERLAY_BITS => C_OVERLAY_BITS
+      G_OVERLAY_BITS => C_OVERLAY_BITS,
+      G_FONT_FILE    => C_FONT_FILE
    )
    port map (
       clk_i     => vga_clk,
