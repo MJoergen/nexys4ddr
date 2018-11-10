@@ -28,11 +28,11 @@ With two separate ports it is possible to read from and write to the memory
 simultaneously. However, we will not be using that possibility in this design,
 because the 6502 CPU does not support that.
 
-It is nice to leave the memory size programmable. This is accomplished by the
+It is nice to leave the memory size configurable. This is accomplished by the
 use of *generics* in VHDL, see lines 15-19 in mem/mem.vhd. This is somewhat
 comparable to templates in C++.
 
-The memory is instantiated in lines 96-110 in comp.vhd, where the size of the
+The memory is instantiated in lines 84-98 in comp.vhd, where the size of the
 memory is chosen. For now we just choose a small size to make debugging easier.
 
 ### What is inside an FPGA?
@@ -91,7 +91,7 @@ This trick is implemented in line 79 of mem/mem.vhd, where we use
 
 ## Expanding VGA output
 This is surprisingly easy. The number of bits has been changed in line 18 of
-vga/vga.vhd as well as line 15, lines 96-97, line 137, and line 170 of
+vga/vga.vhd as well as line 15, lines 97-98, line 138, and line 171 of
 vga/digits.vhd.  Furthermore, the position of the array on screen, given in
 line 50 of vga/digits.vhd, has been moved slightly. And that is it!
 
@@ -107,11 +107,12 @@ slowing down the clock, but instead by having an extra control signal that is
 asserted only once every second, or so.
 
 Since we later on will need a wait signal for the CPU, we introduce it here in
-lines 67-79 of comp.vhd. This is basically a 25-bit counter, which wraps around
-after 2^25 clock cycles, i.e. a little over one second. To control the speed,
-the counter increment is controlled by the slide switches, so the increment can
-be any value from 0 to 255. In this way, we can completely halt the execution
-as well as speed up the execution to roughly 200 Hz.
+lines 58-67 of comp.vhd. This instantiates a new block "waiter" that consists
+of a 25-bit counter, which wraps around after 2^25 clock cycles, i.e. a little
+over one second. To control the speed, the counter increment is controlled by
+the slide switches, so the increment can be any value from 0 to 255. In this
+way, we can completely halt the execution as well as speed up the execution to
+roughly 200 Hz.
 
 ## Learnings:
 Using GENERICS to parametrize an entity (similar to templates in C++).

@@ -32,17 +32,17 @@ architecture structural of datapath is
 begin
 
    -- Program Counter
-   p_pc : process (clk_i)
+   pc_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
-            pc <= pc + 1;                 -- Increment program counter every clock cycle
+            pc <= pc + 1;  -- Increment program counter every clock cycle
          end if;
       end if;
-   end process p_pc;
+   end process pc_proc;
 
    -- 'A' register
-   p_ar : process (clk_i)
+   ar_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -51,12 +51,12 @@ begin
             end if;
          end if;
       end if;
-   end process p_ar;
+   end process ar_proc;
 
 
-   -----------------
+   ------------------------
    -- Drive output signals
-   -----------------
+   ------------------------
 
    addr_o <= pc;
    wren_o <= '0';

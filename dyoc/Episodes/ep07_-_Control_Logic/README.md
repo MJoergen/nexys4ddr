@@ -44,6 +44,11 @@ Occasionally, we'll need to add more control signals, and this entails
 modifying lines 26-58. There will be modifications to the datapath as well
 in the coming episodes.
 
+## Datapath reorganization
+The datapath of the CPU consists of several different registers. It is helpful
+to split these registers to their own files. This leads to the new files
+pc.vhd, ar.vhd, hi.vhd, and lo.vhd.
+
 ## VGA modification
 We've added yet another line of debug output showing the current value of the 
 control signals.

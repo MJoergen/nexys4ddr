@@ -60,7 +60,7 @@ architecture structural of datapath is
 begin
 
    -- Program Counter
-   p_pc : process (clk_i)
+   pc_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -72,10 +72,10 @@ begin
             end case;
          end if;
       end if;
-   end process p_pc;
+   end process pc_proc;
 
    -- 'A' register
-   p_ar : process (clk_i)
+   ar_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -84,10 +84,10 @@ begin
             end if;
          end if;
       end if;
-   end process p_ar;
+   end process ar_proc;
 
    -- 'Hi' register
-   p_hi : process (clk_i)
+   hi_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -96,10 +96,10 @@ begin
             end if;
          end if;
       end if;
-   end process p_hi;
+   end process hi_proc;
 
    -- 'Lo' register
-   p_lo : process (clk_i)
+   lo_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -108,7 +108,7 @@ begin
             end if;
          end if;
       end if;
-   end process p_lo;
+   end process lo_proc;
 
 
    -- Output multiplexers
@@ -125,9 +125,9 @@ begin
            '0';
 
 
-   -----------------
+   ------------------------
    -- Drive output signals
-   -----------------
+   ------------------------
 
    debug_o(15 downto  0) <= pc;     -- Two bytes
    debug_o(23 downto 16) <= ar;     -- One byte

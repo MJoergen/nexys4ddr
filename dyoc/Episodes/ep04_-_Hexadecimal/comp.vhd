@@ -26,16 +26,14 @@ end comp;
 
 architecture Structural of comp is
 
+   constant C_FONT_FILE : string := "font8x8.txt";
+
    -- Clock divider for VGA
    signal vga_cnt  : std_logic_vector(1 downto 0) := (others => '0');
    signal vga_clk  : std_logic;
 
-   -- Generate pause signal
-   -- 25 bits corresponds to 25Mhz / 2^25 = 1 Hz approx.
-   signal mem_wait_cnt  : std_logic_vector(24 downto 0) := (others => '0');
-   signal mem_wait      : std_logic;
-
    -- Memory signals
+   signal mem_wait : std_logic;
    signal mem_addr : std_logic_vector(15 downto 0);
    signal mem_data : std_logic_vector(7 downto 0);
 
@@ -49,12 +47,12 @@ begin
    -- This is close enough to 25.175 MHz.
    --------------------------------------------------
 
-   p_vga_cnt : process (clk_i)
+   vga_cnt_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          vga_cnt <= vga_cnt + 1;
       end if;
-   end process p_vga_cnt;
+   end process vga_cnt_proc;
 
    vga_clk <= vga_cnt(1);
 
@@ -63,36 +61,33 @@ begin
    -- Generate wait signal
    --------------------------------------------------
 
-   process (vga_clk)
-   begin
-      if rising_edge(vga_clk) then
-         mem_wait_cnt <= mem_wait_cnt + sw_i;
-      end if;
-   end process;
-
-   -- Check for wrap around of counter.
-   mem_wait <= '0' when (mem_wait_cnt + sw_i) < mem_wait_cnt else '1';
+   waiter_inst : entity work.waiter
+   port map (
+      clk_i  => vga_clk,
+      sw_i   => sw_i,
+      wait_o => mem_wait
+   ); -- waiter_inst
 
    
    --------------------------------------------------
    -- Generate memory address
    --------------------------------------------------
    
-   p_addr : process (vga_clk)
+   mem_addr_proc : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
          if mem_wait = '0' then
             mem_addr <= mem_addr + 1;
          end if;
       end if;
-   end process p_addr;
+   end process mem_addr_proc;
 
 
    --------------------------------------------------
    -- Instantiate memory
    --------------------------------------------------
    
-   i_mem : entity work.mem
+   mem_inst : entity work.mem
    generic map (
       G_ADDR_BITS => 4  -- 16 bytes
    )
@@ -102,7 +97,7 @@ begin
       data_o => mem_data,
       wren_i => '0',             -- Unused at the moment
       data_i => (others => '0')  -- Unused at the moment
-   );
+   ); -- mem_inst
 
 
    --------------------------------------------------
@@ -117,14 +112,17 @@ begin
    -- Generate VGA module
    --------------------------------------------------
 
-   i_vga : entity work.vga
+   vga_inst : entity work.vga
+   generic map (
+      G_FONT_FILE => C_FONT_FILE
+   )
    port map (
       clk_i     => vga_clk,
       digits_i  => digits,
       vga_hs_o  => vga_hs_o,
       vga_vs_o  => vga_vs_o,
       vga_col_o => vga_col_o
-   );
+   ); -- vga_inst
 
 end architecture Structural;
 

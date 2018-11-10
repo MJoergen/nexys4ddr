@@ -43,11 +43,11 @@ architecture structural of cpu is
 
 begin
 
-   -----------------
+   ------------------------
    -- Instantiate datapath
-   -----------------
+   ------------------------
 
-   inst_datapath : entity work.datapath
+   datapath_inst : entity work.datapath
    port map (
       clk_i   => clk_i,
       wait_i  => wait_i,
@@ -68,14 +68,14 @@ begin
       sp_sel_i   => sp_sel,
 
       debug_o => overlay_o(143 downto 48)
-   );
+   ); -- datapath_inst
 
 
-   -----------------
+   -----------------------------
    -- Instantiate control logic
-   -----------------
+   -----------------------------
 
-   inst_ctl : entity work.ctl
+   ctl_inst : entity work.ctl
    port map (
       clk_i   => clk_i,
       wait_i  => wait_i,
@@ -94,7 +94,7 @@ begin
 
       invalid_o => invalid_o,
       debug_o   => overlay_o(47 downto 0)
-   );
+   ); -- ctl_inst
 
 
 end architecture structural;

@@ -44,16 +44,22 @@ implement is "LDA #", called "Load A-register immediate".  This is a two-byte
 instruction, the first byte contains the value 0xA9, and the second byte
 contains a value that will be copied into the 'A' register.
 
+## Block diagram
+The following is a block diagram of the datapath module so far. This will
+be greatly expanded on in future episodes.
+
+![Datapath](Datapath.png "Datapath")
+
 ## Data Path
 In order to read the instructions from memory, the CPU must present the Program
-Counter to the address pins. This happens in line 58 in cpu/datapath.vhd.
+Counter to the address pins. This happens in line 61 in cpu/datapath.vhd.
 Additionally, at each clock cycle the Program Counter should be incremented.
-This happens in lines 31-39.
+This happens in lines 34-42.
 
 The 'A' register should read its value from the data input, but not in every
 clock cycle. There shall therefore be a control signal "a\_sel" that controls
 whether the 'A' register should update its value. This is handled in lines
-41-51.
+44-54.
 
 ## Control Logic
 The most important register in the control logic is the Instruction Register,
@@ -73,10 +79,10 @@ Finally the control signals themselves are assigned combinatorially in lines
 ## VGA
 The file vga/digits.vhd has been expanded slightly in order to allow displaying
 text on the screen.  The actual text displayed in front of each row is written
-in lines 63-64, and the position is defined in lines 60-61.  The signal
+in lines 64-65, and the position is defined in lines 61-62.  The signal
 txt\_offset has been added to contain the index into the text string.  The text
-character is determined in line 141 in a rather cumbersome way. This is a
+character is determined in line 143 in a rather cumbersome way. This is a
 consequence of the strict type checking in the VHDL language.  The choice of
-which character to display in performed in lines 143-147, where three
+which character to display in performed in lines 145-149, where three
 possibilities are chosen between.
 

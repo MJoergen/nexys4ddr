@@ -28,10 +28,6 @@ end entity datapath;
 
 architecture structural of datapath is
 
-   constant PC_NOP   : std_logic_vector(1 downto 0) := B"00";
-   constant PC_INC   : std_logic_vector(1 downto 0) := B"01";
-   constant PC_HL    : std_logic_vector(1 downto 0) := B"10";
-   --
    constant ADDR_NOP : std_logic_vector(1 downto 0) := B"00";
    constant ADDR_PC  : std_logic_vector(1 downto 0) := B"01";
    constant ADDR_HL  : std_logic_vector(1 downto 0) := B"10";
@@ -39,9 +35,8 @@ architecture structural of datapath is
    constant DATA_NOP : std_logic_vector(1 downto 0) := B"00";
    constant DATA_AR  : std_logic_vector(1 downto 0) := B"01";
    
-
    -- Program Counter
-   signal pc : std_logic_vector(15 downto 0) := (others => '0');
+   signal pc : std_logic_vector(15 downto 0);
 
    -- 'A' register
    signal ar : std_logic_vector(7 downto 0);
@@ -59,56 +54,61 @@ architecture structural of datapath is
    
 begin
 
-   -- Program Counter
-   p_pc : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if wait_i = '0' then
-            case pc_sel_i is
-               when PC_NOP => null;
-               when PC_INC => pc <= pc + 1;
-               when PC_HL  => pc <= hi & lo;
-               when others => null;
-            end case;
-         end if;
-      end if;
-   end process p_pc;
+   -------------------------------
+   -- Instantiate program Counter
+   -------------------------------
 
-   -- 'A' register
-   p_ar : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if wait_i = '0' then
-            if ar_sel_i = '1' then
-               ar <= data_i;
-            end if;
-         end if;
-      end if;
-   end process p_ar;
+   pc_inst : entity work.pc
+   port map (
+      clk_i    => clk_i,
+      wait_i   => wait_i,
+      pc_sel_i => pc_sel_i,
+      hi_i     => hi,
+      lo_i     => lo,
+      pc_o     => pc
+   ); -- pc_inst
 
-   -- 'Hi' register
-   p_hi : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if wait_i = '0' then
-            if hi_sel_i = '1' then
-               hi <= data_i;
-            end if;
-         end if;
-      end if;
-   end process p_hi;
 
-   -- 'Lo' register
-   p_lo : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if wait_i = '0' then
-            if lo_sel_i = '1' then
-               lo <= data_i;
-            end if;
-         end if;
-      end if;
-   end process p_lo;
+   ----------------------------
+   -- Instantiate 'A' register
+   ----------------------------
+
+   ar_inst : entity work.ar
+   port map (
+      clk_i    => clk_i,
+      wait_i   => wait_i,
+      ar_sel_i => ar_sel_i,
+      data_i   => data_i,
+      ar_o     => ar
+   ); -- ar_inst
+
+
+   -----------------------------
+   -- Instantiate 'Hi' register
+   -----------------------------
+
+   hi_inst : entity work.hi
+   port map (
+      clk_i    => clk_i,
+      wait_i   => wait_i,
+      hi_sel_i => hi_sel_i,
+      data_i   => data_i,
+      hi_o     => hi
+   ); -- hi_inst
+
+
+   -----------------------------
+   -- Instantiate 'Lo' register
+   -----------------------------
+
+   lo_inst : entity work.lo
+   port map (
+      clk_i    => clk_i,
+      wait_i   => wait_i,
+      lo_sel_i => lo_sel_i,
+      data_i   => data_i,
+      lo_o     => lo
+   ); -- hi_inst
 
 
    -- Output multiplexers
@@ -125,9 +125,9 @@ begin
            '0';
 
 
-   -----------------
+   ------------------------
    -- Drive output signals
-   -----------------
+   ------------------------
 
    debug_o(15 downto  0) <= pc;     -- Two bytes
    debug_o(23 downto 16) <= ar;     -- One byte

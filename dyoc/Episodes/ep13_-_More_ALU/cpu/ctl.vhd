@@ -2683,7 +2683,7 @@ architecture structural of ctl is
 
 begin
 
-   p_cnt : process (clk_i)
+   cnt_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -2693,9 +2693,9 @@ begin
             end if;
          end if;
       end if;
-   end process p_cnt;
+   end process cnt_proc;
 
-   p_ir : process (clk_i)
+   ir_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -2704,9 +2704,9 @@ begin
             end if;
          end if;
       end if;
-   end process p_ir;
+   end process ir_proc;
 
-   p_invalid : process (clk_i)
+   invalid_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -2717,7 +2717,7 @@ begin
             end if;
          end if;
       end if;
-   end process p_invalid;
+   end process invalid_proc;
 
    -- Combinatorial lookup in ROM
    ctl <= ADDR_PC + PC_INC when cnt = 0 else

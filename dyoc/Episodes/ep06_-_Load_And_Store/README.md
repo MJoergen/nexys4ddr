@@ -29,7 +29,7 @@ introduce two control signals, hi\_sel and lo\_sel too.
 
 The address output can now take one of two possible values: Either the current
 value of the Program Counter, or the value of the HI and LO registers. We
-therefore introduce a multiplexer in lines 147-150, as well as yet another
+therefore introduce a multiplexer in lines 115-118, as well as yet another
 control signal: addr\_sel.
 
 Furthermore, during the fourth clock cycle, the Program Counter should not be
@@ -40,7 +40,7 @@ the Program Counter to keep the same value in this current clock cycle.
 The "STA a" instructions is very similar to the "LDA a" instruction, and
 differs only in the last (fourth) clock cycle.  When doing "STA a" the 'A'
 register must be copied to the data output signals, and the wren signal must be
-set to '1'. This is done in lines 152-157, and once again a new control
+set to '1'. This is done in lines 120-122, and once again a new control
 signal data\_sel is introduced.
 
 ### JMP a
@@ -59,8 +59,9 @@ All the control signals are generated in lines 62-94 of cpu/ctl.vhd.
 In the next episode we'll see how to implement the control logic in a manner
 that is easier to read and to maintain.
 
-Map of control signals
+Map of control signals:
 
+```
       | Data  |    |    |    |      | Data   |
  ADDR | Input | AR | HI | LO |  PC  | Output | Last
 ------+-------+----+----+----+------+--------+------
@@ -84,4 +85,5 @@ Map of control signals
   PC  | 02    | 0  |  0 |  1 | INC  | NOP    |  0
   PC  | 00    | 0  |  1 |  0 | INC  | NOP    |  0
   NOP | --    | 0  |  0 |  0 | HILO | NOP    |  1
+```
 
