@@ -61,4 +61,5 @@ clean:
 	rm -rf mem/rom.o
 	rm -rf mem/rom.bin
 	rm -rf mem/rom.txt
+	rm -rf a.out
 

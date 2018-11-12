@@ -40,9 +40,9 @@ mem/rom.txt: mem/rom.bin
 #####################################
 
 sim: $(MAIN) $(TB) mem/rom.txt
-	ghdl -i --work=work $(MAIN) $(TB)
-	ghdl -m --ieee=synopsys -fexplicit main_tb
-	ghdl -r main_tb --assert-level=error --wave=$(WAVE) --stop-time=20us
+	ghdl -i --std=08 --work=work $(MAIN) $(TB)
+	ghdl -m --std=08 --ieee=synopsys -fexplicit main_tb
+	ghdl -r --std=08 main_tb --assert-level=error --wave=$(WAVE) --stop-time=20us
 	gtkwave $(WAVE) $(SAVE)
 
 
@@ -61,4 +61,5 @@ clean:
 	rm -rf mem/rom.o
 	rm -rf mem/rom.bin
 	rm -rf mem/rom.txt
+	rm -rf a.out
 
