@@ -42,6 +42,7 @@ architecture structural of datapath is
    constant DATA_NOP  : std_logic_vector(2 downto 0) := B"000";
    constant DATA_AR   : std_logic_vector(2 downto 0) := B"001";
    constant DATA_SR   : std_logic_vector(2 downto 0) := B"010";
+   constant DATA_ALU  : std_logic_vector(2 downto 0) := B"011";
    constant DATA_PCLO : std_logic_vector(2 downto 0) := B"100";
    constant DATA_PCHI : std_logic_vector(2 downto 0) := B"101";
 
@@ -188,12 +189,14 @@ begin
            ar              when data_sel_i = DATA_AR   else
            -- Bit S and R must always be set when pushing onto stack.
            sr or SR_BR     when data_sel_i = DATA_SR   else
+           alu_ar          when data_sel_i = DATA_ALU  else
            pc(7 downto 0)  when data_sel_i = DATA_PCLO else
            pc(15 downto 8) when data_sel_i = DATA_PCHI else
            (others => '0');
 
    wren <= '1' when data_sel_i = DATA_AR   or 
                     data_sel_i = DATA_SR   or 
+                    data_sel_i = DATA_ALU  or 
                     data_sel_i = DATA_PCLO or 
                     data_sel_i = DATA_PCHI else
            '0';

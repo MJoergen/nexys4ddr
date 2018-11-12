@@ -38,7 +38,7 @@ architecture structural of sr is
    constant SR_SED  : std_logic_vector(3 downto 0) := B"1111";
 
    -- Status register
-   signal sr : std_logic_vector(7 downto 0);
+   signal sr : std_logic_vector(7 downto 0) := X"00";
 
 begin
 
