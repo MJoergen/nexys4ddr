@@ -1,20 +1,28 @@
 [*]
 [*] GTKWave Analyzer v3.3.89 (w)1999-2018 BSI
-[*] Tue Oct 30 05:51:05 2018
+[*] Mon Nov 12 05:36:14 2018
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep14_-_Registers_X_and_Y/main_tb.ghw"
-[dumpfile_mtime] "Tue Oct 30 05:50:59 2018"
-[dumpfile_size] 540827
+[dumpfile_mtime] "Mon Nov 12 05:36:09 2018"
+[dumpfile_size] 546162
 [savefile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep14_-_Registers_X_and_Y/main_tb.gtkw"
 [timestart] 0
 [size] 1920 970
 [pos] -1 -1
-*-32.007229 12610000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-32.007229 19480000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.main_tb.
 [treeopen] top.main_tb.main_inst.
 [treeopen] top.main_tb.main_inst.cpu_inst.
-[treeopen] top.main_tb.main_inst.cpu_inst.inst_datapath.
+[treeopen] top.main_tb.main_inst.cpu_inst.datapath_inst.
+[treeopen] top.main_tb.main_inst.cpu_inst.datapath_inst.ar_inst.
+[treeopen] top.main_tb.main_inst.cpu_inst.datapath_inst.hi_inst.
+[treeopen] top.main_tb.main_inst.cpu_inst.datapath_inst.lo_inst.
+[treeopen] top.main_tb.main_inst.cpu_inst.datapath_inst.pc_inst.
+[treeopen] top.main_tb.main_inst.cpu_inst.datapath_inst.sp_inst.
+[treeopen] top.main_tb.main_inst.cpu_inst.datapath_inst.sr_inst.
+[treeopen] top.main_tb.main_inst.cpu_inst.datapath_inst.xr_inst.
+[treeopen] top.main_tb.main_inst.cpu_inst.datapath_inst.yr_inst.
 [sst_width] 255
 [signals_width] 220
 [sst_expanded] 1
@@ -36,12 +44,15 @@ top.main_tb.main_inst.cpu_inst.wren_o
 -CPU
 @800200
 -Datapath
-@23
-#{top.main_tb.main_inst.cpu_inst.inst_datapath.pc[15:0]} top.main_tb.main_inst.cpu_inst.inst_datapath.pc[15] top.main_tb.main_inst.cpu_inst.inst_datapath.pc[14] top.main_tb.main_inst.cpu_inst.inst_datapath.pc[13] top.main_tb.main_inst.cpu_inst.inst_datapath.pc[12] top.main_tb.main_inst.cpu_inst.inst_datapath.pc[11] top.main_tb.main_inst.cpu_inst.inst_datapath.pc[10] top.main_tb.main_inst.cpu_inst.inst_datapath.pc[9] top.main_tb.main_inst.cpu_inst.inst_datapath.pc[8] top.main_tb.main_inst.cpu_inst.inst_datapath.pc[7] top.main_tb.main_inst.cpu_inst.inst_datapath.pc[6] top.main_tb.main_inst.cpu_inst.inst_datapath.pc[5] top.main_tb.main_inst.cpu_inst.inst_datapath.pc[4] top.main_tb.main_inst.cpu_inst.inst_datapath.pc[3] top.main_tb.main_inst.cpu_inst.inst_datapath.pc[2] top.main_tb.main_inst.cpu_inst.inst_datapath.pc[1] top.main_tb.main_inst.cpu_inst.inst_datapath.pc[0]
-#{top.main_tb.main_inst.cpu_inst.inst_datapath.ar[7:0]} top.main_tb.main_inst.cpu_inst.inst_datapath.ar[7] top.main_tb.main_inst.cpu_inst.inst_datapath.ar[6] top.main_tb.main_inst.cpu_inst.inst_datapath.ar[5] top.main_tb.main_inst.cpu_inst.inst_datapath.ar[4] top.main_tb.main_inst.cpu_inst.inst_datapath.ar[3] top.main_tb.main_inst.cpu_inst.inst_datapath.ar[2] top.main_tb.main_inst.cpu_inst.inst_datapath.ar[1] top.main_tb.main_inst.cpu_inst.inst_datapath.ar[0]
-#{top.main_tb.main_inst.cpu_inst.inst_datapath.sr[7:0]} top.main_tb.main_inst.cpu_inst.inst_datapath.sr[7] top.main_tb.main_inst.cpu_inst.inst_datapath.sr[6] top.main_tb.main_inst.cpu_inst.inst_datapath.sr[5] top.main_tb.main_inst.cpu_inst.inst_datapath.sr[4] top.main_tb.main_inst.cpu_inst.inst_datapath.sr[3] top.main_tb.main_inst.cpu_inst.inst_datapath.sr[2] top.main_tb.main_inst.cpu_inst.inst_datapath.sr[1] top.main_tb.main_inst.cpu_inst.inst_datapath.sr[0]
-#{top.main_tb.main_inst.cpu_inst.inst_datapath.hi[7:0]} top.main_tb.main_inst.cpu_inst.inst_datapath.hi[7] top.main_tb.main_inst.cpu_inst.inst_datapath.hi[6] top.main_tb.main_inst.cpu_inst.inst_datapath.hi[5] top.main_tb.main_inst.cpu_inst.inst_datapath.hi[4] top.main_tb.main_inst.cpu_inst.inst_datapath.hi[3] top.main_tb.main_inst.cpu_inst.inst_datapath.hi[2] top.main_tb.main_inst.cpu_inst.inst_datapath.hi[1] top.main_tb.main_inst.cpu_inst.inst_datapath.hi[0]
-#{top.main_tb.main_inst.cpu_inst.inst_datapath.lo[7:0]} top.main_tb.main_inst.cpu_inst.inst_datapath.lo[7] top.main_tb.main_inst.cpu_inst.inst_datapath.lo[6] top.main_tb.main_inst.cpu_inst.inst_datapath.lo[5] top.main_tb.main_inst.cpu_inst.inst_datapath.lo[4] top.main_tb.main_inst.cpu_inst.inst_datapath.lo[3] top.main_tb.main_inst.cpu_inst.inst_datapath.lo[2] top.main_tb.main_inst.cpu_inst.inst_datapath.lo[1] top.main_tb.main_inst.cpu_inst.inst_datapath.lo[0]
+@22
+#{top.main_tb.main_inst.cpu_inst.datapath_inst.pc_inst.pc[15:0]} top.main_tb.main_inst.cpu_inst.datapath_inst.pc_inst.pc[15] top.main_tb.main_inst.cpu_inst.datapath_inst.pc_inst.pc[14] top.main_tb.main_inst.cpu_inst.datapath_inst.pc_inst.pc[13] top.main_tb.main_inst.cpu_inst.datapath_inst.pc_inst.pc[12] top.main_tb.main_inst.cpu_inst.datapath_inst.pc_inst.pc[11] top.main_tb.main_inst.cpu_inst.datapath_inst.pc_inst.pc[10] top.main_tb.main_inst.cpu_inst.datapath_inst.pc_inst.pc[9] top.main_tb.main_inst.cpu_inst.datapath_inst.pc_inst.pc[8] top.main_tb.main_inst.cpu_inst.datapath_inst.pc_inst.pc[7] top.main_tb.main_inst.cpu_inst.datapath_inst.pc_inst.pc[6] top.main_tb.main_inst.cpu_inst.datapath_inst.pc_inst.pc[5] top.main_tb.main_inst.cpu_inst.datapath_inst.pc_inst.pc[4] top.main_tb.main_inst.cpu_inst.datapath_inst.pc_inst.pc[3] top.main_tb.main_inst.cpu_inst.datapath_inst.pc_inst.pc[2] top.main_tb.main_inst.cpu_inst.datapath_inst.pc_inst.pc[1] top.main_tb.main_inst.cpu_inst.datapath_inst.pc_inst.pc[0]
+#{top.main_tb.main_inst.cpu_inst.datapath_inst.ar_inst.ar[7:0]} top.main_tb.main_inst.cpu_inst.datapath_inst.ar_inst.ar[7] top.main_tb.main_inst.cpu_inst.datapath_inst.ar_inst.ar[6] top.main_tb.main_inst.cpu_inst.datapath_inst.ar_inst.ar[5] top.main_tb.main_inst.cpu_inst.datapath_inst.ar_inst.ar[4] top.main_tb.main_inst.cpu_inst.datapath_inst.ar_inst.ar[3] top.main_tb.main_inst.cpu_inst.datapath_inst.ar_inst.ar[2] top.main_tb.main_inst.cpu_inst.datapath_inst.ar_inst.ar[1] top.main_tb.main_inst.cpu_inst.datapath_inst.ar_inst.ar[0]
+#{top.main_tb.main_inst.cpu_inst.datapath_inst.xr_inst.xr[7:0]} top.main_tb.main_inst.cpu_inst.datapath_inst.xr_inst.xr[7] top.main_tb.main_inst.cpu_inst.datapath_inst.xr_inst.xr[6] top.main_tb.main_inst.cpu_inst.datapath_inst.xr_inst.xr[5] top.main_tb.main_inst.cpu_inst.datapath_inst.xr_inst.xr[4] top.main_tb.main_inst.cpu_inst.datapath_inst.xr_inst.xr[3] top.main_tb.main_inst.cpu_inst.datapath_inst.xr_inst.xr[2] top.main_tb.main_inst.cpu_inst.datapath_inst.xr_inst.xr[1] top.main_tb.main_inst.cpu_inst.datapath_inst.xr_inst.xr[0]
+#{top.main_tb.main_inst.cpu_inst.datapath_inst.yr_inst.yr[7:0]} top.main_tb.main_inst.cpu_inst.datapath_inst.yr_inst.yr[7] top.main_tb.main_inst.cpu_inst.datapath_inst.yr_inst.yr[6] top.main_tb.main_inst.cpu_inst.datapath_inst.yr_inst.yr[5] top.main_tb.main_inst.cpu_inst.datapath_inst.yr_inst.yr[4] top.main_tb.main_inst.cpu_inst.datapath_inst.yr_inst.yr[3] top.main_tb.main_inst.cpu_inst.datapath_inst.yr_inst.yr[2] top.main_tb.main_inst.cpu_inst.datapath_inst.yr_inst.yr[1] top.main_tb.main_inst.cpu_inst.datapath_inst.yr_inst.yr[0]
+#{top.main_tb.main_inst.cpu_inst.datapath_inst.sp_inst.sp[7:0]} top.main_tb.main_inst.cpu_inst.datapath_inst.sp_inst.sp[7] top.main_tb.main_inst.cpu_inst.datapath_inst.sp_inst.sp[6] top.main_tb.main_inst.cpu_inst.datapath_inst.sp_inst.sp[5] top.main_tb.main_inst.cpu_inst.datapath_inst.sp_inst.sp[4] top.main_tb.main_inst.cpu_inst.datapath_inst.sp_inst.sp[3] top.main_tb.main_inst.cpu_inst.datapath_inst.sp_inst.sp[2] top.main_tb.main_inst.cpu_inst.datapath_inst.sp_inst.sp[1] top.main_tb.main_inst.cpu_inst.datapath_inst.sp_inst.sp[0]
+#{top.main_tb.main_inst.cpu_inst.datapath_inst.sr_inst.sr[7:0]} top.main_tb.main_inst.cpu_inst.datapath_inst.sr_inst.sr[7] top.main_tb.main_inst.cpu_inst.datapath_inst.sr_inst.sr[6] top.main_tb.main_inst.cpu_inst.datapath_inst.sr_inst.sr[5] top.main_tb.main_inst.cpu_inst.datapath_inst.sr_inst.sr[4] top.main_tb.main_inst.cpu_inst.datapath_inst.sr_inst.sr[3] top.main_tb.main_inst.cpu_inst.datapath_inst.sr_inst.sr[2] top.main_tb.main_inst.cpu_inst.datapath_inst.sr_inst.sr[1] top.main_tb.main_inst.cpu_inst.datapath_inst.sr_inst.sr[0]
+#{top.main_tb.main_inst.cpu_inst.datapath_inst.hi_inst.hi[7:0]} top.main_tb.main_inst.cpu_inst.datapath_inst.hi_inst.hi[7] top.main_tb.main_inst.cpu_inst.datapath_inst.hi_inst.hi[6] top.main_tb.main_inst.cpu_inst.datapath_inst.hi_inst.hi[5] top.main_tb.main_inst.cpu_inst.datapath_inst.hi_inst.hi[4] top.main_tb.main_inst.cpu_inst.datapath_inst.hi_inst.hi[3] top.main_tb.main_inst.cpu_inst.datapath_inst.hi_inst.hi[2] top.main_tb.main_inst.cpu_inst.datapath_inst.hi_inst.hi[1] top.main_tb.main_inst.cpu_inst.datapath_inst.hi_inst.hi[0]
+#{top.main_tb.main_inst.cpu_inst.datapath_inst.lo_inst.lo[7:0]} top.main_tb.main_inst.cpu_inst.datapath_inst.lo_inst.lo[7] top.main_tb.main_inst.cpu_inst.datapath_inst.lo_inst.lo[6] top.main_tb.main_inst.cpu_inst.datapath_inst.lo_inst.lo[5] top.main_tb.main_inst.cpu_inst.datapath_inst.lo_inst.lo[4] top.main_tb.main_inst.cpu_inst.datapath_inst.lo_inst.lo[3] top.main_tb.main_inst.cpu_inst.datapath_inst.lo_inst.lo[2] top.main_tb.main_inst.cpu_inst.datapath_inst.lo_inst.lo[1] top.main_tb.main_inst.cpu_inst.datapath_inst.lo_inst.lo[0]
 @1000200
 -Datapath
 [pattern_trace] 1

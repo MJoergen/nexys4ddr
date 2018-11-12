@@ -3,6 +3,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 
+-- This module generates the VGA output signals based
+-- on the current pixel counters. The module ensures
+-- that the mutual relative timing between the
+-- synchronization signals and colour signal adheres
+-- to the VESA standard.
+
 entity digits is
    generic (
       G_OVERLAY_BITS : integer;
@@ -23,6 +29,11 @@ entity digits is
 end digits;
 
 architecture Structural of digits is
+
+   -- The following constants define a resolution of 640x480 @ 60 Hz.
+   -- Requires a clock of 25.175 MHz.
+   -- See page 17 in "VESA MONITOR TIMING STANDARD"
+   -- http://caxapa.ru/thumbs/361638/DMTv1r11.pdf
 
    -- Number of rows of text on screen
    constant NUM_ROWS : integer := G_OVERLAY_BITS / 16;
@@ -61,6 +72,7 @@ architecture Structural of digits is
    -- Define colours
    constant COL_BLACK : std_logic_vector(7 downto 0) := B"000_000_00";
    constant COL_DARK  : std_logic_vector(7 downto 0) := B"001_001_01";
+   constant COL_GREY  : std_logic_vector(7 downto 0) := B"010_010_01";
    constant COL_WHITE : std_logic_vector(7 downto 0) := B"111_111_11";
    constant COL_RED   : std_logic_vector(7 downto 0) := B"111_000_00";
    constant COL_GREEN : std_logic_vector(7 downto 0) := B"000_111_00";
@@ -142,14 +154,14 @@ begin
    -- Calculate bitmap (64 bits) of digit at current position
    --------------------------------------------------
 
-   i_font : entity work.font
+   font_inst : entity work.font
    generic map (
-      G_FONT_FILE => "font8x8.txt"
+      G_FONT_FILE => G_FONT_FILE
    )
    port map (
       char_i   => char,
       bitmap_o => bitmap
-   );
+   ); -- font_inst
 
 
    --------------------------------------------------
