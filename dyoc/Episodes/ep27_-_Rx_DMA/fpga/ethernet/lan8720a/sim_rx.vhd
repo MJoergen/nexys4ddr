@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std_unsigned.all;
 use ieee.numeric_std.all;
 
 entity sim_rx is
@@ -34,7 +34,7 @@ begin
          wait until rx_valid_i = '1';
          assert rx_error_i = "00";
 
-         sim_data(8*conv_integer(sim_len)+7 downto 8*conv_integer(sim_len)) <= rx_data_i;
+         sim_data(8*to_integer(sim_len)+7 downto 8*to_integer(sim_len)) <= rx_data_i;
          sim_len <= sim_len + 1;
          if rx_eof_i = '1' then
             exit byte_loop;

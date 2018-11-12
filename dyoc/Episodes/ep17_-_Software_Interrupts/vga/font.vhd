@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std_unsigned.all;
 use ieee.std_logic_textio.all;
 use std.textio.all;
 
@@ -48,7 +48,7 @@ architecture Structural of font is
 
 begin
 
-   bitmap <= bitmaps(conv_integer(char_i));
+   bitmap <= bitmaps(to_integer(char_i));
 
 
    --------------------------------------------------

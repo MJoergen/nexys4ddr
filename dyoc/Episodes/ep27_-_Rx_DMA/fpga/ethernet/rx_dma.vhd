@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std_unsigned.all;
 
 -- This is a simple DMA. It will generate write requests to the memory,
 -- whenever there is input data available.  Since this DMA has priority over

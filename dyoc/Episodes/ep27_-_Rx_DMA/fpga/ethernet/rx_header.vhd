@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std_unsigned.all;
 
 -- This module prepends the frame with a two-byte header containing the total
 -- number of bytes (excluding header) stored in little-endian format.
@@ -136,7 +136,7 @@ begin
                rx_error <= '1';
             else
                -- Write data to buffer
-               rx_buf(conv_integer(wrptr)) <= rx_data_i;
+               rx_buf(to_integer(wrptr)) <= rx_data_i;
                wrptr <= wrptr + 1;
             end if;
 
@@ -232,7 +232,7 @@ begin
                when FWD_ST =>
                   -- Transfer frame data
                   out_valid <= '1';
-                  out_data  <= rx_buf(conv_integer(rdptr));
+                  out_data  <= rx_buf(to_integer(rdptr));
                   rdptr     <= rdptr + 1;
                   if rdptr = end_ptr then
                      out_eof   <= '1';

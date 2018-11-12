@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std_unsigned.all;
 
 entity ctl is
    port (
@@ -2721,7 +2721,7 @@ begin
 
    -- Combinatorial lookup in ROM
    ctl <= ADDR_PC + PC_INC when cnt = 0 else
-          rom(conv_integer(ir)*8 + conv_integer(cnt));
+          rom(to_integer(ir)*8 + to_integer(cnt));
 
    -- Drive output signals
    ar_sel_o   <= ar_sel;

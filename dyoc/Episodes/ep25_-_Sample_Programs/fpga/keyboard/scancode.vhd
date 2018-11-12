@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std_unsigned.all;
 
 entity scancode is
    port (
@@ -75,10 +75,10 @@ begin
                   when others => 
                      if keycode_i(7) = '0' then
                         if shifted = '1' then
-                           ascii <= keytab_shifted(conv_integer(keycode_i(6 downto 0)));
+                           ascii <= keytab_shifted(to_integer(keycode_i(6 downto 0)));
                            valid <= '1';
                         else
-                           ascii <= keytab_normal(conv_integer(keycode_i(6 downto 0)));
+                           ascii <= keytab_normal(to_integer(keycode_i(6 downto 0)));
                            valid <= '1';
                         end if;
                      end if;

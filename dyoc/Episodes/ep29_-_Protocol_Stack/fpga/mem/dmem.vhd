@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std_unsigned.all;
 
 -- This is a Dual-Port memory
 -- Port A supports read and write
@@ -41,9 +41,9 @@ begin
    begin
       if rising_edge(clk_i) then
          if a_wren_i = '1' then
-            mem(conv_integer(a_addr_i)) <= a_data_i;
+            mem(to_integer(a_addr_i)) <= a_data_i;
          end if;
-         a_data_o <= mem(conv_integer(a_addr_i));
+         a_data_o <= mem(to_integer(a_addr_i));
       end if;
    end process p_port_a;
 
@@ -51,7 +51,7 @@ begin
    p_port_b : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         b_data_o <= mem(conv_integer(b_addr_i));
+         b_data_o <= mem(to_integer(b_addr_i));
       end if;
    end process p_port_b;
 

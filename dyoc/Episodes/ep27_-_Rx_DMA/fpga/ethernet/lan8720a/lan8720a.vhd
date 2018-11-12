@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std_unsigned.all;
 
 -- This module interfaces to the LAN8720A Ethernet PHY, see:
 -- http://ww1.microchip.com/downloads/en/DeviceDoc/8720a.pdf

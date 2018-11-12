@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std_unsigned.all;
 use ieee.numeric_std.all;
 
 -- This is a testbench for the LAN8720A Ethernet PHY. The purpose

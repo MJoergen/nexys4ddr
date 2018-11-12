@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std_unsigned.all;
 
 -- This module implements the 6502 CPU.
 -- The CPU expects read and writes to complete in the same cycle.

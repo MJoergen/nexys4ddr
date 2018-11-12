@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std_unsigned.all;
 
 -- This module models a single-port asynchronous RAM.
 -- Even though there are separate signals for data
@@ -56,7 +56,7 @@ begin
    begin
       if rising_edge(clk_i) then
          if wren_i = '1' then
-            mem(conv_integer(wr_addr_i)) <= data_i;
+            mem(to_integer(wr_addr_i)) <= data_i;
          end if;
       end if;
    end process p_mem;
@@ -67,7 +67,7 @@ begin
    p_data : process (clk_i)
    begin
       if falling_edge(clk_i) then
-         data <= mem(conv_integer(rd_addr_i));
+         data <= mem(to_integer(rd_addr_i));
       end if;
    end process p_data;
 

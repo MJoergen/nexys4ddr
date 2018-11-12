@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std_unsigned.all;
 use ieee.numeric_std.all;
 
 -- This module generates framing for data to be transmitted.
@@ -50,9 +50,9 @@ begin
       sim_done <= '0';
       tx_empty <= '0';
 
-      byte_loop : for i in 0 to conv_integer(sim_len_i)-1 loop
+      byte_loop : for i in 0 to to_integer(sim_len_i)-1 loop
          tx_data <= sim_data_i(8*i+7 downto 8*i);
-         if i=conv_integer(sim_len_i)-1 then
+         if i=to_integer(sim_len_i)-1 then
             tx_eof <= '1';
          end if;
 

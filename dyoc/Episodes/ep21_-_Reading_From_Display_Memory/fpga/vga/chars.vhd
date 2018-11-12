@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std_unsigned.all;
 use ieee.numeric_std.all;
 
 entity chars is
@@ -114,7 +114,7 @@ begin
          v_char_y := stage0.pix_y(9 downto 3);
 
          stage1.addr <= std_logic_vector(to_unsigned(
-                       conv_integer(v_char_y) * H_CHARS + conv_integer(v_char_x), 13));
+                       to_integer(v_char_y) * H_CHARS + to_integer(v_char_x), 13));
       end if;
    end process p_stage1;
 
@@ -181,13 +181,13 @@ begin
          v_offset_x := stage2.pix_x(2 downto 0);
          v_offset_y := 7-stage2.pix_y(2 downto 0);
 
-         v_offset_bitmap := conv_integer(v_offset_y) * 8 + conv_integer(v_offset_x);
+         v_offset_bitmap := to_integer(v_offset_y) * 8 + to_integer(v_offset_x);
 
          -- Set the colour
          if stage2.bitmap(v_offset_bitmap) = '1' then
-            v_colour := conv_integer(stage2.color(3 downto 0));
+            v_colour := to_integer(stage2.color(3 downto 0));
          else
-            v_colour := conv_integer(stage2.color(7 downto 4));
+            v_colour := to_integer(stage2.color(7 downto 4));
          end if;
          stage3.pix_col <= palette_i(v_colour*8+7 downto v_colour*8);
 

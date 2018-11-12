@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std_unsigned.all;
 
 -- This module drives the VGA interface of the design.
 -- The screen resolution generated is 640x480 @ 60 Hz,

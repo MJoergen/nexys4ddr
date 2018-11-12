@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std_unsigned.all;
 
 -- This module generates Ethernet traffic.
 
@@ -55,9 +55,9 @@ begin
       sim_done_o <= '0';
       user_empty <= '0';
 
-      byte_loop : for i in 0 to conv_integer(sim_len_i)-1 loop
+      byte_loop : for i in 0 to to_integer(sim_len_i)-1 loop
          user_data <= sim_data_i(8*i+7 downto 8*i);
-         if i=conv_integer(sim_len_i)-1 then
+         if i=to_integer(sim_len_i)-1 then
             user_eof <= '1';
          end if;
 

@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std_unsigned.all;
 
 -- This module generates the VGA output signals based
 -- on the current pixel counters. The module ensures
@@ -126,8 +126,8 @@ begin
    -- Calculate character coordinates, within 40x30
    --------------------------------------------------
 
-   char_col <= conv_integer(pix_x_i(9 downto 4));
-   char_row <= conv_integer(pix_y_i(9 downto 4));
+   char_col <= to_integer(pix_x_i(9 downto 4));
+   char_row <= to_integer(pix_y_i(9 downto 4));
 
    --------------------------------------------------
    -- Calculate value of digit at current position ('0' or '1')
@@ -141,15 +141,15 @@ begin
    -- Calculate bitmap (64 bits) of digit at current position
    --------------------------------------------------
 
-   bitmaps_index <= conv_integer((0 => digit));
+   bitmaps_index <= to_integer((0 => digit));
    bitmap        <= bitmaps(bitmaps_index);
 
    --------------------------------------------------
    -- Calculate pixel at current position ('0' or '1')
    --------------------------------------------------
 
-   pix_col       <= 7 - conv_integer(pix_x_i(3 downto 1));
-   pix_row       <= 7 - conv_integer(pix_y_i(3 downto 1));
+   pix_col       <= 7 - to_integer(pix_x_i(3 downto 1));
+   pix_row       <= 7 - to_integer(pix_y_i(3 downto 1));
    bitmap_index  <= pix_row*8 + pix_col;
    pix           <= bitmap(bitmap_index);
 

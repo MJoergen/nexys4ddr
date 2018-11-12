@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std_unsigned.all;
 use ieee.numeric_std.all;
 use std.textio.all;
 
@@ -30,7 +30,7 @@ begin
       if rising_edge(clk_i) then
          if wr_en_i = '1' then
             assert wr_addr_i(15 downto 11) = "00100";
-            ram(conv_integer(wr_addr_i(10 downto 0))*8+7 downto conv_integer(wr_addr_i(10 downto 0))*8) <= wr_data_i;
+            ram(to_integer(wr_addr_i(10 downto 0))*8+7 downto to_integer(wr_addr_i(10 downto 0))*8) <= wr_data_i;
          end if;
 
          if ram_init_i = '1' then

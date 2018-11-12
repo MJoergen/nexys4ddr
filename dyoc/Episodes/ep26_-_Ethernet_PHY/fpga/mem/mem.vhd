@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std_unsigned.all;
 
 -- This module controls the memory map of the computer
 -- by instantiating the different memory components
@@ -93,7 +93,7 @@ begin
    process (a_addr_i, a_rden_i, memio_cs, a_wait_d)
    begin
       b_memio_rden_o <= (others => '0');
-      b_memio_rden_o(conv_integer(a_addr_i(G_MEMIO_SIZE-2 downto 0))) <=
+      b_memio_rden_o(to_integer(a_addr_i(G_MEMIO_SIZE-2 downto 0))) <=
          a_rden_i and memio_cs and a_wait_d and a_addr_i(G_MEMIO_SIZE-1);
    end process;
 

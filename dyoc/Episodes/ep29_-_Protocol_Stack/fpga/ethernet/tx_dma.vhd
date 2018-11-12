@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std_unsigned.all;
 
 -- This is a simple Transmit DMA.  To send an Ethernet frame, the user must
 -- prepare a contiguous memory area containing the Ethernet frame prepended

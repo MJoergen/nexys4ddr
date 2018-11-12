@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std_unsigned.all;
 
 entity memio is
    generic (
@@ -37,7 +37,7 @@ begin
       variable addr_v : integer range 0 to 2**G_ADDR_BITS-1;
    begin
       if rising_edge(clk_i) then
-         addr_v := conv_integer(a_addr_i);
+         addr_v := to_integer(a_addr_i);
 
          if a_wren_i = '1' and a_addr_i(G_ADDR_BITS-1) = '0' then
             memio_r(addr_v*8+7 downto addr_v*8) <= a_data_i;
