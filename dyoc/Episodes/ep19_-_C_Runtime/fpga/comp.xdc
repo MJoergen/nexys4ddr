@@ -33,6 +33,8 @@ set_property -dict { PACKAGE_PIN V17 IOSTANDARD LVCMOS33 } [get_ports { led_o[5]
 set_property -dict { PACKAGE_PIN U17 IOSTANDARD LVCMOS33 } [get_ports { led_o[6] }];         # LED6
 set_property -dict { PACKAGE_PIN U16 IOSTANDARD LVCMOS33 } [get_ports { led_o[7] }];         # LED7
 
+set_property -dict { PACKAGE_PIN C12 IOSTANDARD LVCMOS33 } [get_ports { rstn_i }];           # CPU_RESETN
+
 # Clock definition
 create_clock -name sys_clk -period 10.00 [get_ports {clk_i}];                          # 100 MHz
 
