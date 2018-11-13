@@ -2740,7 +2740,7 @@ architecture structural of ctl is
 
 begin
 
-   p_cnt : process (clk_i)
+   cnt_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -2749,15 +2749,10 @@ begin
                cnt <= (others => '0');
             end if;
          end if;
-
-         -- Upon reset, start by loading Program Counter from Reset vector.
-         if rst_i = '1' then
-            cnt <= "101";
-         end if;
       end if;
-   end process p_cnt;
+   end process cnt_proc;
 
-   p_ir : process (clk_i)
+   ir_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -2770,15 +2765,10 @@ begin
                end if;
             end if;
          end if;
-
-         -- Upon reset, force the first instruction to be BRK
-         if rst_i = '1' then
-            ir <= X"00";
-         end if;
       end if;
-   end process p_ir;
+   end process ir_proc;
 
-   p_invalid : process (clk_i)
+   invalid_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -2788,15 +2778,10 @@ begin
                end if;
             end if;
          end if;
-
-         -- Upon reset, clear the invalid instruction register.
-         if rst_i = '1' then
-            invalid_inst <= X"00";
-         end if;
       end if;
-   end process p_invalid;
+   end process invalid_proc;
 
-   p_cic : process (clk_i)
+   cic_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          -- Sample and prioritize hardware interrupts at end of instruction.
@@ -2813,15 +2798,10 @@ begin
                end if;
             end if;
          end if;
-
-         -- Upon reset, force a hardware interrupt from the Reset vector.
-         if rst_i = '1' then
-            cic <= "10";
-         end if;
       end if;
-   end process p_cic;
+   end process cic_proc;
 
-   p_nmi_d : process (clk_i)
+   nmi_d_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -2830,7 +2810,7 @@ begin
             end if;
          end if;
       end if;
-   end process p_nmi_d;
+   end process nmi_d_proc;
 
    -- Combinatorial lookup in ROM
    ctl <= ADDR_PC + PC_INC when cnt = 0 else
@@ -2842,7 +2822,7 @@ begin
    lo_sel_o   <= lo_sel;
    pc_sel_o   <= "000000"                when pc_sel(2 downto 0) = "001" and (cic = "11" or cic = "01") else pc_sel;
    addr_sel_o <= '1' & cic & addr_sel(0) when addr_sel(3) = '1'                                         else addr_sel;
-   data_sel_o <= "110"                   when data_sel = "010" and           (cic = "11" or cic = "01") else data_sel;
+   data_sel_o <= "110"                   when data_sel = "010" and (cic = "11" or cic = "01")           else data_sel;
    alu_sel_o  <= alu_sel;
    sr_sel_o   <= sr_sel;
    sp_sel_o   <= sp_sel;
