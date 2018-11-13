@@ -28,7 +28,7 @@ begin
       if rising_edge(clk_i) then
          cnt <= cnt + sw_i;
 
-         waiter <= '1';
+         waiter <= not sw_i(7);
          if (cnt + sw_i) < cnt then
             waiter <= '0';
          end if;
