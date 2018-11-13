@@ -39,7 +39,7 @@ begin
    -- Instantiate the ROM
    ----------------------
 
-   i_rom : entity work.rom
+   rom_inst : entity work.rom
    generic map (
       G_INIT_FILE => "mem/rom.txt",
       G_ADDR_BITS => 14  -- 16K bytes
@@ -50,14 +50,14 @@ begin
       data_o => rom_data,
       data_i => data_i,
       wren_i => rom_wren
-   );
+   ); -- rom_inst
    
 
    ----------------------
    -- Instantiate the RAM
    ----------------------
 
-   i_ram : entity work.ram
+   ram_inst : entity work.ram
    generic map (
       G_ADDR_BITS => 11  -- 2K bytes
    )
@@ -67,7 +67,7 @@ begin
       data_o => ram_data,
       data_i => data_i,
       wren_i => ram_wren
-   );
+   ); -- ram_inst
    
 
    ----------------------
