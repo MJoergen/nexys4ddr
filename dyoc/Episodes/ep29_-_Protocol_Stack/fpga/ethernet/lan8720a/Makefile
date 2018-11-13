@@ -31,7 +31,7 @@ clean:
 	rm -rf comp.dcp
 	rm -rf .Xil
 	rm -rf .cache
-	rm -rf work-obj93.cf
+	rm -rf work-obj08.cf
 	rm -rf unisim-obj93.cf
 	rm -rf lan8720a_tb
 	rm -rf lan8720a_tb.ghw
