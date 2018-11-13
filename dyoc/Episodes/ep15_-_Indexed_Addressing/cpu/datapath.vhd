@@ -246,7 +246,7 @@ begin
 
    data <= (others => '0') when data_sel_i = DATA_NOP  else
            ar              when data_sel_i = DATA_AR   else
-           -- Bit S and R must always be set when pushing onto stack.
+           -- Bits B and R must always be set when pushing onto stack.
            sr or SR_BR     when data_sel_i = DATA_SR   else
            alu_ar          when data_sel_i = DATA_ALU  else
            pc(7 downto 0)  when data_sel_i = DATA_PCLO else
