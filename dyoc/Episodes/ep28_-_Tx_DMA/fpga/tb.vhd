@@ -1,7 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
-use ieee.numeric_std.all;
 
 entity tb is
 end tb;
@@ -177,7 +176,7 @@ begin
       for i in 0 to 41 loop
          sim_tx_data(8*i+7 downto 8*i) <= tx_frame(i);
       end loop;
-      sim_tx_len   <= std_logic_vector(to_unsigned(42, 16)); -- Number of bytes to send
+      sim_tx_len   <= to_std_logic_vector(42, 16); -- Number of bytes to send
       sim_tx_start <= '1';
       wait until sim_tx_done = '1';  -- Wait until data has been transferred on PHY signals
       sim_tx_start <= '0';
