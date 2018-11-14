@@ -334,6 +334,7 @@ begin
    addr_o <= addr;
    data_o <= data;
    wren_o <= wren and not wait_i;
+   sri_o  <= sr(2); -- IRQ mask
 
 end architecture structural;
 
