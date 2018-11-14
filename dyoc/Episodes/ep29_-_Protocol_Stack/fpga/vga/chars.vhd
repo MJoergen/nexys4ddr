@@ -1,7 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
-use ieee.numeric_std.all;
 
 entity chars is
    generic (
@@ -113,8 +112,7 @@ begin
          v_char_x := stage0.pix_x(9 downto 3);
          v_char_y := stage0.pix_y(9 downto 3);
 
-         stage1.addr <= std_logic_vector(to_unsigned(
-                       to_integer(v_char_y) * H_CHARS + to_integer(v_char_x), 13));
+         stage1.addr <= to_std_logic_vector(to_integer(v_char_y) * H_CHARS + to_integer(v_char_x), 13);
       end if;
    end process p_stage1;
 

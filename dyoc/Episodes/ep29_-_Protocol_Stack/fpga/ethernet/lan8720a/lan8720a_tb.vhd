@@ -1,7 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
-use ieee.numeric_std.all;
 
 -- This is a testbench for the LAN8720A Ethernet PHY. The purpose
 -- is to verify the interface to the PHY.
@@ -155,7 +154,7 @@ begin
 
       -- Send one frame (16 bytes)
       for i in 0 to 15 loop
-         sim_tx_data(8*i+7 downto 8*i) <= std_logic_vector(to_unsigned(i+12, 8));
+         sim_tx_data(8*i+7 downto 8*i) <= to_std_logic_vector(i+12, 8);
       end loop;
       for i in 16 to 127 loop
          sim_tx_data(8*i+7 downto 8*i) <= (others => 'X');
@@ -172,7 +171,7 @@ begin
 
       -- Send another frame (32 bytes)
       for i in 0 to 31 loop
-         sim_tx_data(8*i+7 downto 8*i) <= std_logic_vector(to_unsigned(i+22, 8));
+         sim_tx_data(8*i+7 downto 8*i) <= to_std_logic_vector(i+22, 8);
       end loop;
       for i in 32 to 127 loop
          sim_tx_data(8*i+7 downto 8*i) <= (others => 'X');

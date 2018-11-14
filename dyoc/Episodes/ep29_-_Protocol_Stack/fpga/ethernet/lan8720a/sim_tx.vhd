@@ -1,7 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
-use ieee.numeric_std.all;
 
 -- This module generates framing for data to be transmitted.
 -- This reads the signal 'start' and when asserted

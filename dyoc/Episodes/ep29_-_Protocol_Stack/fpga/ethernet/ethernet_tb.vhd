@@ -1,7 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
-use ieee.numeric_std.all;
 use std.textio.all;
 
 -- This module is a test bench for the Ethernet module.
@@ -160,10 +159,10 @@ begin
       procedure send_frame(first : integer; length : integer; offset : integer) is
       begin
          sim_ram_in <= (others => 'X');
-         sim_ram_in(8*offset + 15 downto 8*offset + 0) <= std_logic_vector(to_unsigned(length, 16));
+         sim_ram_in(8*offset + 15 downto 8*offset + 0) <= to_std_logic_vector(length, 16);
          for i in 0 to length-1 loop
             sim_ram_in(8*(i+2+offset)+7 downto 8*(i+2+offset)) <= 
-               std_logic_vector(to_unsigned((i+first) mod 256, 8));
+               to_std_logic_vector((i+first) mod 256, 8);
          end loop;
          sim_ram_init <= '1';
 
@@ -173,7 +172,7 @@ begin
          wait until user_clk = '1';
 
          assert user_txdma_clear = '0';
-         user_txdma_ptr    <= std_logic_vector(to_unsigned(offset, 16)) + X"2000";
+         user_txdma_ptr    <= to_std_logic_vector(offset, 16) + X"2000";
          user_txdma_enable <= '1';
          wait until user_txdma_clear = '1';
          user_txdma_enable <= '0';
@@ -187,7 +186,7 @@ begin
       begin
 
          assert user_rxdma_clear = '0';
-         user_rxdma_ptr    <= std_logic_vector(to_unsigned(offset, 16)) + X"2000";
+         user_rxdma_ptr    <= to_std_logic_vector(offset, 16) + X"2000";
          user_rxdma_enable <= '1';
          wait until user_rxdma_clear = '1';
          user_rxdma_enable <= '0';
@@ -195,10 +194,10 @@ begin
          wait until user_clk = '1';
          assert user_rxdma_clear = '0';
 
-         assert sim_ram_out(8*offset + 15 downto 8*offset + 0) = std_logic_vector(to_unsigned(length, 16));
+         assert sim_ram_out(8*offset + 15 downto 8*offset + 0) = to_std_logic_vector(length, 16);
          for i in 0 to length-1 loop
             assert sim_ram_out(8*(i+2+offset)+7 downto 8*(i+2+offset)) = 
-               std_logic_vector(to_unsigned((i+first) mod 256, 8))
+               to_std_logic_vector((i+first) mod 256, 8)
                report "i=" & integer'image(i);
          end loop;
       end procedure receive_frame;
