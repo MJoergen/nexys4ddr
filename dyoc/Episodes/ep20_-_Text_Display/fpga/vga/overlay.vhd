@@ -1,7 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
-use ieee.numeric_std.all;
 
 -- This module implements an overlay containing debug information
 -- It receives as input the current screen, and outputs
@@ -152,7 +151,7 @@ begin
    char_nibble <= nibble + X"30" when nibble < 10 else
            nibble + X"41" - 10;
 
-   char_txt    <= std_logic_vector(to_unsigned(character'pos(txt(txt_offset)), 8));
+   char_txt    <= to_std_logic_vector(character'pos(txt(txt_offset)), 8);
 
    char <= char_nibble when char_row >= DIGITS_CHAR_Y and char_row < DIGITS_CHAR_Y+NUM_ROWS and
                             char_col >= DIGITS_CHAR_X and char_col < DIGITS_CHAR_X+4 else

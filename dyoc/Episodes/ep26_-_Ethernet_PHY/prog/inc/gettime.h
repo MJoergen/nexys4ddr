@@ -1,6 +1,7 @@
 #ifndef _GETTIME_H_
 #define _GETTIME_H_
 
+#if 0
 typedef enum {
    CLOCK_MONOTONIC = 0
 } clockid_t;
@@ -11,6 +12,7 @@ struct timespec {
 };
 
 int clock_gettime(clockid_t clk_id, struct timespec *tp);
+#endif
 
 #endif // _GETTIME_H_
 
