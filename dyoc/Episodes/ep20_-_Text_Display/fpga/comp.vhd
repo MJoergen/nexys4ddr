@@ -22,9 +22,6 @@ use xpm.vcomponents.all;
 -- The speed of the execution is controlled by the slide switches.
 
 entity comp is
-   generic (
-      G_FONT_FILE : string := "font8x8.txt"
-   );
    port (
       clk_i     : in  std_logic;                      -- 100 MHz
 
@@ -41,6 +38,7 @@ end comp;
 architecture Structural of comp is
 
    constant C_OVERLAY_BITS : integer := 176;
+   constant C_FONT_FILE    : string := "font8x8.txt";
 
    -- MAIN Clock domain
    signal main_clk     : std_logic;
@@ -146,7 +144,7 @@ begin
    vga_inst : entity work.vga
    generic map (
       G_OVERLAY_BITS => C_OVERLAY_BITS,
-      G_FONT_FILE    => G_FONT_FILE
+      G_FONT_FILE    => C_FONT_FILE
    )
    port map (
       clk_i     => vga_clk,

@@ -75,7 +75,7 @@ begin
    -- Instantiate the ROM
    ----------------------
 
-   i_rom : entity work.rom
+   rom_inst : entity work.rom
    generic map (
       G_INIT_FILE => G_ROM_FILE,
       G_ADDR_BITS => G_ROM_SIZE
@@ -84,14 +84,14 @@ begin
       clk_i  => a_clk_i,
       addr_i => a_addr_i(G_ROM_SIZE-1 downto 0),
       data_o => a_rom_data
-   );
+   ); -- rom_inst
    
 
    -----------------------------------
    -- Instantiate the character memory
    -----------------------------------
 
-   i_char : entity work.dmem
+   char_inst : entity work.dmem
    generic map (
       G_ADDR_BITS => G_CHAR_SIZE
    )
@@ -104,14 +104,14 @@ begin
       b_clk_i  => b_clk_i,
       b_addr_i => b_char_addr_i,
       b_data_o => b_char_data_o
-   );
+   ); -- char_inst
 
 
    -----------------------------------
    -- Instantiate the colour memory
    -----------------------------------
 
-   i_col : entity work.dmem
+   col_inst : entity work.dmem
    generic map (
       G_ADDR_BITS => G_COL_SIZE,
       G_INIT_VAL  => X"0F"    -- Default is white text on black background.
@@ -125,14 +125,14 @@ begin
       b_clk_i  => b_clk_i,
       b_addr_i => b_col_addr_i,
       b_data_o => b_col_data_o
-   );
+   ); -- col_inst
 
 
    ----------------------
    -- Instantiate the RAM
    ----------------------
 
-   i_ram : entity work.ram
+   ram_inst : entity work.ram
    generic map (
       G_ADDR_BITS => G_RAM_SIZE
    )
@@ -142,7 +142,7 @@ begin
       data_o => a_ram_data,
       data_i => a_data_i,
       wren_i => a_ram_wren
-   );
+   ); -- ram_inst
    
 
    a_data_o <= a_rom_data  when a_rom_cs  = '1' else
