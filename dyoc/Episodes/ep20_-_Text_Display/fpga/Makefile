@@ -47,7 +47,7 @@ clean:
 	rm -rf .Xil
 	rm -rf timing_summary.rpt
 	rm -rf .cache
-	rm -rf work-obj93.cf
+	rm -rf work-obj08.cf
 	rm -rf main_tb
 	rm -rf main_tb.ghw
 
