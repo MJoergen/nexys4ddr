@@ -1,7 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
-use ieee.numeric_std.all;
 
 entity tb is
 end tb;
@@ -139,11 +138,11 @@ begin
 
       procedure send_frame(first : integer; length : integer) is
       begin
-         sim_len <= std_logic_vector(to_unsigned(length, 16));
+         sim_len <= to_std_logic_vector(length, 16);
          sim_data <= (others => 'X');
          for i in 0 to length-1 loop
             sim_data(8*i+7 downto 8*i) <= 
-               std_logic_vector(to_unsigned((i+first) mod 256, 8));
+               to_std_logic_vector((i+first) mod 256, 8);
          end loop;
          sim_start <= '1';
 
