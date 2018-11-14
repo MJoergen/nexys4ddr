@@ -8,14 +8,15 @@ use ieee.numeric_std_unsigned.all;
 
 entity overlay is
    generic (
-      G_FONT_FILE : string
+      G_OVERLAY_BITS : integer;
+      G_FONT_FILE    : string
    );
    port (
       clk_i     : in  std_logic;
 
       pix_x_i   : in  std_logic_vector(9 downto 0);
       pix_y_i   : in  std_logic_vector(9 downto 0);
-      digits_i  : in  std_logic_vector(175 downto 0);
+      digits_i  : in  std_logic_vector(G_OVERLAY_BITS-1 downto 0);
 
       -- Current screen
       vga_hs_i  : in  std_logic;
@@ -32,7 +33,7 @@ end overlay;
 architecture Structural of overlay is
 
    -- Number of rows of text on screen
-   constant NUM_ROWS : integer := digits_i'length / 16;
+   constant NUM_ROWS : integer := G_OVERLAY_BITS / 16;
 
    -- Define pixel counter range
    constant H_TOTAL  : integer := 800;
@@ -73,7 +74,7 @@ architecture Structural of overlay is
    constant COL_GREEN : std_logic_vector(7 downto 0) := B"000_111_00";
    constant COL_BLUE  : std_logic_vector(7 downto 0) := B"000_000_11";
 
-   signal digits_r : std_logic_vector(175 downto 0);
+   signal digits_r : std_logic_vector(G_OVERLAY_BITS-1 downto 0);
 
 
    -- Character coordinates
@@ -123,7 +124,7 @@ begin
          digits_r <= digits_i;
       end if;
    end process;
-   
+      
 
    --------------------------------------------------
    -- Calculate character coordinates, within 40x30

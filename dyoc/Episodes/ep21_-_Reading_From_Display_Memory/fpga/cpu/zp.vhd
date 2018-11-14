@@ -26,7 +26,7 @@ architecture structural of zp is
 begin
 
    -- 'Zp' register
-   p_zp : process (clk_i)
+   zp_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -39,9 +39,9 @@ begin
             end case;
          end if;
       end if;
-   end process p_zp;
+   end process zp_proc;
 
-   -- Drive output signals
+   -- Drive output signal
    zp_o <= zp;
 
 end architecture structural;
