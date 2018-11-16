@@ -37,16 +37,7 @@ end entity datapath;
 
 architecture structural of datapath is
 
-   -- The Status Register contains: SV-BDIZC
-   constant SR_C : integer := 0;
-   constant SR_Z : integer := 1;
-   constant SR_I : integer := 2;
-   constant SR_D : integer := 3;
-   constant SR_B : integer := 4;
-   constant SR_R : integer := 5;    -- Bit 5 is reserved.
-   constant SR_V : integer := 6;
-   constant SR_S : integer := 7;
-   constant SR_BR : std_logic_vector(7 downto 0) := (SR_B => '1', SR_R => '1', others => '0');
+   constant SR_BR : std_logic_vector(7 downto 0) := X"30"; -- Set B and R.
 
    constant ADDR_NOP    : std_logic_vector(3 downto 0) := B"0000";
    constant ADDR_PC     : std_logic_vector(3 downto 0) := B"0001";
@@ -70,7 +61,7 @@ architecture structural of datapath is
    constant DATA_PCLO : std_logic_vector(2 downto 0) := B"100";
    constant DATA_PCHI : std_logic_vector(2 downto 0) := B"101";
    constant DATA_SRI  : std_logic_vector(2 downto 0) := B"110";
-   --
+
    constant REG_AR    : std_logic_vector(1 downto 0) := B"00";
    constant REG_XR    : std_logic_vector(1 downto 0) := B"01";
    constant REG_YR    : std_logic_vector(1 downto 0) := B"10";
@@ -96,25 +87,28 @@ architecture structural of datapath is
    signal yr : std_logic_vector(7 downto 0);
 
    -- Stack Pointer
-   signal sp : std_logic_vector(7 downto 0) := X"FF";
+   signal sp : std_logic_vector(7 downto 0);
 
    -- Status register
-   signal sr : std_logic_vector(7 downto 0) := (others => '0');
+   signal sr : std_logic_vector(7 downto 0);
 
-   -- Address Hi and Lo registers
-   signal hilo : std_logic_vector(15 downto 0);
+   -- Address Hi register
+   signal hi : std_logic_vector(7 downto 0);
    
-   -- Zero-page register
+   -- Address Lo register
+   signal lo : std_logic_vector(7 downto 0);
+
+   -- Zero page register
    signal zp : std_logic_vector(7 downto 0);
+
+   -- Status register written to stack during interrupt.
+   signal sr_irq : std_logic_vector(7 downto 0);
 
    -- Output signals to memory
    signal addr : std_logic_vector(15 downto 0);
    signal data : std_logic_vector(7 downto 0);
    signal wren : std_logic;
    signal mem  : std_logic;
-
-   -- Status register written to stack during interrupt.
-   signal sr_irq : std_logic_vector(7 downto 0);
 
 begin
 
@@ -124,8 +118,12 @@ begin
               sp when reg_sel_i = REG_SP else
               (others => '0');
 
+
+   -------------------
    -- Instantiate ALU
-   i_alu : entity work.alu
+   -------------------
+
+   alu_inst : entity work.alu
    port map (
       a_i    => alu_reg,
       b_i    => data_i,
@@ -133,93 +131,169 @@ begin
       func_i => alu_sel_i,
       a_o    => alu_ar,
       sr_o   => alu_sr
-   );
+   ); -- alu_inst
 
-   -- Instantiate register file
-   i_regfile : entity work.regfile
-   port map (
-      clk_i    => clk_i,
-      wait_i   => wait_i,
-      ar_sel_i => ar_sel_i,
-      xr_sel_i => xr_sel_i,
-      yr_sel_i => yr_sel_i,
-      sp_sel_i => sp_sel_i,
-      val_i    => alu_ar,
-      ar_o     => ar,
-      xr_o     => xr,
-      yr_o     => yr,
-      sp_o     => sp
-   );
 
-   -- Instantiate Program Counter
-   i_pc : entity work.pc
+   -------------------------------
+   -- Instantiate program Counter
+   -------------------------------
+
+   pc_inst : entity work.pc
    port map (
       clk_i    => clk_i,
       wait_i   => wait_i,
       pc_sel_i => pc_sel_i,
-      hilo_i   => hilo,
-      data_i   => data_i,
+      hi_i     => hi,
+      lo_i     => lo,
       sr_i     => sr,
+      data_i   => data_i,
       pc_o     => pc
-   );
+   ); -- pc_inst
 
-   -- Instantiate Hi and Lo registers
-   i_hilo : entity work.hilo
+
+   ----------------------------
+   -- Instantiate 'A' register
+   ----------------------------
+
+   ar_inst : entity work.ar
    port map (
       clk_i    => clk_i,
       wait_i   => wait_i,
-      hi_sel_i => hi_sel_i,
-      lo_sel_i => lo_sel_i,
-      xr_i     => xr,
-      yr_i     => yr,
-      data_i   => data_i,
-      hilo_o   => hilo
-   );
+      ar_sel_i => ar_sel_i,
+      alu_ar_i => alu_ar,
+      ar_o     => ar
+   ); -- ar_inst
 
-   -- Instantiate Status Register
-   i_sr : entity work.sr
+
+   ----------------------------
+   -- Instantiate 'X' register
+   ----------------------------
+
+   xr_inst : entity work.xr
+   port map (
+      clk_i    => clk_i,
+      wait_i   => wait_i,
+      xr_sel_i => xr_sel_i,
+      alu_ar_i => alu_ar,
+      xr_o     => xr
+   ); -- xr_inst
+
+
+   ----------------------------
+   -- Instantiate 'Y' register
+   ----------------------------
+
+   yr_inst : entity work.yr
+   port map (
+      clk_i    => clk_i,
+      wait_i   => wait_i,
+      yr_sel_i => yr_sel_i,
+      alu_ar_i => alu_ar,
+      yr_o     => yr
+   ); -- yr_inst
+
+
+   -----------------------------
+   -- Instantiate stack pointer
+   -----------------------------
+
+   sp_inst : entity work.sp
+   port map (
+      clk_i    => clk_i,
+      wait_i   => wait_i,
+      sp_sel_i => sp_sel_i,
+      xr_i     => xr,
+      sp_o     => sp
+   ); -- sp_inst
+
+
+   -------------------------------
+   -- Instantiate status register
+   -------------------------------
+
+   sr_inst : entity work.sr
    port map (
       clk_i    => clk_i,
       wait_i   => wait_i,
       sr_sel_i => sr_sel_i,
-      val_i    => alu_sr,
+      alu_sr_i => alu_sr,
       data_i   => data_i,
       sr_o     => sr
-   );
+   ); -- sr_inst
 
-   -- Instantiate Zero Page Register
-   i_zp : entity work.zp
+
+   -----------------------------
+   -- Instantiate 'Hi' register
+   -----------------------------
+
+   hi_inst : entity work.hi
+   port map (
+      clk_i    => clk_i,
+      wait_i   => wait_i,
+      hi_sel_i => hi_sel_i,
+      data_i   => data_i,
+      lo_i     => lo,
+      xr_i     => xr,
+      yr_i     => yr,
+      hi_o     => hi
+   ); -- hi_inst
+
+
+   -----------------------------
+   -- Instantiate 'Lo' register
+   -----------------------------
+
+   lo_inst : entity work.lo
+   port map (
+      clk_i    => clk_i,
+      wait_i   => wait_i,
+      lo_sel_i => lo_sel_i,
+      data_i   => data_i,
+      hi_i     => hi,
+      xr_i     => xr,
+      yr_i     => yr,
+      lo_o     => lo
+   ); -- lo_inst
+
+
+   ----------------------------------
+   -- Instantiate zero-page register
+   ----------------------------------
+
+   zp_inst : entity work.zp
    port map (
       clk_i    => clk_i,
       wait_i   => wait_i,
       zp_sel_i => zp_sel_i,
       data_i   => data_i,
       xr_i     => xr,
-      zp_o     => zp 
-   );
+      zp_o     => zp
+   ); -- zp_inst
 
-   p_sr_irq : process (sr)
+
+   sr_irq_proc : process (sr)
    begin
       sr_irq <= sr;
-      sr_irq(SR_R) <= '1';
-      sr_irq(SR_B) <= '0';
-   end process p_sr_irq;
+      sr_irq(5) <= '1';    -- Reserved
+      sr_irq(4) <= '0';    -- Break
+   end process sr_irq_proc;
+
 
    -- Output multiplexers
-   addr <= (others => '0')  when addr_sel_i = ADDR_NOP    else
-           pc               when addr_sel_i = ADDR_PC     else
-           hilo             when addr_sel_i = ADDR_HL     else
-           hilo and X"00FF" when addr_sel_i = ADDR_LO     else
-           X"01" & sp       when addr_sel_i = ADDR_SP     else
-           X"00" & zp       when addr_sel_i = ADDR_ZP     else
-           X"FFFA"          when addr_sel_i = ADDR_NMI    else
-           X"FFFB"          when addr_sel_i = ADDR_NMI1   else
-           X"FFFC"          when addr_sel_i = ADDR_RESET  else
-           X"FFFD"          when addr_sel_i = ADDR_RESET1 else
-           X"FFFE"          when addr_sel_i = ADDR_IRQ    else
-           X"FFFF"          when addr_sel_i = ADDR_IRQ1   else
-           X"FFFE"          when addr_sel_i = ADDR_BRK    else
-           X"FFFF"          when addr_sel_i = ADDR_BRK1   else
+   addr <= (others => '0') when addr_sel_i = ADDR_NOP    else
+           pc              when addr_sel_i = ADDR_PC     else
+           hi & lo         when addr_sel_i = ADDR_HL     else
+           X"00" & lo      when addr_sel_i = ADDR_LO     else
+           X"01" & sp      when addr_sel_i = ADDR_SP     else
+           X"00" & zp      when addr_sel_i = ADDR_ZP     else
+           X"FFFA"         when addr_sel_i = ADDR_NMI    else
+           X"FFFB"         when addr_sel_i = ADDR_NMI1   else
+           X"FFFC"         when addr_sel_i = ADDR_RESET  else
+           X"FFFD"         when addr_sel_i = ADDR_RESET1 else
+           X"FFFE"         when addr_sel_i = ADDR_IRQ    else
+           X"FFFF"         when addr_sel_i = ADDR_IRQ1   else
+           X"FFFE"         when addr_sel_i = ADDR_BRK    else
+           X"FFFF"         when addr_sel_i = ADDR_BRK1   else
            (others => '0');
 
    data <= (others => '0') when data_sel_i = DATA_NOP  else
@@ -255,15 +329,15 @@ begin
                     addr_sel_i = ADDR_BRK1   else
            '0';
 
-
-   -----------------
+   ------------------------
    -- Drive output signals
-   -----------------
+   ------------------------
 
    debug_o( 15 downto   0) <= pc;     -- Two bytes
    debug_o( 23 downto  16) <= ar;     -- One byte
    debug_o( 31 downto  24) <= data_i; -- One byte
-   debug_o( 47 downto  32) <= hilo;   -- Two bytes
+   debug_o( 39 downto  32) <= lo;     -- One byte
+   debug_o( 47 downto  40) <= hi;     -- One byte
    debug_o( 63 downto  48) <= addr;   -- Two bytes
    debug_o( 71 downto  64) <= data;   -- One byte
    debug_o( 72)            <= wren;   -- One byte
@@ -274,12 +348,11 @@ begin
    debug_o(103 downto  96) <= yr;
    debug_o(111 downto 104) <= xr;
 
-
    addr_o <= addr;
    data_o <= data;
    wren_o <= wren and not wait_i;
    rden_o <= mem and (not wren or alu_sel_i(4));
-   sri_o  <= sr(SR_I);
+   sri_o  <= sr(2); -- IRQ mask
 
 end architecture structural;
 
