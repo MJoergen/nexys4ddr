@@ -76,20 +76,13 @@ begin
          -- Hold reset asserted for a number of clock cycles.
          main_rst     <= main_rst_shr(0);
          main_rst_shr <= "0" & main_rst_shr(main_rst_shr'left downto 1);
+
+         if rstn_i = '0' then
+            main_rst_shr <= (others => '1');
+         end if;
       end if;
    end process main_rst_proc;
 
-   
-   --------------------------------------------------
-   -- Generate Reset
-   --------------------------------------------------
-   main_rst_proc : process (main_clk)
-   begin
-      if rising_edge(main_clk) then
-         main_rst <= not rstn_i;
-      end if;
-   end process main_rst_proc;
-   
    
    --------------------------------------------------
    -- Instantiate Waiter
