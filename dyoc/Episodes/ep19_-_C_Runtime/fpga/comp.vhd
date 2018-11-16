@@ -43,6 +43,7 @@ architecture Structural of comp is
    -- MAIN Clock domain
    signal main_clk     : std_logic;
    signal main_rst     : std_logic;
+   signal main_rst_shr : std_logic_vector(7 downto 0) := X"FF";
    signal main_wait    : std_logic;
    signal main_overlay : std_logic_vector(C_OVERLAY_BITS-1 downto 0);
 
@@ -65,6 +66,20 @@ begin
    ); -- clk_inst
 
 
+   --------------------------------------------------
+   -- Generate Reset
+   --------------------------------------------------
+
+   main_rst_proc : process (main_clk)
+   begin
+      if rising_edge(main_clk) then
+         -- Hold reset asserted for a number of clock cycles.
+         main_rst     <= main_rst_shr(0);
+         main_rst_shr <= "0" & main_rst_shr(main_rst_shr'left downto 1);
+      end if;
+   end process main_rst_proc;
+
+   
    --------------------------------------------------
    -- Generate Reset
    --------------------------------------------------
@@ -109,19 +124,17 @@ begin
    -- Instantiate clock crossing from MAIN to VGA
    --------------------------------------------------
 
-   xpm_cdc_array_single_inst: xpm_cdc_array_single
+   cdc_overlay_inst : entity work.cdc
    generic map (
-      DEST_SYNC_FF   => 2,
-      SIM_ASSERT_CHK => 1,
-      SRC_INPUT_REG  => 1,
-      WIDTH          => C_OVERLAY_BITS
+      G_WIDTH => C_OVERLAY_BITS
    )
    port map (
-      src_clk  => main_clk,
-      src_in   => main_overlay,
-      dest_clk => vga_clk,
-      dest_out => vga_overlay
-   ); -- xpm_cdc_array_single_inst
+      src_clk_i  => main_clk,
+      src_rst_i  => main_rst,
+      src_data_i => main_overlay,
+      dst_clk_i  => vga_clk,
+      dst_data_o => vga_overlay
+   ); -- cdc_overlay_inst
 
 
    --------------------------------------------------

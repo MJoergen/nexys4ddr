@@ -5,7 +5,7 @@ MAIN = main.vhd \
 		 cpu/cpu.vhd cpu/datapath.vhd cpu/ctl.vhd cpu/pc.vhd cpu/ar.vhd cpu/hi.vhd cpu/lo.vhd cpu/alu.vhd cpu/sr.vhd \
 		 mem/mem.vhd
 SRC  = $(MAIN) \
-		 comp.vhd waiter.vhd clk.vhd \
+		 comp.vhd waiter.vhd clk.vhd cdc.vhd \
 		 vga/vga.vhd vga/digits.vhd vga/pix.vhd vga/font.vhd
 XDC  = comp.xdc
 TB   = main_tb.vhd
