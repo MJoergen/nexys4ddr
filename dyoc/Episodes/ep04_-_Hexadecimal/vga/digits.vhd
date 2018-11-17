@@ -72,19 +72,18 @@ architecture Structural of digits is
    signal char_row : integer range 0 to V_TOTAL/16-1;
 
    -- Value of nibble at current position
-   signal nibble_offset : integer range 0 to 5;
-   signal nibble_index  : integer range 0 to 5;
-   signal nibble        : std_logic_vector(3 downto 0);
+   signal nibble_index : integer range 0 to 5;
+   signal nibble       : std_logic_vector(3 downto 0);
 
    -- Bitmap of digit at current position
-   signal char          : std_logic_vector(7 downto 0);
-   signal bitmap        : bitmap_t;
+   signal char         : std_logic_vector(7 downto 0);
+   signal bitmap       : bitmap_t;
 
    -- Pixel at current position
-   signal pix_col       : integer range 0 to 7;
-   signal pix_row       : integer range 0 to 7;
-   signal bitmap_index  : integer range 0 to 63;
-   signal pix           : std_logic;
+   signal pix_col      : integer range 0 to 7;
+   signal pix_row      : integer range 0 to 7;
+   signal bitmap_index : integer range 0 to 63;
+   signal pix          : std_logic;
 
    -- We group together all the VGA signals into a single record.
    -- This will be especially useful in later episodes.
@@ -110,12 +109,11 @@ begin
 
 
    --------------------------------------------------
-   -- Calculate value of digit at current position ('0' or '1')
+   -- Calculate value of nibble at current position
    --------------------------------------------------
 
-   nibble_offset <= char_col - DIGITS_CHAR_X;
-   nibble_index  <= 5 - nibble_offset;
-   nibble        <= digits_i(4*nibble_index+3 downto 4*nibble_index);
+   nibble_index <= 5 - (char_col - DIGITS_CHAR_X);
+   nibble       <= digits_i(4*nibble_index+3 downto 4*nibble_index);
 
 
    --------------------------------------------------

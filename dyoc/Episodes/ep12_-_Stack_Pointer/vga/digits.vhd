@@ -61,8 +61,15 @@ architecture Structural of digits is
    constant TEXT_CHAR_Y   : integer := DIGITS_CHAR_Y;
 
    type txt_t is array (0 to 5*NUM_ROWS-1) of character;
-   constant txt : txt_t := "SP SR" & "W DA " & "ADDR " & "HI LO" &
-                           "DI AR" & "  PC " & "IR CN" & " CTL1" & " CTL2";
+   constant txt : txt_t := "IR CN" &
+                           " CTL1" &
+                           " CTL2" &
+                           "  PC " &
+                           "DI AR" &
+                           "HI LO" &
+                           "ADDR " &
+                           "W DA " &
+                           "SP SR";
 
    -- A single character bitmap is defined by 8x8 = 64 bits.
    subtype bitmap_t is std_logic_vector(63 downto 0);
@@ -83,22 +90,21 @@ architecture Structural of digits is
    signal char_row : integer range 0 to V_TOTAL/16-1;
 
    -- Value of nibble at current position
-   signal nibble_offset : integer range 0 to 4*NUM_ROWS-1;
-   signal nibble_index  : integer range 0 to 4*NUM_ROWS-1;
-   signal nibble        : std_logic_vector(3 downto 0);
-   signal txt_offset    : integer range 0 to 5*NUM_ROWS-1;
+   signal nibble_index : integer range 0 to 4*NUM_ROWS-1;
+   signal nibble       : std_logic_vector(3 downto 0);
+   signal txt_offset   : integer range 0 to 5*NUM_ROWS-1;
 
    -- Bitmap of digit at current position
-   signal char_nibble   : std_logic_vector(7 downto 0);
-   signal char_txt      : std_logic_vector(7 downto 0);
-   signal char          : std_logic_vector(7 downto 0);
-   signal bitmap        : bitmap_t;
+   signal char_nibble  : std_logic_vector(7 downto 0);
+   signal char_txt     : std_logic_vector(7 downto 0);
+   signal char         : std_logic_vector(7 downto 0);
+   signal bitmap       : bitmap_t;
 
    -- Pixel at current position
-   signal pix_col       : integer range 0 to 7;
-   signal pix_row       : integer range 0 to 7;
-   signal bitmap_index  : integer range 0 to 63;
-   signal pix           : std_logic;
+   signal pix_col      : integer range 0 to 7;
+   signal pix_row      : integer range 0 to 7;
+   signal bitmap_index : integer range 0 to 63;
+   signal pix          : std_logic;
 
    -- We group together all the VGA signals into a single record.
    -- This will be especially useful in later episodes.
@@ -124,13 +130,12 @@ begin
 
 
    --------------------------------------------------
-   -- Calculate value of digit at current position ('0' or '1')
+   -- Calculate value of nibble at current position
    --------------------------------------------------
 
-   nibble_offset <= (char_row - DIGITS_CHAR_Y)*4 + (char_col - DIGITS_CHAR_X);
-   nibble_index  <= 4*NUM_ROWS-1 - nibble_offset;
-   nibble        <= digits_i(4*nibble_index+3 downto 4*nibble_index);
-   txt_offset    <= (char_row - TEXT_CHAR_Y)*5 + (char_col - TEXT_CHAR_X);
+   nibble_index <= (char_row - DIGITS_CHAR_Y)*4 + 3 - (char_col - DIGITS_CHAR_X);
+   nibble       <= digits_i(4*nibble_index+3 downto 4*nibble_index);
+   txt_offset   <= (char_row - TEXT_CHAR_Y)*5 + (char_col - TEXT_CHAR_X);
 
 
    --------------------------------------------------

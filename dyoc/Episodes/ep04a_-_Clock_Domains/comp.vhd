@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
-Library xpm;
+library xpm;
 use xpm.vcomponents.all;
 
 -- This is the top level module. The ports on this entity are mapped directly
