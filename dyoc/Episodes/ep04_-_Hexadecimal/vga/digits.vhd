@@ -219,6 +219,5 @@ begin
    vga_vs_o  <= vga.vs;
    vga_col_o <= vga.col;
 
-
 end architecture Structural;
 

@@ -1,5 +1,5 @@
 # Design Your Own Computer
-# Episode 15 : "Indirect Addressing"
+# Episode 15 : "Indexed Addressing"
 
 Welcome to "Design Your Own Computer".  In this episode we will introduce the
 indexed addressing modes, i.e. alle the "a,X", "a,Y", "d,X", and "d,Y" instructions.

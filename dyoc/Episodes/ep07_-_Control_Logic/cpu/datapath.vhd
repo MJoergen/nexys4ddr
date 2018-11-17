@@ -108,7 +108,7 @@ begin
       lo_sel_i => lo_sel_i,
       data_i   => data_i,
       lo_o     => lo
-   ); -- hi_inst
+   ); -- lo_inst
 
 
    -- Output multiplexers

@@ -453,7 +453,7 @@ noError16:
    BNE error16
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Test 17 : Test a,X and a,Y addressin modes
+; Test 17 : Test a,X and a,Y addressing modes
    LDA #$11
    STA $0320
    LDX #$10

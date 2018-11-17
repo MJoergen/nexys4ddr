@@ -2,15 +2,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This is the top level module. The ports on this entity are mapped directly
--- to pins on the FPGA.
-
--- In this version the design can display 6 hexadecimal digits (3 bytes) on the
--- VGA output. The first 2 bytes show the value of the address bus connected to
--- the internal memory.  The last byte shows the value read from the memory.
-
--- The address bus increments automatically. The speed is controlled by the
--- slide switches.
+-- This is the MAIN module. This currently contains the memory
+-- and will later contain the CPU too.
 
 entity main is
    generic (

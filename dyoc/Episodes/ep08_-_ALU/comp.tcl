@@ -8,11 +8,8 @@ read_vhdl -vhdl2008 { \
 read_xdc comp.xdc
 set_property XPM_LIBRARIES {XPM_FIFO} [current_project]
 synth_design -top comp -part xc7a100tcsg324-1 -flatten_hierarchy none
-opt_design
 place_design
-phys_opt_design
 route_design
-phys_opt_design
 write_checkpoint -force comp.dcp
 write_bitstream -force comp.bit
 report_methodology

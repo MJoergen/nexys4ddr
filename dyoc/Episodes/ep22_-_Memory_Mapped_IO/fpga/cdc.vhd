@@ -26,6 +26,7 @@ architecture structural of cdc is
 
    signal dst_empty       : std_logic;
    signal dst_rd_en       : std_logic;
+
    signal src_prog_full   : std_logic;
    signal src_wr_en       : std_logic;
    signal src_wr_rst_busy : std_logic;
@@ -45,12 +46,12 @@ begin
    xpm_fifo_async_inst : xpm_fifo_async
    generic map (
       FIFO_READ_LATENCY    => 0,
-      FIFO_WRITE_DEPTH     => 16,
-      RD_DATA_COUNT_WIDTH  => 1,
+      FIFO_WRITE_DEPTH     => 16,      -- The smallest possible value
+      RD_DATA_COUNT_WIDTH  => 1,       -- Not used
       READ_DATA_WIDTH      => G_WIDTH,
       READ_MODE            => "fwft",
       WRITE_DATA_WIDTH     => G_WIDTH,
-      WR_DATA_COUNT_WIDTH  => 1
+      WR_DATA_COUNT_WIDTH  => 1        -- Not used
    )
    port map (
       almost_empty         => open,

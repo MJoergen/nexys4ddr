@@ -7,18 +7,13 @@ use xpm.vcomponents.all;
 
 -- This is the top level module. The ports on this entity are mapped directly
 -- to pins on the FPGA.
---
--- In this version the design can execute a single instruction (LDA #)
--- from the memory.
--- Additionally, the CPU registers are shown on the VGA display.
--- The registers shown are:
--- * Data read from memory (1 byte)
--- * 'A' register (1 byte)
--- * Program Counter (2 bytes)
--- * Instruction Register (1 byte)
--- * Instruction Cycle Counter (1 byte).
---
--- The speed of the execution is controlled by the slide switches.
+
+-- In this version the design can display 6 hexadecimal digits (3 bytes) on the
+-- VGA output. The first 2 bytes show the value of the address bus connected to
+-- the internal memory.  The last byte shows the value read from the memory.
+
+-- The address bus increments automatically. The speed is controlled by the
+-- slide switches.
 
 entity comp is
    port (
