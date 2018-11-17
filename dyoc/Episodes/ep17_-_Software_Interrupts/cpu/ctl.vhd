@@ -2778,11 +2778,11 @@ begin
 
    -- Debug Output
    invalid_o  <= invalid_inst;
-   debug_o(38 downto  0) <= ctl;    -- Six bytes
-   debug_o(47 downto 39) <= (others => '0');
-   debug_o(50 downto 48) <= cnt;    -- One byte
-   debug_o(55 downto 51) <= (others => '0');
-   debug_o(63 downto 56) <= ir;     -- One byte
+   debug_o( 2 downto  0) <= cnt;    -- One byte
+   debug_o( 7 downto  3) <= (others => '0');
+   debug_o(15 downto  8) <= ir;     -- One byte
+   debug_o(54 downto 16) <= ctl;    -- Two bytes
+   debug_o(63 downto 55) <= (others => '0');
 
 end architecture structural;
 

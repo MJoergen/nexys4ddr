@@ -99,9 +99,7 @@ begin
 
    debug_o( 2 downto  0) <= cnt;    -- One byte
    debug_o( 7 downto  3) <= (others => '0');
-
    debug_o(15 downto  8) <= ir;     -- One byte
-
 
 end architecture structural;
 

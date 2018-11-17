@@ -64,6 +64,7 @@ architecture Structural of digits is
    constant txt : txt_t := "IR CN" &
                            " CTL1" &
                            " CTL2" &
+                           " CTL3" &
                            "  PC " &
                            "DI AR" &
                            "HI LO" &
