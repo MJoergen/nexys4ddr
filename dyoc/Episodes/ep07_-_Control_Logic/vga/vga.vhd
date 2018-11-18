@@ -15,6 +15,7 @@ use ieee.numeric_std_unsigned.all;
 entity vga is
    generic (
       G_OVERLAY_BITS : integer;
+      G_OPCODES_FILE : string;
       G_FONT_FILE    : string
    );
    port (
@@ -55,6 +56,7 @@ begin
    digits_inst : entity work.digits
    generic map (
       G_OVERLAY_BITS => G_OVERLAY_BITS,
+      G_OPCODES_FILE => G_OPCODES_FILE,
       G_FONT_FILE    => G_FONT_FILE
    )
    port map (
