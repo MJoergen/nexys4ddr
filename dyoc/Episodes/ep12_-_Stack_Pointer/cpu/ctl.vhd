@@ -2719,11 +2719,15 @@ begin
    sr_sel_o   <= sr_sel;
    sp_sel_o   <= sp_sel;
 
-   -- Debug Output
+
+   ------------------
+   -- Overlay Output
+   ------------------
+
    invalid_o  <= invalid_inst;
    debug_o( 2 downto  0) <= cnt;    -- One byte
    debug_o( 7 downto  3) <= (others => '0');
-   debug_o(15 downto  8) <= ir;     -- One byte
+   debug_o(15 downto  8) <= data_i when cnt = 0 else ir;     -- One byte
    debug_o(41 downto 16) <= ctl;    -- Two bytes
    debug_o(47 downto 42) <= (others => '0');
 

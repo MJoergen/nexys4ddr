@@ -28,10 +28,11 @@ architecture Structural of font is
 
    -- This reads the ROM contents from a text file
    impure function InitRamFromFile(RamFileName : in string) return bitmap_vector_t is
-      FILE RamFile : text is in RamFileName;
+      FILE RamFile : text;
       variable RamFileLine : line;
       variable RAM : bitmap_vector_t := (others => (others => '0'));
    begin
+      file_open(RamFile, RamFileName, read_mode);
       for i in bitmap_vector_t'range loop
          readline (RamFile, RamFileLine);
          hread (RamFileLine, RAM(i));

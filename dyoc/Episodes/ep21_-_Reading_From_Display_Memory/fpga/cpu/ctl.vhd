@@ -2852,11 +2852,15 @@ begin
    reg_sel_o  <= reg_sel;
    zp_sel_o   <= zp_sel;
 
-   -- Debug Output
+
+   ------------------
+   -- Overlay Output
+   ------------------
+
    invalid_o  <= invalid_inst;
    debug_o(38 downto  0) <= ctl;    -- Six bytes
    debug_o(47 downto 39) <= (others => '0');
-   debug_o(50 downto 48) <= cnt;    -- One byte
+   debug_o(15 downto  8) <= data_i when cnt = 0 else ir;     -- One byte
    debug_o(55 downto 51) <= (others => '0');
    debug_o(63 downto 56) <= ir;     -- One byte
 

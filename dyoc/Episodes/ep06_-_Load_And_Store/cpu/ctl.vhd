@@ -93,13 +93,14 @@ begin
                     (cnt = 1 and ir = X"00") else
            '0';
 
-   -----------------
+
+   ------------------
    -- Overlay Output
-   -----------------
+   ------------------
 
    debug_o( 2 downto  0) <= cnt;    -- One byte
    debug_o( 7 downto  3) <= (others => '0');
-   debug_o(15 downto  8) <= ir;     -- One byte
+   debug_o(15 downto  8) <= data_i when cnt = 0 else ir;     -- One byte
 
 end architecture structural;
 

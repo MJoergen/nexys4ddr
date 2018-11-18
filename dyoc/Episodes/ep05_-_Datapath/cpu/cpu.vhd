@@ -30,7 +30,7 @@ end entity cpu;
 
 architecture structural of cpu is
 
-   signal a_sel : std_logic;
+   signal ar_sel : std_logic;
 
 begin
 
@@ -40,17 +40,17 @@ begin
 
    datapath_inst : entity work.datapath
    port map (
-      clk_i   => clk_i,
-      wait_i  => wait_i,
+      clk_i    => clk_i,
+      wait_i   => wait_i,
 
-      addr_o  => addr_o,
-      data_i  => data_i,
-      data_o  => data_o,
-      wren_o  => wren_o,
+      addr_o   => addr_o,
+      data_i   => data_i,
+      data_o   => data_o,
+      wren_o   => wren_o,
 
-      a_sel_i => a_sel,
+      ar_sel_i => ar_sel,
 
-      debug_o => overlay_o(47 downto 16)
+      debug_o  => overlay_o(47 downto 16)
    ); -- datapath_inst
 
 
@@ -60,14 +60,14 @@ begin
 
    ctl_inst : entity work.ctl
    port map (
-      clk_i   => clk_i,
-      wait_i  => wait_i,
+      clk_i    => clk_i,
+      wait_i   => wait_i,
 
-      data_i  => data_i,
+      data_i   => data_i,
 
-      a_sel_o => a_sel,
+      ar_sel_o => ar_sel,
 
-      debug_o => overlay_o(15 downto 0)
+      debug_o  => overlay_o(15 downto 0)
    ); -- ctl_inst
 
 end architecture structural;

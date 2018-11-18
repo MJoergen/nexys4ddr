@@ -2675,11 +2675,15 @@ begin
    addr_sel_o <= addr_sel;
    data_sel_o <= data_sel;
 
-   -- Debug Output
+
+   ------------------
+   -- Overlay Output
+   ------------------
+
    invalid_o  <= invalid_inst;
    debug_o( 2 downto  0) <= cnt;    -- One byte
    debug_o( 7 downto  3) <= (others => '0');
-   debug_o(15 downto  8) <= ir;     -- One byte
+   debug_o(15 downto  8) <= data_i when cnt = 0 else ir;     -- One byte
    debug_o(26 downto 16) <= ctl;    -- Two bytes
    debug_o(31 downto 27) <= (others => '0');
 

@@ -4,14 +4,14 @@ use ieee.numeric_std_unsigned.all;
 
 entity ctl is
    port (
-      clk_i   : in  std_logic;
-      wait_i  : in  std_logic;
+      clk_i    : in  std_logic;
+      wait_i   : in  std_logic;
 
-      data_i  : in  std_logic_vector(7 downto 0);
+      data_i   : in  std_logic_vector(7 downto 0);
 
-      a_sel_o : out std_logic;
+      ar_sel_o : out std_logic;
 
-      debug_o : out std_logic_vector(15 downto 0)
+      debug_o  : out std_logic_vector(15 downto 0)
    );
 end entity ctl;
 
@@ -27,16 +27,6 @@ architecture structural of ctl is
    signal last : std_logic;
 
 begin
-
-   ------------------
-   -- Overlay Output
-   ------------------
-
-   debug_o( 2 downto  0) <= cnt;    -- One byte
-   debug_o( 7 downto  3) <= (others => '0');
-
-   debug_o(15 downto  8) <= ir;     -- One byte
-
 
    -- Instruction Cycle Counter
    cnt_proc : process (clk_i)
@@ -65,11 +55,20 @@ begin
    end process ir_proc;
 
    -- Generate Control Signals
-   a_sel_o <= '1' when cnt = 1 and ir = X"A9" else   -- Load 'A' register in second cycle of the "LDA #" instruction.
-            '0';
+   ar_sel_o <= '1' when cnt = 1 and ir = X"A9" else   -- Load 'A' register in second cycle of the "LDA #" instruction.
+               '0';
 
    last <= '1' when cnt = 1 else                   -- All instructions last two clock cycles.
            '0';
+
+
+   ------------------
+   -- Overlay Output
+   ------------------
+
+   debug_o( 2 downto  0) <= cnt;    -- One byte
+   debug_o( 7 downto  3) <= (others => '0');
+   debug_o(15 downto  8) <= data_i when cnt = 0 else ir;     -- One byte
 
 end architecture structural;
 
