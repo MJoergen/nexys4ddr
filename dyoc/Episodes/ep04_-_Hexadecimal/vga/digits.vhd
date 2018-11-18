@@ -152,7 +152,7 @@ begin
    -- Generate pixel colour
    --------------------------------------------------
 
-   p_vga_col : process (clk_i)
+   vga_col_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
 
@@ -176,13 +176,14 @@ begin
          end if;
 
       end if;
-   end process p_vga_col;
+   end process vga_col_proc;
+
 
    --------------------------------------------------
    -- Generate horizontal sync signal
    --------------------------------------------------
 
-   p_vga_hs : process (clk_i)
+   vga_hs_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if pix_x_i >= HS_START and pix_x_i < HS_START+HS_TIME then
@@ -191,13 +192,14 @@ begin
             vga.hs <= '1';
          end if;
       end if;
-   end process p_vga_hs;
+   end process vga_hs_proc;
+
 
    --------------------------------------------------
    -- Generate vertical sync signal
    --------------------------------------------------
 
-   p_vga_vs : process (clk_i)
+   vga_vs_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if pix_y_i >= VS_START and pix_y_i < VS_START+VS_TIME then
@@ -206,7 +208,7 @@ begin
             vga.vs <= '1';
          end if;
       end if;
-   end process p_vga_vs;
+   end process vga_vs_proc;
 
 
    --------------------------------------------------

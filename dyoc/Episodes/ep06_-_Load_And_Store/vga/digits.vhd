@@ -54,19 +54,19 @@ architecture Structural of digits is
    -- Each character is 16x16 pixels, so the screen contains 40x30 characters.
 
    -- Define positioning of first digit
-   constant DIGITS_CHAR_X : integer := 16;
+   constant DIGITS_CHAR_X : integer := 19;
    constant DIGITS_CHAR_Y : integer := 10;
 
    constant TEXT_CHAR_X   : integer := 10;
    constant TEXT_CHAR_Y   : integer := DIGITS_CHAR_Y;
 
-   type txt_t is array (0 to 5*NUM_ROWS-1) of character;
-   constant txt : txt_t := "IR CN" &
-                           "  PC " &
-                           "DI AR" &
-                           "HI LO" &
-                           "ADDR " &
-                           "W DA ";
+   type txt_t is array (0 to 8*NUM_ROWS-1) of character;
+   constant txt : txt_t := "   IR CN" &
+                           "     PC " &
+                           "   DI AR" &
+                           "   HI LO" &
+                           "   ADDR " &
+                           "   W DA ";
 
    -- A single character bitmap is defined by 8x8 = 64 bits.
    subtype bitmap_t is std_logic_vector(63 downto 0);
@@ -89,7 +89,7 @@ architecture Structural of digits is
    -- Value of nibble at current position
    signal nibble_index : integer range 0 to 4*NUM_ROWS-1;
    signal nibble       : std_logic_vector(3 downto 0);
-   signal txt_offset   : integer range 0 to 5*NUM_ROWS-1;
+   signal txt_offset   : integer range 0 to 8*NUM_ROWS-1;
 
    -- Bitmap of digit at current position
    signal char_nibble  : std_logic_vector(7 downto 0);
@@ -130,9 +130,9 @@ begin
    -- Calculate value of nibble at current position
    --------------------------------------------------
 
-   nibble_index <= (char_row - DIGITS_CHAR_Y)*4 + 3 - (char_col - DIGITS_CHAR_X);
+   nibble_index <= ((char_row - DIGITS_CHAR_Y)*4 + 3 - (char_col - DIGITS_CHAR_X)) mod (4*NUM_ROWS);
    nibble       <= digits_i(4*nibble_index+3 downto 4*nibble_index);
-   txt_offset   <= (char_row - TEXT_CHAR_Y)*5 + (char_col - TEXT_CHAR_X);
+   txt_offset   <= ((char_row - TEXT_CHAR_Y)*8 + (char_col - TEXT_CHAR_X)) mod (8*NUM_ROWS);
 
 
    --------------------------------------------------
@@ -140,14 +140,14 @@ begin
    --------------------------------------------------
 
    char_nibble <= nibble + X"30" when nibble < 10 else
-           nibble + X"41" - 10;
+                  nibble + X"41" - 10;
 
    char_txt    <= to_std_logic_vector(character'pos(txt(txt_offset)), 8);
 
    char <= char_nibble when char_row >= DIGITS_CHAR_Y and char_row < DIGITS_CHAR_Y+NUM_ROWS and
                             char_col >= DIGITS_CHAR_X and char_col < DIGITS_CHAR_X+4 else
            char_txt    when char_row >= TEXT_CHAR_Y   and char_row < TEXT_CHAR_Y+NUM_ROWS and
-                            char_col >= TEXT_CHAR_X   and char_col < TEXT_CHAR_X+5 else
+                            char_col >= TEXT_CHAR_X   and char_col < TEXT_CHAR_X+8 else
            X"20"; -- Fill the rest of the screen with spaces.
 
 
@@ -179,7 +179,7 @@ begin
    -- Generate pixel colour
    --------------------------------------------------
 
-   p_vga_col : process (clk_i)
+   vga_col_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
 
@@ -195,13 +195,14 @@ begin
          end if;
 
       end if;
-   end process p_vga_col;
+   end process vga_col_proc;
+
 
    --------------------------------------------------
    -- Generate horizontal sync signal
    --------------------------------------------------
 
-   p_vga_hs : process (clk_i)
+   vga_hs_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if pix_x_i >= HS_START and pix_x_i < HS_START+HS_TIME then
@@ -210,13 +211,14 @@ begin
             vga.hs <= '1';
          end if;
       end if;
-   end process p_vga_hs;
+   end process vga_hs_proc;
+
 
    --------------------------------------------------
    -- Generate vertical sync signal
    --------------------------------------------------
 
-   p_vga_vs : process (clk_i)
+   vga_vs_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if pix_y_i >= VS_START and pix_y_i < VS_START+VS_TIME then
@@ -225,7 +227,7 @@ begin
             vga.vs <= '1';
          end if;
       end if;
-   end process p_vga_vs;
+   end process vga_vs_proc;
 
 
    --------------------------------------------------
