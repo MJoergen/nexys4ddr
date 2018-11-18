@@ -2724,8 +2724,8 @@ begin
    debug_o( 2 downto  0) <= cnt;    -- One byte
    debug_o( 7 downto  3) <= (others => '0');
    debug_o(15 downto  8) <= ir;     -- One byte
-   debug_o(39 downto 16) <= ctl;    -- Two bytes
-   debug_o(47 downto 40) <= (others => '0');
+   debug_o(41 downto 16) <= ctl;    -- Two bytes
+   debug_o(47 downto 42) <= (others => '0');
 
 end architecture structural;
 
