@@ -121,13 +121,14 @@ architecture Structural of digits is
    signal vga : t_vga;
 
 begin
-   
+
    --------------------------------------------------
    -- Calculate character coordinates, within 40x30
    --------------------------------------------------
 
    char_col <= to_integer(pix_x_i(9 downto 4));
    char_row <= to_integer(pix_y_i(9 downto 4));
+
 
    --------------------------------------------------
    -- Calculate value of digit at current position ('0' or '1')
@@ -137,12 +138,14 @@ begin
    digits_index  <= 7 - digits_offset;
    digit         <= digits_i(digits_index);
 
+
    --------------------------------------------------
    -- Calculate bitmap (64 bits) of digit at current position
    --------------------------------------------------
 
    bitmaps_index <= to_integer((0 => digit));
    bitmap        <= bitmaps(bitmaps_index);
+
 
    --------------------------------------------------
    -- Calculate pixel at current position ('0' or '1')

@@ -88,7 +88,6 @@ architecture Structural of digits is
    constant COL_GREEN : std_logic_vector(7 downto 0) := B"000_111_00";
    constant COL_BLUE  : std_logic_vector(7 downto 0) := B"000_000_11";
 
-
    -- Character coordinates
    signal char_col : integer range 0 to H_TOTAL/16-1;
    signal char_row : integer range 0 to V_TOTAL/16-1;
@@ -130,6 +129,7 @@ begin
    char_col <= to_integer(pix_x_i(9 downto 4));
    char_row <= to_integer(pix_y_i(9 downto 4));
 
+
    --------------------------------------------------
    -- Calculate value of digit at current position ('0' or '1')
    --------------------------------------------------
@@ -138,12 +138,14 @@ begin
    digits_index  <= 23 - digits_offset;
    digit         <= digits_i(digits_index);
 
+
    --------------------------------------------------
    -- Calculate bitmap (64 bits) of digit at current position
    --------------------------------------------------
 
    bitmaps_index <= to_integer((0 => digit));
    bitmap        <= bitmaps(bitmaps_index);
+
 
    --------------------------------------------------
    -- Calculate pixel at current position ('0' or '1')

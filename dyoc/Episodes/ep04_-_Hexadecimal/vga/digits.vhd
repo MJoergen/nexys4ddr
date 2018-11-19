@@ -56,7 +56,6 @@ architecture Structural of digits is
    -- A single character bitmap is defined by 8x8 = 64 bits.
    subtype bitmap_t is std_logic_vector(63 downto 0);
 
-
    -- Define colours
    constant COL_BLACK : std_logic_vector(7 downto 0) := B"000_000_00";
    constant COL_DARK  : std_logic_vector(7 downto 0) := B"001_001_01";
@@ -65,7 +64,6 @@ architecture Structural of digits is
    constant COL_RED   : std_logic_vector(7 downto 0) := B"111_000_00";
    constant COL_GREEN : std_logic_vector(7 downto 0) := B"000_111_00";
    constant COL_BLUE  : std_logic_vector(7 downto 0) := B"000_000_11";
-
 
    -- Character coordinates
    signal char_col : integer range 0 to H_TOTAL/16-1;
