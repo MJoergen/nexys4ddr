@@ -1,6 +1,5 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std_unsigned.all;
 
 -- This is the top level module. The ports on this entity are mapped directly
 -- to pins on the FPGA.
@@ -24,7 +23,7 @@ entity comp is
    );
 end comp;
 
-architecture Structural of comp is
+architecture structural of comp is
 
    constant C_FONT_FILE : string := "font8x8.txt";
 
@@ -34,8 +33,6 @@ architecture Structural of comp is
 
    -- Memory signals
    signal mem_wait : std_logic;
-   signal mem_addr : std_logic_vector(15 downto 0);
-   signal mem_data : std_logic_vector(7 downto 0);
 
    -- Input to VGA block
    signal digits   : std_logic_vector(23 downto 0);
@@ -68,44 +65,17 @@ begin
       wait_o => mem_wait
    ); -- waiter_inst
 
-   
-   --------------------------------------------------
-   -- Generate memory address
-   --------------------------------------------------
-   
-   mem_addr_proc : process (vga_clk)
-   begin
-      if rising_edge(vga_clk) then
-         if mem_wait = '0' then
-            mem_addr <= mem_addr + 1;
-         end if;
-      end if;
-   end process mem_addr_proc;
-
 
    --------------------------------------------------
-   -- Instantiate memory
+   -- Instantiate MAIN module
    --------------------------------------------------
    
-   mem_inst : entity work.mem
-   generic map (
-      G_ADDR_BITS => 4  -- 16 bytes
-   )
+   main_inst : entity work.main
    port map (
-      clk_i  => vga_clk,
-      addr_i => mem_addr(3 downto 0),  -- Only select the relevant address bits
-      data_o => mem_data,
-      wren_i => '0',             -- Unused at the moment
-      data_i => (others => '0')  -- Unused at the moment
-   ); -- mem_inst
-
-
-   --------------------------------------------------
-   -- Generate data to be shown on VGA
-   --------------------------------------------------
-
-   digits(23 downto 8) <= mem_addr;
-   digits( 7 downto 0) <= mem_data;
+      clk_i    => vga_clk,
+      wait_i   => mem_wait,
+      digits_o => digits
+   ); -- main_inst
 
 
    --------------------------------------------------
@@ -124,5 +94,5 @@ begin
       vga_col_o => vga_col_o
    ); -- vga_inst
 
-end architecture Structural;
+end architecture structural;
 

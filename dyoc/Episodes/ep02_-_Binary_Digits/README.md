@@ -65,14 +65,14 @@ down into
 a number of smaller steps:
 * Which character row and coloumn (inside the 40x30 characters) are we
   currently at (determined from the input pixel coordinates). Lines 125-130 in digits.vhd.
-* Which character to display at this position (based on the input digits). Lines 132-138.
-* Fetch the bitmap associated with this particular character (from the font). Lines 140-145.
-* Extract the particular pixel in this bitmap to display now. Lines 147-154.
-* Choose colour based on this pixel. Lines 156-184.
+* Which character to display at this position (based on the input digits). Lines 133-139.
+* Fetch the bitmap associated with this particular character (from the font). Lines 142-147.
+* Extract the particular pixel in this bitmap to display now. Lines 150-157.
+* Choose colour based on this pixel. Lines 160-188.
 
 Notice that the entire screen has a default background colour (defined in lines
-164-165), and each text character has a (different) background colour (defined
-in lines 174). The foreground colour of the character is defined in line 172.
+168-169), and each text character has a (different) background colour (defined
+in lines 178). The foreground colour of the character is defined in line 176.
 
 ## Input to VGA module
 The value to display is taken from the slide switches on the FPGA board. We

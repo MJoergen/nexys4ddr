@@ -173,9 +173,9 @@ begin
             char_col >= DIGITS_CHAR_X and char_col < DIGITS_CHAR_X+24 then
 
             if pix = '1' then
-               vga.col <= COL_WHITE;
+               vga.col <= COL_WHITE;   -- Text foreground colour.
             else
-               vga.col <= COL_DARK; -- Text background colour.
+               vga.col <= COL_DARK;    -- Text background colour.
             end if;
          end if;
 

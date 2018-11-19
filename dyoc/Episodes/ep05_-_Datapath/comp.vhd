@@ -1,9 +1,5 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std_unsigned.all;
-
-Library xpm;
-use xpm.vcomponents.all;
 
 -- This is the top level module. The ports on this entity are mapped directly
 -- to pins on the FPGA.
@@ -32,7 +28,7 @@ entity comp is
    );
 end comp;
 
-architecture Structural of comp is
+architecture structural of comp is
 
    constant C_OVERLAY_BITS : integer := 48;
    constant C_FONT_FILE    : string  := "font8x8.txt";
@@ -90,7 +86,7 @@ begin
 
 
    --------------------------------------------------
-   -- Instantiate main
+   -- Instantiate MAIN module
    --------------------------------------------------
 
    main_inst : entity work.main
@@ -138,5 +134,5 @@ begin
       vga_col_o => vga_col_o
    ); -- vga_inst
 
-end architecture Structural;
+end architecture structural;
 

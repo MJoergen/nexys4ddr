@@ -16,7 +16,7 @@ entity main is
    );
 end main;
 
-architecture Structural of main is
+architecture structural of main is
 
    -- Memory signals
    signal addr : std_logic_vector(15 downto 0);
@@ -39,10 +39,10 @@ begin
 
 
    --------------------------------------------------
-   -- Instantiate memory
+   -- Instantiate RAM
    --------------------------------------------------
    
-   mem_inst : entity work.mem
+   ram_inst : entity work.ram
    generic map (
       G_ADDR_BITS => 4  -- 16 bytes
    )
@@ -52,7 +52,7 @@ begin
       data_o => data,
       wren_i => '0',             -- Unused at the moment
       data_i => (others => '0')  -- Unused at the moment
-   ); -- mem_inst
+   ); -- ram_inst
 
 
    --------------------------------------------------
@@ -62,5 +62,5 @@ begin
    overlay_o(23 downto 8) <= addr;
    overlay_o( 7 downto 0) <= data;
 
-end architecture Structural;
+end architecture structural;
 

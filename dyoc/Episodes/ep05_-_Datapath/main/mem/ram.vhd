@@ -11,7 +11,7 @@ use ieee.numeric_std_unsigned.all;
 -- This is done by using a synchronous Block RAM, and reading
 -- on the *falling* edge of the clock cycle.
 
-entity mem is
+entity ram is
    generic (
       -- Number of bits in the address bus. The size of the memory will
       -- be 2**G_ADDR_BITS bytes.
@@ -33,23 +33,22 @@ entity mem is
       -- '1' indicates we wish to perform a write at the selected address.
       wren_i : in  std_logic
    );
-end mem;
+end ram;
 
-architecture Structural of mem is
+architecture structural of ram is
 
    -- This defines a type containing an array of bytes
    type mem_t is array (0 to 2**G_ADDR_BITS-1) of std_logic_vector(7 downto 0);
 
    -- Initialize memory contents
    signal mem : mem_t := (
-      X"A9", X"01",           -- LDA #$01
-      X"8D", X"0F", X"00",    -- STA $000F
-      X"A9", X"02",           -- LDA #$02
-      X"AD", X"0F", X"00",    -- LDA $000F
-      X"4C", X"02", X"00",    -- JMP $0002
-
-      others => X"00"
-   );
+      X"A9", X"01",  -- LDA #$01
+      X"A9", X"10",  -- LDA #$10
+      X"A9", X"03",  -- LDA #$03
+      X"A9", X"30",  -- LDA #$30
+      X"A9", X"07",  -- LDA #$07
+      X"A9", X"70",  -- LDA #$70
+      others => X"00");
 
    -- Data read from memory.
    signal data : std_logic_vector(7 downto 0);
@@ -57,27 +56,27 @@ architecture Structural of mem is
 begin
 
    -- Write process
-   p_mem : process (clk_i)
+   mem_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wren_i = '1' then
             mem(to_integer(addr_i)) <= data_i;
          end if;
       end if;
-   end process p_mem;
+   end process mem_proc;
 
    -- Read process.
    -- Triggered on the *falling* clock edge in order to mimick an asynchronous
    -- memory.
-   p_data : process (clk_i)
+   data_proc : process (clk_i)
    begin
       if falling_edge(clk_i) then
          data <= mem(to_integer(addr_i));
       end if;
-   end process p_data;
+   end process data_proc;
 
    -- Drive output signals
    data_o <= data;
 
-end Structural;
+end structural;
 

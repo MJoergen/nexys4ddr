@@ -2,7 +2,8 @@
 read_vhdl -vhdl2008 { \
    comp.vhd waiter.vhd \
    vga/vga.vhd vga/digits.vhd vga/pix.vhd vga/font.vhd \
-   mem/mem.vhd \
+   main/main.vhd \
+   main/mem/ram.vhd \
 }
 read_xdc comp.xdc
 synth_design -top comp -part xc7a100tcsg324-1 -flatten_hierarchy none

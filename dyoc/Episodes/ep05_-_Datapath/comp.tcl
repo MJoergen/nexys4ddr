@@ -1,9 +1,10 @@
 # This is a tcl command script for the Vivado tool chain
 read_vhdl -vhdl2008 { \
-   comp.vhd waiter.vhd clk.vhd main.vhd cdc.vhd \
+   comp.vhd waiter.vhd clk.vhd cdc.vhd \
    vga/vga.vhd vga/digits.vhd vga/pix.vhd vga/font.vhd \
-   cpu/cpu.vhd cpu/datapath.vhd cpu/ctl.vhd \
-   mem/mem.vhd \
+   main/main.vhd \
+   main/cpu/cpu.vhd main/cpu/datapath.vhd main/cpu/ctl.vhd \
+   main/mem/ram.vhd \
 }
 read_xdc comp.xdc
 set_property XPM_LIBRARIES {XPM_FIFO} [current_project]
