@@ -4,20 +4,20 @@ use ieee.numeric_std_unsigned.all;
 
 entity datapath is
    port (
-      clk_i   : in  std_logic;
+      clk_i    : in  std_logic;
 
       -- Memory interface
-      wait_i  : in  std_logic;
-      addr_o  : out std_logic_vector(15 downto 0);
-      data_i  : in  std_logic_vector(7 downto 0);
-      data_o  : out std_logic_vector(7 downto 0);
-      wren_o  : out std_logic;
+      wait_i   : in  std_logic;
+      addr_o   : out std_logic_vector(15 downto 0);
+      data_i   : in  std_logic_vector(7 downto 0);
+      data_o   : out std_logic_vector(7 downto 0);
+      wren_o   : out std_logic;
 
       -- Control signals
-      a_sel_i : in  std_logic;
+      ar_sel_i : in  std_logic;
 
       -- Debug output containing internal registers
-      debug_o : out std_logic_vector(31 downto 0)
+      debug_o  : out std_logic_vector(31 downto 0)
    );
 end entity datapath;
 
@@ -46,7 +46,7 @@ begin
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
-            if a_sel_i = '1' then
+            if ar_sel_i = '1' then
                ar <= data_i;
             end if;
          end if;
