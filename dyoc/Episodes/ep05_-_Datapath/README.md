@@ -57,7 +57,7 @@ Additionally, at each clock cycle the Program Counter should be incremented.
 This happens in lines 34-42.
 
 The 'A' register should read its value from the data input, but not in every
-clock cycle. There shall therefore be a control signal "a\_sel" that controls
+clock cycle. There shall therefore be a control signal "ar\_sel" that controls
 whether the 'A' register should update its value. This is handled in lines
 44-54.
 
@@ -67,22 +67,22 @@ which will be updated at the beginning of every new instruction. We therefore
 additionally need a Cycle Counter that contains which cycle within an instruction
 we are currently executing.
 
-The Instruction Register is updated in lines 55-65 in cpu/ctl.vhd, but only on
+The Instruction Register is updated in lines 45-55 in cpu/ctl.vhd, but only on
 the very first clock cycle of the current instruction, i.e. when cnt = 0.
 
 The Cycle Counter is updated in every clock cycle, and is reset at the end
-of the instruction. This happens in lines 41-53.
+of the instruction. This happens in lines 31-43.
 
 Finally the control signals themselves are assigned combinatorially in lines
-67-72.
+57-62.
 
 ## VGA
 The file vga/digits.vhd has been expanded slightly in order to allow displaying
 text on the screen.  The actual text displayed in front of each row is written
-in lines 64-65, and the position is defined in lines 61-62.  The signal
+in lines 63-66, and the position is defined in lines 60-61.  The signal
 txt\_offset has been added to contain the index into the text string.  The text
-character is determined in line 143 in a rather cumbersome way. This is a
+character is determined in line 140 in a rather cumbersome way. This is a
 consequence of the strict type checking in the VHDL language.  The choice of
-which character to display in performed in lines 145-149, where three
+which character to display in performed in lines 142-146, where three
 possibilities are chosen between.
 

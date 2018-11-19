@@ -32,33 +32,33 @@ the address of the memory, and lines 15-16 translate to the contents of the
 memory at the selected address. This will provide the bitmap associated with
 the current character.
 
-The command hread() in line 37 of vga/font.vhd reads an entire line of
+The command hread() in line 38 of vga/font.vhd reads an entire line of
 hexadecimal digits.
 
 The file name containing the font is passed as a generic in line 9 of
 vga/font.vhd.
 
-Notice that line 51 in vga/font.vhd (reading the font data) is similar to line
-80 in mem/mem.vhd (reading from memory), except that here it is not in a
+Notice that line 52 in vga/font.vhd (reading the font data) is similar to line
+80 in main/mem/ram.vhd (reading from memory), except that here it is not in a
 clocked process.  In a later episode we'll change the font implementation into
 a RAM that the CPU can read from and write to.  This will enable the program
 running on the CPU to update the character font.
 
 ## Showing hexadecimal digits.
 
-Lines 117-119 in vga/digits.vhd have changed to read four bits at a time from the
+Lines 113-114 in vga/digits.vhd have changed to read four bits at a time from the
 input data. This is because a single hexadecimal digit consists of four bits.
 
-The ASCII code is calculated in lines 126-127.
+The ASCII code is calculated in lines 121-122.
 
-Line 149 has been changed, because of the way the font is stored in the text
+Line 143 has been changed, because of the way the font is stored in the text
 file.  In the previous episode, the MSB of the font data corresponded to the
 left most pixel.  But in the font data copied from the above web page, the MSB
 is the right most pixel.  To be consistent, the font data should have been changed
 (and that can easily be done by a small separate program), but I decided this
 extra processing was annoying.
 
-Line 167 has been changed, to reflect that there are now only six characters
+Line 162 has been changed, to reflect that there are now only six characters
 displayed on the screen.
 
 And that is it! We are now in a position where we can display data on the screen

@@ -53,6 +53,16 @@ pc.vhd, ar.vhd, hi.vhd, and lo.vhd.
 We've added yet another line of debug output showing the current value of the 
 control signals.
 
+Furthermore, looking at the top debug line "Inst Cnt" gives the hexadecimal
+value of the current instruction. However, it would be much more useful
+to display the assembly mnemonic. This is fairly easy to add.
+
+Each mnemonic is a string of eight characters, and therefore we need a memory
+with 256\*8 entries, each consisting of 8 bits (for the ASCII character value).
+The address is calculated in lines 141-147 of vga/digits.vhd, and the
+ASCII code is read from a memory in lines 150-161. Line 171 has been added to
+override the text "Inst Cnt" with the current assembly mnemonic. And that is it!
+
 ## LED output
 It is likely that at some point the CPU will attempt to execute an instruction
 that is not yet implemented. To help debugging these situations the LEDs are
