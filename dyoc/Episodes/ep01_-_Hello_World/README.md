@@ -115,16 +115,20 @@ These are described in lines 18-20 in comp.xdc.
 
 ## Build files
 Finally we write a small tcl-script, which is needed by the Vivado tool. Notice
-that in lines 2 and 3 we define all the source files in the design, and in line
-4 we specify the particular FPGA model number on the FPGA board. In the case of
-the Nexys 4 DDR it is an Artix 7 FPGA.
+that in lines 2 and 3 we define all the source files in the design. The option
+"-vhdl2008" is to signify that we use VHDL standard from 2008 as opposed to the
+older standard from 1993. The difference is quite small, but the newer standard
+makes it easier to convert (cast) between the data types "std\_logic\_vector"
+and "integer".  In line 4 we specify the particular FPGA model number on the
+FPGA board. In the case of the Nexys 4 DDR it is an Artix 7 FPGA.
 
 And then there is a simple Makefile. You will of course need to update line 1
-in the Makefile with your particular Xilinx install location and version. The Makefile
-defines three targets:
+in the Makefile with your particular Xilinx install location and version. The
+Makefile defines three targets:
 * comp.bit : This synthesizes (=compiles) the design and generates a binary file.
 * fpga     : This transfers the binary file to the FPGA and starts the FPGA.
-* clean    : This deletes all generated files and returns the directory to its original state.
+* clean    : This deletes all generated files and returns the directory to its
+             original state.
 
 ## Files generated
 When building the project, two files are generated:
