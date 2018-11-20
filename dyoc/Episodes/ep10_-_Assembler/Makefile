@@ -42,7 +42,7 @@ main/mem/ram.txt: main/mem/ram.bin
 
 sim: $(MAIN) $(TB_SRC) main/mem/ram.txt
 	ghdl -i --std=08 --work=work $(MAIN) $(TB_SRC)
-	ghdl -m --std=08 --ieee=synopsys -fexplicit $(TB)
+	ghdl -m --std=08 -fexplicit $(TB)
 	ghdl -r --std=08 $(TB) --assert-level=error --wave=$(WAVE) --stop-time=20us
 	gtkwave $(WAVE) $(SAVE)
 

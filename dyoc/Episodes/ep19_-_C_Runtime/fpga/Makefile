@@ -29,7 +29,7 @@ fpga: comp.bit
 
 sim: $(MAIN) $(TB) ../rom.txt
 	ghdl -i --std=08 --work=work $(MAIN) $(TB)
-	ghdl -m --std=08 --ieee=synopsys -fexplicit main_tb
+	ghdl -m --std=08 -fexplicit main_tb
 	ghdl -r --std=08 main_tb --assert-level=error --wave=$(WAVE) --stop-time=150us
 	gtkwave $(WAVE) $(SAVE)
 
