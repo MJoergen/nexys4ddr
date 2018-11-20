@@ -17,7 +17,7 @@ SAVE   = $(TB).gtkw
 # Generate bit-file and program FPGA
 #####################################
 
-comp.bit: comp.tcl $(SRC) $(XDC) mem/rom.txt
+comp.bit: comp.tcl $(SRC) $(XDC) main/mem/rom.txt
 	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $<"
 
 fpga: comp.bit
