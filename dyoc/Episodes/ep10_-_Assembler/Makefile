@@ -1,22 +1,23 @@
 XILINX_DIR = /opt/Xilinx/Vivado/2017.3
 
-MAIN = main.vhd \
-		 cpu/cpu.vhd cpu/datapath.vhd cpu/ctl.vhd cpu/pc.vhd cpu/ar.vhd cpu/hi.vhd cpu/lo.vhd cpu/alu.vhd cpu/sr.vhd \
-		 mem/mem.vhd
+MAIN = main/main.vhd \
+		 main/cpu/cpu.vhd main/cpu/datapath.vhd main/cpu/ctl.vhd main/cpu/pc.vhd main/cpu/ar.vhd main/cpu/hi.vhd main/cpu/lo.vhd main/cpu/alu.vhd main/cpu/sr.vhd \
+		 main/mem/ram.vhd
 SRC  = $(MAIN) \
 		 comp.vhd waiter.vhd clk.vhd cdc.vhd \
-		 vga/vga.vhd vga/digits.vhd vga/pix.vhd vga/font.vhd
+		 vga/vga.vhd vga/digits.vhd vga/pix.vhd vga/font.vhd vga/opcodes.vhd
 XDC  = comp.xdc
-TB   = main_tb.vhd
-WAVE = main_tb.ghw
-SAVE = main_tb.gtkw
+TB = main_tb
+TB_SRC = main/$(TB).vhd
+WAVE   = main/$(TB).ghw
+SAVE   = main/$(TB).gtkw
 
 
 #####################################
 # Generate bit-file and program FPGA
 #####################################
 
-comp.bit: comp.tcl $(SRC) $(XDC) mem/mem.txt
+comp.bit: comp.tcl $(SRC) $(XDC) main/mem/ram.txt
 	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $<"
 
 fpga: comp.bit
@@ -27,11 +28,11 @@ fpga: comp.bit
 # Compile target program
 #####################################
 
-mem/mem.o: mem/mem.s
+main/mem/ram.o: main/mem/ram.s
 	ca65 $<
-mem/mem.bin: mem/mem.o
+main/mem/ram.bin: main/mem/ram.o
 	ld65 -C ld.cfg $<
-mem/mem.txt: mem/mem.bin
+main/mem/ram.txt: main/mem/ram.bin
 	./bin2hex.py $< $@
 
 
@@ -39,10 +40,10 @@ mem/mem.txt: mem/mem.bin
 # Simulation
 #####################################
 
-sim: $(MAIN) $(TB) mem/mem.txt
-	ghdl -i --std=08 --work=work $(MAIN) $(TB)
-	ghdl -m --std=08 --ieee=synopsys -fexplicit main_tb
-	ghdl -r --std=08 main_tb --assert-level=error --wave=$(WAVE) --stop-time=20us
+sim: $(MAIN) $(TB_SRC) main/mem/ram.txt
+	ghdl -i --std=08 --work=work $(MAIN) $(TB_SRC)
+	ghdl -m --std=08 --ieee=synopsys -fexplicit $(TB)
+	ghdl -r --std=08 $(TB) --assert-level=error --wave=$(WAVE) --stop-time=20us
 	gtkwave $(WAVE) $(SAVE)
 
 
@@ -56,10 +57,10 @@ clean:
 	rm -rf .cache
 	rm -rf *.o
 	rm -rf work-obj08.cf
-	rm -rf main_tb
-	rm -rf main_tb.ghw
-	rm -rf mem/mem.o
-	rm -rf mem/mem.bin
-	rm -rf mem/mem.txt
+	rm -rf $(TB)
+	rm -rf $(WAVE)
+	rm -rf main/mem/ram.o
+	rm -rf main/mem/ram.bin
+	rm -rf main/mem/ram.txt
 	rm -rf a.out
 

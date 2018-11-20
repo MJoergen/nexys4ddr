@@ -49,7 +49,8 @@ begin
 
    main_inst : entity work.main
    generic map (
-      G_OVERLAY_BITS => 144
+      G_RAM_INIT_FILE => "main/mem/ram.txt",
+      G_OVERLAY_BITS  => 144
    )
    port map (
       clk_i     => main_clk,
