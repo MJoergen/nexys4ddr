@@ -7,9 +7,10 @@ SRC  = $(MAIN) \
 		 comp.vhd waiter.vhd clk.vhd cdc.vhd \
 		 vga/vga.vhd vga/digits.vhd vga/pix.vhd vga/font.vhd vga/opcodes.vhd
 XDC  = comp.xdc
-TB   = main_tb.vhd
-WAVE = main_tb.ghw
-SAVE = main_tb.gtkw
+TB = main_tb
+TB_SRC = main/$(TB).vhd
+WAVE   = main/$(TB).ghw
+SAVE   = main/$(TB).gtkw
 
 
 #####################################
@@ -27,10 +28,10 @@ fpga: comp.bit
 # Simulation
 #####################################
 
-sim: $(MAIN) $(TB)
-	ghdl -i --std=08 --work=work $(MAIN) $(TB)
-	ghdl -m --std=08 --ieee=synopsys -fexplicit main_tb
-	ghdl -r --std=08 main_tb --assert-level=error --wave=$(WAVE) --stop-time=20us
+sim: $(MAIN) $(TB_SRC)
+	ghdl -i --std=08 --work=work $(MAIN) $(TB_SRC)
+	ghdl -m --std=08 --ieee=synopsys -fexplicit $(TB)
+	ghdl -r --std=08 $(TB) --assert-level=error --wave=$(WAVE) --stop-time=20us
 	gtkwave $(WAVE) $(SAVE)
 
 
@@ -44,6 +45,6 @@ clean:
 	rm -rf .cache
 	rm -rf *.o
 	rm -rf work-obj08.cf
-	rm -rf main_tb
-	rm -rf main_tb.ghw
+	rm -rf $(TB)
+	rm -rf $(WAVE)
 
