@@ -5,7 +5,7 @@ use ieee.numeric_std_unsigned.all;
 entity main_tb is
 end main_tb;
 
-architecture Structural of main_tb is
+architecture structural of main_tb is
 
    -- Clock
    signal main_clk  : std_logic;
@@ -49,7 +49,8 @@ begin
 
    main_inst : entity work.main
    generic map (
-      G_OVERLAY_BITS => 176
+      G_ROM_INIT_FILE => "main/mem/rom.txt",
+      G_OVERLAY_BITS  => 176
    )
    port map (
       clk_i     => main_clk,
@@ -57,5 +58,5 @@ begin
       overlay_o => open
    ); -- main_inst
    
-end architecture Structural;
+end architecture structural;
 
