@@ -18,7 +18,7 @@ entity comp is
    );
 end comp;
 
-architecture Structural of comp is
+architecture structural of comp is
 
    -- Define constants used for 640x480 @ 60 Hz.
    -- Requires a clock of 25.175 MHz.
@@ -174,5 +174,5 @@ begin
    vga_vs_o  <= vga.vs;
    vga_col_o <= vga.col;
 
-end architecture Structural;
+end architecture structural;
 

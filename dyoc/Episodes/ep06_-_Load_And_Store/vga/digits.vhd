@@ -27,7 +27,7 @@ entity digits is
    );
 end digits;
 
-architecture Structural of digits is
+architecture structural of digits is
 
    -- The following constants define a resolution of 640x480 @ 60 Hz.
    -- Requires a clock of 25.175 MHz.
@@ -236,5 +236,5 @@ begin
    vga_vs_o  <= vga.vs;
    vga_col_o <= vga.col;
 
-end architecture Structural;
+end architecture structural;
 
