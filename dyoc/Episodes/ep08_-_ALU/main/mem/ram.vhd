@@ -11,7 +11,7 @@ use ieee.numeric_std_unsigned.all;
 -- This is done by using a synchronous Block RAM, and reading
 -- on the *falling* edge of the clock cycle.
 
-entity mem is
+entity ram is
    generic (
       -- Number of bits in the address bus. The size of the memory will
       -- be 2**G_ADDR_BITS bytes.
@@ -33,9 +33,9 @@ entity mem is
       -- '1' indicates we wish to perform a write at the selected address.
       wren_i : in  std_logic
    );
-end mem;
+end ram;
 
-architecture Structural of mem is
+architecture structural of ram is
 
    -- This defines a type containing an array of bytes
    type mem_t is array (0 to 2**G_ADDR_BITS-1) of std_logic_vector(7 downto 0);
@@ -60,27 +60,27 @@ architecture Structural of mem is
 begin
 
    -- Write process
-   p_mem : process (clk_i)
+   mem_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wren_i = '1' then
             mem(to_integer(addr_i)) <= data_i;
          end if;
       end if;
-   end process p_mem;
+   end process mem_proc;
 
    -- Read process.
    -- Triggered on the *falling* clock edge in order to mimick an asynchronous
    -- memory.
-   p_data : process (clk_i)
+   data_proc : process (clk_i)
    begin
       if falling_edge(clk_i) then
          data <= mem(to_integer(addr_i));
       end if;
-   end process p_data;
+   end process data_proc;
 
    -- Drive output signals
    data_o <= data;
 
-end Structural;
+end structural;
 
