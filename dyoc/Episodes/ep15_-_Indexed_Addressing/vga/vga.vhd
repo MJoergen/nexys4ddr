@@ -15,6 +15,7 @@ use ieee.numeric_std_unsigned.all;
 entity vga is
    generic (
       G_OVERLAY_BITS : integer;
+      G_OPCODES_FILE : string;
       G_FONT_FILE    : string
    );
    port (
@@ -28,7 +29,7 @@ entity vga is
    );
 end vga;
 
-architecture Structural of vga is
+architecture structural of vga is
 
    -- Pixel counters
    signal pix_x : std_logic_vector(9 downto 0);
@@ -55,6 +56,7 @@ begin
    digits_inst : entity work.digits
    generic map (
       G_OVERLAY_BITS => G_OVERLAY_BITS,
+      G_OPCODES_FILE => G_OPCODES_FILE,
       G_FONT_FILE    => G_FONT_FILE
    )
    port map (
@@ -67,5 +69,5 @@ begin
       vga_col_o => vga_col_o
    ); -- digits_inst
 
-end architecture Structural;
+end architecture structural;
 
