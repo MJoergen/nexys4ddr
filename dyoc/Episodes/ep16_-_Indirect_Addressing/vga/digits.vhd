@@ -11,6 +11,7 @@ use ieee.numeric_std_unsigned.all;
 entity digits is
    generic (
       G_OVERLAY_BITS : integer;
+      G_OPCODES_FILE : string;
       G_FONT_FILE    : string
    );
    port (
@@ -27,7 +28,7 @@ entity digits is
    );
 end digits;
 
-architecture Structural of digits is
+architecture structural of digits is
 
    -- The following constants define a resolution of 640x480 @ 60 Hz.
    -- Requires a clock of 25.175 MHz.
@@ -54,28 +55,27 @@ architecture Structural of digits is
    -- Each character is 16x16 pixels, so the screen contains 40x30 characters.
 
    -- Define positioning of first digit
-   constant DIGITS_CHAR_X : integer := 16;
+   constant DIGITS_CHAR_X : integer := 19;
    constant DIGITS_CHAR_Y : integer := 10;
 
    constant TEXT_CHAR_X   : integer := 10;
    constant TEXT_CHAR_Y   : integer := DIGITS_CHAR_Y;
 
-   type txt_t is array (0 to 5*NUM_ROWS-1) of character;
-   constant txt : txt_t := "IR CN" &
-                           " CTL1" &
-                           " CTL2" &
-                           " CTL3" &
-                           "  PC " &
-                           "DI AR" &
-                           "HI LO" &
-                           "ADDR " &
-                           "W DA " &
-                           "SP SR" &
-                           "XR YR";
+   type txt_t is array (0 to 8*NUM_ROWS-1) of character;
+   constant txt : txt_t := "Inst CNt" &
+                           "Control1" &
+                           "Control2" &
+                           "Control3" &
+                           "      PC" &
+                           "Data  AR" &
+                           "  HI  LO" &
+                           " Address" &
+                           "Write DA" &
+                           "SP  Stat" &
+                           "  XR  YR";
 
    -- A single character bitmap is defined by 8x8 = 64 bits.
    subtype bitmap_t is std_logic_vector(63 downto 0);
-
 
    -- Define colours
    constant COL_BLACK : std_logic_vector(7 downto 0) := B"000_000_00";
@@ -86,15 +86,17 @@ architecture Structural of digits is
    constant COL_GREEN : std_logic_vector(7 downto 0) := B"000_111_00";
    constant COL_BLUE  : std_logic_vector(7 downto 0) := B"000_000_11";
 
-
    -- Character coordinates
    signal char_col : integer range 0 to H_TOTAL/16-1;
    signal char_row : integer range 0 to V_TOTAL/16-1;
 
+   signal opcodes_addr : std_logic_vector(10 downto 0);
+   signal opcodes_char : std_logic_vector( 7 downto 0);
+
    -- Value of nibble at current position
    signal nibble_index : integer range 0 to 4*NUM_ROWS-1;
    signal nibble       : std_logic_vector(3 downto 0);
-   signal txt_offset   : integer range 0 to 5*NUM_ROWS-1;
+   signal txt_offset   : integer range 0 to 8*NUM_ROWS-1;
 
    -- Bitmap of digit at current position
    signal char_nibble  : std_logic_vector(7 downto 0);
@@ -135,9 +137,32 @@ begin
    -- Calculate value of nibble at current position
    --------------------------------------------------
 
-   nibble_index <= (char_row - DIGITS_CHAR_Y)*4 + 3 - (char_col - DIGITS_CHAR_X);
+   nibble_index <= ((char_row - DIGITS_CHAR_Y)*4 + 3 - (char_col - DIGITS_CHAR_X)) mod (4*NUM_ROWS);
    nibble       <= digits_i(4*nibble_index+3 downto 4*nibble_index);
-   txt_offset   <= (char_row - TEXT_CHAR_Y)*5 + (char_col - TEXT_CHAR_X);
+   txt_offset   <= ((char_row - TEXT_CHAR_Y)*8 + (char_col - TEXT_CHAR_X)) mod (8*NUM_ROWS);
+
+
+   --------------------------------------------------
+   -- Calculate address into opcode memory based
+   -- on current instruction and current position.
+   --------------------------------------------------
+
+   opcodes_addr(10 downto 3) <= digits_i(15 downto 8);
+   opcodes_addr(2 downto 0)  <= to_std_logic_vector((char_col - TEXT_CHAR_X) mod 8, 3);
+
+
+   --------------------------------------------------
+   -- Calculate character of opcode at current position
+   --------------------------------------------------
+
+   opcodes_inst : entity work.opcodes
+   generic map (
+      G_OPCODES_FILE => G_OPCODES_FILE
+   )
+   port map (
+      addr_i => opcodes_addr,
+      char_o => opcodes_char
+   ); -- opcodes_inst
 
 
    --------------------------------------------------
@@ -145,14 +170,15 @@ begin
    --------------------------------------------------
 
    char_nibble <= nibble + X"30" when nibble < 10 else
-           nibble + X"41" - 10;
+                  nibble + X"41" - 10;
 
-   char_txt    <= to_std_logic_vector(character'pos(txt(txt_offset)), 8);
+   char_txt <= opcodes_char when char_row = TEXT_CHAR_Y else
+               to_std_logic_vector(character'pos(txt(txt_offset)), 8);
 
    char <= char_nibble when char_row >= DIGITS_CHAR_Y and char_row < DIGITS_CHAR_Y+NUM_ROWS and
                             char_col >= DIGITS_CHAR_X and char_col < DIGITS_CHAR_X+4 else
            char_txt    when char_row >= TEXT_CHAR_Y   and char_row < TEXT_CHAR_Y+NUM_ROWS and
-                            char_col >= TEXT_CHAR_X   and char_col < TEXT_CHAR_X+5 else
+                            char_col >= TEXT_CHAR_X   and char_col < TEXT_CHAR_X+8 else
            X"20"; -- Fill the rest of the screen with spaces.
 
 
@@ -184,7 +210,7 @@ begin
    -- Generate pixel colour
    --------------------------------------------------
 
-   p_vga_col : process (clk_i)
+   vga_col_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
 
@@ -200,13 +226,14 @@ begin
          end if;
 
       end if;
-   end process p_vga_col;
+   end process vga_col_proc;
+
 
    --------------------------------------------------
    -- Generate horizontal sync signal
    --------------------------------------------------
 
-   p_vga_hs : process (clk_i)
+   vga_hs_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if pix_x_i >= HS_START and pix_x_i < HS_START+HS_TIME then
@@ -215,13 +242,14 @@ begin
             vga.hs <= '1';
          end if;
       end if;
-   end process p_vga_hs;
+   end process vga_hs_proc;
+
 
    --------------------------------------------------
    -- Generate vertical sync signal
    --------------------------------------------------
 
-   p_vga_vs : process (clk_i)
+   vga_vs_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if pix_y_i >= VS_START and pix_y_i < VS_START+VS_TIME then
@@ -230,7 +258,7 @@ begin
             vga.vs <= '1';
          end if;
       end if;
-   end process p_vga_vs;
+   end process vga_vs_proc;
 
 
    --------------------------------------------------
@@ -241,5 +269,5 @@ begin
    vga_vs_o  <= vga.vs;
    vga_col_o <= vga.col;
 
-end architecture Structural;
+end architecture structural;
 
