@@ -8,6 +8,9 @@ use ieee.numeric_std_unsigned.all;
 -- address decoding.
 
 entity mem is
+   generic (
+      G_ROM_INIT_FILE : string
+   );
    port (
       clk_i  : in  std_logic;
 
@@ -28,7 +31,7 @@ entity mem is
    );
 end mem;
 
-architecture Structural of mem is
+architecture structural of mem is
 
    signal rom_wren : std_logic;
    signal rom_data : std_logic_vector(7 downto 0);
@@ -45,7 +48,7 @@ begin
 
    rom_inst : entity work.rom
    generic map (
-      G_INIT_FILE => "mem/rom.txt",
+      G_INIT_FILE => G_ROM_INIT_FILE,
       G_ADDR_BITS => 14  -- 16K bytes
    )
    port map (
@@ -104,5 +107,5 @@ begin
              cic_data when addr_i = X"BFFF"               else
              X"00";
   
-end Structural;
+end structural;
 
