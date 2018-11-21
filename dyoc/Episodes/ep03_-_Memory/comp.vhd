@@ -1,5 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std_unsigned.all;
 
 -- This is the top level module. The ports on this entity are mapped directly
 -- to pins on the FPGA.
