@@ -62,9 +62,9 @@ architecture structural of mem is
 
 begin
 
-   ----------------------
+   --------------------
    -- Address decoding
-   ----------------------
+   --------------------
 
    a_rom_cs  <= '1' when a_addr_i(15 downto G_ROM_SIZE)  = G_ROM_MASK( 15 downto G_ROM_SIZE)  else '0';
    a_ram_cs  <= '1' when a_addr_i(15 downto G_RAM_SIZE)  = G_RAM_MASK( 15 downto G_RAM_SIZE)  else '0';
@@ -76,9 +76,9 @@ begin
    a_col_wren  <= a_wren_i and a_col_cs;
 
 
-   --------------------
+   ---------------------
    -- Insert wait state
-   --------------------
+   ---------------------
 
    a_wait <= a_rden_i and (a_char_cs or a_col_cs);
 
@@ -92,9 +92,9 @@ begin
    a_wait_o <= '1' when a_wait = '1' and a_wait_d = '0' else
                '0';
 
-   ----------------------
+   -----------------------
    -- Instantiate the ROM
-   ----------------------
+   -----------------------
 
    rom_inst : entity work.rom
    generic map (
@@ -108,9 +108,9 @@ begin
    ); -- rom_inst
 
 
-   -----------------------------------
+   ------------------------------------
    -- Instantiate the character memory
-   -----------------------------------
+   ------------------------------------
 
    char_inst : entity work.dmem
    generic map (
@@ -129,9 +129,9 @@ begin
    ); -- char_inst
 
 
-   -----------------------------------
+   ---------------------------------
    -- Instantiate the colour memory
-   -----------------------------------
+   ---------------------------------
 
    col_inst : entity work.dmem
    generic map (
@@ -151,9 +151,9 @@ begin
    ); -- col_inst
 
 
-   ----------------------
+   -----------------------
    -- Instantiate the RAM
-   ----------------------
+   -----------------------
 
    ram_inst : entity work.ram
    generic map (
