@@ -2,9 +2,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
+-- This is the MAIN module. This contains the memory and the CPU.
+
 entity main is
    generic (
-      G_OVERLAY_BITS : integer
+      G_ROM_INIT_FILE : string;
+      G_OVERLAY_BITS  : integer
    );
    port (
       main_clk_i      : in  std_logic;
@@ -62,7 +65,7 @@ begin
 
 
    --------------------------------------------------
-   -- Instantiate memory
+   -- Instantiate Memory module
    --------------------------------------------------
    
    mem_inst : entity work.mem
@@ -79,7 +82,7 @@ begin
       G_COL_MASK   => X"A000",
       G_MEMIO_MASK => X"7FC0",
       --
-      G_ROM_FILE  => "../rom.txt",
+      G_ROM_FILE   => G_ROM_INIT_FILE,
       G_MEMIO_INIT => X"00000000000000000000000000000000" &
                       X"FFFCE3E0433C1E178C82803022110A00"
    )

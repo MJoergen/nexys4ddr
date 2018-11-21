@@ -1,9 +1,5 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std_unsigned.all;
-
-Library xpm;
-use xpm.vcomponents.all;
 
 -- This is the top level module. The ports on this entity are mapped directly
 -- to pins on the FPGA.
@@ -37,12 +33,15 @@ end comp;
 
 architecture structural of comp is
 
-   constant C_OVERLAY_BITS : integer := 176;
-   constant C_FONT_FILE    : string := "font8x8.txt";
+   constant C_OVERLAY_BITS  : integer := 176;
+   constant C_ROM_INIT_FILE : string := "../rom.txt";
+   constant C_OPCODES_FILE  : string := "opcodes.txt";
+   constant C_FONT_FILE     : string := "font8x8.txt";
 
    -- MAIN Clock domain
    signal main_clk      : std_logic;
    signal main_rst      : std_logic;
+   signal main_rst_shr  : std_logic_vector(7 downto 0) := X"FF";
    signal main_wait     : std_logic;
    signal main_overlay  : std_logic_vector(C_OVERLAY_BITS-1 downto 0);
    signal main_memio_wr : std_logic_vector(8*32-1 downto 0);
@@ -51,6 +50,7 @@ architecture structural of comp is
    -- VGA Clock doamin
    signal vga_clk           : std_logic;
    signal vga_rst           : std_logic;
+   signal vga_rst_shr       : std_logic_vector(7 downto 0) := X"FF";
    signal vga_overlay_en    : std_logic;
    signal vga_overlay       : std_logic_vector(C_OVERLAY_BITS-1 downto 0);
    signal vga_char_addr     : std_logic_vector( 12 downto 0);
@@ -83,14 +83,26 @@ begin
    main_rst_proc : process (main_clk)
    begin
       if rising_edge(main_clk) then
-         main_rst <= not rstn_i;
+         -- Hold reset asserted for a number of clock cycles.
+         main_rst     <= main_rst_shr(0);
+         main_rst_shr <= "0" & main_rst_shr(main_rst_shr'left downto 1);
+
+         if rstn_i = '0' then
+            main_rst_shr <= (others => '1');
+         end if;
       end if;
    end process main_rst_proc;
    
    vga_rst_proc : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
-         vga_rst <= not rstn_i;
+         -- Hold reset asserted for a number of clock cycles.
+         vga_rst     <= vga_rst_shr(0);
+         vga_rst_shr <= "0" & vga_rst_shr(vga_rst_shr'left downto 1);
+
+         if rstn_i = '0' then
+            vga_rst_shr <= (others => '1');
+         end if;
       end if;
    end process vga_rst_proc;
    
@@ -108,12 +120,13 @@ begin
 
 
    --------------------------------------------------
-   -- Instantiate main
+   -- Instantiate MAIN module
    --------------------------------------------------
 
    main_inst : entity work.main
    generic map (
-      G_OVERLAY_BITS => C_OVERLAY_BITS
+      G_ROM_INIT_FILE => C_ROM_INIT_FILE,
+      G_OVERLAY_BITS  => C_OVERLAY_BITS
    )
    port map (
       main_clk_i      => main_clk,
@@ -158,6 +171,7 @@ begin
    vga_inst : entity work.vga
    generic map (
       G_OVERLAY_BITS => C_OVERLAY_BITS,
+      G_OPCODES_FILE => C_OPCODES_FILE,
       G_FONT_FILE    => C_FONT_FILE
    )
    port map (
@@ -199,7 +213,6 @@ begin
    ); -- cdc_vga_memio_palette
 
    -- 7FD0 - 7FDF : Not used
-   --                     memio_wr(31*8+7 downto 16*8);      -- Not used
 
 
    -- 7FE0 - 7FE1 : VGA_PIX_X

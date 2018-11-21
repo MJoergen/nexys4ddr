@@ -65,7 +65,8 @@ begin
 
    main_inst : entity work.main
    generic map (
-      G_OVERLAY_BITS => 176
+      G_ROM_INIT_FILE => "../rom.txt",
+      G_OVERLAY_BITS  => 176
    )
    port map (
       main_clk_i      => main_clk,

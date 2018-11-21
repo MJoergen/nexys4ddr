@@ -15,6 +15,7 @@ use ieee.numeric_std_unsigned.all;
 entity vga is
    generic (
       G_OVERLAY_BITS : integer;
+      G_OPCODES_FILE : string;
       G_FONT_FILE    : string
    );
    port (
@@ -31,7 +32,7 @@ entity vga is
       memio_palette_i : in  std_logic_vector(16*8-1 downto 0);
       memio_pix_x_o   : out std_logic_vector( 2*8-1 downto 0);
       memio_pix_y_o   : out std_logic_vector( 2*8-1 downto 0);
-
+   
       vga_hs_o        : out std_logic;
       vga_vs_o        : out std_logic;
       vga_col_o       : out std_logic_vector(7 downto 0)
@@ -106,6 +107,7 @@ begin
    overlay_inst : entity work.overlay
    generic map (
       G_OVERLAY_BITS => G_OVERLAY_BITS,
+      G_OPCODES_FILE => G_OPCODES_FILE,
       G_FONT_FILE    => G_FONT_FILE
    )
    port map (
