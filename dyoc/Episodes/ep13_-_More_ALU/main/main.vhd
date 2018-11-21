@@ -2,6 +2,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
+-- This is the MAIN module. This contains the memory and the CPU.
+
 entity main is
    generic (
       G_ROM_INIT_FILE : string;
