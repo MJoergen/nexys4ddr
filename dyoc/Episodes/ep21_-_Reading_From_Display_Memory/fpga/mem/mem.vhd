@@ -40,7 +40,7 @@ entity mem is
    );
 end mem;
 
-architecture Structural of mem is
+architecture structural of mem is
 
    signal a_rom_data  : std_logic_vector(7 downto 0);
    signal a_rom_cs    : std_logic;
@@ -174,5 +174,5 @@ begin
                a_col_data  when a_col_cs  = '1' else
                X"00";   -- Default value is needed to avoid inferring a latch.
   
-end Structural;
+end structural;
 

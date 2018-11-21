@@ -23,7 +23,7 @@ entity ethernet is
    );
 end ethernet;
 
-architecture Structural of ethernet is
+architecture structural of ethernet is
 
    -- Minimum reset assert time for the Ethernet PHY is 25 ms.
    -- At 50 MHz (= 20 ns pr clock cycle) this is approx 2*10^6 clock cycles.
@@ -122,5 +122,5 @@ begin
    -- Connect output signal
    eth_debug_o <= eth_debug;
    
-end Structural;
+end structural;
 

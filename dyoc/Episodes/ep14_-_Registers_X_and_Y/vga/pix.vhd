@@ -17,7 +17,7 @@ entity pix is
    );
 end pix;
 
-architecture Structural of pix is
+architecture structural of pix is
 
    -- Define constants used for 640x480 @ 60 Hz.
    -- Requires a clock of 25.175 MHz.
@@ -68,5 +68,5 @@ begin
    pix_x_o <= pix_x;
    pix_y_o <= pix_y;
 
-end architecture Structural;
+end architecture structural;
 

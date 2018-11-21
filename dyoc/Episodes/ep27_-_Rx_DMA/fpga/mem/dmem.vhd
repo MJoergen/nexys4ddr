@@ -26,7 +26,7 @@ entity dmem is
    );
 end dmem;
 
-architecture Structural of dmem is
+architecture structural of dmem is
 
    -- This defines a type containing an array of bytes
    type mem_t is array (0 to 2**G_ADDR_BITS-1) of std_logic_vector(7 downto 0);
@@ -55,5 +55,5 @@ begin
       end if;
    end process p_port_b;
 
-end Structural;
+end structural;
 

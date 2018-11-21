@@ -52,7 +52,7 @@ entity rmii_rx is
    );
 end rmii_rx;
 
-architecture Structural of rmii_rx is
+architecture structural of rmii_rx is
 
 -- The CRC calculation is also called CRC-32 and is listed here:
 -- https://en.wikipedia.org/wiki/Cyclic_redundancy_check
@@ -217,5 +217,5 @@ begin
    user_data_o  <= stages(5).data;
    user_error_o <= stages(5).err;
 
-end Structural;
+end structural;
 

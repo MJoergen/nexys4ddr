@@ -35,7 +35,7 @@ entity vga is
    );
 end vga;
 
-architecture Structural of vga is
+architecture structural of vga is
 
    -- Define constants used for 640x480 @ 60 Hz.
    -- Requires a clock of 25.175 MHz.
@@ -168,5 +168,5 @@ begin
    irq_o <= '1' when pix_y = memio_pix_y_int_i and pix_x = H_PIXELS else
             '0';
 
-end architecture Structural;
+end architecture structural;
 

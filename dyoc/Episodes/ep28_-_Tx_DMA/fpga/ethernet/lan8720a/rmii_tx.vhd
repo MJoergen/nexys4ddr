@@ -38,7 +38,7 @@ entity rmii_tx is
    );
 end rmii_tx;
 
-architecture Structural of rmii_tx is
+architecture structural of rmii_tx is
 
 -- The CRC calculation is also called CRC-32 and is listed here:
 -- https://en.wikipedia.org/wiki/Cyclic_redundancy_check
@@ -198,5 +198,5 @@ begin
 
    user_rden_o <= rden;
 
-end Structural;
+end structural;
 

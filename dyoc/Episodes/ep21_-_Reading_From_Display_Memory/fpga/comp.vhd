@@ -35,7 +35,7 @@ entity comp is
    );
 end comp;
 
-architecture Structural of comp is
+architecture structural of comp is
 
    constant C_OVERLAY_BITS : integer := 176;
    constant C_FONT_FILE    : string := "font8x8.txt";
@@ -167,5 +167,5 @@ begin
       vga_col_o => vga_col_o
    ); -- vga_inst
 
-end architecture Structural;
+end architecture structural;
 

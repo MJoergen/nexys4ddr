@@ -32,7 +32,7 @@ entity rom is
    );
 end rom;
 
-architecture Structural of rom is
+architecture structural of rom is
 
    -- This defines a type containing an array of bytes
    type mem_t is array (0 to 2**G_ADDR_BITS-1) of std_logic_vector(7 downto 0);
@@ -74,5 +74,5 @@ begin
    -- Drive output signals
    data_o <= data;
 
-end Structural;
+end structural;
 

@@ -33,7 +33,7 @@ entity tx_dma is
    );
 end tx_dma;
 
-architecture Structural of tx_dma is
+architecture structural of tx_dma is
 
    signal memio_clear : std_logic;
    signal rd_addr     : std_logic_vector(15 downto 0);
@@ -129,5 +129,5 @@ begin
    cnt_start_o   <= cnt_start;
    cnt_end_o     <= cnt_end;
 
-end Structural;
+end structural;
 

@@ -29,7 +29,7 @@ entity overlay is
    );
 end overlay;
 
-architecture Structural of overlay is
+architecture structural of overlay is
 
    -- Number of rows of text on screen
    constant NUM_ROWS : integer := digits_i'length / 16;
@@ -256,5 +256,5 @@ begin
    vga_vs_o  <= vga.vs;
    vga_col_o <= vga.col;
 
-end architecture Structural;
+end architecture structural;
 

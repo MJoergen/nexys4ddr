@@ -22,7 +22,7 @@ entity memio is
    );
 end memio;
 
-architecture Structural of memio is
+architecture structural of memio is
 
    signal memio_r : std_logic_vector( 8*32-1 downto 0) := G_INIT_VAL;
    signal memio_s : std_logic_vector(16*32-1 downto 0);
@@ -48,5 +48,5 @@ begin
    -- Port B
    b_memio_o <= memio_r;
 
-end Structural;
+end structural;
 

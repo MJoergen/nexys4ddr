@@ -38,7 +38,7 @@ entity vga is
    );
 end vga;
 
-architecture Structural of vga is
+architecture structural of vga is
 
    -- Pixel counters
    signal pix_x : std_logic_vector(9 downto 0);
@@ -129,5 +129,5 @@ begin
    memio_pix_x_o <= "000000" & pix_x;
    memio_pix_y_o <= "000000" & pix_y;
 
-end architecture Structural;
+end architecture structural;
 

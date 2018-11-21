@@ -22,7 +22,7 @@ entity ps2_tb is
    );
 end ps2_tb;
 
-architecture Structural of ps2_tb is
+architecture structural of ps2_tb is
 
    signal clk_cnt  : std_logic_vector(6 downto 0) := (others => '0');
 
@@ -102,5 +102,5 @@ begin
    ps2_clk_o  <= ps2_clk;
    ps2_data_o <= ps2_data;
 
-end Structural;
+end structural;
 

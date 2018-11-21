@@ -27,7 +27,7 @@ entity alu is
    );
 end alu;
 
-architecture Structural of alu is
+architecture structural of alu is
 
    signal c   : std_logic;                    -- Copy of the input carry signal
    signal a   : std_logic_vector(8 downto 0); -- New value of carry and accumulator
@@ -255,5 +255,5 @@ begin
    a_o  <= a(7 downto 0);
    sr_o <= sr;
 
-end Structural;
+end structural;
 

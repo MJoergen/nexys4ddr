@@ -5,7 +5,7 @@ use ieee.numeric_std_unsigned.all;
 entity tb is
 end tb;
 
-architecture Structural of tb is
+architecture structural of tb is
 
    -- Clock and Reset
    signal clk  : std_logic;
@@ -121,5 +121,5 @@ begin
       wait;
    end process;
 
-end architecture Structural;
+end architecture structural;
 

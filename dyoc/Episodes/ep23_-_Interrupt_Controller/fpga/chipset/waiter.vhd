@@ -17,7 +17,7 @@ entity waiter is
    );
 end waiter;
 
-architecture Structural of waiter is
+architecture structural of waiter is
 
    -- 25 bits corresponds to 25Mhz / 2^25 = 1 Hz approx.
    signal wait_cnt_r : std_logic_vector(24 downto 0) := (others => '0');
@@ -47,5 +47,5 @@ begin
    -- Drive output signal
    wait_o <= wait_r;
 
-end architecture Structural;
+end architecture structural;
 

@@ -27,7 +27,7 @@ entity chars is
    );
 end chars;
 
-architecture Structural of chars is
+architecture structural of chars is
 
    -- Define pixel counter range
    constant H_TOTAL  : integer := 800;
@@ -208,5 +208,5 @@ begin
    pix_x_o   <= stage3.pix_x;
    pix_y_o   <= stage3.pix_y;
 
-end architecture Structural;
+end architecture structural;
 

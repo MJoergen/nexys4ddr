@@ -26,7 +26,7 @@ entity cic is
    );
 end cic;
 
-architecture Structural of cic is
+architecture structural of cic is
 
    signal stat : std_logic_vector(7 downto 0) := X"00";
 
@@ -50,5 +50,5 @@ begin
 
    stat_o <= stat;
 
-end Structural;
+end structural;
 

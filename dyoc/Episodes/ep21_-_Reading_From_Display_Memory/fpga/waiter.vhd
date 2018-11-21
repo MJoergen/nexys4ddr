@@ -10,7 +10,7 @@ entity waiter is
    );
 end waiter;
 
-architecture Structural of waiter is
+architecture structural of waiter is
 
    -- Generate pause signal
    -- 26 bits corresponds to 55Mhz / 2^26 = 1 Hz approx.
@@ -38,5 +38,5 @@ begin
 
    wait_o <= waiter;
 
-end architecture Structural;
+end architecture structural;
 

@@ -35,7 +35,7 @@ entity rx_dma is
    );
 end rx_dma;
 
-architecture Structural of rx_dma is
+architecture structural of rx_dma is
 
    -- Output signals
    signal rd_en     : std_logic;
@@ -107,5 +107,5 @@ begin
    wr_data_o   <= wr_data;
    dma_clear_o <= dma_clear;
 
-end Structural;
+end structural;
 

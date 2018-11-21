@@ -54,7 +54,7 @@ entity comp is
    );
 end comp;
 
-architecture Structural of comp is
+architecture structural of comp is
 
    -- Clock divider for VGA and Ethnernet
    signal clk_cnt  : std_logic_vector(1 downto 0) := (others => '0');
@@ -430,5 +430,5 @@ begin
    vga_overlay(215 downto 212) <= cpu_memio_eth_rxcnt_crc_bad(3 downto 0);
    vga_overlay(223 downto 216) <= cpu_memio_eth_rxcnt_overflow;
 
-end architecture Structural;
+end architecture structural;
 

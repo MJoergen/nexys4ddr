@@ -39,7 +39,7 @@ entity ethernet is
    );
 end ethernet;
 
-architecture Structural of ethernet is
+architecture structural of ethernet is
 
    -- Minimum reset assert time for the Ethernet PHY is 25 ms.
    -- At 50 MHz (= 20 ns pr clock cycle) this is approx 2*10^6 clock cycles.
@@ -203,5 +203,5 @@ begin
 
    user_rxdma_pending_o <= (7 downto 1 => '0', 0 => not user_rxfifo_empty);
 
-end Structural;
+end structural;
 

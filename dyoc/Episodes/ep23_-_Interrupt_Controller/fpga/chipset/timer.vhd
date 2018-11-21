@@ -14,7 +14,7 @@ entity timer is
    );
 end timer;
 
-architecture Structural of timer is
+architecture structural of timer is
 
    constant C_TIMER_CNT : std_logic_vector(14 downto 0) := to_std_logic_vector(G_TIMER_CNT, 15);
 
@@ -57,5 +57,5 @@ begin
 
    irq_o  <= irq_r;
 
-end architecture Structural;
+end architecture structural;
 

@@ -39,7 +39,7 @@ entity rx_header is
    );
 end rx_header;
 
-architecture Structural of rx_header is
+architecture structural of rx_header is
 
    -- Input buffer overflow
    signal rx_error : std_logic := '0';
@@ -258,5 +258,5 @@ begin
    cnt_crc_bad_o  <= cnt_crc_bad;
    cnt_overflow_o <= cnt_overflow;
 
-end Structural;
+end structural;
 

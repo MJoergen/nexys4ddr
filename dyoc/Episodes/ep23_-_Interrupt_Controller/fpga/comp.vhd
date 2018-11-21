@@ -37,7 +37,7 @@ entity comp is
    );
 end comp;
 
-architecture Structural of comp is
+architecture structural of comp is
 
    -- Clock divider for VGA
    signal clk_cnt  : std_logic_vector(1 downto 0) := (others => '0');
@@ -295,5 +295,5 @@ begin
    ic_irq(1) <= vga_irq;
    ic_irq(7 downto 2) <= (others => '0');             -- Not used
 
-end architecture Structural;
+end architecture structural;
 

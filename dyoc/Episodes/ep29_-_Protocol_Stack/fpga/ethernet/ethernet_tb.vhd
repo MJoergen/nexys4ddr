@@ -8,7 +8,7 @@ use std.textio.all;
 entity ethernet_tb is
 end entity ethernet_tb;
 
-architecture Structural of ethernet_tb is
+architecture structural of ethernet_tb is
 
    -- Connected to DUT
    signal user_clk               : std_logic;  -- 25 MHz
@@ -264,5 +264,5 @@ begin
 
    end process proc_test;
 
-end Structural;
+end structural;
 

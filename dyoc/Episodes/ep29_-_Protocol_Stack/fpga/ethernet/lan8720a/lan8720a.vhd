@@ -57,7 +57,7 @@ entity lan8720a is
    );
 end lan8720a;
 
-architecture Structural of lan8720a is
+architecture structural of lan8720a is
 
 begin
 
@@ -93,5 +93,5 @@ begin
    eth_mdio_io <= 'Z';  -- High impedance state, i.e. disconnected.
    eth_mdc_o   <= '0';
 
-end Structural;
+end structural;
 

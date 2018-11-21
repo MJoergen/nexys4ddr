@@ -17,7 +17,7 @@ entity font is
    );
 end font;
 
-architecture Structural of font is
+architecture structural of font is
 
    -- A single character bitmap is defined by 8x8 = 64 bits.
    subtype bitmap_t is std_logic_vector(63 downto 0);
@@ -58,5 +58,5 @@ begin
 
    bitmap_o <= bitmap;
 
-end architecture Structural;
+end architecture structural;
 

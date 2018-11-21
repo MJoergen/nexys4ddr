@@ -23,7 +23,7 @@ entity main is
    );
 end main;
 
-architecture Structural of main is
+architecture structural of main is
 
    -- Data Path signals
    signal main_cpu_addr : std_logic_vector(15 downto 0);
@@ -101,5 +101,5 @@ begin
       b_col_data_o  => vga_col_data_o
    ); -- mem_inst
 
-end architecture Structural;
+end architecture structural;
 

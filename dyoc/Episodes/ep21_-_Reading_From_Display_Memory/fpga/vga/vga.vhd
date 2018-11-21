@@ -34,7 +34,7 @@ entity vga is
    );
 end vga;
 
-architecture Structural of vga is
+architecture structural of vga is
 
    -- Pixel counters
    signal pix_x : std_logic_vector(9 downto 0);
@@ -124,5 +124,5 @@ begin
    vga_vs_o  <= overlay_vs  when overlay_i = '1' else char_vs;
    vga_col_o <= overlay_col when overlay_i = '1' else char_col;
 
-end architecture Structural;
+end architecture structural;
 
