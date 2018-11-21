@@ -1,15 +1,16 @@
 XILINX_DIR = /opt/Xilinx/Vivado/2017.3
 
-MAIN = main.vhd \
-		 cpu/cpu.vhd cpu/datapath.vhd cpu/ctl.vhd cpu/pc.vhd cpu/ar.vhd cpu/hi.vhd cpu/lo.vhd cpu/alu.vhd cpu/sr.vhd cpu/sp.vhd cpu/xr.vhd cpu/yr.vhd cpu/zp.vhd \
-		 mem/mem.vhd mem/rom.vhd mem/ram.vhd
+MAIN = main/main.vhd \
+		 main/cpu/cpu.vhd main/cpu/datapath.vhd main/cpu/ctl.vhd main/cpu/pc.vhd main/cpu/ar.vhd main/cpu/hi.vhd main/cpu/lo.vhd main/cpu/alu.vhd main/cpu/sr.vhd main/cpu/sp.vhd main/cpu/xr.vhd main/cpu/yr.vhd main/cpu/zp.vhd \
+		 main/mem/mem.vhd main/mem/rom.vhd main/mem/ram.vhd
 SRC  = $(MAIN) \
 		 comp.vhd waiter.vhd clk.vhd cdc.vhd \
-		 vga/vga.vhd vga/digits.vhd vga/pix.vhd vga/font.vhd
+		 vga/vga.vhd vga/digits.vhd vga/pix.vhd vga/font.vhd vga/opcodes.vhd
 XDC  = comp.xdc
-TB   = main_tb.vhd
-WAVE = main_tb.ghw
-SAVE = main_tb.gtkw
+TB = main_tb
+TB_SRC = $(TB).vhd
+WAVE   = $(TB).ghw
+SAVE   = $(TB).gtkw
 
 
 #####################################
@@ -27,10 +28,10 @@ fpga: comp.bit
 # Simulation
 #####################################
 
-sim: $(MAIN) $(TB) ../rom.txt
-	ghdl -i --std=08 --work=work $(MAIN) $(TB)
-	ghdl -m --std=08 -fexplicit main_tb
-	ghdl -r --std=08 main_tb --assert-level=error --wave=$(WAVE) --stop-time=150us
+sim: $(MAIN) $(TB_SRC) ../rom.txt
+	ghdl -i --std=08 --work=work $(MAIN) $(TB_SRC)
+	ghdl -m --std=08 -fexplicit $(TB)
+	ghdl -r --std=08 $(TB) --assert-level=error --wave=$(WAVE) --stop-time=150us
 	gtkwave $(WAVE) $(SAVE)
 
 
@@ -48,7 +49,7 @@ clean:
 	rm -rf .cache
 	rm -rf *.o
 	rm -rf work-obj08.cf
-	rm -rf main_tb
-	rm -rf main_tb.ghw
+	rm -rf $(TB)
+	rm -rf $(WAVE)
 	rm -rf a.out
 
