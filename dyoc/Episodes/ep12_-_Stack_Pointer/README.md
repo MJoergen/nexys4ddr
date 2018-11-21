@@ -21,21 +21,21 @@ Instructions implemented in total : 45/151.
 ## Datapath
 
 The Stack Pointer itself can either increase or decrease by one. This is easily
-implemented in lines 177-190. There is an associated new control signal
-sr\_sel.
+implemented in the file main/cpu/sp.vhd. There is an associated new control
+signal sr\_sel.
 
 Being able to read from and write to the stack region requires writing the
-address to the bus. This is handled in line 243. It has become necessary to
-increase the size of the control signal addr\_sel.
+address to the bus. This is handled in line 184 in main/cpu/datapath.vhd. It
+has become necessary to increase the size of the control signal addr\_sel.
 
 The instruction RTS requires adding 1 to the 16-bit value read from the stack
 region. Therefore, we need another value of pc\_sel, which in turn requires
-expanding this control signal too. This is handled in line 145.
+expanding this control signal too. This is handled in the file main/cpu/pc.vhd.
 
 The instruction PHP requires writing the value of the Status Register to the
-stack.  This is handled by lines 248-249. And the instruction JSR requires
+stack.  This is handled by lines 189-190. And the instruction JSR requires
 writing both the high and low byte of the Program Counter. This is handled by
-lines 250-251.  Here too it has become necessary to expand the size of the
+lines 191-192.  Here too it has become necessary to expand the size of the
 control signal data\_sel.
 
 Note that the Status Register value stored on the stack will always have the
@@ -44,7 +44,7 @@ instruction). The only time the Break bit is cleared is during an interrupt
 (either IRQ or NMI).
 
 Finally, the instruction PLP requires copying the data input to the Status
-Register.  This is handled in line 200.
+Register.  This is handled in the file main/cpu/sr.vhd.
 
 ## Control Logic
 We need to add the new control signal sp\_sel in lines 20, 100, and 2720.  Some
@@ -53,7 +53,7 @@ as well as lines 2724-2725. And then the six new instructions are ready to be
 implemented!
 
 ## Test Program
-From now on it will be customary to enhance the test program mem/rom.s with a
+From now on it will be customary to enhance the test program main/mem/rom.s with a
 small self-validating program to test all the instructions implemented so far.
 This will also help catch any regression errors, i.e. changes that break the
 previously implemented instructions.

@@ -27,25 +27,26 @@ Thus, we'll now have two memory blocks (RAM and ROM), and where ROM will be
 initialized from a file. We need to write address decoding to determine which of
 the two memory blocks (if any) the CPU is accessing.
 
-The initial contents of mem/mem.vhd has been moved to mem/rom.vhd to support
+The initial contents of main/mem/ram.vhd has been moved to main/mem/rom.vhd to support
 loading ROM contents from file. The write port has been removed. A new RAM
-module is added in mem/ram.vhd, and the address decoding takes place in
-mem/mem.vhd.
+module is added in main/mem/ram.vhd, and the address decoding takes place in
+main/mem/mem.vhd.
 
 We need to change the initial value of the Program Counter, which is done in
-line 58 of cpu/datapath.vhd.  This is temporary solution, and in a later
+line 40 of main/cpu/pc.vhd.  This is temporary solution, and in a later
 episode we'll finally implement the correct way of initializing the Program
 Counter. 
 
 ## Zero Page
-This is surprisingly easy. The only thing to change in cpu/datapath.vhd is to
-add the option of hardcoding the upper bits to zero. This is done in line 180,
+This is surprisingly easy. The only thing to change in main/cpu/datapath.vhd is to
+add the option of hardcoding the upper bits to zero. This is done in line 159,
 and the corresponding control signal is added in line 52 in cpu/ctl.vhd.
 
 ## Testing
 The CPU is reaching a complexity level where it is useful to have some
-automated way of testing the implementation. The file mem/rom.s now contains a
+automated way of testing the implementation. The file main/mem/rom.s now contains a
 self-verifying assembly program to test the functionality of the CPU. The
 program eventually ends in a infinite loop, and the value of the 'A' register
 will be the result of the test.  The value "FF" corresponds to success,
 anything else is a failure.
+

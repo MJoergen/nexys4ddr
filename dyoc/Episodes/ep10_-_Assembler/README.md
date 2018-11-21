@@ -9,7 +9,7 @@ Instructions implemented in total : 31/151.
 The assembler and linker are part of a toolchain for the 6502 CPU, which can be
 found here: <https://github.com/cc65/cc65>.
 
-The assembler source file is in mem/mem.s. This is essentially the same program
+The assembler source file is in main/mem/ram.s. This is essentially the same program
 as in the previous episode, except the memory has been expanded to 1K bytes.
 
 The assembler file is first translated by the assembler using the command
@@ -26,10 +26,11 @@ the python script bin2hex.py. This generates a file mem/mem.txt, that can be
 loaded by the Xilinx tool as the initial contents of the memory.
 
 And that is it! Now you can write programs directly in assembly in the file
-mem/mem.s, and have the CPU execute the program. We are still a long way from
+main/mem/ram.s, and have the CPU execute the program. We are still a long way from
 writing programs in C, because the C-compiler will most likely make use
 of some of the many instructions we've not yet implemented.
 
 We still have some way to go before we can actually do anything interesting
 with this computer. In the next episode we'll add some more instructions and
 go into details about the memory map.
+

@@ -23,12 +23,12 @@ status register:
 
 To implement these we need to build upon the multiplexer connected to
 the status register. And we need to correspondingly expand the selector signal
-sr\_sel. This is done in lines 160-179 of cpu/datapath.vhd.
+sr\_sel. This is done in the file main/cpu/sr.vhd.
 
 ## Conditional jumps
 All conditional jumps (branches) on the 6502 are relative to the current
 value of the Program Counter. We expand the selector pc\_sel for the Program
-Counter and use it in lines 120-146 of cpu/datapath.vhd.
+Counter and use it in the file main/cpu/pc.vhd.
 
 This takes care of the following instructions:
 * 10 BPL
@@ -51,7 +51,7 @@ next episode.
 
 ## Simulation support
 By now it is becoming increasingly time consuming to build a bit file every
-time you want to test it. In the Makefile in lines 30-34 I've added a new
+time you want to test it. In the Makefile in lines 27-35 I've added a new
 target "sim" that will simulate the behaviour of the MAIN module and display a
 waveform.  In order to use this feature, you need to install GHDL. If you're
 running Linux it may already be available in your distribution, otherwise it
