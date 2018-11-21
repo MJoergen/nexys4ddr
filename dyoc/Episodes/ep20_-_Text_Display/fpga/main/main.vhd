@@ -2,9 +2,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
+-- This is the MAIN module. This contains the memory and the CPU.
+
 entity main is
    generic (
-      G_OVERLAY_BITS : integer
+      G_ROM_INIT_FILE : string;
+      G_OVERLAY_BITS  : integer
    );
    port (
       main_clk_i      : in  std_logic;
@@ -21,7 +24,7 @@ entity main is
    );
 end main;
 
-architecture Structural of main is
+architecture structural of main is
 
    -- Data Path signals
    signal main_cpu_addr : std_logic_vector(15 downto 0);
@@ -55,7 +58,7 @@ begin
 
 
    --------------------------------------------------
-   -- Instantiate memory
+   -- Instantiate Memory module
    --------------------------------------------------
    
    mem_inst : entity work.mem
@@ -70,7 +73,7 @@ begin
       G_CHAR_MASK => X"8000",
       G_COL_MASK  => X"A000",
       --
-      G_ROM_FILE  => "../rom.txt"
+      G_ROM_FILE  => G_ROM_INIT_FILE
    )
    port map (
       a_clk_i       => main_clk_i,
@@ -86,5 +89,5 @@ begin
       b_col_data_o  => vga_col_data_o
    ); -- mem_inst
 
-end architecture Structural;
+end architecture structural;
 

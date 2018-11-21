@@ -1,9 +1,5 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std_unsigned.all;
-
-Library xpm;
-use xpm.vcomponents.all;
 
 -- This is the top level module. The ports on this entity are mapped directly
 -- to pins on the FPGA.
@@ -35,10 +31,12 @@ entity comp is
    );
 end comp;
 
-architecture Structural of comp is
+architecture structural of comp is
 
-   constant C_OVERLAY_BITS : integer := 176;
-   constant C_FONT_FILE    : string := "font8x8.txt";
+   constant C_OVERLAY_BITS  : integer := 176;
+   constant C_ROM_INIT_FILE : string := "../rom.txt";
+   constant C_OPCODES_FILE  : string := "opcodes.txt";
+   constant C_FONT_FILE     : string := "font8x8.txt";
 
    -- MAIN Clock domain
    signal main_clk     : std_logic;
@@ -102,12 +100,13 @@ begin
 
 
    --------------------------------------------------
-   -- Instantiate main
+   -- Instantiate MAIN module
    --------------------------------------------------
 
    main_inst : entity work.main
    generic map (
-      G_OVERLAY_BITS => C_OVERLAY_BITS
+      G_ROM_INIT_FILE => C_ROM_INIT_FILE,
+      G_OVERLAY_BITS  => C_OVERLAY_BITS
    )
    port map (
       main_clk_i     => main_clk,
@@ -150,6 +149,7 @@ begin
    vga_inst : entity work.vga
    generic map (
       G_OVERLAY_BITS => C_OVERLAY_BITS,
+      G_OPCODES_FILE => C_OPCODES_FILE,
       G_FONT_FILE    => C_FONT_FILE
    )
    port map (
@@ -167,5 +167,5 @@ begin
       vga_col_o => vga_col_o
    ); -- vga_inst
 
-end architecture Structural;
+end architecture structural;
 

@@ -38,7 +38,7 @@ entity mem is
    );
 end mem;
 
-architecture Structural of mem is
+architecture structural of mem is
 
    signal a_rom_data  : std_logic_vector(7 downto 0);
    signal a_rom_cs    : std_logic;
@@ -57,9 +57,9 @@ architecture Structural of mem is
 
 begin
 
-   ----------------------
+   --------------------
    -- Address decoding
-   ----------------------
+   --------------------
 
    a_rom_cs  <= '1' when a_addr_i(15 downto G_ROM_SIZE)  = G_ROM_MASK( 15 downto G_ROM_SIZE)  else '0';
    a_ram_cs  <= '1' when a_addr_i(15 downto G_RAM_SIZE)  = G_RAM_MASK( 15 downto G_RAM_SIZE)  else '0';
@@ -71,9 +71,9 @@ begin
    a_col_wren  <= a_wren_i and a_col_cs;
 
 
-   ----------------------
+   -----------------------
    -- Instantiate the ROM
-   ----------------------
+   -----------------------
 
    rom_inst : entity work.rom
    generic map (
@@ -87,9 +87,9 @@ begin
    ); -- rom_inst
    
 
-   -----------------------------------
+   ------------------------------------
    -- Instantiate the character memory
-   -----------------------------------
+   ------------------------------------
 
    char_inst : entity work.dmem
    generic map (
@@ -107,9 +107,9 @@ begin
    ); -- char_inst
 
 
-   -----------------------------------
+   ---------------------------------
    -- Instantiate the colour memory
-   -----------------------------------
+   ---------------------------------
 
    col_inst : entity work.dmem
    generic map (
@@ -128,9 +128,9 @@ begin
    ); -- col_inst
 
 
-   ----------------------
+   -----------------------
    -- Instantiate the RAM
-   ----------------------
+   -----------------------
 
    ram_inst : entity work.ram
    generic map (
@@ -149,5 +149,5 @@ begin
                a_ram_data  when a_ram_cs  = '1' else
                X"00";   -- Default value is needed to avoid inferring a latch.
   
-end Structural;
+end structural;
 
