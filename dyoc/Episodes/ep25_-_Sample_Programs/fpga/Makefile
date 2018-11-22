@@ -2,14 +2,15 @@ XILINX_DIR = /opt/Xilinx/Vivado/2017.3
 
 SRC  = chipset/ic.vhd chipset/waiter.vhd chipset/timer.vhd \
 		 vga/overlay.vhd vga/chars.vhd vga/font.vhd vga/vga.vhd \
-		 mem/dmem.vhd mem/ram.vhd mem/rom.vhd mem/mem.vhd mem/memio.vhd \
 		 keyboard/ps2.vhd keyboard/scancode.vhd keyboard/keyboard.vhd \
-		 cpu/zp.vhd cpu/sr.vhd cpu/regfile.vhd cpu/hilo.vhd cpu/pc.vhd cpu/datapath.vhd cpu/ctl.vhd cpu/cpu.vhd cpu/alu.vhd cpu/cycle.vhd \
+		 main/mem/dmem.vhd main/mem/ram.vhd main/mem/rom.vhd main/mem/mem.vhd main/mem/memio.vhd \
+		 main/cpu/zp.vhd main/cpu/sr.vhd main/cpu/regfile.vhd main/cpu/hilo.vhd main/cpu/pc.vhd main/cpu/datapath.vhd main/cpu/ctl.vhd main/cpu/cpu.vhd main/cpu/alu.vhd main/cpu/cycle.vhd \
 		 comp.vhd
 XDC  = comp.xdc
-TB   = tb.vhd keyboard/ps2_tb.vhd
-WAVE = tb.ghw
-SAVE = tb.gtkw
+TB = tb
+TB_SRC = main/$(TB).vhd keyboard/ps2_tb.vhd
+WAVE   = main/$(TB).ghw
+SAVE   = main/$(TB).gtkw
 
 
 #####################################
@@ -27,10 +28,10 @@ fpga: comp.bit
 # Simulation
 #####################################
 
-sim: $(SRC) $(TB) ../rom.txt
-	ghdl -i --work=work $(SRC) $(TB)
-	ghdl -m --ieee=synopsys -fexplicit tb
-	ghdl -r tb --assert-level=error --wave=$(WAVE) --stop-time=200us
+sim: $(SRC) $(TB_SRC) ../rom.txt
+	ghdl -i --std=08 --work=work $(SRC) $(TB_SRC)
+	ghdl -m --std=08 -fexplicit $(TB)
+	ghdl -r --std=08 $(TB) --assert-level=error --wave=$(WAVE) --stop-time=200us
 	gtkwave $(WAVE) $(SAVE)
 
 
@@ -47,8 +48,8 @@ clean:
 	rm -rf .Xil
 	rm -rf .cache
 	rm -rf work-obj08.cf
-	rm -rf tb
-	rm -rf tb.ghw
+	rm -rf $(TB)
+	rm -rf $(WAVE)
 	rm -rf comp.bit
 	rm -rf comp.bmm
 	rm -rf fsm_encoding.os
