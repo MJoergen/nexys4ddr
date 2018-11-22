@@ -51,17 +51,17 @@ including:
 
 The size of the ROM needs to be expanded, because of the size of the functional
 test. This means changing the initial value of the Program Counter
-in line 142 in cpu/datapath.vhd, as well as changes to mem/mem.vhd.
+in line 44 in main/cpu/pc.vhd, as well as changes to main/mem/mem.vhd.
 
 It was also necessary to allow write access to the ROM, because the test
-requires this.  This is done in lines 71-79 in mem/rom.vhd, as well as lines
-77-78 in mem/mem.vhd.
+requires this.  This is done in lines 71-79 in main/mem/rom.vhd, as well as
+lines 80-81 in mem/mem.vhd.
 
 The complete functional test runs in about 3 seconds at the 25 MHz clock rate,
 i.e. consuming approximately 75 million clock cycles. It therefore becomes
 necessary to run the CPU at the maximum possible speed. This is achieved by
 re-defining bit 7 of the input switch to denote "full speed".  This is easily
-achieved by changing line 86 in comp.vhd, so that mem\_wait is never asserted
+achieved by changing line 31 in waiter.vhd, so that mem\_wait is never asserted
 at full speed.
 
 ## Supported make targets are:
