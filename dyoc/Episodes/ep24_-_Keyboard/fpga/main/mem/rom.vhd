@@ -39,10 +39,11 @@ architecture structural of rom is
 
    -- This reads the ROM contents from a text file
    impure function InitRamFromFile(RamFileName : in string) return mem_t is
-      FILE RamFile : text is in RamFileName;
+      FILE RamFile : text;
       variable RamFileLine : line;
       variable RAM : mem_t := (others => (others => '0'));
    begin
+      file_open(RamFile, RamFileName, read_mode);
       for i in mem_t'range loop
          readline (RamFile, RamFileLine);
          hread (RamFileLine, RAM(i));
