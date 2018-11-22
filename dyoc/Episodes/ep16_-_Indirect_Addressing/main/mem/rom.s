@@ -574,6 +574,5 @@ noError19:
 ; All tests were a success
 success:
    LDA #$FF
-loop:
-   JMP loop
+   JMP success
 
