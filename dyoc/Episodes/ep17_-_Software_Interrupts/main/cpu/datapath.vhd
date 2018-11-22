@@ -43,12 +43,6 @@ architecture structural of datapath is
    constant ADDR_LO     : std_logic_vector(3 downto 0) := B"0011";
    constant ADDR_SP     : std_logic_vector(3 downto 0) := B"0100";
    constant ADDR_ZP     : std_logic_vector(3 downto 0) := B"0101";
-   constant ADDR_BRK    : std_logic_vector(3 downto 0) := B"1000";
-   constant ADDR_BRK1   : std_logic_vector(3 downto 0) := B"1001";
-   constant ADDR_NMI    : std_logic_vector(3 downto 0) := B"1010";
-   constant ADDR_NMI1   : std_logic_vector(3 downto 0) := B"1011";
-   constant ADDR_RESET  : std_logic_vector(3 downto 0) := B"1100";
-   constant ADDR_RESET1 : std_logic_vector(3 downto 0) := B"1101";
    constant ADDR_IRQ    : std_logic_vector(3 downto 0) := B"1110";
    constant ADDR_IRQ1   : std_logic_vector(3 downto 0) := B"1111";
    --
@@ -271,12 +265,6 @@ begin
            X"00" & lo      when addr_sel_i = ADDR_LO     else
            X"01" & sp      when addr_sel_i = ADDR_SP     else
            X"00" & zp      when addr_sel_i = ADDR_ZP     else
-           X"FFFA"         when addr_sel_i = ADDR_NMI    else
-           X"FFFB"         when addr_sel_i = ADDR_NMI1   else
-           X"FFFC"         when addr_sel_i = ADDR_RESET  else
-           X"FFFD"         when addr_sel_i = ADDR_RESET1 else
-           X"FFFE"         when addr_sel_i = ADDR_BRK    else
-           X"FFFF"         when addr_sel_i = ADDR_BRK1   else
            X"FFFE"         when addr_sel_i = ADDR_IRQ    else
            X"FFFF"         when addr_sel_i = ADDR_IRQ1   else
            (others => '0');
