@@ -28,8 +28,8 @@ fpga: comp.bit
 # Compile target program
 #####################################
 
-main/mem/rom.o: main/mem/rom.s
-	ca65 $<
+main/mem/rom.o: main/mem/6502_functional_test.s
+	ca65 $< -o $@
 main/mem/rom.bin: main/mem/rom.o
 	ld65 -C ld.cfg $<
 main/mem/rom.txt: main/mem/rom.bin
@@ -60,6 +60,7 @@ clean:
 	rm -rf $(TB)
 	rm -rf $(WAVE)
 	rm -rf main/mem/rom.o
+	rm -rf main/mem/6502_functional_test.o
 	rm -rf main/mem/rom.bin
 	rm -rf main/mem/rom.txt
 	rm -rf a.out
