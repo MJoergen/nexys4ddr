@@ -140,9 +140,9 @@ begin
    -- Calculate value of nibble at current position
    --------------------------------------------------
 
-   nibble_index <= ((char_row - DIGITS_CHAR_Y)*4 + 3 - (char_col - DIGITS_CHAR_X)) mod (4*NUM_ROWS);
+   nibble_index <= (char_row - DIGITS_CHAR_Y)*4 + 3 - (char_col - DIGITS_CHAR_X);
    nibble       <= digits_i(4*nibble_index+3 downto 4*nibble_index);
-   txt_offset   <= ((char_row - TEXT_CHAR_Y)*8 + (char_col - TEXT_CHAR_X)) mod (8*NUM_ROWS);
+   txt_offset   <= (char_row - TEXT_CHAR_Y)*8 + (char_col - TEXT_CHAR_X);
 
 
    --------------------------------------------------
@@ -151,7 +151,7 @@ begin
    --------------------------------------------------
 
    opcodes_addr(10 downto 3) <= digits_i(15 downto 8);
-   opcodes_addr(2 downto 0)  <= to_std_logic_vector((char_col - TEXT_CHAR_X) mod 8, 3);
+   opcodes_addr(2 downto 0)  <= to_std_logic_vector(char_col - TEXT_CHAR_X, 3);
 
 
    --------------------------------------------------

@@ -111,7 +111,7 @@ begin
    -- Calculate value of nibble at current position
    --------------------------------------------------
 
-   nibble_index <= (5 - (char_col - DIGITS_CHAR_X)) mod (G_OVERLAY_BITS/4);
+   nibble_index <= 5 - (char_col - DIGITS_CHAR_X);
    nibble       <= digits_i(4*nibble_index+3 downto 4*nibble_index);
 
 
