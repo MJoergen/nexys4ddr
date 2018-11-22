@@ -10,17 +10,17 @@ Instructions implemented in total : 151/151.
 ## 6C JMP (a)
 In this instruction, we read the new value of the Program Counter
 in cycles 4 and 5. We therefore need two new values for pc\_sel, see
-lines 220-221 in cpu/datapath.vhd. Additionally, we need the ability
-to increment the address in the hold registers. This is done in
-lines 316 and 333. The control signals hi\_sel and lo\_sel need to be
-expanded to cover this new functionality.
+lines 81-82 in main/cpu/pc.vhd. Additionally, we need the ability
+to increment the address in the hold registers. This is done in line 50 in
+main/cpu/hi.vhd and main/cpu/lo.vhd. The control signals hi\_sel and lo\_sel
+need to be expanded to cover this new functionality.
 
 ## 00 BRK
 This instruction is a bit tricky, since it is actually a two-byte instruction,
 even though the second byte is not used. The Program Counter value stored on
 the stack is the address after the second byte, so the Program Counter needs to
 be incremented twice, before the value is stored onto the stack. This accounts
-for the line 159 in cpu/ctl.vhd
+for the line 155 in main/cpu/ctl.vhd
 
 Furthermore, the Break bit in the Status Register must be set before it is
 pushed onto the stack, but the value itself in the Status Register is not
@@ -28,10 +28,8 @@ changed. Since the same functionality is already implemented for the PHP
 insttruction, no additional changes are needed for this.
 
 Finally, we need to read the new Program Counter from the hardware vectors.
-This requires adding the lines 363-368 in cpu/datapath.vhd, as well as
-increasing the size of the addr\_sel control signal. Here we've added
-partial support for the NMI and RESET vectors too, even though they won't
-be fully implemented in this episode.
+This requires adding the lines 268-269 in main/cpu/datapath.vhd, as well as
+increasing the size of the addr\_sel control signal.
 
 
 ## 40 RTI
