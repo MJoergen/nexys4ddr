@@ -121,10 +121,9 @@ begin
 
 
    main_memio_wr_o <= main_memio_wr;
-   main_memio_rd   <= main_memio_rd_i;
-
-   main_irq_mask <= main_memio_wr(31*8+7 downto 31*8);
+   main_memio_rd(30*8+7 downto 0)    <= main_memio_rd_i(30*8+7 downto 0);
    main_memio_rd(31*8+7 downto 31*8) <= main_irq_status;
+   main_irq_mask  <= main_memio_wr(31*8+7 downto 31*8);
    main_irq_clear <= main_memio_rden(31);
 
 
