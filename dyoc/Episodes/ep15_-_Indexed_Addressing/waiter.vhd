@@ -2,41 +2,50 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
+-- This little helper module generates a wait signal to slow down the CPU execution, as long as bit 7 is 0.
+-- The speed is controlled by the value of inc_i.
+-- If bit 7 is 1, then no wait signal is generated, and the CPU runs at full speed.
+-- In other words, as inc_i increases from 0 to 127, the speed of the CPU gradually increases. Values of
+-- inc_i of 128 or beyond lead to full speed operation of the CPU.
+
 entity waiter is
    port (
-      clk_i  : in  std_logic;
-      sw_i   : in  std_logic_vector(7 downto 0);
+      clk_i  : in  std_logic; -- Approx 25 MHz
+
+      inc_i  : in  std_logic_vector(7 downto 0);
       wait_o : out std_logic
    );
 end waiter;
 
 architecture structural of waiter is
 
-   -- Generate pause signal
-   -- 26 bits corresponds to 55Mhz / 2^26 = 1 Hz approx.
-   signal cnt    : std_logic_vector(25 downto 0) := (others => '0');
-   signal waiter : std_logic := '1';
+   -- 25 bits corresponds to 25Mhz / 2^25 = 1 Hz approx.
+   signal wait_cnt_r : std_logic_vector(24 downto 0) := (others => '0');
+   signal wait_r     : std_logic;
 
 begin
-   
-   --------------------------------------------------
-   -- Generate wait signal
-   --------------------------------------------------
 
-   process (clk_i)
+   wait_cnt_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         cnt <= cnt + sw_i;
-
-         waiter <= '1';
-         if (cnt + sw_i) < cnt then
-            waiter <= '0';
-         end if;
-
+         wait_cnt_r <= wait_cnt_r + inc_i;
       end if;
-   end process;
+   end process wait_cnt_proc;
 
-   wait_o <= waiter;
+   wait_proc : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         -- Check for wrap-around
+         if (wait_cnt_r + inc_i) < wait_cnt_r then
+            wait_r <= '0';
+         else
+            wait_r <= not inc_i(7);
+         end if;
+      end if;
+   end process wait_proc;
+
+   -- Drive output signal
+   wait_o <= wait_r;
 
 end architecture structural;
 

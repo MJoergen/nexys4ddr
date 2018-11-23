@@ -8,9 +8,9 @@ SRC  = $(MAIN) \
 		 vga/vga.vhd vga/digits.vhd vga/pix.vhd vga/font.vhd vga/opcodes.vhd
 XDC  = comp.xdc
 TB = main_tb
-TB_SRC = $(TB).vhd
-WAVE   = $(TB).ghw
-SAVE   = $(TB).gtkw
+TB_SRC = main/$(TB).vhd
+WAVE   = main/$(TB).ghw
+SAVE   = main/$(TB).gtkw
 
 
 #####################################
