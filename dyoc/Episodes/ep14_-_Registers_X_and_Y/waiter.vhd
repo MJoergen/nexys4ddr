@@ -21,7 +21,7 @@ architecture structural of waiter is
 
    -- 25 bits corresponds to 25Mhz / 2^25 = 1 Hz approx.
    signal wait_cnt_r : std_logic_vector(24 downto 0) := (others => '0');
-   signal wait_r     : std_logic;
+   signal wait_r     : std_logic := '1';
 
 begin
 
