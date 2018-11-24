@@ -8,7 +8,7 @@ will be postponed to episode 19.
 ## Emulating IRQ and NMI
 IRQ and NMI are, respectively, maskable and nonmaskable interrupts, generated
 by asserting the two new input pins, irq\_i and nmi\_i, in cpu/cpu.vhd lines
-18-21.  I've added the rst\_i pin as well, but support for Reset will as
+16-18.  I've added the rst\_i pin as well, but support for Reset will as
 mentioned be deferred to the next episode.
 
 So far in this project, we have no source for generating IRQ and NMI. Only in a
@@ -22,16 +22,16 @@ IRQ pin, and bit 1 is mapped to the NMI pin.
 The handling of the IRQ and NMI interrupt signals is performed in the Control
 Logic, i.e.  cpu/ctl.vhd. However, since the IRQ is maskable, the Interrupt bit
 of the Status Register must be forwarded to the Control Logic. This is the
-sri signal in lines 61 and 92 in cpu/cpu.vhd.
+sri signal in lines 67 and 98 in main/cpu/cpu.vhd.
 
 The main idea in interrupt handling is by overwriting the Instruction
 Register with the value 00 for BRK during an interrupt. This is done in lines
-2762-2765 in cpu/ctl.vhd.
+2762-2765 in main/cpu/ctl.vhd.
 
-Hardware interrupts are prioritized in the following order
-Reset > NMI > IRQ > BRK. Furthermore, the NMI signal is edge sensitive, whereas
-the IRQ signal is level sensitive. This is all taken care of in lines 2784-2813 of
-cpu/ctl.vhd
+Hardware interrupts are prioritized in the following order Reset > NMI > IRQ >
+BRK. Furthermore, the NMI signal is edge sensitive, whereas the IRQ signal is
+level sensitive. This is all taken care of in lines 2784-2813 of
+main/cpu/ctl.vhd
 
 Lines 2823-2825 are changed, because it is necessary to overwrite some of the
 control signals during interrupt.
@@ -47,7 +47,8 @@ address is written to the stack.
 When writing the Status Register to memory, the Break bit is set if the write
 is caused by a BRK or PHP instruction, and the Break bit is cleared if the
 write is caused by an IRQ or NMI. For more details, see the description
-in <https://wiki.nesdev.com/w/index.php/Status_flags> and <https://wiki.nesdev.com/w/index.php/CPU_status_flag_behavior>.
+in <https://wiki.nesdev.com/w/index.php/Status_flags> and
+<https://wiki.nesdev.com/w/index.php/CPU_status_flag_behavior>.
 
 ## Supported make targets are:
 * make sim : Simulate the computer so far. It uses the functional test

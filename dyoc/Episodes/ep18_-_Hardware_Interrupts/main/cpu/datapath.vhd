@@ -44,6 +44,8 @@ architecture structural of datapath is
    constant ADDR_LO     : std_logic_vector(3 downto 0) := B"0011";
    constant ADDR_SP     : std_logic_vector(3 downto 0) := B"0100";
    constant ADDR_ZP     : std_logic_vector(3 downto 0) := B"0101";
+   constant ADDR_BRK    : std_logic_vector(3 downto 0) := B"1000";
+   constant ADDR_BRK1   : std_logic_vector(3 downto 0) := B"1001";
    constant ADDR_NMI    : std_logic_vector(3 downto 0) := B"1010";
    constant ADDR_NMI1   : std_logic_vector(3 downto 0) := B"1011";
    constant ADDR_RESET  : std_logic_vector(3 downto 0) := B"1100";
@@ -288,6 +290,8 @@ begin
            X"FFFD"         when addr_sel_i = ADDR_RESET1 else
            X"FFFE"         when addr_sel_i = ADDR_IRQ    else
            X"FFFF"         when addr_sel_i = ADDR_IRQ1   else
+           X"FFFE"         when addr_sel_i = ADDR_BRK    else
+           X"FFFF"         when addr_sel_i = ADDR_BRK1   else
            (others => '0');
 
    data <= (others => '0') when data_sel_i = DATA_NOP  else
