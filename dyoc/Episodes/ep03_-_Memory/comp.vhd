@@ -60,7 +60,7 @@ begin
    waiter_inst : entity work.waiter
    port map (
       clk_i  => vga_clk,
-      sw_i   => sw_i,
+      inc_i  => sw_i,
       wait_o => mem_wait
    ); -- waiter_inst
 

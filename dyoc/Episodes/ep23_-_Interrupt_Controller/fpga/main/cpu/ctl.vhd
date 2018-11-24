@@ -2740,7 +2740,7 @@ architecture structural of ctl is
 
 begin
 
-   p_cnt : process (clk_i)
+   cnt_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -2755,9 +2755,9 @@ begin
             cnt <= "101";
          end if;
       end if;
-   end process p_cnt;
+   end process cnt_proc;
 
-   p_ir : process (clk_i)
+   ir_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -2776,9 +2776,9 @@ begin
             ir <= X"00";
          end if;
       end if;
-   end process p_ir;
+   end process ir_proc;
 
-   p_invalid : process (clk_i)
+   invalid_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -2794,9 +2794,9 @@ begin
             invalid_inst <= X"00";
          end if;
       end if;
-   end process p_invalid;
+   end process invalid_proc;
 
-   p_cic : process (clk_i)
+   cic_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          -- Sample and prioritize hardware interrupts at end of instruction.
@@ -2819,9 +2819,9 @@ begin
             cic <= "10";
          end if;
       end if;
-   end process p_cic;
+   end process cic_proc;
 
-   p_nmi_d : process (clk_i)
+   nmi_d_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if wait_i = '0' then
@@ -2830,7 +2830,7 @@ begin
             end if;
          end if;
       end if;
-   end process p_nmi_d;
+   end process nmi_d_proc;
 
    -- Combinatorial lookup in ROM
    ctl <= NOP when invalid_inst /= 0 else
@@ -2852,13 +2852,17 @@ begin
    reg_sel_o  <= reg_sel;
    zp_sel_o   <= zp_sel;
 
-   -- Debug Output
+
+   ------------------
+   -- Overlay Output
+   ------------------
+
    invalid_o  <= invalid_inst;
-   debug_o(38 downto  0) <= ctl;    -- Six bytes
-   debug_o(47 downto 39) <= (others => '0');
-   debug_o(50 downto 48) <= cnt;    -- One byte
-   debug_o(55 downto 51) <= (others => '0');
-   debug_o(63 downto 56) <= ir;     -- One byte
+   debug_o( 2 downto  0) <= cnt;    -- One byte
+   debug_o( 7 downto  3) <= (others => '0');
+   debug_o(15 downto  8) <= data_i when cnt = 0 else ir;     -- One byte
+   debug_o(54 downto 16) <= ctl;    -- Two bytes
+   debug_o(63 downto 55) <= (others => '0');
 
 end architecture structural;
 

@@ -1,14 +1,17 @@
 XILINX_DIR = /opt/Xilinx/Vivado/2017.3
 
-SRC  = chipset/ic.vhd chipset/waiter.vhd chipset/timer.vhd \
-		 vga/overlay.vhd vga/chars.vhd vga/font.vhd vga/vga.vhd \
-		 mem/dmem.vhd mem/ram.vhd mem/rom.vhd mem/mem.vhd mem/memio.vhd \
-       cpu/zp.vhd cpu/sr.vhd cpu/regfile.vhd cpu/hilo.vhd cpu/pc.vhd cpu/datapath.vhd cpu/ctl.vhd cpu/cpu.vhd cpu/alu.vhd \
-		 comp.vhd 
+MAIN = main/main.vhd \
+		 main/cpu/cpu.vhd main/cpu/datapath.vhd main/cpu/ctl.vhd main/cpu/pc.vhd main/cpu/ar.vhd main/cpu/hi.vhd main/cpu/lo.vhd main/cpu/alu.vhd main/cpu/sr.vhd main/cpu/sp.vhd main/cpu/xr.vhd main/cpu/yr.vhd main/cpu/zp.vhd \
+		 main/mem/mem.vhd main/mem/rom.vhd main/mem/ram.vhd main/mem/dmem.vhd main/mem/memio.vhd
+SRC  = $(MAIN) \
+		 comp.vhd \
+		 chipset/waiter.vhd chipset/clk.vhd chipset/cdc.vhd chipset/ic.vhd chipset/timer.vhd \
+   	 vga/vga.vhd vga/overlay.vhd vga/pix.vhd vga/font.vhd vga/chars.vhd vga/opcodes.vhd
 XDC  = comp.xdc
-TB   = tb.vhd
-WAVE = tb.ghw
-SAVE = tb.gtkw
+TB = main_tb
+TB_SRC = main/$(TB).vhd
+WAVE   = main/$(TB).ghw
+SAVE   = main/$(TB).gtkw
 
 
 #####################################
@@ -26,10 +29,10 @@ fpga: comp.bit
 # Simulation
 #####################################
 
-sim: $(SRC) $(TB) ../rom.txt
-	ghdl -i --work=work $(SRC) $(TB)
-	ghdl -m --ieee=synopsys -fexplicit tb
-	ghdl -r tb --assert-level=error --wave=$(WAVE) --stop-time=850us
+sim: $(MAIN) $(TB_SRC) ../rom.txt
+	ghdl -i --std=08 --work=work $(MAIN) $(TB_SRC)
+	ghdl -m --std=08 -fexplicit $(TB)
+	ghdl -r --std=08 $(TB) --assert-level=error --wave=$(WAVE) --stop-time=850us
 	gtkwave $(WAVE) $(SAVE)
 
 
@@ -40,12 +43,14 @@ sim: $(SRC) $(TB) ../rom.txt
 clean:
 	rm -rf usage_statistics_webtalk.*
 	rm -rf vivado*
-	rm -rf *.o
 	rm -rf comp.bit
 	rm -rf comp.dcp
 	rm -rf .Xil
+	rm -rf timing_summary.rpt
 	rm -rf .cache
+	rm -rf *.o
 	rm -rf work-obj08.cf
-	rm -rf tb
-	rm -rf tb.ghw
+	rm -rf $(TB)
+	rm -rf $(WAVE)
+	rm -rf a.out
 

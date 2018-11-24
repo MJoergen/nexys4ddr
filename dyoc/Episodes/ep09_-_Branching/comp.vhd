@@ -83,7 +83,7 @@ begin
    waiter_inst : entity work.waiter
    port map (
       clk_i  => main_clk,
-      sw_i   => sw_i,
+      inc_i  => sw_i,
       wait_o => main_wait
    ); -- waiter_inst
 
