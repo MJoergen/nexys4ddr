@@ -58,6 +58,7 @@ begin
       addr_o    => main_cpu_addr,
       data_i    => main_mem_data,
       wren_o    => main_cpu_wren,
+      rden_o    => main_cpu_rden,
       data_o    => main_cpu_data,
       invalid_o => main_led_o,
       overlay_o => main_overlay_o
