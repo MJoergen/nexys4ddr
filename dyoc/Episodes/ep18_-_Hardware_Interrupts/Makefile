@@ -28,7 +28,7 @@ fpga: comp.bit
 # Compile target program
 #####################################
 
-main/mem/rom.o: main/mem/6502_functional_test.s
+main/mem/rom.o: main/mem/6502_interrupt_test.s
 	ca65 $< -o $@
 main/mem/rom.bin: main/mem/rom.o
 	ld65 -C ld.cfg $<
