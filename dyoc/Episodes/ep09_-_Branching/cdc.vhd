@@ -15,7 +15,6 @@ entity cdc is
    );
    port (
       src_clk_i  : in  std_logic;
-      src_rst_i  : in  std_logic;
       src_data_i : in  std_logic_vector(G_WIDTH-1 downto 0);
       dst_clk_i  : in  std_logic;
       dst_data_o : out std_logic_vector(G_WIDTH-1 downto 0)
@@ -23,6 +22,9 @@ entity cdc is
 end cdc;
 
 architecture structural of cdc is
+
+   signal rst             : std_logic := '1';
+   signal rst_shr         : std_logic_vector(7 downto 0) := X"FF";
 
    signal dst_empty       : std_logic;
    signal dst_rd_en       : std_logic;
@@ -32,6 +34,15 @@ architecture structural of cdc is
    signal src_wr_rst_busy : std_logic;
 
 begin
+
+   rst_proc : process (src_clk_i)
+   begin
+      if rising_edge(src_clk_i) then
+         -- Hold reset asserted for a number of clock cycles.
+         rst     <= rst_shr(0);
+         rst_shr <= "0" & rst_shr(rst_shr'left downto 1);
+      end if;
+   end process rst_proc;
 
    -- Write when empty
    src_wr_en <= not src_prog_full and not src_wr_rst_busy;
@@ -71,7 +82,7 @@ begin
       rd_data_count        => open,
       rd_en                => dst_rd_en,
       rd_rst_busy          => open,
-      rst                  => src_rst_i,
+      rst                  => rst,
       sbiterr              => open,
       sleep                => '0',
       underflow            => open,

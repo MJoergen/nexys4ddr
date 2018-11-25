@@ -153,7 +153,6 @@ begin
    )
    port map (
       src_clk_i  => main_clk,
-      src_rst_i  => main_rst,
       src_data_i => main_overlay,
       dst_clk_i  => vga_clk,
       dst_data_o => vga_overlay
@@ -212,7 +211,6 @@ begin
    )
    port map (
       src_clk_i  => main_clk,
-      src_rst_i  => main_rst,
       src_data_i => main_memio_wr(15*8+7 downto 0*8),
       dst_clk_i  => vga_clk,
       dst_data_o => vga_memio_palette
@@ -225,7 +223,6 @@ begin
    )
    port map (
       src_clk_i  => main_clk,
-      src_rst_i  => main_rst,
       src_data_i => main_memio_wr(17*8+7 downto 16*8),
       dst_clk_i  => vga_clk,
       dst_data_o => vga_memio_pix_y_int
@@ -241,7 +238,6 @@ begin
    )
    port map (
       src_clk_i  => vga_clk,
-      src_rst_i  => vga_rst,
       src_data_i => vga_memio_pix_x,
       dst_clk_i  => main_clk,
       dst_data_o => main_memio_rd(1*8+7 downto 0*8)
@@ -254,7 +250,6 @@ begin
    )
    port map (
       src_clk_i  => vga_clk,
-      src_rst_i  => vga_rst,
       src_data_i => vga_memio_pix_y,
       dst_clk_i  => main_clk,
       dst_data_o => main_memio_rd(3*8+7 downto 2*8)

@@ -114,7 +114,6 @@ begin
    )
    port map (
       src_clk_i  => main_clk,
-      src_rst_i  => main_rst,
       src_data_i => main_overlay,
       dst_clk_i  => vga_clk,
       dst_data_o => vga_overlay
