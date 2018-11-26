@@ -39,6 +39,7 @@ architecture structural of comp is
    signal main_rst      : std_logic;
    signal main_rst_shr  : std_logic_vector(7 downto 0) := X"FF";
    signal main_wait     : std_logic;
+   signal main_vga_irq  : std_logic;
    signal main_overlay  : std_logic_vector(C_OVERLAY_BITS-1 downto 0);
    signal main_memio_wr : std_logic_vector(8*32-1 downto 0);
    signal main_memio_rd : std_logic_vector(8*32-1 downto 0);
@@ -130,6 +131,7 @@ begin
       main_clk_i      => main_clk,
       main_rst_i      => main_rst,
       main_wait_i     => main_wait,
+      main_vga_irq_i  => main_vga_irq,
       main_led_o      => led_o,
       main_overlay_o  => main_overlay,
       main_memio_wr_o => main_memio_wr,
@@ -197,6 +199,15 @@ begin
       --
       irq_o             => vga_irq
    ); -- vga_inst
+
+
+   cdc_pulse_vga_irq_inst : entity work.cdc_pulse
+   port map (
+      src_clk_i   => vga_clk,
+      src_pulse_i => vga_irq,
+      dst_clk_i   => main_clk,
+      dst_pulse_o => main_vga_irq
+   ); -- cdc_pulse_vga_irq_inst
 
 
    --------------------------------------------------

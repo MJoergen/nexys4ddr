@@ -13,6 +13,7 @@ entity main is
       main_clk_i      : in  std_logic;
       main_rst_i      : in  std_logic;
       main_wait_i     : in  std_logic;
+      main_vga_irq_i  : in  std_logic;
       main_led_o      : out std_logic_vector(7 downto 0);
       main_overlay_o  : out std_logic_vector(G_OVERLAY_BITS-1 downto 0);
       main_memio_wr_o : out std_logic_vector(8*32-1 downto 0);
@@ -44,7 +45,6 @@ architecture structural of main is
 
    signal main_irq_src    : std_logic_vector(7 downto 0);
    signal main_irq_cpu    : std_logic;
-   signal main_vga_irq    : std_logic;
    signal main_timer_irq  : std_logic := '0';
 
    signal main_memio_wr   : std_logic_vector(8*32-1 downto 0);
@@ -148,7 +148,7 @@ begin
    -------------------------
 
    main_irq_src(0) <= main_timer_irq;
-   main_irq_src(1) <= main_vga_irq;
+   main_irq_src(1) <= main_vga_irq_i;
    main_irq_src(7 downto 2) <= (others => '0');             -- Not used
 
 

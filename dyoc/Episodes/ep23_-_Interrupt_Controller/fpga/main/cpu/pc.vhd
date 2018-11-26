@@ -18,19 +18,22 @@ end entity pc;
 
 architecture structural of pc is
 
-   constant PC_NOP : std_logic_vector(2 downto 0) := B"000";
-   constant PC_INC : std_logic_vector(2 downto 0) := B"001";
-   constant PC_HL  : std_logic_vector(2 downto 0) := B"010";
-   constant PC_HL1 : std_logic_vector(2 downto 0) := B"011";
-   constant PC_SR  : std_logic_vector(2 downto 0) := B"100";
-   constant PC_BPL : std_logic_vector(2 downto 0) := B"000";
-   constant PC_BMI : std_logic_vector(2 downto 0) := B"001";
-   constant PC_BVC : std_logic_vector(2 downto 0) := B"010";
-   constant PC_BVS : std_logic_vector(2 downto 0) := B"011";
-   constant PC_BCC : std_logic_vector(2 downto 0) := B"100";
-   constant PC_BCS : std_logic_vector(2 downto 0) := B"101";
-   constant PC_BNE : std_logic_vector(2 downto 0) := B"110";
-   constant PC_BEQ : std_logic_vector(2 downto 0) := B"111";
+   constant PC_NOP  : std_logic_vector(2 downto 0) := B"000";
+   constant PC_INC  : std_logic_vector(2 downto 0) := B"001";
+   constant PC_HL   : std_logic_vector(2 downto 0) := B"010";
+   constant PC_HL1  : std_logic_vector(2 downto 0) := B"011";
+   constant PC_SR   : std_logic_vector(2 downto 0) := B"100";
+   constant PC_D_HI : std_logic_vector(2 downto 0) := B"101";
+   constant PC_D_LO : std_logic_vector(2 downto 0) := B"110";
+
+   constant PC_BPL  : std_logic_vector(2 downto 0) := B"000";
+   constant PC_BMI  : std_logic_vector(2 downto 0) := B"001";
+   constant PC_BVC  : std_logic_vector(2 downto 0) := B"010";
+   constant PC_BVS  : std_logic_vector(2 downto 0) := B"011";
+   constant PC_BCC  : std_logic_vector(2 downto 0) := B"100";
+   constant PC_BCS  : std_logic_vector(2 downto 0) := B"101";
+   constant PC_BNE  : std_logic_vector(2 downto 0) := B"110";
+   constant PC_BEQ  : std_logic_vector(2 downto 0) := B"111";
    
    -- The Status Register contains: SV-BDIZC
    constant SR_C : integer := 0;
@@ -75,6 +78,8 @@ begin
                   else
                      pc <= pc + 1;  -- If branch is not taken, just go to the next instruction.
                   end if;
+               when PC_D_HI => pc(15 downto 8) <= data_i;
+               when PC_D_LO => pc( 7 downto 0) <= data_i;
                when others => null;
             end case;
          end if;
