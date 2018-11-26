@@ -46,8 +46,6 @@ architecture structural of comp is
 
    -- VGA Clock doamin
    signal vga_clk             : std_logic;
-   signal vga_rst             : std_logic;
-   signal vga_rst_shr         : std_logic_vector(7 downto 0) := X"FF";
    signal vga_overlay_en      : std_logic;
    signal vga_overlay         : std_logic_vector(C_OVERLAY_BITS-1 downto 0);
    signal vga_char_addr       : std_logic_vector( 12 downto 0);
@@ -92,19 +90,6 @@ begin
       end if;
    end process main_rst_proc;
 
-   vga_rst_proc : process (vga_clk)
-   begin
-      if rising_edge(vga_clk) then
-         -- Hold reset asserted for a number of clock cycles.
-         vga_rst     <= vga_rst_shr(0);
-         vga_rst_shr <= "0" & vga_rst_shr(vga_rst_shr'left downto 1);
-
-         if rstn_i = '0' then
-            vga_rst_shr <= (others => '1');
-         end if;
-      end if;
-   end process vga_rst_proc;
-   
 
    --------------------------------------------------
    -- Instantiate Waiter

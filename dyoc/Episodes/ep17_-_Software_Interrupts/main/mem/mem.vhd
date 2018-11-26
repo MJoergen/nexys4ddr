@@ -32,8 +32,8 @@ end mem;
 architecture structural of mem is
 
    signal rom_wren : std_logic;
-   signal ram_wren : std_logic;
    signal rom_data : std_logic_vector(7 downto 0);
+   signal ram_wren : std_logic;
    signal ram_data : std_logic_vector(7 downto 0);
 
 begin
