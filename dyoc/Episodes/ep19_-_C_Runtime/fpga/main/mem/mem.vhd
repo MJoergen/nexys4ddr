@@ -39,9 +39,9 @@ architecture structural of mem is
 
 begin
 
-   ----------------------
+   -----------------------
    -- Instantiate the ROM
-   ----------------------
+   -----------------------
 
    rom_inst : entity work.rom
    generic map (
@@ -55,9 +55,9 @@ begin
    ); -- rom_inst
    
 
-   ----------------------
+   -----------------------
    -- Instantiate the RAM
-   ----------------------
+   -----------------------
 
    ram_inst : entity work.ram
    generic map (
@@ -72,9 +72,9 @@ begin
    ); -- ram_inst
    
 
-   ----------------------
+   --------------------
    -- Address decoding
-   ----------------------
+   --------------------
 
    -- Allow 4K bytes of ROM in the range 0xF000 - 0xFFFF.
    rom_cs <= '1' when addr_i(15 downto 12) = "1111" else
