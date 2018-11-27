@@ -5,7 +5,7 @@ MAIN = main/main.vhd main/ic.vhd main/timer.vhd \
 		 main/mem/mem.vhd main/mem/rom.vhd main/mem/ram.vhd main/mem/dmem.vhd main/mem/memio.vhd
 SRC  = $(MAIN) \
 		 comp.vhd \
-		 waiter.vhd clk_sim.vhd cdc_sim.vhd cdc_pulse.vhd \
+		 waiter.vhd clk.vhd cdc.vhd cdc_pulse.vhd \
    	 vga/vga.vhd vga/overlay.vhd vga/pix.vhd vga/font.vhd vga/chars.vhd vga/opcodes.vhd
 XDC  = comp.xdc
 TB = main_tb
