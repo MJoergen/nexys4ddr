@@ -31,9 +31,11 @@ end mem;
 
 architecture structural of mem is
 
-   signal ram_wren : std_logic;
    signal rom_data : std_logic_vector(7 downto 0);
+   signal rom_cs   : std_logic;
+   signal ram_wren : std_logic;
    signal ram_data : std_logic_vector(7 downto 0);
+   signal ram_cs   : std_logic;
 
 begin
 
@@ -44,11 +46,11 @@ begin
    rom_inst : entity work.rom
    generic map (
       G_INIT_FILE => G_ROM_INIT_FILE,
-      G_ADDR_BITS => 11  -- 2K bytes
+      G_ADDR_BITS => 12  -- 4K bytes
    )
    port map (
       clk_i  => clk_i,
-      addr_i => addr_i(10 downto 0),
+      addr_i => addr_i(11 downto 0),
       data_o => rom_data
    ); -- rom_inst
    
@@ -59,11 +61,11 @@ begin
 
    ram_inst : entity work.ram
    generic map (
-      G_ADDR_BITS => 11  -- 2K bytes
+      G_ADDR_BITS => 12  -- 4K bytes
    )
    port map (
       clk_i  => clk_i,
-      addr_i => addr_i(10 downto 0),
+      addr_i => addr_i(11 downto 0),
       data_o => ram_data,
       data_i => data_i,
       wren_i => ram_wren
@@ -74,11 +76,18 @@ begin
    -- Address decoding
    ----------------------
 
-   ram_wren <= wren_i when addr_i(15 downto 11) = "00000" else
-               '0';
+   -- Allow 4K bytes of ROM in the range 0xF000 - 0xFFFF.
+   rom_cs <= '1' when addr_i(15 downto 12) = "1111" else
+             '0';
 
-   data_o <= rom_data when addr_i(15 downto 11) = "11111" else
-             ram_data when addr_i(15 downto 11) = "00000" else
+   -- Allow 4K bytes of RAM in the range 0x0000 - 0x0FFF.
+   ram_cs <= '1' when addr_i(15 downto 12) = "0000" else
+             '0';
+
+   ram_wren <= wren_i and ram_cs;
+
+   data_o <= rom_data when rom_cs = '1' else
+             ram_data when ram_cs = '1' else
              X"00";
   
 end structural;
