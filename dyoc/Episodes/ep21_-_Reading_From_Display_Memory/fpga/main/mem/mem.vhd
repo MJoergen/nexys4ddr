@@ -62,20 +62,6 @@ architecture structural of mem is
 
 begin
 
-   --------------------
-   -- Address decoding
-   --------------------
-
-   a_rom_cs  <= '1' when a_addr_i(15 downto G_ROM_SIZE)  = G_ROM_MASK( 15 downto G_ROM_SIZE)  else '0';
-   a_ram_cs  <= '1' when a_addr_i(15 downto G_RAM_SIZE)  = G_RAM_MASK( 15 downto G_RAM_SIZE)  else '0';
-   a_char_cs <= '1' when a_addr_i(15 downto G_CHAR_SIZE) = G_CHAR_MASK(15 downto G_CHAR_SIZE) else '0';
-   a_col_cs  <= '1' when a_addr_i(15 downto G_COL_SIZE)  = G_COL_MASK( 15 downto G_COL_SIZE)  else '0';
-
-   a_ram_wren  <= a_wren_i and a_ram_cs;
-   a_char_wren <= a_wren_i and a_char_cs;
-   a_col_wren  <= a_wren_i and a_col_cs;
-
-
    ---------------------
    -- Insert wait state
    ---------------------
@@ -166,6 +152,20 @@ begin
       data_i => a_data_i,
       wren_i => a_ram_wren
    ); -- ram_inst
+
+
+   --------------------
+   -- Address decoding
+   --------------------
+
+   a_rom_cs  <= '1' when a_addr_i(15 downto G_ROM_SIZE)  = G_ROM_MASK( 15 downto G_ROM_SIZE)  else '0';
+   a_ram_cs  <= '1' when a_addr_i(15 downto G_RAM_SIZE)  = G_RAM_MASK( 15 downto G_RAM_SIZE)  else '0';
+   a_char_cs <= '1' when a_addr_i(15 downto G_CHAR_SIZE) = G_CHAR_MASK(15 downto G_CHAR_SIZE) else '0';
+   a_col_cs  <= '1' when a_addr_i(15 downto G_COL_SIZE)  = G_COL_MASK( 15 downto G_COL_SIZE)  else '0';
+
+   a_ram_wren  <= a_wren_i and a_ram_cs;
+   a_char_wren <= a_wren_i and a_char_cs;
+   a_col_wren  <= a_wren_i and a_col_cs;
 
 
    a_data_o <= a_rom_data  when a_rom_cs  = '1' else

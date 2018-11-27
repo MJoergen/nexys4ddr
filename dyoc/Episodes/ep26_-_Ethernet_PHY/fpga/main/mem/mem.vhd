@@ -74,9 +74,117 @@ architecture structural of mem is
 
 begin
 
-   ----------------------
+   ---------------------
+   -- Insert wait state
+   ---------------------
+
+   a_wait <= a_rden_i and (char_cs or col_cs or memio_cs);
+
+   p_a_wait_d : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         a_wait_d <= a_wait;
+      end if;
+   end process p_a_wait_d;
+
+   a_wait_o <= '1' when a_wait = '1' and a_wait_d = '0' else
+               '0';
+
+   -----------------------
+   -- Instantiate the ROM
+   -----------------------
+
+   rom_inst : entity work.rom
+   generic map (
+      G_INIT_FILE => G_ROM_FILE,
+      G_ADDR_BITS => G_ROM_SIZE
+   )
+   port map (
+      clk_i  => clk_i,
+      addr_i => a_addr_i(G_ROM_SIZE-1 downto 0),
+      data_o => rom_data
+   ); -- rom_inst
+
+
+   -------------------------------------
+   -- Instantiate the Memory Mapped I/O
+   -------------------------------------
+
+   memio_inst : entity work.memio
+   generic map (
+      G_ADDR_BITS => G_MEMIO_SIZE,
+      G_INIT_VAL  => G_MEMIO_INIT
+   )
+   port map (
+      clk_i     => clk_i,
+      a_addr_i  => a_addr_i(G_MEMIO_SIZE-1 downto 0),
+      a_data_o  => memio_data,
+      a_data_i  => a_data_i,
+      a_wren_i  => memio_wren,
+      b_memio_o => b_memio_wr_o, -- From MEMIO
+      b_memio_i => b_memio_rd_i  -- To MEMIO
+   ); -- memio_inst
+
+
+   ------------------------------------
+   -- Instantiate the character memory
+   ------------------------------------
+
+   char_inst : entity work.dmem
+   generic map (
+      G_ADDR_BITS => G_CHAR_SIZE
+   )
+   port map (
+      clk_i    => clk_i,
+      a_addr_i => a_addr_i(G_CHAR_SIZE-1 downto 0),
+      a_data_o => char_data,
+      a_data_i => a_data_i,
+      a_wren_i => char_wren,
+      b_addr_i => b_char_addr_i,
+      b_data_o => b_char_data_o
+   ); -- char_inst
+
+
+   ---------------------------------
+   -- Instantiate the colour memory
+   ---------------------------------
+
+   col_inst : entity work.dmem
+   generic map (
+      G_ADDR_BITS => G_COL_SIZE,
+      G_INIT_VAL  => X"0F"    -- Default is white text on black background.
+   )
+   port map (
+      clk_i    => clk_i,
+      a_addr_i => a_addr_i(G_COL_SIZE-1 downto 0),
+      a_data_o => col_data,
+      a_data_i => a_data_i,
+      a_wren_i => col_wren,
+      b_addr_i => b_col_addr_i,
+      b_data_o => b_col_data_o
+   ); -- col_inst
+
+
+   -----------------------
+   -- Instantiate the RAM
+   -----------------------
+
+   ram_inst : entity work.ram
+   generic map (
+      G_ADDR_BITS => G_RAM_SIZE
+   )
+   port map (
+      clk_i  => clk_i,
+      addr_i => a_addr_i(G_RAM_SIZE-1 downto 0),
+      data_o => ram_data,
+      data_i => a_data_i,
+      wren_i => ram_wren
+   ); -- ram_inst
+
+
+   --------------------
    -- Address decoding
-   ----------------------
+   --------------------
 
    rom_cs   <= '1' when a_addr_i(15 downto G_ROM_SIZE)   = G_ROM_MASK(   15 downto G_ROM_SIZE)   else '0';
    ram_cs   <= '1' when a_addr_i(15 downto G_RAM_SIZE)   = G_RAM_MASK(   15 downto G_RAM_SIZE)   else '0';
@@ -96,114 +204,6 @@ begin
       b_memio_rden_o(to_integer(a_addr_i(G_MEMIO_SIZE-2 downto 0))) <=
          a_rden_i and memio_cs and a_wait_d and a_addr_i(G_MEMIO_SIZE-1);
    end process;
-
-   --------------------
-   -- Insert wait state
-   --------------------
-
-   a_wait <= a_rden_i and (char_cs or col_cs or memio_cs);
-
-   p_a_wait_d : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         a_wait_d <= a_wait;
-      end if;
-   end process p_a_wait_d;
-
-   a_wait_o <= '1' when a_wait = '1' and a_wait_d = '0' else
-               '0';
-
-   ----------------------
-   -- Instantiate the ROM
-   ----------------------
-
-   i_rom : entity work.rom
-   generic map (
-      G_INIT_FILE => G_ROM_FILE,
-      G_ADDR_BITS => G_ROM_SIZE
-   )
-   port map (
-      clk_i  => clk_i,
-      addr_i => a_addr_i(G_ROM_SIZE-1 downto 0),
-      data_o => rom_data
-   );
-
-
-   -------------------------------------
-   -- Instantiate the Memory Mapped I/O
-   -------------------------------------
-
-   i_memio : entity work.memio
-   generic map (
-      G_ADDR_BITS => G_MEMIO_SIZE,
-      G_INIT_VAL  => G_MEMIO_INIT
-   )
-   port map (
-      clk_i     => clk_i,
-      a_addr_i  => a_addr_i(G_MEMIO_SIZE-1 downto 0),
-      a_data_o  => memio_data,
-      a_data_i  => a_data_i,
-      a_wren_i  => memio_wren,
-      b_memio_o => b_memio_wr_o, -- From MEMIO
-      b_memio_i => b_memio_rd_i  -- To MEMIO
-   );
-
-
-   -----------------------------------
-   -- Instantiate the character memory
-   -----------------------------------
-
-   i_char : entity work.dmem
-   generic map (
-      G_ADDR_BITS => G_CHAR_SIZE
-   )
-   port map (
-      clk_i    => clk_i,
-      a_addr_i => a_addr_i(G_CHAR_SIZE-1 downto 0),
-      a_data_o => char_data,
-      a_data_i => a_data_i,
-      a_wren_i => char_wren,
-      b_addr_i => b_char_addr_i,
-      b_data_o => b_char_data_o
-   );
-
-
-   -----------------------------------
-   -- Instantiate the colour memory
-   -----------------------------------
-
-   i_col : entity work.dmem
-   generic map (
-      G_ADDR_BITS => G_COL_SIZE,
-      G_INIT_VAL  => X"0F"    -- Default is white text on black background.
-   )
-   port map (
-      clk_i    => clk_i,
-      a_addr_i => a_addr_i(G_COL_SIZE-1 downto 0),
-      a_data_o => col_data,
-      a_data_i => a_data_i,
-      a_wren_i => col_wren,
-      b_addr_i => b_col_addr_i,
-      b_data_o => b_col_data_o
-   );
-
-
-   ----------------------
-   -- Instantiate the RAM
-   ----------------------
-
-   i_ram : entity work.ram
-   generic map (
-      G_ADDR_BITS => G_RAM_SIZE
-   )
-   port map (
-      clk_i  => clk_i,
-      addr_i => a_addr_i(G_RAM_SIZE-1 downto 0),
-      data_o => ram_data,
-      data_i => a_data_i,
-      wren_i => ram_wren
-   );
-
 
    a_data_o <= rom_data   when rom_cs   = '1' else
                memio_data when memio_cs = '1' else

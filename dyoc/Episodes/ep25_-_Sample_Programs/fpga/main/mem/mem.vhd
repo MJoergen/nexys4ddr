@@ -74,29 +74,6 @@ architecture structural of mem is
 
 begin
 
-   ----------------------
-   -- Address decoding
-   ----------------------
-
-   rom_cs   <= '1' when a_addr_i(15 downto G_ROM_SIZE)   = G_ROM_MASK(   15 downto G_ROM_SIZE)   else '0';
-   ram_cs   <= '1' when a_addr_i(15 downto G_RAM_SIZE)   = G_RAM_MASK(   15 downto G_RAM_SIZE)   else '0';
-   char_cs  <= '1' when a_addr_i(15 downto G_CHAR_SIZE)  = G_CHAR_MASK(  15 downto G_CHAR_SIZE)  else '0';
-   col_cs   <= '1' when a_addr_i(15 downto G_COL_SIZE)   = G_COL_MASK(   15 downto G_COL_SIZE)   else '0';
-   memio_cs <= '1' when a_addr_i(15 downto G_MEMIO_SIZE) = G_MEMIO_MASK( 15 downto G_MEMIO_SIZE) else '0';
-
-   ram_wren   <= a_wren_i and ram_cs;
-   char_wren  <= a_wren_i and char_cs;
-   col_wren   <= a_wren_i and col_cs;
-   memio_wren <= a_wren_i and memio_cs;
-
-
-   process (a_addr_i, a_rden_i, memio_cs, a_wait_d)
-   begin
-      b_memio_rden_o <= (others => '0');
-      b_memio_rden_o(to_integer(a_addr_i(G_MEMIO_SIZE-2 downto 0))) <=
-         a_rden_i and memio_cs and a_wait_d and a_addr_i(G_MEMIO_SIZE-1);
-   end process;
-
    --------------------
    -- Insert wait state
    --------------------
@@ -204,6 +181,29 @@ begin
       wren_i => ram_wren
    );
 
+
+   ----------------------
+   -- Address decoding
+   ----------------------
+
+   rom_cs   <= '1' when a_addr_i(15 downto G_ROM_SIZE)   = G_ROM_MASK(   15 downto G_ROM_SIZE)   else '0';
+   ram_cs   <= '1' when a_addr_i(15 downto G_RAM_SIZE)   = G_RAM_MASK(   15 downto G_RAM_SIZE)   else '0';
+   char_cs  <= '1' when a_addr_i(15 downto G_CHAR_SIZE)  = G_CHAR_MASK(  15 downto G_CHAR_SIZE)  else '0';
+   col_cs   <= '1' when a_addr_i(15 downto G_COL_SIZE)   = G_COL_MASK(   15 downto G_COL_SIZE)   else '0';
+   memio_cs <= '1' when a_addr_i(15 downto G_MEMIO_SIZE) = G_MEMIO_MASK( 15 downto G_MEMIO_SIZE) else '0';
+
+   ram_wren   <= a_wren_i and ram_cs;
+   char_wren  <= a_wren_i and char_cs;
+   col_wren   <= a_wren_i and col_cs;
+   memio_wren <= a_wren_i and memio_cs;
+
+
+   process (a_addr_i, a_rden_i, memio_cs, a_wait_d)
+   begin
+      b_memio_rden_o <= (others => '0');
+      b_memio_rden_o(to_integer(a_addr_i(G_MEMIO_SIZE-2 downto 0))) <=
+         a_rden_i and memio_cs and a_wait_d and a_addr_i(G_MEMIO_SIZE-1);
+   end process;
 
    a_data_o <= rom_data   when rom_cs   = '1' else
                memio_data when memio_cs = '1' else
