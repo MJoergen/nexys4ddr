@@ -2749,6 +2749,11 @@ begin
                cnt <= (others => '0');
             end if;
          end if;
+
+         -- Upon reset, start by loading Program Counter from Reset vector.
+         if rst_i = '1' then
+            cnt <= "101";
+         end if;
       end if;
    end process cnt_proc;
 
@@ -2765,6 +2770,11 @@ begin
                end if;
             end if;
          end if;
+
+         -- Upon reset, force the first instruction to be BRK
+         if rst_i = '1' then
+            ir <= X"00";
+         end if;
       end if;
    end process ir_proc;
 
@@ -2777,6 +2787,11 @@ begin
                   invalid_inst <= ir;
                end if;
             end if;
+         end if;
+
+         -- Upon reset, clear the invalid instruction register.
+         if rst_i = '1' then
+            invalid_inst <= X"00";
          end if;
       end if;
    end process invalid_proc;
@@ -2798,6 +2813,11 @@ begin
                end if;
             end if;
          end if;
+
+         -- Upon reset, force a hardware interrupt from the Reset vector.
+         if rst_i = '1' then
+            cic <= "10";
+         end if;
       end if;
    end process cic_proc;
 
@@ -2813,7 +2833,8 @@ begin
    end process nmi_d_proc;
 
    -- Combinatorial lookup in ROM
-   ctl <= ADDR_PC + PC_INC when cnt = 0 else
+   ctl <= NOP when invalid_inst /= 0 else
+          ADDR_PC + PC_INC when cnt = 0 else
           rom(to_integer(ir)*8 + to_integer(cnt));
 
    -- Drive output signals

@@ -5,8 +5,7 @@ use ieee.std_logic_1164.all;
 -- to pins on the FPGA.
 --
 -- In this version the design can execute all instructions.
--- It additionally features a 80x60 character display, and an
--- interrupt controller.
+-- It additionally features a 80x60 character display.
 --
 -- The speed of the execution is controlled by the slide switches.
 -- Simultaneously, the CPU debug is shown as an overlay over the text screen.
