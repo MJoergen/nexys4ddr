@@ -2798,6 +2798,11 @@ begin
                end if;
             end if;
          end if;
+
+         -- Upon reset, force a hardware interrupt from the Reset vector.
+         if rst_i = '1' then
+            cic <= "10";
+         end if;
       end if;
    end process cic_proc;
 
