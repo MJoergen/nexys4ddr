@@ -75,7 +75,8 @@ architecture structural of overlay is
                            " Address" &
                            "Write DA" &
                            "SP  Stat" &
-                           "  XR  YR";
+                           "  XR  YR" &
+                           "Keyboard";
 
    -- A single character bitmap is defined by 8x8 = 64 bits.
    subtype bitmap_t is std_logic_vector(63 downto 0);
