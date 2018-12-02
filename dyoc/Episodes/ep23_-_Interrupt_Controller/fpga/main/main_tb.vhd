@@ -8,8 +8,9 @@ end main_tb;
 architecture structural of main_tb is
 
    -- Clock and reset
-   signal main_clk : std_logic;
-   signal main_rst : std_logic;
+   signal main_clk     : std_logic;
+   signal main_rst     : std_logic;
+   signal main_vga_irq : std_logic;
 
    -- Generate pause signal
    signal main_wait_cnt : std_logic_vector(1 downto 0) := (others => '0');
@@ -43,22 +44,19 @@ begin
       wait;
    end process main_rst_proc;
 
-
-   --------------------------------------------------
-   -- Generate wait signal
-   --------------------------------------------------
-
-   main_wait_cnt_proc : process (main_clk)
+   main_vga_irq_proc : process
    begin
-      if rising_edge(main_clk) then
-         main_wait_cnt <= main_wait_cnt + 1;
-      end if;
-   end process main_wait_cnt_proc;
+      main_vga_irq <= '0';
+      wait for 7 us;
+      wait until main_clk = '1';
+      main_vga_irq <= '1';
+      wait until main_clk = '1';
+      main_vga_irq <= '0';
+      wait until main_clk = '1';
+   end process main_vga_irq_proc;
 
-   -- Check for wrap around of counter.
-   main_wait <= '0' when main_wait_cnt = 0  else '1';
 
-   
+
    --------------------------------------------------
    -- Instantiate MAIN
    --------------------------------------------------
@@ -71,7 +69,8 @@ begin
    port map (
       main_clk_i      => main_clk,
       main_rst_i      => main_rst,
-      main_wait_i     => main_wait,
+      main_wait_i     => '0',
+      main_vga_irq_i  => main_vga_irq,
       main_led_o      => open,
       main_overlay_o  => open,
       main_memio_wr_o => open,
