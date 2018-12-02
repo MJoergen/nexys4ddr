@@ -15,4 +15,5 @@ write_checkpoint -force comp.dcp
 write_bitstream -force comp.bit
 report_methodology
 report_timing_summary -file timing_summary.rpt
+source bmm.tcl
 exit
