@@ -58,7 +58,7 @@ begin
 
    main_vga_pix_y_proc : process
    begin
-      wait for 1.0 us;
+      wait for 1.3 us;
 
       while true loop
          main_vga_pix_y <= main_vga_pix_y + 1;
