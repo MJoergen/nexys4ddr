@@ -202,11 +202,11 @@ begin
    a_memio_wren <= a_wren_i and a_memio_cs;
 
 
-   process (a_addr_i, a_rden_i, a_memio_cs, a_wait_d)
+   process (a_addr_i, a_rden_i, a_memio_cs, a_wait, a_wait_d)
    begin
       a_memio_rden_o <= (others => '0');
       a_memio_rden_o(to_integer(a_addr_i(G_MEMIO_SIZE-2 downto 0))) <=
-         a_rden_i and a_memio_cs and a_wait_d and a_addr_i(G_MEMIO_SIZE-1);
+         a_rden_i and a_memio_cs and a_wait and not a_wait_d and a_addr_i(G_MEMIO_SIZE-1);
    end process;
 
    a_data_o <= a_rom_data   when a_rom_cs   = '1' else

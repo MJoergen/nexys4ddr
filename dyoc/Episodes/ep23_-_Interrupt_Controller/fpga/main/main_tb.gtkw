@@ -1,15 +1,15 @@
 [*]
-[*] GTKWave Analyzer v3.3.94 (w)1999-2018 BSI
-[*] Mon Dec  3 06:03:59 2018
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Mon Dec  3 09:27:37 2018
 [*]
-[dumpfile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep23_-_Interrupt_Controller/fpga/main/main_tb.ghw"
-[dumpfile_mtime] "Mon Dec  3 06:02:48 2018"
-[dumpfile_size] 3108324
-[savefile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep23_-_Interrupt_Controller/fpga/main/main_tb.gtkw"
-[timestart] 0
-[size] 1920 970
+[dumpfile] "/home/mfj/git/nexys4ddr/dyoc/Episodes/ep23_-_Interrupt_Controller/fpga/main/main_tb.ghw"
+[dumpfile_mtime] "Mon Dec  3 09:25:32 2018"
+[dumpfile_size] 5058699
+[savefile] "/home/mfj/git/nexys4ddr/dyoc/Episodes/ep23_-_Interrupt_Controller/fpga/main/main_tb.gtkw"
+[timestart] 105115800000
+[size] 1853 1145
 [pos] -1 -1
-*-33.150612 248460000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-26.775627 105410000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.main_tb.
 [treeopen] top.main_tb.main_inst.
@@ -17,7 +17,7 @@
 [treeopen] top.main_tb.main_inst.cpu_inst.datapath_inst.
 [treeopen] top.main_tb.main_inst.ic_inst.
 [sst_width] 259
-[signals_width] 767
+[signals_width] 536
 [sst_expanded] 1
 [sst_vpaned_height] 264
 @800200
@@ -36,9 +36,13 @@ top.main_tb.main_inst.cpu_inst.wren_o
 @22
 #{top.main_tb.main_inst.cpu_inst.data_o[7:0]} top.main_tb.main_inst.cpu_inst.data_o[7] top.main_tb.main_inst.cpu_inst.data_o[6] top.main_tb.main_inst.cpu_inst.data_o[5] top.main_tb.main_inst.cpu_inst.data_o[4] top.main_tb.main_inst.cpu_inst.data_o[3] top.main_tb.main_inst.cpu_inst.data_o[2] top.main_tb.main_inst.cpu_inst.data_o[1] top.main_tb.main_inst.cpu_inst.data_o[0]
 #{top.main_tb.main_inst.cpu_inst.invalid_o[7:0]} top.main_tb.main_inst.cpu_inst.invalid_o[7] top.main_tb.main_inst.cpu_inst.invalid_o[6] top.main_tb.main_inst.cpu_inst.invalid_o[5] top.main_tb.main_inst.cpu_inst.invalid_o[4] top.main_tb.main_inst.cpu_inst.invalid_o[3] top.main_tb.main_inst.cpu_inst.invalid_o[2] top.main_tb.main_inst.cpu_inst.invalid_o[1] top.main_tb.main_inst.cpu_inst.invalid_o[0]
-@800023
+@23
+#{top.main_tb.main_inst.ic_inst.irq_latch[7:0]} top.main_tb.main_inst.ic_inst.irq_latch[7] top.main_tb.main_inst.ic_inst.irq_latch[6] top.main_tb.main_inst.ic_inst.irq_latch[5] top.main_tb.main_inst.ic_inst.irq_latch[4] top.main_tb.main_inst.ic_inst.irq_latch[3] top.main_tb.main_inst.ic_inst.irq_latch[2] top.main_tb.main_inst.ic_inst.irq_latch[1] top.main_tb.main_inst.ic_inst.irq_latch[0]
+@28
+top.main_tb.main_inst.ic_inst.stat_clr_i
+@800022
 #{top.main_tb.main_inst.ic_inst.irq_i[7:0]} top.main_tb.main_inst.ic_inst.irq_i[7] top.main_tb.main_inst.ic_inst.irq_i[6] top.main_tb.main_inst.ic_inst.irq_i[5] top.main_tb.main_inst.ic_inst.irq_i[4] top.main_tb.main_inst.ic_inst.irq_i[3] top.main_tb.main_inst.ic_inst.irq_i[2] top.main_tb.main_inst.ic_inst.irq_i[1] top.main_tb.main_inst.ic_inst.irq_i[0]
-@29
+@28
 top.main_tb.main_inst.ic_inst.irq_i[7]
 top.main_tb.main_inst.ic_inst.irq_i[6]
 top.main_tb.main_inst.ic_inst.irq_i[5]
@@ -47,7 +51,7 @@ top.main_tb.main_inst.ic_inst.irq_i[3]
 top.main_tb.main_inst.ic_inst.irq_i[2]
 top.main_tb.main_inst.ic_inst.irq_i[1]
 top.main_tb.main_inst.ic_inst.irq_i[0]
-@1001201
+@1001200
 -group_end
 @1000200
 -CPU
