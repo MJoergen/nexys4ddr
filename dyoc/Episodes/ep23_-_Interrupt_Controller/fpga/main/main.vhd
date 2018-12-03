@@ -6,6 +6,7 @@ use ieee.numeric_std_unsigned.all;
 
 entity main is
    generic (
+      G_TIMER_CNT     : integer;
       G_ROM_INIT_FILE : string;
       G_OVERLAY_BITS  : integer
    );
@@ -158,7 +159,7 @@ begin
 
    timer_inst : entity work.timer
    generic map (
-      G_TIMER_CNT => 25000    -- Generate interrupt every millisecond.
+      G_TIMER_CNT => G_TIMER_CNT
    )
    port map (
       clk_i => main_clk_i,
