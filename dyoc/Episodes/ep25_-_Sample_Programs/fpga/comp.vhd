@@ -45,7 +45,7 @@ architecture structural of comp is
    signal main_wait           : std_logic;
    signal main_vga_irq        : std_logic;
    signal main_kbd_irq        : std_logic;
-   signal main_overlay        : std_logic_vector(175 downto 0);
+   signal main_overlay        : std_logic_vector(191 downto 0);
    signal main_memio_wr       : std_logic_vector(8*32-1 downto 0);
    signal main_memio_rd       : std_logic_vector(8*32-1 downto 0);
    signal main_kbd_memio_data : std_logic_vector(7 downto 0);
@@ -126,7 +126,7 @@ begin
       main_vga_irq_i  => main_vga_irq,
       main_kbd_irq_i  => main_kbd_irq,
       main_led_o      => led_o,
-      main_overlay_o  => main_overlay,
+      main_overlay_o  => main_overlay(175 downto 0),
       main_memio_wr_o => main_memio_wr,
       main_memio_rd_i => main_memio_rd,
       --
@@ -142,16 +142,16 @@ begin
    -- Instantiate clock crossing from MAIN to VGA
    --------------------------------------------------
 
-   cdc_overlay_inst : entity work.cdc
+   cdc_main_overlay_inst : entity work.cdc
    generic map (
-      G_WIDTH => 176
+      G_WIDTH => 192
    )
    port map (
       src_clk_i  => main_clk,
       src_data_i => main_overlay,
       dst_clk_i  => vga_clk,
-      dst_data_o => vga_overlay(175 downto 0)
-   ); -- cdc_overlay_inst
+      dst_data_o => vga_overlay
+   ); -- cdc_main_overlay_inst
    
 
    --------------------------------------------------
@@ -216,7 +216,7 @@ begin
       data_o     => main_kbd_memio_data,
       irq_o      => main_kbd_irq,
 
-      debug_o    => vga_overlay(191 downto 176)
+      debug_o    => main_overlay(191 downto 176)
    ); -- keyboard_inst
 
 
