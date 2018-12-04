@@ -16,9 +16,7 @@ end timer;
 
 architecture structural of timer is
 
-   constant C_TIMER_CNT : std_logic_vector(17 downto 0) := to_std_logic_vector(G_TIMER_CNT, 18);
-
-   signal cnt_r : std_logic_vector(17 downto 0) := (others => '0');
+   signal cnt_r : std_logic_vector(14 downto 0) := (others => '0');
    signal irq_r : std_logic := '0';
 
 begin
@@ -31,7 +29,7 @@ begin
    begin
       if rising_edge(clk_i) then
 
-         if cnt_r = C_TIMER_CNT-1 then
+         if cnt_r = G_TIMER_CNT-1 then
             cnt_r <= (others => '0');
          else
             cnt_r <= cnt_r + 1;
@@ -44,7 +42,7 @@ begin
       if rising_edge(clk_i) then
          irq_r <= '0';
 
-         if cnt_r = C_TIMER_CNT-1 then
+         if cnt_r = G_TIMER_CNT-1 then
             irq_r <= '1'; -- Generate interrupt at wrap around.
          end if;
       end if;
