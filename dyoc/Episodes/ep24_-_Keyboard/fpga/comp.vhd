@@ -32,6 +32,7 @@ end comp;
 
 architecture structural of comp is
 
+   constant C_TIMER_CNT     : integer := 25000;
    constant C_OVERLAY_BITS  : integer := 176+16;
    constant C_ROM_INIT_FILE : string := "../rom.txt";
    constant C_OPCODES_FILE  : string := "opcodes.txt";
@@ -114,6 +115,7 @@ begin
 
    main_inst : entity work.main
    generic map (
+      G_TIMER_CNT     => C_TIMER_CNT,
       G_ROM_INIT_FILE => C_ROM_INIT_FILE,
       G_OVERLAY_BITS  => 176
    )

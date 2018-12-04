@@ -68,6 +68,7 @@ begin
 
    main_inst : entity work.main
    generic map (
+      G_TIMER_CNT     => 25000,
       G_ROM_INIT_FILE => "../rom.txt",
       G_OVERLAY_BITS  => 176
    )
