@@ -74,7 +74,7 @@ begin  -- architecture behavioral
          WRCLK         => wr_clk_i,
          RDEN          => rd_en_i,
          RDCLK         => rd_clk_i,
-         RST           => async_rst,
+         RST           => rd_rst_i,
          RSTREG        => '0',
          REGCE         => '0',
          DO            => rd_fifo_do,

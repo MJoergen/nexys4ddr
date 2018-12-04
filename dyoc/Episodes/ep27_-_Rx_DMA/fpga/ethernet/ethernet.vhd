@@ -6,23 +6,24 @@ use ieee.numeric_std_unsigned.all;
 
 entity ethernet is
    port (
-      user_clk_i            : in  std_logic;
-      user_rst_i            : in  std_logic;
+      main_clk_i            : in  std_logic;
+      main_rst_i            : in  std_logic;
 
       -- Connected to RAM
-      user_rxdma_ram_wr_en_o   : out std_logic;
-      user_rxdma_ram_wr_addr_o : out std_logic_vector(15 downto 0);
-      user_rxdma_ram_wr_data_o : out std_logic_vector( 7 downto 0);
+      main_rxdma_ram_wr_en_o   : out std_logic;
+      main_rxdma_ram_wr_addr_o : out std_logic_vector(15 downto 0);
+      main_rxdma_ram_wr_data_o : out std_logic_vector( 7 downto 0);
 
       -- Connected to memio
-      user_rxdma_ptr_i      : in  std_logic_vector(15 downto 0);
-      user_rxdma_enable_i   : in  std_logic;
-      user_rxdma_clear_o    : out std_logic;
-      user_rxdma_pending_o  : out std_logic_vector( 7 downto 0);
-      user_rxcnt_good_o     : out std_logic_vector(15 downto 0);
-      user_rxcnt_error_o    : out std_logic_vector( 7 downto 0);
-      user_rxcnt_crc_bad_o  : out std_logic_vector( 7 downto 0);
-      user_rxcnt_overflow_o : out std_logic_vector( 7 downto 0);
+      main_rxdma_ptr_i      : in  std_logic_vector(15 downto 0);
+      main_rxdma_enable_i   : in  std_logic;
+      main_rxdma_clear_o    : out std_logic;
+      main_rxdma_pending_o  : out std_logic_vector( 7 downto 0);
+
+      eth_rxcnt_good_o     : out std_logic_vector(15 downto 0);
+      eth_rxcnt_error_o    : out std_logic_vector( 7 downto 0);
+      eth_rxcnt_crc_bad_o  : out std_logic_vector( 7 downto 0);
+      eth_rxcnt_overflow_o : out std_logic_vector( 7 downto 0);
 
       -- Connected to PHY.
       eth_clk_i    : in    std_logic; -- Must be 50 MHz
@@ -65,10 +66,10 @@ architecture structural of ethernet is
    signal eth_rxfifo_afull   : std_logic;
 
    -- Connection from rxfifo to rx_dma
-   signal user_rxfifo_empty : std_logic;
-   signal user_rxfifo_data  : std_logic_vector(7 downto 0);
-   signal user_rxfifo_eof   : std_logic_vector(0 downto 0);
-   signal user_rxdma_rden   : std_logic;
+   signal main_rxfifo_empty : std_logic;
+   signal main_rxfifo_data  : std_logic_vector(7 downto 0);
+   signal main_rxfifo_eof   : std_logic_vector(0 downto 0);
+   signal main_rxdma_rden   : std_logic;
 
 begin
 
@@ -140,10 +141,10 @@ begin
       rx_data_i      => eth_rx_data,
       rx_error_i     => eth_rx_error,
       --
-      cnt_good_o     => user_rxcnt_good_o,
-      cnt_error_o    => user_rxcnt_error_o,
-      cnt_crc_bad_o  => user_rxcnt_crc_bad_o,
-      cnt_overflow_o => user_rxcnt_overflow_o,
+      cnt_good_o     => eth_rxcnt_good_o,
+      cnt_error_o    => eth_rxcnt_error_o,
+      cnt_crc_bad_o  => eth_rxcnt_crc_bad_o,
+      cnt_overflow_o => eth_rxcnt_overflow_o,
       --
       out_afull_i    => eth_rxfifo_afull,
       out_valid_o    => eth_rxheader_valid,
@@ -162,19 +163,19 @@ begin
    )
    port map (
       wr_clk_i   => eth_clk_i,
-      wr_rst_i   => eth_rst,
+      wr_rst_i   => '0',
       wr_en_i    => eth_rxheader_valid,
       wr_data_i  => eth_rxheader_data,
       wr_sb_i    => eth_rxheader_eof,
       wr_afull_o => eth_rxfifo_afull,
       wr_error_o => open,  -- Ignored
       --
-      rd_clk_i   => user_clk_i,
-      rd_rst_i   => '0',
-      rd_en_i    => user_rxdma_rden,
-      rd_data_o  => user_rxfifo_data,
-      rd_sb_o    => user_rxfifo_eof,
-      rd_empty_o => user_rxfifo_empty,
+      rd_clk_i   => main_clk_i,
+      rd_rst_i   => main_rst_i,
+      rd_en_i    => main_rxdma_rden,
+      rd_data_o  => main_rxfifo_data,
+      rd_sb_o    => main_rxfifo_eof,
+      rd_empty_o => main_rxfifo_empty,
       rd_error_o => open   -- Ignored
    );
 
@@ -185,23 +186,23 @@ begin
 
    inst_rx_dma : entity work.rx_dma
    port map (
-      clk_i        => user_clk_i,
-      rst_i        => user_rst_i,
-      rd_empty_i   => user_rxfifo_empty,
-      rd_en_o      => user_rxdma_rden,
-      rd_data_i    => user_rxfifo_data,
-      rd_eof_i     => user_rxfifo_eof(0),
+      clk_i        => main_clk_i,
+      rst_i        => main_rst_i,
+      rd_empty_i   => main_rxfifo_empty,
+      rd_en_o      => main_rxdma_rden,
+      rd_data_i    => main_rxfifo_data,
+      rd_eof_i     => main_rxfifo_eof(0),
       --
-      wr_en_o      => user_rxdma_ram_wr_en_o,
-      wr_addr_o    => user_rxdma_ram_wr_addr_o,
-      wr_data_o    => user_rxdma_ram_wr_data_o,
+      wr_en_o      => main_rxdma_ram_wr_en_o,
+      wr_addr_o    => main_rxdma_ram_wr_addr_o,
+      wr_data_o    => main_rxdma_ram_wr_data_o,
       --
-      dma_ptr_i    => user_rxdma_ptr_i,
-      dma_enable_i => user_rxdma_enable_i,
-      dma_clear_o  => user_rxdma_clear_o
+      dma_ptr_i    => main_rxdma_ptr_i,
+      dma_enable_i => main_rxdma_enable_i,
+      dma_clear_o  => main_rxdma_clear_o
    );
 
-   user_rxdma_pending_o <= (7 downto 1 => '0', 0 => not user_rxfifo_empty);
+   main_rxdma_pending_o <= (7 downto 1 => '0', 0 => not main_rxfifo_empty);
 
 end structural;
 
