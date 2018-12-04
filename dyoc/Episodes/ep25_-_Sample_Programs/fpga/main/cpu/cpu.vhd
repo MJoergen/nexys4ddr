@@ -2,70 +2,61 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
+-- This module implements the 6502 CPU.
+-- The CPU expects read and writes to complete in the same cycle.
+-- Whenever 'wait_i' is asserted (i.e. '1') then the CPU just waits,
+-- without updating internal registers.
+
 entity cpu is
+   generic (
+      G_OVERLAY_BITS : integer
+   );
    port (
-      clk_i         : in  std_logic;
+      clk_i   : in  std_logic;
+      rst_i   : in  std_logic;
+      nmi_i   : in  std_logic;
+      irq_i   : in  std_logic;
 
       -- Memory interface
-      addr_o        : out std_logic_vector(15 downto 0);
-      data_i        : in  std_logic_vector(7 downto 0);
-      rden_o        : out std_logic;
-      data_o        : out std_logic_vector(7 downto 0);
-      wren_o        : out std_logic;
+      addr_o  : out std_logic_vector(15 downto 0);
+      data_i  : in  std_logic_vector(7 downto 0);
+      rden_o  : out std_logic;
+      data_o  : out std_logic_vector(7 downto 0);
+      wren_o  : out std_logic;
       -- The "wait_i" is '1' when the memory is not ready.
       -- While this is so, the CPU just stands still, waiting.
-      wait_i        : in  std_logic;
-      memio_cyc_o   : out std_logic_vector( 4*8-1 downto 0);
-      memio_latch_i : in  std_logic_vector( 1*8-1 downto 0);
+      wait_i  : in  std_logic;
 
-      -- Hardware interrupts
-      irq_i    : in  std_logic;
-      nmi_i    : in  std_logic;
-      rst_i    : in  std_logic;
-
-      -- Debug output
+      -- Overlay output
       invalid_o : out std_logic_vector(7 downto 0);   -- First invalid instruction encountered
-      debug_o   : out std_logic_vector(175 downto 0)
+      overlay_o : out std_logic_vector(G_OVERLAY_BITS-1 downto 0)
    );
 end entity cpu;
 
 architecture structural of cpu is
 
-   signal ar_sel    : std_logic;
-   signal hi_sel    : std_logic_vector(2 downto 0);
-   signal lo_sel    : std_logic_vector(2 downto 0);
-   signal pc_sel    : std_logic_vector(5 downto 0);
-   signal addr_sel  : std_logic_vector(3 downto 0);
-   signal data_sel  : std_logic_vector(2 downto 0);
-   signal alu_sel   : std_logic_vector(4 downto 0);
-   signal sr_sel    : std_logic_vector(3 downto 0);
-   signal sp_sel    : std_logic_vector(1 downto 0);
-   signal xr_sel    : std_logic;
-   signal yr_sel    : std_logic;
-   signal reg_sel   : std_logic_vector(1 downto 0);
-   signal zp_sel    : std_logic_vector(1 downto 0);
-   signal sri       : std_logic;
+   signal ar_sel   : std_logic;
+   signal hi_sel   : std_logic_vector(2 downto 0);
+   signal lo_sel   : std_logic_vector(2 downto 0);
+   signal pc_sel   : std_logic_vector(5 downto 0);
+   signal addr_sel : std_logic_vector(3 downto 0);
+   signal data_sel : std_logic_vector(2 downto 0);
+   signal alu_sel  : std_logic_vector(4 downto 0);
+   signal sr_sel   : std_logic_vector(3 downto 0);
+   signal sp_sel   : std_logic_vector(1 downto 0);
+   signal xr_sel   : std_logic;
+   signal yr_sel   : std_logic;
+   signal reg_sel  : std_logic_vector(1 downto 0);
+   signal zp_sel   : std_logic_vector(1 downto 0);
+   signal sri      : std_logic;
 
 begin
 
-   -----------------
-   -- Instantiate cycle counter
-   -----------------
-
-   inst_cycle : entity work.cycle
-   port map (
-      clk_i     => clk_i,
-      rst_i     => rst_i,
-      latch_i   => memio_latch_i(0),
-      cyc_cnt_o => memio_cyc_o
-   );
-
-
-   -----------------
+   ------------------------
    -- Instantiate datapath
-   -----------------
+   ------------------------
 
-   inst_datapath : entity work.datapath
+   datapath_inst : entity work.datapath
    port map (
       clk_i   => clk_i,
       wait_i  => wait_i,
@@ -91,21 +82,21 @@ begin
       reg_sel_i  => reg_sel,
       zp_sel_i   => zp_sel,
 
-      debug_o => debug_o(175 downto 64)
-   );
+      debug_o => overlay_o(175 downto 64)
+   ); -- datapath_inst
 
 
-   -----------------
+   -----------------------------
    -- Instantiate control logic
-   -----------------
+   -----------------------------
 
-   inst_ctl : entity work.ctl
+   ctl_inst : entity work.ctl
    port map (
       clk_i   => clk_i,
-      wait_i  => wait_i,
-      irq_i   => irq_i,
-      nmi_i   => nmi_i,
       rst_i   => rst_i,
+      nmi_i   => nmi_i,
+      irq_i   => irq_i,
+      wait_i  => wait_i,
       sri_i   => sri,
 
       data_i  => data_i,
@@ -125,8 +116,8 @@ begin
       zp_sel_o   => zp_sel,
 
       invalid_o => invalid_o,
-      debug_o   => debug_o(63 downto 0)
-   );
+      debug_o   => overlay_o(63 downto 0)
+   ); -- ctl_inst
 
 end architecture structural;
 
