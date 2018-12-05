@@ -70,22 +70,7 @@ to add them to the constraint file comp.xdc (lines 39-50) as well. The signal
 names and pin names are copied from the schematic linked to above.
 
 ## Clocking
-In most designs, the clocks are determined by the external interfaces. This
-design is no exception.  So far we've had to interface to the VGA output at 25
-MHz, Now we additionally have to interface to the Ethernet PHY, which runs at
-50 Mhz. So our design will now contain two different "clock domains", i.e.
-different areas of the design will be controlled by different clocks.
-
-The Ethernet clock is generated in comp.vhd (line 131) using the same clock
-divider as for the VGA clock. Additionally, all clock signals must be described
-in the constraint file as well, i.e. in comp.xdc line 58.
-
-## Clock domain crossing
-In this first version there will be no communication between the two clock
-domains described. However, in the next episode we'll be transferring data
-(ethernet frames) between the VGA and ETH clock domains, and we'll then have to
-deal with issues related to clock domain crossing. In this episode, we can ignore
-all these issues.
+The 50 MHz Ethernet clock is generated in comp.vhd (line 93).
 
 ## Interface to the Ethernet PHY
 The PHY chip connects to the FPGA using the [RMII

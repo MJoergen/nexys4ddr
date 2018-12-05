@@ -38,38 +38,38 @@ begin
    -- Register inputs from keyboard
    --------------------------------
 
-   p_ps2_r : process (clk_i)
+   ps2_r_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          ps2_clk_r  <= ps2_clk_i;
          ps2_data_r <= ps2_data_i;
       end if;
-   end process p_ps2_r;
+   end process ps2_r_proc;
 
 
    --------------------------------
    -- Prepare for edge detect
    --------------------------------
 
-   p_ps2_delay : process (clk_i)
+   ps2_delay_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          ps2_clk_d <= ps2_clk_r;
       end if;
-   end process p_ps2_delay;
+   end process ps2_delay_proc;
 
 
    --------------------------------
    -- Shift register
    -- This holds 11 bits:
-   -- S01234567PT, where
-   -- S is Start, P is parity, and T is Stop.
+   -- TP76543210S, where
+   -- S is Start (0), P is parity, and T is Stop (1).
    -- When all 11 bits are received, bit 0
    -- will be the Start bit, and bit 10 will
    -- be the Stop bit.
    --------------------------------
 
-   p_shift : process (clk_i)
+   shift_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          -- Wait for falling edge on ps2_clk
@@ -77,7 +77,7 @@ begin
             shiftreg <= ps2_data_r & shiftreg(10 downto 1);
          end if;
       end if;
-   end process p_shift;
+   end process shift_proc;
 
 
    ------------------------------------------------------------
@@ -91,7 +91,7 @@ begin
    -- to being able to recover in case the keyboard
    -- and the FPGA come out of sync.
    ------------------------------------------------------------
-   p_cnt : process (clk_i)
+   cnt_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          valid <= '0';
@@ -105,14 +105,14 @@ begin
             else
                if shiftreg(10) = '1' and  -- Stop bit
                   shiftreg(0) = '0' then  -- Start bit
-                  data <= shiftreg(8 downto 1);
-                  valid  <= '1';
-                  cnt  <= 0;
+                  data  <= shiftreg(8 downto 1);
+                  valid <= '1';
+                  cnt   <= 0;
                end if;
             end if;
          end if;
       end if;
-   end process p_cnt;
+   end process cnt_proc;
 
 
    ------------------------------------------------------------

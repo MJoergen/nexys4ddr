@@ -46,6 +46,7 @@ clean:
 	rm -rf vivado*
 	rm -rf comp.bit
 	rm -rf comp.dcp
+	rm -rf comp.bmm
 	rm -rf .Xil
 	rm -rf timing_summary.rpt
 	rm -rf .cache
@@ -53,7 +54,5 @@ clean:
 	rm -rf work-obj08.cf
 	rm -rf $(TB)
 	rm -rf $(WAVE)
-	rm -rf comp.bit
-	rm -rf comp.bmm
 	rm -rf fsm_encoding.os
 
