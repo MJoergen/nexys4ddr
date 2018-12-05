@@ -41,13 +41,13 @@ architecture structural of main is
    signal main_mem_wait : std_logic;
 
    -- Interrupt controller
-   signal main_irq_mask   : std_logic_vector( 1*8-1 downto 0);
-   signal main_irq_status : std_logic_vector( 1*8-1 downto 0);
+   signal main_irq_mask   : std_logic_vector(7 downto 0);
+   signal main_irq_status : std_logic_vector(7 downto 0);
    signal main_irq_clear  : std_logic;
 
    signal main_irq_src    : std_logic_vector(7 downto 0);
    signal main_irq_cpu    : std_logic;
-   signal main_timer_irq  : std_logic := '0';
+   signal main_timer_irq  : std_logic;
 
    signal main_memio_wr   : std_logic_vector(8*32-1 downto 0);
    signal main_memio_rd   : std_logic_vector(8*32-1 downto 0);
