@@ -2,7 +2,7 @@
 #include <stdlib.h>  // rand()
 #include <conio.h>
 #include <string.h>  // memcpy()
-#include "getcycles.h"  // getcycles()
+#include <time.h>    // clock()
 
 #define SIZE_X 80
 #define SIZE_Y 60
@@ -135,9 +135,9 @@ uint16_t ms(void)
 {
    uint32_t now;
 
-   now = getcycles();
+   now = clock();
 
-   return now/25000;
+   return now/1000;
 } // end of ms
 
 

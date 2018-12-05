@@ -1,7 +1,7 @@
 #ifndef _GETTIME_H_
 #define _GETTIME_H_
 
-#if 1
+#if 0
 typedef enum {
    CLOCK_MONOTONIC = 0
 } clockid_t;
