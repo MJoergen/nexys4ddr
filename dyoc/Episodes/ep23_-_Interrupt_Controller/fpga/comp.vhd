@@ -42,8 +42,8 @@ architecture structural of comp is
    signal main_wait     : std_logic;
    signal main_vga_irq  : std_logic;
    signal main_overlay  : std_logic_vector(C_OVERLAY_BITS-1 downto 0);
-   signal main_memio_wr : std_logic_vector(8*32-1 downto 0);
-   signal main_memio_rd : std_logic_vector(8*32-1 downto 0);
+   signal main_memio_wr : std_logic_vector(255 downto 0);
+   signal main_memio_rd : std_logic_vector(255 downto 0);
 
    -- VGA Clock doamin
    signal vga_clk             : std_logic;
