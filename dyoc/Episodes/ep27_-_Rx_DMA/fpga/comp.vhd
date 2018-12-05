@@ -271,9 +271,6 @@ begin
       eth_refclk_o             => eth_refclk_o
    ); -- ethernet_inst
 
-   main_rxdma_enable <= main_memio_wr(19*8);
-   main_rxdma_ptr    <= main_memio_wr(21*8+7 downto 20*8);
-   main_memio_clear  <= (19 => main_rxdma_clear, others => '0');  -- ETH_RXDMA_EMABLE
 
 
    --------------------------------------------------
@@ -281,19 +278,23 @@ begin
    -- This must match the mapping in prog/include/memorymap.h
    --------------------------------------------------
 
-   vga_memio_palette   <= vga_memio_wr(15*8+7 downto 0*8);   -- 7FC0 - 7FCF : VGA_PALETTE
-   vga_memio_pix_y_int <= vga_memio_wr(17*8+7 downto 16*8);  -- 7FD0 - 7FD1 : VGA_PIX_Y_INT
-                                                             -- 7FD2 - 7FDF : Not used
+   vga_memio_palette   <= vga_memio_wr(15*8+7 downto 0*8);           -- 7FC0 - 7FCF : VGA_PALETTE
+   vga_memio_pix_y_int <= vga_memio_wr(17*8+7 downto 16*8);          -- 7FD0 - 7FD1 : VGA_PIX_Y_INT
+                                                                     -- 7FD2        : Not used
+   main_rxdma_enable   <= main_memio_wr(19*8);                       -- 7FD3        : ETH_RXDMA_ENABLE
+   main_rxdma_ptr      <= main_memio_wr(21*8+7 downto 20*8);         -- 7FD4 - 7FD5 : ETH_RXDMA_PTR
+   main_memio_clear    <= (19 => main_rxdma_clear, others => '0');   -- ETH_RXDMA_EMABLE
 
-   vga_memio_rd(1*8+7 downto 0*8)    <= vga_memio_pix_x;     -- 7FE0 - 7FE1 : VGA_PIX_X
-   vga_memio_rd(3*8+7 downto 2*8)    <= vga_memio_pix_y;     -- 7FE2 - 7FE3 : VGA_PIX_Y
-   main_memio_rd(4*8+7 downto  4*8)  <= main_kbd_memio_data; -- 7FE4        : KBD_DATA
-   main_memio_rd(31*8+7 downto  5*8) <= (others => '0');     -- 7FE5 - 7FFF : Not used
+   vga_memio_rd(  1*8+7 downto  0*8) <= vga_memio_pix_x;             -- 7FE0 - 7FE1 : VGA_PIX_X
+   vga_memio_rd(  3*8+7 downto  2*8) <= vga_memio_pix_y;             -- 7FE2 - 7FE3 : VGA_PIX_Y
+   main_memio_rd( 4*8+7 downto  4*8) <= main_kbd_memio_data;         -- 7FE4        : KBD_DATA
+   main_memio_rd( 5*8+7 downto  5*8) <= main_rxdma_pending;          -- 7FE5        : ETH_RXDMA_PENDING
+   main_memio_rd(31*8+7 downto 10*8) <= (others => '0');             -- 7FEA - 7FFF : Not used
 
-   eth_overlay(15 downto  0) <= eth_rxcnt_good;
-   eth_overlay(19 downto 16) <= eth_rxcnt_error(3 downto 0);
-   eth_overlay(23 downto 20) <= eth_rxcnt_crc_bad(3 downto 0);
-   eth_overlay(31 downto 24) <= eth_rxcnt_overflow;
+   eth_overlay(15 downto  0) <= eth_rxcnt_good;                      -- 7FE6 - 7FE7 : ETH_RXCNT_GOOD
+   eth_overlay(19 downto 16) <= eth_rxcnt_error(3 downto 0);         -- 7FE8        : ETH_RXCNT_ERROR
+   eth_overlay(23 downto 20) <= eth_rxcnt_crc_bad(3 downto 0);       -- 7FE8        : ETH_RXCNT_ERROR
+   eth_overlay(31 downto 24) <= eth_rxcnt_overflow;                  -- 7FE9        : ETH_RXCNT_OVERFLOW
 
 
    --------------------------------------------------
@@ -343,7 +344,7 @@ begin
    -- Instantiate clock crossing from ETH to VGA
    --------------------------------------------------
 
-   cdc_eth_overlay_inst : entity work.cdc
+   cdc_eth_overlay_vga_inst : entity work.cdc
    generic map (
       G_WIDTH => 32
    )
@@ -352,6 +353,22 @@ begin
       src_data_i => eth_overlay,
       dst_clk_i  => vga_clk,
       dst_data_o => vga_overlay(223 downto 192)
+   ); -- cdc_main_overlay_inst
+   
+
+   --------------------------------------------------
+   -- Instantiate clock crossing from ETH to MAIN
+   --------------------------------------------------
+
+   cdc_eth_overlay_main_inst : entity work.cdc
+   generic map (
+      G_WIDTH => 32
+   )
+   port map (
+      src_clk_i  => eth_clk,
+      src_data_i => eth_overlay,
+      dst_clk_i  => main_clk,
+      dst_data_o => main_memio_rd(6*8+31 downto 6*8)
    ); -- cdc_main_overlay_inst
    
 

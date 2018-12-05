@@ -18,7 +18,7 @@ typedef struct
 {
    uint8_t  vgaPalette[16];   // 7FC0 - 7FCF
    uint16_t vgaPixYInt;       // 7FD0 - 7FD1
-   uint8_t  cpuCycLatch;      // 7FD2
+   uint8_t  _reserved2;       // 7FD2
    uint8_t  ethRxdmaEnable;   // 7FD3
    uint16_t ethRxdmaPtr;      // 7FD4 - 7FD5
    uint8_t  _reserved[9];
@@ -29,14 +29,12 @@ typedef struct
 {
    uint16_t vgaPixX;          // 7FE0 - 7FE1
    uint16_t vgaPixY;          // 7FE2 - 7FE3
-   uint32_t cpuCyc;           // 7FE4 - 7FE7
-   uint8_t  kbdData;          // 7FE8
-   uint8_t  ethRxErr0;        // 7FE9
-   uint8_t  ethRxErr1;        // 7FEA
-   uint8_t  ethRxOverflow;    // 7FEB
-   uint16_t ethRxCnt;         // 7FEC - 7FED
-   uint8_t  ethRxPending;     // 7FEE
-   uint8_t  _reserved2[16];
+   uint8_t  kbdData;          // 7FE4
+   uint8_t  ethRxPending;     // 7FE5
+   uint16_t ethRxCnt;         // 7FE6 - 7FE7
+   uint8_t  ethRxErr;         // 7FE8
+   uint8_t  ethRxOverflow;    // 7FE9
+   uint8_t  _reserved2[21];
    uint8_t  irqStatus;        // 7FFF
 } t_memio_status;
 
