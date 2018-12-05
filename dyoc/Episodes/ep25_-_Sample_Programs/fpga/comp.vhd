@@ -263,7 +263,5 @@ begin
    main_memio_rd(4*8+7 downto  4*8)  <= main_kbd_memio_data; -- 7FE4        : KBD_DATA
    main_memio_rd(31*8+7 downto  5*8) <= (others => '0');     -- 7FE5 - 7FFF : Not used
 
-
-
 end architecture structural;
 
