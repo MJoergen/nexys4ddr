@@ -156,22 +156,6 @@ begin
    
 
    --------------------------------------------------
-   -- Instantiate clock crossing from MAIN to VGA
-   --------------------------------------------------
-
-   cdc_main_overlay_inst : entity work.cdc
-   generic map (
-      G_WIDTH => 192
-   )
-   port map (
-      src_clk_i  => main_clk,
-      src_data_i => main_overlay,
-      dst_clk_i  => vga_clk,
-      dst_data_o => vga_overlay(191 downto 0)
-   ); -- cdc_main_overlay_inst
-   
-
-   --------------------------------------------------
    -- Control VGA debug overlay
    --------------------------------------------------
 
@@ -302,6 +286,22 @@ begin
 
 
    --------------------------------------------------
+   -- Instantiate clock crossing from MAIN to VGA
+   --------------------------------------------------
+
+   cdc_main_overlay_inst : entity work.cdc
+   generic map (
+      G_WIDTH => 192
+   )
+   port map (
+      src_clk_i  => main_clk,
+      src_data_i => main_overlay,
+      dst_clk_i  => vga_clk,
+      dst_data_o => vga_overlay(191 downto 0)
+   ); -- cdc_main_overlay_inst
+   
+
+   --------------------------------------------------
    -- Memory Mapped I/O
    -- This must match the mapping in prog/include/memorymap.h
    --------------------------------------------------
@@ -314,8 +314,6 @@ begin
    vga_memio_rd(3*8+7 downto 2*8)    <= vga_memio_pix_y;     -- 7FE2 - 7FE3 : VGA_PIX_Y
    main_memio_rd(4*8+7 downto  4*8)  <= main_kbd_memio_data; -- 7FE4        : KBD_DATA
    main_memio_rd(31*8+7 downto  5*8) <= (others => '0');     -- 7FE5 - 7FFF : Not used
-
-
 
 end architecture structural;
 
