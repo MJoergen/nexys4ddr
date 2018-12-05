@@ -52,4 +52,5 @@ clean:
 	rm -rf $(TB)
 	rm -rf $(WAVE)
 	rm -rf a.out
+	rm -rf fsm_encoding.os
 

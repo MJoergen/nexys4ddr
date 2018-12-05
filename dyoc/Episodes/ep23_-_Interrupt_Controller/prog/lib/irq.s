@@ -27,11 +27,11 @@ _isr_jump_table:
    .addr timer_isr         ; IRQ 0  (TIMER)
    .addr unhandled_irq     ; IRQ 1  (VGA)
    .addr unhandled_irq     ; IRQ 2  (Reserved)
-   .addr unhandled_irq     ; IRQ 2  (Reserved)
-   .addr unhandled_irq     ; IRQ 2  (Reserved)
-   .addr unhandled_irq     ; IRQ 2  (Reserved)
-   .addr unhandled_irq     ; IRQ 2  (Reserved)
-   .addr unhandled_irq     ; IRQ 2  (Reserved)
+   .addr unhandled_irq     ; IRQ 3  (Reserved)
+   .addr unhandled_irq     ; IRQ 4  (Reserved)
+   .addr unhandled_irq     ; IRQ 5  (Reserved)
+   .addr unhandled_irq     ; IRQ 6  (Reserved)
+   .addr unhandled_irq     ; IRQ 7  (Reserved)
 
 .segment	"CODE"
 
