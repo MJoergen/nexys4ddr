@@ -56,7 +56,7 @@ begin
    -- State machine
    --------------------------------
 
-   p_fsm : process (clk_i)
+   fsm_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
          valid <= '0';
@@ -86,7 +86,7 @@ begin
             end if;  -- else
          end if;   -- valid_i = '1'
       end if;
-   end process p_fsm;
+   end process fsm_proc;
 
 
    -----------------------

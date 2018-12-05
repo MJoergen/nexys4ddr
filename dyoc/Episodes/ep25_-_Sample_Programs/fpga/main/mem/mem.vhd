@@ -27,6 +27,7 @@ entity mem is
       G_MEMIO_INIT : std_logic_vector(8*32-1 downto 0)
    );
    port (
+
       -- Port A - connected to CPU and Memory Mapped I/O
       a_clk_i        : in  std_logic;
       a_addr_i       : in  std_logic_vector(15 downto 0);
@@ -80,12 +81,12 @@ begin
 
    a_wait <= a_rden_i and (a_char_cs or a_col_cs or a_memio_cs);
 
-   p_a_wait_d : process (a_clk_i)
+   a_wait_d_proc : process (a_clk_i)
    begin
       if rising_edge(a_clk_i) then
          a_wait_d <= a_wait;
       end if;
-   end process p_a_wait_d;
+   end process a_wait_d_proc;
 
    a_wait_o <= '1' when a_wait = '1' and a_wait_d = '0' else
                '0';

@@ -22,12 +22,6 @@ been removed and replaced by two new directories 'conio' and 'runtime'. The
 former has support for all the conio functions, while the latter has support
 for the hardware vectors RESET and IRQ.
 
-## Reusing previous FPGA image
-Since there are no changes to the FPGA image (except for the ROM contents) it
-makes sense to avoid having to resynthesize the FPGA image yet again.  Instead,
-we make use of the tool 'data2mem' that can update an existing bit-file and
-replace the BRAM contents.
-
 ## Sample programs
 A number of different demo programs are now available. To try them, you must
 modify the first line of prog/Makefile. The following demo programs are
