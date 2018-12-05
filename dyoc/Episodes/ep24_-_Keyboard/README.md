@@ -37,22 +37,17 @@ performed in the new file keyboard/scancode.vhd.
 ### Interrupt map
 The PS/2 module generates an interrupt, whenever a keyboard event has been
 received. This interrupt is connected to bit 2 of the Interrupt Controller,
-see line 331 of fpga/comp.vhd.
+see line 154 of fpga/main/main.vhd.
 
 ### Memory map
-The last keyboard event can be read from the address 7FE8, see line 319 of
+The last keyboard event can be read from the address 7FE4, see line 280 of
 fpga/comp.vhd.  There is no buffering in the FPGA, and therefore the keyboard
 interrupt must be serviced reasonably quickly, especially since the keyboard
 may generate several events back-to-back.
 
 ### VGA Overlay
-I've added the last keyboard event to the VGA overlay, see line 340 of
+I've added the last keyboard event to the VGA overlay, see line 219 of
 fpga/comp.vhd.
-
-### Cleanup
-I've split the CPU datapath module into a number of separate files to make the
-hierearchy more clear. Basically, the datapath module itself contains no
-registers, only instantiated sub-blocks.
 
 ## Software changes
 
