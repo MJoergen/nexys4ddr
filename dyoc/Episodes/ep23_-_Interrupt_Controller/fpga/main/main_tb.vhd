@@ -10,11 +10,12 @@ architecture structural of main_tb is
    -- Clock and reset
    signal main_clk           : std_logic;
    signal main_rst           : std_logic;
-   signal main_vga_irq       : std_logic;
 
    -- Generate pause signal
    signal main_wait_cnt      : std_logic_vector(1 downto 0) := (others => '0');
    signal main_wait          : std_logic;
+
+   signal main_vga_irq       : std_logic;
 
    signal main_memio_wr      : std_logic_vector(255 downto 0);
    signal main_vga_pix_y_int : std_logic_vector(15 downto 0);

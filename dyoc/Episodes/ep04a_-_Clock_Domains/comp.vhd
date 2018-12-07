@@ -96,22 +96,6 @@ begin
 
 
    --------------------------------------------------
-   -- Instantiate clock crossing from MAIN to VGA
-   --------------------------------------------------
-
-   cdc_overlay_inst : entity work.cdc
-   generic map (
-      G_WIDTH => C_OVERLAY_BITS
-   )
-   port map (
-      src_clk_i  => main_clk,
-      src_data_i => main_overlay,
-      dst_clk_i  => vga_clk,
-      dst_data_o => vga_overlay
-   ); -- cdc_overlay_inst
-
-
-   --------------------------------------------------
    -- Instantiate VGA module
    --------------------------------------------------
 
@@ -127,6 +111,22 @@ begin
       vga_vs_o  => vga_vs_o,
       vga_col_o => vga_col_o
    ); -- vga_inst
+
+
+   --------------------------------------------------
+   -- Instantiate clock crossing from MAIN to VGA
+   --------------------------------------------------
+
+   cdc_overlay_inst : entity work.cdc
+   generic map (
+      G_WIDTH => C_OVERLAY_BITS
+   )
+   port map (
+      src_clk_i  => main_clk,
+      src_data_i => main_overlay,
+      dst_clk_i  => vga_clk,
+      dst_data_o => vga_overlay
+   ); -- cdc_overlay_inst
 
 end architecture structural;
 

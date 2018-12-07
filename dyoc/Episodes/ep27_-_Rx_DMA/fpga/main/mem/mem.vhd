@@ -27,7 +27,6 @@ entity mem is
       G_MEMIO_INIT : std_logic_vector(8*32-1 downto 0)
    );
    port (
-
       -- Port A - connected to CPU, Ethernet, and memory mapped IO
       a_clk_i         : in  std_logic;
       a_cpu_addr_i    : in  std_logic_vector(15 downto 0);

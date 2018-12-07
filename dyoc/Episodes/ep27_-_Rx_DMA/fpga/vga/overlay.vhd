@@ -77,6 +77,8 @@ architecture structural of overlay is
                            "SP  Stat" &
                            "  XR  YR" &
                            "Keyboard" &
+                           "  Rx DMA" &
+                           "Ena Pend" &
                            "Eth Good" &
                            "Eth  Err";
 

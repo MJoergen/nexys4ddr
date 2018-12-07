@@ -246,7 +246,7 @@ begin
    -- Instantiate clock crossing from ETH to VGA
    --------------------------------------------------
 
-   cdc_eth_overlay_inst : entity work.cdc
+   cdc_vga_overlay_eth_inst : entity work.cdc
    generic map (
       G_WIDTH => 16
    )
@@ -255,35 +255,8 @@ begin
       src_data_i => eth_overlay,
       dst_clk_i  => vga_clk,
       dst_data_o => vga_overlay(207 downto 192)
-   ); -- cdc_eth_overlay_inst
+   ); -- cdc_vga_overlay_eth_inst
    
-
-   --------------------------------------------------
-   -- Clock domain crossing between MAIN and VGA
-   --------------------------------------------------
-
-   cdc_vga_memio_inst : entity work.cdc
-   generic map (
-      G_WIDTH => 256
-   )
-   port map (
-      src_clk_i  => main_clk,
-      src_data_i => main_memio_wr,
-      dst_clk_i  => vga_clk,
-      dst_data_o => vga_memio_wr
-   ); -- cdc_vga_memio_inst
-
-   cdc_main_memio_inst : entity work.cdc
-   generic map (
-      G_WIDTH => 4*8
-   )
-   port map (
-      src_clk_i  => vga_clk,
-      src_data_i => vga_memio_rd,
-      dst_clk_i  => main_clk,
-      dst_data_o => main_memio_rd(3*8+7 downto 0*8)
-   ); -- cdc_main_memio_inst
-
 
    --------------------------------------------------
    -- Instantiate clock crossing from MAIN to VGA
@@ -306,14 +279,41 @@ begin
    -- This must match the mapping in prog/include/memorymap.h
    --------------------------------------------------
 
-   vga_memio_palette   <= vga_memio_wr(15*8+7 downto  0*8); -- 7FC0 - 7FCF : VGA_PALETTE
-   vga_memio_pix_y_int <= vga_memio_wr(17*8+7 downto 16*8); -- 7FD0 - 7FD1 : VGA_PIX_Y_INT
-                                                             -- 7FD2 - 7FDF : Not used
+   vga_memio_palette   <= vga_memio_wr(15*8+7 downto  0*8);   -- 7FC0 - 7FCF : VGA_PALETTE
+   vga_memio_pix_y_int <= vga_memio_wr(17*8+7 downto 16*8);   -- 7FD0 - 7FD1 : VGA_PIX_Y_INT
+                                                              -- 7FD2 - 7FDF : Not used
 
-   vga_memio_rd(1*8+7 downto 0*8)    <= vga_memio_pix_x;     -- 7FE0 - 7FE1 : VGA_PIX_X
-   vga_memio_rd(3*8+7 downto 2*8)    <= vga_memio_pix_y;     -- 7FE2 - 7FE3 : VGA_PIX_Y
-   main_memio_rd(4*8+7 downto  4*8)  <= main_kbd_memio_data; -- 7FE4        : KBD_DATA
-   main_memio_rd(31*8+7 downto  5*8) <= (others => '0');     -- 7FE5 - 7FFF : Not used
+   vga_memio_rd(  1*8+7 downto  0*8)  <= vga_memio_pix_x;     -- 7FE0 - 7FE1 : VGA_PIX_X
+   vga_memio_rd(  3*8+7 downto  2*8)  <= vga_memio_pix_y;     -- 7FE2 - 7FE3 : VGA_PIX_Y
+   main_memio_rd( 4*8+7 downto  4*8) <= main_kbd_memio_data;  -- 7FE4        : KBD_DATA
+   main_memio_rd(31*8+7 downto  5*8) <= (others => '0');      -- 7FE5 - 7FFF : Not used
+
+
+   -----------------------------------
+   -- Clock domain crossing for MEMIO
+   -----------------------------------
+
+   cdc_vga_memio_main_inst : entity work.cdc
+   generic map (
+      G_WIDTH => 256
+   )
+   port map (
+      src_clk_i  => main_clk,
+      src_data_i => main_memio_wr,
+      dst_clk_i  => vga_clk,
+      dst_data_o => vga_memio_wr
+   ); -- cdc_vga_memio_main_inst
+
+   cdc_main_memio_vga_inst : entity work.cdc
+   generic map (
+      G_WIDTH => 4*8
+   )
+   port map (
+      src_clk_i  => vga_clk,
+      src_data_i => vga_memio_rd,
+      dst_clk_i  => main_clk,
+      dst_data_o => main_memio_rd(3*8+7 downto 0*8)
+   ); -- cdc_main_memio_vga_inst
 
 end architecture structural;
 

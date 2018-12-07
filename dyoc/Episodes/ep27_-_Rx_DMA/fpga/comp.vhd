@@ -44,7 +44,7 @@ end comp;
 architecture structural of comp is
 
    constant C_TIMER_CNT     : integer := 25000;
-   constant C_OVERLAY_BITS  : integer := 224;
+   constant C_OVERLAY_BITS  : integer := 256;
    constant C_ROM_INIT_FILE : string := "../rom.txt";
    constant C_OPCODES_FILE  : string := "opcodes.txt";
    constant C_FONT_FILE     : string := "font8x8.txt";
@@ -56,7 +56,7 @@ architecture structural of comp is
    signal main_wait           : std_logic;
    signal main_vga_irq        : std_logic;
    signal main_kbd_irq        : std_logic;
-   signal main_overlay        : std_logic_vector(191 downto 0);
+   signal main_overlay        : std_logic_vector(223 downto 0);
    signal main_memio_wr       : std_logic_vector(255 downto 0);
    signal main_memio_rd       : std_logic_vector(255 downto 0);
    signal main_memio_clear    : std_logic_vector( 31 downto 0);
@@ -272,6 +272,37 @@ begin
    ); -- ethernet_inst
 
 
+   --------------------------------------------------
+   -- Instantiate clock crossing from ETH to VGA
+   --------------------------------------------------
+
+   cdc_vga_overlay_eth_inst : entity work.cdc
+   generic map (
+      G_WIDTH => 32
+   )
+   port map (
+      src_clk_i  => eth_clk,
+      src_data_i => eth_overlay,
+      dst_clk_i  => vga_clk,
+      dst_data_o => vga_overlay(255 downto 224)
+   ); -- cdc_vga_overlay_eth_inst
+   
+
+   --------------------------------------------------
+   -- Instantiate clock crossing from MAIN to VGA
+   --------------------------------------------------
+
+   cdc_main_overlay_inst : entity work.cdc
+   generic map (
+      G_WIDTH => 224
+   )
+   port map (
+      src_clk_i  => main_clk,
+      src_data_i => main_overlay,
+      dst_clk_i  => vga_clk,
+      dst_data_o => vga_overlay(223 downto 0)
+   ); -- cdc_main_overlay_inst
+   
 
    --------------------------------------------------
    -- Memory Mapped I/O
@@ -289,19 +320,25 @@ begin
    vga_memio_rd(  3*8+7 downto  2*8) <= vga_memio_pix_y;             -- 7FE2 - 7FE3 : VGA_PIX_Y
    main_memio_rd( 4*8+7 downto  4*8) <= main_kbd_memio_data;         -- 7FE4        : KBD_DATA
    main_memio_rd( 5*8+7 downto  5*8) <= main_rxdma_pending;          -- 7FE5        : ETH_RXDMA_PENDING
-   main_memio_rd(31*8+7 downto 10*8) <= (others => '0');             -- 7FEA - 7FFF : Not used
 
    eth_overlay(15 downto  0) <= eth_rxcnt_good;                      -- 7FE6 - 7FE7 : ETH_RXCNT_GOOD
-   eth_overlay(19 downto 16) <= eth_rxcnt_error(3 downto 0);         -- 7FE8        : ETH_RXCNT_ERROR
-   eth_overlay(23 downto 20) <= eth_rxcnt_crc_bad(3 downto 0);       -- 7FE8        : ETH_RXCNT_ERROR
+   eth_overlay(19 downto 16) <= eth_rxcnt_error(3 downto 0);         -- 7FE8 (LSN)  : ETH_RXCNT_ERROR_PHY
+   eth_overlay(23 downto 20) <= eth_rxcnt_crc_bad(3 downto 0);       -- 7FE8 (MSN)  : ETH_RXCNT_ERROR_CRC
    eth_overlay(31 downto 24) <= eth_rxcnt_overflow;                  -- 7FE9        : ETH_RXCNT_OVERFLOW
 
+   main_memio_rd(31*8+7 downto 10*8) <= (others => '0');             -- 7FEA - 7FFF : Not used
 
-   --------------------------------------------------
-   -- Clock domain crossing between MAIN and VGA
-   --------------------------------------------------
 
-   cdc_vga_memio_inst : entity work.cdc
+   main_overlay(207 downto 192) <= main_rxdma_ptr;
+   main_overlay(215 downto 208) <= "0000000" & main_rxdma_pending;
+   main_overlay(223 downto 216) <= "0000000" & main_rxdma_enable;
+
+
+   -----------------------------------
+   -- Clock domain crossing for MEMIO
+   -----------------------------------
+
+   cdc_vga_memio_main_inst : entity work.cdc
    generic map (
       G_WIDTH => 256
    )
@@ -310,9 +347,9 @@ begin
       src_data_i => main_memio_wr,
       dst_clk_i  => vga_clk,
       dst_data_o => vga_memio_wr
-   ); -- cdc_vga_memio_inst
+   ); -- cdc_vga_memio_main_inst
 
-   cdc_main_memio_inst : entity work.cdc
+   cdc_main_memio_vga_inst : entity work.cdc
    generic map (
       G_WIDTH => 4*8
    )
@@ -321,46 +358,9 @@ begin
       src_data_i => vga_memio_rd,
       dst_clk_i  => main_clk,
       dst_data_o => main_memio_rd(3*8+7 downto 0*8)
-   ); -- cdc_main_memio_inst
+   ); -- cdc_main_memio_vga_inst
 
-
-   --------------------------------------------------
-   -- Instantiate clock crossing from MAIN to VGA
-   --------------------------------------------------
-
-   cdc_main_overlay_inst : entity work.cdc
-   generic map (
-      G_WIDTH => 192
-   )
-   port map (
-      src_clk_i  => main_clk,
-      src_data_i => main_overlay,
-      dst_clk_i  => vga_clk,
-      dst_data_o => vga_overlay(191 downto 0)
-   ); -- cdc_main_overlay_inst
-   
-
-   --------------------------------------------------
-   -- Instantiate clock crossing from ETH to VGA
-   --------------------------------------------------
-
-   cdc_eth_overlay_vga_inst : entity work.cdc
-   generic map (
-      G_WIDTH => 32
-   )
-   port map (
-      src_clk_i  => eth_clk,
-      src_data_i => eth_overlay,
-      dst_clk_i  => vga_clk,
-      dst_data_o => vga_overlay(223 downto 192)
-   ); -- cdc_main_overlay_inst
-   
-
-   --------------------------------------------------
-   -- Instantiate clock crossing from ETH to MAIN
-   --------------------------------------------------
-
-   cdc_eth_overlay_main_inst : entity work.cdc
+   cdc_main_memio_eth_inst : entity work.cdc
    generic map (
       G_WIDTH => 32
    )
@@ -369,8 +369,7 @@ begin
       src_data_i => eth_overlay,
       dst_clk_i  => main_clk,
       dst_data_o => main_memio_rd(6*8+31 downto 6*8)
-   ); -- cdc_main_overlay_inst
-   
+   ); -- cdc_main_memio_eth_inst
 
 end architecture structural;
 

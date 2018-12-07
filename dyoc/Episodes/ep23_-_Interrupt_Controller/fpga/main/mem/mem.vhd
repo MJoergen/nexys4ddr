@@ -80,12 +80,12 @@ begin
 
    a_wait <= a_rden_i and (a_char_cs or a_col_cs or a_memio_cs);
 
-   p_a_wait_d : process (a_clk_i)
+   a_wait_d_proc : process (a_clk_i)
    begin
       if rising_edge(a_clk_i) then
          a_wait_d <= a_wait;
       end if;
-   end process p_a_wait_d;
+   end process a_wait_d_proc;
 
    a_wait_o <= '1' when a_wait = '1' and a_wait_d = '0' else
                '0';

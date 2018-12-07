@@ -39,8 +39,8 @@ architecture structural of comp is
    signal main_rst_shr  : std_logic_vector(7 downto 0) := X"FF";
    signal main_wait     : std_logic;
    signal main_overlay  : std_logic_vector(C_OVERLAY_BITS-1 downto 0);
-   signal main_memio_wr : std_logic_vector(8*32-1 downto 0);
-   signal main_memio_rd : std_logic_vector(8*32-1 downto 0);
+   signal main_memio_wr : std_logic_vector(255 downto 0);
+   signal main_memio_rd : std_logic_vector(255 downto 0);
 
    -- VGA Clock doamin
    signal vga_clk           : std_logic;
@@ -50,6 +50,8 @@ architecture structural of comp is
    signal vga_char_data     : std_logic_vector(  7 downto 0);
    signal vga_col_addr      : std_logic_vector( 12 downto 0);
    signal vga_col_data      : std_logic_vector(  7 downto 0);
+   signal vga_memio_rd      : std_logic_vector( 31 downto 0);
+   signal vga_memio_wr      : std_logic_vector(255 downto 0);
    signal vga_memio_palette : std_logic_vector(127 downto 0);
    signal vga_memio_pix_x   : std_logic_vector( 15 downto 0);
    signal vga_memio_pix_y   : std_logic_vector( 15 downto 0);
@@ -126,22 +128,6 @@ begin
 
 
    --------------------------------------------------
-   -- Instantiate clock crossing from MAIN to VGA
-   --------------------------------------------------
-
-   cdc_overlay_inst : entity work.cdc
-   generic map (
-      G_WIDTH => C_OVERLAY_BITS
-   )
-   port map (
-      src_clk_i  => main_clk,
-      src_data_i => main_overlay,
-      dst_clk_i  => vga_clk,
-      dst_data_o => vga_overlay
-   ); -- cdc_overlay_inst
-
-
-   --------------------------------------------------
    -- Control VGA debug overlay
    --------------------------------------------------
 
@@ -179,51 +165,59 @@ begin
 
 
    --------------------------------------------------
+   -- Instantiate clock crossing from MAIN to VGA
+   --------------------------------------------------
+
+   cdc_overlay_inst : entity work.cdc
+   generic map (
+      G_WIDTH => C_OVERLAY_BITS
+   )
+   port map (
+      src_clk_i  => main_clk,
+      src_data_i => main_overlay,
+      dst_clk_i  => vga_clk,
+      dst_data_o => vga_overlay
+   ); -- cdc_overlay_inst
+
+
+   --------------------------------------------------
    -- Memory Mapped I/O
    -- This must match the mapping in prog/include/memorymap.h
    --------------------------------------------------
 
-   -- 7FC0 - 7FCF : VGA_PALETTE
-   cdc_vga_memio_palette_inst : entity work.cdc
+   vga_memio_palette   <= vga_memio_wr(15*8+7 downto  0*8);  -- 7FC0 - 7FCF : VGA_PALETTE
+                                                             -- 7FD0 - 7FDF : Not used
+
+   vga_memio_rd(1*8+7 downto 0*8)    <= vga_memio_pix_x;     -- 7FE0 - 7FE1 : VGA_PIX_X
+   vga_memio_rd(3*8+7 downto 2*8)    <= vga_memio_pix_y;     -- 7FE2 - 7FE3 : VGA_PIX_Y
+   main_memio_rd(31*8+7 downto  4*8) <= (others => '0');     -- 7FE4 - 7FFF : Not used
+
+
+   -----------------------------------
+   -- Clock domain crossing for MEMIO
+   -----------------------------------
+
+   cdc_vga_memio_main_inst : entity work.cdc
    generic map (
-      G_WIDTH => 128
+      G_WIDTH => 256
    )
    port map (
       src_clk_i  => main_clk,
-      src_data_i => main_memio_wr(15*8+7 downto 0*8),
+      src_data_i => main_memio_wr,
       dst_clk_i  => vga_clk,
-      dst_data_o => vga_memio_palette
-   ); -- cdc_vga_memio_palette
+      dst_data_o => vga_memio_wr
+   ); -- cdc_vga_memio_main_inst
 
-   -- 7FD0 - 7FDF : Not used
-
-
-   -- 7FE0 - 7FE1 : VGA_PIX_X
-   cdc_vga_memio_pix_x_inst : entity work.cdc
+   cdc_main_memio_vga_inst : entity work.cdc
    generic map (
-      G_WIDTH => 16
+      G_WIDTH => 4*8
    )
    port map (
       src_clk_i  => vga_clk,
-      src_data_i => vga_memio_pix_x,
+      src_data_i => vga_memio_rd,
       dst_clk_i  => main_clk,
-      dst_data_o => main_memio_rd(1*8+7 downto 0*8)
-   ); -- cdc_vga_memio_pix_x
-
-   -- 7FE2 - 7FE3 : VGA_PIX_Y
-   cdc_vga_memio_pix_y : entity work.cdc
-   generic map (
-      G_WIDTH => 16
-   )
-   port map (
-      src_clk_i  => vga_clk,
-      src_data_i => vga_memio_pix_y,
-      dst_clk_i  => main_clk,
-      dst_data_o => main_memio_rd(3*8+7 downto 2*8)
-   ); -- cdc_vga_memio_pix_y
-
-   -- 7FE4 - 7FFF : Not used
-   main_memio_rd(31*8+7 downto  4*8) <= (others => '0');   -- Not used
+      dst_data_o => main_memio_rd(3*8+7 downto 0*8)
+   ); -- cdc_main_memio_vga_inst
 
 end architecture structural;
 

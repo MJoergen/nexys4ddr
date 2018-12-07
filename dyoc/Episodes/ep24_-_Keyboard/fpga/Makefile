@@ -53,5 +53,6 @@ clean:
 	rm -rf work-obj08.cf
 	rm -rf $(TB)
 	rm -rf $(WAVE)
+	rm -rf a.out
 	rm -rf fsm_encoding.os
 

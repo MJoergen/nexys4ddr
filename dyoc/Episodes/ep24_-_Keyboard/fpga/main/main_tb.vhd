@@ -15,8 +15,8 @@ architecture structural of main_tb is
    signal main_wait_cnt : std_logic_vector(1 downto 0) := (others => '0');
    signal main_wait     : std_logic;
 
-   signal main_vga_irq : std_logic := '0';
-   signal main_kbd_irq : std_logic := '0';
+   signal main_vga_irq : std_logic;
+   signal main_kbd_irq : std_logic;
 
 begin
    

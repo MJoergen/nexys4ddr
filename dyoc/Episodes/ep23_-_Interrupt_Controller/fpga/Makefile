@@ -12,6 +12,7 @@ TB_SRC = main/$(TB).vhd
 WAVE   = main/$(TB).ghw
 SAVE   = main/$(TB).gtkw
 
+
 #####################################
 # Generate bit-file and program FPGA
 #####################################
