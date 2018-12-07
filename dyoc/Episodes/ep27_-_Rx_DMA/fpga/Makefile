@@ -32,12 +32,12 @@ fpga: comp.bit
 #####################################
 
 sim: $(MAIN) $(TB_SRC) ../rom.txt
-	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VCOMP.vhd
-	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VPKG.vhd
-	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/primitive/*.vhd
-	ghdl -i --work=work $(MAIN) $(TB_SRC)
-	ghdl -m --ieee=synopsys -fexplicit tb
-	ghdl -r tb --assert-level=error --wave=$(WAVE) --stop-time=660us
+	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VCOMP.vhd
+	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VPKG.vhd
+	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/primitive/*.vhd
+	ghdl -i --std=08 --work=work $(MAIN) $(TB_SRC)
+	ghdl -m --std=08 -frelaxed-rules $(TB)
+	ghdl -r $(TB) --assert-level=error --wave=$(WAVE) --stop-time=660us
 	gtkwave $(WAVE) $(SAVE)
 
 
