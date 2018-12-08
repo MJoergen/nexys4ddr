@@ -2,9 +2,6 @@
 #include <time.h>
 
 #include "gettime.h"
-#include "getcycles.h"
-
-#define CLOCK_SPEED_MHZ 25
 
 int clock_gettime(clockid_t clk_id, struct timespec *tp)
 {
@@ -14,12 +11,12 @@ int clock_gettime(clockid_t clk_id, struct timespec *tp)
 
    if (tp)
    {
-      now = getcycles();
+      now = clock();
 
-      tp->tv_sec = now / (CLOCK_SPEED_MHZ*1000000UL);
-      now -= tp->tv_sec*(CLOCK_SPEED_MHZ*1000000UL);
+      tp->tv_sec = now / 1000;
+      now -= tp->tv_sec*1000;
 
-      tp->tv_nsec = now * (1000 / CLOCK_SPEED_MHZ);
+      tp->tv_nsec = now;
    }
 
    return 0;
