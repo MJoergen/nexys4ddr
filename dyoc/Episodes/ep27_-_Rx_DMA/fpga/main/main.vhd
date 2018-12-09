@@ -56,7 +56,6 @@ architecture structural of main is
    signal main_memio_wr    : std_logic_vector(8*32-1 downto 0);
    signal main_memio_rd    : std_logic_vector(8*32-1 downto 0);
    signal main_memio_rden  : std_logic_vector(  32-1 downto 0);
-   signal main_memio_clear : std_logic_vector(  32-1 downto 0);
 
 begin
 
@@ -119,7 +118,7 @@ begin
       a_memio_wr_o     => main_memio_wr,
       a_memio_rd_i     => main_memio_rd,
       a_memio_rden_o   => main_memio_rden,
-      a_memio_clear_i  => main_memio_clear,
+      a_memio_clear_i  => main_memio_clear_i,
       a_eth_wr_en_i    => main_eth_wr_en_i,
       a_eth_wr_addr_i  => main_eth_wr_addr_i,
       a_eth_wr_data_i  => main_eth_wr_data_i,
