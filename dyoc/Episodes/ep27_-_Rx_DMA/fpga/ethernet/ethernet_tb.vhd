@@ -121,19 +121,20 @@ begin
 
    inst_ethernet : entity work.ethernet
    port map (
-      user_clk_i               => user_clk,
-      user_rst_i               => user_rst,
-      user_rxdma_ram_wr_en_o   => user_rxdma_ram_wr_en,
-      user_rxdma_ram_wr_addr_o => user_rxdma_ram_wr_addr,
-      user_rxdma_ram_wr_data_o => user_rxdma_ram_wr_data,
-      user_rxdma_ptr_i         => user_rxdma_ptr,
-      user_rxdma_enable_i      => user_rxdma_enable,
-      user_rxdma_clear_o       => user_rxdma_clear,
-      user_rxdma_pending_o     => user_rxdma_pending,
-      user_rxcnt_good_o        => user_rxcnt_good,
-      user_rxcnt_error_o       => user_rxcnt_error,
-      user_rxcnt_crc_bad_o     => user_rxcnt_crc_bad,
-      user_rxcnt_overflow_o    => user_rxcnt_overflow,
+      main_clk_i               => user_clk,
+      main_rst_i               => user_rst,
+      main_rxdma_ram_wr_en_o   => user_rxdma_ram_wr_en,
+      main_rxdma_ram_wr_addr_o => user_rxdma_ram_wr_addr,
+      main_rxdma_ram_wr_data_o => user_rxdma_ram_wr_data,
+      main_rxdma_ptr_i         => user_rxdma_ptr,
+      main_rxdma_enable_i      => user_rxdma_enable,
+      main_rxdma_clear_o       => user_rxdma_clear,
+      main_rxdma_pending_o     => user_rxdma_pending,
+      --
+      eth_rxcnt_good_o        => user_rxcnt_good,
+      eth_rxcnt_error_o       => user_rxcnt_error,
+      eth_rxcnt_crc_bad_o     => user_rxcnt_crc_bad,
+      eth_rxcnt_overflow_o    => user_rxcnt_overflow,
       --
       eth_clk_i           => eth_clk,
       eth_txd_o           => open,   -- We're ignoring transmit for now
