@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include "memorymap.h"
+#include <time.h>
 
 // Forward declarations.
 void eth_init(void);
@@ -35,6 +36,8 @@ void main(void)
       {
          dummy_counter++;
       }
+
+      printf("%5ld ", clock());
 
       // Show the pointer locations of the received Ethernet frame.
       printf("%04x:", eth_inp_len);
