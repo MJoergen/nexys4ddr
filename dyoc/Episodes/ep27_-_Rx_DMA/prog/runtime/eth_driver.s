@@ -9,7 +9,7 @@
 
 ethRxdmaEnable = $7FD3
 ethRxdmaPtr    = $7FD4
-ethRxPending   = $7FEE
+ethRxPending   = $7FE5
 
 .code
 
