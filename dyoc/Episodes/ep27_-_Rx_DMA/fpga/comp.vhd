@@ -330,7 +330,7 @@ begin
 
 
    main_overlay(207 downto 192) <= main_rxdma_ptr;
-   main_overlay(215 downto 208) <= "0000000" & main_rxdma_pending;
+   main_overlay(215 downto 208) <= main_rxdma_pending;
    main_overlay(223 downto 216) <= "0000000" & main_rxdma_enable;
 
 

@@ -5,6 +5,8 @@
 
 extern t_irq_handler *isr_jump_table[8];
 
+#define IRQ_MASK ((uint8_t *) 0x7FDF)
+
 #define IRQ_VGA_MASK (1 << IRQ_VGA_NUM)
 
 t_irq_handler *sys_set_vga_irq(t_irq_handler *irqHandler)
