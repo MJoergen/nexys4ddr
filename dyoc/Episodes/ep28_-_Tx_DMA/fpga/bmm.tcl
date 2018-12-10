@@ -1,4 +1,4 @@
-set myInsts [get_cells -hier -filter {PRIMITIVE_TYPE =~ BMEM.*.* && NAME =~ *i_rom*}]
+set myInsts [get_cells -hier -filter {PRIMITIVE_TYPE =~ BMEM.*.* && NAME =~ *rom_inst*}]
 set bmmList {}; # make it empty incase you were running it interactively
 foreach memInst $myInsts {
    set loc [get_property LOC $memInst]

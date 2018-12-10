@@ -28,8 +28,7 @@ entity tx_dma is
       wr_data_o      : out std_logic_vector( 7 downto 0);
       wr_eof_o       : out std_logic;
 
-      cnt_start_o    : out std_logic_vector( 7 downto 0);
-      cnt_end_o      : out std_logic_vector( 7 downto 0)
+      cnt_end_o      : out std_logic_vector(15 downto 0)
    );
 end tx_dma;
 
@@ -48,8 +47,7 @@ architecture structural of tx_dma is
    type t_fsm_state is (IDLE_ST, LEN_LO_ST, LEN_HI_ST, DATA_ST);
    signal fsm_state : t_fsm_state := IDLE_ST;
 
-   signal cnt_start : std_logic_vector(7 downto 0) := (others => '0');
-   signal cnt_end   : std_logic_vector(7 downto 0) := (others => '0');
+   signal cnt_end   : std_logic_vector(15 downto 0) := (others => '0');
 
 begin
 
@@ -68,7 +66,6 @@ begin
                      rd_addr   <= memio_ptr_i;
                      rd_en     <= '1';
                      fsm_state <= LEN_LO_ST;
-                     cnt_start <= cnt_start + 1;
                   end if;
                end if;
 
@@ -126,7 +123,6 @@ begin
    wr_data_o     <= wr_data;
    wr_eof_o      <= wr_eof;
 
-   cnt_start_o   <= cnt_start;
    cnt_end_o     <= cnt_end;
 
 end structural;

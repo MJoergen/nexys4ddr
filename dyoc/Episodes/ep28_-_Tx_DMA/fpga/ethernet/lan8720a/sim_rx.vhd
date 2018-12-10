@@ -26,7 +26,7 @@ begin
 
    sim_rx_proc : process
    begin
-      sim_data <= (others => 'X');
+      sim_data <= (others => '0');
       sim_len  <= (others => '0');
 
       byte_loop : while (true) loop

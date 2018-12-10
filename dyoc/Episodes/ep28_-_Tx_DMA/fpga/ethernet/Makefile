@@ -16,7 +16,7 @@ sim: $(SRC)
 	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VPKG.vhd
 	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/primitive/*.vhd
 	ghdl -i --std=08 --work=work $(SRC) $(TB)
-	ghdl -m --std=08 -frelaxed-rules ethernet_tb
+	ghdl -m --std=08 --ieee=synopsys -frelaxed-rules ethernet_tb
 	ghdl -r ethernet_tb --assert-level=error --wave=$(WAVE) --stop-time=100us
 	gtkwave $(WAVE) $(SAVE)
 

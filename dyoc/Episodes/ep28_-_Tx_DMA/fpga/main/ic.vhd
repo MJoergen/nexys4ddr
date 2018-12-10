@@ -31,7 +31,7 @@ begin
          irq_latch <= irq_latch or irq_i;
 
          if stat_clr_i = '1' then
-            irq_latch <= (others => '0');
+            irq_latch <= irq_i;
          end if;
       end if;
    end process p_latch;

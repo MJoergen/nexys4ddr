@@ -1,17 +1,19 @@
 XILINX_DIR = /opt/Xilinx/Vivado/2017.3
 
-SRC  = chipset/ic.vhd chipset/waiter.vhd chipset/timer.vhd \
-		 vga/overlay.vhd vga/chars.vhd vga/font.vhd vga/vga.vhd \
-		 mem/dmem.vhd mem/ram.vhd mem/rom.vhd mem/mem.vhd mem/memio.vhd \
+MAIN = main/main.vhd main/ic.vhd main/timer.vhd \
+		 main/cpu/cpu.vhd main/cpu/datapath.vhd main/cpu/ctl.vhd main/cpu/pc.vhd main/cpu/ar.vhd main/cpu/hi.vhd main/cpu/lo.vhd main/cpu/alu.vhd main/cpu/sr.vhd main/cpu/sp.vhd main/cpu/xr.vhd main/cpu/yr.vhd main/cpu/zp.vhd \
+		 main/mem/mem.vhd main/mem/rom.vhd main/mem/ram.vhd main/mem/dmem.vhd main/mem/memio.vhd
+SRC  = $(MAIN) \
+		 comp.vhd waiter.vhd clk.vhd cdc.vhd cdc_pulse.vhd \
 		 keyboard/ps2.vhd keyboard/scancode.vhd keyboard/keyboard.vhd \
-		 cpu/zp.vhd cpu/sr.vhd cpu/regfile.vhd cpu/hilo.vhd cpu/pc.vhd cpu/datapath.vhd cpu/ctl.vhd cpu/cpu.vhd cpu/alu.vhd cpu/cycle.vhd \
-       ethernet/ethernet.vhd ethernet/lan8720a/lan8720a.vhd ethernet/lan8720a/rmii_tx.vhd ethernet/lan8720a/rmii_rx.vhd \
+       ethernet/ethernet.vhd ethernet/lan8720a/lan8720a.vhd ethernet/lan8720a/rmii_rx.vhd ethernet/lan8720a/rmii_tx.vhd \
        ethernet/rx_dma.vhd ethernet/fifo.vhd ethernet/rx_header.vhd ethernet/tx_dma.vhd \
-		 comp.vhd
+   	 vga/vga.vhd vga/overlay.vhd vga/pix.vhd vga/font.vhd vga/opcodes.vhd vga/chars.vhd
 XDC  = comp.xdc
-TB_SRC = tb.vhd keyboard/ps2_tb.vhd ethernet/phy_sim.vhd
-WAVE = tb.ghw
-SAVE = tb.gtkw
+TB = main_tb
+TB_SRC = main/$(TB).vhd keyboard/ps2_tb.vhd
+WAVE   = main/$(TB).ghw
+SAVE   = main/$(TB).gtkw
 
 
 #####################################
@@ -29,11 +31,11 @@ fpga: comp.bit
 # Simulation
 #####################################
 
-sim: $(SRC) $(TB_SRC) ../rom.txt
+sim: $(MAIN) $(TB_SRC) ../rom.txt
 	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VCOMP.vhd
 	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VPKG.vhd
 	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/primitive/*.vhd
-	ghdl -i --std=08 --work=work $(SRC) $(TB_SRC)
+	ghdl -i --std=08 --work=work $(MAIN) $(TB_SRC)
 	ghdl -m --std=08 -frelaxed-rules $(TB)
 	ghdl -r $(TB) --assert-level=error --wave=$(WAVE) --stop-time=600us
 	gtkwave $(WAVE) $(SAVE)

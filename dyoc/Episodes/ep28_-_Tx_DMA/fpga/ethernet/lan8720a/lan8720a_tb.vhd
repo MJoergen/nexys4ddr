@@ -28,7 +28,6 @@ architecture simulation of lan8720a_tb is
    signal tx_rden   : std_logic;
    signal tx_data   : std_logic_vector(7 downto 0);
    signal tx_eof    : std_logic;
-   signal tx_err    : std_logic;
    signal eth_rxd   : std_logic_vector(1 downto 0);
    signal eth_crsdv : std_logic;
    signal eth_txd   : std_logic_vector(1 downto 0);
@@ -103,7 +102,6 @@ begin
       tx_rden_o    => tx_rden,
       tx_data_i    => tx_data,
       tx_eof_i     => tx_eof,
-      tx_err_o     => tx_err,
       eth_txd_o    => eth_txd,
       eth_txen_o   => eth_txen,
       eth_rxd_i    => eth_rxd,
@@ -167,7 +165,7 @@ begin
       wait until rx_valid = '0';
       -- Validate received frame
       assert sim_rx_len  = sim_tx_len;
-      assert sim_rx_data = sim_tx_data;
+      assert sim_rx_data(127 downto 0) = sim_tx_data(127 downto 0);
 
       -- Send another frame (32 bytes)
       for i in 0 to 31 loop
@@ -184,7 +182,7 @@ begin
       wait until rx_valid = '0';
       -- Validate received frame
       assert sim_rx_len  = sim_tx_len;
-      assert sim_rx_data = sim_tx_data;
+      assert sim_rx_data(255 downto 0) = sim_tx_data(255 downto 0);
 
       -- Stop test
       wait until clk = '1';
