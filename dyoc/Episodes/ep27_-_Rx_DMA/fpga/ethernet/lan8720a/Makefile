@@ -11,11 +11,11 @@ SAVE = lan8720a_tb.gtkw
 #####################################
 
 sim: $(SRC) 
-	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VCOMP.vhd
-	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VPKG.vhd
-	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/primitive/*.vhd
-	ghdl -i --work=work $(SRC) $(TB)
-	ghdl -m --ieee=synopsys -fexplicit lan8720a_tb
+	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VCOMP.vhd
+	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VPKG.vhd
+	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/primitive/*.vhd
+	ghdl -i --std=08 --work=work $(SRC) $(TB)
+	ghdl -m --std=08 -frelaxed-rules lan8720a_tb
 	ghdl -r lan8720a_tb --assert-level=error --wave=$(WAVE) --stop-time=1us
 	gtkwave $(WAVE) $(SAVE)
 
@@ -32,7 +32,7 @@ clean:
 	rm -rf .Xil
 	rm -rf .cache
 	rm -rf work-obj08.cf
-	rm -rf unisim-obj93.cf
+	rm -rf unisim-obj08.cf
 	rm -rf lan8720a_tb
 	rm -rf lan8720a_tb.ghw
 

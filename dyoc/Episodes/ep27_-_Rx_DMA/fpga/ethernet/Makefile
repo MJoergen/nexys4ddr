@@ -12,11 +12,11 @@ SAVE = ethernet_tb.gtkw
 #####################################
 
 sim: $(SRC) 
-	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VCOMP.vhd
-	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VPKG.vhd
-	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/primitive/*.vhd
-	ghdl -i --work=work $(SRC) $(TB)
-	ghdl -m --ieee=synopsys -fexplicit ethernet_tb
+	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VCOMP.vhd
+	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VPKG.vhd
+	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/primitive/*.vhd
+	ghdl -i --std=08 --work=work $(SRC) $(TB)
+	ghdl -m --std=08 -frelaxed-rules ethernet_tb
 	ghdl -r ethernet_tb --assert-level=error --wave=$(WAVE) --stop-time=500us
 	gtkwave $(WAVE) $(SAVE)
 
@@ -33,7 +33,7 @@ clean:
 	rm -rf .Xil
 	rm -rf .cache
 	rm -rf work-obj08.cf
-	rm -rf unisim-obj93.cf
+	rm -rf unisim-obj08.cf
 	rm -rf ethernet_tb
 	rm -rf ethernet_tb.ghw
 

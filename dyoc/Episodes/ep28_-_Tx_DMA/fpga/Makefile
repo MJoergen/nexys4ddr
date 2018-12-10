@@ -9,7 +9,7 @@ SRC  = chipset/ic.vhd chipset/waiter.vhd chipset/timer.vhd \
        ethernet/rx_dma.vhd ethernet/fifo.vhd ethernet/rx_header.vhd ethernet/tx_dma.vhd \
 		 comp.vhd
 XDC  = comp.xdc
-TB   = tb.vhd keyboard/ps2_tb.vhd ethernet/phy_sim.vhd
+TB_SRC = tb.vhd keyboard/ps2_tb.vhd ethernet/phy_sim.vhd
 WAVE = tb.ghw
 SAVE = tb.gtkw
 
@@ -29,13 +29,13 @@ fpga: comp.bit
 # Simulation
 #####################################
 
-sim: $(SRC) $(TB) ../rom.txt
-	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VCOMP.vhd
-	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VPKG.vhd
-	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/primitive/*.vhd
-	ghdl -i --work=work $(SRC) $(TB)
-	ghdl -m --ieee=synopsys -fexplicit tb
-	ghdl -r tb --assert-level=error --wave=$(WAVE) --stop-time=600us
+sim: $(SRC) $(TB_SRC) ../rom.txt
+	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VCOMP.vhd
+	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VPKG.vhd
+	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/primitive/*.vhd
+	ghdl -i --std=08 --work=work $(SRC) $(TB_SRC)
+	ghdl -m --std=08 -frelaxed-rules $(TB)
+	ghdl -r $(TB) --assert-level=error --wave=$(WAVE) --stop-time=600us
 	gtkwave $(WAVE) $(SAVE)
 
 
@@ -52,9 +52,9 @@ clean:
 	rm -rf .Xil
 	rm -rf .cache
 	rm -rf work-obj08.cf
-	rm -rf unisim-obj93.cf
-	rm -rf tb
-	rm -rf tb.ghw
+	rm -rf unisim-obj08.cf
+	rm -rf $(TB)
+	rm -rf $(WAVE)
 	rm -rf comp.bit
 	rm -rf comp.bmm
 	rm -rf fsm_encoding.os
