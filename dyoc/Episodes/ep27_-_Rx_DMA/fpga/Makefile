@@ -60,4 +60,5 @@ clean:
 	rm -rf comp.bit
 	rm -rf comp.bmm
 	rm -rf fsm_encoding.os
+	rm -rf timing_summary.rpt
 
