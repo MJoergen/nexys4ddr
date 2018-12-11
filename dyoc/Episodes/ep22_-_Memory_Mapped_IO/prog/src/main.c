@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include "memorymap.h"  // VGA_PALETTE
+#include "memorymap.h"  // MEMIO_CONFIG and MEMIO_STATUS
 
 #define SIZE 8
 
@@ -38,7 +38,7 @@ static void calculate_valid(void)
       valid[q] = val;
 
       // Set background colour equal to the current line number.
-      VGA_PALETTE[0] = *VGA_PIX_Y;
+      MEMIO_CONFIG->vgaPalette[0] = MEMIO_STATUS->vgaPixY;
    }
 
 } // end of calculate_valid
@@ -52,7 +52,7 @@ static void print_all(void)
       printf("%d ", pos[q]);
 
       // Set background colour equal to the current line number.
-      VGA_PALETTE[0] = *VGA_PIX_Y;
+      MEMIO_CONFIG->vgaPalette[0] = MEMIO_STATUS->vgaPixY;
    }
    printf("\n");
 } // end of print_all
@@ -89,7 +89,7 @@ int main()
          pos[q] = 0;
 
          // Set background colour equal to the current line number.
-         VGA_PALETTE[0] = *VGA_PIX_Y;
+         MEMIO_CONFIG->vgaPalette[0] = MEMIO_STATUS->vgaPixY;
       }
 
       if (q<0)
@@ -98,7 +98,7 @@ int main()
       }
 
       // Set background colour equal to the current line number.
-      VGA_PALETTE[0] = *VGA_PIX_Y;
+      MEMIO_CONFIG->vgaPalette[0] = MEMIO_STATUS->vgaPixY;
    } // end of while (1)
 
    printf("%d iterations.\n", iterations);
@@ -107,7 +107,7 @@ int main()
    while (1)
    {
       // Set background colour equal to the current line number.
-      VGA_PALETTE[0] = *VGA_PIX_Y;
+      MEMIO_CONFIG->vgaPalette[0] = MEMIO_STATUS->vgaPixY;
    }
 
    return 0;
