@@ -37,7 +37,7 @@ sim: $(MAIN) $(TB_SRC) ../rom.txt
 	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/primitive/*.vhd
 	ghdl -i --std=08 --work=work $(MAIN) $(TB_SRC)
 	ghdl -m --std=08 -frelaxed-rules $(TB)
-	ghdl -r $(TB) --assert-level=error --wave=$(WAVE) --stop-time=600us
+	ghdl -r $(TB) --max-stack-alloc=1000 --assert-level=error --wave=$(WAVE) --stop-time=600us
 	gtkwave $(WAVE) $(SAVE)
 
 
