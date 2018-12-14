@@ -11,10 +11,14 @@ SRC  = $(MAIN) \
    	 vga/vga.vhd vga/overlay.vhd vga/pix.vhd vga/font.vhd vga/opcodes.vhd vga/chars.vhd
 XDC  = comp.xdc
 TB = main_tb
-TB_SRC = main/$(TB).vhd keyboard/ps2_tb.vhd
+TB_SRC = $(MAIN) main/$(TB).vhd keyboard/ps2_tb.vhd
 WAVE   = main/$(TB).ghw
 SAVE   = main/$(TB).gtkw
 
+TB = comp_tb
+TB_SRC = $(SRC) $(TB).vhd keyboard/ps2_tb.vhd ethernet/phy_sim.vhd
+WAVE   = $(TB).ghw
+SAVE   = $(TB).gtkw
 
 #####################################
 # Generate bit-file and program FPGA
@@ -31,12 +35,9 @@ fpga: comp.bit
 # Simulation
 #####################################
 
-sim: $(MAIN) $(TB_SRC) ../rom.txt
-	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VCOMP.vhd
-	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VPKG.vhd
-	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/primitive/*.vhd
-	ghdl -i --std=08 --work=work $(MAIN) $(TB_SRC)
-	ghdl -m --std=08 -frelaxed-rules $(TB)
+sim: $(TB_SRC) ../rom.txt
+	ghdl -i --std=08 $(TB_SRC)
+	ghdl -m --std=08 --ieee=synopsys -frelaxed-rules -P../../xilinx-vivado $(TB)
 	ghdl -r $(TB) --max-stack-alloc=1000 --assert-level=error --wave=$(WAVE) --stop-time=600us
 	gtkwave $(WAVE) $(SAVE)
 
