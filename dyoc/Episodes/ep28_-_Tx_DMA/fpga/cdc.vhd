@@ -30,10 +30,10 @@ architecture structural of cdc is
    signal rst             : std_logic := '1';
    signal rst_shr         : std_logic_vector(7 downto 0) := X"FF";
 
-   signal dst_empty       : std_logic;
+   signal dst_empty       : std_logic_vector(C_NUM_FIFOS-1 downto 0);
    signal dst_rd_en       : std_logic;
 
-   signal src_prog_full   : std_logic;
+   signal src_prog_full   : std_logic_vector(C_NUM_FIFOS-1 downto 0);
    signal src_wr_en       : std_logic;
    signal src_wr_rst_busy : std_logic;
 
@@ -52,10 +52,10 @@ begin
    end process rst_proc;
 
    -- Write when empty
-   src_wr_en <= not src_prog_full and not src_wr_rst_busy;
+   src_wr_en <= not src_prog_full(0) and not src_wr_rst_busy;
 
    -- Read when not empty
-   dst_rd_en <= not dst_empty;
+   dst_rd_en <= not dst_empty(0);
 
 
    ---------------------------------
@@ -74,9 +74,9 @@ begin
          )
          port map (
             ALMOSTEMPTY => open,             -- 1-bit output almost empty
-            ALMOSTFULL  => src_prog_full,    -- 1-bit output almost full
+            ALMOSTFULL  => src_prog_full(i), -- 1-bit output almost full
             DO          => dst_data(36*i+35 downto 36*i),       -- Output data, width defined by DATA_WIDTH parameter
-            EMPTY       => dst_empty,        -- 1-bit output empty
+            EMPTY       => dst_empty(i),     -- 1-bit output empty
             FULL        => open,             -- 1-bit output full
             RDCOUNT     => open,             -- Output read count, width determined by FIFO depth
             RDERR       => open,             -- 1-bit output read error
