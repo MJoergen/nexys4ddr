@@ -14,7 +14,7 @@
 
 ethRxdmaEnable = $7FD3
 ethRxdmaPtr    = $7FD4
-ethRxPending   = $7FEE
+ethRxPending   = $7FE5
 ethTxdmaPtr    = $7FD6
 ethTxdmaEnable = $7FD8
 
