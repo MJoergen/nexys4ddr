@@ -1,0 +1,27 @@
+[*]
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Mon Dec 17 08:36:08 2018
+[*]
+[dumpfile] "/home/mfj/git/nexys4ddr/mandelbrot/mandelbrot.ghw"
+[dumpfile_mtime] "Mon Dec 17 08:35:42 2018"
+[dumpfile_size] 626554
+[savefile] "/home/mfj/git/nexys4ddr/mandelbrot/mandelbrot.gtkw"
+[timestart] 0
+[size] 1600 600
+[pos] -1 -1
+*-25.529982 45000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.mandelbrot_tb.
+[sst_width] 223
+[signals_width] 94
+[sst_expanded] 1
+[sst_vpaned_height] 152
+@28
+top.mandelbrot_tb.clk
+@22
+#{top.mandelbrot_tb.x[17:0]} top.mandelbrot_tb.x[17] top.mandelbrot_tb.x[16] top.mandelbrot_tb.x[15] top.mandelbrot_tb.x[14] top.mandelbrot_tb.x[13] top.mandelbrot_tb.x[12] top.mandelbrot_tb.x[11] top.mandelbrot_tb.x[10] top.mandelbrot_tb.x[9] top.mandelbrot_tb.x[8] top.mandelbrot_tb.x[7] top.mandelbrot_tb.x[6] top.mandelbrot_tb.x[5] top.mandelbrot_tb.x[4] top.mandelbrot_tb.x[3] top.mandelbrot_tb.x[2] top.mandelbrot_tb.x[1] top.mandelbrot_tb.x[0]
+#{top.mandelbrot_tb.y[17:0]} top.mandelbrot_tb.y[17] top.mandelbrot_tb.y[16] top.mandelbrot_tb.y[15] top.mandelbrot_tb.y[14] top.mandelbrot_tb.y[13] top.mandelbrot_tb.y[12] top.mandelbrot_tb.y[11] top.mandelbrot_tb.y[10] top.mandelbrot_tb.y[9] top.mandelbrot_tb.y[8] top.mandelbrot_tb.y[7] top.mandelbrot_tb.y[6] top.mandelbrot_tb.y[5] top.mandelbrot_tb.y[4] top.mandelbrot_tb.y[3] top.mandelbrot_tb.y[2] top.mandelbrot_tb.y[1] top.mandelbrot_tb.y[0]
+@23
+#{top.mandelbrot_tb.cnt[9:0]} top.mandelbrot_tb.cnt[9] top.mandelbrot_tb.cnt[8] top.mandelbrot_tb.cnt[7] top.mandelbrot_tb.cnt[6] top.mandelbrot_tb.cnt[5] top.mandelbrot_tb.cnt[4] top.mandelbrot_tb.cnt[3] top.mandelbrot_tb.cnt[2] top.mandelbrot_tb.cnt[1] top.mandelbrot_tb.cnt[0]
+[pattern_trace] 1
+[pattern_trace] 0
