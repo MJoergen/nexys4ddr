@@ -12,9 +12,10 @@ architecture simulation of mandelbrot_tb is
    signal rst_d1 : std_logic := '1';
    signal rst_d2 : std_logic := '1';
 
-   signal x   : std_logic_vector(17 downto 0);
-   signal y   : std_logic_vector(17 downto 0);
-   signal cnt : std_logic_vector( 9 downto 0);
+   signal cx   : std_logic_vector(17 downto 0);
+   signal cy   : std_logic_vector(17 downto 0);
+   signal cnt  : std_logic_vector( 9 downto 0);
+   signal done : std_logic;
 
 begin
 
@@ -37,22 +38,9 @@ begin
       wait;
    end process p_rst;
 
-   p_xy : process (clk)
-   begin
-      if rising_edge(clk) then
-         x <= x + 1;
-         y <= y + 1;
 
-         if rst_d2 = '1' then
-            x <= to_std_logic_vector(0, 18);
-            y <= to_std_logic_vector(1, 18);
-         end if;
-
-         rst_d1 <= rst;
-         rst_d2 <= rst_d1;
-      end if;
-   end process p_xy;
-
+   cx <= "01" & X"FFFF";
+   cy <= "00" & X"0000";
 
    -------------------
    -- Instantiate DUT
@@ -60,11 +48,12 @@ begin
 
    i_mandelbrot : entity work.mandelbrot
       port map (
-         clk_i => clk,
-         rst_i => rst,
-         x_i   => x,
-         y_i   => y,
-         cnt_o => cnt
+         clk_i  => clk,
+         rst_i  => rst,
+         cx_i   => cx,
+         cy_i   => cy,
+         cnt_o  => cnt,
+         done_o => done
       ); -- i_mandelbrot
 
 end architecture simulation;
