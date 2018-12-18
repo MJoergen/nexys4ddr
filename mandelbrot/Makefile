@@ -31,7 +31,7 @@ fpga: $(NAME).bit
 .PHONY: sim
 sim: $(TB_SRC)
 	ghdl -i --std=08 --work=work $(TB_SRC)
-	ghdl -m --std=08 --ieee=synopsys -frelaxed-rules -P../dyoc/Episodes/xilinx-vivado $(TB)
+	ghdl -m --std=08 --ieee=synopsys -frelaxed-rules -P../xilinx-vivado $(TB)
 	ghdl -r --std=08 $(TB) --assert-level=error --wave=$(WAVE) --stop-time=20us
 	gtkwave $(WAVE) $(SAVE)
 
