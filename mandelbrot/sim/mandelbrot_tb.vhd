@@ -5,12 +5,13 @@ use ieee.numeric_std_unsigned.all;
 -- Simple testbench for the Mandelbrot state machine
 -- We start with the point -1+0.5i, i.e. cx = -1 and cy = 0.5
 -- The expected sequence of points is then:
--- cnt |   x   |   y   |   x   |   y   
--- ----+-------+-------+-------+--------
---  0  | 00000 | 00000 |  0    |   0
---  1  | 30000 | 08000 | -1    |   0.5
---  2  | 3C000 | 38000 | -0.25 |  -0.5
---  3  | 2D000 | 0C000 | -1.19 |   0.75
+-- cnt |   x           |   y           | (x+y)*(x-y)
+-- ----+---------------+---------------+------------
+--  0  | 00000 ( 0)    | 00000 ( 0)    | 00000 ( 0)
+--  1  | 30000 (-1)    | 08000 ( 0.5)  | 0C000 ( 0.75)
+--  2  | 3C000 (-0.25) | 38000 (-0.5)  | 3D000 (-0.19)
+--  3  | 2D000 (-1.19) | 0C000 ( 0.75) |
+--  4  | 3D900 (-0.15) | 2B800 (-1.28) |
 
 entity mandelbrot_tb is
 end entity mandelbrot_tb;

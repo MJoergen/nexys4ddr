@@ -48,19 +48,21 @@ end entity mandelbrot;
 
 architecture rtl of mandelbrot is
 
-   signal x         : std_logic_vector(17 downto 0);
-   signal y         : std_logic_vector(17 downto 0);
-   signal sum       : std_logic_vector(17 downto 0);
-   signal diff      : std_logic_vector(17 downto 0);
-   signal a         : std_logic_vector(17 downto 0);
-   signal b         : std_logic_vector(17 downto 0);
-   signal product   : std_logic_vector(35 downto 0);
-   signal product_d : std_logic_vector(35 downto 0);
-   signal cnt       : std_logic_vector( 9 downto 0);
-   signal done      : std_logic;
+   signal x_r         : std_logic_vector(17 downto 0);
+   signal y_r         : std_logic_vector(17 downto 0);
+   signal sum_r       : std_logic_vector(17 downto 0);
+   signal diff_r      : std_logic_vector(17 downto 0);
+   signal a_s         : std_logic_vector(17 downto 0);
+   signal b_s         : std_logic_vector(17 downto 0);
+   signal product_s   : std_logic_vector(35 downto 0);
+   signal product_d_r : std_logic_vector(35 downto 0);
+   signal new_x_s     : std_logic_vector(36 downto 0);
+   signal new_y_s     : std_logic_vector(36 downto 0);
+   signal cnt_r       : std_logic_vector( 9 downto 0);
+   signal done_r      : std_logic;
 
-   type state_t is (IDLE_ST, ADD_ST, MULT_ST, UPDATE_X_ST, UPDATE_Y_ST);
-   signal state : state_t := IDLE_ST;
+   type state_t is (IDLE_ST, ADD_ST, MULT_ST, UPDATE_ST);
+   signal state_r : state_t := IDLE_ST;
 
 begin
 
@@ -68,38 +70,34 @@ begin
    begin
       if rising_edge(clk_i) then
 
-         done <= '0';
+         done_r <= '0';
 
-         case state is
+         case state_r is
             when IDLE_ST =>
                if start_i = '1' then
-                  cnt   <= to_std_logic_vector(0, 10);
-                  state <= ADD_ST;
+                  cnt_r   <= to_std_logic_vector(0, 10);
+                  state_r <= ADD_ST;
                end if;
 
             when ADD_ST =>
-               state <= MULT_ST;
+               state_r <= MULT_ST;
 
             when MULT_ST =>
-               state <= UPDATE_X_ST;
+               state_r <= UPDATE_ST;
 
-            when UPDATE_X_ST =>
-               state <= UPDATE_Y_ST;
-               
-            when UPDATE_Y_ST =>
-               if x(17) = '1' or y(17) = '1' then
-                  done  <= '1';
-                  state <= IDLE_ST;
-               else
-                  cnt   <= cnt + 1;
-                  state <= ADD_ST;
-               end if;
+            when UPDATE_ST =>
+               x_r     <= new_x_s(35 downto 18);
+               y_r     <= new_y_s(35 downto 18);
+               cnt_r   <= cnt_r + 1;
+               state_r <= ADD_ST;
 
             when others => null;
          end case;
 
          if rst_i = '1' then
-            state <= IDLE_ST;
+            state_r <= IDLE_ST;
+            x_r     <= to_std_logic_vector(0, 18);
+            y_r     <= to_std_logic_vector(0, 18);
          end if;
       end if;
    end process p_state;
@@ -108,17 +106,17 @@ begin
    p_sum_diff : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         sum  <= x + y;
-         diff <= x - y;
+         sum_r  <= x_r + y_r;
+         diff_r <= x_r - y_r;
       end if;
    end process p_sum_diff;
 
 
-   a <= (x(16 downto 0) & '0') when state = ADD_ST else
-        sum;
+   a_s <= x_r when state_r = ADD_ST else
+          sum_r;
 
-   b <= y when state = ADD_ST else
-        diff;
+   b_s <= y_r when state_r = ADD_ST else
+          diff_r;
 
    i_mult : mult_macro
    generic map (
@@ -131,45 +129,32 @@ begin
       CLK => clk_i,
       RST => rst_i,
       CE  => '1',
-      P   => product, -- Output
-      A   => a,       -- Input
-      B   => b        -- Input
+      P   => product_s, -- Output
+      A   => a_s,       -- Input
+      B   => b_s        -- Input
    ); -- i_mult
 
    p_product_d : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         product_d <= product;
+         product_d_r <= product_s;
       end if;
    end process p_product_d;
 
-   p_xy : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if state = UPDATE_Y_ST then
-            y <= product_d(35 downto 18) + cy_i;
-         end if;
+   new_y_s <= (product_d_r(35) & product_d_r(31 downto 0) & "000")
+              + (cy_i(17) & cy_i & "00" & X"0000");
 
-         if state = UPDATE_X_ST then
-            x <= product(35 downto 18) + cx_i;
-         end if;
-
-         if rst_i = '1' or start_i = '1' then
-            x <= to_std_logic_vector(0, 18);
-            y <= to_std_logic_vector(0, 18);
-         end if;
-      end if;
-   end process p_xy;
-
+   new_x_s <= (product_s(35) & product_s(32 downto 0) & "00")
+              + (cx_i(17) & cx_i & "00" & X"0000");
 
    --------------------------
    -- Connect output signals
    --------------------------
 
-   cnt_o  <= cnt;
-   done_o <= done;
-   x_o    <= x;
-   y_o    <= y;
+   cnt_o  <= cnt_r;
+   done_o <= done_r;
+   x_o    <= x_r;
+   y_o    <= y_r;
 
 end architecture rtl;
 
