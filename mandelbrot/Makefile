@@ -8,7 +8,8 @@ SRC  = src/iterator.vhd
 SRC += src/dispatcher.vhd
 
 # Files used during simulation
-TB = dispatcher
+#TB = dispatcher
+TB = iterator
 TB_EXE = $(TB)_tb
 TB_SRC = $(SRC) sim/$(TB)_tb.vhd
 WAVE = sim/$(TB).ghw

@@ -1,0 +1,43 @@
+[*]
+[*] GTKWave Analyzer v3.3.94 (w)1999-2018 BSI
+[*] Wed Dec 19 06:16:00 2018
+[*]
+[dumpfile] "/home/mike/git/nexys4ddr/mandelbrot/sim/dispatcher.ghw"
+[dumpfile_mtime] "Wed Dec 19 06:15:39 2018"
+[dumpfile_size] 173526
+[savefile] "/home/mike/git/nexys4ddr/mandelbrot/sim/dispatcher.gtkw"
+[timestart] 0
+[size] 1268 745
+[pos] -1 -1
+*-26.057394 113000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.dispatcher_tb.
+[treeopen] top.dispatcher_tb.i_dispatcher.
+[treeopen] top.dispatcher_tb.i_dispatcher.cnt.
+[sst_width] 259
+[signals_width] 238
+[sst_expanded] 1
+[sst_vpaned_height] 300
+@28
+top.dispatcher_tb.i_dispatcher.clk_i
+top.dispatcher_tb.i_dispatcher.rst_i
+@22
+#{top.dispatcher_tb.i_dispatcher.startx_i[17:0]} top.dispatcher_tb.i_dispatcher.startx_i[17] top.dispatcher_tb.i_dispatcher.startx_i[16] top.dispatcher_tb.i_dispatcher.startx_i[15] top.dispatcher_tb.i_dispatcher.startx_i[14] top.dispatcher_tb.i_dispatcher.startx_i[13] top.dispatcher_tb.i_dispatcher.startx_i[12] top.dispatcher_tb.i_dispatcher.startx_i[11] top.dispatcher_tb.i_dispatcher.startx_i[10] top.dispatcher_tb.i_dispatcher.startx_i[9] top.dispatcher_tb.i_dispatcher.startx_i[8] top.dispatcher_tb.i_dispatcher.startx_i[7] top.dispatcher_tb.i_dispatcher.startx_i[6] top.dispatcher_tb.i_dispatcher.startx_i[5] top.dispatcher_tb.i_dispatcher.startx_i[4] top.dispatcher_tb.i_dispatcher.startx_i[3] top.dispatcher_tb.i_dispatcher.startx_i[2] top.dispatcher_tb.i_dispatcher.startx_i[1] top.dispatcher_tb.i_dispatcher.startx_i[0]
+#{top.dispatcher_tb.i_dispatcher.starty_i[17:0]} top.dispatcher_tb.i_dispatcher.starty_i[17] top.dispatcher_tb.i_dispatcher.starty_i[16] top.dispatcher_tb.i_dispatcher.starty_i[15] top.dispatcher_tb.i_dispatcher.starty_i[14] top.dispatcher_tb.i_dispatcher.starty_i[13] top.dispatcher_tb.i_dispatcher.starty_i[12] top.dispatcher_tb.i_dispatcher.starty_i[11] top.dispatcher_tb.i_dispatcher.starty_i[10] top.dispatcher_tb.i_dispatcher.starty_i[9] top.dispatcher_tb.i_dispatcher.starty_i[8] top.dispatcher_tb.i_dispatcher.starty_i[7] top.dispatcher_tb.i_dispatcher.starty_i[6] top.dispatcher_tb.i_dispatcher.starty_i[5] top.dispatcher_tb.i_dispatcher.starty_i[4] top.dispatcher_tb.i_dispatcher.starty_i[3] top.dispatcher_tb.i_dispatcher.starty_i[2] top.dispatcher_tb.i_dispatcher.starty_i[1] top.dispatcher_tb.i_dispatcher.starty_i[0]
+#{top.dispatcher_tb.i_dispatcher.stepx_i[17:0]} top.dispatcher_tb.i_dispatcher.stepx_i[17] top.dispatcher_tb.i_dispatcher.stepx_i[16] top.dispatcher_tb.i_dispatcher.stepx_i[15] top.dispatcher_tb.i_dispatcher.stepx_i[14] top.dispatcher_tb.i_dispatcher.stepx_i[13] top.dispatcher_tb.i_dispatcher.stepx_i[12] top.dispatcher_tb.i_dispatcher.stepx_i[11] top.dispatcher_tb.i_dispatcher.stepx_i[10] top.dispatcher_tb.i_dispatcher.stepx_i[9] top.dispatcher_tb.i_dispatcher.stepx_i[8] top.dispatcher_tb.i_dispatcher.stepx_i[7] top.dispatcher_tb.i_dispatcher.stepx_i[6] top.dispatcher_tb.i_dispatcher.stepx_i[5] top.dispatcher_tb.i_dispatcher.stepx_i[4] top.dispatcher_tb.i_dispatcher.stepx_i[3] top.dispatcher_tb.i_dispatcher.stepx_i[2] top.dispatcher_tb.i_dispatcher.stepx_i[1] top.dispatcher_tb.i_dispatcher.stepx_i[0]
+#{top.dispatcher_tb.i_dispatcher.stepy_i[17:0]} top.dispatcher_tb.i_dispatcher.stepy_i[17] top.dispatcher_tb.i_dispatcher.stepy_i[16] top.dispatcher_tb.i_dispatcher.stepy_i[15] top.dispatcher_tb.i_dispatcher.stepy_i[14] top.dispatcher_tb.i_dispatcher.stepy_i[13] top.dispatcher_tb.i_dispatcher.stepy_i[12] top.dispatcher_tb.i_dispatcher.stepy_i[11] top.dispatcher_tb.i_dispatcher.stepy_i[10] top.dispatcher_tb.i_dispatcher.stepy_i[9] top.dispatcher_tb.i_dispatcher.stepy_i[8] top.dispatcher_tb.i_dispatcher.stepy_i[7] top.dispatcher_tb.i_dispatcher.stepy_i[6] top.dispatcher_tb.i_dispatcher.stepy_i[5] top.dispatcher_tb.i_dispatcher.stepy_i[4] top.dispatcher_tb.i_dispatcher.stepy_i[3] top.dispatcher_tb.i_dispatcher.stepy_i[2] top.dispatcher_tb.i_dispatcher.stepy_i[1] top.dispatcher_tb.i_dispatcher.stepy_i[0]
+@28
+#{top.dispatcher_tb.i_dispatcher.active[2:0]} top.dispatcher_tb.i_dispatcher.active[2] top.dispatcher_tb.i_dispatcher.active[1] top.dispatcher_tb.i_dispatcher.active[0]
+#{top.dispatcher_tb.i_dispatcher.start[2:0]} top.dispatcher_tb.i_dispatcher.start[2] top.dispatcher_tb.i_dispatcher.start[1] top.dispatcher_tb.i_dispatcher.start[0]
+@22
+#{top.dispatcher_tb.i_dispatcher.cx[17:0]} top.dispatcher_tb.i_dispatcher.cx[17] top.dispatcher_tb.i_dispatcher.cx[16] top.dispatcher_tb.i_dispatcher.cx[15] top.dispatcher_tb.i_dispatcher.cx[14] top.dispatcher_tb.i_dispatcher.cx[13] top.dispatcher_tb.i_dispatcher.cx[12] top.dispatcher_tb.i_dispatcher.cx[11] top.dispatcher_tb.i_dispatcher.cx[10] top.dispatcher_tb.i_dispatcher.cx[9] top.dispatcher_tb.i_dispatcher.cx[8] top.dispatcher_tb.i_dispatcher.cx[7] top.dispatcher_tb.i_dispatcher.cx[6] top.dispatcher_tb.i_dispatcher.cx[5] top.dispatcher_tb.i_dispatcher.cx[4] top.dispatcher_tb.i_dispatcher.cx[3] top.dispatcher_tb.i_dispatcher.cx[2] top.dispatcher_tb.i_dispatcher.cx[1] top.dispatcher_tb.i_dispatcher.cx[0]
+#{top.dispatcher_tb.i_dispatcher.cy[17:0]} top.dispatcher_tb.i_dispatcher.cy[17] top.dispatcher_tb.i_dispatcher.cy[16] top.dispatcher_tb.i_dispatcher.cy[15] top.dispatcher_tb.i_dispatcher.cy[14] top.dispatcher_tb.i_dispatcher.cy[13] top.dispatcher_tb.i_dispatcher.cy[12] top.dispatcher_tb.i_dispatcher.cy[11] top.dispatcher_tb.i_dispatcher.cy[10] top.dispatcher_tb.i_dispatcher.cy[9] top.dispatcher_tb.i_dispatcher.cy[8] top.dispatcher_tb.i_dispatcher.cy[7] top.dispatcher_tb.i_dispatcher.cy[6] top.dispatcher_tb.i_dispatcher.cy[5] top.dispatcher_tb.i_dispatcher.cy[4] top.dispatcher_tb.i_dispatcher.cy[3] top.dispatcher_tb.i_dispatcher.cy[2] top.dispatcher_tb.i_dispatcher.cy[1] top.dispatcher_tb.i_dispatcher.cy[0]
+@28
+#{top.dispatcher_tb.i_dispatcher.done[2:0]} top.dispatcher_tb.i_dispatcher.done[2] top.dispatcher_tb.i_dispatcher.done[1] top.dispatcher_tb.i_dispatcher.done[0]
+@22
+#{top.dispatcher_tb.i_dispatcher.cnt[2][9:0]} top.dispatcher_tb.i_dispatcher.cnt[2][9] top.dispatcher_tb.i_dispatcher.cnt[2][8] top.dispatcher_tb.i_dispatcher.cnt[2][7] top.dispatcher_tb.i_dispatcher.cnt[2][6] top.dispatcher_tb.i_dispatcher.cnt[2][5] top.dispatcher_tb.i_dispatcher.cnt[2][4] top.dispatcher_tb.i_dispatcher.cnt[2][3] top.dispatcher_tb.i_dispatcher.cnt[2][2] top.dispatcher_tb.i_dispatcher.cnt[2][1] top.dispatcher_tb.i_dispatcher.cnt[2][0]
+#{top.dispatcher_tb.i_dispatcher.cnt[1][9:0]} top.dispatcher_tb.i_dispatcher.cnt[1][9] top.dispatcher_tb.i_dispatcher.cnt[1][8] top.dispatcher_tb.i_dispatcher.cnt[1][7] top.dispatcher_tb.i_dispatcher.cnt[1][6] top.dispatcher_tb.i_dispatcher.cnt[1][5] top.dispatcher_tb.i_dispatcher.cnt[1][4] top.dispatcher_tb.i_dispatcher.cnt[1][3] top.dispatcher_tb.i_dispatcher.cnt[1][2] top.dispatcher_tb.i_dispatcher.cnt[1][1] top.dispatcher_tb.i_dispatcher.cnt[1][0]
+@23
+#{top.dispatcher_tb.i_dispatcher.cnt[0][9:0]} top.dispatcher_tb.i_dispatcher.cnt[0][9] top.dispatcher_tb.i_dispatcher.cnt[0][8] top.dispatcher_tb.i_dispatcher.cnt[0][7] top.dispatcher_tb.i_dispatcher.cnt[0][6] top.dispatcher_tb.i_dispatcher.cnt[0][5] top.dispatcher_tb.i_dispatcher.cnt[0][4] top.dispatcher_tb.i_dispatcher.cnt[0][3] top.dispatcher_tb.i_dispatcher.cnt[0][2] top.dispatcher_tb.i_dispatcher.cnt[0][1] top.dispatcher_tb.i_dispatcher.cnt[0][0]
+[pattern_trace] 1
+[pattern_trace] 0

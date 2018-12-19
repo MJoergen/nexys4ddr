@@ -1,0 +1,62 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std_unsigned.all;
+
+entity dispatcher_tb is
+end entity dispatcher_tb;
+
+architecture simulation of dispatcher_tb is
+
+   signal clk    : std_logic;
+   signal rst    : std_logic;
+   signal startx : std_logic_vector(17 downto 0);
+   signal starty : std_logic_vector(17 downto 0);
+   signal stepx  : std_logic_vector(17 downto 0);
+   signal stepy  : std_logic_vector(17 downto 0);
+
+begin
+
+   ----------------------------
+   -- Generate clock and reset
+   ----------------------------
+
+   p_clk : process
+   begin
+      clk <= '0', '1' after 5 ns;
+      wait for 10 ns;
+   end process p_clk;
+
+   p_rst : process
+   begin
+      rst <= '1';
+      wait for 100 ns;
+      wait until clk = '1';
+      rst <= '0';
+      wait;
+   end process p_rst;
+
+
+   startx <= "01" & X"0000";  -- -1
+   starty <= "01" & X"0000";  -- -1
+   stepx  <= "00" & X"2000";  -- 0.125
+   stepy  <= "00" & X"2000";  -- 0.125
+
+   -------------------
+   -- Instantiate DUT
+   -------------------
+
+   i_dispatcher : entity work.dispatcher
+      generic map (
+         G_NUM_ITERATORS => 3
+      )
+      port map (
+         clk_i    => clk,
+         rst_i    => rst,
+         startx_i => startx,
+         starty_i => starty,
+         stepx_i  => stepx,
+         stepy_i  => stepy
+      ); -- i_dispatcher
+
+end architecture simulation;
+
