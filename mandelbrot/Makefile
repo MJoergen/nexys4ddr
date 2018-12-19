@@ -4,7 +4,7 @@ XILINX_DIR = /opt/Xilinx/Vivado/2017.3
 NAME = mandelbrot
 
 # List of sources files
-SRC  = src/mandelbrot.vhd
+SRC  = src/iterator.vhd
 
 # Files used during simulation
 TB = mandelbrot_tb

@@ -26,8 +26,6 @@ architecture simulation of mandelbrot_tb is
    signal start : std_logic;
    signal cx    : std_logic_vector(17 downto 0);
    signal cy    : std_logic_vector(17 downto 0);
-   signal x     : std_logic_vector(17 downto 0);
-   signal y     : std_logic_vector(17 downto 0);
    signal cnt   : std_logic_vector( 9 downto 0);
    signal done  : std_logic;
 
@@ -72,18 +70,16 @@ begin
    -- Instantiate DUT
    -------------------
 
-   i_mandelbrot : entity work.mandelbrot
+   i_iterator : entity work.iterator
       port map (
          clk_i   => clk,
          rst_i   => rst,
          start_i => start,
          cx_i    => cx,
          cy_i    => cy,
-         x_o     => x,
-         y_o     => y,
          cnt_o   => cnt,
          done_o  => done
-      ); -- i_mandelbrot
+      ); -- i_iterator
 
 end architecture simulation;
 

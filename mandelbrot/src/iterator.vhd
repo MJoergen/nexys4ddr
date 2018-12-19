@@ -30,23 +30,23 @@ use unimacro.vcomponents.all;
 -- -0.5 : 38000
 -- 0.5  : 08000
 -- 1    : 10000
+--
+-- The XC7A100T has 240 DSP slices.
 
 
-entity mandelbrot is
+entity iterator is
    port (
       clk_i   : in  std_logic;
       rst_i   : in  std_logic;
       start_i : in  std_logic;
       cx_i    : in  std_logic_vector(17 downto 0);
       cy_i    : in  std_logic_vector(17 downto 0);
-      x_o     : out std_logic_vector(17 downto 0);
-      y_o     : out std_logic_vector(17 downto 0);
       cnt_o   : out std_logic_vector( 9 downto 0);
       done_o  : out std_logic
    );
-end entity mandelbrot;
+end entity iterator;
 
-architecture rtl of mandelbrot is
+architecture rtl of iterator is
 
    signal x_r         : std_logic_vector(17 downto 0);
    signal y_r         : std_logic_vector(17 downto 0);
@@ -153,8 +153,6 @@ begin
 
    cnt_o  <= cnt_r;
    done_o <= done_r;
-   x_o    <= x_r;
-   y_o    <= y_r;
 
 end architecture rtl;
 
