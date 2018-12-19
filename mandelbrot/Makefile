@@ -5,12 +5,14 @@ NAME = mandelbrot
 
 # List of sources files
 SRC  = src/iterator.vhd
+SRC += src/dispatcher.vhd
 
 # Files used during simulation
-TB = mandelbrot_tb
-TB_SRC = $(SRC) sim/mandelbrot_tb.vhd
-WAVE = sim/mandelbrot.ghw
-SAVE = sim/mandelbrot.gtkw
+TB = dispatcher
+TB_EXE = $(TB)_tb
+TB_SRC = $(SRC) sim/$(TB)_tb.vhd
+WAVE = sim/$(TB).ghw
+SAVE = sim/$(TB).gtkw
 
 
 #####################################
@@ -31,8 +33,8 @@ fpga: $(NAME).bit
 .PHONY: sim
 sim: $(TB_SRC)
 	ghdl -i --std=08 --work=work $(TB_SRC)
-	ghdl -m --std=08 --ieee=synopsys -frelaxed-rules -P../xilinx-vivado $(TB)
-	ghdl -r --std=08 $(TB) --assert-level=error --wave=$(WAVE) --stop-time=20us
+	ghdl -m --std=08 --ieee=synopsys -frelaxed-rules -P../xilinx-vivado $(TB_EXE)
+	ghdl -r --std=08 $(TB_EXE) --assert-level=error --wave=$(WAVE) --stop-time=1us
 	gtkwave $(WAVE) $(SAVE)
 
 clean:
@@ -44,7 +46,7 @@ clean:
 	rm -rf .cache
 	rm -rf work-obj08.cf
 	rm -rf unisim-obj08.cf
-	rm -rf $(TB)
+	rm -rf $(TB_EXE)
 	rm -rf $(WAVE)
 	rm -rf *.o
 	rm -rf fsm_encoding.os

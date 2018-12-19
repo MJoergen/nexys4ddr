@@ -17,10 +17,10 @@ use unimacro.vcomponents.all;
 --    new_y = (2x)*y + cy
 -- Inputs to this block are: cx_i and cy_i as well as start_i.
 -- start_i should be pulsed for one clock cycle.
--- cx_i and cy_i must remain constant throughout the calculation.
+-- cx_i and cy_i are sampled when start_i is asserted.
 --
 -- It does it by using a single multiplier in a pipeline fashion
--- Cycle 1 : Input to multiplier is (2x) and y.
+-- Cycle 1 : Input to multiplier is x and y.
 -- Cycle 2 : Input to multiplier is (x+y) and (x-y).
 --
 -- Real numbers are represented in 2.16 fixed point two's complement
@@ -30,6 +30,7 @@ use unimacro.vcomponents.all;
 -- -0.5 : 38000
 -- 0.5  : 08000
 -- 1    : 10000
+-- 1.5  : 18000
 --
 -- The XC7A100T has 240 DSP slices.
 
@@ -48,6 +49,8 @@ end entity iterator;
 
 architecture rtl of iterator is
 
+   signal cx_r        : std_logic_vector(17 downto 0);
+   signal cy_r        : std_logic_vector(17 downto 0);
    signal x_r         : std_logic_vector(17 downto 0);
    signal y_r         : std_logic_vector(17 downto 0);
    signal sum_r       : std_logic_vector(17 downto 0);
@@ -75,6 +78,8 @@ begin
          case state_r is
             when IDLE_ST =>
                if start_i = '1' then
+                  cx_r    <= cx_i;
+                  cy_r    <= cy_i;
                   cnt_r   <= to_std_logic_vector(0, 10);
                   state_r <= ADD_ST;
                end if;
@@ -98,6 +103,7 @@ begin
             state_r <= IDLE_ST;
             x_r     <= to_std_logic_vector(0, 18);
             y_r     <= to_std_logic_vector(0, 18);
+            cnt_r   <= (others => '0');
          end if;
       end if;
    end process p_state;
@@ -142,10 +148,10 @@ begin
    end process p_product_d;
 
    new_y_s <= (product_d_r(35) & product_d_r(31 downto 0) & "000")
-              + (cy_i(17) & cy_i & "00" & X"0000");
+              + (cy_r(17) & cy_r & "00" & X"0000");
 
    new_x_s <= (product_s(35) & product_s(32 downto 0) & "00")
-              + (cx_i(17) & cx_i & "00" & X"0000");
+              + (cx_r(17) & cx_r & "00" & X"0000");
 
    --------------------------
    -- Connect output signals
