@@ -66,18 +66,18 @@ end entity iterator;
 
 architecture rtl of iterator is
 
-   signal x_r         : std_logic_vector(17 downto 0);
-   signal y_r         : std_logic_vector(17 downto 0);
-   signal sum_r       : std_logic_vector(17 downto 0);
-   signal diff_r      : std_logic_vector(17 downto 0);
-   signal a_s         : std_logic_vector(17 downto 0);
-   signal b_s         : std_logic_vector(17 downto 0);
-   signal product_s   : std_logic_vector(35 downto 0);
-   signal product_d_r : std_logic_vector(35 downto 0);
-   signal new_x_s     : std_logic_vector(36 downto 0);
-   signal new_y_s     : std_logic_vector(36 downto 0);
-   signal cnt_r       : std_logic_vector( 8 downto 0);
-   signal done_r      : std_logic;
+   signal x_r          : std_logic_vector(17 downto 0);
+   signal y_r          : std_logic_vector(17 downto 0);
+   signal sum_r        : std_logic_vector(17 downto 0);
+   signal diff_r       : std_logic_vector(17 downto 0);
+   signal a_s          : std_logic_vector(17 downto 0);
+   signal b_s          : std_logic_vector(17 downto 0);
+   signal product_s    : std_logic_vector(35 downto 0);
+   signal product_d_r  : std_logic_vector(35 downto 0);
+   signal new_x_s      : std_logic_vector(36 downto 0);
+   signal new_y_half_s : std_logic_vector(36 downto 0);
+   signal cnt_r        : std_logic_vector( 8 downto 0);
+   signal done_r       : std_logic;
 
    type state_t is (IDLE_ST, ADD_ST, MULT_ST, UPDATE_ST);
    signal state_r : state_t := IDLE_ST;
@@ -116,9 +116,11 @@ begin
                state_r <= UPDATE_ST;
 
             when UPDATE_ST =>
-               x_r     <= new_x_s(35 downto 18);
-               y_r     <= new_y_s(35 downto 18);
-               if new_x_s(36) = '1' or new_y_s(36) = '1' then
+               x_r <= new_x_s(35 downto 18);
+               y_r <= new_y_half_s(35) & new_y_half_s(33 downto 18) & "0";
+               if new_x_s(36) = '1' or new_y_half_s(36) = '1' or 
+                  new_y_half_s(35) /= new_y_half_s(34)
+               then
                   done_r  <= '1';
                   state_r <= IDLE_ST;
                else
@@ -135,6 +137,7 @@ begin
 
          if rst_i = '1' then
             state_r <= IDLE_ST;
+            done_r  <= '0';
          end if;
       end if;
    end process p_state;
@@ -183,9 +186,9 @@ begin
    new_x_s <= add(product_s(35) & product_s(32 downto 0) & "00", 
                   cx_i & "00" & X"0000");
 
-   -- Calculate 2*(x*y) + cy
-   new_y_s <= add(product_d_r(35) & product_d_r(31 downto 0) & "000",
-                  cy_i & "00" & X"0000");
+   -- Calculate (x*y) + cy/2
+   new_y_half_s <= add(product_d_r(35) & product_d_r(32 downto 0) & "00",
+                       cy_i(17) & cy_i & "0" & X"0000");
 
 
    --------------------------

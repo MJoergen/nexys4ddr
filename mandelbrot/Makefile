@@ -10,8 +10,8 @@ SRC += src/dispatcher.vhd
 
 # Files used during simulation
 #TB = dispatcher
-#TB = column
-TB = iterator
+TB = column
+#TB = iterator
 TB_EXE = $(TB)_tb
 TB_SRC = $(SRC) sim/$(TB)_tb.vhd
 WAVE = sim/$(TB).ghw
@@ -37,7 +37,7 @@ fpga: $(NAME).bit
 sim: $(TB_SRC)
 	ghdl -i --std=08 --work=work $(TB_SRC)
 	ghdl -m --std=08 --ieee=synopsys -frelaxed-rules -P../xilinx-vivado $(TB_EXE)
-	ghdl -r --std=08 $(TB_EXE) --assert-level=error --wave=$(WAVE) --stop-time=1us
+	ghdl -r --std=08 $(TB_EXE) --assert-level=error --wave=$(WAVE) --stop-time=10us
 	gtkwave $(WAVE) $(SAVE)
 
 clean:
@@ -50,7 +50,7 @@ clean:
 	rm -rf work-obj08.cf
 	rm -rf unisim-obj08.cf
 	rm -rf $(TB_EXE)
-	rm -rf $(WAVE)
+	rm -rf *.ghw
 	rm -rf *.o
 	rm -rf fsm_encoding.os
 
