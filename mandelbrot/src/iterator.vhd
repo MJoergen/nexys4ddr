@@ -53,6 +53,9 @@ use unimacro.vcomponents.all;
 
 
 entity iterator is
+   generic (
+      G_MAX_COUNT : integer
+   );
    port (
       clk_i   : in  std_logic;
       rst_i   : in  std_logic;
@@ -126,7 +129,7 @@ begin
                else
                   cnt_r   <= cnt_r + 1;
                   state_r <= ADD_ST;
-                  if cnt_r = 510 then
+                  if cnt_r = G_MAX_COUNT-1 then
                      done_r  <= '1';
                      state_r <= IDLE_ST;
                   end if;

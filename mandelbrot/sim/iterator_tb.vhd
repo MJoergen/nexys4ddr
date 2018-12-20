@@ -71,6 +71,9 @@ begin
    -------------------
 
    i_iterator : entity work.iterator
+      generic map (
+         G_MAX_COUNT => 510
+      )
       port map (
          clk_i   => clk,
          rst_i   => rst,

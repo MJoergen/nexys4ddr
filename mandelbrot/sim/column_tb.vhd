@@ -7,17 +7,18 @@ end entity column_tb;
 
 architecture simulation of column_tb is
 
-   signal clk        : std_logic;
-   signal rst        : std_logic;
-   signal job_start  : std_logic;
-   signal job_cx     : std_logic_vector(17 downto 0);
-   signal job_starty : std_logic_vector(17 downto 0);
-   signal job_stepy  : std_logic_vector(17 downto 0);
-   signal job_done   : std_logic;
-   signal res_addr   : std_logic_vector( 9 downto 0);
-   signal res_ack    : std_logic;
-   signal res_data   : std_logic_vector( 8 downto 0);
-   signal res_valid  : std_logic;
+   signal clk         : std_logic;
+   signal rst         : std_logic;
+   signal job_start   : std_logic;
+   signal job_cx      : std_logic_vector(17 downto 0);
+   signal job_starty  : std_logic_vector(17 downto 0);
+   signal job_stepy   : std_logic_vector(17 downto 0);
+   signal job_done    : std_logic;
+   signal res_addr    : std_logic_vector( 9 downto 0);
+   signal res_ack     : std_logic;
+   signal res_data    : std_logic_vector( 8 downto 0);
+   signal res_valid   : std_logic;
+   signal res_valid_d : std_logic;
 
 begin
 
@@ -52,6 +53,7 @@ begin
       job_start <= '1';
       wait until clk = '1';
       job_start <= '0';
+      wait;
    end process p_start;
 
 
@@ -61,7 +63,8 @@ begin
 
    i_column : entity work.column
       generic map (
-         G_NUM_ROWS => 10
+         G_MAX_COUNT => 20,
+         G_NUM_ROWS  => 10
       )
       port map (
          clk_i        => clk,
@@ -81,7 +84,8 @@ begin
    p_res_ack : process (clk)
    begin
       if rising_edge(clk) then
-         res_ack <= res_valid;
+         res_valid_d <= res_valid;
+         res_ack     <= res_valid_d;
       end if;
    end process p_res_ack;
 

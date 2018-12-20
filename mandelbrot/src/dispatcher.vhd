@@ -31,6 +31,7 @@ use ieee.numeric_std_unsigned.all;
 
 entity dispatcher is
    generic (
+      G_MAX_COUNT     : integer;
       G_NUM_ROWS      : integer;
       G_NUM_COLS      : integer;
       G_NUM_ITERATORS : integer
@@ -171,7 +172,8 @@ begin
    gen_column : for i in 0 to G_NUM_ITERATORS-1 generate
       i_column : entity work.column
          generic map (
-            G_NUM_ROWS => G_NUM_ROWS
+            G_MAX_COUNT => G_MAX_COUNT,
+            G_NUM_ROWS  => G_NUM_ROWS
          )
          port map (
             clk_i        => clk_i,

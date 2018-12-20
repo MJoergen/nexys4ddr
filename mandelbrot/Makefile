@@ -50,7 +50,7 @@ clean:
 	rm -rf work-obj08.cf
 	rm -rf unisim-obj08.cf
 	rm -rf $(TB_EXE)
-	rm -rf *.ghw
+	rm -rf */*.ghw
 	rm -rf *.o
 	rm -rf fsm_encoding.os
 

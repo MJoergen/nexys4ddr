@@ -1,0 +1,50 @@
+[*]
+[*] GTKWave Analyzer v3.3.94 (w)1999-2018 BSI
+[*] Thu Dec 20 18:36:45 2018
+[*]
+[dumpfile] "/home/mike/git/nexys4ddr/mandelbrot/sim/column.ghw"
+[dumpfile_mtime] "Thu Dec 20 18:36:23 2018"
+[dumpfile_size] 213745
+[savefile] "/home/mike/git/nexys4ddr/mandelbrot/sim/column.gtkw"
+[timestart] 0
+[size] 1426 801
+[pos] -1 -1
+*-30.038177 1430000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.column_tb.
+[treeopen] top.column_tb.i_column.
+[treeopen] top.column_tb.i_column.i_iterator.
+[sst_width] 228
+[signals_width] 236
+[sst_expanded] 1
+[sst_vpaned_height] 211
+@28
+top.column_tb.i_column.clk_i
+top.column_tb.i_column.rst_i
+top.column_tb.i_column.job_start_i
+@22
+#{top.column_tb.i_column.job_cx_i[17:0]} top.column_tb.i_column.job_cx_i[17] top.column_tb.i_column.job_cx_i[16] top.column_tb.i_column.job_cx_i[15] top.column_tb.i_column.job_cx_i[14] top.column_tb.i_column.job_cx_i[13] top.column_tb.i_column.job_cx_i[12] top.column_tb.i_column.job_cx_i[11] top.column_tb.i_column.job_cx_i[10] top.column_tb.i_column.job_cx_i[9] top.column_tb.i_column.job_cx_i[8] top.column_tb.i_column.job_cx_i[7] top.column_tb.i_column.job_cx_i[6] top.column_tb.i_column.job_cx_i[5] top.column_tb.i_column.job_cx_i[4] top.column_tb.i_column.job_cx_i[3] top.column_tb.i_column.job_cx_i[2] top.column_tb.i_column.job_cx_i[1] top.column_tb.i_column.job_cx_i[0]
+#{top.column_tb.i_column.job_starty_i[17:0]} top.column_tb.i_column.job_starty_i[17] top.column_tb.i_column.job_starty_i[16] top.column_tb.i_column.job_starty_i[15] top.column_tb.i_column.job_starty_i[14] top.column_tb.i_column.job_starty_i[13] top.column_tb.i_column.job_starty_i[12] top.column_tb.i_column.job_starty_i[11] top.column_tb.i_column.job_starty_i[10] top.column_tb.i_column.job_starty_i[9] top.column_tb.i_column.job_starty_i[8] top.column_tb.i_column.job_starty_i[7] top.column_tb.i_column.job_starty_i[6] top.column_tb.i_column.job_starty_i[5] top.column_tb.i_column.job_starty_i[4] top.column_tb.i_column.job_starty_i[3] top.column_tb.i_column.job_starty_i[2] top.column_tb.i_column.job_starty_i[1] top.column_tb.i_column.job_starty_i[0]
+#{top.column_tb.i_column.job_stepy_i[17:0]} top.column_tb.i_column.job_stepy_i[17] top.column_tb.i_column.job_stepy_i[16] top.column_tb.i_column.job_stepy_i[15] top.column_tb.i_column.job_stepy_i[14] top.column_tb.i_column.job_stepy_i[13] top.column_tb.i_column.job_stepy_i[12] top.column_tb.i_column.job_stepy_i[11] top.column_tb.i_column.job_stepy_i[10] top.column_tb.i_column.job_stepy_i[9] top.column_tb.i_column.job_stepy_i[8] top.column_tb.i_column.job_stepy_i[7] top.column_tb.i_column.job_stepy_i[6] top.column_tb.i_column.job_stepy_i[5] top.column_tb.i_column.job_stepy_i[4] top.column_tb.i_column.job_stepy_i[3] top.column_tb.i_column.job_stepy_i[2] top.column_tb.i_column.job_stepy_i[1] top.column_tb.i_column.job_stepy_i[0]
+@28
+top.column_tb.i_column.job_done_o
+@22
+#{top.column_tb.i_column.res_addr_o[9:0]} top.column_tb.i_column.res_addr_o[9] top.column_tb.i_column.res_addr_o[8] top.column_tb.i_column.res_addr_o[7] top.column_tb.i_column.res_addr_o[6] top.column_tb.i_column.res_addr_o[5] top.column_tb.i_column.res_addr_o[4] top.column_tb.i_column.res_addr_o[3] top.column_tb.i_column.res_addr_o[2] top.column_tb.i_column.res_addr_o[1] top.column_tb.i_column.res_addr_o[0]
+#{top.column_tb.i_column.res_data_o[8:0]} top.column_tb.i_column.res_data_o[8] top.column_tb.i_column.res_data_o[7] top.column_tb.i_column.res_data_o[6] top.column_tb.i_column.res_data_o[5] top.column_tb.i_column.res_data_o[4] top.column_tb.i_column.res_data_o[3] top.column_tb.i_column.res_data_o[2] top.column_tb.i_column.res_data_o[1] top.column_tb.i_column.res_data_o[0]
+@28
+top.column_tb.i_column.res_valid_o
+top.column_tb.i_column.res_ack_i
+@800200
+-iterator
+@28
+top.column_tb.i_column.i_iterator.start_i
+@22
+#{top.column_tb.i_column.i_iterator.cx_i[17:0]} top.column_tb.i_column.i_iterator.cx_i[17] top.column_tb.i_column.i_iterator.cx_i[16] top.column_tb.i_column.i_iterator.cx_i[15] top.column_tb.i_column.i_iterator.cx_i[14] top.column_tb.i_column.i_iterator.cx_i[13] top.column_tb.i_column.i_iterator.cx_i[12] top.column_tb.i_column.i_iterator.cx_i[11] top.column_tb.i_column.i_iterator.cx_i[10] top.column_tb.i_column.i_iterator.cx_i[9] top.column_tb.i_column.i_iterator.cx_i[8] top.column_tb.i_column.i_iterator.cx_i[7] top.column_tb.i_column.i_iterator.cx_i[6] top.column_tb.i_column.i_iterator.cx_i[5] top.column_tb.i_column.i_iterator.cx_i[4] top.column_tb.i_column.i_iterator.cx_i[3] top.column_tb.i_column.i_iterator.cx_i[2] top.column_tb.i_column.i_iterator.cx_i[1] top.column_tb.i_column.i_iterator.cx_i[0]
+#{top.column_tb.i_column.i_iterator.cy_i[17:0]} top.column_tb.i_column.i_iterator.cy_i[17] top.column_tb.i_column.i_iterator.cy_i[16] top.column_tb.i_column.i_iterator.cy_i[15] top.column_tb.i_column.i_iterator.cy_i[14] top.column_tb.i_column.i_iterator.cy_i[13] top.column_tb.i_column.i_iterator.cy_i[12] top.column_tb.i_column.i_iterator.cy_i[11] top.column_tb.i_column.i_iterator.cy_i[10] top.column_tb.i_column.i_iterator.cy_i[9] top.column_tb.i_column.i_iterator.cy_i[8] top.column_tb.i_column.i_iterator.cy_i[7] top.column_tb.i_column.i_iterator.cy_i[6] top.column_tb.i_column.i_iterator.cy_i[5] top.column_tb.i_column.i_iterator.cy_i[4] top.column_tb.i_column.i_iterator.cy_i[3] top.column_tb.i_column.i_iterator.cy_i[2] top.column_tb.i_column.i_iterator.cy_i[1] top.column_tb.i_column.i_iterator.cy_i[0]
+#{top.column_tb.i_column.i_iterator.cnt_o[8:0]} top.column_tb.i_column.i_iterator.cnt_o[8] top.column_tb.i_column.i_iterator.cnt_o[7] top.column_tb.i_column.i_iterator.cnt_o[6] top.column_tb.i_column.i_iterator.cnt_o[5] top.column_tb.i_column.i_iterator.cnt_o[4] top.column_tb.i_column.i_iterator.cnt_o[3] top.column_tb.i_column.i_iterator.cnt_o[2] top.column_tb.i_column.i_iterator.cnt_o[1] top.column_tb.i_column.i_iterator.cnt_o[0]
+@28
+top.column_tb.i_column.i_iterator.done_o
+@1000200
+-iterator
+[pattern_trace] 1
+[pattern_trace] 0
