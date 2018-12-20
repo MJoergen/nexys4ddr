@@ -26,7 +26,7 @@ architecture simulation of iterator_tb is
    signal start : std_logic;
    signal cx    : std_logic_vector(17 downto 0);
    signal cy    : std_logic_vector(17 downto 0);
-   signal cnt   : std_logic_vector( 9 downto 0);
+   signal cnt   : std_logic_vector( 8 downto 0);
    signal done  : std_logic;
 
 begin
