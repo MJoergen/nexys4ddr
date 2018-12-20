@@ -197,10 +197,10 @@ begin
 
          pixel_loop : for i in 0 to G_NUM_ITERATORS-1 loop
             if res_valid_s(i) = '1' and res_ack_r(i) = '0' then
-               wr_addr_r <= job_addr_r(i) & res_addr_s(i);
-               wr_data_r <= res_data_s(i);
-               wr_en_r   <= '1';
-               res_ack_r(i)    <= '1';
+               wr_addr_r    <= job_addr_r(i) & res_addr_s(i);
+               wr_data_r    <= res_data_s(i);
+               wr_en_r      <= '1';
+               res_ack_r(i) <= '1';
                exit pixel_loop;
             end if;
          end loop pixel_loop;
@@ -211,7 +211,6 @@ begin
    p_done : process (clk_i)
    begin
       if rising_edge(clk_i) then
-
          done_r <= '0';
          if cur_addr_r = G_NUM_COLS and job_active_r = 0 then
             done_r <= '1';

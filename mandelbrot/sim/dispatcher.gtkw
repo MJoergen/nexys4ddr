@@ -1,24 +1,23 @@
 [*]
 [*] GTKWave Analyzer v3.3.94 (w)1999-2018 BSI
-[*] Thu Dec 20 18:44:59 2018
+[*] Thu Dec 20 19:11:06 2018
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/mandelbrot/sim/dispatcher.ghw"
-[dumpfile_mtime] "Thu Dec 20 18:40:45 2018"
-[dumpfile_size] 115142
+[dumpfile_mtime] "Thu Dec 20 19:10:19 2018"
+[dumpfile_size] 25158507
 [savefile] "/home/mike/git/nexys4ddr/mandelbrot/sim/dispatcher.gtkw"
-[timestart] 1302800000
-[size] 1268 745
+[timestart] 0
+[size] 1548 908
 [pos] -1 -1
-*-25.379322 1340100000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-34.425179 30900000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.dispatcher_tb.
 [treeopen] top.dispatcher_tb.i_dispatcher.
-[treeopen] top.dispatcher_tb.i_dispatcher.gen_column[0].
 [treeopen] top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.
 [sst_width] 259
 [signals_width] 238
 [sst_expanded] 1
-[sst_vpaned_height] 300
+[sst_vpaned_height] 391
 @28
 top.dispatcher_tb.i_dispatcher.clk_i
 top.dispatcher_tb.i_dispatcher.rst_i
@@ -33,9 +32,24 @@ top.dispatcher_tb.i_dispatcher.start_i
 @28
 top.dispatcher_tb.i_dispatcher.wr_en_o
 top.dispatcher_tb.i_dispatcher.done_o
+@800028
 #{top.dispatcher_tb.i_dispatcher.job_start_r[2:0]} top.dispatcher_tb.i_dispatcher.job_start_r[2] top.dispatcher_tb.i_dispatcher.job_start_r[1] top.dispatcher_tb.i_dispatcher.job_start_r[0]
+@28
+top.dispatcher_tb.i_dispatcher.job_start_r[2]
+top.dispatcher_tb.i_dispatcher.job_start_r[1]
+top.dispatcher_tb.i_dispatcher.job_start_r[0]
+@1001200
+-group_end
+@28
 #{top.dispatcher_tb.i_dispatcher.job_active_r[2:0]} top.dispatcher_tb.i_dispatcher.job_active_r[2] top.dispatcher_tb.i_dispatcher.job_active_r[1] top.dispatcher_tb.i_dispatcher.job_active_r[0]
+@c00028
 #{top.dispatcher_tb.i_dispatcher.job_done_s[2:0]} top.dispatcher_tb.i_dispatcher.job_done_s[2] top.dispatcher_tb.i_dispatcher.job_done_s[1] top.dispatcher_tb.i_dispatcher.job_done_s[0]
+@28
+top.dispatcher_tb.i_dispatcher.job_done_s[2]
+top.dispatcher_tb.i_dispatcher.job_done_s[1]
+top.dispatcher_tb.i_dispatcher.job_done_s[0]
+@1401200
+-group_end
 @800200
 -iterator(0)
 @28
