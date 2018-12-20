@@ -31,99 +31,208 @@ use ieee.numeric_std_unsigned.all;
 
 entity dispatcher is
    generic (
+      G_NUM_ROWS      : integer;
+      G_NUM_COLS      : integer;
       G_NUM_ITERATORS : integer
    );
    port (
-      clk_i    : in  std_logic;
-      rst_i    : in  std_logic;
-      startx_i : in  std_logic_vector(17 downto 0);
-      starty_i : in  std_logic_vector(17 downto 0);
-      stepx_i  : in  std_logic_vector(17 downto 0);
-      stepy_i  : in  std_logic_vector(17 downto 0)
+      clk_i     : in  std_logic;
+      rst_i     : in  std_logic;
+      start_i   : in  std_logic;
+      startx_i  : in  std_logic_vector(17 downto 0);
+      starty_i  : in  std_logic_vector(17 downto 0);
+      stepx_i   : in  std_logic_vector(17 downto 0);
+      stepy_i   : in  std_logic_vector(17 downto 0);
+      wr_addr_o : out std_logic_vector(19 downto 0);
+      wr_data_o : out std_logic_vector( 9 downto 0);
+      wr_en_o   : out std_logic;
+      done_o    : out std_logic
    );
 end entity dispatcher;
 
 architecture rtl of dispatcher is
 
-   signal active : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
-   signal start  : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
-   signal cx     : std_logic_vector(17 downto 0);
-   signal cy     : std_logic_vector(17 downto 0);
-   signal done   : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+   type job_addr_vector is array (natural range <>) of
+      std_logic_vector(9 downto 0);
+   type res_addr_vector is array (natural range <>) of
+      std_logic_vector(9 downto 0);
+   type res_data_vector is array (natural range <>) of
+      std_logic_vector(8 downto 0);
 
-   -- This defines a type containing an array of bytes
-   type cnt_t is array (0 to G_NUM_ITERATORS-1) of std_logic_vector(9 downto 0);
+   signal job_cx_r      : std_logic_vector(17 downto 0);
+   signal job_stepx_r   : std_logic_vector(17 downto 0);
+   signal job_starty_r  : std_logic_vector(17 downto 0);
+   signal job_stepy_r   : std_logic_vector(17 downto 0);
+   --
+   signal job_start_r   : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+   signal job_addr_r    : job_addr_vector( G_NUM_ITERATORS-1 downto 0);
+   signal cur_addr_r    : std_logic_vector(9 downto 0);
+   --
+   signal job_active_r  : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+   --
+   signal job_done_s    : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+   signal res_addr_s    : res_addr_vector( G_NUM_ITERATORS-1 downto 0);
+   signal res_data_s    : res_data_vector( G_NUM_ITERATORS-1 downto 0);
+   signal res_valid_s   : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+   signal res_ack_r     : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
 
-   signal cnt : cnt_t;
+   signal wr_addr_r     : std_logic_vector(19 downto 0);
+   signal wr_data_r     : std_logic_vector( 9 downto 0);
+   signal wr_en_r       : std_logic;
+
+   signal done_r        : std_logic;
 
 begin
 
-   p_cx : process (clk_i)
+   ---------------------------------
+   -- Prepare job for next iterator
+   ---------------------------------
+
+   p_job_cx : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if start /= 0 then
-            cx <= cx + stepx_i;
+         if job_start_r /= 0 then
+            job_cx_r <= job_cx_r + job_stepx_r;
          end if;
 
-         if rst_i = '1' then
-            cx <= startx_i;
+         if start_i = '1' then
+            job_cx_r     <= startx_i;
+            job_stepx_r  <= stepx_i;
+            job_starty_r <= starty_i;
+            job_stepy_r  <= stepy_i;
          end if;
       end if;
-   end process p_cx;
-
-   cy <= starty_i;   -- TBD
+   end process p_job_cx;
 
 
-   p_start : process (clk_i)
+   ---------------------------
+   -- Start any idle iterator
+   ---------------------------
+
+   p_job_start : process (clk_i)
    begin
       if rising_edge(clk_i) then
 
-         start <= (others => '0');
+         -- Only pulse for one clock cycle.
+         job_start_r <= (others => '0');
 
-         l_find_inactive : for i in 0 to G_NUM_ITERATORS-1 loop
-            if active(i) = '0' and start(i) = '0' then
-               start(i) <= '1';
-               exit l_find_inactive;
-            end if;
-         end loop l_find_inactive;
+         if cur_addr_r < G_NUM_COLS then
+            -- Find the first iterator that is inactive.
+            l_find_inactive : for i in 0 to G_NUM_ITERATORS-1 loop
+               if job_active_r(i) = '0' and job_start_r(i) = '0' then
+                  job_start_r(i) <= '1';
+                  job_addr_r(i)  <= cur_addr_r;
+                  cur_addr_r     <= cur_addr_r + 1;
+                  exit l_find_inactive;
+               end if;
+            end loop l_find_inactive;
+         end if;
  
+         if start_i = '1' then
+            assert job_active_r = 0
+               report "Start received when not ready"
+                  severity error;
+            cur_addr_r <= (others => '0');
+         end if;
+
          if rst_i = '1' then
-            start <= (others => '0');
+            cur_addr_r <= to_std_logic_vector(G_NUM_COLS, 10);
          end if;
       end if;
-   end process p_start;
+   end process p_job_start;
 
 
-   p_active : process (clk_i)
+   ---------------------------------
+   -- Monitor activity of iterators
+   ---------------------------------
+
+   p_job_active : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if rst_i = '0' then
-            assert (start and done) = 0
+            assert (job_start_r and job_done_s) = 0
                report "Start and Done asserted simultaneously"
                   severity error;
          end if;
 
-         active <= (active or start) and (not done);
+         job_active_r <= (job_active_r or job_start_r) and (not job_done_s);
 
          if rst_i = '1' then
-            active <= (others => '0');
+            job_active_r <= (others => '0');
          end if;
       end if;
-   end process p_active;
+   end process p_job_active;
 
 
-   gen_iterator : for i in 0 to G_NUM_ITERATORS-1 generate
-      i_iterator : entity work.iterator
+   -------------------------
+   -- Instantiate iterators
+   -------------------------
+
+   gen_column : for i in 0 to G_NUM_ITERATORS-1 generate
+      i_column : entity work.column
+         generic map (
+            G_NUM_ROWS => G_NUM_ROWS
+         )
          port map (
-            clk_i   => clk_i,
-            rst_i   => rst_i,
-            start_i => start(i),
-            cx_i    => cx,
-            cy_i    => cy,
-            cnt_o   => cnt(i),
-            done_o  => done(i)
-         ); -- i_iterator
-      end generate gen_iterator;
+            clk_i        => clk_i,
+            rst_i        => rst_i,
+            job_start_i  => job_start_r(i),
+            job_cx_i     => job_cx_r,
+            job_starty_i => job_starty_r,
+            job_stepy_i  => job_stepy_r,
+            job_done_o   => job_done_s(i),
+            res_addr_o   => res_addr_s(i),
+            res_data_o   => res_data_s(i),
+            res_valid_o  => res_valid_s(i),
+            res_ack_i    => res_ack_r(i)
+         ); -- i_column
+      end generate gen_column;
+
+
+   ------------------------
+   -- Generate output data
+   ------------------------
+
+   p_wr : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         wr_en_r   <= '0';
+         res_ack_r <= (others => '0');
+
+         pixel_loop : for i in 0 to G_NUM_ITERATORS-1 loop
+            if res_valid_s(i) = '1' and res_ack_r(i) = '0' then
+               wr_addr_r <= job_addr_r(i) & res_addr_s(i);
+               wr_data_r <= res_data_s(i);
+               wr_en_r   <= '1';
+               res_ack_r(i)    <= '1';
+               exit pixel_loop;
+            end if;
+         end loop pixel_loop;
+      end if;
+   end process p_wr;
+
+
+   p_done : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+
+         done_r <= '0';
+         if cur_addr_r = G_NUM_COLS and job_active_r = 0 then
+            done_r <= '1';
+         end if;
+      end if;
+   end process p_done;
+
+
+   --------------------------
+   -- Connect output signals
+   --------------------------
+
+   done_o <= done_r;
+
+   wr_addr_o <= wr_addr_r;
+   wr_data_o <= wr_data_r;
+   wr_en_o   <= wr_en_r;
 
 end architecture rtl;
 

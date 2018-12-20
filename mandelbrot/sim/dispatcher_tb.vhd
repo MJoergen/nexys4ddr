@@ -7,12 +7,17 @@ end entity dispatcher_tb;
 
 architecture simulation of dispatcher_tb is
 
-   signal clk    : std_logic;
-   signal rst    : std_logic;
-   signal startx : std_logic_vector(17 downto 0);
-   signal starty : std_logic_vector(17 downto 0);
-   signal stepx  : std_logic_vector(17 downto 0);
-   signal stepy  : std_logic_vector(17 downto 0);
+   signal clk     : std_logic;
+   signal rst     : std_logic;
+   signal start   : std_logic;
+   signal startx  : std_logic_vector(17 downto 0);
+   signal starty  : std_logic_vector(17 downto 0);
+   signal stepx   : std_logic_vector(17 downto 0);
+   signal stepy   : std_logic_vector(17 downto 0);
+   signal wr_addr : std_logic_vector(19 downto 0);
+   signal wr_data : std_logic_vector( 9 downto 0);
+   signal wr_en   : std_logic;
+   signal done    : std_logic;
 
 begin
 
@@ -47,15 +52,22 @@ begin
 
    i_dispatcher : entity work.dispatcher
       generic map (
+         G_NUM_ROWS      => 10,
+         G_NUM_COLS      => 10,
          G_NUM_ITERATORS => 3
       )
       port map (
-         clk_i    => clk,
-         rst_i    => rst,
-         startx_i => startx,
-         starty_i => starty,
-         stepx_i  => stepx,
-         stepy_i  => stepy
+         clk_i     => clk,
+         rst_i     => rst,
+         start_i   => start,
+         startx_i  => startx,
+         starty_i  => starty,
+         stepx_i   => stepx,
+         stepy_i   => stepy,
+         wr_addr_o => wr_addr,
+         wr_data_o => wr_data,
+         wr_en_o   => wr_en,
+         done_o    => done
       ); -- i_dispatcher
 
 end architecture simulation;

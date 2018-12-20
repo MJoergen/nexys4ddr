@@ -99,8 +99,6 @@ begin
    begin
       if rising_edge(clk_i) then
 
-         done_r <= '0';
-
          case state_r is
             when IDLE_ST =>
                if start_i = '1' then
@@ -108,6 +106,7 @@ begin
                   y_r     <= (others => '0');
                   cnt_r   <= (others => '0');
                   state_r <= ADD_ST;
+                  done_r  <= '0';
                end if;
 
             when ADD_ST =>
