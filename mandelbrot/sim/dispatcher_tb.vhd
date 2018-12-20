@@ -15,7 +15,7 @@ architecture simulation of dispatcher_tb is
    signal stepx   : std_logic_vector(17 downto 0);
    signal stepy   : std_logic_vector(17 downto 0);
    signal wr_addr : std_logic_vector(19 downto 0);
-   signal wr_data : std_logic_vector( 9 downto 0);
+   signal wr_data : std_logic_vector( 8 downto 0);
    signal wr_en   : std_logic;
    signal done    : std_logic;
 
@@ -41,10 +41,22 @@ begin
    end process p_rst;
 
 
-   startx <= "01" & X"0000";  -- -1
-   starty <= "01" & X"0000";  -- -1
-   stepx  <= "00" & X"2000";  -- 0.125
-   stepy  <= "00" & X"2000";  -- 0.125
+   p_start : process
+   begin
+      start  <= '0';
+      startx <= "01" & X"0000";  -- -1
+      starty <= "01" & X"0000";  -- -1
+      stepx  <= "00" & X"2000";  -- 0.125
+      stepy  <= "00" & X"2000";  -- 0.125
+
+      wait for 500 ns;
+      wait until clk = '1';
+      start <= '1';
+      wait until clk = '1';
+      start <= '0';
+      wait;
+   end process p_start;
+
 
    -------------------
    -- Instantiate DUT
@@ -52,6 +64,7 @@ begin
 
    i_dispatcher : entity work.dispatcher
       generic map (
+         G_MAX_COUNT     => 20,
          G_NUM_ROWS      => 10,
          G_NUM_COLS      => 10,
          G_NUM_ITERATORS => 3

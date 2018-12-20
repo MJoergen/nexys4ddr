@@ -45,7 +45,7 @@ entity dispatcher is
       stepx_i   : in  std_logic_vector(17 downto 0);
       stepy_i   : in  std_logic_vector(17 downto 0);
       wr_addr_o : out std_logic_vector(19 downto 0);
-      wr_data_o : out std_logic_vector( 9 downto 0);
+      wr_data_o : out std_logic_vector( 8 downto 0);
       wr_en_o   : out std_logic;
       done_o    : out std_logic
    );
@@ -78,7 +78,7 @@ architecture rtl of dispatcher is
    signal res_ack_r     : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
 
    signal wr_addr_r     : std_logic_vector(19 downto 0);
-   signal wr_data_r     : std_logic_vector( 9 downto 0);
+   signal wr_data_r     : std_logic_vector( 8 downto 0);
    signal wr_en_r       : std_logic;
 
    signal done_r        : std_logic;
@@ -150,13 +150,7 @@ begin
    p_job_active : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if rst_i = '0' then
-            assert (job_start_r and job_done_s) = 0
-               report "Start and Done asserted simultaneously"
-                  severity error;
-         end if;
-
-         job_active_r <= (job_active_r or job_start_r) and (not job_done_s);
+         job_active_r <= (job_active_r and not job_done_s) or job_start_r;
 
          if rst_i = '1' then
             job_active_r <= (others => '0');

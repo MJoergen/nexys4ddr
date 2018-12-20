@@ -9,8 +9,8 @@ SRC += src/column.vhd
 SRC += src/dispatcher.vhd
 
 # Files used during simulation
-#TB = dispatcher
-TB = column
+TB = dispatcher
+#TB = column
 #TB = iterator
 TB_EXE = $(TB)_tb
 TB_SRC = $(SRC) sim/$(TB)_tb.vhd

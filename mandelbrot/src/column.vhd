@@ -69,12 +69,18 @@ begin
    p_job_done : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         job_done_r  <= '0';
-
          if res_valid_s = '1' and res_addr_r + 1 = G_NUM_ROWS and
             res_start_r = '0' and res_ack_i = '1'
          then
             job_done_r <= '1';
+         end if;
+
+         if job_start_i = '1' then
+            job_done_r  <= '0';
+         end if;
+
+         if rst_i = '1' then
+            job_done_r  <= '0';
          end if;
       end if;
    end process p_job_done;
@@ -101,7 +107,7 @@ begin
    job_done_o  <= job_done_r;
    res_addr_o  <= res_addr_r;
    res_data_o  <= res_data_s;
-   res_valid_o <= res_valid_s and not res_start_r;
+   res_valid_o <= res_valid_s and not res_start_r and not job_done_r;
 
 end architecture rtl;
 
