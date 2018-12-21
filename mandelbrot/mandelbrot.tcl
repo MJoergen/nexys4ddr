@@ -1,6 +1,7 @@
 # This is a tcl command script for the Vivado tool chain
 read_vhdl -vhdl2008 src/iterator.vhd
 read_vhdl -vhdl2008 src/column.vhd
+read_vhdl -vhdl2008 src/priority.vhd
 read_vhdl -vhdl2008 src/dispatcher.vhd
 read_vhdl -vhdl2008 src/disp.vhd
 read_vhdl -vhdl2008 src/pix.vhd

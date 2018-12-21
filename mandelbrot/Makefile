@@ -6,6 +6,7 @@ NAME = mandelbrot
 # List of sources files
 SRC  = src/iterator.vhd
 SRC += src/column.vhd
+SRC += src/priority.vhd
 SRC += src/dispatcher.vhd
 SRC += src/disp.vhd
 SRC += src/pix.vhd

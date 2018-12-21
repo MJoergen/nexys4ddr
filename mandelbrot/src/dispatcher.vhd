@@ -76,6 +76,7 @@ architecture rtl of dispatcher is
    signal res_data_s     : res_data_vector( G_NUM_ITERATORS-1 downto 0);
    signal res_valid_s    : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal res_ack_r      : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+   signal res_vector_s   : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
 
    signal wr_addr_r      : std_logic_vector(18 downto 0);
    signal wr_data_r      : std_logic_vector( 8 downto 0);
@@ -213,20 +214,34 @@ begin
    -- Find one iterator to acknowledge
    ------------------------------------
 
-   p_idx : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         idx_valid_r <= '0';
+--   p_idx : process (clk_i)
+--   begin
+--      if rising_edge(clk_i) then
+--         idx_valid_r <= '0';
+--
+--         idx_loop : for i in 0 to G_NUM_ITERATORS-1 loop
+--            if res_valid_s(i) = '1' and res_ack_r(i) = '0' then
+--               idx_iterator_r <= i;
+--               idx_valid_r    <= '1';
+--               exit idx_loop;
+--            end if;
+--         end loop idx_loop;
+--      end if;
+--   end process p_idx;
 
-         idx_loop : for i in 0 to G_NUM_ITERATORS-1 loop
-            if res_valid_s(i) = '1' and res_ack_r(i) = '0' then
-               idx_iterator_r <= i;
-               idx_valid_r    <= '1';
-               exit idx_loop;
-            end if;
-         end loop idx_loop;
-      end if;
-   end process p_idx;
+   res_vector_s <= res_valid_s and not res_ack_r;
+
+   i_priority : entity work.priority
+      generic map (
+         G_SIZE      => G_NUM_ITERATORS
+      )
+      port map (
+         clk_i     => clk_i,
+         rst_i     => rst_i,
+         vector_i  => res_vector_s,
+         index_o   => idx_iterator_r,
+         active_o  => idx_valid_r
+      ); -- i_priority
 
 
    ------------------------
