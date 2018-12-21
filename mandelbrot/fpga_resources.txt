@@ -6,3 +6,16 @@ The XC7A100T contains the following number of resources:
 
 The design uses memory with 2^19 entries of 9 bit, i.e. 128 blocks of 36 kbit
 BRAM. The FPGA contains 135 of such BRAM's, so that should be possible.
+
+Timing estimates:
+Using all 240 DSP's allows a maximum frequency of 57 MHz, i.e. 13.7 GFLOPS.
+If we reduce the number to only 64 DSP's then the frequency increases to 141
+MHz, i.e. 9.1 GFLOPS.
+
+With all 240 DSP's the bottleneck is the selection of iterator index in
+src/dispatcher.vhd. This can perhaps be mitigated by a pipeline structure, by
+dividing into 16 groups of 16 iterators.
+
+With only 64 DSP's (and the higher frequency) the bottleneck is the addition
+performed after the multiplication in src/iterator.vhd. This can probably be
+mitigated by integrating the addition into the DSP itself.
