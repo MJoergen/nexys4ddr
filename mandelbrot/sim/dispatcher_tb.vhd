@@ -14,7 +14,7 @@ architecture simulation of dispatcher_tb is
    signal starty  : std_logic_vector(17 downto 0);
    signal stepx   : std_logic_vector(17 downto 0);
    signal stepy   : std_logic_vector(17 downto 0);
-   signal wr_addr : std_logic_vector(19 downto 0);
+   signal wr_addr : std_logic_vector(18 downto 0);
    signal wr_data : std_logic_vector( 8 downto 0);
    signal wr_en   : std_logic;
    signal done    : std_logic;

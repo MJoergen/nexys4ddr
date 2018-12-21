@@ -151,7 +151,7 @@ begin
          -- Only pulse for one clock cycle.
          job_start_r <= (others => '0');
          
-         if idx_start_valid_r = '1' then
+         if idx_start_valid_r = '1' and job_start_r(idx_start_r) = '0' then
             job_start_r(idx_start_r) <= '1';
             job_addr_r(idx_start_r)  <= cur_addr_r;
             cur_addr_r               <= cur_addr_r + 1;
