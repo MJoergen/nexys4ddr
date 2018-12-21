@@ -44,10 +44,10 @@ begin
    p_start : process
    begin
       start  <= '0';
-      startx <= "11" & X"0000";  -- -1
+      startx <= "10" & X"5555";  -- -1.66667
       starty <= "11" & X"0000";  -- -1
-      stepx  <= "00" & X"1000";  -- 0.0625
-      stepy  <= "00" & X"1000";  -- 0.0625
+      stepx  <= "00" & X"1111";  -- 0.06667
+      stepy  <= "00" & X"1111";  -- 0.06667
 
       wait for 500 ns;
       wait until clk = '1';
@@ -65,8 +65,8 @@ begin
    i_dispatcher : entity work.dispatcher
       generic map (
          G_MAX_COUNT     => 20,
-         G_NUM_ROWS      => 32,
-         G_NUM_COLS      => 32,
+         G_NUM_ROWS      => 30,
+         G_NUM_COLS      => 40,
          G_NUM_ITERATORS => 4
       )
       port map (

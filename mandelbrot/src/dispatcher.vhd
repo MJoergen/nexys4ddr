@@ -81,10 +81,6 @@ architecture rtl of dispatcher is
    signal wr_data_r      : std_logic_vector( 8 downto 0);
    signal wr_en_r        : std_logic;
 
-   signal wr_addr_d      : std_logic_vector(18 downto 0);
-   signal wr_data_d      : std_logic_vector( 8 downto 0);
-   signal wr_en_d        : std_logic;
-
    signal done_r         : std_logic;
 
    signal idx_start_r       : integer range 0 to G_NUM_ITERATORS-1;
@@ -250,11 +246,6 @@ begin
          wr_addr_r <= job_addr_r(idx_iterator_r) & res_addr_s(idx_iterator_r);
          wr_data_r <= res_data_s(idx_iterator_r);
          wr_en_r   <= idx_valid_r;
-
-         -- Extra pipeline stage
-         wr_addr_d <= wr_addr_r;
-         wr_data_d <= wr_data_r;
-         wr_en_d   <= wr_en_r;
       end if;
    end process p_wr;
 
@@ -276,9 +267,9 @@ begin
 
    done_o <= done_r;
 
-   wr_addr_o <= wr_addr_d;
-   wr_data_o <= wr_data_d;
-   wr_en_o   <= wr_en_d;
+   wr_addr_o <= wr_addr_r;
+   wr_data_o <= wr_data_r;
+   wr_en_o   <= wr_en_r;
 
 end architecture rtl;
 

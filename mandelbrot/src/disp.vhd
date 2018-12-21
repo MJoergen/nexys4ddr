@@ -49,13 +49,22 @@ architecture rtl of disp is
    signal vga_hs_d    : std_logic;
    signal vga_vs_d    : std_logic;
    signal vga_col_d   : std_logic_vector(7 downto 0);
-   signal vga_col_dd  : std_logic_vector(7 downto 0);
 
-   signal vga_hs_d2   : std_logic;
-   signal vga_vs_d2   : std_logic;
-   signal vga_col_d2  : std_logic_vector(7 downto 0);
+   signal vga_pix_x_d2 : std_logic_vector(9 downto 0);
+   signal vga_pix_y_d2 : std_logic_vector(9 downto 0);
+   signal vga_hs_d2    : std_logic;
+   signal vga_vs_d2    : std_logic;
+   signal vga_col_d2   : std_logic_vector(7 downto 0);
+
+   signal vga_hs_d3   : std_logic;
+   signal vga_vs_d3   : std_logic;
+   signal vga_col_d3  : std_logic_vector(7 downto 0);
 
 begin
+
+   -------------------------
+   -- Write to pixel memory
+   -------------------------
 
    p_write : process (wr_clk_i)
    begin
@@ -67,22 +76,31 @@ begin
    end process p_write;
 
 
+   --------------------------
+   -- Read from pixel memory
+   --------------------------
+
    p_read : process (vga_clk_i)
       variable addr_v : std_logic_vector(18 downto 0);
    begin
       if rising_edge(vga_clk_i) then
          addr_v := vga_pix_x_i & vga_pix_y_i(8 downto 0);
          vga_col_d <= mem(to_integer(addr_v))(7 downto 0);
-         vga_col_dd <= vga_col_d;
       end if;
    end process p_read;
 
 
-   p_pipe : process (vga_clk_i)
+   ----------------------------------------
+   -- Generate VGA synchronization signals
+   ----------------------------------------
+
+   p_sync : process (vga_clk_i)
    begin
       if rising_edge(vga_clk_i) then
 
-         -- Generate VGA synchronization signals
+         vga_hs_d <= '0';
+         vga_vs_d <= '0';
+
          if vga_pix_x_i >= HS_START and vga_pix_x_i < HS_START+HS_TIME then
             vga_hs_d   <= '1';
          end if;
@@ -94,24 +112,42 @@ begin
          vga_pix_x_d <= vga_pix_x_i;
          vga_pix_y_d <= vga_pix_y_i;
       end if;
+   end process p_sync;
+
+
+   ----------------------------------------------
+   -- Add extra pipeline stage for memory output
+   ----------------------------------------------
+
+   p_pipe : process (vga_clk_i)
+   begin
+      if rising_edge(vga_clk_i) then
+         vga_col_d2   <= vga_col_d;
+         vga_hs_d2    <= vga_hs_d;
+         vga_vs_d2    <= vga_vs_d;
+         vga_pix_x_d2 <= vga_pix_x_d;
+         vga_pix_y_d2 <= vga_pix_y_d;
+      end if;
    end process p_pipe;
 
+
+   ---------------------------
+   -- Generate output signals
+   ---------------------------
 
    p_out : process (vga_clk_i)
       variable addr_v : std_logic_vector(18 downto 0);
    begin
       if rising_edge(vga_clk_i) then
-         vga_hs_d2  <= '0';
-         vga_vs_d2  <= '0';
-         vga_col_d2 <= (others => '0');
+         vga_col_d3 <= (others => '0');
 
          -- Only set colour output inside visible area
-         if vga_pix_x_d < H_PIXELS and vga_pix_y_d < V_PIXELS then
-            vga_col_d2 <= vga_col_dd;
+         if vga_pix_x_d2 < H_PIXELS and vga_pix_y_d2 < V_PIXELS then
+            vga_col_d3 <= vga_col_d2;
          end if;
 
-         vga_hs_d2 <= vga_hs_d;
-         vga_vs_d2 <= vga_vs_d;
+         vga_hs_d3 <= vga_hs_d2;
+         vga_vs_d3 <= vga_vs_d2;
       end if;
    end process p_out;
 
@@ -120,9 +156,9 @@ begin
    -- Connect output signals
    --------------------------
 
-   vga_hs_o  <= vga_hs_d2;
-   vga_vs_o  <= vga_vs_d2;
-   vga_col_o <= vga_col_d2;
+   vga_hs_o  <= vga_hs_d3;
+   vga_vs_o  <= vga_vs_d3;
+   vga_col_o <= vga_col_d3;
 
 end architecture rtl;
 

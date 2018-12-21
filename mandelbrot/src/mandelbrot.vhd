@@ -25,10 +25,10 @@ end mandelbrot;
 
 architecture structural of mandelbrot is
 
-   constant startx  : std_logic_vector(17 downto 0) := "11" & X"0000";
+   constant startx  : std_logic_vector(17 downto 0) := "10" & X"5555";
    constant starty  : std_logic_vector(17 downto 0) := "11" & X"0000";
-   constant stepx   : std_logic_vector(17 downto 0) := "00" & X"0100";
-   constant stepy   : std_logic_vector(17 downto 0) := "00" & X"0100";
+   constant stepx   : std_logic_vector(17 downto 0) := "00" & X"0111";
+   constant stepy   : std_logic_vector(17 downto 0) := "00" & X"0111";
 
    signal main_clk  : std_logic;
    signal rst       : std_logic;
