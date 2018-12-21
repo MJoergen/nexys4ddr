@@ -1,0 +1,6 @@
+The XC7A100T contains the following number of resources:
+
+* 240 DSP's
+* 4.8 Mbit Block RAM
+* 1.1 Mbit Distributed RAM
+

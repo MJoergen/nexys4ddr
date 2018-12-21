@@ -44,7 +44,7 @@ entity dispatcher is
       starty_i  : in  std_logic_vector(17 downto 0);
       stepx_i   : in  std_logic_vector(17 downto 0);
       stepy_i   : in  std_logic_vector(17 downto 0);
-      wr_addr_o : out std_logic_vector(19 downto 0);
+      wr_addr_o : out std_logic_vector(18 downto 0);
       wr_data_o : out std_logic_vector( 8 downto 0);
       wr_en_o   : out std_logic;
       done_o    : out std_logic
@@ -56,7 +56,7 @@ architecture rtl of dispatcher is
    type job_addr_vector is array (natural range <>) of
       std_logic_vector(9 downto 0);
    type res_addr_vector is array (natural range <>) of
-      std_logic_vector(9 downto 0);
+      std_logic_vector(8 downto 0);
    type res_data_vector is array (natural range <>) of
       std_logic_vector(8 downto 0);
 
@@ -77,7 +77,7 @@ architecture rtl of dispatcher is
    signal res_valid_s   : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal res_ack_r     : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
 
-   signal wr_addr_r     : std_logic_vector(19 downto 0);
+   signal wr_addr_r     : std_logic_vector(18 downto 0);
    signal wr_data_r     : std_logic_vector( 8 downto 0);
    signal wr_en_r       : std_logic;
 

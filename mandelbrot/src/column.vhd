@@ -17,7 +17,7 @@ entity column is
       job_starty_i : in  std_logic_vector(17 downto 0);
       job_stepy_i  : in  std_logic_vector(17 downto 0);
       job_done_o   : out std_logic;
-      res_addr_o   : out std_logic_vector( 9 downto 0);
+      res_addr_o   : out std_logic_vector( 8 downto 0);
       res_ack_i    : in  std_logic;
       res_data_o   : out std_logic_vector( 8 downto 0);
       res_valid_o  : out std_logic
@@ -31,7 +31,7 @@ architecture rtl of column is
    signal res_cy_r    : std_logic_vector(17 downto 0);
    signal res_data_s  : std_logic_vector( 8 downto 0);
    signal res_valid_s : std_logic;
-   signal res_addr_r  : std_logic_vector( 9 downto 0);
+   signal res_addr_r  : std_logic_vector( 8 downto 0);
 
    signal job_done_r  : std_logic;
 

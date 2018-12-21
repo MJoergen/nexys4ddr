@@ -7,6 +7,10 @@ NAME = mandelbrot
 SRC  = src/iterator.vhd
 SRC += src/column.vhd
 SRC += src/dispatcher.vhd
+SRC += src/disp.vhd
+SRC += src/pix.vhd
+SRC += src/clk.vhd
+SRC += src/mandelbrot.vhd
 
 # Files used during simulation
 TB = dispatcher
