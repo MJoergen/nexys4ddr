@@ -60,28 +60,38 @@ architecture rtl of dispatcher is
    type res_data_vector is array (natural range <>) of
       std_logic_vector(8 downto 0);
 
-   signal job_cx_r      : std_logic_vector(17 downto 0);
-   signal job_stepx_r   : std_logic_vector(17 downto 0);
-   signal job_starty_r  : std_logic_vector(17 downto 0);
-   signal job_stepy_r   : std_logic_vector(17 downto 0);
+   signal job_cx_r       : std_logic_vector(17 downto 0);
+   signal job_stepx_r    : std_logic_vector(17 downto 0);
+   signal job_starty_r   : std_logic_vector(17 downto 0);
+   signal job_stepy_r    : std_logic_vector(17 downto 0);
    --
-   signal job_start_r   : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
-   signal job_addr_r    : job_addr_vector( G_NUM_ITERATORS-1 downto 0);
-   signal cur_addr_r    : std_logic_vector(9 downto 0);
+   signal job_start_r    : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+   signal job_addr_r     : job_addr_vector( G_NUM_ITERATORS-1 downto 0);
+   signal cur_addr_r     : std_logic_vector(9 downto 0);
    --
-   signal job_active_r  : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+   signal job_active_r   : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    --
-   signal job_done_s    : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
-   signal res_addr_s    : res_addr_vector( G_NUM_ITERATORS-1 downto 0);
-   signal res_data_s    : res_data_vector( G_NUM_ITERATORS-1 downto 0);
-   signal res_valid_s   : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
-   signal res_ack_r     : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+   signal job_done_s     : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+   signal res_addr_s     : res_addr_vector( G_NUM_ITERATORS-1 downto 0);
+   signal res_data_s     : res_data_vector( G_NUM_ITERATORS-1 downto 0);
+   signal res_valid_s    : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+   signal res_ack_r      : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
 
-   signal wr_addr_r     : std_logic_vector(18 downto 0);
-   signal wr_data_r     : std_logic_vector( 8 downto 0);
-   signal wr_en_r       : std_logic;
+   signal wr_addr_r      : std_logic_vector(18 downto 0);
+   signal wr_data_r      : std_logic_vector( 8 downto 0);
+   signal wr_en_r        : std_logic;
 
-   signal done_r        : std_logic;
+   signal wr_addr_d      : std_logic_vector(18 downto 0);
+   signal wr_data_d      : std_logic_vector( 8 downto 0);
+   signal wr_en_d        : std_logic;
+
+   signal done_r         : std_logic;
+
+   signal idx_start_r       : integer range 0 to G_NUM_ITERATORS-1;
+   signal idx_start_valid_r : std_logic;
+
+   signal idx_iterator_r : integer range 0 to G_NUM_ITERATORS-1;
+   signal idx_valid_r    : std_logic;
 
 begin
 
@@ -110,25 +120,43 @@ begin
    -- Start any idle iterator
    ---------------------------
 
+   p_idx_start : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+
+         idx_start_valid_r <= '0';
+
+         if cur_addr_r < G_NUM_COLS then
+            -- Find the first iterator that is inactive.
+            idx_start_loop : for i in 0 to G_NUM_ITERATORS-1 loop
+               if job_active_r(i) = '0' and job_start_r(i) = '0' then
+                  idx_start_r       <= i;
+                  idx_start_valid_r <= '1';
+                  exit idx_start_loop;
+               end if;
+            end loop idx_start_loop;
+         end if;
+      end if;
+   end process p_idx_start;
+
+
+   ---------------------------
+   -- Start any idle iterator
+   ---------------------------
+
    p_job_start : process (clk_i)
    begin
       if rising_edge(clk_i) then
 
          -- Only pulse for one clock cycle.
          job_start_r <= (others => '0');
-
-         if cur_addr_r < G_NUM_COLS then
-            -- Find the first iterator that is inactive.
-            l_find_inactive : for i in 0 to G_NUM_ITERATORS-1 loop
-               if job_active_r(i) = '0' and job_start_r(i) = '0' then
-                  job_start_r(i) <= '1';
-                  job_addr_r(i)  <= cur_addr_r;
-                  cur_addr_r     <= cur_addr_r + 1;
-                  exit l_find_inactive;
-               end if;
-            end loop l_find_inactive;
+         
+         if idx_start_valid_r = '1' then
+            job_start_r(idx_start_r) <= '1';
+            job_addr_r(idx_start_r)  <= cur_addr_r;
+            cur_addr_r               <= cur_addr_r + 1;
          end if;
- 
+
          if start_i = '1' then
             assert job_active_r = 0
                report "Start received when not ready"
@@ -185,6 +213,26 @@ begin
       end generate gen_column;
 
 
+   ------------------------------------
+   -- Find one iterator to acknowledge
+   ------------------------------------
+
+   p_idx : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         idx_valid_r <= '0';
+
+         idx_loop : for i in 0 to G_NUM_ITERATORS-1 loop
+            if res_valid_s(i) = '1' and res_ack_r(i) = '0' then
+               idx_iterator_r <= i;
+               idx_valid_r    <= '1';
+               exit idx_loop;
+            end if;
+         end loop idx_loop;
+      end if;
+   end process p_idx;
+
+
    ------------------------
    -- Generate output data
    ------------------------
@@ -192,18 +240,21 @@ begin
    p_wr : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         wr_en_r   <= '0';
+
          res_ack_r <= (others => '0');
 
-         pixel_loop : for i in 0 to G_NUM_ITERATORS-1 loop
-            if res_valid_s(i) = '1' and res_ack_r(i) = '0' then
-               wr_addr_r    <= job_addr_r(i) & res_addr_s(i);
-               wr_data_r    <= res_data_s(i);
-               wr_en_r      <= '1';
-               res_ack_r(i) <= '1';
-               exit pixel_loop;
-            end if;
-         end loop pixel_loop;
+         if idx_valid_r = '1' then
+            res_ack_r(idx_iterator_r) <= '1';
+         end if;
+
+         wr_addr_r <= job_addr_r(idx_iterator_r) & res_addr_s(idx_iterator_r);
+         wr_data_r <= res_data_s(idx_iterator_r);
+         wr_en_r   <= idx_valid_r;
+
+         -- Extra pipeline stage
+         wr_addr_d <= wr_addr_r;
+         wr_data_d <= wr_data_r;
+         wr_en_d   <= wr_en_r;
       end if;
    end process p_wr;
 
@@ -225,9 +276,9 @@ begin
 
    done_o <= done_r;
 
-   wr_addr_o <= wr_addr_r;
-   wr_data_o <= wr_data_r;
-   wr_en_o   <= wr_en_r;
+   wr_addr_o <= wr_addr_d;
+   wr_data_o <= wr_data_d;
+   wr_en_o   <= wr_en_d;
 
 end architecture rtl;
 
