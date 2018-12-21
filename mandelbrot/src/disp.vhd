@@ -4,16 +4,19 @@ use ieee.numeric_std_unsigned.all;
 
 entity disp is
    port (
-      clk_i     : in  std_logic;
-      rst_i     : in  std_logic;
-      wr_addr_i : in  std_logic_vector(18 downto 0);
-      wr_data_i : in  std_logic_vector( 8 downto 0);
-      wr_en_i   : in  std_logic;
-      pix_x_i   : in  std_logic_vector(9 downto 0);
-      pix_y_i   : in  std_logic_vector(9 downto 0);
-      hs_o      : out std_logic;
-      vs_o      : out std_logic;
-      col_o     : out std_logic_vector(7 downto 0)
+      wr_clk_i    : in  std_logic;
+      wr_rst_i    : in  std_logic;
+      wr_addr_i   : in  std_logic_vector(18 downto 0);
+      wr_data_i   : in  std_logic_vector( 8 downto 0);
+      wr_en_i     : in  std_logic;
+      --
+      vga_clk_i   : in  std_logic;
+      vga_rst_i   : in  std_logic;
+      vga_pix_x_i : in  std_logic_vector(9 downto 0);
+      vga_pix_y_i : in  std_logic_vector(9 downto 0);
+      vga_hs_o    : out std_logic;
+      vga_vs_o    : out std_logic;
+      vga_col_o   : out std_logic_vector(7 downto 0)
    );
 end entity disp;
 
@@ -41,15 +44,15 @@ architecture rtl of disp is
    type mem_t is array (0 to 1024*512-1) of std_logic_vector(8 downto 0);
    signal mem : mem_t;
 
-   signal hs  : std_logic;
-   signal vs  : std_logic;
-   signal col : std_logic_vector(7 downto 0);
+   signal vga_hs  : std_logic;
+   signal vga_vs  : std_logic;
+   signal vga_col : std_logic_vector(7 downto 0);
 
 begin
 
-   p_write : process (clk_i)
+   p_write : process (wr_clk_i)
    begin
-      if rising_edge(clk_i) then
+      if rising_edge(wr_clk_i) then
          if wr_en_i = '1' then
             mem(to_integer(wr_addr_i)) <= wr_data_i;
          end if;
@@ -57,25 +60,27 @@ begin
    end process p_write;
 
 
-   p_out : process (clk_i)
+   p_out : process (vga_clk_i)
       variable addr_v : std_logic_vector(18 downto 0);
    begin
-      if rising_edge(clk_i) then
-         hs  <= '0';
-         vs  <= '0';
-         col <= (others => '0');
+      if rising_edge(vga_clk_i) then
+         vga_hs  <= '0';
+         vga_vs  <= '0';
+         vga_col <= (others => '0');
 
-         if pix_x_i >= H_PIXELS or pix_y_i >= V_PIXELS then
-            addr_v := pix_x_i & pix_y_i(8 downto 0);
-            col <= mem(to_integer(addr_v))(7 downto 0);
+         -- Only set colour output inside visible area
+         if vga_pix_x_i < H_PIXELS and vga_pix_y_i < V_PIXELS then
+            addr_v := vga_pix_x_i & vga_pix_y_i(8 downto 0);
+            vga_col <= mem(to_integer(addr_v))(7 downto 0);
          end if;
 
-         if pix_x_i >= HS_START and pix_x_i < HS_START+HS_TIME then
-            hs <= '0';
+         -- Generate VGA synchronization signals
+         if vga_pix_x_i >= HS_START and vga_pix_x_i < HS_START+HS_TIME then
+            vga_hs <= '1';
          end if;
          
-         if pix_y_i >= VS_START and pix_y_i < VS_START+VS_TIME then
-            vs <= '0';
+         if vga_pix_y_i >= VS_START and vga_pix_y_i < VS_START+VS_TIME then
+            vga_vs <= '1';
          end if;
       end if;
    end process p_out;
@@ -85,9 +90,9 @@ begin
    -- Connect output signals
    --------------------------
 
-   hs_o  <= hs;
-   vs_o  <= vs;
-   col_o <= col;
+   vga_hs_o  <= vga_hs;
+   vga_vs_o  <= vga_vs;
+   vga_col_o <= vga_col;
 
 end architecture rtl;
 

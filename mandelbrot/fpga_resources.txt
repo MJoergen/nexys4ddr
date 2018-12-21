@@ -4,3 +4,5 @@ The XC7A100T contains the following number of resources:
 * 4.8 Mbit Block RAM
 * 1.1 Mbit Distributed RAM
 
+The design uses memory with 2^19 entries of 9 bit, i.e. 128 blocks of 36 kbit
+BRAM. The FPGA contains 135 of such BRAM's, so that should be possible.
