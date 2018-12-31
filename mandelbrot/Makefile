@@ -4,7 +4,8 @@ XILINX_DIR = /opt/Xilinx/Vivado/2017.3
 NAME = mandelbrot
 
 # List of sources files
-SRC  = src/iterator.vhd
+SRC  = src/add_overflow.vhd
+SRC += src/iterator.vhd
 SRC += src/column.vhd
 SRC += src/priority.vhd
 SRC += src/dispatcher.vhd
@@ -16,8 +17,8 @@ SRC += src/mandelbrot.vhd
 # Files used during simulation
 #TB = dispatcher
 #TB = column
-#TB = iterator
-TB = mult
+TB = iterator
+#TB = mult
 TB_EXE = $(TB)_tb
 TB_SRC = $(SRC) sim/$(TB)_tb.vhd
 WAVE = sim/$(TB).ghw

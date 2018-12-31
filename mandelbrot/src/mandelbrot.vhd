@@ -95,8 +95,8 @@ begin
          G_MAX_COUNT     => 511,
          G_NUM_ROWS      => 480,
          G_NUM_COLS      => 640,
-         G_NUM_ITERATORS => 240
-         --G_NUM_ITERATORS => 64
+         --G_NUM_ITERATORS => 240
+         G_NUM_ITERATORS => 64
       )
       port map (
          clk_i     => main_clk,

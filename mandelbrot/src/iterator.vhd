@@ -85,16 +85,10 @@ architecture rtl of iterator is
    type state_t is (IDLE_ST, ADD_ST, MULT_ST, UPDATE_ST);
    signal state_r : state_t := IDLE_ST;
 
-   function add(arg1 : std_logic_vector(35 downto 0);
-                arg2 : std_logic_vector(35 downto 0))
-      return std_logic_vector
-   is
-      variable res_v : std_logic_vector(36 downto 0);
-   begin
-      res_v(35 downto 0) :=  arg1 + arg2;
-      res_v(36) := not(arg1(35) xor arg2(35)) and (arg1(35) xor res_v(35));
-      return res_v;
-   end function add;
+   signal x2_m_y2_s  : std_logic_vector(35 downto 0);
+   signal cx_s       : std_logic_vector(35 downto 0);
+   signal xy_s       : std_logic_vector(35 downto 0);
+   signal cy_div_2_s : std_logic_vector(35 downto 0);
 
 begin
 
@@ -184,15 +178,53 @@ begin
       end if;
    end process p_product_d;
 
+--   -- Calculate (x+y)*(x-y) + cx
+--
+--   new_x_s <= add(product_s(35) & product_s(32 downto 0) & "00", 
+--                  cx_i & "00" & X"0000");
+--
+--   -- Calculate (x*y) + cy/2
+--   new_y_half_s <= add(product_d_r(35) & product_d_r(32 downto 0) & "00",
+--                       cy_i(17) & cy_i & "0" & X"0000");
+
+
+
+   ------------------------------
    -- Calculate (x+y)*(x-y) + cx
+   ------------------------------
 
-   new_x_s <= add(product_s(35) & product_s(32 downto 0) & "00", 
-                  cx_i & "00" & X"0000");
+   x2_m_y2_s <= product_s(35) & product_s(32 downto 0) & "00";
+   cx_s      <= cx_i & "00" & X"0000";
 
+   i_add_overflow_x : entity work.add_overflow
+   generic map (
+      SIZE => 36
+   )
+   port map (
+      a_i   => x2_m_y2_s,
+      b_i   => cx_s,
+      r_o   => new_x_s(35 downto 0),
+      ovf_o => new_x_s(36)
+   ); -- i_add_overflow_x
+
+
+   --------------------------
    -- Calculate (x*y) + cy/2
-   new_y_half_s <= add(product_d_r(35) & product_d_r(32 downto 0) & "00",
-                       cy_i(17) & cy_i & "0" & X"0000");
+   --------------------------
 
+   xy_s       <= product_d_r(35) & product_d_r(32 downto 0) & "00";
+   cy_div_2_s <= cy_i(17) & cy_i & "0" & X"0000";
+
+   i_add_overflow_y_half : entity work.add_overflow
+   generic map (
+      SIZE => 36
+   )
+   port map (
+      a_i   => xy_s,
+      b_i   => cy_div_2_s,
+      r_o   => new_y_half_s(35 downto 0),
+      ovf_o => new_y_half_s(36)
+   ); -- i_add_overflow_y_half
 
    --------------------------
    -- Connect output signals
