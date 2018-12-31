@@ -77,6 +77,7 @@ architecture rtl of dispatcher is
    signal res_valid_s    : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal res_ack_r      : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal res_vector_s   : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+   signal job_vector_s   : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
 
    signal wr_addr_r      : std_logic_vector(18 downto 0);
    signal wr_data_r      : std_logic_vector( 8 downto 0);
@@ -86,6 +87,7 @@ architecture rtl of dispatcher is
 
    signal idx_start_r       : integer range 0 to G_NUM_ITERATORS-1;
    signal idx_start_valid_r : std_logic;
+   signal idx_start_valid_s : std_logic;
 
    signal idx_iterator_r : integer range 0 to G_NUM_ITERATORS-1;
    signal idx_valid_r    : std_logic;
@@ -117,24 +119,21 @@ begin
    -- Start any idle iterator
    ---------------------------
 
-   p_idx_start : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
+   job_vector_s <= not job_active_r and not job_start_r;
 
-         idx_start_valid_r <= '0';
+   i_priority_job : entity work.priority
+      generic map (
+         G_SIZE      => G_NUM_ITERATORS
+      )
+      port map (
+         clk_i     => clk_i,
+         rst_i     => rst_i,
+         vector_i  => job_vector_s,
+         index_o   => idx_start_r,
+         active_o  => idx_start_valid_r
+      ); -- i_priority
 
-         if cur_addr_r < G_NUM_COLS then
-            -- Find the first iterator that is inactive.
-            idx_start_loop : for i in 0 to G_NUM_ITERATORS-1 loop
-               if job_active_r(i) = '0' and job_start_r(i) = '0' then
-                  idx_start_r       <= i;
-                  idx_start_valid_r <= '1';
-                  exit idx_start_loop;
-               end if;
-            end loop idx_start_loop;
-         end if;
-      end if;
-   end process p_idx_start;
+   idx_start_valid_s <= idx_start_valid_r when cur_addr_r < G_NUM_COLS else '0';
 
 
    ---------------------------
@@ -148,7 +147,7 @@ begin
          -- Only pulse for one clock cycle.
          job_start_r <= (others => '0');
          
-         if idx_start_valid_r = '1' and job_start_r(idx_start_r) = '0' then
+         if idx_start_valid_s = '1' and job_start_r(idx_start_r) = '0' then
             job_start_r(idx_start_r) <= '1';
             job_addr_r(idx_start_r)  <= cur_addr_r;
             cur_addr_r               <= cur_addr_r + 1;

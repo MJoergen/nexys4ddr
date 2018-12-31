@@ -1,0 +1,28 @@
+[*]
+[*] GTKWave Analyzer v3.3.94 (w)1999-2018 BSI
+[*] Sun Dec 30 19:27:07 2018
+[*]
+[dumpfile] "/home/mike/git/nexys4ddr/mandelbrot/sim/mult.ghw"
+[dumpfile_mtime] "Sun Dec 30 19:26:01 2018"
+[dumpfile_size] 423592
+[savefile] "/home/mike/git/nexys4ddr/mandelbrot/sim/mult.gtkw"
+[timestart] 102850000
+[size] 1386 600
+[pos] -1 -1
+*-24.040407 128700000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.mult_tb.
+[sst_width] 259
+[signals_width] 120
+[sst_expanded] 1
+[sst_vpaned_height] 137
+@28
+top.mult_tb.clk
+top.mult_tb.rst
+@22
+#{top.mult_tb.a_s[17:0]} top.mult_tb.a_s[17] top.mult_tb.a_s[16] top.mult_tb.a_s[15] top.mult_tb.a_s[14] top.mult_tb.a_s[13] top.mult_tb.a_s[12] top.mult_tb.a_s[11] top.mult_tb.a_s[10] top.mult_tb.a_s[9] top.mult_tb.a_s[8] top.mult_tb.a_s[7] top.mult_tb.a_s[6] top.mult_tb.a_s[5] top.mult_tb.a_s[4] top.mult_tb.a_s[3] top.mult_tb.a_s[2] top.mult_tb.a_s[1] top.mult_tb.a_s[0]
+#{top.mult_tb.b_s[17:0]} top.mult_tb.b_s[17] top.mult_tb.b_s[16] top.mult_tb.b_s[15] top.mult_tb.b_s[14] top.mult_tb.b_s[13] top.mult_tb.b_s[12] top.mult_tb.b_s[11] top.mult_tb.b_s[10] top.mult_tb.b_s[9] top.mult_tb.b_s[8] top.mult_tb.b_s[7] top.mult_tb.b_s[6] top.mult_tb.b_s[5] top.mult_tb.b_s[4] top.mult_tb.b_s[3] top.mult_tb.b_s[2] top.mult_tb.b_s[1] top.mult_tb.b_s[0]
+@23
+#{top.mult_tb.p_s[35:0]} top.mult_tb.p_s[35] top.mult_tb.p_s[34] top.mult_tb.p_s[33] top.mult_tb.p_s[32] top.mult_tb.p_s[31] top.mult_tb.p_s[30] top.mult_tb.p_s[29] top.mult_tb.p_s[28] top.mult_tb.p_s[27] top.mult_tb.p_s[26] top.mult_tb.p_s[25] top.mult_tb.p_s[24] top.mult_tb.p_s[23] top.mult_tb.p_s[22] top.mult_tb.p_s[21] top.mult_tb.p_s[20] top.mult_tb.p_s[19] top.mult_tb.p_s[18] top.mult_tb.p_s[17] top.mult_tb.p_s[16] top.mult_tb.p_s[15] top.mult_tb.p_s[14] top.mult_tb.p_s[13] top.mult_tb.p_s[12] top.mult_tb.p_s[11] top.mult_tb.p_s[10] top.mult_tb.p_s[9] top.mult_tb.p_s[8] top.mult_tb.p_s[7] top.mult_tb.p_s[6] top.mult_tb.p_s[5] top.mult_tb.p_s[4] top.mult_tb.p_s[3] top.mult_tb.p_s[2] top.mult_tb.p_s[1] top.mult_tb.p_s[0]
+[pattern_trace] 1
+[pattern_trace] 0
