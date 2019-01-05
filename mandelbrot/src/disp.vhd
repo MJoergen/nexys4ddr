@@ -44,11 +44,11 @@ architecture rtl of disp is
    type mem_t is array (0 to 1024*512-1) of std_logic_vector(8 downto 0);
    signal mem : mem_t;
 
-   signal vga_pix_x_d : std_logic_vector(9 downto 0);
-   signal vga_pix_y_d : std_logic_vector(9 downto 0);
-   signal vga_hs_d    : std_logic;
-   signal vga_vs_d    : std_logic;
-   signal vga_col_d   : std_logic_vector(7 downto 0);
+   signal vga_pix_x_d  : std_logic_vector(9 downto 0);
+   signal vga_pix_y_d  : std_logic_vector(9 downto 0);
+   signal vga_hs_d     : std_logic;
+   signal vga_vs_d     : std_logic;
+   signal vga_col_d    : std_logic_vector(7 downto 0);
 
    signal vga_pix_x_d2 : std_logic_vector(9 downto 0);
    signal vga_pix_y_d2 : std_logic_vector(9 downto 0);
@@ -56,9 +56,15 @@ architecture rtl of disp is
    signal vga_vs_d2    : std_logic;
    signal vga_col_d2   : std_logic_vector(7 downto 0);
 
-   signal vga_hs_d3   : std_logic;
-   signal vga_vs_d3   : std_logic;
-   signal vga_col_d3  : std_logic_vector(7 downto 0);
+   signal vga_hs_d3    : std_logic;
+   signal vga_vs_d3    : std_logic;
+   signal vga_col_d3   : std_logic_vector(7 downto 0);
+
+   signal wr_addr      : std_logic_vector(18 downto 0);
+   signal wr_data      : std_logic_vector( 8 downto 0);
+   signal wr_en        : std_logic;
+   signal wr_addr_rst  : std_logic_vector(18 downto 0);
+   signal wr_rst       : std_logic := '0';
 
 begin
 
@@ -66,11 +72,38 @@ begin
    -- Write to pixel memory
    -------------------------
 
+   p_write_ctrl : process (wr_clk_i)
+   begin
+      if rising_edge(wr_clk_i) then
+
+         wr_addr <= wr_addr_i;
+         wr_data <= wr_data_i;
+         wr_en   <= wr_en_i;
+
+         if wr_rst = '1' then
+            wr_addr <= wr_addr_rst;
+            wr_data <= "010101010";
+            wr_en   <= '1';
+
+            wr_addr_rst <= wr_addr_rst + 1;
+
+            if wr_addr_rst + 1 = 0 then
+               wr_rst <= '0';
+            end if;
+         end if;
+
+         if wr_rst_i = '1' then
+            wr_addr_rst <= (others => '0');
+            wr_rst      <= '1';
+         end if;
+      end if;
+   end process p_write_ctrl;
+
    p_write : process (wr_clk_i)
    begin
       if rising_edge(wr_clk_i) then
-         if wr_en_i = '1' then
-            mem(to_integer(wr_addr_i)) <= wr_data_i;
+         if wr_en = '1' then
+            mem(to_integer(wr_addr)) <= wr_data;
          end if;
       end if;
    end process p_write;

@@ -31,7 +31,8 @@ architecture structural of mandelbrot is
    constant stepy   : std_logic_vector(17 downto 0) := "00" & X"0111";
 
    signal main_clk  : std_logic;
-   signal rst       : std_logic;
+   signal main_rst_delay : std_logic_vector(7 downto 0) := X"FF";
+   signal main_rst  : std_logic;
 
    signal start     : std_logic;
    signal active    : std_logic;
@@ -42,6 +43,8 @@ architecture structural of mandelbrot is
    signal wr_en     : std_logic;
 
    signal vga_clk   : std_logic;
+   signal vga_rst_delay : std_logic_vector(7 downto 0) := X"FF";
+   signal vga_rst   : std_logic;
    signal vga_pix_x : std_logic_vector(9 downto 0);
    signal vga_pix_y : std_logic_vector(9 downto 0);
    signal vga_hs    : std_logic;
@@ -50,8 +53,6 @@ architecture structural of mandelbrot is
 
 begin
 
-   rst <= not rstn_i;
-   
    --------------------------------------------------
    -- Instantiate Clock generation
    --------------------------------------------------
@@ -65,9 +66,38 @@ begin
       ); -- i_clk
   
   
-  p_active : process (main_clk)
-     begin
-        if rising_edge(main_clk) then
+   --------------------------------------------------
+   -- Generate reset signals
+   --------------------------------------------------
+
+   p_main_rst : process (main_clk)
+   begin
+      if rising_edge(main_clk) then
+         main_rst_delay <= main_rst_delay(6 downto 0) & "0";
+         main_rst <= main_rst_delay(7);
+
+         if rstn_i = '0' then
+            main_rst_delay <= X"FF";
+         end if;
+      end if;
+   end process p_main_rst;
+
+   p_vga_rst : process (vga_clk)
+   begin
+      if rising_edge(vga_clk) then
+         vga_rst_delay <= vga_rst_delay(6 downto 0) & "0";
+         vga_rst <= vga_rst_delay(7);
+
+         if rstn_i = '0' then
+            vga_rst_delay <= X"FF";
+         end if;
+      end if;
+   end process p_vga_rst;
+
+
+   p_active : process (main_clk)
+   begin
+      if rising_edge(main_clk) then
          start <= '0';
 
          if sw_i(0) = '1' and active = '0' then
@@ -79,7 +109,7 @@ begin
             active <= '0';
          end if;
 
-         if rst = '1' then
+         if main_rst = '1' then
             active <= '0';
          end if;
       end if;
@@ -100,7 +130,7 @@ begin
       )
       port map (
          clk_i     => main_clk,
-         rst_i     => rst,
+         rst_i     => main_rst,
          start_i   => start,
          startx_i  => startx,
          starty_i  => starty,
@@ -132,13 +162,13 @@ begin
    i_disp : entity work.disp
       port map (
          wr_clk_i    => main_clk,
-         wr_rst_i    => rst,
+         wr_rst_i    => main_rst,
          wr_addr_i   => wr_addr,
          wr_data_i   => wr_data,
          wr_en_i     => wr_en,
          --
          vga_clk_i   => vga_clk,
-         vga_rst_i   => rst,
+         vga_rst_i   => vga_rst,
          vga_pix_x_i => vga_pix_x,
          vga_pix_y_i => vga_pix_y,
          vga_hs_o    => vga_hs,
