@@ -1,0 +1,56 @@
+[*]
+[*] GTKWave Analyzer v3.3.94 (w)1999-2018 BSI
+[*] Sun Jan  6 10:01:06 2019
+[*]
+[dumpfile] "/home/mike/git/nexys4ddr/mandelbrot/sim/priority_pipeline.ghw"
+[dumpfile_mtime] "Sun Jan  6 09:59:48 2019"
+[dumpfile_size] 2627
+[savefile] "/home/mike/git/nexys4ddr/mandelbrot/sim/priority_pipeline.gtkw"
+[timestart] 0
+[size] 1573 871
+[pos] -1 -1
+*-24.829727 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.priority_pipeline_tb.
+[treeopen] top.priority_pipeline_tb.i_priority_pipeline.
+[sst_width] 273
+[signals_width] 238
+[sst_expanded] 1
+[sst_vpaned_height] 316
+@28
+top.priority_pipeline_tb.rst
+top.priority_pipeline_tb.clk
+@22
+#{top.priority_pipeline_tb.vector_reference[15:0]} top.priority_pipeline_tb.vector_reference[15] top.priority_pipeline_tb.vector_reference[14] top.priority_pipeline_tb.vector_reference[13] top.priority_pipeline_tb.vector_reference[12] top.priority_pipeline_tb.vector_reference[11] top.priority_pipeline_tb.vector_reference[10] top.priority_pipeline_tb.vector_reference[9] top.priority_pipeline_tb.vector_reference[8] top.priority_pipeline_tb.vector_reference[7] top.priority_pipeline_tb.vector_reference[6] top.priority_pipeline_tb.vector_reference[5] top.priority_pipeline_tb.vector_reference[4] top.priority_pipeline_tb.vector_reference[3] top.priority_pipeline_tb.vector_reference[2] top.priority_pipeline_tb.vector_reference[1] top.priority_pipeline_tb.vector_reference[0]
+@28
+top.priority_pipeline_tb.active_reference
+@420
+top.priority_pipeline_tb.index_reference
+@22
+#{top.priority_pipeline_tb.vector_pipeline[15:0]} top.priority_pipeline_tb.vector_pipeline[15] top.priority_pipeline_tb.vector_pipeline[14] top.priority_pipeline_tb.vector_pipeline[13] top.priority_pipeline_tb.vector_pipeline[12] top.priority_pipeline_tb.vector_pipeline[11] top.priority_pipeline_tb.vector_pipeline[10] top.priority_pipeline_tb.vector_pipeline[9] top.priority_pipeline_tb.vector_pipeline[8] top.priority_pipeline_tb.vector_pipeline[7] top.priority_pipeline_tb.vector_pipeline[6] top.priority_pipeline_tb.vector_pipeline[5] top.priority_pipeline_tb.vector_pipeline[4] top.priority_pipeline_tb.vector_pipeline[3] top.priority_pipeline_tb.vector_pipeline[2] top.priority_pipeline_tb.vector_pipeline[1] top.priority_pipeline_tb.vector_pipeline[0]
+@28
+top.priority_pipeline_tb.active_pipeline
+@420
+top.priority_pipeline_tb.index_pipeline
+@800200
+-priority_pipeline
+@22
+#{top.priority_pipeline_tb.i_priority_pipeline.first_vector_s[3:0]} top.priority_pipeline_tb.i_priority_pipeline.first_vector_s[3] top.priority_pipeline_tb.i_priority_pipeline.first_vector_s[2] top.priority_pipeline_tb.i_priority_pipeline.first_vector_s[1] top.priority_pipeline_tb.i_priority_pipeline.first_vector_s[0]
+@420
+top.priority_pipeline_tb.i_priority_pipeline.first_index_r
+@28
+top.priority_pipeline_tb.i_priority_pipeline.first_active_r
+@420
+top.priority_pipeline_tb.i_priority_pipeline.first_index_d
+@28
+top.priority_pipeline_tb.i_priority_pipeline.first_active_d
+@22
+#{top.priority_pipeline_tb.i_priority_pipeline.second_vector_s[3:0]} top.priority_pipeline_tb.i_priority_pipeline.second_vector_s[3] top.priority_pipeline_tb.i_priority_pipeline.second_vector_s[2] top.priority_pipeline_tb.i_priority_pipeline.second_vector_s[1] top.priority_pipeline_tb.i_priority_pipeline.second_vector_s[0]
+@420
+top.priority_pipeline_tb.i_priority_pipeline.second_index_r
+@28
+top.priority_pipeline_tb.i_priority_pipeline.second_active_r
+@1000200
+-priority_pipeline
+[pattern_trace] 1
+[pattern_trace] 0
