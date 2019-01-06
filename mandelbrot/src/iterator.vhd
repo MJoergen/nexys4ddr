@@ -71,10 +71,8 @@ architecture rtl of iterator is
 
    signal x_r          : std_logic_vector(17 downto 0);
    signal y_r          : std_logic_vector(17 downto 0);
-   signal sum_r        : std_logic_vector(17 downto 0);
-   signal diff_r       : std_logic_vector(17 downto 0);
-   signal a_s          : std_logic_vector(17 downto 0);
-   signal b_s          : std_logic_vector(17 downto 0);
+   signal a_r          : std_logic_vector(17 downto 0);
+   signal b_r          : std_logic_vector(17 downto 0);
    signal product_s    : std_logic_vector(35 downto 0);
    signal product_d_r  : std_logic_vector(35 downto 0);
    signal new_x_s      : std_logic_vector(36 downto 0);
@@ -92,6 +90,10 @@ architecture rtl of iterator is
 
 begin
 
+   -----------------
+   -- State machine
+   -----------------
+
    p_state : process (clk_i)
    begin
       if rising_edge(clk_i) then
@@ -101,12 +103,16 @@ begin
                if start_i = '1' then
                   x_r     <= (others => '0');
                   y_r     <= (others => '0');
+                  a_r     <= (others => '0');
+                  b_r     <= (others => '0');
                   cnt_r   <= (others => '0');
                   state_r <= ADD_ST;
                   done_r  <= '0';
                end if;
 
             when ADD_ST =>
+               a_r     <= x_r + y_r;
+               b_r     <= x_r - y_r;
                state_r <= MULT_ST;
 
             when MULT_ST =>
@@ -115,6 +121,8 @@ begin
             when UPDATE_ST =>
                x_r <= new_x_s(35 downto 18);
                y_r <= new_y_half_s(35) & new_y_half_s(33 downto 18) & "0";
+               a_r <= new_x_s(35 downto 18);
+               b_r <= new_y_half_s(35) & new_y_half_s(33 downto 18) & "0";
                if new_x_s(36) = '1' or new_y_half_s(36) = '1' or 
                   new_y_half_s(35) /= new_y_half_s(34)
                then
@@ -140,36 +148,30 @@ begin
    end process p_state;
 
 
-   p_sum_diff : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         sum_r  <= x_r + y_r;
-         diff_r <= x_r - y_r;
-      end if;
-   end process p_sum_diff;
-
-
-   a_s <= x_r when state_r = ADD_ST else
-          sum_r;
-
-   b_s <= y_r when state_r = ADD_ST else
-          diff_r;
+   --------------------------
+   -- Instantiate multiplier
+   --------------------------
 
    i_mult : mult_macro
-   generic map (
-      DEVICE  => "7SERIES",
-      LATENCY => 1,
-      WIDTH_A => 18,
-      WIDTH_B => 18
-   )
-   port map (
-      CLK => clk_i,
-      RST => rst_i,
-      CE  => '1',
-      P   => product_s, -- Output
-      A   => a_s,       -- Input
-      B   => b_s        -- Input
-   ); -- i_mult
+      generic map (
+         DEVICE  => "7SERIES",
+         LATENCY => 1,
+         WIDTH_A => 18,
+         WIDTH_B => 18
+      )
+      port map (
+         CLK => clk_i,
+         RST => rst_i,
+         CE  => '1',
+         P   => product_s, -- Output
+         A   => a_r,       -- Input
+         B   => b_r        -- Input
+      ); -- i_mult
+
+
+   -----------------------------------
+   -- Register output from multiplier
+   -----------------------------------
 
    p_product_d : process (clk_i)
    begin
@@ -177,16 +179,6 @@ begin
          product_d_r <= product_s;
       end if;
    end process p_product_d;
-
---   -- Calculate (x+y)*(x-y) + cx
---
---   new_x_s <= add(product_s(35) & product_s(32 downto 0) & "00", 
---                  cx_i & "00" & X"0000");
---
---   -- Calculate (x*y) + cy/2
---   new_y_half_s <= add(product_d_r(35) & product_d_r(32 downto 0) & "00",
---                       cy_i(17) & cy_i & "0" & X"0000");
-
 
 
    ------------------------------
@@ -197,15 +189,15 @@ begin
    cx_s      <= cx_i & "00" & X"0000";
 
    i_add_overflow_x : entity work.add_overflow
-   generic map (
-      SIZE => 36
-   )
-   port map (
-      a_i   => x2_m_y2_s,
-      b_i   => cx_s,
-      r_o   => new_x_s(35 downto 0),
-      ovf_o => new_x_s(36)
-   ); -- i_add_overflow_x
+      generic map (
+         SIZE => 36
+      )
+      port map (
+         a_i   => x2_m_y2_s,
+         b_i   => cx_s,
+         r_o   => new_x_s(35 downto 0),
+         ovf_o => new_x_s(36)
+      ); -- i_add_overflow_x
 
 
    --------------------------
@@ -216,15 +208,16 @@ begin
    cy_div_2_s <= cy_i(17) & cy_i & "0" & X"0000";
 
    i_add_overflow_y_half : entity work.add_overflow
-   generic map (
-      SIZE => 36
-   )
-   port map (
-      a_i   => xy_s,
-      b_i   => cy_div_2_s,
-      r_o   => new_y_half_s(35 downto 0),
-      ovf_o => new_y_half_s(36)
-   ); -- i_add_overflow_y_half
+      generic map (
+         SIZE => 36
+      )
+      port map (
+         a_i   => xy_s,
+         b_i   => cy_div_2_s,
+         r_o   => new_y_half_s(35 downto 0),
+         ovf_o => new_y_half_s(36)
+      ); -- i_add_overflow_y_half
+
 
    --------------------------
    -- Connect output signals

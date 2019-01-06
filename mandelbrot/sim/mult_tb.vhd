@@ -46,20 +46,20 @@ begin
    begin
       wait until rst = '0';
       wait until clk = '1';
-      a_s <= "11" & X"FFFF";  -- -1
-      b_s <= "11" & X"FFFF";  -- -1
+      a_s <= "11" & X"FFFF";  -- -0.000015
+      b_s <= "11" & X"FFFF";  -- -0.000015
       wait until clk = '1';
-      a_s <= "11" & X"FFFF";  -- -1
-      b_s <= "00" & X"0001";  --  1
+      a_s <= "11" & X"FFFF";  -- -0.000015
+      b_s <= "00" & X"0001";  --  0.000015
       wait until clk = '1';
-      a_s <= "00" & X"0001";  --  1
-      b_s <= "00" & X"0001";  --  1
+      a_s <= "00" & X"0001";  --  0.000015
+      b_s <= "00" & X"0001";  --  0.000015
       wait until clk = '1';
-      a_s <= "01" & X"FFFF";
-      b_s <= "01" & X"FFFF";
+      a_s <= "01" & X"FFFF";  --  1.999985
+      b_s <= "01" & X"FFFF";  --  1.999985
       wait until clk = '1';
-      a_s <= "11" & X"FFFF";
-      b_s <= "01" & X"FFFF";
+      a_s <= "11" & X"FFFF";  -- -0.000015
+      b_s <= "01" & X"FFFF";  --  1.999985
       wait until clk = '1';
 
       wait until clk = '1';
