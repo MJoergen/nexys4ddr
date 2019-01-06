@@ -16,11 +16,11 @@ SRC += src/clk.vhd
 SRC += src/mandelbrot.vhd
 
 # Files used during simulation
-#TB = dispatcher
+TB = dispatcher
 #TB = column
 #TB = iterator
 #TB = mult
-TB = priority_pipeline
+#TB = priority_pipeline
 TB_EXE = $(TB)_tb
 TB_SRC = $(SRC) sim/$(TB)_tb.vhd
 WAVE = sim/$(TB).ghw

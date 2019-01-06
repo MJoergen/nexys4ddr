@@ -2,6 +2,7 @@
 read_vhdl -vhdl2008 src/add_overflow.vhd
 read_vhdl -vhdl2008 src/iterator.vhd
 read_vhdl -vhdl2008 src/column.vhd
+read_vhdl -vhdl2008 src/priority_pipeline.vhd
 read_vhdl -vhdl2008 src/priority.vhd
 read_vhdl -vhdl2008 src/dispatcher.vhd
 read_vhdl -vhdl2008 src/disp.vhd

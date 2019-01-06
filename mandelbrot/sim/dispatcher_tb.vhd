@@ -7,6 +7,11 @@ end entity dispatcher_tb;
 
 architecture simulation of dispatcher_tb is
 
+   constant C_MAX_COUNT     : integer := 10;
+   constant C_NUM_ROWS      : integer := 20;
+   constant C_NUM_COLS      : integer := 400;
+   constant C_NUM_ITERATORS : integer := 4;
+
    signal clk     : std_logic;
    signal rst     : std_logic;
    signal start   : std_logic;
@@ -46,8 +51,8 @@ begin
       start  <= '0';
       startx <= "10" & X"5555";  -- -1.66667
       starty <= "11" & X"0000";  -- -1
-      stepx  <= "00" & X"1111";  -- 0.06667
-      stepy  <= "00" & X"1111";  -- 0.06667
+      stepx  <= to_std_logic_vector(integer(3.3333*(2**18))/C_NUM_COLS, 18);
+      stepy  <= to_std_logic_vector(integer(2.0000*(2**18))/C_NUM_ROWS, 18);
 
       wait for 500 ns;
       wait until clk = '1';
@@ -64,10 +69,10 @@ begin
 
    i_dispatcher : entity work.dispatcher
       generic map (
-         G_MAX_COUNT     => 20,
-         G_NUM_ROWS      => 30,
-         G_NUM_COLS      => 40,
-         G_NUM_ITERATORS => 4
+         G_MAX_COUNT     => C_MAX_COUNT,
+         G_NUM_ROWS      => C_NUM_ROWS,
+         G_NUM_COLS      => C_NUM_COLS,
+         G_NUM_ITERATORS => C_NUM_ITERATORS
       )
       port map (
          clk_i     => clk,

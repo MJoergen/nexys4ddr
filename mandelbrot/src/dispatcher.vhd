@@ -121,7 +121,7 @@ begin
 
    job_vector_s <= not job_active_r and not job_start_r;
 
-   i_priority_job : entity work.priority
+   i_priority_job : entity work.priority_pipeline
       generic map (
          G_SIZE      => G_NUM_ITERATORS
       )
@@ -213,24 +213,9 @@ begin
    -- Find one iterator to acknowledge
    ------------------------------------
 
---   p_idx : process (clk_i)
---   begin
---      if rising_edge(clk_i) then
---         idx_valid_r <= '0';
---
---         idx_loop : for i in 0 to G_NUM_ITERATORS-1 loop
---            if res_valid_s(i) = '1' and res_ack_r(i) = '0' then
---               idx_iterator_r <= i;
---               idx_valid_r    <= '1';
---               exit idx_loop;
---            end if;
---         end loop idx_loop;
---      end if;
---   end process p_idx;
-
    res_vector_s <= res_valid_s and not res_ack_r;
 
-   i_priority : entity work.priority
+   i_priority : entity work.priority_pipeline
       generic map (
          G_SIZE      => G_NUM_ITERATORS
       )
