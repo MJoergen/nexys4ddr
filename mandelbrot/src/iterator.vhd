@@ -123,6 +123,8 @@ begin
                y_r <= new_y_half_s(35) & new_y_half_s(33 downto 18) & "0";
                a_r <= new_x_s(35 downto 18);
                b_r <= new_y_half_s(35) & new_y_half_s(33 downto 18) & "0";
+
+               -- Check for overflow
                if new_x_s(36) = '1' or new_y_half_s(36) = '1' or 
                   new_y_half_s(35) /= new_y_half_s(34)
                then
@@ -131,6 +133,7 @@ begin
                else
                   cnt_r   <= cnt_r + 1;
                   state_r <= ADD_ST;
+
                   if cnt_r = G_MAX_COUNT-1 then
                      done_r  <= '1';
                      state_r <= IDLE_ST;

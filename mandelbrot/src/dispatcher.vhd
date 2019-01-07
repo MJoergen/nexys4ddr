@@ -87,7 +87,6 @@ architecture rtl of dispatcher is
 
    signal idx_start_r       : integer range 0 to G_NUM_ITERATORS-1;
    signal idx_start_valid_r : std_logic;
-   signal idx_start_valid_s : std_logic;
 
    signal idx_iterator_r : integer range 0 to G_NUM_ITERATORS-1;
    signal idx_valid_r    : std_logic;
@@ -133,8 +132,6 @@ begin
          active_o  => idx_start_valid_r
       ); -- i_priority
 
-   idx_start_valid_s <= idx_start_valid_r when cur_addr_r < G_NUM_COLS else '0';
-
 
    ---------------------------
    -- Start any idle iterator
@@ -147,7 +144,9 @@ begin
          -- Only pulse for one clock cycle.
          job_start_r <= (others => '0');
          
-         if idx_start_valid_s = '1' and job_start_r(idx_start_r) = '0' then
+         if idx_start_valid_r = '1' and job_start_r(idx_start_r) = '0' and
+            cur_addr_r < G_NUM_COLS
+         then
             job_start_r(idx_start_r) <= '1';
             job_addr_r(idx_start_r)  <= cur_addr_r;
             cur_addr_r               <= cur_addr_r + 1;
@@ -161,7 +160,8 @@ begin
          end if;
 
          if rst_i = '1' then
-            cur_addr_r <= to_std_logic_vector(G_NUM_COLS, 10);
+            job_start_r <= (others => '0');
+            cur_addr_r  <= to_std_logic_vector(G_NUM_COLS, 10);
          end if;
       end if;
    end process p_job_start;
