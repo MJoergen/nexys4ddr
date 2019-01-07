@@ -58,7 +58,7 @@ begin
 
    -- Generate input to first level
    g_first_vector : for i in 0 to C_FIRST-1 generate
-      first_vector_s(i) <= '1' when vector_i((i+1)*C_FIRST-1 downto i*C_FIRST) /= 0 else '0';
+      first_vector_s(i) <= '1' when vector_s((i+1)*C_FIRST-1 downto i*C_FIRST) /= 0 else '0';
    end generate g_first_vector;
 
    -- Find which row in matrix 

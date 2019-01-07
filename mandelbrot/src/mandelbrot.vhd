@@ -25,10 +25,20 @@ end mandelbrot;
 
 architecture structural of mandelbrot is
 
-   constant startx  : std_logic_vector(17 downto 0) := "10" & X"5555";
-   constant starty  : std_logic_vector(17 downto 0) := "11" & X"0000";
-   constant stepx   : std_logic_vector(17 downto 0) := "00" & X"0111";
-   constant stepy   : std_logic_vector(17 downto 0) := "00" & X"0111";
+   constant C_MAX_COUNT     : integer := 511;
+   constant C_NUM_ROWS      : integer := 480;
+   constant C_NUM_COLS      : integer := 640;
+   constant C_NUM_ITERATORS : integer := 240;
+
+   constant C_START_X       : real := -1.6667;
+   constant C_START_Y       : real := -1.0000;
+   constant C_SIZE_X        : real :=  3.3333;
+   constant C_SIZE_Y        : real :=  2.0000;
+
+   constant startx  : std_logic_vector(17 downto 0) := to_std_logic_vector(integer((C_START_X+4.0)*real(2**18)), 18);
+   constant starty  : std_logic_vector(17 downto 0) := to_std_logic_vector(integer((C_START_Y+4.0)*real(2**18)), 18);
+   constant stepx   : std_logic_vector(17 downto 0) := to_std_logic_vector(integer(C_SIZE_X*real(2**18))/C_NUM_COLS, 18);
+   constant stepy   : std_logic_vector(17 downto 0) := to_std_logic_vector(integer(C_SIZE_Y*real(2**18))/C_NUM_ROWS, 18);
 
    signal main_clk  : std_logic;
    signal main_rst_delay : std_logic_vector(7 downto 0) := X"FF";
@@ -122,11 +132,10 @@ begin
 
    i_dispatcher : entity work.dispatcher
       generic map (
-         G_MAX_COUNT     => 511,
-         G_NUM_ROWS      => 480,
-         G_NUM_COLS      => 640,
-         --G_NUM_ITERATORS => 240
-         G_NUM_ITERATORS => 64
+         G_MAX_COUNT     => C_MAX_COUNT,
+         G_NUM_ROWS      => C_NUM_ROWS,
+         G_NUM_COLS      => C_NUM_COLS,
+         G_NUM_ITERATORS => C_NUM_ITERATORS
       )
       port map (
          clk_i     => main_clk,
