@@ -7,10 +7,10 @@ end entity dispatcher_tb;
 
 architecture simulation of dispatcher_tb is
 
-   constant C_MAX_COUNT     : integer := 10;
-   constant C_NUM_ROWS      : integer := 20;
+   constant C_MAX_COUNT     : integer := 90;
+   constant C_NUM_ROWS      : integer := 30;
    constant C_NUM_COLS      : integer := 400;
-   constant C_NUM_ITERATORS : integer := 4;
+   constant C_NUM_ITERATORS : integer := 8;
 
    signal clk     : std_logic;
    signal rst     : std_logic;
@@ -51,8 +51,8 @@ begin
       start  <= '0';
       startx <= "10" & X"5555";  -- -1.66667
       starty <= "11" & X"0000";  -- -1
-      stepx  <= to_std_logic_vector(integer(3.3333*(2**18))/C_NUM_COLS, 18);
-      stepy  <= to_std_logic_vector(integer(2.0000*(2**18))/C_NUM_ROWS, 18);
+      stepx  <= to_std_logic_vector(integer(3.3333*(2**16))/C_NUM_COLS, 18);
+      stepy  <= to_std_logic_vector(integer(2.0000*(2**16))/C_NUM_ROWS, 18);
 
       wait for 500 ns;
       wait until clk = '1';

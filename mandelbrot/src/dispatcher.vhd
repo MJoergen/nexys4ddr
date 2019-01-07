@@ -2,32 +2,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
----------------------------
--- This module iterates the Mandelbrot fractal equation
---    new_z = z^2 + c.
--- Separating real and imaginary parts this becomes the following
--- set of equations:
---    new_x = (x+y)*(x-y) + cx
---    new_y = (2x)*y + cy
--- Inputs to this block are: cx_i and cy_i as well as start_i.
--- start_i should be pulsed for one clock cycle.
--- cx_i and cy_i must remain constant throughout the calculation.
---
--- It does it by using a single multiplier in a pipeline fashion
--- Cycle 1 : Input to multiplier is x and y.
--- Cycle 2 : Input to multiplier is (x+y) and (x-y).
---
--- Real numbers are represented in 2.16 fixed point two's complement
--- form, in the range -2 to 1.9. Examples
--- -2   : 20000
--- -1   : 30000
--- -0.5 : 38000
--- 0.5  : 08000
--- 1    : 10000
--- 1.5  : 18000
---
--- The XC7A100T has 240 DSP slices.
-
+-- This module instantiates a number of iterators, dispatches jobs to them, and
+-- collects results from them.
 
 entity dispatcher is
    generic (
@@ -65,6 +41,7 @@ architecture rtl of dispatcher is
    signal job_starty_r   : std_logic_vector(17 downto 0);
    signal job_stepy_r    : std_logic_vector(17 downto 0);
    --
+   signal job_start_d    : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal job_start_r    : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal job_addr_r     : job_addr_vector( G_NUM_ITERATORS-1 downto 0);
    signal cur_addr_r     : std_logic_vector(9 downto 0);
@@ -100,6 +77,14 @@ begin
    p_job_cx : process (clk_i)
    begin
       if rising_edge(clk_i) then
+
+         if rst_i = '0' then
+            -- The following clever assert checks that at most one bit is set in
+            -- the job_start_r signal.
+            assert ((job_start_r-1) and job_start_r) = 0
+               report "job_start_r has more than 1 bit set" severity error;
+         end if;
+
          if job_start_r /= 0 then
             job_cx_r <= job_cx_r + job_stepx_r;
          end if;
@@ -118,8 +103,10 @@ begin
    -- Start any idle iterator
    ---------------------------
 
+   -- List of iterators not active, and not yet started.
    job_vector_s <= not job_active_r and not job_start_r;
 
+   -- There is a two-cycle delay in this calculation.
    i_priority_job : entity work.priority_pipeline
       generic map (
          G_SIZE      => G_NUM_ITERATORS
@@ -141,10 +128,15 @@ begin
    begin
       if rising_edge(clk_i) then
 
+         -- Delay one cycle
+         job_start_d <= job_start_r;
+
          -- Only pulse for one clock cycle.
          job_start_r <= (others => '0');
          
-         if idx_start_valid_r = '1' and job_start_r(idx_start_r) = '0' and
+         if idx_start_valid_r = '1' and
+            job_start_r(idx_start_r) = '0' and
+            job_start_d(idx_start_r) = '0' and
             cur_addr_r < G_NUM_COLS
          then
             job_start_r(idx_start_r) <= '1';
