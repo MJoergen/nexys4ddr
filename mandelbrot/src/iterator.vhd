@@ -88,6 +88,11 @@ architecture rtl of iterator is
    signal xy_s       : std_logic_vector(35 downto 0);
    signal cy_div_2_s : std_logic_vector(35 downto 0);
 
+   signal ovf_x36_s  : std_logic;
+   signal ovf_y36_s  : std_logic;
+   signal ovf_y35_s  : std_logic;
+   signal ovf_y34_s  : std_logic;
+
 begin
 
    -----------------
@@ -101,19 +106,40 @@ begin
          case state_r is
             when IDLE_ST =>
                if start_i = '1' then
-                  x_r     <= (others => '0');
-                  y_r     <= (others => '0');
-                  a_r     <= (others => '0');
-                  b_r     <= (others => '0');
-                  cnt_r   <= (others => '0');
-                  state_r <= ADD_ST;
-                  done_r  <= '0';
+                  x_r       <= (others => '0');
+                  y_r       <= (others => '0');
+                  a_r       <= (others => '0');
+                  b_r       <= (others => '0');
+                  cnt_r     <= (others => '0');
+                  state_r   <= ADD_ST;
+                  done_r    <= '0';
+                  ovf_x36_s <= '0';
+                  ovf_y36_s <= '0';
+                  ovf_y35_s <= '0';
+                  ovf_y34_s <= '0';
                end if;
 
             when ADD_ST =>
                a_r     <= x_r + y_r;
                b_r     <= x_r - y_r;
                state_r <= MULT_ST;
+
+               -- Check for overflow
+               if ovf_x36_s = '1' or ovf_y36_s = '1' or 
+                  ovf_y35_s /= ovf_y34_s
+               then
+                  done_r  <= '1';
+                  state_r <= IDLE_ST;
+               else
+                  cnt_r   <= cnt_r + 1;
+                  state_r <= MULT_ST;
+
+                  if cnt_r = G_MAX_COUNT-1 then
+                     done_r  <= '1';
+                     state_r <= IDLE_ST;
+                  end if;
+               end if;
+
 
             when MULT_ST =>
                state_r <= UPDATE_ST;
@@ -124,21 +150,12 @@ begin
                a_r <= new_x_s(35 downto 18);
                b_r <= new_y_half_s(35) & new_y_half_s(33 downto 18) & "0";
 
-               -- Check for overflow
-               if new_x_s(36) = '1' or new_y_half_s(36) = '1' or 
-                  new_y_half_s(35) /= new_y_half_s(34)
-               then
-                  done_r  <= '1';
-                  state_r <= IDLE_ST;
-               else
-                  cnt_r   <= cnt_r + 1;
-                  state_r <= ADD_ST;
+               ovf_x36_s <= new_x_s(36);
+               ovf_y36_s <= new_y_half_s(36);
+               ovf_y35_s <= new_y_half_s(35);
+               ovf_y34_s <= new_y_half_s(34);
 
-                  if cnt_r = G_MAX_COUNT-1 then
-                     done_r  <= '1';
-                     state_r <= IDLE_ST;
-                  end if;
-               end if;
+               state_r <= ADD_ST;
 
             when others => null;
          end case;

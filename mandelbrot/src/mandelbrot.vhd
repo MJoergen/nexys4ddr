@@ -35,10 +35,10 @@ architecture structural of mandelbrot is
    constant C_SIZE_X        : real :=  3.3333;
    constant C_SIZE_Y        : real :=  2.0000;
 
-   constant startx  : std_logic_vector(17 downto 0) := to_std_logic_vector(integer((C_START_X+4.0)*real(2**18)), 18);
-   constant starty  : std_logic_vector(17 downto 0) := to_std_logic_vector(integer((C_START_Y+4.0)*real(2**18)), 18);
-   constant stepx   : std_logic_vector(17 downto 0) := to_std_logic_vector(integer(C_SIZE_X*real(2**18))/C_NUM_COLS, 18);
-   constant stepy   : std_logic_vector(17 downto 0) := to_std_logic_vector(integer(C_SIZE_Y*real(2**18))/C_NUM_ROWS, 18);
+   constant startx  : std_logic_vector(17 downto 0) := to_std_logic_vector(integer((C_START_X+4.0)*real(2**16)), 18);
+   constant starty  : std_logic_vector(17 downto 0) := to_std_logic_vector(integer((C_START_Y+4.0)*real(2**16)), 18);
+   constant stepx   : std_logic_vector(17 downto 0) := to_std_logic_vector(integer(C_SIZE_X*real(2**16))/C_NUM_COLS, 18);
+   constant stepy   : std_logic_vector(17 downto 0) := to_std_logic_vector(integer(C_SIZE_Y*real(2**16))/C_NUM_ROWS, 18);
 
    signal main_clk  : std_logic;
    signal main_rst_delay : std_logic_vector(7 downto 0) := X"FF";

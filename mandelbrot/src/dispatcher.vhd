@@ -240,9 +240,15 @@ begin
 
    done_o <= done_r;
 
-   wr_addr_o <= wr_addr_r;
-   wr_data_o <= wr_data_r;
-   wr_en_o   <= wr_en_r;
+   p_out : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         wr_addr_o <= wr_addr_r;
+         wr_data_o <= wr_data_r;
+         wr_en_o   <= wr_en_r;
+      end if;
+   end process p_out;
+
 
 end architecture rtl;
 
