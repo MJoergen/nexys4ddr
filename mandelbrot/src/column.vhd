@@ -16,7 +16,7 @@ entity column is
       job_cx_i     : in  std_logic_vector(17 downto 0);
       job_starty_i : in  std_logic_vector(17 downto 0);
       job_stepy_i  : in  std_logic_vector(17 downto 0);
-      job_done_o   : out std_logic;
+      job_busy_o   : out std_logic;
       res_addr_o   : out std_logic_vector( 8 downto 0);
       res_ack_i    : in  std_logic;
       res_data_o   : out std_logic_vector( 8 downto 0);
@@ -33,7 +33,7 @@ architecture rtl of column is
    signal res_valid_s : std_logic;
    signal res_addr_r  : std_logic_vector( 8 downto 0);
 
-   signal job_done_r  : std_logic;
+   signal job_busy_r  : std_logic;
 
 begin
 
@@ -72,15 +72,15 @@ begin
          if res_valid_s = '1' and res_addr_r + 1 = G_NUM_ROWS and
             res_start_r = '0' and res_ack_i = '1'
          then
-            job_done_r <= '1';
+            job_busy_r <= '0';
          end if;
 
          if job_start_i = '1' then
-            job_done_r  <= '0';
+            job_busy_r  <= '1';
          end if;
 
          if rst_i = '1' then
-            job_done_r  <= '0';
+            job_busy_r  <= '0';
          end if;
       end if;
    end process p_job_done;
@@ -104,10 +104,10 @@ begin
    -- Connect output signals
    --------------------------
 
-   job_done_o  <= job_done_r;
+   job_busy_o  <= job_busy_r;
    res_addr_o  <= res_addr_r;
    res_data_o  <= res_data_s;
-   res_valid_o <= res_valid_s and not res_start_r and not job_done_r;
+   res_valid_o <= res_valid_s and not res_start_r and job_busy_r;
 
 end architecture rtl;
 
