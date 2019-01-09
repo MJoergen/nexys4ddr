@@ -11,6 +11,7 @@ SRC += src/priority.vhd
 SRC += src/priority_pipeline.vhd
 SRC += src/scheduler.vhd
 SRC += src/dispatcher.vhd
+SRC += src/disp_mem.vhd
 SRC += src/disp.vhd
 SRC += src/pix.vhd
 SRC += src/clk.vhd

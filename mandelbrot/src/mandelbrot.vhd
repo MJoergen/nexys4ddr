@@ -35,31 +35,33 @@ architecture structural of mandelbrot is
    constant C_SIZE_X        : real :=  3.3333;
    constant C_SIZE_Y        : real :=  2.0000;
 
-   constant startx  : std_logic_vector(17 downto 0) := to_std_logic_vector(integer((C_START_X+4.0)*real(2**16)), 18);
-   constant starty  : std_logic_vector(17 downto 0) := to_std_logic_vector(integer((C_START_Y+4.0)*real(2**16)), 18);
-   constant stepx   : std_logic_vector(17 downto 0) := to_std_logic_vector(integer(C_SIZE_X*real(2**16))/C_NUM_COLS, 18);
-   constant stepy   : std_logic_vector(17 downto 0) := to_std_logic_vector(integer(C_SIZE_Y*real(2**16))/C_NUM_ROWS, 18);
+   constant startx   : std_logic_vector(17 downto 0) := to_std_logic_vector(integer((C_START_X+4.0)*real(2**16)), 18);
+   constant starty   : std_logic_vector(17 downto 0) := to_std_logic_vector(integer((C_START_Y+4.0)*real(2**16)), 18);
+   constant stepx    : std_logic_vector(17 downto 0) := to_std_logic_vector(integer(C_SIZE_X*real(2**16))/C_NUM_COLS, 18);
+   constant stepy    : std_logic_vector(17 downto 0) := to_std_logic_vector(integer(C_SIZE_Y*real(2**16))/C_NUM_ROWS, 18);
 
-   signal main_clk  : std_logic;
+   signal main_clk   : std_logic;
    signal main_rst_delay : std_logic_vector(7 downto 0) := X"FF";
-   signal main_rst  : std_logic;
+   signal main_rst   : std_logic;
 
-   signal start     : std_logic;
-   signal active    : std_logic;
-   signal done      : std_logic;
+   signal start      : std_logic;
+   signal active     : std_logic;
+   signal done       : std_logic;
 
-   signal wr_addr   : std_logic_vector(18 downto 0);
-   signal wr_data   : std_logic_vector( 8 downto 0);
-   signal wr_en     : std_logic;
+   signal wr_addr    : std_logic_vector(18 downto 0);
+   signal wr_data    : std_logic_vector( 8 downto 0);
+   signal wr_en      : std_logic;
 
-   signal vga_clk   : std_logic;
+   signal vga_clk    : std_logic;
    signal vga_rst_delay : std_logic_vector(7 downto 0) := X"FF";
-   signal vga_rst   : std_logic;
-   signal vga_pix_x : std_logic_vector(9 downto 0);
-   signal vga_pix_y : std_logic_vector(9 downto 0);
-   signal vga_hs    : std_logic;
-   signal vga_vs    : std_logic;
-   signal vga_col   : std_logic_vector(7 downto 0);
+   signal vga_rst    : std_logic;
+   signal vga_addr_s : std_logic_vector(18 downto 0);
+   signal vga_data_s : std_logic_vector(7 downto 0);
+   signal vga_pix_x  : std_logic_vector(9 downto 0);
+   signal vga_pix_y  : std_logic_vector(9 downto 0);
+   signal vga_hs     : std_logic;
+   signal vga_vs     : std_logic;
+   signal vga_col    : std_logic_vector(7 downto 0);
 
 begin
 
@@ -164,25 +166,41 @@ begin
       ); -- i_pix
 
 
+   vga_addr_s <= vga_pix_x & vga_pix_y(8 downto 0);
+
+   ------------------------------
+   -- Instantiate display memory
+   ------------------------------
+
+   i_disp_mem : entity work.disp_mem
+      port map (
+         wr_clk_i  => main_clk,
+         wr_rst_i  => main_rst,
+         wr_addr_i => wr_addr,
+         wr_data_i => wr_data,
+         wr_en_i   => wr_en,
+         --
+         rd_clk_i  => vga_clk,
+         rd_rst_i  => vga_rst,
+         rd_addr_i => vga_addr_s,
+         rd_data_o => vga_data_s
+      ); -- i_disp_mem
+
+
    --------------------------------------------------
    -- Instantiate display
    --------------------------------------------------
 
    i_disp : entity work.disp
       port map (
-         wr_clk_i    => main_clk,
-         wr_rst_i    => main_rst,
-         wr_addr_i   => wr_addr,
-         wr_data_i   => wr_data,
-         wr_en_i     => wr_en,
-         --
-         vga_clk_i   => vga_clk,
-         vga_rst_i   => vga_rst,
-         vga_pix_x_i => vga_pix_x,
-         vga_pix_y_i => vga_pix_y,
-         vga_hs_o    => vga_hs,
-         vga_vs_o    => vga_vs,
-         vga_col_o   => vga_col
+         vga_clk_i    => vga_clk,
+         vga_rst_i    => vga_rst,
+         vga_pix_x_i  => vga_pix_x,
+         vga_pix_y_i  => vga_pix_y,
+         vga_col_d2_i => vga_data_s,
+         vga_hs_o     => vga_hs,
+         vga_vs_o     => vga_vs,
+         vga_col_o    => vga_col
       ); -- i_disp
 
 
