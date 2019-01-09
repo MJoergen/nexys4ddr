@@ -8,7 +8,7 @@ entity disp is
       vga_rst_i    : in  std_logic;
       vga_pix_x_i  : in  std_logic_vector(9 downto 0);
       vga_pix_y_i  : in  std_logic_vector(9 downto 0);
-      vga_col_d2_i : in  std_logic_vector(7 downto 0);
+      vga_col_d3_i : in  std_logic_vector(7 downto 0);
       vga_hs_o     : out std_logic;
       vga_vs_o     : out std_logic;
       vga_col_o    : out std_logic_vector(7 downto 0)
@@ -47,9 +47,15 @@ architecture rtl of disp is
    signal vga_hs_d2    : std_logic;
    signal vga_vs_d2    : std_logic;
 
+   signal vga_pix_x_d3 : std_logic_vector(9 downto 0);
+   signal vga_pix_y_d3 : std_logic_vector(9 downto 0);
    signal vga_hs_d3    : std_logic;
    signal vga_vs_d3    : std_logic;
    signal vga_col_d3   : std_logic_vector(7 downto 0);
+
+   signal vga_hs_d4    : std_logic;
+   signal vga_vs_d4    : std_logic;
+   signal vga_col_d4   : std_logic_vector(7 downto 0);
 
 begin
 
@@ -89,6 +95,11 @@ begin
          vga_vs_d2    <= vga_vs_d;
          vga_pix_x_d2 <= vga_pix_x_d;
          vga_pix_y_d2 <= vga_pix_y_d;
+
+         vga_hs_d3    <= vga_hs_d2;
+         vga_vs_d3    <= vga_vs_d2;
+         vga_pix_x_d3 <= vga_pix_x_d2;
+         vga_pix_y_d3 <= vga_pix_y_d2;
       end if;
    end process p_pipe;
 
@@ -101,15 +112,15 @@ begin
       variable addr_v : std_logic_vector(18 downto 0);
    begin
       if rising_edge(vga_clk_i) then
-         vga_col_d3 <= (others => '0');
+         vga_col_d4 <= (others => '0');
 
          -- Only set colour output inside visible area
-         if vga_pix_x_d2 < H_PIXELS and vga_pix_y_d2 < V_PIXELS then
-            vga_col_d3 <= vga_col_d2_i;
+         if vga_pix_x_d3 < H_PIXELS and vga_pix_y_d3 < V_PIXELS then
+            vga_col_d4 <= vga_col_d3_i;
          end if;
 
-         vga_hs_d3 <= vga_hs_d2;
-         vga_vs_d3 <= vga_vs_d2;
+         vga_hs_d4 <= vga_hs_d3;
+         vga_vs_d4 <= vga_vs_d3;
       end if;
    end process p_out;
 
@@ -118,9 +129,9 @@ begin
    -- Connect output signals
    --------------------------
 
-   vga_hs_o  <= vga_hs_d3;
-   vga_vs_o  <= vga_vs_d3;
-   vga_col_o <= vga_col_d3;
+   vga_hs_o  <= vga_hs_d4;
+   vga_vs_o  <= vga_vs_d4;
+   vga_col_o <= vga_col_d4;
 
 end architecture rtl;
 

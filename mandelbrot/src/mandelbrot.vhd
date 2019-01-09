@@ -177,7 +177,7 @@ begin
          wr_clk_i  => main_clk,
          wr_rst_i  => main_rst,
          wr_addr_i => wr_addr,
-         wr_data_i => wr_data,
+         wr_data_i => wr_data(7 downto 0),
          wr_en_i   => wr_en,
          --
          rd_clk_i  => vga_clk,
@@ -197,7 +197,7 @@ begin
          vga_rst_i    => vga_rst,
          vga_pix_x_i  => vga_pix_x,
          vga_pix_y_i  => vga_pix_y,
-         vga_col_d2_i => vga_data_s,
+         vga_col_d3_i => vga_data_s,
          vga_hs_o     => vga_hs,
          vga_vs_o     => vga_vs,
          vga_col_o    => vga_col
