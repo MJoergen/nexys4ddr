@@ -229,7 +229,8 @@ begin
          job_idx_valid_o => idx_valid_r,
          job_idx_start_o => idx_iterator_r,
          job_busy_i      => res_busy_r
-      ); -- i_scheduler
+      ); -- i_scheduler_res
+
 
    ------------------------
    -- Generate output data
