@@ -105,9 +105,15 @@ begin
    --------------------------
 
    job_busy_o  <= job_busy_r;
-   res_addr_o  <= res_addr_r;
-   res_data_o  <= res_data_s;
-   res_valid_o <= res_valid_s and not res_start_r and job_busy_r;
+
+   p_out : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         res_addr_o  <= res_addr_r;
+         res_data_o  <= res_data_s;
+         res_valid_o <= res_valid_s and not res_start_r and job_busy_r;
+      end if;
+   end process p_out;
 
 end architecture rtl;
 
