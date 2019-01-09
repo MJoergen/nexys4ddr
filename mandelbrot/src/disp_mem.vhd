@@ -28,7 +28,8 @@ architecture rtl of disp_mem is
    signal wr_addr_rst  : std_logic_vector(18 downto 0);
    signal wr_rst       : std_logic := '0';
 
-   signal rd_data_r : std_logic_vector(7 downto 0);
+   signal rd_data_r : std_logic_vector(8 downto 0);
+   signal rd_data_d : std_logic_vector(8 downto 0);
 
 begin
 
@@ -80,10 +81,12 @@ begin
    p_read : process (rd_clk_i)
    begin
       if rising_edge(rd_clk_i) then
-         rd_data_r <= mem(to_integer(rd_addr_i))(7 downto 0);
-         rd_data_o <= rd_data_r;
+         rd_data_r <= mem(to_integer(rd_addr_i));
+         rd_data_d <= rd_data_r;
       end if;
    end process p_read;
+
+   rd_data_o <= rd_data_d(7 downto 0);
 
 end architecture rtl;
 

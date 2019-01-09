@@ -3,8 +3,8 @@ Here I'll describe in some detail the design of the Mandelbrot program and its
 main parts.  The design is implemented on the Nexys 4 DDR board, which uses a
 Xilinx FPGA XC7A100T. This FPGA has a total of 240 DSP, which will all be used
 for the actual calculations.  Additionally, the FPGA contains 144 BRAMs (of 18
-kbit), which will be used for storing the results of the calculation, i.e.  the
-actual picture to be displayed.
+kbit each), which will be used for storing the results of the calculation, i.e.
+the actual picture to be displayed.
 
 ## Fixed point arithmetic
 Before we proceed, we need to discuss how to represent decimal numbers in the
@@ -61,10 +61,10 @@ run at.
 
 
 ## Iterator
-This component performs the main calculation. It takes a input the complex
-number c (or rather the real and imaginary values cx and cy).  It then iterates
-the Mandelbrot function a number of times and stops when either the maximum
-iteration count is reached, or an overflow occurs.
+This component (see src/iterator.vhd) performs the main calculation. It takes
+as input the complex number c (or rather the real and imaginary values cx and
+cy).  It then iterates the Mandelbrot function a number of times and stops when
+either the maximum iteration count is reached, or an overflow occurs.
 
 The testbench is again only investigative, and only tests a single starting
 value: -1 + 0.5\*i.
@@ -83,7 +83,7 @@ machine:
   and y, and simultaneously, the values x+y and x-y are calculated.
 * In the second clock cycle (MULT\_ST), the multipluer is given the values of
   (x+y) and (x-y), and the output from x\*y is stored in registers.
-* In te third clock cycle (UPDATE\_ST), the new values of x and y are
+* In the third clock cycle (UPDATE\_ST), the new values of x and y are
   calculated.  The above three steps are repeated until a maximum loop count or
   until an overflow happens.
 
@@ -110,11 +110,11 @@ representation of the real numbers.
 TODO: The DSP contains an adder (as well as the multiplier).  Perhaps it is
 possible to use this built-in adder and thereby save logic reources. This may
 perhaps improve the timing slightly. However, overflow detection needs to be
-updated then.
+rewritten then.
 
 ## Columns
-The picture is sliced into vertical colums, and each column is calculated in
-its entirety, see the file src/column.vhd.
+The final picture is sliced into vertical colums, and each column is calculated
+in its entirety, see the file src/column.vhd.
 
 The inputs to this block are:
 ```
@@ -125,11 +125,11 @@ job_stepy_i  : in  std_logic_vector(17 downto 0);
 ```
 and the output is:
 ```
-job_done_o   : out std_logic;
+job_busy_o   : out std_logic;
 ```
 The signal job\_start\_i is pulsed high for one clock cycle to initiate the
-calculation of an entire column, and the output job\_done\_o is pulsed high
-for one clock when the entire calculation is finished.
+calculation of an entire column, and the output job\_busy\_o remains high
+until the entire calculation is finished.
 
 The results of the calculation are presented on the following output ports:
 ```
@@ -169,11 +169,13 @@ wr_data_o : out std_logic_vector( 8 downto 0);
 wr_en_o   : out std_logic;
 ```
 
-This module instantiated a configurable number of 'column' modules (ideally 240
+This module instantiates a configurable number of 'column' modules (ideally 240
 instances, one for each DSP). It keeps track of which columns are currently
 calculating, and whenever a column is idle, a new job is sent to this column.
 
-
-## Priority encoder
-
+A separate scheduler module is used to send jobs to the different column
+modules.  Currently, the scheduler operates in a round-robin fashion. This
+potentially may give a delay up to 240 clock cycles before an idle column is
+given a job. With 640 jobs, the maximum delay is about 1 ms, assuming the
+columns operate at 150 MHz. This delay is negligible.
 
