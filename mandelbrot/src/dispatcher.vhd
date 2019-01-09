@@ -53,6 +53,7 @@ architecture rtl of dispatcher is
    signal res_valid_s    : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal res_ack_r      : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal res_vector_s   : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+   signal res_busy_r     : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
 
    signal wr_addr_r      : std_logic_vector(18 downto 0);
    signal wr_data_r      : std_logic_vector( 8 downto 0);
@@ -129,7 +130,7 @@ begin
 
          if rst_i = '1' then
             job_start_r <= (others => '0');
-            cur_addr_r  <= to_std_logic_vector(G_NUM_COLS, 10);
+            cur_addr_r  <= (others => '0');
          end if;
       end if;
    end process p_job_start;
@@ -189,18 +190,46 @@ begin
 
    res_vector_s <= res_valid_s and not res_ack_r;
 
-   i_priority_pipeline : entity work.priority_pipeline
+--   p_res_vector : process (clk_i)
+--   begin
+--      if rising_edge(clk_i) then
+--         res_vector_r <= res_vector_s;
+--      end if;
+--   end process p_res_vector;
+
+--   i_priority_pipeline : entity work.priority_pipeline
+--      generic map (
+--         G_SIZE      => G_NUM_ITERATORS
+--      )
+--      port map (
+--         clk_i     => clk_i,
+--         rst_i     => rst_i,
+--         vector_i  => res_vector_s,
+--         index_o   => idx_iterator_r,
+--         active_o  => idx_valid_r
+--      ); -- i_priority_pipeline
+
+
+   p_res_busy : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         res_busy_r <= not res_vector_s;
+      end if;
+   end process p_res_busy;
+
+
+   i_scheduler_res : entity work.scheduler
       generic map (
-         G_SIZE      => G_NUM_ITERATORS
+         G_SIZE => G_NUM_ITERATORS
       )
       port map (
-         clk_i     => clk_i,
-         rst_i     => rst_i,
-         vector_i  => res_vector_s,
-         index_o   => idx_iterator_r,
-         active_o  => idx_valid_r
-      ); -- i_priority_pipeline
-
+         clk_i           => clk_i,
+         rst_i           => rst_i,
+         sched_active_i  => sched_active_r,
+         job_idx_valid_o => idx_valid_r,
+         job_idx_start_o => idx_iterator_r,
+         job_busy_i      => res_busy_r
+      ); -- i_scheduler
 
    ------------------------
    -- Generate output data

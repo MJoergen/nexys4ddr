@@ -57,6 +57,8 @@ begin
       wait for 500 ns;
       wait until clk = '1';
       start <= '1';
+      wait until clk = '1';
+      start <= '0';
       wait;
    end process p_start;
 
