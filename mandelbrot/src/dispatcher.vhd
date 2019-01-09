@@ -52,7 +52,6 @@ architecture rtl of dispatcher is
    signal res_data_s     : res_data_vector( G_NUM_ITERATORS-1 downto 0);
    signal res_valid_s    : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal res_ack_r      : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
-   signal res_vector_s   : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal res_busy_r     : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
 
    signal wr_addr_r      : std_logic_vector(18 downto 0);
@@ -188,32 +187,10 @@ begin
    -- Find one iterator to acknowledge
    ------------------------------------
 
-   res_vector_s <= res_valid_s and not res_ack_r;
-
---   p_res_vector : process (clk_i)
---   begin
---      if rising_edge(clk_i) then
---         res_vector_r <= res_vector_s;
---      end if;
---   end process p_res_vector;
-
---   i_priority_pipeline : entity work.priority_pipeline
---      generic map (
---         G_SIZE      => G_NUM_ITERATORS
---      )
---      port map (
---         clk_i     => clk_i,
---         rst_i     => rst_i,
---         vector_i  => res_vector_s,
---         index_o   => idx_iterator_r,
---         active_o  => idx_valid_r
---      ); -- i_priority_pipeline
-
-
    p_res_busy : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         res_busy_r <= not res_vector_s;
+         res_busy_r <= not (res_valid_s and not res_ack_r);
       end if;
    end process p_res_busy;
 
