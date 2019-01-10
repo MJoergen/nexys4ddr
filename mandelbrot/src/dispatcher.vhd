@@ -13,17 +13,18 @@ entity dispatcher is
       G_NUM_ITERATORS : integer
    );
    port (
-      clk_i     : in  std_logic;
-      rst_i     : in  std_logic;
-      start_i   : in  std_logic;
-      startx_i  : in  std_logic_vector(17 downto 0);
-      starty_i  : in  std_logic_vector(17 downto 0);
-      stepx_i   : in  std_logic_vector(17 downto 0);
-      stepy_i   : in  std_logic_vector(17 downto 0);
-      wr_addr_o : out std_logic_vector(18 downto 0);
-      wr_data_o : out std_logic_vector( 8 downto 0);
-      wr_en_o   : out std_logic;
-      done_o    : out std_logic
+      clk_i           : in  std_logic;
+      rst_i           : in  std_logic;
+      start_i         : in  std_logic;
+      startx_i        : in  std_logic_vector(17 downto 0);
+      starty_i        : in  std_logic_vector(17 downto 0);
+      stepx_i         : in  std_logic_vector(17 downto 0);
+      stepy_i         : in  std_logic_vector(17 downto 0);
+      wr_addr_o       : out std_logic_vector(18 downto 0);
+      wr_data_o       : out std_logic_vector( 8 downto 0);
+      wr_en_o         : out std_logic;
+      done_o          : out std_logic;
+      wait_cnt_tot_o  : out std_logic_vector(31 downto 0)
    );
 end entity dispatcher;
 
@@ -35,36 +36,46 @@ architecture rtl of dispatcher is
       std_logic_vector(8 downto 0);
    type res_data_vector is array (natural range <>) of
       std_logic_vector(8 downto 0);
+   type wait_cnt_vector is array (natural range <>) of
+      std_logic_vector(31 downto 0);
 
-   signal sched_active_r : std_logic;
+   signal sched_active_r    : std_logic;
    --
-   signal job_cx_r       : std_logic_vector(17 downto 0);
-   signal job_stepx_r    : std_logic_vector(17 downto 0);
-   signal job_starty_r   : std_logic_vector(17 downto 0);
-   signal job_stepy_r    : std_logic_vector(17 downto 0);
+   signal job_cx_r          : std_logic_vector(17 downto 0);
+   signal job_stepx_r       : std_logic_vector(17 downto 0);
+   signal job_starty_r      : std_logic_vector(17 downto 0);
+   signal job_stepy_r       : std_logic_vector(17 downto 0);
    --
-   signal job_start_r    : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
-   signal job_addr_r     : job_addr_vector( G_NUM_ITERATORS-1 downto 0);
-   signal cur_addr_r     : std_logic_vector(9 downto 0);
+   signal job_start_r       : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+   signal job_addr_r        : job_addr_vector( G_NUM_ITERATORS-1 downto 0);
+   signal cur_addr_r        : std_logic_vector(9 downto 0);
    --
-   signal job_busy_s     : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
-   signal res_addr_s     : res_addr_vector( G_NUM_ITERATORS-1 downto 0);
-   signal res_data_s     : res_data_vector( G_NUM_ITERATORS-1 downto 0);
-   signal res_valid_s    : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
-   signal res_ack_r      : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
-   signal res_busy_r     : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+   signal job_busy_s        : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+   signal res_addr_s        : res_addr_vector( G_NUM_ITERATORS-1 downto 0);
+   signal res_data_s        : res_data_vector( G_NUM_ITERATORS-1 downto 0);
+   signal res_valid_s       : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+   signal res_ack_r         : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+   signal res_busy_r        : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+   signal wait_cnt_s        : wait_cnt_vector( G_NUM_ITERATORS-1 downto 0);
 
-   signal wr_addr_r      : std_logic_vector(18 downto 0);
-   signal wr_data_r      : std_logic_vector( 8 downto 0);
-   signal wr_en_r        : std_logic;
+   signal wr_addr_r         : std_logic_vector(18 downto 0);
+   signal wr_data_r         : std_logic_vector( 8 downto 0);
+   signal wr_en_r           : std_logic;
 
-   signal done_r         : std_logic;
+   signal wr_addr_d         : std_logic_vector(18 downto 0);
+   signal wr_data_d         : std_logic_vector( 8 downto 0);
+   signal wr_en_d           : std_logic;
+
+   signal done_r            : std_logic;
 
    signal idx_start_r       : integer range 0 to G_NUM_ITERATORS-1;
    signal idx_start_valid_r : std_logic;
 
-   signal idx_iterator_r : integer range 0 to G_NUM_ITERATORS-1;
-   signal idx_valid_r    : std_logic;
+   signal idx_iterator_r    : integer range 0 to G_NUM_ITERATORS-1;
+   signal idx_valid_r       : std_logic;
+
+   signal wait_cnt_tot_r    : std_logic_vector(31 downto 0);
+   signal wait_cnt_tot_d    : std_logic_vector(31 downto 0);
 
 begin
 
@@ -178,7 +189,8 @@ begin
             res_addr_o   => res_addr_s(i),
             res_data_o   => res_data_s(i),
             res_valid_o  => res_valid_s(i),
-            res_ack_i    => res_ack_r(i)
+            res_ack_i    => res_ack_r(i),
+            wait_cnt_O   => wait_cnt_s(i)
          ); -- i_column
       end generate gen_column;
 
@@ -241,21 +253,44 @@ begin
    end process p_done;
 
 
+   p_wait_cnt_tot : process (clk_i)
+      variable wait_cnt_tot_v : std_logic_vector(31 downto 0);
+   begin
+      if rising_edge(clk_i) then
+         wait_cnt_tot_v := (others => '0');
+         for i in 0 to G_NUM_ITERATORS-1 loop
+            wait_cnt_tot_v := wait_cnt_tot_v + wait_cnt_s(i);
+         end loop;
+         wait_cnt_tot_r <= wait_cnt_tot_v;
+         wait_cnt_tot_d <= wait_cnt_tot_r;
+      end if;
+   end process p_wait_cnt_tot;
+
+
+   ----------------------------
+   -- Pipeline output signals.
+   ----------------------------
+
+   p_pipe : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         wr_addr_d <= wr_addr_r;
+         wr_data_d <= wr_data_r;
+         wr_en_d   <= wr_en_r;
+      end if;
+   end process p_pipe;
+
+
    --------------------------
    -- Connect output signals
    --------------------------
 
-   done_o <= done_r;
+   wr_addr_o      <= wr_addr_d;
+   wr_data_o      <= wr_data_d;
+   wr_en_o        <= wr_en_d;
 
-   p_out : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         wr_addr_o <= wr_addr_r;
-         wr_data_o <= wr_data_r;
-         wr_en_o   <= wr_en_r;
-      end if;
-   end process p_out;
-
+   done_o         <= done_r;
+   wait_cnt_tot_o <= wait_cnt_tot_d;
 
 end architecture rtl;
 
