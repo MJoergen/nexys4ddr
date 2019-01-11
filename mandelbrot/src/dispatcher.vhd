@@ -24,7 +24,7 @@ entity dispatcher is
       wr_data_o       : out std_logic_vector( 8 downto 0);
       wr_en_o         : out std_logic;
       done_o          : out std_logic;
-      wait_cnt_tot_o  : out std_logic_vector(31 downto 0)
+      wait_cnt_tot_o  : out std_logic_vector(15 downto 0)
    );
 end entity dispatcher;
 
@@ -37,7 +37,7 @@ architecture rtl of dispatcher is
    type res_data_vector is array (natural range <>) of
       std_logic_vector(8 downto 0);
    type wait_cnt_vector is array (natural range <>) of
-      std_logic_vector(31 downto 0);
+      std_logic_vector(15 downto 0);
 
    signal sched_active_r    : std_logic;
    --
@@ -57,6 +57,7 @@ architecture rtl of dispatcher is
    signal res_ack_r         : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal res_busy_r        : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal wait_cnt_s        : wait_cnt_vector( G_NUM_ITERATORS-1 downto 0);
+   signal wait_cnt_d        : wait_cnt_vector( G_NUM_ITERATORS-1 downto 0);
 
    signal wr_addr_r         : std_logic_vector(18 downto 0);
    signal wr_data_r         : std_logic_vector( 8 downto 0);
@@ -74,8 +75,7 @@ architecture rtl of dispatcher is
    signal idx_iterator_r    : integer range 0 to G_NUM_ITERATORS-1;
    signal idx_valid_r       : std_logic;
 
-   signal wait_cnt_tot_r    : std_logic_vector(31 downto 0);
-   signal wait_cnt_tot_d    : std_logic_vector(31 downto 0);
+   signal wait_cnt_tot_r    : wait_cnt_vector(G_NUM_ITERATORS-1 downto 0);
 
 begin
 
@@ -246,25 +246,26 @@ begin
    begin
       if rising_edge(clk_i) then
          done_r <= '0';
-         if cur_addr_r = G_NUM_COLS then
+         if cur_addr_r = G_NUM_COLS and job_busy_s = 0 then
             done_r <= '1';
          end if;
       end if;
    end process p_done;
 
 
-   p_wait_cnt_tot : process (clk_i)
-      variable wait_cnt_tot_v : std_logic_vector(31 downto 0);
-   begin
-      if rising_edge(clk_i) then
-         wait_cnt_tot_v := (others => '0');
-         for i in 0 to G_NUM_ITERATORS-1 loop
-            wait_cnt_tot_v := wait_cnt_tot_v + wait_cnt_s(i);
-         end loop;
-         wait_cnt_tot_r <= wait_cnt_tot_v;
-         wait_cnt_tot_d <= wait_cnt_tot_r;
-      end if;
-   end process p_wait_cnt_tot;
+   --------------------------------
+   -- Add together all wait counts
+   --------------------------------
+
+   wait_cnt_tot_r(0) <= wait_cnt_s(0);
+   g_wait_cnt_tot : for i in 1 to G_NUM_ITERATORS-1 generate
+      p_g_wait_cnt_tot : process (clk_i)
+      begin
+         if rising_edge(clk_i) then
+            wait_cnt_tot_r(i) <= wait_cnt_tot_r(i-1) + wait_cnt_s(i);
+         end if;
+      end process p_g_wait_cnt_tot;
+   end generate g_wait_cnt_tot;
 
 
    ----------------------------
@@ -290,7 +291,7 @@ begin
    wr_en_o        <= wr_en_d;
 
    done_o         <= done_r;
-   wait_cnt_tot_o <= wait_cnt_tot_d;
+   wait_cnt_tot_o <= wait_cnt_tot_r(G_NUM_ITERATORS-1);
 
 end architecture rtl;
 

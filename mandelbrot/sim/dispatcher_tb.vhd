@@ -7,10 +7,10 @@ end entity dispatcher_tb;
 
 architecture simulation of dispatcher_tb is
 
-   constant C_MAX_COUNT     : integer := 90;
+   constant C_MAX_COUNT     : integer := 511;
    constant C_NUM_ROWS      : integer := 30;
-   constant C_NUM_COLS      : integer := 400;
-   constant C_NUM_ITERATORS : integer := 8;
+   constant C_NUM_COLS      : integer := 200;
+   constant C_NUM_ITERATORS : integer := 32;
 
    signal clk     : std_logic;
    signal rst     : std_logic;

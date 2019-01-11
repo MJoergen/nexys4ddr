@@ -21,7 +21,7 @@ entity column is
       res_ack_i    : in  std_logic;
       res_data_o   : out std_logic_vector( 8 downto 0);
       res_valid_o  : out std_logic;
-      wait_cnt_o   : out std_logic_vector(31 downto 0)
+      wait_cnt_o   : out std_logic_vector(15 downto 0)
    );
 end entity column;
 
@@ -40,7 +40,7 @@ architecture rtl of column is
    signal res_data_d   : std_logic_vector( 8 downto 0);
    signal res_valid_d  : std_logic;
    signal res_valid_dd : std_logic;
-   signal wait_cnt     : std_logic_vector(31 downto 0);
+   signal wait_cnt     : std_logic_vector(26 downto 0);
 
 begin
 
@@ -152,7 +152,7 @@ begin
    res_data_o  <= res_data_d;
    res_valid_o <= res_valid_d;
 
-   wait_cnt_o  <= wait_cnt;
+   wait_cnt_o  <= wait_cnt(26 downto 11);
 
 end architecture rtl;
 
