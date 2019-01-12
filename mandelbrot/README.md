@@ -179,3 +179,15 @@ potentially may give a delay up to 240 clock cycles before an idle column is
 given a job. With 640 jobs, the maximum delay is about 1 ms, assuming the
 columns operate at 150 MHz. This delay is negligible.
 
+## Timing
+I've added counters to measure the total time it takes to generate the picture
+as well as the total amount of time the iterators are waiting to write to display
+memory.
+
+The total time taken in 472*2^11 clock cycles, which at a frequency of 150 MHz
+becomes 6,4 milliseconds.
+
+The average waiting time for each iterator is 28642/240 * 2^11 clock cycles,
+which is 1,6 milliseconds. So a quarter of the time is spent waiting. However,
+at this processing speed it really doesn't matter.
+
