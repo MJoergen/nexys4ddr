@@ -32,7 +32,7 @@ architecture structural of mandelbrot is
 
    constant C_START_X       : real := -1.6667;
    constant C_START_Y       : real := -1.0000;
-   constant C_SIZE_X        : real :=  3.3333;
+   constant C_SIZE_X        : real :=  2.6667;
    constant C_SIZE_Y        : real :=  2.0000;
 
    constant startx       : std_logic_vector(17 downto 0) := to_std_logic_vector(integer((C_START_X+4.0)*real(2**16)), 18);
@@ -65,6 +65,8 @@ architecture structural of mandelbrot is
    signal vga_col        : std_logic_vector(7 downto 0);
 
    signal cnt            : std_logic_vector(31 downto 0);
+   signal sw_d           : std_logic;
+   signal sw_deb         : std_logic;
 
 begin
 
@@ -109,13 +111,25 @@ begin
       end if;
    end process p_vga_rst;
 
+   p_debounce : process (main_clk)
+   begin
+      if rising_edge(main_clk) then
+         sw_d <= sw_i(0);
+
+         sw_deb <= '0';
+         if sw_i(0) = '1' and sw_d = '0' then
+            sw_deb <= '1';
+         end if;
+      end if;
+   end process p_debounce;
+
 
    p_active : process (main_clk)
    begin
       if rising_edge(main_clk) then
          start <= '0';
 
-         if sw_i(0) = '1' and active = '0' then
+         if sw_deb = '1' and active = '0' then
             active <= '1';
             start  <= '1';
          end if;

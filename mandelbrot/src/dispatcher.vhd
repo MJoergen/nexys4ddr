@@ -263,6 +263,10 @@ begin
       begin
          if rising_edge(clk_i) then
             wait_cnt_tot_r(i) <= wait_cnt_tot_r(i-1) + wait_cnt_s(i);
+
+            if rst_i = '1' then
+               wait_cnt_tot_r(i) <= (others => '0');
+            end if;
          end if;
       end process p_g_wait_cnt_tot;
    end generate g_wait_cnt_tot;
