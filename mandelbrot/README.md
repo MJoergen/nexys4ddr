@@ -184,10 +184,15 @@ I've added counters to measure the total time it takes to generate the picture
 as well as the total amount of time the iterators are waiting to write to display
 memory.
 
-The total time taken in 472*2^11 clock cycles, which at a frequency of 150 MHz
+The total time taken in 472\*2^11 clock cycles, which at a frequency of 150 MHz
 becomes 6,4 milliseconds.
 
-The average waiting time for each iterator is 28642/240 * 2^11 clock cycles,
+The average waiting time for each iterator is 28642/240 \* 2^11 clock cycles,
 which is 1,6 milliseconds. So a quarter of the time is spent waiting. However,
 at this processing speed it really doesn't matter.
+
+Another way of looking at this is that each iterator is using 472\*2^11 clock cycles, 
+so a total of 232 million clock cycles. The average amount per pixel is then
+obtained by dividing by 640 and by 480, which gives 755 clock cycles, or in other words
+252 iterations per pixel.
 
