@@ -14,6 +14,7 @@ entity mandelbrot is
       clk_i     : in  std_logic;                      -- 100 MHz
       rstn_i    : in  std_logic;
 
+      btn_i     : in  std_logic_vector( 4 downto 0);  -- "CLRUD"
       sw_i      : in  std_logic_vector( 7 downto 0);
       led_o     : out std_logic_vector(15 downto 0);
 
@@ -35,10 +36,10 @@ architecture structural of mandelbrot is
    constant C_SIZE_X        : real :=  2.6667;
    constant C_SIZE_Y        : real :=  2.0000;
 
-   constant startx       : std_logic_vector(17 downto 0) := to_std_logic_vector(integer((C_START_X+4.0)*real(2**16)), 18);
-   constant starty       : std_logic_vector(17 downto 0) := to_std_logic_vector(integer((C_START_Y+4.0)*real(2**16)), 18);
-   constant stepx        : std_logic_vector(17 downto 0) := to_std_logic_vector(integer(C_SIZE_X*real(2**16))/C_NUM_COLS, 18);
-   constant stepy        : std_logic_vector(17 downto 0) := to_std_logic_vector(integer(C_SIZE_Y*real(2**16))/C_NUM_ROWS, 18);
+   signal startx         : std_logic_vector(17 downto 0);
+   signal starty         : std_logic_vector(17 downto 0);
+   signal stepx          : std_logic_vector(17 downto 0);
+   signal stepy          : std_logic_vector(17 downto 0);
 
    signal main_clk       : std_logic;
    signal main_rst_delay : std_logic_vector(7 downto 0) := X"FF";
@@ -67,6 +68,12 @@ architecture structural of mandelbrot is
    signal cnt            : std_logic_vector(31 downto 0);
    signal sw_d           : std_logic;
    signal sw_deb         : std_logic;
+
+   -- 23 bits = 8 million cycles @ 150 MHz = 18 times pr second.
+   signal main_upd_cnt   : std_logic_vector(22 downto 0);
+   signal main_upd       : std_logic;
+   signal btn_r          : std_logic_vector(4 downto 0);
+   signal sw_r           : std_logic_vector(7 downto 0);
 
 begin
 
@@ -110,6 +117,61 @@ begin
          end if;
       end if;
    end process p_vga_rst;
+
+
+   p_main_upd : process (main_clk)
+   begin
+      if rising_edge(main_clk) then
+         main_upd_cnt <= main_upd_cnt + 1;
+
+         main_upd <= '0';
+         if main_upd_cnt = 0 then
+            main_upd <= '1';
+         end if;
+      end if;
+   end process p_main_upd;
+
+
+   p_xy : process (main_clk)
+   begin
+      if rising_edge(main_clk) then
+         if main_upd = '1' then
+            if btn_r(4) = '1' then
+               if sw_r(2) = '1' then
+                  stepx <= stepx + stepx(9 downto 0);
+                  stepy <= stepy + stepy(9 downto 0);
+               else
+                  stepx <= stepx - stepx(9 downto 0);
+                  stepy <= stepy - stepy(9 downto 0);
+               end if;
+            end if;
+
+            if btn_r(3) = '1' then
+               startx <= startx - stepx;
+            end if;
+            if btn_r(2) = '1' then
+               startx <= startx + stepx;
+            end if;
+            if btn_r(1) = '1' then
+               starty <= starty - stepy;
+            end if;
+            if btn_r(0) = '1' then
+               starty <= starty + stepy;
+            end if;
+         end if;
+
+         btn_r <= btn_i;
+         sw_r  <= sw_i;
+
+         if main_rst = '1' then
+            startx <= to_std_logic_vector(integer((C_START_X+4.0)*real(2**16)), 18);
+            starty <= to_std_logic_vector(integer((C_START_Y+4.0)*real(2**16)), 18);
+            stepx  <= to_std_logic_vector(integer(C_SIZE_X*real(2**16))/C_NUM_COLS, 18);
+            stepy  <= to_std_logic_vector(integer(C_SIZE_Y*real(2**16))/C_NUM_ROWS, 18);
+         end if;
+      end if;
+   end process p_xy;
+
 
    p_debounce : process (main_clk)
    begin
