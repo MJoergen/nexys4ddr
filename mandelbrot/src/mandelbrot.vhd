@@ -138,11 +138,11 @@ begin
          if main_upd = '1' then
             if btn_r(4) = '1' then
                if sw_r(2) = '1' then
-                  stepx <= stepx + stepx(9 downto 0);
-                  stepy <= stepy + stepy(9 downto 0);
+                  stepx <= stepx + stepx(17 downto 6) + 1;
+                  stepy <= stepy + stepy(17 downto 6) + 1;
                else
-                  stepx <= stepx - stepx(9 downto 0);
-                  stepy <= stepy - stepy(9 downto 0);
+                  stepx <= stepx - stepx(17 downto 6) - 1;
+                  stepy <= stepy - stepy(17 downto 6) - 1;
                end if;
             end if;
 
@@ -191,7 +191,7 @@ begin
       if rising_edge(main_clk) then
          start <= '0';
 
-         if sw_deb = '1' and active = '0' then
+         if active = '0' then
             active <= '1';
             start  <= '1';
          end if;
@@ -212,6 +212,10 @@ begin
       if rising_edge(main_clk) then
          if active = '1' then
             cnt <= cnt + 1;
+         end if;
+
+         if start = '1' then
+            cnt <= (others => '0');
          end if;
       end if;
    end process p_cnt;
