@@ -127,7 +127,9 @@ architecture structural of ctl is
    constant ZP_INC    : t_ctl := B"11_00_0_0_00_0000_00000_0_0_000_000_000000_00_00_0";
 
    -- Decode control signals
-   signal ctl      : t_ctl;
+   signal ctl           : t_ctl;
+   signal ctl_reg_data  : t_ctl;
+   signal ctl_reg_ir    : t_ctl;
    alias ar_sel    : std_logic                    is ctl(0);
    alias hi_sel    : std_logic_vector(1 downto 0) is ctl(2 downto 1);
    alias lo_sel    : std_logic_vector(1 downto 0) is ctl(4 downto 3);
@@ -2749,9 +2751,22 @@ begin
       end if;
    end process invalid_proc;
 
-   -- Combinatorial lookup in ROM
+   -- Multiplex output from ROM
    ctl <= ADDR_PC + PC_INC when cnt = 0 else
-          rom(to_integer(ir)*8 + to_integer(cnt));
+          ctl_reg_data     when cnt = 1 else
+          ctl_reg_ir;
+
+   -- Registered lookup in ROM.
+   -- Note the "+1" because of the clock cycle delay caused by the register.
+   ctl_proc : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if wait_i = '0' then
+            ctl_reg_data <= rom(to_integer(data_i)*8 + 1);
+            ctl_reg_ir   <= rom(to_integer(ir)*8 + to_integer(cnt+1));
+         end if;
+      end if;
+   end process ctl_proc;
 
    -- Drive output signals
    ar_sel_o   <= ar_sel;
