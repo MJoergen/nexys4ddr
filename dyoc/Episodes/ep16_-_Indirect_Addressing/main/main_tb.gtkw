@@ -1,23 +1,22 @@
 [*]
-[*] GTKWave Analyzer v3.3.89 (w)1999-2018 BSI
-[*] Mon Nov 12 05:55:49 2018
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Fri May 10 09:07:29 2019
 [*]
-[dumpfile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep15_-_Indexed_Addressing/main_tb.ghw"
-[dumpfile_mtime] "Mon Nov 12 05:55:39 2018"
-[dumpfile_size] 618712
-[savefile] "/home/mike/git/nexys4ddr/dyoc/Episodes/ep15_-_Indexed_Addressing/main_tb.gtkw"
+[dumpfile] "/home/mfj/git/nexys4ddr/dyoc/Episodes/ep16_-_Indirect_Addressing/main/main_tb.ghw"
+[dumpfile_mtime] "Fri May 10 09:03:40 2019"
+[dumpfile_size] 607541
+[savefile] "/home/mfj/git/nexys4ddr/dyoc/Episodes/ep16_-_Indirect_Addressing/main/main_tb.gtkw"
 [timestart] 0
-[size] 1920 970
+[size] 1853 1145
 [pos] -1 -1
-*-32.422268 36170000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-25.422268 36170000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.main_tb.
 [treeopen] top.main_tb.main_inst.
 [treeopen] top.main_tb.main_inst.cpu_inst.
-[treeopen] top.main_tb.main_inst.cpu_inst.datapath_inst.
+[treeopen] top.main_tb.main_inst.cpu_inst.ctl_inst.
 [treeopen] top.main_tb.main_inst.cpu_inst.datapath_inst.ar_inst.
 [treeopen] top.main_tb.main_inst.cpu_inst.datapath_inst.hi_inst.
-[treeopen] top.main_tb.main_inst.cpu_inst.datapath_inst.lo_inst.
 [treeopen] top.main_tb.main_inst.cpu_inst.datapath_inst.pc_inst.
 [treeopen] top.main_tb.main_inst.cpu_inst.datapath_inst.sp_inst.
 [treeopen] top.main_tb.main_inst.cpu_inst.datapath_inst.sr_inst.
@@ -40,6 +39,12 @@ top.main_tb.main_inst.cpu_inst.wren_o
 @22
 #{top.main_tb.main_inst.cpu_inst.data_o[7:0]} top.main_tb.main_inst.cpu_inst.data_o[7] top.main_tb.main_inst.cpu_inst.data_o[6] top.main_tb.main_inst.cpu_inst.data_o[5] top.main_tb.main_inst.cpu_inst.data_o[4] top.main_tb.main_inst.cpu_inst.data_o[3] top.main_tb.main_inst.cpu_inst.data_o[2] top.main_tb.main_inst.cpu_inst.data_o[1] top.main_tb.main_inst.cpu_inst.data_o[0]
 #{top.main_tb.main_inst.cpu_inst.invalid_o[7:0]} top.main_tb.main_inst.cpu_inst.invalid_o[7] top.main_tb.main_inst.cpu_inst.invalid_o[6] top.main_tb.main_inst.cpu_inst.invalid_o[5] top.main_tb.main_inst.cpu_inst.invalid_o[4] top.main_tb.main_inst.cpu_inst.invalid_o[3] top.main_tb.main_inst.cpu_inst.invalid_o[2] top.main_tb.main_inst.cpu_inst.invalid_o[1] top.main_tb.main_inst.cpu_inst.invalid_o[0]
+@28
+#{top.main_tb.main_inst.cpu_inst.ctl_inst.cnt[2:0]} top.main_tb.main_inst.cpu_inst.ctl_inst.cnt[2] top.main_tb.main_inst.cpu_inst.ctl_inst.cnt[1] top.main_tb.main_inst.cpu_inst.ctl_inst.cnt[0]
+@22
+#{top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[35:0]} top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[35] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[34] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[33] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[32] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[31] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[30] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[29] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[28] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[27] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[26] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[25] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[24] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[23] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[22] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[21] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[20] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[19] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[18] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[17] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[16] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[15] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[14] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[13] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[12] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[11] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[10] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[9] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[8] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[7] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[6] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[5] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[4] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[3] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[2] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[1] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl_reg[0]
+@23
+#{top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[35:0]} top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[35] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[34] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[33] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[32] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[31] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[30] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[29] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[28] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[27] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[26] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[25] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[24] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[23] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[22] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[21] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[20] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[19] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[18] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[17] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[16] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[15] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[14] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[13] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[12] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[11] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[10] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[9] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[8] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[7] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[6] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[5] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[4] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[3] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[2] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[1] top.main_tb.main_inst.cpu_inst.ctl_inst.ctl[0]
 @1000200
 -CPU
 @800200
