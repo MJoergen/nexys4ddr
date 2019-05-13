@@ -31,7 +31,7 @@ entity eth_rx is
       eth_rst_i   : in  std_logic;
 
       -- Pushing interface
-      ena_o       : out std_logic;
+      valid_o     : out std_logic;
       sof_o       : out std_logic;
       eof_o       : out std_logic;
       data_o      : out std_logic_vector(7 downto 0);
@@ -138,7 +138,7 @@ begin
    proc_out : process (eth_clk_i)
    begin
       if rising_edge(eth_clk_i) then
-         ena_o       <= ena;
+         valid_o     <= ena;
          sof_o       <= ena and sof;
          eof_o       <= ena and not eth_crsdv_i;
          data_o      <= data;
