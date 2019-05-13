@@ -46,11 +46,11 @@ begin
    rom_inst : entity work.rom
    generic map (
       G_INIT_FILE => G_ROM_INIT_FILE,
-      G_ADDR_BITS => 12  -- 4K bytes
+      G_ADDR_BITS => 11  -- 2K bytes
    )
    port map (
       clk_i  => clk_i,
-      addr_i => addr_i(11 downto 0),
+      addr_i => addr_i(10 downto 0),
       data_o => rom_data
    ); -- rom_inst
    
@@ -76,8 +76,8 @@ begin
    -- Address decoding
    --------------------
 
-   -- Allow 4K bytes of ROM in the range 0xF000 - 0xFFFF.
-   rom_cs <= '1' when addr_i(15 downto 12) = "1111" else
+   -- Allow 2K bytes of ROM in the range 0xF800 - 0xFFFF.
+   rom_cs <= '1' when addr_i(15 downto 11) = "11111" else
              '0';
 
    -- Allow 4K bytes of RAM in the range 0x0000 - 0x0FFF.
