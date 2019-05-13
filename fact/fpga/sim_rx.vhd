@@ -38,7 +38,7 @@ begin
       byte_loop : while (true) loop
          wait until clk_i = '1';
          if rx_valid_i = '1' then
-            sim_data(8*to_integer(sim_len)+7 downto 8*to_integer(sim_len)) <= rx_data_i;
+            sim_data <= sim_data(63*8-1 downto 0) & rx_data_i;
             sim_len <= sim_len + 1;
             if rx_eof_i = '1' then
                sim_done <= '1';

@@ -93,7 +93,6 @@ begin
          rst_i       => rst_i,
          pl_valid_i  => pl_valid_r,
          pl_data_i   => pl_data_r,
-         pl_size_i   => to_std_logic_vector(C_ARP_SIZE, 8),
          tx_valid_o  => tx_valid_o,
          tx_sof_o    => tx_sof_o,
          tx_eof_o    => tx_eof_o,

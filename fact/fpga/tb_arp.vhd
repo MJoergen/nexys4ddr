@@ -28,6 +28,8 @@ architecture simulation of tb_arp is
    signal sim_tx_data  : std_logic_vector(64*8-1 downto 0);
 
    -- Signals for reception of the Ethernet frames.
+   signal exp_rx_data  : std_logic_vector(64*8-1 downto 0);
+
    signal sim_rx_len   : std_logic_vector(15 downto 0);
    signal sim_rx_data  : std_logic_vector(64*8-1 downto 0);
    signal sim_rx_done  : std_logic;
@@ -77,33 +79,28 @@ begin
    ); -- inst_sim_req
 
 
---   --------------------
---   -- Instantiate the DUT
---   --------------------
---
---   inst_arp : entity work.arp
---   port map (
---      clk_i        => clk,
---      rst_i        => rst,
---      rx_valid_i   => req_valid,
---      rx_sof_i     => req_sof,
---      rx_eof_i     => req_eof,
---      rx_data_i    => req_data,
---      tx_valid_o   => rsp_valid,
---      tx_sof_o     => rsp_sof,
---      tx_eof_o     => rsp_eof,
---      tx_data_o    => rsp_data
---   ); -- inst_arp
+   --------------------
+   -- Instantiate the DUT
+   --------------------
 
-   p_delay : process (clk)
-   begin
-      if rising_edge(clk) then
-         rsp_valid <= req_valid;
-         rsp_sof   <= req_sof;
-         rsp_eof   <= req_eof;
-         rsp_data  <= req_data;
-      end if;
-   end process p_delay;
+   inst_arp : entity work.arp
+   generic map (
+      G_MAC => X"AABBCCDDEEFF",
+      G_IP  => X"0A000002"
+   )
+   port map (
+      clk_i        => clk,
+      rst_i        => rst,
+      rx_valid_i   => req_valid,
+      rx_sof_i     => req_sof,
+      rx_eof_i     => req_eof,
+      rx_data_i    => req_data,
+      tx_valid_o   => rsp_valid,
+      tx_sof_o     => rsp_sof,
+      tx_eof_o     => rsp_eof,
+      tx_data_o    => rsp_data
+   ); -- inst_arp
+
 
    ---------------------------------
    -- Instantiate traffic receiver
@@ -128,6 +125,51 @@ begin
    -- Main test procedure starts here
    ----------------------------------
 
+--- 41 : MAC_DST[47 downto 40]       (Broadcast address)
+--- 40 : MAC_DST[39 downto 32]
+--- 39 : MAC_DST[31 downto 24]
+--- 38 : MAC_DST[23 downto 16]
+--- 37 : MAC_DST[15 downto  8]
+--- 36 : MAC_DST[ 7 downto  0]
+--- 35 : MAC_SRC[47 downto 40]
+--- 34 : MAC_SRC[39 downto 32]
+--- 33 : MAC_SRC[31 downto 24]
+--- 32 : MAC_SRC[23 downto 16]
+--- 31 : MAC_SRC[15 downto  8]
+--- 30 : MAC_SRC[ 7 downto  0]
+--- 29 : TYPE_LEN[15 downto 8]  = 08 (ARP)
+--- 28 : TYPE_LEN[ 7 downto 0]  = 06
+---
+--- 27 : HTYPE[15 downto 8] = 00     (Ethernet)
+--- 26 : HTYPE[ 7 downto 0] = 01
+--- 25 : PTYPE[15 downto 8] = 08     (IPv4)
+--- 24 : PTYPE[ 7 downto 0] = 00
+--- 23 : HLEN[ 7 downto 0] = 06
+--- 22 : PLEN[ 7 downto 0] = 04
+--- 21 : OPER[15 downto 8] = 00      (Request)
+--- 20 : OPER[ 7 downto 0] = 01
+--- 19 : SHA[47 downto 40]
+--- 18 : SHA[39 downto 32]
+--- 17 : SHA[31 downto 24]
+--- 16 : SHA[23 downto 16]
+--- 15 : SHA[15 downto  8]
+--- 14 : SHA[ 7 downto  0]
+--- 13 : SPA[31 downto 24]
+--- 12 : SPA[23 downto 16]
+--- 11 : SPA[15 downto  8]
+--- 10 : SPA[ 7 downto  0]
+---  9 : THA[47 downto 40]           (Ignored)
+---  8 : THA[39 downto 32]
+---  7 : THA[31 downto 24]
+---  6 : THA[23 downto 16]
+---  5 : THA[15 downto  8]
+---  4 : THA[ 7 downto  0]           (Our IP address)
+---  3 : TPA[31 downto 24]
+---  2 : TPA[23 downto 16]
+---  1 : TPA[15 downto  8]
+---  0 : TPA[ 7 downto  0]
+   
+
    main_test_proc : process
    begin
       -- Wait until reset is complete
@@ -135,39 +177,26 @@ begin
       wait until rst = '0';
       wait until clk = '1';
 
-      -- Send one frame (16 bytes)
-      for i in 0 to 15 loop
-         sim_tx_data(8*i+7 downto 8*i) <= to_std_logic_vector(i+12, 8);
-      end loop;
-      for i in 16 to 63 loop
-         sim_tx_data(8*i+7 downto 8*i) <= (others => 'X');
-      end loop;
-      sim_tx_len   <= X"0010";
+      sim_tx_data(42*8-1 downto 0) <= X"FFFFFFFFFFFF0011223344550806" &
+                                      X"0001080006040001" &
+                                      X"0011223344550A000001" &
+                                      X"0000000000000A000002";
+      sim_tx_data(63*8-1 downto 42*8) <= (others => 'U');
+      sim_tx_len   <= X"002A";
       sim_tx_start <= '1';
       wait until sim_tx_done = '1';
       sim_tx_start <= '0';
 
-      wait until sim_rx_done = '1';
-      -- Validate received frame
-      assert sim_rx_len  = sim_tx_len;
-      assert sim_rx_data(16*8-1 downto 0) = sim_tx_data(16*8-1 downto 0);
-
-      -- Send another frame (32 bytes)
-      for i in 0 to 31 loop
-         sim_tx_data(8*i+7 downto 8*i) <= to_std_logic_vector(i+22, 8);
-      end loop;
-      for i in 32 to 63 loop
-         sim_tx_data(8*i+7 downto 8*i) <= (others => 'X');
-      end loop;
-      sim_tx_len   <= X"0020";
-      sim_tx_start <= '1';
-      wait until sim_tx_done = '1';
-      sim_tx_start <= '0';
+      exp_rx_data(42*8-1 downto 0) <= X"001122334455AABBCCDDEEFF0806" &
+                                      X"0001080006040002" &
+                                      X"AABBCCDDEEFF0A000002" &
+                                      X"0011223344550A000001";
+      exp_rx_data(63*8-1 downto 42*8) <= (others => 'U');
 
       wait until sim_rx_done = '1';
       -- Validate received frame
-      assert sim_rx_len  = sim_tx_len;
-      assert sim_rx_data(32*8-1 downto 0) = sim_tx_data(32*8-1 downto 0);
+      assert sim_rx_len  = 42;
+      assert sim_rx_data(42*8-1 downto 0) = exp_rx_data(42*8-1 downto 0);
 
       -- Stop test
       wait until clk = '1';
