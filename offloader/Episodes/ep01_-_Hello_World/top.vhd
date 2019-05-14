@@ -45,7 +45,7 @@ architecture structural of top is
    constant COL_BLUE  : std_logic_vector(11 downto 0) := B"0000_0000_1111";
 
    -- Clock divider for VGA
-   signal vga_cnt : std_logic_vector(1 downto 0) := (others => '0');
+   signal clk_cnt : std_logic_vector(1 downto 0) := (others => '0');
    signal vga_clk : std_logic;
 
    -- Pixel counters
@@ -72,14 +72,14 @@ begin
    -- This is close enough to 25.175 MHz.
    --------------------------------------------------
 
-   vga_cnt_proc : process (clk_i)
+   clk_cnt_proc : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         vga_cnt <= vga_cnt + 1;
+         clk_cnt <= clk_cnt + 1;
       end if;
-   end process vga_cnt_proc;
+   end process clk_cnt_proc;
 
-   vga_clk <= vga_cnt(1);
+   vga_clk <= clk_cnt(1);
 
 
    --------------------------------------------------
