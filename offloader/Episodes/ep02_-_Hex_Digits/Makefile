@@ -1,8 +1,7 @@
 XILINX_DIR = /opt/Xilinx/Vivado/2018.2
 
-SRCS  = vga/font.vhd 
-SRCS += vga/vga.vhd
-SRCS += top.vhd
+SRCS  = top.vhd debug.vhd
+SRCS += vga/vga.vhd vga/pix.vhd vga/rom.vhd 
 
 top.bit: top.tcl $(SRCS) top.xdc
 	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $<"

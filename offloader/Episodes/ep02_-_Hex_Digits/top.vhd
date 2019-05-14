@@ -48,12 +48,11 @@ begin
    -- Generate test signal
    --------------------------------------------------
 
-   p_hex : process (vga_clk)
-   begin
-      if rising_edge(vga_clk) then
-         vga_hex <= vga_hex + 1;
-      end if;
-   end process p_hex;
+   i_debug : entity work.debug
+   port map (
+      clk_i => vga_clk,
+      hex_o => vga_hex
+   ); -- i_debug
 
 
    --------------------------------------------------

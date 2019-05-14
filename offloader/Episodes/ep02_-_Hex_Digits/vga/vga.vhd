@@ -50,8 +50,8 @@ architecture structural of vga is
    constant COL_BLUE  : std_logic_vector(11 downto 0) := B"0000_0000_1111";
 
    -- Pixel counters
-   signal pix_x : std_logic_vector(9 downto 0) := (others => '0');
-   signal pix_y : std_logic_vector(9 downto 0) := (others => '0');
+   signal pix_x : std_logic_vector(9 downto 0);
+   signal pix_y : std_logic_vector(9 downto 0);
 
    -- This record contains all the registers used in the pipeline.
    type t_vga is record
@@ -60,10 +60,18 @@ architecture structural of vga is
       pix_y  : std_logic_vector(9 downto 0);
       hs     : std_logic;
       vs     : std_logic;
-      char   : std_logic_vector(7 downto 0);
+
+      char_row : std_logic_vector(6 downto 0);
+      char_col : std_logic_vector(6 downto 0);
+      char_num : std_logic_vector(13 downto 0);
+      hex_idx  : integer range 0 to 63;
+      hex      : std_logic_vector(3 downto 0);
+      char     : std_logic_vector(7 downto 0);
+
+      addr   : std_logic_vector(10 downto 0);
 
       -- Valid after stage 2
-      bitmap : std_logic_vector(63 downto 0);
+      bitmap : std_logic_vector(7 downto 0);
 
       -- Valid after stage 3
       col    : std_logic_vector(11 downto 0);
@@ -79,29 +87,12 @@ begin
    -- Generate horizontal and vertical pixel counters
    ---------------------------------------------------
 
-   p_pix_x : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if pix_x = H_TOTAL-1 then
-            pix_x <= (others => '0');
-         else
-            pix_x <= pix_x + 1;
-         end if;
-      end if;
-   end process p_pix_x;
-
-   p_pix_y : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if pix_x = H_TOTAL-1  then
-            if pix_y = V_TOTAL-1 then
-               pix_y <= (others => '0');
-            else
-               pix_y <= pix_y + 1;
-            end if;
-         end if;
-      end if;
-   end process p_pix_y;
+   i_pix : entity work.pix
+   port map (
+      clk_i   => clk_i,
+      pix_x_o => pix_x,
+      pix_y_o => pix_y
+   ); -- i_pix
 
 
    ---------------------------------------------
@@ -116,21 +107,22 @@ begin
       variable v_hex_idx  : integer range 0 to 63;
       variable v_hex      : std_logic_vector(3 downto 0);
       variable v_char     : std_logic_vector(7 downto 0);
+      variable v_addr     : std_logic_vector(10 downto 0);
    begin
       if rising_edge(clk_i) then
          stage1.pix_x <= pix_x;
          stage1.pix_y <= pix_y;
 
          if pix_x >= HS_START and pix_x < HS_START+HS_TIME then
-            stage1.hs <= '0';
-         else
             stage1.hs <= '1';
+         else
+            stage1.hs <= '0';
          end if;
 
          if pix_y >= VS_START and pix_y < VS_START+VS_TIME then
-            stage1.vs <= '0';
-         else
             stage1.vs <= '1';
+         else
+            stage1.vs <= '0';
          end if;
 
          -- Determine character row and column.
@@ -141,18 +133,28 @@ begin
          v_char_num := v_char_row * H_CHARS + v_char_col;
 
          -- Determine which hexadecimal character to display now.
-         v_hex_idx  := to_integer(v_char_num(5 downto 0));
+         v_hex_idx  := 63 - to_integer(v_char_num(5 downto 0));
 
          -- Read hexadecimal value from input.
          v_hex      := hex_i(v_hex_idx*4+3 downto v_hex_idx*4);
 
          -- Convert hexadecimal value to ASCII.
-         v_char     := v_hex + X"30" when v_hex < X"A" else v_hex + X"41";
-
-         stage1.char <= X"20";   -- Default character is a space
+         v_char     := X"20"; -- Default to a space character.
          if v_char_num < 64 then
-            stage1.char <= v_char;
+            v_char  := v_hex + X"30" when v_hex < X"A" else v_hex + X"41";
          end if;
+
+         -- Calculate address in font ROM.
+         v_addr     := v_char & ("111" - pix_y(2 downto 0));
+
+         stage1.char_row <= v_char_row;
+         stage1.char_col <= v_char_col;
+         stage1.char_num <= v_char_num;
+         stage1.hex_idx  <= v_hex_idx;
+         stage1.hex      <= v_hex;
+         stage1.char     <= v_char;
+         stage1.addr     <= v_addr;
+
       end if;
    end process p_stage1;
 
@@ -162,12 +164,17 @@ begin
    -- Read bitmap of character
    ---------------------------------------------
 
-   i_font : entity work.font
+   i_rom : entity work.rom
+   generic map (
+      G_ROM_FILE  => "font8x8.txt",
+      G_ADDR_SIZE => 11,
+      G_DATA_SIZE => 8
+   )
    port map (
-      clk_i    => clk_i,
-      char_i   => stage1.char,
-      bitmap_o => stage2.bitmap
-   ); -- i_font
+      clk_i  => clk_i,
+      addr_i => stage1.addr,
+      data_o => stage2.bitmap
+   ); -- i_rom
 
 
    ---------------------------------------------
@@ -178,11 +185,17 @@ begin
    p_stage2 : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         stage2.pix_x   <= stage1.pix_x;
-         stage2.pix_y   <= stage1.pix_y;
-         stage2.hs      <= stage1.hs;
-         stage2.vs      <= stage1.vs;
-         stage2.char    <= stage1.char;
+         stage2.pix_x    <= stage1.pix_x;
+         stage2.pix_y    <= stage1.pix_y;
+         stage2.hs       <= stage1.hs;
+         stage2.vs       <= stage1.vs;
+         stage2.char_row <= stage1.char_row;
+         stage2.char_col <= stage1.char_col;
+         stage2.char_num <= stage1.char_num;
+         stage2.hex_idx  <= stage1.hex_idx;
+         stage2.hex      <= stage1.hex;
+         stage2.char     <= stage1.char;
+         stage2.addr     <= stage1.addr;
       end if;
    end process p_stage2;
 
@@ -193,9 +206,7 @@ begin
    ---------------------------------------------
 
    p_stage3 : process (clk_i)
-      variable v_offset_x      : std_logic_vector(2 downto 0);
-      variable v_offset_y      : std_logic_vector(2 downto 0);
-      variable v_offset_bitmap : integer range 0 to 63;
+      variable v_offset_x : std_logic_vector(2 downto 0);
    begin
       if rising_edge(clk_i) then
 
@@ -203,12 +214,10 @@ begin
          stage3 <= stage2;
 
          -- Calculate position within character bitmap
-         v_offset_x      := stage2.pix_x(2 downto 0);
-         v_offset_y      := 7-stage2.pix_y(2 downto 0);
-         v_offset_bitmap := to_integer(v_offset_y) * 8 + to_integer(v_offset_x);
+         v_offset_x := stage2.pix_x(2 downto 0);
 
          -- Set the colour
-         if stage2.bitmap(v_offset_bitmap) = '1' then
+         if stage2.bitmap(to_integer(v_offset_x)) = '1' then
             stage3.col <= COL_WHITE;
          else
             stage3.col <= COL_DARK;
