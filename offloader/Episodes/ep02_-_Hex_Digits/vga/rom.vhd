@@ -3,11 +3,18 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 use std.textio.all;
 
+-- This is a wrapper for a generic ROM.
+-- The contents of the ROM is taken from a text file containing hexadecimal
+-- values, one line for each address of the ROM.
+
+-- Under normal circumstances, the Vivado tool will synthesize this into one or
+-- more BRAM's with initial contents. No extra logic should be generated.
+
 entity rom is
    generic (
-      G_ROM_FILE  : string;
-      G_ADDR_SIZE : integer;
-      G_DATA_SIZE : integer
+      G_ROM_FILE  : string;      -- Text file used to initialize the contents of the ROM.
+      G_ADDR_SIZE : integer;     -- Number of bits in the address bus.
+      G_DATA_SIZE : integer      -- Number of bits in the data bus.
    );
    port (
       clk_i  : in  std_logic;
@@ -45,6 +52,8 @@ architecture structural of rom is
 
 begin
 
+   -- Note, this is a clocked process. This is necessary to allow the use of a BRAM.
+   -- If the clock is removed, then this block will be replaced with a large tree of combinatorial logic.
    p_data : process (clk_i)
    begin
       if rising_edge(clk_i) then

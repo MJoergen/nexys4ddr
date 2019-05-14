@@ -3,14 +3,16 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
 -- This module drives the VGA interface of the design.
--- The screen resolution generated is 640x480 @ 60 Hz,
--- with 256 colours.
--- This module expects an input clock rate of approximately
--- 25.175 MHz. It will work with a clock rate of 25.0 MHz.
+-- The screen resolution generated is 640x480 @ 60 Hz, with 256 colours.
+-- This module expects an input clock rate of approximately 25.175 MHz. It will
+-- work with a clock rate of 25.0 MHz.
+--
+-- This module takes an input of 32 bytes (256 bits), and displays this in the
+-- first row of the screen as 64 hexadecimal characters.
 
 entity vga is
    port (
-      clk_i     : in  std_logic;    -- Expects 25.175 MHz
+      clk_i     : in  std_logic;    -- Expects 25.175 MHz. Works with 25.0 MHz.
 
       hex_i     : in  std_logic_vector(255 downto 0);
 
@@ -31,8 +33,8 @@ architecture structural of vga is
    constant V_PIXELS : integer := 480;
 
    -- Number of 8x8 characters on screen
-   constant H_CHARS : integer := H_PIXELS/8;
-   constant V_CHARS : integer := V_PIXELS/8;
+   constant H_CHARS : integer := H_PIXELS/8;    -- 80
+   constant V_CHARS : integer := V_PIXELS/8;    -- 60
 
    -- Define VGA timing constants
    constant HS_START : integer := 656;
@@ -60,14 +62,6 @@ architecture structural of vga is
       pix_y  : std_logic_vector(9 downto 0);
       hs     : std_logic;
       vs     : std_logic;
-
-      char_row : std_logic_vector(6 downto 0);
-      char_col : std_logic_vector(6 downto 0);
-      char_num : std_logic_vector(13 downto 0);
-      hex_idx  : integer range 0 to 63;
-      hex      : std_logic_vector(3 downto 0);
-      char     : std_logic_vector(7 downto 0);
-
       addr   : std_logic_vector(10 downto 0);
 
       -- Valid after stage 2
@@ -82,7 +76,7 @@ architecture structural of vga is
    signal stage3 : t_vga;
 
 begin
-   
+
    ---------------------------------------------------
    -- Generate horizontal and vertical pixel counters
    ---------------------------------------------------
@@ -101,13 +95,13 @@ begin
    ---------------------------------------------
 
    p_stage1 : process (clk_i)
-      variable v_char_row : std_logic_vector(6 downto 0);
-      variable v_char_col : std_logic_vector(6 downto 0);
-      variable v_char_num : std_logic_vector(13 downto 0);
-      variable v_hex_idx  : integer range 0 to 63;
-      variable v_hex      : std_logic_vector(3 downto 0);
-      variable v_char     : std_logic_vector(7 downto 0);
-      variable v_addr     : std_logic_vector(10 downto 0);
+      variable v_char_row : std_logic_vector(6 downto 0);   -- 0 to 79, i.e. 80 columns
+      variable v_char_col : std_logic_vector(6 downto 0);   -- 0 to 59, i.e. 60 rows
+      variable v_char_num : std_logic_vector(13 downto 0);  -- 0 to 4799, i.e. one of the 80x60 characters on screen.
+      variable v_hex_idx  : integer range 0 to 63;          -- Selects which of the 64 hexadecimal characters to display.
+      variable v_hex      : std_logic_vector(3 downto 0);   -- Value of current 4-bit nibble.
+      variable v_char     : std_logic_vector(7 downto 0);   -- ASCII code of current character.
+      variable v_addr     : std_logic_vector(10 downto 0);  -- Address into font ROM.
    begin
       if rising_edge(clk_i) then
          stage1.pix_x <= pix_x;
@@ -147,13 +141,7 @@ begin
          -- Calculate address in font ROM.
          v_addr     := v_char & ("111" - pix_y(2 downto 0));
 
-         stage1.char_row <= v_char_row;
-         stage1.char_col <= v_char_col;
-         stage1.char_num <= v_char_num;
-         stage1.hex_idx  <= v_hex_idx;
-         stage1.hex      <= v_hex;
-         stage1.char     <= v_char;
-         stage1.addr     <= v_addr;
+         stage1.addr <= v_addr;
 
       end if;
    end process p_stage1;
@@ -161,7 +149,7 @@ begin
 
    ---------------------------------------------
    -- Stage 2
-   -- Read bitmap of character
+   -- Read bitmap of current character
    ---------------------------------------------
 
    i_rom : entity work.rom
@@ -185,24 +173,18 @@ begin
    p_stage2 : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         stage2.pix_x    <= stage1.pix_x;
-         stage2.pix_y    <= stage1.pix_y;
-         stage2.hs       <= stage1.hs;
-         stage2.vs       <= stage1.vs;
-         stage2.char_row <= stage1.char_row;
-         stage2.char_col <= stage1.char_col;
-         stage2.char_num <= stage1.char_num;
-         stage2.hex_idx  <= stage1.hex_idx;
-         stage2.hex      <= stage1.hex;
-         stage2.char     <= stage1.char;
-         stage2.addr     <= stage1.addr;
+         stage2.pix_x <= stage1.pix_x;
+         stage2.pix_y <= stage1.pix_y;
+         stage2.hs    <= stage1.hs;
+         stage2.vs    <= stage1.vs;
+         stage2.addr  <= stage1.addr;
       end if;
    end process p_stage2;
 
 
    ---------------------------------------------
    -- Stage 3
-   -- This stage calculates pix_col.
+   -- This stage calculates col.
    ---------------------------------------------
 
    p_stage3 : process (clk_i)

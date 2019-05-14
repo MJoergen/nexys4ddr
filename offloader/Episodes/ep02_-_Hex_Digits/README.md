@@ -1,151 +1,75 @@
 # CPU offloader
-# Episode 1 : "Hello World"
+# Episode 2 : "Hexadecimal characters"
 
-Welcome to this first episode of "CPU offloader", where we draw a
-checker board pattern on the VGA output.
+Welcome to this second episode of "CPU offloader", where we enable rendering of
+hexadecimal characters on the VGA output.
 
-## Files written in this episode:
-* top.vhd  : Main source file
-* top.xdc  : Pin locations (specific for each FPGA board)
-* top.tcl  : List of commands for Vivado
-* Makefile  : Overall project makefile
+The purpose of this episode is to be able to display a hexadecimal counter.
+Later, we'll replace the counter with debug information about the network
+processor.
 
-The above files constitute the bare necessities for a FPGA project. As this project
-grows we will add more source files. However, the top.vhd will remain the "top level"
-source file, and the project name is "top". This project name is referenced in
-line 4 of top.tcl, and is defined in lines 11, 19, and 21 in the file top.vhd.
+## Code reorganization
+Firstly, we begin to organize our source files. Since this project will grow
+substantially, it is good advice to split the functionality into smaller
+separate files.
 
-## Key learnings in this episode:
-* Each signal may only be assigned values in one process. If more than one process
-is assigning to a signal, then the error "Multiple Drivers" will result. This is
-because this essentially corresponds to a short-ciruit within the FPGA, and
-fortunately the toolchain prevents that :-)
+All the VGA logic is moved to a separate directory vga, consisting of a number
+of files:
 
-## VGA colour
-The colour to the monitor is in the form of three analog signals, one for each
-of the primary colours Red, Green, and Blue. Since the FPGA can only generate
-digital signals, a simple Digital-to-Analog converter is built into the board,
-in the form of a resistor network. In that way, the Nexys 4 DDR board supports
-four bits of resolution for each of the three colours, i.e. a total of 12
-colour bits.
+* rom.vhd
+* pix.vhd
+* vga.vhd
 
-## VGA timing
-In this project we will work with a resolution of 640x480 pixels @ 60 Hz screen
-refresh rate.  The VGA monitor draws one line at a time, starting from the top,
-and in each line draws one pixel at a time, from left to right.  However, due
-to historical reasons, the timing actually corresponds to a larger area of in
-total 800x525 pixels, indicated as the black regions in the diagram below
-![VGA timing](VGA_timing.png "VGA timing")
-It is essential that the colour output is exactly zero (black) when outside the
-visible region.  The two narrow bands in the diagram show the timing of the
-two synchronization signals: *hs* and *vs*.  All the timing signals for this
-screen resolution is described on
-[pages 11 and 17](http://caxapa.ru/thumbs/361638/DMTv1r11.pdf)
-in the VESA monitor timing standard.
-The relevant timing parameters are defined in lines 23-36 in top.vhd. I've tried
-to give the constants names that are recognizable from the above VESA standard.
+The file rom.vhd is a wrapper for a generic ROM. The point is that the Vivado
+tool allows for initializing the contents of the ROM directly from a text file.
+Furthermore, the entire ROM gets synthesized into one or more BRAM's, without
+any further logic.  This greatly saves on FPGA resources.
 
-## Block diagram
-The diagram below shows the overall structure of the design:
+The file pix.vhd contains the pixel counters. The rest of the VGA logic is
+placed in the file vga.vhd.
 
-![Block diagram](Block_diagram.png "Block diagram")
+## VGA logic
 
-The design will be split into three different blocks:
-* Clock generation
-* Pixel coordinates
-* Sync and colour
+The VGA logic is implemented in a 3-stage pipeline. This choice reflects very well
+on the actual calculations the VGA module must perform. Let's break it down:
 
-### Clock generation
-The VGA timing for this particular screen resolution requires a pixel clock of
-(approximately) 25 Mhz. However, the crytal oscillator on the FPGA board need
-not have this precise frequency. On the Nexys 4 DDR board the oscillator has a
-frequency of 100 MHz. This frequency can conveniently be divided by 4 using a
-simple 2-bit counter.  This clock divider is implemented in lines 70-82 of
-top.vhd.
+* From the pixel counters, calculate which character number we are currently
+displaying.  Since the screen contains 80x60 characters, this will be a number
+from 0 to 4799. This takes place in lines 123-128.
 
-There are ways to achieve clock rates that are rational multiples of the input clock
-rate, but to keep this simple (and portable) we'll just stick with this
-simple frequency divider.
+* From the character nunber, determine which part of the input signal hex\_i to
+display.  I've chosen to start at the top left corner of the screen, and use
+the first 64 characters of the top row to display the signal.  Since I want the
+MSB to be in the top left corner, I need to invert the index.  All this takes
+place in lines 130-134, and gives us the value of the 4-bit nibble.
 
-### Pixel coordinates
-In the VHDL code we will have two pixel counters, x and y, where y is positive
-down. They will count from 0 to 799 in the x-direction and from 0 to 524 in the
-y-direction. These counters are generated in lines 85-111 in top.vhd. And in
-lines 114-143 we generate the two synchronization signals.
+* Now we must determine which ASCII character to use to represent this 4-bit value.
+Here we just choose the characters '0' to '9' followed by 'A' to 'F'. This
+takes place in lines 136-140.
 
-### Sync and colour
-In this design we just start with a simple checkboard pattern. This can be achieved
-by a simple XOR of the x and y coordinates. This is done in lines 146-166 in top.vhd.
+* Finally, we must calculate the address into the font ROM. This address consists
+of the ASCII character (8 bits) concatenated with the lowest three bits of the
+pixel row.  Since each character is 8 rows high, this reads an entire line of
+pixels for this particular character.
 
-Notice how both the synchronization signals and the colour output are all functions
-of the current pixel coordinates. This is important and ensures that the relative
-timing between the colour signal and the synchronization signals matches that of
-the VESA standard.
+All the above calculations take place in stage 1 and the result is stored in
+the register stage1.addr.
 
-## Timing
-Some words on the timing of the synchronization and colour signals. It is
-important that the timing specification in the VESA standard is followed. In
-our implementation both the synchronization signals and the colour signals are
-derived from (i.e. functions of) the pixel counters. So in lines 114-143 of
-top.vhd the synchronization signals are driven in a clocked process. This means
-that the synchronization signals are delayed one clock cycle compared to the
-pixel counters. However, the same applies to the colour signals driven in lines
-146-166. Here too, the signals are delayed one clock cycle.
-All-in-all, since both the synchronization signals and the colour signals are
-delayed the same amount, they will be mutually consistent.
+Note the use of variables within the VHDL process. Since this process is
+synchronuous, the variables will be synthesized as separate regisers. However,
+Vivado recognizes that the contents of the variables are not used later on, and
+therefore the registers can be omitted. Instead, the variables get synthesized
+to combinatorial logic alone.
 
-Later, we'll add more clock cycle delays in the colour generation, and we must
-therefore ensure the same amount of delay in the synchronization signals.
+After the above calculations, the second stage performs a lookup in the font
+ROM.  This is done in lines 150-165. Note the process in lines 168-182. Here
+the remaining registers of stage 1 are copied to stage 2. It has to be done
+individually. Unfortunately, it won't work to just write "stage2 <= stage1",
+because this will lead to multiple drivers of the signal stage2.bitmap.
 
-I highly encourage you to play around with the delay of either the
-synchronization signals or the colour signals to see what happens.
+The third (and last) stage selects the specific pixel from the font ROM based
+on the three LSB's of the current column being displayed. This is again because
+each character is 8 pixels wide. The characters are displayed as WHITE foreground on
+DARK background. This all takes place in lines 186-215.
 
-## Pin locations
-The toolchain needs to know which pins on the FPGA to use, and for this we must refer to the
-[page 7](https://reference.digilentinc.com/_media/reference/programmable-logic/nexys-4-ddr/nexys-4-ddr_sch.pdf)
-on the hardware schematic diagram of the particular board used.
-All pin locations must be specified. They are defined in lines 5-20 in top.xdc. The comments
-at the end of each line refers to the signal name used in the hardware schematic diagram.
-The corresponding signal names are defined in lines 13-17 in top.vhd.
-The toolchain also needs to know the clock frequencies used in the design.
-These are described in lines 22-24 in top.xdc.
-It is important that the names in top.xdc match the names in top.vhd. If there
-is any mismatch, the design will silently fail - there will be no error
-message.
-
-## Build files
-Finally we write a small tcl-script, which is needed by the Vivado tool. Notice
-that in lines 2 and 3 we define all the source files in the design. The option
-"-vhdl2008" is to signify that we use VHDL standard from 2008 as opposed to the
-older standard from 1993. The difference is quite small, but the newer standard
-makes it easier to convert (cast) between the data types "std\_logic\_vector"
-and "integer".  In line 4 we specify the particular FPGA model number on the
-FPGA board. In the case of the Nexys 4 DDR it is an Artix 7 FPGA.
-
-And then there is a simple Makefile. You will of course need to update line 1
-in the Makefile with your particular Xilinx install location and version. The
-Makefile defines three targets:
-* top.bit  : This synthesizes (=compiles) the design and generates a binary file.
-* fpga     : This transfers the binary file to the FPGA and starts the FPGA.
-* clean    : This deletes all generated files and returns the directory to its
-             original state.
-
-## Files generated
-When building the project, two files are generated:
-* top.bit : This is the bit file to be programmed into the FPGA
-* top.dcp : This is a Design Check Point, which contains the design in a
-  compiled format that can be opened in the Vivado tool for examination. We
-  will not be using this feature right now, but it can be useful for debugging.
-
-## Congratulations
-And that's it! You can now program the FPGA, and it should generate a nice
-checkboard pattern on the monitor. Now sit back and enjoy your succes, the
-fruits of your labour!
-
-I strongly encourage you to play around with this design, and try to make other
-patterns on the screen.  What happens if the VGA colour is not black outside
-the visible screen?
-
-In the next episode we will expand on the design and make it possible to
-display binary digits.
 
