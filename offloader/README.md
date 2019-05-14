@@ -46,7 +46,8 @@ view of what is going on inside the FPGA.
 ## Overview of series ##
 
 In the first episode we'll be installing the necessary development tools,
-setting up the project, and copying the VGA engine from the DYOC series.
+setting up the project, and copying the VGA engine from the
+[DYOC](https://github.com/MJoergen/nexys4ddr/tree/master/dyoc) series.
 
 In the next few episodes, we'll build a network processor, allowing the FPGA to
 receive and send UDP packets.
