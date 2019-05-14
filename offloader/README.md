@@ -1,6 +1,6 @@
 # Offloader #
 
-Welcome to this tutorial series where you will build a *CPU offloader* on an FPGA!
+Welcome to this tutorial series where we will build a *CPU offloader* on an FPGA!
 
 ## Scope of project ##
 
@@ -19,45 +19,47 @@ pretty fast, compared to using the USB port. And the reason for using UDP
 packets is that it is a compromise between what is easy to implement in the
 FPGA and what is easy to implement on the host PC. I could alternatively have
 used raw Ethernet packets, but that would probably require root access to the
-network driver on the PC, On the other hand, using TCP would require a lot of
+network interface on the PC, On the other hand, using TCP would require a lot of
 design work on the FPGA. Therefore, UDP was chosen as a compromise.  This
 choice does however require building a network stack on the FPGA, in particular
 responding to e.g. ARP packets. More on that later.
 
 Apart from being able to offload the CPU of the main PC, this project will be
-built step by step, documenting each step as we go along, and thereby serve as
-a dual function of a tutorial in VHDL programming on an FPGA, i.e. digital
+built step by step, documenting each step as we go along, and thereby serve
+a dual function as a tutorial in VHDL programming on an FPGA, i.e. digital
 systems design.
 
 ## Overall FPGA design ##
 
 The main idea as mentioned is to utilize the Ethernet port on the Nexys4DDR
 board.  The actual computations will be performed directly in the FPGA, and I
-have chosen to write the Ethernet communication protocols like that too. An
-alternative is to build a small SoC, i.e. have a CPU running on the FPGA that
-performs the network communication. However, since computation speed is
-important (that is afterall why we are offloading in the first place), it makes
-sense to reduce network latency.
+have chosen to write the network stack (including the network protocols MAC,
+ARP, IP, UDP, etc)  directly in VHDL. An alternative is to build a small SoC,
+i.e. have a CPU running on the FPGA that runs the network stack.  However,
+since computation speed is important (that is after-all why we are offloading in
+the first place), it makes sense to reduce network latency.
 
 To help debugging, we will make heavy use of the VGA output of the Nexys4DDR.
-This is not essential for the functionality itself, but gives a pretty cool
-view of what is going on inside the FPGA.
+This is not essential for the offloading functionality itself, but gives a
+pretty cool view of what is going on inside the FPGA.
 
 ## Overview of series ##
 
-In the first episode we'll be installing the necessary development tools,
-setting up the project, and copying the VGA engine from the
-[DYOC](https://github.com/MJoergen/nexys4ddr/tree/master/dyoc) series.
+In the first few episodes we'll be setting up the project, and making a small
+image that can display hexadecimal characters to the VGA output. This is very
+much similar to the first few episodes from the
+[DYOC](https://github.com/MJoergen/nexys4ddr/tree/master/dyoc) series, but
+since we won't be writing a CPU, the design will be somewhat different.
 
-In the next few episodes, we'll build a network processor, allowing the FPGA to
+In the subsequent episodes, we'll build a network processor, allowing the FPGA to
 receive and send UDP packets.
 
 ## List of episodes: ##
 ### VGA ###
 1.  [**"Hello World"**](Episodes/ep01_-_Hello_World). Here you will generate a
     checkerboard pattern on the VGA output.
-2.  [**"Adding hexadecimal output to VGA"**](Episodes/ep04_-_Hexadecimal). Here we will
-    implement a complete font and show data in hexadecimal format.
+2.  [**"Hex Digits"**](Episodes/ep02_-_Hex_Digits). Here we will implement a
+    complete font and show data in hexadecimal format.
 
 More to come soon...
 
