@@ -139,7 +139,7 @@ begin
          end if;
 
          -- Calculate address in font ROM.
-         v_addr     := v_char & ("111" - pix_y(2 downto 0));
+         v_addr     := v_char & pix_y(2 downto 0);
 
          stage1.addr <= v_addr;
 
