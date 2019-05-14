@@ -135,7 +135,7 @@ begin
          -- Convert hexadecimal value to ASCII.
          v_char     := X"20"; -- Default to a space character.
          if v_char_num < 64 then
-            v_char  := v_hex + X"30" when v_hex < X"A" else v_hex + X"41";
+            v_char  := v_hex + X"30" when v_hex < X"A" else v_hex - X"A" + X"41";
          end if;
 
          -- Calculate address in font ROM.

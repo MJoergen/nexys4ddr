@@ -35,17 +35,17 @@ on the actual calculations the VGA module must perform. Let's break it down:
 
 * From the pixel counters, calculate which character number we are currently
 displaying.  Since the screen contains 80x60 characters, this will be a number
-from 0 to 4799. This takes place in lines 123-128.
+from 0 to 4799. This takes place in lines 122-127.
 
-* From the character nunber, determine which part of the input signal hex\_i to
+* From the character number, determine which part of the input signal hex\_i to
 display.  I've chosen to start at the top left corner of the screen, and use
-the first 64 characters of the top row to display the signal.  Since I want the
-MSB to be in the top left corner, I need to invert the index.  All this takes
-place in lines 130-134, and gives us the value of the 4-bit nibble.
+the first 64 characters of the top row to display the signal.  Since we want the
+MSB to be in the top left corner, we need to invert the index.  All this takes
+place in lines 129-133, and gives us the value of the 4-bit nibble.
 
 * Now we must determine which ASCII character to use to represent this 4-bit value.
-Here we just choose the characters '0' to '9' followed by 'A' to 'F'. This
-takes place in lines 136-140.
+Here we just choose the usual characters '0' to '9' followed by 'A' to 'F'.
+This takes place in lines 135-139.
 
 * Finally, we must calculate the address into the font ROM. This address consists
 of the ASCII character (8 bits) concatenated with the lowest three bits of the
@@ -62,7 +62,7 @@ therefore the registers can be omitted. Instead, the variables get synthesized
 to combinatorial logic alone.
 
 After the above calculations, the second stage performs a lookup in the font
-ROM.  This is done in lines 150-165. Note the process in lines 168-182. Here
+ROM.  This is done in lines 149-164. Note the process in lines 168-182. Here
 the remaining registers of stage 1 are copied to stage 2. It has to be done
 individually. Unfortunately, it won't work to just write "stage2 <= stage1",
 because this will lead to multiple drivers of the signal stage2.bitmap.
@@ -70,6 +70,20 @@ because this will lead to multiple drivers of the signal stage2.bitmap.
 The third (and last) stage selects the specific pixel from the font ROM based
 on the three LSB's of the current column being displayed. This is again because
 each character is 8 pixels wide. The characters are displayed as WHITE foreground on
-DARK background. This all takes place in lines 186-215.
+DARK background. This all takes place in lines 185-214.
 
+## Top module
+
+The top module top.vhd is greatly simplified and now consists only of the clock
+generation and instantiation of the VGA module.  For now, I've added another
+module debug.vhd whose only purpose is so make a counter to give something to
+display. This is just for the satisfaction of seeing something work.  Later,
+we'll remove this debug module, as we then have other more interesting things
+to show on the VGA output.
+
+## Makefile
+In the first episode, the source files were listed in both the Makefile and the
+top.tcl script. It is error-prone to have the same information duplicated, so
+now the Makefile has been changed to auto-generate the top.tcl script.  That
+way, only the Makefile needs to be updated when more source files are added.
 

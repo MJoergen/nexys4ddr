@@ -2,6 +2,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
+-- A simple counter to generate a test signal. This is only used temporarily.
+
 entity debug is
    port (
       clk_i : in  std_logic;
