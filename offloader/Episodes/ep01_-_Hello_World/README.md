@@ -1,14 +1,15 @@
 # CPU offloader
 # Episode 1 : "Hello World"
 
-Welcome to this first episode of "CPU offloader", where we draw a
-checker board pattern on the VGA output.
+Welcome to this first episode of "CPU offloader", where we draw a checker board
+pattern on the VGA output. The purpose is to ensure the tools and the board
+works.
 
 ## Files written in this episode:
 * top.vhd  : Main source file
-* top.xdc  : Pin locations (specific for each FPGA board)
+* top.xdc  : Pin locations (specific for the Nexys4DDR board)
 * top.tcl  : List of commands for Vivado
-* Makefile  : Overall project makefile
+* Makefile : Overall project makefile
 
 The above files constitute the bare necessities for a FPGA project. As this project
 grows we will add more source files. However, the top.vhd will remain the "top level"

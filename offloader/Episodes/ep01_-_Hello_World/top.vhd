@@ -119,9 +119,9 @@ begin
    begin
       if rising_edge(vga_clk) then
          if pix_x >= HS_START and pix_x < HS_START+HS_TIME then
-            vga.hs <= '0';
-         else
             vga.hs <= '1';
+         else
+            vga.hs <= '0';
          end if;
       end if;
    end process vga_hs_proc;
@@ -135,9 +135,9 @@ begin
    begin
       if rising_edge(vga_clk) then
          if pix_y >= VS_START and pix_y < VS_START+VS_TIME then
-            vga.vs <= '0';
-         else
             vga.vs <= '1';
+         else
+            vga.vs <= '0';
          end if;
       end if;
    end process vga_vs_proc;
