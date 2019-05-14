@@ -60,7 +60,7 @@ The VGA timing for this particular screen resolution requires a pixel clock of
 (approximately) 25 Mhz. However, the crytal oscillator on the FPGA board need
 not have this precise frequency. On the Nexys 4 DDR board the oscillator has a
 frequency of 100 MHz. This frequency can conveniently be divided by 4 using a
-simple 2-bit counter.  This clock divider is implemented in lines 68-80 of
+simple 2-bit counter.  This clock divider is implemented in lines 70-82 of
 top.vhd.
 
 There are ways to achieve clock rates that are rational multiples of the input clock
@@ -70,12 +70,12 @@ simple frequency divider.
 ### Pixel coordinates
 In the VHDL code we will have two pixel counters, x and y, where y is positive
 down. They will count from 0 to 799 in the x-direction and from 0 to 524 in the
-y-direction. These counters are generated in lines 83-109 in top.vhd. And in
-lines 112-141 we generate the two synchronization signals.
+y-direction. These counters are generated in lines 85-111 in top.vhd. And in
+lines 114-143 we generate the two synchronization signals.
 
 ### Sync and colour
 In this design we just start with a simple checkboard pattern. This can be achieved
-by a simple XOR of the x and y coordinates. This is done in lines 138-156 in top.vhd.
+by a simple XOR of the x and y coordinates. This is done in lines 146-166 in top.vhd.
 
 Notice how both the synchronization signals and the colour output are all functions
 of the current pixel coordinates. This is important and ensures that the relative
@@ -86,11 +86,11 @@ the VESA standard.
 Some words on the timing of the synchronization and colour signals. It is
 important that the timing specification in the VESA standard is followed. In
 our implementation both the synchronization signals and the colour signals are
-derived from (i.e. functions of) the pixel counters. So in lines 112-141 of
+derived from (i.e. functions of) the pixel counters. So in lines 114-143 of
 top.vhd the synchronization signals are driven in a clocked process. This means
 that the synchronization signals are delayed one clock cycle compared to the
 pixel counters. However, the same applies to the colour signals driven in lines
-144-164. Here too, the signals are delayed one clock cycle.
+146-166. Here too, the signals are delayed one clock cycle.
 All-in-all, since both the synchronization signals and the colour signals are
 delayed the same amount, they will be mutually consistent.
 
@@ -104,11 +104,14 @@ synchronization signals or the colour signals to see what happens.
 The toolchain needs to know which pins on the FPGA to use, and for this we must refer to the
 [page 7](https://reference.digilentinc.com/_media/reference/programmable-logic/nexys-4-ddr/nexys-4-ddr_sch.pdf)
 on the hardware schematic diagram of the particular board used.
-All pin locations must be specified. They are defined in lines 5-16 in top.xdc. The comments
+All pin locations must be specified. They are defined in lines 5-20 in top.xdc. The comments
 at the end of each line refers to the signal name used in the hardware schematic diagram.
 The corresponding signal names are defined in lines 13-17 in top.vhd.
 The toolchain also needs to know the clock frequencies used in the design.
-These are described in lines 18-20 in top.xdc.
+These are described in lines 22-24 in top.xdc.
+It is important that the names in top.xdc match the names in top.vhd. If there
+is any mismatch, the design will silently fail - there will be no error
+message.
 
 ## Build files
 Finally we write a small tcl-script, which is needed by the Vivado tool. Notice
