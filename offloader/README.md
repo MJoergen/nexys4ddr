@@ -29,6 +29,19 @@ built step by step, documenting each step as we go along, and thereby serve
 a dual function as a tutorial in VHDL programming on an FPGA, i.e. digital
 systems design.
 
+## Applications ## 
+The design will be generic enough to accommodate many different applications.
+One of the first applications I tend to write is hardware acceleration of
+integer factorization. This is the problem of determining the integers p and q,
+given the value of N=p\*q, where N is a very large integer, say approx. 100
+digits.  On a regular CPU this is a very compute intensive calculation, see
+e.g.  [here](https://en.wikipedia.org/wiki/Integer_factorization_records).
+However, many of the calculations can be massively parallelized leading
+(hopefully) to large performance gains.
+
+Another possible application is to perform advanced search and evaluation
+function of board games, e.g. chess.
+
 ## Overall FPGA design ##
 
 The main idea as mentioned is to utilize the Ethernet port on the Nexys4DDR
@@ -46,8 +59,8 @@ pretty cool view of what is going on inside the FPGA.
 ## Overview of series ##
 
 In the first few episodes we'll be setting up the project, and making a small
-image that can display hexadecimal characters to the VGA output. This is very
-much similar to the first few episodes from the
+design that can display a string of hexadecimal characters to the VGA output.
+This is very much similar to the first few episodes from the
 [DYOC](https://github.com/MJoergen/nexys4ddr/tree/master/dyoc) series, but
 since we won't be writing a CPU, the design will be somewhat different.
 
@@ -56,10 +69,13 @@ receive and send UDP packets.
 
 ## List of episodes: ##
 ### VGA ###
-1.  [**"Hello World"**](Episodes/ep01_-_Hello_World). Here you will generate a
+1.  [**"Hello World"**](Episodes/ep01_-_Hello_World). Here we will generate a
     checkerboard pattern on the VGA output.
 2.  [**"Hex Digits"**](Episodes/ep02_-_Hex_Digits). Here we will implement a
-    complete font and show data in hexadecimal format.
+    complete font and display data in hexadecimal format.
+### Ethernet ###
+3.  [**"Ethernet"**](Episodes/ep03_-_Ethernet). Here we will connect the
+    Ethernet port.
 
 More to come soon...
 
@@ -90,8 +106,4 @@ language, e.g. C, C++, Java, or similar.
 I'm currently working as a professional FPGA developer, but have previously
 been teaching the subjects mathematics, physics, and programming in High School.
 Before that I've worked for twelve years as a software developer.
-
-As a child I used to program in assembler on the Commodore 64. This "heritage"
-is reflected in some of the design choices for the present project, e.g.
-choosing the 6502 processor.
 
