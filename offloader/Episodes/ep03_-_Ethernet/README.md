@@ -33,9 +33,9 @@ correspoding clock domain, i.e.  all signals synchronous to the VGA clock are
 prepended with vga\_, and similar for the Ethernet clock.  This naming
 convention helps prevent errors with incorrect clock domain crossings.
 
-This Clock Domain Crossing module (cdc.vhd) is a wrapper for a Xilinx
-Parameterized Macro (XPM), and these have to be explicitly enabled. This is
-done in line 14 of the Makefile.
+The Clock Domain Crossing module (cdc.vhd) is a wrapper for a Xilinx
+Parameterized Macro (XPM), and these XPM's have to be explicitly enabled. This
+is done in line 14 of the Makefile.
 
 ## Ethernet
 
