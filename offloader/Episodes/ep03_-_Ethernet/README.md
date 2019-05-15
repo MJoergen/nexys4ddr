@@ -25,7 +25,13 @@ Next, the Ethernet module provides a debug signal (currently just counting the
 number of correctly received frames), but this signal (line 42 in top.vhd) is
 synchronous to the Ethernet clock.  However, the VGA module requires a signal
 synchronuous to the VGA clcok, and therefore we need a Clock Domain Crossing,
-This is handled in lines 98-111 in top.vhd, where the cdc module is instantiated.
+This is handled in lines 98-111 in top.vhd, where the cdc module is
+instantiated.
+
+Note how I choose to name the signals by prepending the name with the
+correspoding clock domain, i.e.  all signals synchronous to the VGA clock are
+prepended with vga\_, and similar for the Ethernet clock.  This naming
+convention helps prevent errors with incorrect clock domain crossings.
 
 This Clock Domain Crossing module (cdc.vhd) is a wrapper for a Xilinx
 Parameterized Macro (XPM), and these have to be explicitly enabled. This is
