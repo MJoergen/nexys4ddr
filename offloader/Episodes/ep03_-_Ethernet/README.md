@@ -4,12 +4,12 @@
 Welcome to this third episode of "CPU offloader", where we enable the
 Ethernet port.
 
-This episode is very simnilar to the corresponding episode [Episode 26 -
+This episode is very similar to the corresponding episode [Episode 26 -
 Ethernet
 Phy](https://github.com/MJoergen/nexys4ddr/tree/master/dyoc/Episodes/ep26_-_Ethernet_PHY)
 in the DYOC tutorial.
 
-In the followuing I'll summarize the main development in this episode:
+In the following I'll summarize the main development in this episode:
 
 First of all, in the files top.vhd (lines 15-25) and top.xdc (lines 22-33)
 we've added the pins connecting to the Ethernet Phy, In top.vhd the Ethernet
