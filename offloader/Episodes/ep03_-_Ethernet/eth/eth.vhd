@@ -2,25 +2,27 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This module provides the low-level interface to the LAN8720A Ethernet PHY.
--- The PHY supports the RMII specification.
+-- This module provides the top-level instantiation of the Ethernet module.
+
+-- This module requires a clock of 50 MHz.
+
 
 entity eth is
    port (
-      clk_i          : in    std_logic;   -- 50 MHz
-      debug_o        : out   std_logic_vector(255 downto 0);
+      clk_i        : in    std_logic;
+      debug_o      : out   std_logic_vector(255 downto 0);
 
       -- Connected to PHY
-      eth_txd_o      : out   std_logic_vector(1 downto 0);
-      eth_txen_o     : out   std_logic;
-      eth_rxd_i      : in    std_logic_vector(1 downto 0);
-      eth_rxerr_i    : in    std_logic;
-      eth_crsdv_i    : in    std_logic;
-      eth_intn_i     : in    std_logic;
-      eth_mdio_io    : inout std_logic := 'Z';   -- Not used
-      eth_mdc_o      : out   std_logic := '0';   -- Not used
-      eth_rstn_o     : out   std_logic;
-      eth_refclk_o   : out   std_logic
+      eth_txd_o    : out   std_logic_vector(1 downto 0);
+      eth_txen_o   : out   std_logic;
+      eth_rxd_i    : in    std_logic_vector(1 downto 0);
+      eth_rxerr_i  : in    std_logic;
+      eth_crsdv_i  : in    std_logic;
+      eth_intn_i   : in    std_logic;
+      eth_mdio_io  : inout std_logic := 'Z';   -- Not used
+      eth_mdc_o    : out   std_logic := '0';   -- Not used
+      eth_rstn_o   : out   std_logic;
+      eth_refclk_o : out   std_logic
    );
 end eth;
 
@@ -49,7 +51,9 @@ architecture Structural of eth is
 begin
 
    --------------------------------------------------
-   -- Generate debug signals
+   -- Generate debug signals.
+   -- This counts the number of correctly received
+   -- Ethernet frames.
    --------------------------------------------------
 
    p_debug : process (clk_i)
@@ -67,8 +71,10 @@ begin
 
    --------------------------------------------------
    -- Generate reset.
-   -- The reset pulse will have a length of 2^21 cycles
-   -- at 50 MHz, i.e. 42 ms.
+   -- The Ethernet PHY requires a reset pulse of at least 25 ms according to
+   -- the data sheet.
+   -- The reset pulse generated here will have a length of 2^21 cycles at 50
+   -- MHz, i.e. 42 ms.
    --------------------------------------------------
 
    p_eth_rst : process (clk_i)

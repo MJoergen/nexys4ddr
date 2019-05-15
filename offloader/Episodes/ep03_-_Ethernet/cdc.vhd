@@ -6,7 +6,7 @@ Library xpm;
 use xpm.vcomponents.all;
 
 -- This module handles clock crossing using a Xilinx FIFO.
--- The FIFO is written to whenever it is empty,
+-- The FIFO is written to whenever it is not full
 -- and read from whenever it is not empty.
 
 entity cdc is
@@ -44,7 +44,7 @@ begin
       end if;
    end process rst_proc;
 
-   -- Write when empty
+   -- Write when not full
    src_wr_en <= not src_prog_full and not src_wr_rst_busy;
 
    -- Read when not empty
