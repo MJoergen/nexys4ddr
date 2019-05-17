@@ -9,7 +9,7 @@ use ieee.numeric_std_unsigned.all;
 
 entity eth is
    port (
-      clk_i        : in    std_logic;
+      clk_i        : in    std_logic;           -- Must be 50 MHz
       debug_o      : out   std_logic_vector(255 downto 0);
 
       -- Connected to PHY
