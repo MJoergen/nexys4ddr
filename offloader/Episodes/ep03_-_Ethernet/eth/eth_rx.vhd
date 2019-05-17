@@ -5,12 +5,19 @@ use ieee.numeric_std_unsigned.all;
 -- This module receives data from the PHY.
 -- It takes care of:
 -- * 2-bit to 8-bit expansion.
--- * Decapsulation of MAC frames.
+-- * Decapsulation of MAC frames, i.e. removing of MAC preamble and Inter-Frame-Gap.
 -- * CRC validation.
 -- * Framing with SOF/EOF.
 --
 -- Data forwarded is stripped of MAC preample and Inter-Frame-Gap. The MAC CRC
--- remains though.
+-- remains, though.
+--
+-- The interface to the receiver is a "pushing" interface with no flow-control.
+-- The frame data bytes are forwarded one byte every four clock cycles.  The
+-- first byte has "rx_sof_o" asserted, the last byte has "rx_eof_o" asserted.
+-- At end of frame, i.e. when "rx_eof_o" is asserted, the client must examine
+-- the "rx_ok_o" signal to determine whether any errors occurred during frame
+-- reception.
 --
 -- In MAC framing, packets are preceeded by an 8-byte preamble
 -- in hex: 55 55 55 55 55 55 55 D5
@@ -27,39 +34,41 @@ use ieee.numeric_std_unsigned.all;
 entity eth_rx is
 
    port (
-      eth_clk_i   : in  std_logic;        -- Must be 50 MHz
+      eth_clk_i   : in  std_logic;  -- Must be 50 MHz
       eth_rst_i   : in  std_logic;
 
-      -- Pushing interface
-      valid_o     : out std_logic;
-      sof_o       : out std_logic;
-      eof_o       : out std_logic;
-      data_o      : out std_logic_vector(7 downto 0);
-      err_o       : out std_logic;
-      crc_valid_o : out std_logic;  -- Valid only at EOF.
+      -- Client interface
+      rx_valid_o  : out std_logic;
+      rx_sof_o    : out std_logic;  -- Start Of Frame
+      rx_eof_o    : out std_logic;  -- End Of Frame
+      rx_data_o   : out std_logic_vector(7 downto 0);
+      rx_ok_o     : out std_logic;  -- Valid only at EOF.  -- True if frame has correct CRC and no errors.
 
-      -- Connectedto PHY
+      -- Connected to the PHY
       eth_rxd_i   : in  std_logic_vector(1 downto 0);
       eth_rxerr_i : in  std_logic;
-      eth_crsdv_i : in  std_logic;
-      eth_intn_i  : in  std_logic
+      eth_crsdv_i : in  std_logic
    );
 end eth_rx;
 
 architecture Structural of eth_rx is
 
    -- State machine to control the MAC framing
-   type t_fsm_state is (IDLE_ST, PRE1_ST, PRE2_ST, PAYLOAD_ST);
+   type t_fsm_state is (IDLE_ST, PRE_ST, PAYLOAD_ST);
    signal fsm_state : t_fsm_state := IDLE_ST;
       
-   signal ena  : std_logic := '0';
-   signal sof  : std_logic;
-   signal data : std_logic_vector(7 downto 0);
+   signal sof       : std_logic;
+   signal data      : std_logic_vector(7 downto 0);
 
    signal dibit_cnt : integer range 0 to 3;
-   signal byte_cnt  : integer range 0 to 11;
 
-   signal crc : std_logic_vector(31 downto 0);
+   signal crc       : std_logic_vector(31 downto 0);
+
+   signal rx_valid  : std_logic;
+   signal rx_sof    : std_logic;  -- Start Of Frame
+   signal rx_eof    : std_logic;  -- End Of Frame
+   signal rx_data   : std_logic_vector(7 downto 0);
+   signal rx_ok     : std_logic;  -- Valid only at EOF.  -- True if frame has no errors and correct CRC.
 
 begin
 
@@ -70,6 +79,15 @@ begin
    begin
       if rising_edge(eth_clk_i) then
 
+         -- Set default values
+         rx_valid <= '0';
+         rx_sof   <= '0';
+         rx_eof   <= '0';
+         rx_data  <= X"00";
+         rx_ok    <= '0';
+
+         -- If valid bits are received from the PHY,
+         -- shift them into the data register and update the CRC.
          if eth_crsdv_i = '1' then 
             newdata_v := eth_rxd_i & data(7 downto 2);
             data      <= newdata_v;
@@ -89,66 +107,72 @@ begin
          end if;
 
          case fsm_state is
+            -- Wait until a new frame starts.
             when IDLE_ST =>
-               if eth_crsdv_i = '1' then 
-                  fsm_state <= PRE1_ST;
-                  dibit_cnt <= 0;
-                  byte_cnt  <= 0;
+               if eth_crsdv_i = '1' and eth_rxerr_i = '0' then
+                  fsm_state <= PRE_ST;
                   data      <= (others => '0');
                end if;
 
-            -- Synchronize
-            when PRE1_ST =>
+            -- Wait until the preamble is finished.
+            when PRE_ST =>
                if data = X"D5" then
-                  byte_cnt  <= 0;
                   dibit_cnt <= 0;
-                  sof       <= '1';
+                  sof       <= '1';             -- Indicate start of frame.
                   fsm_state <= PAYLOAD_ST;
                end if;
                if newdata_v = X"D5" then
-                  crc       <= (others => '1');
+                  crc       <= (others => '1'); -- Initialize CRC.
+               end if;
+               if eth_crsdv_i = '0' or eth_rxerr_i = '1' then
+                  fsm_state <= IDLE_ST;
+                  sof       <= '0';
                end if;
 
-            when PRE2_ST =>
-               null;
-
+            -- Process the frame
             when PAYLOAD_ST =>
                if dibit_cnt = 3 then
-                  sof <= '0';
-               end if;
-
-               if eth_crsdv_i = '0' then
+                  rx_valid <= '1';
+                  rx_data  <= data;
+                  rx_sof   <= sof;
+                  rx_eof   <= (not eth_crsdv_i) or eth_rxerr_i;
+                  sof      <= '0';
+                  -- Check CRC at End Of Frame
+                  if eth_crsdv_i = '0' and eth_rxerr_i = '0' and crc = X"C704DD7B" then
+                     rx_ok <= '1';
+                  end if;
+                  if eth_crsdv_i = '0' or eth_rxerr_i = '1' then
+                     fsm_state <= IDLE_ST;
+                  end if;
+               elsif eth_crsdv_i = '0' or eth_rxerr_i = '1' then
                   fsm_state <= IDLE_ST;
+                  sof       <= '0';
+
+                  -- If frame has already started, end it now.
+                  if sof = '0' then
+                     rx_valid <= '1';
+                     rx_data  <= data;
+                     rx_sof   <= sof;
+                     rx_eof   <= '1';
+                     rx_ok    <= '0';
+                  end if;
                end if;
 
          end case;
 
          if eth_rst_i = '1' then
             fsm_state <= IDLE_ST;
-            dibit_cnt <= 0;
-            byte_cnt  <= 0;
             sof       <= '0';
          end if;
       end if;
    end process proc_fsm;
 
-   ena <= '1' when fsm_state = PAYLOAD_ST and dibit_cnt = 3 else '0';
-
    -- Drive output signals
-   proc_out : process (eth_clk_i)
-   begin
-      if rising_edge(eth_clk_i) then
-         valid_o     <= ena;
-         sof_o       <= ena and sof;
-         eof_o       <= ena and not eth_crsdv_i;
-         data_o      <= data;
-         err_o       <= eth_rxerr_i;
-         crc_valid_o <= '0';
-         if ena = '1' and eth_crsdv_i = '0' and crc = X"C704DD7B" then
-            crc_valid_o <= '1';
-         end if;
-      end if;
-   end process proc_out;
+   rx_valid_o <= rx_valid;
+   rx_sof_o   <= rx_sof;
+   rx_eof_o   <= rx_eof;
+   rx_data_o  <= rx_data;
+   rx_ok_o    <= rx_ok;
 
 end Structural;
 

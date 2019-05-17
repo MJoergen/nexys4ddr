@@ -12,13 +12,14 @@ in the DYOC tutorial.
 
 In order to be able to communicate over Ethernet, data must be sent in frames
 with the correct format. I've here chosen UDP over IP over MAC. For this to
-work, we must support ARP over MAC as well. The Ethernet module will 
+work, we must support ARP over MAC as well.
 
 ## Architecture
 
 The overall architecture of the system will consist of a receive path (ingress)
 and a transmit path (egress). The Ethernet module will be responsible for
-interfacing to the Ethernet PHY and for implementing the network protocols.
+interfacing to the Ethernet PHY and for implementing the network protocols (ARP
+and UDP).
 
 In this episode, the Ethernet module handles the low-level interface to the
 PHY. We'll leave the network protocols for the next episode.
@@ -27,16 +28,21 @@ In the following I'll summarize the main development in this episode:
 
 First of all, in the files top.vhd (lines 15-25) and top.xdc (lines 22-33)
 we've added the pins connecting to the Ethernet Phy, In top.vhd the Ethernet
-interface is instantiated in lines 77-95.
+module is instantiated in lines 77-95.
+
+The files for the Ethernet module are placed in the separate directory eth, and
+the top level block for the Ethernet module is eth/eth.vhd. The Ethernet module
+instantiates the eth\_rx and eth\_tx modules, which handle the ingree and
+egress paths, respecticely.
 
 ## Internal interfaces
 
 It seems worth-wile to go into some detail of the blocks eth\_rx and eth\_tx.
 These blocks implements the low-level connection to the PHY, and provides a
 client-side internal interface to the networking protocols. Both eth\_rx and
-eth\_tx provides a byte-wide interface running at 50 MHz, and supports
-therefore a burst bandwidth of 400 Mbit/s, clearly much more than the 100
-Mbit/s required by the Ethernet PHY.
+eth\_tx provide a byte-wide interface running at 50 MHz, and therefore support
+a burst bandwidth of 400 Mbit/s, clearly much more than the 100 Mbit/s required
+by the Ethernet PHY.
 
 ### eth\_rx
 The interface to the client of the eth\_rx module is a so-called "pushing"
@@ -63,6 +69,16 @@ The client is not allowed to pause in the middle of a frame, and therefore the
 means that the client is required to buffer a complete frame before initiating
 transmission.
 
+## Simulation
+
+It is very helpful during design and debugging to be able to simulate the
+design before testing it in hardware. To this end, I've added a separate
+simulation of just the Ethernet module.  This takes place in the testbench file
+tb\_eth.vhd. To run the simulation, just type "make" in the eth directory.  The
+testbench requires some extra block to generate the stimuli, and to collect the
+response. This is handled by the extra module sim\_rx.vhd and sim\_tx.vhd.
+
+
 ## Clock domains
 
 Now, the Ethernet module needs a 50 MHz clock, so we generate this in line 60
@@ -84,9 +100,4 @@ convention helps prevent errors with incorrect clock domain crossings.
 The Clock Domain Crossing module (cdc.vhd) is a wrapper for a Xilinx
 Parameterized Macro (XPM), and these XPM's have to be explicitly enabled. This
 is done in line 14 of the Makefile.
-
-## Ethernet
-
-The files for the Ethernet module are placed in the separate directory eth, and
-the top level block for the Ethernet module is eth/eth.vhd.
 

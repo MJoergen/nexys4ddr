@@ -50,12 +50,12 @@ entity eth_tx is
       eth_rst_i    : in  std_logic;
 
       -- Pulling interface
-      data_i       : in  std_logic_vector(7 downto 0);
-      sof_i        : in  std_logic;
-      eof_i        : in  std_logic;
-      empty_i      : in  std_logic;
-      rden_o       : out std_logic;
-      err_o        : out std_logic;
+      tx_data_i    : in  std_logic_vector(7 downto 0);
+      tx_sof_i     : in  std_logic;
+      tx_eof_i     : in  std_logic;
+      tx_empty_i   : in  std_logic;
+      tx_rden_o    : out std_logic;
+      tx_err_o     : out std_logic;
 
       -- Connected to PHY
       eth_txd_o    : out std_logic_vector(1 downto 0);
@@ -113,11 +113,11 @@ begin
                when IDLE_ST    =>
                   eth_txen <= '0';
                   cur_byte <= X"00";
-                  if empty_i = '0' then
-                     if sof_i = '0' then
+                  if tx_empty_i = '0' then
+                     if tx_sof_i = '0' then
                         err <= '1';
                      end if;
-                     assert sof_i = '1' report "Missing SOF" severity failure;
+                     assert tx_sof_i = '1' report "Missing SOF" severity failure;
                      byte_cnt  <= 7;
                      cur_byte  <= X"55";
                      fsm_state <= PRE1_ST;
@@ -136,12 +136,12 @@ begin
 
                when PRE2_ST    =>
                   crc_enable <= '1';
-                  cur_byte  <= data_i;
+                  cur_byte  <= tx_data_i;
                   rden      <= '1';
                   fsm_state <= PAYLOAD_ST;
 
                   -- Abort! Data not available yet.
-                  if empty_i = '1' then
+                  if tx_empty_i = '1' then
                      cur_byte  <= (others => '0');
                      fsm_state <= IFG_ST;
                      eth_txen  <= '0';
@@ -150,14 +150,14 @@ begin
                   end if;
 
                when PAYLOAD_ST =>
-                  cur_byte <= data_i;
+                  cur_byte <= tx_data_i;
                   rden     <= '1';
-                  if eof_i = '1' then
+                  if tx_eof_i = '1' then
                      fsm_state <= LAST_ST;
                   end if;
 
                   -- Abort! Data not available yet.
-                  if empty_i = '1' then
+                  if tx_empty_i = '1' then
                      cur_byte  <= (others => '0');
                      fsm_state <= IFG_ST;
                      eth_txen  <= '0';
@@ -211,8 +211,8 @@ begin
    eth_txd_o    <= cur_byte(1 downto 0);
    eth_txen_o   <= eth_txen;
 
-   rden_o <= rden;
-   err_o  <= err;
+   tx_rden_o <= rden;
+   tx_err_o  <= err;
 
 end Structural;
 

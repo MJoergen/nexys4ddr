@@ -1,0 +1,30 @@
+[*]
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Fri May 17 20:19:00 2019
+[*]
+[dumpfile] "/home/mike/git/nexys4ddr/offloader/Episodes/ep03_-_Ethernet/eth/tb_eth.ghw"
+[dumpfile_mtime] "Fri May 17 20:18:52 2019"
+[dumpfile_size] 53382
+[savefile] "/home/mike/git/nexys4ddr/offloader/Episodes/ep03_-_Ethernet/eth/tb_eth.gtkw"
+[timestart] 0
+[size] 1918 1017
+[pos] -1 -1
+*-26.525793 238000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.tb_eth.
+[treeopen] top.tb_eth.i_eth_rx.
+[sst_width] 221
+[signals_width] 198
+[sst_expanded] 1
+[sst_vpaned_height] 288
+@28
+top.tb_eth.i_eth_rx.eth_crsdv_i
+top.tb_eth.i_eth_rx.eth_rxerr_i
+top.tb_eth.i_eth_rx.rx_ok_o
+top.tb_eth.i_eth_rx.rx_eof_o
+top.tb_eth.i_eth_rx.rx_sof_o
+top.tb_eth.i_eth_rx.rx_valid_o
+@23
+#{top.tb_eth.i_eth_rx.rx_data_o[7:0]} top.tb_eth.i_eth_rx.rx_data_o[7] top.tb_eth.i_eth_rx.rx_data_o[6] top.tb_eth.i_eth_rx.rx_data_o[5] top.tb_eth.i_eth_rx.rx_data_o[4] top.tb_eth.i_eth_rx.rx_data_o[3] top.tb_eth.i_eth_rx.rx_data_o[2] top.tb_eth.i_eth_rx.rx_data_o[1] top.tb_eth.i_eth_rx.rx_data_o[0]
+[pattern_trace] 1
+[pattern_trace] 0
