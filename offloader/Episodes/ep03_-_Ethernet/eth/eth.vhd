@@ -9,7 +9,7 @@ use ieee.numeric_std_unsigned.all;
 
 entity eth is
    port (
-      clk_i        : in    std_logic;
+      clk_i        : in    std_logic;           -- Must be 50 MHz.
       debug_o      : out   std_logic_vector(255 downto 0);
 
       -- Connected to PHY
@@ -19,8 +19,8 @@ entity eth is
       eth_rxerr_i  : in    std_logic;
       eth_crsdv_i  : in    std_logic;
       eth_intn_i   : in    std_logic;
-      eth_mdio_io  : inout std_logic := 'Z';   -- Not used
-      eth_mdc_o    : out   std_logic := '0';   -- Not used
+      eth_mdio_io  : inout std_logic := 'Z';    -- Not used
+      eth_mdc_o    : out   std_logic := '0';    -- Not used
       eth_rstn_o   : out   std_logic;
       eth_refclk_o : out   std_logic
    );
@@ -54,6 +54,7 @@ begin
    -- Generate debug signals.
    -- This counts the number of correctly received
    -- Ethernet frames.
+   -- This will later be replaced.
    --------------------------------------------------
 
    p_debug : process (clk_i)
