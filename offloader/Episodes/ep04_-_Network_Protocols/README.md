@@ -80,4 +80,25 @@ small and simple modules, I've chosen to exlude the complexity of
 "back-pressure" from this module, and instead deny the client the possibility
 of applying back-pressure.
 
+## ser2par
+
+Once we have a valid frame, stripped of the CRC, we want some way to do further
+processing. I've found that it is cumbersome having a one-byte-at-a-time
+interface, so I've added a Serial-To-Parallel translation block ser2par. The
+purpose of this block is to extract a fixed-size header and output as a single
+wide vector.  The remaining data is forwarded one-byte-at-a-time.
+
+The idea is to extract (remove), say, the MAC, IP, and UDP headers
+simultaneously, to allow easy examination of the headers to determine the
+further course of action.  The remaining payload can then perhaps be subjected
+to another iteration of ser2par, if the need be.
+
+The implementation of ser2par is fairly straight-forward. Note that I have
+chosen an implementation based on a large shift-register, see line 63. This
+uses the least amount of logic.  Alternatively, I could have chosen to write to
+a variable position, i.e. something like 
+    hdr_data_r(8*byte_cnt+7 downto 8*byte_cnt+) <= rx_data_i;
+However, this would use additional resources for the byte\_cnt signal and for
+the associated multiplexing when accessing a variable range of bits in a large
+vector.
 

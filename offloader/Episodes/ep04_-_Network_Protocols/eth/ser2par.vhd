@@ -73,12 +73,15 @@ begin
                   hdr_data_r <= hdr_data_r(G_HDR_SIZE*8-9 downto 0) & rx_data_i;
                   hdr_size_r <= hdr_size_r + 1;
 
+                  -- If complete header is received, forward remaining data
+                  -- one-byte-at-a-time.
                   if hdr_size_r+1 = G_HDR_SIZE then
                      hdr_valid_r <= '1';
                      hdr_more_r  <= '1';
                      state_r     <= PL_ST;
                   end if;
 
+                  -- However, if this was the last byte, there is no more data.
                   if rx_eof_i = '1' then
                      hdr_valid_r <= '1';
                      hdr_more_r  <= '0';
