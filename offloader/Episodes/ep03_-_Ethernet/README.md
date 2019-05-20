@@ -32,37 +32,39 @@ module is instantiated in lines 77-95.
 
 The files for the Ethernet module are placed in the separate directory eth, and
 the top level block for the Ethernet module is eth/eth.vhd. The Ethernet module
-instantiates the eth\_rx and eth\_tx modules, which handle the ingree and
+instantiates the eth\_rx and eth\_tx modules, which handle the ingress and
 egress paths, respecticely.
 
 ## Internal interfaces
 
 It seems worth-wile to go into some detail of the blocks eth\_rx and eth\_tx.
-These blocks implements the low-level connection to the PHY, and provides a
+These blocks implement the low-level connection to the PHY, and provide a
 client-side internal interface to the networking protocols. Both eth\_rx and
 eth\_tx provide a byte-wide interface running at 50 MHz, and therefore support
 a burst bandwidth of 400 Mbit/s, clearly much more than the 100 Mbit/s required
 by the Ethernet PHY.
 
 ### eth\_rx
-The interface to the client of the eth\_rx module is a so-called "pushing"
-interface. The client is required to accept data at any time and any rate as
-dictated by the eth\_rx module. This is because the eth\_rx module cannot
-control when data is received by the Ethernet PHY. Notive how the client has no
-way of controlling the transfer. There is no option for "back-pressure". If the
-client needs to stop the data flow while e.g. processing a packet, it is up to
-the client to implement a buffering mechanism or to discard frames.
+The interface (in lines 40-45) to the client of the eth\_rx module is a
+so-called "pushing" interface. The client is required to accept data at any
+time and any rate as dictated by the eth\_rx module. This is because the
+eth\_rx module cannot control when data is received by the Ethernet PHY. Notice
+how the client has no way of controlling the transfer. There is no option for
+"back-pressure". If the client needs to stop the data flow while e.g.
+processing a packet, it is up to the client to implement a buffering mechanism
+or to discard frames.
 
 ### eth\_tx
-It is different with the eth\_tx module. This interface is a so-called
-"pulling" interface, where the client must make data available to the eth\_tx
-module, but can not control the rate of transfer. Again, this is to simplify
-the eth\_tx module.  When the client wants to send a frame of data, the client
-will pull "empty" low, and this causes the eth\_tx module to start transfer.
-However, the Ethernet PHY requires a preamble to be sent first, and therefore
-the eth\_tx module can not being consuming (reading) data until the preamble is
-sent. And then one byte is consumed every four clock cycles only. Therefore, it
-is the eth\_tx module that needs to control when data is transferred.
+It is different with the eth\_tx module. This interface (lines 52-58) is a
+so-called "pulling" interface, where the client must make data available to the
+eth\_tx module, but can not control the rate of transfer. Again, this is to
+simplify the eth\_tx module.  When the client wants to send a frame of data,
+the client will pull "empty" low, and this causes the eth\_tx module to start
+transfer.  However, the Ethernet PHY requires a preamble to be sent first, and
+therefore the eth\_tx module can not being consuming (reading) data until the
+preamble is sent. And then one byte is consumed every four clock cycles only.
+Therefore, it is the eth\_tx module that needs to control when data is
+transferred.
 
 The client is not allowed to pause in the middle of a frame, and therefore the
 "empty" signal should not be pulled low until an entire frame is ready. This
