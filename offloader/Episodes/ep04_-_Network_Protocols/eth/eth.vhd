@@ -63,7 +63,7 @@ begin
 
    --------------------------------------------------
    -- Generate debug signals.
-   -- This will store the first 32 bytes of the received frame.
+   -- This will store the bytes 10-41 (incl) of the received frame.
    --------------------------------------------------
 
    p_debug : process (clk_i)
