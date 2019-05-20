@@ -137,26 +137,21 @@ begin
       out_data_o     => st_data
    ); -- i_strip_crc
 
-   i_ser2par : entity work.ser2par
-   generic map (
-      G_HDR_SIZE  => 42          -- Size of ARP frame
-   )
+   i_arp : entity work.arp
    port map (
       clk_i       => clk_i,
       rst_i       => rst,
-      rx_valid_i  => st_valid,
+      debug_o     => debug,
+      rx_data_i   => st_data,
       rx_sof_i    => st_sof,
       rx_eof_i    => st_eof,
-      rx_data_i   => st_data,
-      hdr_valid_o => pa_valid,
-      hdr_data_o  => pa_data,
-      hdr_size_o  => pa_size,
-      hdr_more_o  => open,       -- Not used
-      pl_valid_o  => open,       -- Not used
-      pl_sof_o    => open,       -- Not used
-      pl_eof_o    => open,       -- Not used
-      pl_data_o   => open        -- Not used
-   ); -- i_ser2par
+      rx_valid_i  => st_valid,
+      tx_empty_o  => tx_empty,
+      tx_rden_i   => tx_rden,
+      tx_data_o   => tx_data,
+      tx_sof_o    => tx_sof,
+      tx_eof_o    => tx_eof
+   ); -- i_arp
 
 
    --------------------------------------------------

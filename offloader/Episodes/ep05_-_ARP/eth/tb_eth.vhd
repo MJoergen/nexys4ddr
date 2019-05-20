@@ -36,6 +36,13 @@ architecture simulation of tb_eth is
    signal eth_txen  : std_logic;
    signal debug     : std_logic_vector(255 downto 0);
 
+   -- Input to eth_rx
+   signal rx_valid  : std_logic;
+   signal rx_sof    : std_logic;
+   signal rx_eof    : std_logic;
+   signal rx_data   : std_logic_vector(7 downto 0);
+   signal rx_ok     : std_logic;
+
    -- Signals to control the generation of the Ethernet frames for transmission.
    signal sim_tx_start : std_logic;
    signal sim_tx_done  : std_logic;
@@ -105,18 +112,9 @@ begin
       tx_rden_o  => tx_rden,
       tx_err_o   => open,
       --
-      eth_txd_o  => eth_txd,
-      eth_txen_o => eth_txen
+      eth_txd_o  => eth_rxd,
+      eth_txen_o => eth_crsdv
    ); -- i_eth_tx
-
-
-   --------------------------------------------------
-   -- Loopback
-   --------------------------------------------------
-
-   eth_rxd   <= eth_txd;
-   eth_crsdv <= eth_txen;
-   eth_rxerr <= '0';
 
 
    --------------------------------------------------
@@ -127,8 +125,8 @@ begin
    port map (
       clk_i        => clk,
       debug_o      => debug,
-      eth_txd_o    => open,
-      eth_txen_o   => open,
+      eth_txd_o    => eth_txd,
+      eth_txen_o   => eth_txen,
       eth_rxd_i    => eth_rxd,
       eth_rxerr_i  => '0',
       eth_crsdv_i  => eth_crsdv,
@@ -138,6 +136,36 @@ begin
       eth_rstn_o   => eth_rstn,
       eth_refclk_o => open
    ); -- i_eth
+
+
+   --------------------------------------------------
+   -- Instantiate traffic receiver
+   --------------------------------------------------
+
+   i_eth_rx : entity work.eth_rx
+   port map (
+      eth_clk_i   => clk,
+      eth_rst_i   => rst,
+      eth_rxd_i   => eth_txd,
+      eth_rxerr_i => '0',
+      eth_crsdv_i => eth_txen,
+      rx_valid_o  => rx_valid,
+      rx_sof_o    => rx_sof,
+      rx_eof_o    => rx_eof,
+      rx_data_o   => rx_data,
+      rx_ok_o     => rx_ok
+   ); -- i_eth_rx
+
+   i_sim_rx : entity work.sim_rx
+   port map (
+      rx_valid_i  => rx_valid,
+      rx_data_i   => rx_data,
+      rx_sof_i    => rx_sof,
+      rx_eof_i    => rx_eof,
+      rx_ok_i     => rx_ok,
+      sim_data_o  => sim_rx_data,
+      sim_len_o   => sim_rx_len
+   ); -- i_sim_rx
 
 
    --------------------------------------------------
@@ -152,35 +180,21 @@ begin
       wait until eth_rstn = '1';
       wait until clk = '1';
 
-      -- Send one frame (16 bytes)
-      for i in 0 to 15 loop
-         sim_tx_data(8*i+7 downto 8*i) <= to_std_logic_vector(i+12, 8);
-      end loop;
-      for i in 16 to 127 loop
+      -- Send one ARP request
+      sim_tx_data(42*8-1 downto 0) <= X"FFFFFFFFFFFF0011223344550806" & -- MAC header
+                                      X"0001080006040001" &             -- ARP header
+                                      X"FFFFFFFFFFFF" & X"C0A80001" &   -- SHA & SPA
+                                      X"000000000000" & X"C0A80043";    -- THA & TPA
+      for i in 42 to 127 loop
          sim_tx_data(8*i+7 downto 8*i) <= (others => 'U');
       end loop;
-      sim_tx_len   <= X"0010";
+      sim_tx_len   <= X"003C";
       sim_tx_start <= '1';
       wait until sim_tx_done = '1';
       sim_tx_start <= '0';
       wait until clk = '0';
       wait for 500 ns;
       assert debug(16*8-1 downto 0) = sim_tx_data(16*8-1 downto 0);
-
-      -- Send another frame (32 bytes)
-      for i in 0 to 31 loop
-         sim_tx_data(8*i+7 downto 8*i) <= to_std_logic_vector(i+22, 8);
-      end loop;
-      for i in 32 to 127 loop
-         sim_tx_data(8*i+7 downto 8*i) <= (others => 'U');
-      end loop;
-      sim_tx_len   <= X"0020";
-      sim_tx_start <= '1';
-      wait until sim_tx_done = '1';
-      sim_tx_start <= '0';
-      wait until clk = '0';
-      wait for 500 ns;
-      assert debug(32*8-1 downto 0) = sim_tx_data(32*8-1 downto 0);
 
       -- Stop test
       wait until clk = '1';

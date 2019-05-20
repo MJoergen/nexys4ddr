@@ -1,6 +1,6 @@
 XILINX_DIR = /opt/Xilinx/Vivado/2018.2
 
-SRC  = fifo.vhd strip_crc.vhd ser2par.vhd eth_rx.vhd eth_tx.vhd eth.vhd
+SRC  = eth_rx.vhd fifo.vhd strip_crc.vhd ser2par.vhd arp.vhd par2ser.vhd eth_tx.vhd eth.vhd
 SRC += tb_eth.vhd sim_tx.vhd sim_rx.vhd
 TB   = tb_eth
 WAVE = tb_eth.ghw
