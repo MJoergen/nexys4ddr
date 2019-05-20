@@ -71,16 +71,6 @@ The client is not allowed to pause in the middle of a frame, and therefore the
 means that the client is required to buffer a complete frame before initiating
 transmission.
 
-## Simulation
-
-It is very helpful during design and debugging to be able to simulate the
-design before testing it in hardware. To this end, I've added a separate
-simulation of just the Ethernet module.  This takes place in the testbench file
-tb\_eth.vhd. To run the simulation, just type "make" in the eth directory.  The
-testbench requires some extra block to generate the stimuli, and to collect the
-response. This is handled by the extra module sim\_rx.vhd and sim\_tx.vhd.
-
-
 ## Clock domains
 
 Now, the Ethernet module needs a 50 MHz clock, so we generate this in line 60
@@ -102,4 +92,21 @@ convention helps prevent errors with incorrect clock domain crossings.
 The Clock Domain Crossing module (cdc.vhd) is a wrapper for a Xilinx
 Parameterized Macro (XPM), and these XPM's have to be explicitly enabled. This
 is done in line 14 of the Makefile.
+
+## Simulation
+
+It is very helpful during design and debugging to be able to simulate the
+design before testing it in hardware. To this end, I've added a separate
+simulation of just the Ethernet module.  This takes place in the testbench file
+tb\_eth.vhd. To run the simulation, just type "make" in the eth directory.  The
+testbench requires some extra block to generate the stimuli, and to collect the
+response. This is handled by the extra module sim\_rx.vhd and sim\_tx.vhd.
+
+## Validation in hardware
+
+Since we have no clients connected to the eth\_rx and eth\_tx modules yet, no
+data is transferred yet. However, I've added in lines 53-70 of eth/eth.vhd a
+simple counter to count the number of valid Ethernet frames received.  When
+running in hardware the VGA should display a counter that increments
+occassionally, corresponding to each frame received.
 
