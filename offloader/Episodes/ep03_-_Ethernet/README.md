@@ -67,7 +67,7 @@ Therefore, it is the eth\_tx module that needs to control when data is
 transferred.
 
 The client is not allowed to pause in the middle of a frame, and therefore the
-"empty" signal should not be pulled low until an entire frame is ready. This
+"empty" signal should not be pulled high until an entire frame is ready. This
 means that the client is required to buffer a complete frame before initiating
 transmission.
 
