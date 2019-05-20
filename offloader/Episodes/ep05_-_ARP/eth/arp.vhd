@@ -5,6 +5,10 @@ use ieee.numeric_std_unsigned.all;
 -- This module detects and responds to ARP messages.
 
 entity arp is
+   generic (
+      G_MY_MAC     : std_logic_vector(47 downto 0);
+      G_MY_IP      : std_logic_vector(31 downto 0)
+   );
    port (
       clk_i        : in  std_logic;
       rst_i        : in  std_logic;
@@ -27,8 +31,7 @@ end arp;
 
 architecture Structural of arp is
 
-   constant C_MY_MAC   : std_logic_vector(47 downto 0) := X"001122334455";
-   constant C_MY_IP    : std_logic_vector(31 downto 0) := X"C0A8004D";     -- 192.168.0.77
+   signal debug        : std_logic_vector(255 downto 0);
 
    -- Output from ser2par
    signal hdr_valid    : std_logic;
@@ -36,7 +39,7 @@ architecture Structural of arp is
    signal hdr_size     : std_logic_vector(7 downto 0);
 
    signal rsp_valid    : std_logic;
-   signal rsp_data     : std_logic_vector(60*8-1 downto 0);    -- Must not at least minimum frame size.
+   signal rsp_data     : std_logic_vector(42*8-1 downto 0);
 
    -- The format of a MAC+ARP frame is as follows:
    -- 41 : MAC_DST[47 downto 40]       (Broadcast address)
@@ -84,6 +87,27 @@ architecture Structural of arp is
 
 begin
 
+   --------------------------------------------------
+   -- Generate debug signals.
+   -- This will store bytes 10-41 of the received frame.
+   --------------------------------------------------
+
+   p_debug : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if hdr_valid = '1' then
+            debug(127 downto 0) <= hdr_data(127 downto 0);
+         end if;
+         if rsp_valid = '1' then
+            debug(255 downto 128) <= rsp_data(127 downto 0);
+         end if;
+         if rst_i = '1' then
+            debug <= (others => '1');
+         end if;         
+      end if;
+   end process p_debug;
+
+
    i_ser2par : entity work.ser2par
    generic map (
       G_HDR_SIZE  => 42          -- Size of minimum frame
@@ -100,7 +124,6 @@ begin
       hdr_size_o  => hdr_size,
       hdr_more_o  => open,       -- Not used
       pl_valid_o  => open,       -- Not used
-      pl_sof_o    => open,       -- Not used
       pl_eof_o    => open,       -- Not used
       pl_data_o   => open        -- Not used
    ); -- i_ser2par
@@ -112,15 +135,16 @@ begin
          rsp_valid <= '0';
 
          -- Is this an ARP request for our IP address?
-         if hdr_size = 42 and
+         if hdr_valid = '1' and
+            hdr_size = 42 and
             hdr_data(29*8+7 downto 20*8) = X"08060001080006040001" and
-            hdr_data(3*8+7 downto 0) = C_MY_IP then
+            hdr_data(3*8+7 downto 0) = G_MY_IP then
             -- Build response
             rsp_data(41*8+7 downto 36*8) <= hdr_data(35*8+7 downto 30*8);  -- MAC_DST
-            rsp_data(35*8+7 downto 30*8) <= C_MY_MAC;                      -- MAC_SRC
+            rsp_data(35*8+7 downto 30*8) <= G_MY_MAC;                      -- MAC_SRC
             rsp_data(29*8+7 downto 20*8) <= X"08060001080006040002";       -- ARP response
-            rsp_data(19*8+7 downto 14*8) <= C_MY_MAC;                      -- ARP_SHA
-            rsp_data(13*8+7 downto 10*8) <= C_MY_IP;                       -- ARP_SPA
+            rsp_data(19*8+7 downto 14*8) <= G_MY_MAC;                      -- ARP_SHA
+            rsp_data(13*8+7 downto 10*8) <= G_MY_IP;                       -- ARP_SPA
             rsp_data( 9*8+7 downto  4*8) <= hdr_data(19*8+7 downto 14*8);  -- ARP_THA
             rsp_data( 3*8+7 downto  0*8) <= hdr_data(13*8+7 downto 10*8);  -- ARP_TPA
             rsp_valid <= '1';
@@ -130,19 +154,24 @@ begin
 
    i_par2ser : entity work.par2ser
    generic map (
-      G_PL_SIZE => 60
+      G_PL_SIZE => 42
    )
    port map (
       clk_i      => clk_i,
       rst_i      => rst_i,
       pl_valid_i => rsp_valid,
       pl_data_i  => rsp_data,
+      pl_size_i  => X"3C",       -- Minimum frame size is 60 bytes.
       tx_empty_o => tx_empty_o,
       tx_rden_i  => tx_rden_i,
       tx_sof_o   => tx_sof_o,
       tx_eof_o   => tx_eof_o,
       tx_data_o  => tx_data_o
    ); -- i_par2ser
+
+
+   -- Connect output signals
+   debug_o <= debug;
 
 end Structural;
 

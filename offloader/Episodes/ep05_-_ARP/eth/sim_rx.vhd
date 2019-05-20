@@ -10,14 +10,14 @@ entity sim_rx is
       rx_eof_i    : in  std_logic;
       rx_ok_i     : in  std_logic;
       --
-      sim_data_o  : out std_logic_vector(127*8+7 downto 0);
+      sim_data_o  : out std_logic_vector(64*8-1 downto 0);
       sim_len_o   : out std_logic_vector(15 downto 0)
    );
 end sim_rx;
 
 architecture simulation of sim_rx is
 
-   signal sim_data : std_logic_vector(127*8+7 downto 0);
+   signal sim_data : std_logic_vector(64*8-1 downto 0);
    signal sim_len  : std_logic_vector(15 downto 0);
 
 begin

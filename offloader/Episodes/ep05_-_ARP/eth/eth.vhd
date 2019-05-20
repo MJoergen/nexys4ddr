@@ -28,9 +28,11 @@ end eth;
 
 architecture Structural of eth is
 
+   constant C_MY_MAC   : std_logic_vector(47 downto 0) := X"001122334455";
+   constant C_MY_IP    : std_logic_vector(31 downto 0) := X"C0A8014D";     -- 192.168.1.77
+
    signal rst          : std_logic                     := '1';
    signal rst_cnt      : std_logic_vector(20 downto 0) := (others => '1');
-   signal debug        : std_logic_vector(255 downto 0);
 
    -- Connected to eth_tx
    -- TBD: For now, we just assign default values to these signals
@@ -60,24 +62,6 @@ architecture Structural of eth is
    signal pa_size      : std_logic_vector(7 downto 0);
 
 begin
-
-   --------------------------------------------------
-   -- Generate debug signals.
-   -- This will store the first 32 bytes of the received frame.
-   --------------------------------------------------
-
-   p_debug : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if pa_valid = '1' then
-            debug <= pa_data(255 downto 0);
-         end if;
-         if rst = '1' then
-            debug <= (others => '1');
-         end if;         
-      end if;
-   end process p_debug;
-
 
    --------------------------------------------------
    -- Generate reset.
@@ -138,10 +122,14 @@ begin
    ); -- i_strip_crc
 
    i_arp : entity work.arp
+   generic map (
+      G_MY_MAC => C_MY_MAC,
+      G_MY_IP  => C_MY_IP
+   )
    port map (
       clk_i       => clk_i,
       rst_i       => rst,
-      debug_o     => debug,
+      debug_o     => debug_o,
       rx_data_i   => st_data,
       rx_sof_i    => st_sof,
       rx_eof_i    => st_eof,
@@ -179,7 +167,6 @@ begin
 
    eth_refclk_o <= clk_i;
    eth_rstn_o   <= not rst;
-   debug_o      <= debug;
 
 end Structural;
 

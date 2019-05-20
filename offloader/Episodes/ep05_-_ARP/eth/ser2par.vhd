@@ -28,7 +28,6 @@ entity ser2par is
 
       -- Payload output
       pl_valid_o  : out std_logic;
-      pl_sof_o    : out std_logic;
       pl_eof_o    : out std_logic;
       pl_data_o   : out std_logic_vector(7 downto 0)
    );
@@ -55,6 +54,7 @@ begin
       if rising_edge(clk_i) then
          hdr_valid_r <= '0';
          pl_valid_r  <= '0';
+         pl_eof_r    <= '0';
 
          case state_r is
             when IDLE_ST =>

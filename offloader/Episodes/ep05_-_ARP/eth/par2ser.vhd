@@ -12,6 +12,7 @@ entity par2ser is
 
       -- Receive interface
       pl_valid_i : in  std_logic;
+      pl_size_i  : in  std_logic_vector(7 downto 0);
       pl_data_i  : in  std_logic_vector(G_PL_SIZE*8-1 downto 0);
 
       -- Transmit interface
@@ -50,12 +51,13 @@ begin
                   tx_eof_r   <= '0';
                   tx_data_r  <= pl_data_i(G_PL_SIZE*8-1 downto G_PL_SIZE*8-8);
                   data_r     <= pl_data_i(G_PL_SIZE*8-9 downto 0) & X"00";
-                  size_r     <= to_std_logic_vector(G_PL_SIZE-1, 8);
+                  size_r     <= pl_size_i-1;
                   state_r    <= FWD_ST;
                end if;
 
             when FWD_ST =>
                if tx_rden_i = '1' then
+                  tx_sof_r <= '0';
                   if size_r = 0 then
                      tx_empty_r <= '1';
                      state_r    <= IDLE_ST;
