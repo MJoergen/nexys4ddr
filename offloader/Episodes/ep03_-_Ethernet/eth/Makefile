@@ -1,5 +1,5 @@
-SRC  = eth_rx.vhd eth_tx.vhd
-SRC += tb_eth.vhd sim_tx.vhd sim_rx.vhd
+SRC  = eth_rx.vhd eth_tx.vhd wide2byte.vhd byte2wide.vhd
+SRC += tb_eth.vhd
 TB   = tb_eth
 WAVE = tb_eth.ghw
 SAVE = tb_eth.gtkw
