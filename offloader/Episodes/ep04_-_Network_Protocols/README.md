@@ -101,6 +101,11 @@ However, this would use additional resources for the byte\_cnt signal and for
 the associated multiplexing when accessing a variable range of bits in a large
 vector.
 
+## Byte-ordering
+
+Experience has shown me that it is necessary to consider byte-ordering. There is
+no right or wrong, only you have to document what you decide.
+
 ## Validation in hardware
 
 Our design can still not send any frames, and can still not do anything meaningfull

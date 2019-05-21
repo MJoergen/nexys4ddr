@@ -20,31 +20,23 @@ architecture simulation of tb_eth is
    signal clk       : std_logic;
    signal rst       : std_logic;
 
+   -- Signals to control the generation of the Ethernet frames for transmission.
+   signal sim_tx_valid : std_logic;
+   signal sim_tx_size  : std_logic_vector(7 downto 0);
+   signal sim_tx_data  : std_logic_vector(64*8-1 downto 0);
+
    -- Input to eth_tx
-   signal tx_empty  : std_logic;
-   signal tx_rden   : std_logic;
-   signal tx_data   : std_logic_vector(7 downto 0);
-   signal tx_sof    : std_logic;
-   signal tx_eof    : std_logic;
+   signal tx_empty     : std_logic;
+   signal tx_rden      : std_logic;
+   signal tx_data      : std_logic_vector(7 downto 0);
+   signal tx_sof       : std_logic;
+   signal tx_eof       : std_logic;
 
    -- Signals conected to DUT
-   signal eth_rstn  : std_logic;
-   signal eth_rxd   : std_logic_vector(1 downto 0);
-   signal eth_crsdv : std_logic;
-   signal eth_rxerr : std_logic;
-   signal eth_txd   : std_logic_vector(1 downto 0);
-   signal eth_txen  : std_logic;
-   signal debug     : std_logic_vector(255 downto 0);
-
-   -- Signals to control the generation of the Ethernet frames for transmission.
-   signal sim_tx_start : std_logic;
-   signal sim_tx_done  : std_logic;
-   signal sim_tx_len   : std_logic_vector(15 downto 0);
-   signal sim_tx_data  : std_logic_vector(128*8-1 downto 0);
-
-   -- Signals for reception of the Ethernet frames.
-   signal sim_rx_len   : std_logic_vector(15 downto 0);
-   signal sim_rx_data  : std_logic_vector(128*8-1 downto 0);
+   signal eth_rstn     : std_logic;
+   signal eth_d        : std_logic_vector(1 downto 0);
+   signal eth_en       : std_logic;
+   signal debug        : std_logic_vector(255 downto 0);
 
    -- Signal to control execution of the testbench.
    signal test_running : std_logic := '1';
@@ -75,19 +67,23 @@ begin
    -- Instantiate traffic generator
    --------------------------------------------------
 
-   i_sim_tx : entity work.sim_tx
+   i_wide2byte : entity work.wide2byte
+   generic map (
+      G_PL_SIZE  => 64
+   )
    port map (
-      sim_start_i => sim_tx_start,
-      sim_data_i  => sim_tx_data,
-      sim_len_i   => sim_tx_len,
-      sim_done_o  => sim_tx_done,
+      clk_i      => clk,
+      rst_i      => rst,
+      pl_valid_i => sim_tx_valid,
+      pl_data_i  => sim_tx_data,
+      pl_size_i  => sim_tx_size,
       --
-      tx_empty_o  => tx_empty,
-      tx_data_o   => tx_data,
-      tx_sof_o    => tx_sof,
-      tx_eof_o    => tx_eof,
-      tx_rden_i   => tx_rden
-   ); -- i_sim_tx
+      tx_empty_o => tx_empty,
+      tx_data_o  => tx_data,
+      tx_sof_o   => tx_sof,
+      tx_eof_o   => tx_eof,
+      tx_rden_i  => tx_rden
+   ); -- i_wide2byte
 
 
    --------------------------------------------------
@@ -105,18 +101,9 @@ begin
       tx_rden_o  => tx_rden,
       tx_err_o   => open,
       --
-      eth_txd_o  => eth_txd,
-      eth_txen_o => eth_txen
+      eth_txd_o  => eth_d,
+      eth_txen_o => eth_en
    ); -- i_eth_tx
-
-
-   --------------------------------------------------
-   -- Loopback
-   --------------------------------------------------
-
-   eth_rxd   <= eth_txd;
-   eth_crsdv <= eth_txen;
-   eth_rxerr <= '0';
 
 
    --------------------------------------------------
@@ -129,9 +116,9 @@ begin
       debug_o      => debug,
       eth_txd_o    => open,
       eth_txen_o   => open,
-      eth_rxd_i    => eth_rxd,
+      eth_rxd_i    => eth_d,
       eth_rxerr_i  => '0',
-      eth_crsdv_i  => eth_crsdv,
+      eth_crsdv_i  => eth_en,
       eth_intn_i   => '0',
       eth_mdio_io  => open,
       eth_mdc_o    => open,
@@ -147,40 +134,43 @@ begin
    main_test_proc : process
    begin
       -- Wait until reset is complete
-      sim_tx_start <= '0';
+      sim_tx_valid <= '0';
       wait until rst = '0';
       wait until eth_rstn = '1';
       wait until clk = '1';
 
       -- Send one frame (16 bytes)
+      sim_tx_data <= (others => 'U');
       for i in 0 to 15 loop
-         sim_tx_data(8*i+7 downto 8*i) <= to_std_logic_vector(i+12, 8);
+         sim_tx_data(64*8-1-8*i downto 64*8-8-8*i) <= to_std_logic_vector(i+12, 8);
       end loop;
-      for i in 16 to 127 loop
-         sim_tx_data(8*i+7 downto 8*i) <= (others => 'U');
-      end loop;
-      sim_tx_len   <= X"0010";
-      sim_tx_start <= '1';
-      wait until sim_tx_done = '1';
-      sim_tx_start <= '0';
-      wait until clk = '0';
-      wait for 500 ns;
-      assert debug(16*8-1 downto 0) = sim_tx_data(16*8-1 downto 0);
+      sim_tx_size  <= X"10";
+      sim_tx_valid <= '1';
+      wait until clk = '1';
+      sim_tx_valid <= '0';
+
+      -- Make a short pause while frame is being received.
+      wait for 400 ns;
+
+      -- Validate received frame
+      assert debug(32*8-1 downto 32*8-16*8) = sim_tx_data(64*8-1 downto 64*8-16*8);
 
       -- Send another frame (32 bytes)
+      sim_tx_data <= (others => 'U');
       for i in 0 to 31 loop
-         sim_tx_data(8*i+7 downto 8*i) <= to_std_logic_vector(i+22, 8);
+         sim_tx_data(64*8-1-8*i downto 64*8-8-8*i) <= to_std_logic_vector(i+22, 8);
       end loop;
-      for i in 32 to 127 loop
-         sim_tx_data(8*i+7 downto 8*i) <= (others => 'U');
-      end loop;
-      sim_tx_len   <= X"0020";
-      sim_tx_start <= '1';
-      wait until sim_tx_done = '1';
-      sim_tx_start <= '0';
-      wait until clk = '0';
+      sim_tx_size  <= X"20";
+      sim_tx_valid <= '1';
+      wait until clk = '1';
+      sim_tx_valid <= '0';
+
+      -- Make a short pause while frame is being received.
       wait for 500 ns;
-      assert debug(32*8-1 downto 0) = sim_tx_data(32*8-1 downto 0);
+
+      -- Validate received frame
+      assert debug(32*8-1 downto 0) = sim_tx_data(64*8-1 downto 64*8-32*8);
+
 
       -- Stop test
       wait until clk = '1';

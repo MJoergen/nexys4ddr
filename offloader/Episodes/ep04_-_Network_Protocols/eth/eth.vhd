@@ -70,7 +70,7 @@ begin
    begin
       if rising_edge(clk_i) then
          if pa_valid = '1' then
-            debug <= pa_data(255 downto 0);
+            debug <= pa_data(42*8-1 downto 42*8-32*8);
          end if;
          if rst = '1' then
             debug <= (others => '1');
@@ -137,7 +137,7 @@ begin
       out_data_o     => st_data
    ); -- i_strip_crc
 
-   i_ser2par : entity work.ser2par
+   i_byte2wide : entity work.byte2wide
    generic map (
       G_HDR_SIZE  => 42          -- Size of ARP frame
    )
@@ -153,10 +153,9 @@ begin
       hdr_size_o  => pa_size,
       hdr_more_o  => open,       -- Not used
       pl_valid_o  => open,       -- Not used
-      pl_sof_o    => open,       -- Not used
       pl_eof_o    => open,       -- Not used
       pl_data_o   => open        -- Not used
-   ); -- i_ser2par
+   ); -- i_wide2byte
 
 
    --------------------------------------------------
