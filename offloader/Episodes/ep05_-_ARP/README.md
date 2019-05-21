@@ -47,7 +47,8 @@ all take place in a single clock cycle and in just a few lines of code.
 
 The only caveat is that in line 170 the frame size must be (at least) 60 bytes.
 This is because the Ethernet standard requires minimum 64 bytes of frame data
-(including CRC) for every packet.
+(including CRC) for every packet. If a smaller value is used here, the host PC
+cannot receive the packets.
 
 ## Validation in hardware
 
