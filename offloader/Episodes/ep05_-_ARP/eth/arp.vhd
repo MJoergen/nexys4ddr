@@ -33,7 +33,7 @@ architecture Structural of arp is
 
    signal debug        : std_logic_vector(255 downto 0);
 
-   -- Output from ser2par
+   -- Output from byte2wide
    signal hdr_valid    : std_logic;
    signal hdr_data     : std_logic_vector(42*8-1 downto 0);
    signal hdr_size     : std_logic_vector(7 downto 0);
@@ -95,11 +95,8 @@ begin
    p_debug : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if hdr_valid = '1' then
-            debug(127 downto 0) <= hdr_data(127 downto 0);
-         end if;
          if rsp_valid = '1' then
-            debug(255 downto 128) <= rsp_data(127 downto 0);
+            debug <= rsp_data(255 downto 0);
          end if;
          if rst_i = '1' then
             debug <= (others => '1');
@@ -108,7 +105,7 @@ begin
    end process p_debug;
 
 
-   i_ser2par : entity work.ser2par
+   i_byte2wide : entity work.byte2wide
    generic map (
       G_HDR_SIZE  => 42          -- Size of minimum frame
    )
@@ -126,7 +123,7 @@ begin
       pl_valid_o  => open,       -- Not used
       pl_eof_o    => open,       -- Not used
       pl_data_o   => open        -- Not used
-   ); -- i_ser2par
+   ); -- i_byte2wide
 
 
    p_arp : process (clk_i)
@@ -152,7 +149,7 @@ begin
       end if;
    end process p_arp;
 
-   i_par2ser : entity work.par2ser
+   i_wide2byte : entity work.wide2byte
    generic map (
       G_PL_SIZE => 42
    )
@@ -167,7 +164,7 @@ begin
       tx_sof_o   => tx_sof_o,
       tx_eof_o   => tx_eof_o,
       tx_data_o  => tx_data_o
-   ); -- i_par2ser
+   ); -- i_wide2byte
 
 
    -- Connect output signals

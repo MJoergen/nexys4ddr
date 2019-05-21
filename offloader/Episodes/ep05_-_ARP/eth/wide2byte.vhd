@@ -2,7 +2,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
-entity par2ser is
+-- This module takes a parallel input and serializes it one-byte-at-a-time.
+-- The MSB is transmitted first, i.e. pl_data_i(G_PL_SIZE*8-1 downto
+-- G_PL_SIZE*8-8).
+
+entity wide2byte is
    generic (
       G_PL_SIZE : integer := 60
    );
@@ -10,21 +14,21 @@ entity par2ser is
       clk_i      : in  std_logic;
       rst_i      : in  std_logic;
 
-      -- Receive interface
+      -- Receive interface (wide data bus)
       pl_valid_i : in  std_logic;
       pl_size_i  : in  std_logic_vector(7 downto 0);
       pl_data_i  : in  std_logic_vector(G_PL_SIZE*8-1 downto 0);
 
-      -- Transmit interface
+      -- Transmit interface (byte oriented data bus)
       tx_empty_o : out std_logic;
       tx_rden_i  : in  std_logic;
       tx_data_o  : out std_logic_vector(7 downto 0);
       tx_sof_o   : out std_logic;
       tx_eof_o   : out std_logic
    );
-end par2ser;
+end wide2byte;
 
-architecture Structural of par2ser is
+architecture Structural of wide2byte is
 
    type t_state is (IDLE_ST, FWD_ST);
    signal state_r    : t_state := IDLE_ST;

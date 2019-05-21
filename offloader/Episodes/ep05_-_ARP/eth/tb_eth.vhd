@@ -17,40 +17,39 @@ end tb_eth;
 
 architecture simulation of tb_eth is
 
-   signal clk       : std_logic;
-   signal rst       : std_logic;
-
-   -- Input to eth_tx
-   signal tx_empty  : std_logic;
-   signal tx_rden   : std_logic;
-   signal tx_data   : std_logic_vector(7 downto 0);
-   signal tx_sof    : std_logic;
-   signal tx_eof    : std_logic;
-
-   -- Signals conected to DUT
-   signal eth_rstn  : std_logic;
-   signal eth_rxd   : std_logic_vector(1 downto 0);
-   signal eth_crsdv : std_logic;
-   signal eth_rxerr : std_logic;
-   signal eth_txd   : std_logic_vector(1 downto 0);
-   signal eth_txen  : std_logic;
-   signal debug     : std_logic_vector(255 downto 0);
-
-   -- Input to eth_rx
-   signal rx_valid  : std_logic;
-   signal rx_sof    : std_logic;
-   signal rx_eof    : std_logic;
-   signal rx_data   : std_logic_vector(7 downto 0);
-   signal rx_ok     : std_logic;
+   signal clk          : std_logic;
+   signal rst          : std_logic;
 
    -- Signals to control the generation of the Ethernet frames for transmission.
-   signal sim_tx_start : std_logic;
-   signal sim_tx_done  : std_logic;
-   signal sim_tx_len   : std_logic_vector(15 downto 0);
-   signal sim_tx_data  : std_logic_vector(128*8-1 downto 0);
+   signal sim_tx_valid : std_logic;
+   signal sim_tx_size  : std_logic_vector(7 downto 0);
+   signal sim_tx_data  : std_logic_vector(64*8-1 downto 0);
+
+   -- Input to eth_tx
+   signal tx_empty     : std_logic;
+   signal tx_rden      : std_logic;
+   signal tx_data      : std_logic_vector(7 downto 0);
+   signal tx_sof       : std_logic;
+   signal tx_eof       : std_logic;
+
+   -- Signals conected to DUT
+   signal eth_rstn     : std_logic;
+   signal eth_rxd      : std_logic_vector(1 downto 0);
+   signal eth_crsdv    : std_logic;
+   signal eth_txd      : std_logic_vector(1 downto 0);
+   signal eth_txen     : std_logic;
+   signal debug        : std_logic_vector(255 downto 0);
+
+   -- Input to eth_rx
+   signal rx_valid     : std_logic;
+   signal rx_sof       : std_logic;
+   signal rx_eof       : std_logic;
+   signal rx_data      : std_logic_vector(7 downto 0);
+   signal rx_ok        : std_logic;
 
    -- Signals for reception of the Ethernet frames.
-   signal sim_rx_len   : std_logic_vector(15 downto 0);
+   signal sim_rx_valid : std_logic;
+   signal sim_rx_size  : std_logic_vector(7 downto 0);
    signal sim_rx_data  : std_logic_vector(64*8-1 downto 0);
 
    -- Signal to control execution of the testbench.
@@ -82,24 +81,23 @@ begin
    -- Instantiate traffic generator
    --------------------------------------------------
 
-   i_sim_tx : entity work.sim_tx
+   i_wide2byte : entity work.wide2byte
+   generic map (
+      G_PL_SIZE  => 64
+   )
    port map (
-      sim_start_i => sim_tx_start,
-      sim_data_i  => sim_tx_data,
-      sim_len_i   => sim_tx_len,
-      sim_done_o  => sim_tx_done,
+      clk_i      => clk,
+      rst_i      => rst,
+      pl_valid_i => sim_tx_valid,
+      pl_size_i  => sim_tx_size,
+      pl_data_i  => sim_tx_data,
       --
-      tx_empty_o  => tx_empty,
-      tx_data_o   => tx_data,
-      tx_sof_o    => tx_sof,
-      tx_eof_o    => tx_eof,
-      tx_rden_i   => tx_rden
-   ); -- i_sim_tx
-
-
-   --------------------------------------------------
-   -- Instantiate Tx path
-   --------------------------------------------------
+      tx_empty_o => tx_empty,
+      tx_data_o  => tx_data,
+      tx_sof_o   => tx_sof,
+      tx_eof_o   => tx_eof,
+      tx_rden_i  => tx_rden
+   ); -- i_wide2byte
 
    i_eth_tx : entity work.eth_tx
    port map (
@@ -156,16 +154,25 @@ begin
       rx_ok_o     => rx_ok
    ); -- i_eth_rx
 
-   i_sim_rx : entity work.sim_rx
+   i_byte2wide : entity work.byte2wide
+   generic map (
+      G_HDR_SIZE  => 64
+   )
    port map (
+      clk_i       => clk,
+      rst_i       => rst,
       rx_valid_i  => rx_valid,
-      rx_data_i   => rx_data,
       rx_sof_i    => rx_sof,
       rx_eof_i    => rx_eof,
-      rx_ok_i     => rx_ok,
-      sim_data_o  => sim_rx_data,
-      sim_len_o   => sim_rx_len
-   ); -- i_sim_rx
+      rx_data_i   => rx_data,
+      hdr_valid_o => sim_rx_valid,
+      hdr_data_o  => sim_rx_data,
+      hdr_size_o  => sim_rx_size,
+      hdr_more_o  => open,
+      pl_valid_o  => open, 
+      pl_eof_o    => open, 
+      pl_data_o   => open 
+   ); -- i_byte2wide
 
 
    --------------------------------------------------
@@ -173,43 +180,32 @@ begin
    --------------------------------------------------
 
    main_test_proc : process
-      function byte_swap(a : std_logic_vector) return std_logic_vector is
-         variable inp : std_logic_vector(a'length-1 downto 0);
-         variable res : std_logic_vector(a'length-1 downto 0);
-      begin
-         for i in 0 to a'length-1 loop
-            inp(a'length-1-i) := a(i+a'low);
-         end loop;
-         for i in 0 to a'length/8-1 loop
-            res(res'high-8*i downto res'high-8*i-7) := inp(8*i+7 downto 8*i);
-         end loop;
-         return res;
-      end function byte_swap;
    begin
       -- Wait until reset is complete
-      sim_tx_start <= '0';
+      sim_tx_valid <= '0';
       wait until rst = '0';
       wait until eth_rstn = '1';
       wait until clk = '1';
 
       -- Send one ARP request
-      sim_tx_data(41*8+7 downto 0) <= byte_swap(X"FFFFFFFFFFFF66778899AABB0806" & -- MAC header
-                                      X"0001080006040001" &                       -- ARP header
-                                      X"AABBCCDDEEFF" & X"C0A80001" &             -- SHA & SPA
-                                      X"000000000000" & X"C0A8014D");             -- THA & TPA
-      for i in 42 to 59 loop
-         sim_tx_data(8*i+7 downto 8*i) <= (others => '0');
-      end loop;
-      for i in 60 to 127 loop
-         sim_tx_data(8*i+7 downto 8*i) <= (others => 'U');
-      end loop;
-      sim_tx_len   <= X"003C";
-      sim_tx_start <= '1';
-      wait until sim_tx_done = '1';
-      sim_tx_start <= '0';
-      wait until clk = '0';
-      wait for 1500 ns;
-      --assert debug(16*8-1 downto 0) = sim_tx_data(16*8-1 downto 0);
+      sim_tx_data <= (others => '0');
+      sim_tx_data(64*8-1 downto 64*8-42*8) <= X"FFFFFFFFFFFF66778899AABB0806" &  -- MAC header
+                                              X"0001080006040001" &              -- ARP header
+                                              X"AABBCCDDEEFF" & X"C0A80001" &    -- SHA & SPA
+                                              X"000000000000" & X"C0A8014D";     -- THA & TPA
+      sim_tx_size  <= X"3C";
+      sim_tx_valid <= '1';
+      wait until clk = '1';
+      sim_tx_valid <= '0';
+
+      -- Verify ARP response is correct
+      wait until sim_rx_valid = '1';
+      assert sim_rx_size = sim_tx_size + 4;
+      assert sim_rx_data(64*8-1 downto 64*8-42*8) = X"66778899AABB0011223344550806" &  -- MAC header
+                                                    X"0001080006040002" &              -- ARP header
+                                                    X"001122334455" & X"C0A8014D" &    -- THA & TPA
+                                                    X"AABBCCDDEEFF" & X"C0A80001";     -- SHA & SPA
+      assert debug = sim_rx_data(64*8-42*8+32*8-1 downto 64*8-42*8);
 
       -- Stop test
       wait until clk = '1';

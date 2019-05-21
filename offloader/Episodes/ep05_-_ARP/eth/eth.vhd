@@ -56,7 +56,7 @@ architecture Structural of eth is
    signal st_eof       : std_logic;
    signal st_valid     : std_logic;
 
-   -- Output from ser2par
+   -- Output from byte2wide
    signal pa_valid     : std_logic;
    signal pa_data      : std_logic_vector(42*8-1 downto 0);
    signal pa_size      : std_logic_vector(7 downto 0);
@@ -94,51 +94,57 @@ begin
 
    i_eth_rx : entity work.eth_rx
    port map (
-      eth_clk_i    => clk_i,
-      eth_rst_i    => rst,
-      rx_data_o    => rx_data,
-      rx_sof_o     => rx_sof,
-      rx_eof_o     => rx_eof,
-      rx_valid_o   => rx_valid,
-      rx_ok_o      => rx_ok,
-      eth_rxd_i    => eth_rxd_i,
-      eth_rxerr_i  => eth_rxerr_i,
-      eth_crsdv_i  => eth_crsdv_i
+      eth_clk_i   => clk_i,
+      eth_rst_i   => rst,
+      rx_data_o   => rx_data,
+      rx_sof_o    => rx_sof,
+      rx_eof_o    => rx_eof,
+      rx_valid_o  => rx_valid,
+      rx_ok_o     => rx_ok,
+      eth_rxd_i   => eth_rxd_i,
+      eth_rxerr_i => eth_rxerr_i,
+      eth_crsdv_i => eth_crsdv_i
    ); -- i_eth_rx
 
    i_strip_crc : entity work.strip_crc
    port map (
-      clk_i          => clk_i,
-      rst_i          => rst,
-      rx_valid_i     => rx_valid,
-      rx_sof_i       => rx_sof,
-      rx_eof_i       => rx_eof,
-      rx_ok_i        => rx_ok,
-      rx_data_i      => rx_data,
-      out_valid_o    => st_valid,
-      out_sof_o      => st_sof,
-      out_eof_o      => st_eof,
-      out_data_o     => st_data
+      clk_i       => clk_i,
+      rst_i       => rst,
+      rx_valid_i  => rx_valid,
+      rx_sof_i    => rx_sof,
+      rx_eof_i    => rx_eof,
+      rx_ok_i     => rx_ok,
+      rx_data_i   => rx_data,
+      out_valid_o => st_valid,
+      out_sof_o   => st_sof,
+      out_eof_o   => st_eof,
+      out_data_o  => st_data
    ); -- i_strip_crc
+
+
+   --------------------------------------------------
+   -- Instantiate ARP processing
+   --------------------------------------------------
 
    i_arp : entity work.arp
    generic map (
-      G_MY_MAC => C_MY_MAC,
-      G_MY_IP  => C_MY_IP
+      G_MY_MAC   => C_MY_MAC,
+      G_MY_IP    => C_MY_IP
    )
    port map (
-      clk_i       => clk_i,
-      rst_i       => rst,
-      debug_o     => debug_o,
-      rx_data_i   => st_data,
-      rx_sof_i    => st_sof,
-      rx_eof_i    => st_eof,
-      rx_valid_i  => st_valid,
-      tx_empty_o  => tx_empty,
-      tx_rden_i   => tx_rden,
-      tx_data_o   => tx_data,
-      tx_sof_o    => tx_sof,
-      tx_eof_o    => tx_eof
+      clk_i      => clk_i,
+      rst_i      => rst,
+      rx_data_i  => st_data,
+      rx_sof_i   => st_sof,
+      rx_eof_i   => st_eof,
+      rx_valid_i => st_valid,
+      --
+      tx_empty_o => tx_empty,
+      tx_rden_i  => tx_rden,
+      tx_data_o  => tx_data,
+      tx_sof_o   => tx_sof,
+      tx_eof_o   => tx_eof,
+      debug_o    => debug_o
    ); -- i_arp
 
 
@@ -148,16 +154,16 @@ begin
 
    i_eth_tx : entity work.eth_tx
    port map (
-      eth_clk_i    => clk_i,
-      eth_rst_i    => rst,
-      tx_data_i    => tx_data,
-      tx_sof_i     => tx_sof,
-      tx_eof_i     => tx_eof,
-      tx_empty_i   => tx_empty,
-      tx_rden_o    => tx_rden,
-      tx_err_o     => tx_err,
-      eth_txd_o    => eth_txd_o,
-      eth_txen_o   => eth_txen_o
+      eth_clk_i  => clk_i,
+      eth_rst_i  => rst,
+      tx_data_i  => tx_data,
+      tx_sof_i   => tx_sof,
+      tx_eof_i   => tx_eof,
+      tx_empty_i => tx_empty,
+      tx_rden_o  => tx_rden,
+      tx_err_o   => tx_err,
+      eth_txd_o  => eth_txd_o,
+      eth_txen_o => eth_txen_o
    ); -- i_eth_tx
 
 
