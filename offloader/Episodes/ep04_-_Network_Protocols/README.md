@@ -1,8 +1,8 @@
 # CPU offloader
 # Episode 4 : "Network protocols - part 1"
 
-Welcome to this fourth episode of "CPU offloader", where we partially implement
-the network protocols ARP and UDP.
+Welcome to this fourth episode of "CPU offloader", where we prepare to
+implement the network protocols ARP and UDP.
 
 ## Architecture
 
@@ -39,10 +39,10 @@ the CRC is invalid, the frame must be discarded. This is done by resettting the
 write pointer to the beginning of the frame, thereby effectively overwriting
 the errored frame.
 
-Therefore, this module needs, besides a write pointer and a read pointer, also
-a start pointer indicating the start of the currect frame, i.e. whereto the
-write pointer should possibly be reset. And also an end pointer, to control
-when to stop reading more data.
+Therefore this module needs, besides a write pointer and a read pointer, also a
+start pointer indicating the start of the currect frame, i.e. whereto the write
+pointer should possibly be reset, and an end pointer to control when to stop
+reading more data.
 
 Now, it can happen that a single long frame is followed by several small
 frames, and since the reading only commences after the long frame has been
@@ -57,15 +57,19 @@ control signals along the "data" signal in the ring buffer. However, you would
 still need some way to signal that the ring buffer contains a complete and
 valid frame. because only then may reading from the buffer commence.
 
-A note about bandwidth.  Whenever a buffer is used, one should consider the
-possibility of overflow. Can we reach a situation, where the ring buffer is full?
-Should we check for it? How should we react in such a situation?
+### Buffer overflow
+
+A note about bandwidth.  Whenever a buffer is used, one should always consider
+the possibility of overflow. Can we reach a situation, where the ring buffer is
+full?  Should we check for it? How should we react in such a situation?
 
 Well, if a maximum sized frame is received, the buffer will fill up to 1518
 bytes, and then reading will commence. However, reading from the buffer is done
 one byte every clock cycle, i.e. at a rate of 400 Mbit/s, whereas writing
 happens only at a rate of 100 MBit/s. Since reading is faster than writing, the
-buffer can never overflow.
+buffer can never overflow, unless we receive an illegally large frame (2K bytes
+or larger). However, to simplify the design I've decided to ignore this
+possibility completely.
 
 Note furthermore, that we have chosen here to require the client to always
 accept data.  In other words, it is the clients responsibility to always be
@@ -79,32 +83,29 @@ small and simple modules, I've chosen to exlude the complexity of
 "back-pressure" from this module, and instead deny the client the possibility
 of applying back-pressure.
 
-## ser2par
+## byte2wide
 
 Once we have a valid frame, stripped of the CRC, we want some way to do further
 processing. I've found that it is cumbersome having a one-byte-at-a-time
-interface, so I've added a Serial-To-Parallel translation block ser2par. The
-purpose of this block is to extract a fixed-size header and output this header
-as a single wide vector.  The remaining data is forwarded one-byte-at-a-time.
+interface, so I've added the byte2wide block. The purpose of this block is to
+extract a fixed-size header and output this header as a single wide vector.
+The remaining data is forwarded one-byte-at-a-time.
 
 The idea is to extract (remove), say, the MAC, IP, and UDP headers
 simultaneously, to allow easy examination of the headers to determine the
 further course of action.  The remaining payload can then perhaps be subjected
-to another iteration of ser2par, if the need be.
+to another iteration of byte2wide, if needed.
 
-The implementation of ser2par is fairly straight-forward. Note that I have
-chosen an implementation based on a large shift-register, see line 63. This
-uses the least amount of logic.  Alternatively, I could have chosen to write to
-a variable position, i.e. something like 
-    hdr_data_r(8\*byte_cnt+7 downto 8\*byte_cnt+) <= rx_data_i;
-However, this would use additional resources for the byte\_cnt signal and for
-the associated multiplexing when accessing a variable range of bits in a large
-vector.
+## Simulation
 
-## Byte-ordering
+The testbench is changed to now instantiate the Ethernet module. We use the
+modules wide2byte and eth\_tx to generat the data stream received from the
+Ethernet PHY. Since we still don't have any transmit path implemented, I've
+chosen to sample the received frame header and present them on the debug output
+signal.
 
-Experience has shown me that it is necessary to consider byte-ordering. There is
-no right or wrong, only you have to document what you decide.
+The simulation injects two short frames into the Ethernet module from the PHY
+and inspects the debug output.
 
 ## Validation in hardware
 
@@ -112,10 +113,10 @@ Our design can still not send any frames, and can still not do anything meaningf
 with the received data. However, using the above blocks it is now possible
 to display on the VGA output a snapshot of the last received frame.
 
-In lines 64-79 of eth/eth.vhd we select byte numbers 10-41 (incl) of the frame.
-This conveniently gives us the entire ARP header plus four bytes of the MAC
-header.  ARP packets can easily be recognized on the screen by looking for
-xxxx0806 in the beginning.
+In lines 64-79 of eth/eth.vhd we select byte numbers 10-41 (incl) of the
+received frame.  This conveniently gives us the entire ARP header plus four
+bytes of the MAC header.  ARP packets can easily be recognized on the screen by
+looking for xxxx0806 in the beginning.
 
 Issuing a ping command on the host PC to an unknown IP address will generate a
 series of ARP requests, usually once every second. The last four bytes
