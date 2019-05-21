@@ -163,8 +163,8 @@ begin
                      hdr_data(18*8+7 downto 18*8) = X"01" and                       -- ICMP protocol
                      hdr_data(11*8+7 downto  8*8) = G_MY_IP and                     -- For us
                      checksum(hdr_data(27*8+7 downto 8*8)) = X"FFFF" and            -- IP header checksum correct
-                     hdr_data( 7*8+7 downto  6*8) = X"0800" and                     -- ICMP echo request
-                     checksum(hdr_data(7*8+7 downto 0*8)) = X"FFFF" then            -- ICMP header checksum correct
+                     hdr_data( 7*8+7 downto  6*8) = X"0800" then                    -- ICMP echo request
+                     -- Ignore ICMP checksum
 
                      -- Build response:
                      -- MAC header
@@ -194,10 +194,10 @@ begin
 
             when CHKSUM_ST =>
                -- Calculate checksum of IP header
-               rsp_data(17*8+7 downto 16*8) <= not checksum(hdr_data(27*8+7 downto 8*8));
+               rsp_data(17*8+7 downto 16*8) <= not checksum(rsp_data(27*8+7 downto 8*8));
 
                -- Calculate checksum of ICMP header
-               rsp_data( 5*8+7 downto  4*8) <= not checksum(hdr_data(7*8+7 downto 0*8));
+               rsp_data( 5*8+7 downto  4*8) <= not checksum(rsp_data(7*8+7 downto 0*8));
 
                -- Send packet to host
                rsp_valid <= '1';
