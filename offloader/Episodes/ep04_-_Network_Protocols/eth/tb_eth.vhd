@@ -17,8 +17,8 @@ end tb_eth;
 
 architecture simulation of tb_eth is
 
-   signal clk       : std_logic;
-   signal rst       : std_logic;
+   signal clk          : std_logic;
+   signal rst          : std_logic;
 
    -- Signals to control the generation of the Ethernet frames for transmission.
    signal sim_tx_valid : std_logic;
@@ -75,8 +75,8 @@ begin
       clk_i      => clk,
       rst_i      => rst,
       pl_valid_i => sim_tx_valid,
-      pl_data_i  => sim_tx_data,
       pl_size_i  => sim_tx_size,
+      pl_data_i  => sim_tx_data,
       --
       tx_empty_o => tx_empty,
       tx_data_o  => tx_data,
@@ -170,7 +170,6 @@ begin
 
       -- Validate received frame
       assert debug(32*8-1 downto 0) = sim_tx_data(64*8-1 downto 64*8-32*8);
-
 
       -- Stop test
       wait until clk = '1';

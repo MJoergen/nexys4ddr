@@ -33,7 +33,7 @@ end top;
 
 architecture structural of top is
 
-   -- Clock divider
+   -- Clock divider for VGA and ETH
    signal clk_cnt : std_logic_vector(1 downto 0) := (others => '0');
    signal vga_clk : std_logic;
    signal eth_clk : std_logic;

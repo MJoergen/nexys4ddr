@@ -54,7 +54,7 @@ architecture Structural of eth is
    signal st_eof       : std_logic;
    signal st_valid     : std_logic;
 
-   -- Output from ser2par
+   -- Output from byte2wide
    signal pa_valid     : std_logic;
    signal pa_data      : std_logic_vector(42*8-1 downto 0);
    signal pa_size      : std_logic_vector(7 downto 0);
@@ -73,7 +73,7 @@ begin
             debug <= pa_data(42*8-1 downto 42*8-32*8);
          end if;
          if rst = '1' then
-            debug <= (others => '1');
+            debug <= (others => '1');  -- All ones means no frame received yet.
          end if;         
       end if;
    end process p_debug;
