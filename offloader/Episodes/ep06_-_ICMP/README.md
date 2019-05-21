@@ -37,7 +37,7 @@ the approach used here will send corrupted packets.
 
 The lazy multiplexer is implemented in lines 186-199 of eth.vhd.
 
-## Sihulation
+## Simulation
 Since our implementation checks the validity of the IP and ICMP checksums, our
 test bench must make sure that the pakets sent to the DUT contain the correct
 checksums too. The checkusm function is therefore copied to tb\_eth.vhd, where
