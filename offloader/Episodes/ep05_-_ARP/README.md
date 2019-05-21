@@ -63,3 +63,6 @@ command "arp 192.168.1.77". This command should return with an indication that
 the HW address associated with that IP is 00:11:22:33:44:55. And *that* is
 success!
 
+The data shown on the VGA output is part of the response being sent from the
+FPGA.
+

@@ -183,7 +183,13 @@ begin
    ); -- i_icmp
 
 
-   -- Simple multiplexer
+   --------------------------------------------------
+   -- Lazy multiplexer.
+   -- This will geenerate corrupted packets if
+   -- the two blocks, ARP and ICMP, try to
+   -- send at the same time.
+   --------------------------------------------------
+
    tx_empty <= icmp_tx_empty and arp_tx_empty;
    tx_data  <= icmp_tx_data  or arp_tx_data;
    tx_sof   <= icmp_tx_sof   or arp_tx_sof;

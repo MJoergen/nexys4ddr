@@ -165,13 +165,13 @@ begin
                      checksum(hdr_data(27*8+7 downto 8*8)) = X"FFFF" and            -- IP header checksum correct
                      hdr_data( 7*8+7 downto  6*8) = X"0800" and                     -- ICMP echo request
                      checksum(hdr_data(7*8+7 downto 0*8)) = X"FFFF" then            -- ICMP header checksum correct
-                     -- We ignore any header checksum errors.
 
-                     -- Build response (MAC header)
+                     -- Build response:
+                     -- MAC header
                      rsp_data(41*8+7 downto 36*8) <= hdr_data(35*8+7 downto 30*8);  -- MAC_DST
                      rsp_data(35*8+7 downto 30*8) <= G_MY_MAC;                      -- MAC_SRC
                      rsp_data(29*8+7 downto 28*8) <= X"0800";                       -- MAC_TYPELEN
-                     -- Build response (IP header)
+                     -- IP header
                      rsp_data(27*8+7 downto 27*8) <= X"45";                         -- IP_VIHL
                      rsp_data(26*8+7 downto 26*8) <= X"00";                         -- IP_DSCP
                      rsp_data(25*8+7 downto 24*8) <= X"001C";                       -- IP_LENGTH = 20+8
@@ -182,7 +182,7 @@ begin
                      rsp_data(17*8+7 downto 16*8) <= X"0000";                       -- IP_CHKSUM
                      rsp_data(15*8+7 downto 12*8) <= G_MY_IP;                       -- IP_SRC
                      rsp_data(11*8+7 downto  8*8) <= hdr_data(15*8+7 downto 12*8);  -- IP_DST
-                     -- Build response (ICMP header)
+                     -- ICMP header
                      rsp_data( 7*8+7 downto  7*8) <= X"00";                         -- ICMP_TYPE = Reply
                      rsp_data( 6*8+7 downto  6*8) <= X"00";                         -- ICMP_CODE
                      rsp_data( 5*8+7 downto  4*8) <= X"0000";                       -- ICMP_CHKSUM
@@ -193,9 +193,13 @@ begin
                end if;
 
             when CHKSUM_ST =>
+               -- Calculate checksum of IP header
                rsp_data(17*8+7 downto 16*8) <= not checksum(hdr_data(27*8+7 downto 8*8));
+
+               -- Calculate checksum of ICMP header
                rsp_data( 5*8+7 downto  4*8) <= not checksum(hdr_data(7*8+7 downto 0*8));
 
+               -- Send packet to host
                rsp_valid <= '1';
                state_r <= IDLE_ST;
          end case;

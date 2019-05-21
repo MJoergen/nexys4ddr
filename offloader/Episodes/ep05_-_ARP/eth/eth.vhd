@@ -53,7 +53,6 @@ architecture Structural of eth is
    signal tx_eof     : std_logic;
    signal tx_empty   : std_logic;
    signal tx_rden    : std_logic;
-   signal tx_err     : std_logic;
 
 begin
 
@@ -157,7 +156,7 @@ begin
       tx_eof_i   => tx_eof,
       tx_empty_i => tx_empty,
       tx_rden_o  => tx_rden,
-      tx_err_o   => tx_err,
+      tx_err_o   => open,
       eth_txd_o  => eth_txd_o,
       eth_txen_o => eth_txen_o
    ); -- i_eth_tx

@@ -2,15 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This is a self-verifying testbench for the Ethernet Rx and Tx interface
--- modules. The purpose is to verify the modules connecting to the PHY.
---
--- The testbench performs the following:
--- * Generates Ethernet frames for transmission
--- * Sends the frames through the transmit path of the interface module (eth_tx).
--- * Performs a loopback on the PHY side of the interface module.
--- * Stores the frames from the receive path of the interface module (eth_rx).
--- * Compares the received frames with the transmitted frames.
+-- This is a self-verifying testbench for the Ethernet module.
 
 entity tb_eth is
 end tb_eth;
@@ -229,7 +221,8 @@ begin
       sim_tx_data <= (others => '0');
       sim_tx_data(64*8-1 downto 64*8-42*8) <= X"001122334455AABBCCDDEEFF0800" &              -- MAC header
                                               X"4500001C0000000040010000C0A80101C0A8014D" &  -- IP header
-                                              X"0800000000000000";                           -- ICMP
+                                              X"0800000001020304";                           -- ICMP
+      -- Wait one clock cycle.
       wait until clk = '1';
       -- Updated data with correct checksum
       sim_tx_data(64*8-42*8+17*8+7 downto 64*8-42*8+16*8) <= not checksum(sim_tx_data(64*8-42*8+27*8+7 downto 64*8-42*8+8*8));
@@ -245,7 +238,7 @@ begin
       assert sim_rx_size = sim_tx_size + 4;
       assert sim_rx_data(64*8-1 downto 64*8-42*8) = X"AABBCCDDEEFF0011223344550800" &              -- MAC header
                                                     X"4500001C0000000040010000C0A8014DC0A80101" &  -- IP header
-                                                    X"0000000000000000";                           -- ICMP
+                                                    X"0000000001020304";                           -- ICMP
 
       assert debug = sim_rx_data(64*8-42*8+32*8-1 downto 64*8-42*8);
 
