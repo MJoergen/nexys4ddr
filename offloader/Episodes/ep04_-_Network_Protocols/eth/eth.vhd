@@ -69,7 +69,7 @@ begin
    begin
       if rising_edge(clk_i) then
          if pa_valid = '1' then
-            debug <= pa_data(42*8-1 downto 42*8-32*8);
+            debug <= pa_data(255 downto 0);
          end if;
          if rst = '1' then
             debug <= (others => '1');  -- All ones means no frame received yet.
