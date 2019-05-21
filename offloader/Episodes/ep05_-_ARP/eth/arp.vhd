@@ -105,9 +105,13 @@ begin
    end process p_debug;
 
 
+   --------------------------------------------------
+   -- Instantiate byte2wide
+   --------------------------------------------------
+
    i_byte2wide : entity work.byte2wide
    generic map (
-      G_HDR_SIZE  => 42          -- Size of minimum frame
+      G_HDR_SIZE  => 42          -- Size of ARP packet
    )
    port map (
       clk_i       => clk_i,
@@ -129,13 +133,13 @@ begin
    p_arp : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         rsp_valid <= '0';
+         rsp_valid <= '0'; -- Default value
 
          -- Is this an ARP request for our IP address?
          if hdr_valid = '1' and
-            hdr_size = 42 and
-            hdr_data(29*8+7 downto 20*8) = X"08060001080006040001" and
-            hdr_data(3*8+7 downto 0) = G_MY_IP then
+            hdr_size = 42 and                                              -- Size of ARP packet
+            hdr_data(29*8+7 downto 20*8) = X"08060001080006040001" and     -- ARP request ...
+            hdr_data(3*8+7 downto 0) = G_MY_IP then                        -- ... for our IP address
             -- Build response
             rsp_data(41*8+7 downto 36*8) <= hdr_data(35*8+7 downto 30*8);  -- MAC_DST
             rsp_data(35*8+7 downto 30*8) <= G_MY_MAC;                      -- MAC_SRC
@@ -149,9 +153,14 @@ begin
       end if;
    end process p_arp;
 
+
+   --------------------------------------------------
+   -- Instantiate wide2byte
+   --------------------------------------------------
+
    i_wide2byte : entity work.wide2byte
    generic map (
-      G_PL_SIZE => 42
+      G_PL_SIZE => 42            -- Size of ARP packet
    )
    port map (
       clk_i      => clk_i,

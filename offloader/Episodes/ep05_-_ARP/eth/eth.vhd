@@ -28,38 +28,32 @@ end eth;
 
 architecture Structural of eth is
 
-   constant C_MY_MAC   : std_logic_vector(47 downto 0) := X"001122334455";
-   constant C_MY_IP    : std_logic_vector(31 downto 0) := X"C0A8014D";     -- 192.168.1.77
+   constant C_MY_MAC : std_logic_vector(47 downto 0) := X"001122334455";
+   constant C_MY_IP  : std_logic_vector(31 downto 0) := X"C0A8014D";     -- 192.168.1.77
 
-   signal rst          : std_logic                     := '1';
-   signal rst_cnt      : std_logic_vector(20 downto 0) := (others => '1');
+   signal rst        : std_logic                     := '1';
+   signal rst_cnt    : std_logic_vector(20 downto 0) := (others => '1');
 
-   -- Connected to eth_tx
-   -- TBD: For now, we just assign default values to these signals
-   signal tx_data      : std_logic_vector(7 downto 0)  := X"00";
-   signal tx_sof       : std_logic                     := '0';
-   signal tx_eof       : std_logic                     := '0';
-   signal tx_empty     : std_logic                     := '1';
-   signal tx_rden      : std_logic;
-   signal tx_err       : std_logic;
-
-   -- Connected to eth_rx
-   signal rx_data      : std_logic_vector(7 downto 0);
-   signal rx_sof       : std_logic;
-   signal rx_eof       : std_logic;
-   signal rx_valid     : std_logic;
-   signal rx_ok        : std_logic;
+   -- Output from eth_rx
+   signal rx_data    : std_logic_vector(7 downto 0);
+   signal rx_sof     : std_logic;
+   signal rx_eof     : std_logic;
+   signal rx_valid   : std_logic;
+   signal rx_ok      : std_logic;
 
    -- Output from strip_crc
-   signal st_data      : std_logic_vector(7 downto 0);
-   signal st_sof       : std_logic;
-   signal st_eof       : std_logic;
-   signal st_valid     : std_logic;
+   signal st_data    : std_logic_vector(7 downto 0);
+   signal st_sof     : std_logic;
+   signal st_eof     : std_logic;
+   signal st_valid   : std_logic;
 
-   -- Output from byte2wide
-   signal pa_valid     : std_logic;
-   signal pa_data      : std_logic_vector(42*8-1 downto 0);
-   signal pa_size      : std_logic_vector(7 downto 0);
+   -- Output from ARP
+   signal tx_data    : std_logic_vector(7 downto 0);
+   signal tx_sof     : std_logic;
+   signal tx_eof     : std_logic;
+   signal tx_empty   : std_logic;
+   signal tx_rden    : std_logic;
+   signal tx_err     : std_logic;
 
 begin
 
@@ -96,14 +90,15 @@ begin
    port map (
       eth_clk_i   => clk_i,
       eth_rst_i   => rst,
+      eth_rxd_i   => eth_rxd_i,
+      eth_rxerr_i => eth_rxerr_i,
+      eth_crsdv_i => eth_crsdv_i,
+      --
       rx_data_o   => rx_data,
       rx_sof_o    => rx_sof,
       rx_eof_o    => rx_eof,
       rx_valid_o  => rx_valid,
-      rx_ok_o     => rx_ok,
-      eth_rxd_i   => eth_rxd_i,
-      eth_rxerr_i => eth_rxerr_i,
-      eth_crsdv_i => eth_crsdv_i
+      rx_ok_o     => rx_ok
    ); -- i_eth_rx
 
    i_strip_crc : entity work.strip_crc
@@ -115,6 +110,7 @@ begin
       rx_eof_i    => rx_eof,
       rx_ok_i     => rx_ok,
       rx_data_i   => rx_data,
+      --
       out_valid_o => st_valid,
       out_sof_o   => st_sof,
       out_eof_o   => st_eof,
