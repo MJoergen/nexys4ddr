@@ -64,6 +64,8 @@ begin
                   tx_sof_r <= '0';
                   if size_r = 0 then
                      tx_empty_r <= '1';
+                     tx_eof_r   <= '0';
+                     tx_data_r  <= X"00";
                      state_r    <= IDLE_ST;
                   else
                      tx_data_r  <= data_r(G_PL_SIZE*8-1 downto G_PL_SIZE*8-8);
@@ -79,6 +81,9 @@ begin
 
          if rst_i = '1' then
             tx_empty_r <= '1';
+            tx_sof_r   <= '0';
+            tx_eof_r   <= '0';
+            tx_data_r  <= X"00";
             state_r    <= IDLE_ST;
          end if;
       end if;

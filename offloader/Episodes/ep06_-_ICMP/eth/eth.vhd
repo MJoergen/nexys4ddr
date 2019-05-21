@@ -28,32 +28,45 @@ end eth;
 
 architecture Structural of eth is
 
-   constant C_MY_MAC : std_logic_vector(47 downto 0) := X"001122334455";
-   constant C_MY_IP  : std_logic_vector(31 downto 0) := X"C0A8014D";     -- 192.168.1.77
+   constant C_MY_MAC    : std_logic_vector(47 downto 0) := X"001122334455";
+   constant C_MY_IP     : std_logic_vector(31 downto 0) := X"C0A8014D";     -- 192.168.1.77
 
-   signal rst        : std_logic                     := '1';
-   signal rst_cnt    : std_logic_vector(20 downto 0) := (others => '1');
+   signal rst           : std_logic                     := '1';
+   signal rst_cnt       : std_logic_vector(20 downto 0) := (others => '1');
 
    -- Output from eth_rx
-   signal rx_data    : std_logic_vector(7 downto 0);
-   signal rx_sof     : std_logic;
-   signal rx_eof     : std_logic;
-   signal rx_valid   : std_logic;
-   signal rx_ok      : std_logic;
+   signal rx_data       : std_logic_vector(7 downto 0);
+   signal rx_sof        : std_logic;
+   signal rx_eof        : std_logic;
+   signal rx_valid      : std_logic;
+   signal rx_ok         : std_logic;
 
    -- Output from strip_crc
-   signal st_data    : std_logic_vector(7 downto 0);
-   signal st_sof     : std_logic;
-   signal st_eof     : std_logic;
-   signal st_valid   : std_logic;
+   signal st_data       : std_logic_vector(7 downto 0);
+   signal st_sof        : std_logic;
+   signal st_eof        : std_logic;
+   signal st_valid      : std_logic;
 
    -- Output from ARP
-   signal tx_data    : std_logic_vector(7 downto 0);
-   signal tx_sof     : std_logic;
-   signal tx_eof     : std_logic;
-   signal tx_empty   : std_logic;
-   signal tx_rden    : std_logic;
-   signal tx_err     : std_logic;
+   signal arp_tx_data   : std_logic_vector(7 downto 0);
+   signal arp_tx_sof    : std_logic;
+   signal arp_tx_eof    : std_logic;
+   signal arp_tx_empty  : std_logic;
+   signal arp_tx_rden   : std_logic;
+
+   -- Output from ICMP
+   signal icmp_tx_data  : std_logic_vector(7 downto 0);
+   signal icmp_tx_sof   : std_logic;
+   signal icmp_tx_eof   : std_logic;
+   signal icmp_tx_empty : std_logic;
+   signal icmp_tx_rden  : std_logic;
+
+   -- Input to_eth_tx
+   signal tx_data       : std_logic_vector(7 downto 0);
+   signal tx_sof        : std_logic;
+   signal tx_eof        : std_logic;
+   signal tx_empty      : std_logic;
+   signal tx_rden       : std_logic;
 
 begin
 
@@ -135,13 +148,49 @@ begin
       rx_eof_i   => st_eof,
       rx_valid_i => st_valid,
       --
-      tx_empty_o => tx_empty,
-      tx_rden_i  => tx_rden,
-      tx_data_o  => tx_data,
-      tx_sof_o   => tx_sof,
-      tx_eof_o   => tx_eof,
-      debug_o    => debug_o
+      tx_empty_o => arp_tx_empty,
+      tx_rden_i  => arp_tx_rden,
+      tx_data_o  => arp_tx_data,
+      tx_sof_o   => arp_tx_sof,
+      tx_eof_o   => arp_tx_eof,
+      debug_o    => open
    ); -- i_arp
+
+
+   --------------------------------------------------
+   -- Instantiate ICMP processing
+   --------------------------------------------------
+
+   i_icmp : entity work.icmp
+   generic map (
+      G_MY_MAC   => C_MY_MAC,
+      G_MY_IP    => C_MY_IP
+   )
+   port map (
+      clk_i      => clk_i,
+      rst_i      => rst,
+      rx_data_i  => st_data,
+      rx_sof_i   => st_sof,
+      rx_eof_i   => st_eof,
+      rx_valid_i => st_valid,
+      --
+      tx_empty_o => icmp_tx_empty,
+      tx_rden_i  => icmp_tx_rden,
+      tx_data_o  => icmp_tx_data,
+      tx_sof_o   => icmp_tx_sof,
+      tx_eof_o   => icmp_tx_eof,
+      debug_o    => debug_o
+   ); -- i_icmp
+
+
+   -- Simple multiplexer
+   tx_empty <= icmp_tx_empty and arp_tx_empty;
+   tx_data  <= icmp_tx_data  or arp_tx_data;
+   tx_sof   <= icmp_tx_sof   or arp_tx_sof;
+   tx_eof   <= icmp_tx_eof   or arp_tx_eof;
+
+   arp_tx_rden  <= tx_rden and not arp_tx_empty;
+   icmp_tx_rden <= tx_rden and not icmp_tx_empty;
 
 
    --------------------------------------------------
@@ -157,7 +206,7 @@ begin
       tx_eof_i   => tx_eof,
       tx_empty_i => tx_empty,
       tx_rden_o  => tx_rden,
-      tx_err_o   => tx_err,
+      tx_err_o   => open,
       eth_txd_o  => eth_txd_o,
       eth_txen_o => eth_txen_o
    ); -- i_eth_tx

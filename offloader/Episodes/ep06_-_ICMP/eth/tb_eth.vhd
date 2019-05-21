@@ -180,6 +180,22 @@ begin
    --------------------------------------------------
 
    main_test_proc : process
+
+      -- Calculate the Internet Checksum according to RFC 1071.
+      function checksum(inp : std_logic_vector) return std_logic_vector is
+         variable res_v : std_logic_vector(19 downto 0) := (others => '0');
+         variable val_v : std_logic_vector(15 downto 0);
+      begin
+         for i in 0 to inp'length/16-1 loop
+            val_v := inp(i*16+15+inp'right downto i*16+inp'right);
+            res_v := res_v + (X"0" & val_v);
+         end loop;
+
+         -- Handle wrap-around
+         res_v := (X"0" & res_v(15 downto 0)) + (X"0000" & res_v(19 downto 16));
+         return res_v(15 downto 0);
+      end function checksum;
+
    begin
       -- Wait until reset is complete
       sim_tx_valid <= '0';
@@ -205,7 +221,36 @@ begin
                                                     X"0001080006040002" &              -- ARP header
                                                     X"001122334455" & X"C0A8014D" &    -- THA & TPA
                                                     X"AABBCCDDEEFF" & X"C0A80001";     -- SHA & SPA
+
+      -- Wait a little while to ease debugging                                               
+      wait for 200 ns;
+    
+      -- Send one ICMP request
+      sim_tx_data <= (others => '0');
+      sim_tx_data(64*8-1 downto 64*8-42*8) <= X"001122334455AABBCCDDEEFF0800" &              -- MAC header
+                                              X"4500001C0000000040010000C0A80101C0A8014D" &  -- IP header
+                                              X"0800000000000000";                           -- ICMP
+      wait until clk = '1';
+      -- Updated data with correct checksum
+      sim_tx_data(64*8-42*8+17*8+7 downto 64*8-42*8+16*8) <= not checksum(sim_tx_data(64*8-42*8+27*8+7 downto 64*8-42*8+8*8));
+      sim_tx_data(64*8-42*8+ 5*8+7 downto 64*8-42*8+ 4*8) <= not checksum(sim_tx_data(64*8-42*8+ 7*8+7 downto 64*8-42*8+0*8));
+
+      sim_tx_size  <= X"3C";
+      sim_tx_valid <= '1';
+      wait until clk = '1';
+      sim_tx_valid <= '0';
+
+      -- Verify ICMP response is correct
+      wait until sim_rx_valid = '1';
+      assert sim_rx_size = sim_tx_size + 4;
+      assert sim_rx_data(64*8-1 downto 64*8-42*8) = X"AABBCCDDEEFF0011223344550800" &              -- MAC header
+                                                    X"4500001C0000000040010000C0A8014DC0A80101" &  -- IP header
+                                                    X"0000000000000000";                           -- ICMP
+
       assert debug = sim_rx_data(64*8-42*8+32*8-1 downto 64*8-42*8);
+
+      -- Wait a little while to ease debugging                                               
+      wait for 200 ns;
 
       -- Stop test
       wait until clk = '1';
