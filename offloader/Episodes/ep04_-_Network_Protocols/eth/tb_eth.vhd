@@ -34,8 +34,8 @@ architecture simulation of tb_eth is
 
    -- Signals conected to DUT
    signal eth_rstn     : std_logic;
-   signal eth_d        : std_logic_vector(1 downto 0);
-   signal eth_en       : std_logic;
+   signal eth_rxd      : std_logic_vector(1 downto 0);
+   signal eth_crsdv    : std_logic;
    signal debug        : std_logic_vector(255 downto 0);
 
    -- Signal to control execution of the testbench.
@@ -85,11 +85,6 @@ begin
       tx_rden_i  => tx_rden
    ); -- i_wide2byte
 
-
-   --------------------------------------------------
-   -- Instantiate Tx path
-   --------------------------------------------------
-
    i_eth_tx : entity work.eth_tx
    port map (
       eth_clk_i  => clk,
@@ -101,8 +96,8 @@ begin
       tx_rden_o  => tx_rden,
       tx_err_o   => open,
       --
-      eth_txd_o  => eth_d,
-      eth_txen_o => eth_en
+      eth_txd_o  => eth_rxd,
+      eth_txen_o => eth_crsdv
    ); -- i_eth_tx
 
 
@@ -116,9 +111,9 @@ begin
       debug_o      => debug,
       eth_txd_o    => open,
       eth_txen_o   => open,
-      eth_rxd_i    => eth_d,
+      eth_rxd_i    => eth_rxd,
       eth_rxerr_i  => '0',
-      eth_crsdv_i  => eth_en,
+      eth_crsdv_i  => eth_crsdv,
       eth_intn_i   => '0',
       eth_mdio_io  => open,
       eth_mdc_o    => open,
