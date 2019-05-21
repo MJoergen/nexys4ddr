@@ -4,7 +4,7 @@
 Welcome to this third episode of "CPU offloader", where we enable the
 Ethernet port.
 
-This episode is based upon the corresponding episode [Episode 26 - Ethernet
+This episode is inspired by the corresponding episode [Episode 26 - Ethernet
 Phy](https://github.com/MJoergen/nexys4ddr/tree/master/dyoc/Episodes/ep26_-_Ethernet_PHY)
 in the DYOC tutorial.
 
@@ -17,12 +17,14 @@ work, we must support ARP over MAC as well.
 ## Architecture
 
 The overall architecture of the system will consist of a receive path (ingress)
-and a transmit path (egress). The Ethernet module will be responsible for
+and a transmit path (egress).
+
+We will be developing an Ethernet module that will be responsible for
 interfacing to the Ethernet PHY and for implementing the network protocols (ARP
 and UDP).
 
 In this episode, the Ethernet module handles the low-level interface to the
-PHY. We'll leave the network protocols for the next episode.
+PHY. We'll leave the network protocols for the next episodes.
 
 In the following I'll summarize the main development in this episode:
 
@@ -37,7 +39,7 @@ egress paths, respecticely.
 
 ## Internal interfaces
 
-It seems worth-wile to go into some detail of the blocks eth\_rx and eth\_tx.
+It seems worthwhile to go into some detail of the blocks eth\_rx and eth\_tx.
 These blocks implement the low-level connection to the PHY, and provide a
 client-side internal interface to the networking protocols. Both eth\_rx and
 eth\_tx provide a byte-wide interface running at 50 MHz, and therefore support
@@ -71,11 +73,31 @@ The client is not allowed to pause in the middle of a frame, and therefore the
 means that the client is required to buffer a complete frame before initiating
 transmission.
 
+## Larger data bus
+Since most network protocols are byte-oriented it seems like a good idea with the
+above-mentioned byte-oriented interface. However, implementing the network protocols
+become much easier if we use a larger data bus, where the entire protocol header
+can be examined simultaneously.
+
+I've therefore added two more modules, ser2par.vhd and par2ser.vhd, that convert
+between the byte-oriented interface and the header-oriented interface, as I'll
+discuss in the following.
+
+### byte-ordering
+As soon as we concatenate several bytes together in a wider bus, the issue of
+byte-ordering becomes important. There is no right or wrong way of doing it,
+but consistency and documentation are of course important. In this project I've
+decided that the MSB byte of the wide data bus is the first byte transmitted or
+received, regardless of the size of the frame or width of the data bus.
+
+The up-side of this choice is that when viewing the result of simulations, the
+contents of the wide data bus reads left-to-right.
+
 ## Clock domains
 
-Now, the Ethernet module needs a 50 MHz clock, so we generate this in line 60
-of top.vhd using the same clock divider method as for the VGA clock. The clock
-must also be declared in line 38 of top.xdc.
+Now, since the Ethernet module needs a 50 MHz clock, we generate this in line
+60 of top.vhd using the same clock divider method as for the VGA clock. The
+clock must also be declared in line 38 of top.xdc.
 
 Next, the Ethernet module provides a debug signal (currently just counting the
 number of correctly received frames), but this signal (line 42 in top.vhd) is
@@ -99,8 +121,8 @@ It is very helpful during design and debugging to be able to simulate the
 design before testing it in hardware. To this end, I've added a separate
 simulation of just the Ethernet module.  This takes place in the testbench file
 tb\_eth.vhd. To run the simulation, just type "make" in the eth directory.  The
-testbench requires some extra block to generate the stimuli, and to collect the
-response. This is handled by the extra module sim\_rx.vhd and sim\_tx.vhd.
+testbench uses the par2ser and ser2par modules to generate the stimuli, and to
+collect the response. In this way all the blocks are tested simultaneously.
 
 ## Validation in hardware
 
