@@ -292,14 +292,15 @@ begin
       -- Send one UDP packet and verify correct UDP response
       --------------------------------------------------
       sim_tx_data <= (others => '0');
-      sim_tx_data(64*8-1 downto 64*8-42*8) <= X"001122334455AABBCCDDEEFF0800" &              -- MAC header
-                                              X"4500001C0000000040110000C0A80101C0A8014D" &  -- IP header
-                                              X"4321123401020304";                           -- UDP
+      sim_tx_data(64*8-1 downto 4*8) <= X"001122334455AABBCCDDEEFF0800" &              -- MAC header
+                                        X"4500001C0000000040110000C0A80101C0A8014D" &  -- IP header
+                                        X"43211234001A0000" &                          -- UDP header
+                                        X"000102030405060708090A0B0C0D0E0F1011";       -- UDP payload
       -- Wait one clock cycle.
       wait until clk = '1';
-      -- Updated data with correct checksum
+      -- Update data with correct IP header checksum
       sim_tx_data(64*8-42*8+17*8+7 downto 64*8-42*8+16*8) <= not checksum(sim_tx_data(64*8-42*8+27*8+7 downto 64*8-42*8+8*8));
-      sim_tx_data(64*8-42*8+ 5*8+7 downto 64*8-42*8+ 4*8) <= not checksum(sim_tx_data(64*8-42*8+ 7*8+7 downto 64*8-42*8+0*8));
+      -- Ignore UDP checksum
 
       sim_tx_size  <= X"3C";
       sim_tx_valid <= '1';

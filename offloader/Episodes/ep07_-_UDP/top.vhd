@@ -93,15 +93,15 @@ begin
    port map (
       clk_i          => eth_clk,
       debug_o        => eth_debug,
-      udp_rx_data_o  => eth_rx_data_o  
-      udp_rx_sof_o   => eth_rx_sof_o   
-      udp_rx_eof_o   => eth_rx_eof_o   
-      udp_rx_valid_o => eth_rx_valid_o 
-      udp_tx_empty_i => eth_tx_empty_i 
-      udp_tx_rden_o  => eth_tx_rden_o  
-      udp_tx_data_i  => eth_tx_data_i  
-      udp_tx_sof_i   => eth_tx_sof_i   
-      udp_tx_eof_i   => eth_tx_eof_i   
+      udp_rx_data_o  => eth_rx_data,
+      udp_rx_sof_o   => eth_rx_sof,
+      udp_rx_eof_o   => eth_rx_eof,
+      udp_rx_valid_o => eth_rx_valid,
+      udp_tx_empty_i => eth_tx_empty,
+      udp_tx_rden_o  => eth_tx_rden,
+      udp_tx_data_i  => eth_tx_data,
+      udp_tx_sof_i   => eth_tx_sof,
+      udp_tx_eof_i   => eth_tx_eof,
       eth_txd_o      => eth_txd_o,
       eth_txen_o     => eth_txen_o,
       eth_rxd_i      => eth_rxd_i,
@@ -121,18 +121,19 @@ begin
 
    i_inverter : entity work.inverter
    port map (
-      clk_i      : in  std_logic;
-      rst_i      : in  std_logic;
-      rx_data_j  : in  std_logic_vector(7 downto 0);
-      rx_sof_i   : in  std_logic;
-      rx_eof_i   : in  std_logic;
-      rx_valid_i : in  std_logic;
-      tx_empty_o : out std_logic;
-      tx_rden_i  : in  std_logic;
-      tx_data_o  : out std_logic_vector(7 downto 0);
-      tx_sof_o   : out std_logic;
-      tx_eof_o   : out std_logic
+      clk_i      => clk,
+      rst_i      => rst,
+      rx_data_i  => eth_rx_data,
+      rx_sof_i   => eth_rx_sof,
+      rx_eof_i   => eth_rx_eof,
+      rx_valid_i => eth_rx_valid,
+      tx_empty_o => eth_tx_empty,
+      tx_rden_i  => eth_tx_rden,
+      tx_data_o  => eth_tx_data,
+      tx_sof_o   => eth_tx_sof,
+      tx_eof_o   => eth_tx_eof
    ); -- i_inverter
+
 
    --------------------------------------------------
    -- Instantiate Clock Domain Crossing

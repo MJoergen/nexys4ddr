@@ -55,6 +55,7 @@ begin
    begin
       if rising_edge(clk_i) then
          hdr_valid_r <= '0';
+         hdr_more_r  <= '0';
          pl_valid_r  <= '0';
          pl_eof_r    <= '0';
 

@@ -33,11 +33,11 @@ architecture Structural of inverter is
 
 begin
 
-   wr_en   <= rx_valid_i;
-   wr_data <= (15 downto 10 => '0',
-                          9 => rx_sof_i,
-                          8 => rx_eof_i,
-                7 downto  0 => not rx_data_i);  -- This is where the inversion takes place.
+   wr_en                 <= rx_valid_i;
+   wr_data(15 downto 10) <= (others => '0');
+   wr_data(9)            <= rx_sof_i;
+   wr_data(8)            <= rx_eof_i;
+   wr_data(7 downto 0)   <= not rx_data_i; -- This is where the inversion takes place.
 
    i_fifo : entity work.fifo
    generic map (
