@@ -38,6 +38,17 @@ architecture structural of top is
    signal vga_clk : std_logic;
    signal eth_clk : std_logic;
 
+   -- Connected to UDP client
+   signal eth_rx_data  : std_logic_vector(7 downto 0);
+   signal eth_rx_sof   : std_logic;
+   signal eth_rx_eof   : std_logic;
+   signal eth_rx_valid : std_logic;
+   signal eth_tx_empty : std_logic;
+   signal eth_tx_rden  : std_logic;
+   signal eth_tx_data  : std_logic_vector(7 downto 0);
+   signal eth_tx_sof   : std_logic;
+   signal eth_tx_eof   : std_logic
+
    -- Test signal
    signal eth_debug : std_logic_vector(255 downto 0);
    signal vga_hex   : std_logic_vector(255 downto 0);
@@ -80,20 +91,48 @@ begin
 
    i_eth : entity work.eth
    port map (
-      clk_i        => eth_clk,
-      debug_o      => eth_debug,
-      eth_txd_o    => eth_txd_o,
-      eth_txen_o   => eth_txen_o,
-      eth_rxd_i    => eth_rxd_i,
-      eth_rxerr_i  => eth_rxerr_i,
-      eth_crsdv_i  => eth_crsdv_i,
-      eth_intn_i   => eth_intn_i,
-      eth_mdio_io  => eth_mdio_io,
-      eth_mdc_o    => eth_mdc_o,
-      eth_rstn_o   => eth_rstn_o,
-      eth_refclk_o => eth_refclk_o
+      clk_i          => eth_clk,
+      debug_o        => eth_debug,
+      udp_rx_data_o  => eth_rx_data_o  
+      udp_rx_sof_o   => eth_rx_sof_o   
+      udp_rx_eof_o   => eth_rx_eof_o   
+      udp_rx_valid_o => eth_rx_valid_o 
+      udp_tx_empty_i => eth_tx_empty_i 
+      udp_tx_rden_o  => eth_tx_rden_o  
+      udp_tx_data_i  => eth_tx_data_i  
+      udp_tx_sof_i   => eth_tx_sof_i   
+      udp_tx_eof_i   => eth_tx_eof_i   
+      eth_txd_o      => eth_txd_o,
+      eth_txen_o     => eth_txen_o,
+      eth_rxd_i      => eth_rxd_i,
+      eth_rxerr_i    => eth_rxerr_i,
+      eth_crsdv_i    => eth_crsdv_i,
+      eth_intn_i     => eth_intn_i,
+      eth_mdio_io    => eth_mdio_io,
+      eth_mdc_o      => eth_mdc_o,
+      eth_rstn_o     => eth_rstn_o,
+      eth_refclk_o   => eth_refclk_o
    ); -- i_eth
 
+
+   --------------------------------------------------
+   -- Instantiate Inverter
+   --------------------------------------------------
+
+   i_inverter : entity work.inverter
+   port map (
+      clk_i      : in  std_logic;
+      rst_i      : in  std_logic;
+      rx_data_j  : in  std_logic_vector(7 downto 0);
+      rx_sof_i   : in  std_logic;
+      rx_eof_i   : in  std_logic;
+      rx_valid_i : in  std_logic;
+      tx_empty_o : out std_logic;
+      tx_rden_i  : in  std_logic;
+      tx_data_o  : out std_logic_vector(7 downto 0);
+      tx_sof_o   : out std_logic;
+      tx_eof_o   : out std_logic
+   ); -- i_inverter
 
    --------------------------------------------------
    -- Instantiate Clock Domain Crossing
