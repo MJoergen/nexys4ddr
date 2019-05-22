@@ -10,7 +10,7 @@ entity inverter is
       rst_i      : in  std_logic;
 
       -- Connected to Ethernet module
-      rx_data_j  : in  std_logic_vector(7 downto 0);
+      rx_data_i  : in  std_logic_vector(7 downto 0);
       rx_sof_i   : in  std_logic;
       rx_eof_i   : in  std_logic;
       rx_valid_i : in  std_logic;
@@ -37,12 +37,13 @@ begin
    wr_data <= (15 downto 10 => '0',
                           9 => rx_sof_i,
                           8 => rx_eof_i,
-                7 downto  0 => tx_data_i);
+                7 downto  0 => not rx_data_i);  -- This is where the inversion takes place.
 
    i_fifo : entity work.fifo
    generic map (
-      G_WIDTH => 16;
-   port (
+      G_WIDTH => 16                             -- Must be a power of two.
+   )
+   port map (
       wr_clk_i   => clk_i,
       wr_rst_i   => rst_i,
       wr_en_i    => wr_en,
@@ -59,7 +60,7 @@ begin
    rd_en <= tx_rden_i;
    tx_empty_o <= rd_empty;
    tx_sof_o   <= rd_data(9);
-   tx_eof_o   <= rd_data(9);
+   tx_eof_o   <= rd_data(8);
    tx_data_o  <= rd_data(7 downto 0);
 
 end Structural;

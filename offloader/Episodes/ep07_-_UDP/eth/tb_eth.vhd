@@ -32,6 +32,17 @@ architecture simulation of tb_eth is
    signal eth_txen     : std_logic;
    signal debug        : std_logic_vector(255 downto 0);
 
+   -- Connected to UDP client
+   signal udp_rx_data  : std_logic_vector(7 downto 0);
+   signal udp_rx_sof   : std_logic;
+   signal udp_rx_eof   : std_logic;
+   signal udp_rx_valid : std_logic;
+   signal udp_tx_empty : std_logic;
+   signal udp_tx_rden  : std_logic;
+   signal udp_tx_data  : std_logic_vector(7 downto 0);
+   signal udp_tx_sof   : std_logic;
+   signal udp_tx_eof   : std_logic;
+
    -- Input to eth_rx
    signal rx_valid     : std_logic;
    signal rx_sof       : std_logic;
@@ -113,19 +124,48 @@ begin
 
    i_eth : entity work.eth
    port map (
-      clk_i        => clk,
-      debug_o      => debug,
-      eth_txd_o    => eth_txd,
-      eth_txen_o   => eth_txen,
-      eth_rxd_i    => eth_rxd,
-      eth_rxerr_i  => '0',
-      eth_crsdv_i  => eth_crsdv,
-      eth_intn_i   => '0',
-      eth_mdio_io  => open,
-      eth_mdc_o    => open,
-      eth_rstn_o   => eth_rstn,
-      eth_refclk_o => open
+      clk_i          => clk,
+      debug_o        => debug,
+      udp_rx_data_o  => udp_rx_data,
+      udp_rx_sof_o   => udp_rx_sof,
+      udp_rx_eof_o   => udp_rx_eof,
+      udp_rx_valid_o => udp_rx_valid,
+      udp_tx_empty_i => udp_tx_empty,
+      udp_tx_rden_o  => udp_tx_rden,
+      udp_tx_data_i  => udp_tx_data,
+      udp_tx_sof_i   => udp_tx_sof,
+      udp_tx_eof_i   => udp_tx_eof,
+      eth_txd_o      => eth_txd,
+      eth_txen_o     => eth_txen,
+      eth_rxd_i      => eth_rxd,
+      eth_rxerr_i    => '0',
+      eth_crsdv_i    => eth_crsdv,
+      eth_intn_i     => '0',
+      eth_mdio_io    => open,
+      eth_mdc_o      => open,
+      eth_rstn_o     => eth_rstn,
+      eth_refclk_o   => open
    ); -- i_eth
+
+
+   --------------------------------------------------
+   -- Instantiate Inverter
+   --------------------------------------------------
+
+   i_inverter : entity work.inverter
+   port map (
+      clk_i      => clk,
+      rst_i      => rst,
+      rx_data_i  => udp_rx_data,
+      rx_sof_i   => udp_rx_sof,
+      rx_eof_i   => udp_rx_eof,
+      rx_valid_i => udp_rx_valid,
+      tx_empty_o => udp_tx_empty,
+      tx_rden_i  => udp_tx_rden,
+      tx_data_o  => udp_tx_data,
+      tx_sof_o   => udp_tx_sof,
+      tx_eof_o   => udp_tx_eof
+   ); -- i_inverter
 
 
    --------------------------------------------------
@@ -195,7 +235,9 @@ begin
       wait until eth_rstn = '1';
       wait until clk = '1';
 
-      -- Send one ARP request
+      --------------------------------------------------
+      -- Send one ARP request and verify correct ARP response
+      --------------------------------------------------
       sim_tx_data <= (others => '0');
       sim_tx_data(64*8-1 downto 64*8-42*8) <= X"FFFFFFFFFFFF66778899AABB0806" &  -- MAC header
                                               X"0001080006040001" &              -- ARP header
@@ -206,7 +248,6 @@ begin
       wait until clk = '1';
       sim_tx_valid <= '0';
 
-      -- Verify ARP response is correct
       wait until sim_rx_valid = '1';
       assert sim_rx_size = sim_tx_size + 4;
       assert sim_rx_data(64*8-1 downto 64*8-42*8) = X"66778899AABB0011223344550806" &  -- MAC header
@@ -216,8 +257,11 @@ begin
 
       -- Wait a little while to ease debugging                                               
       wait for 200 ns;
+
     
-      -- Send one ICMP request
+      --------------------------------------------------
+      -- Send one ICMP request and verify correct ICMP response
+      --------------------------------------------------
       sim_tx_data <= (others => '0');
       sim_tx_data(64*8-1 downto 64*8-42*8) <= X"001122334455AABBCCDDEEFF0800" &              -- MAC header
                                               X"4500001C0000000040010000C0A80101C0A8014D" &  -- IP header
@@ -239,6 +283,35 @@ begin
       assert sim_rx_data(64*8-1 downto 64*8-42*8) = X"AABBCCDDEEFF0011223344550800" &              -- MAC header
                                                     X"4500001C0000000040010000C0A8014DC0A80101" &  -- IP header
                                                     X"0000000001020304";                           -- ICMP
+
+      -- Wait a little while to ease debugging                                               
+      wait for 200 ns;
+    
+
+      --------------------------------------------------
+      -- Send one UDP packet and verify correct UDP response
+      --------------------------------------------------
+      sim_tx_data <= (others => '0');
+      sim_tx_data(64*8-1 downto 64*8-42*8) <= X"001122334455AABBCCDDEEFF0800" &              -- MAC header
+                                              X"4500001C0000000040110000C0A80101C0A8014D" &  -- IP header
+                                              X"4321123401020304";                           -- UDP
+      -- Wait one clock cycle.
+      wait until clk = '1';
+      -- Updated data with correct checksum
+      sim_tx_data(64*8-42*8+17*8+7 downto 64*8-42*8+16*8) <= not checksum(sim_tx_data(64*8-42*8+27*8+7 downto 64*8-42*8+8*8));
+      sim_tx_data(64*8-42*8+ 5*8+7 downto 64*8-42*8+ 4*8) <= not checksum(sim_tx_data(64*8-42*8+ 7*8+7 downto 64*8-42*8+0*8));
+
+      sim_tx_size  <= X"3C";
+      sim_tx_valid <= '1';
+      wait until clk = '1';
+      sim_tx_valid <= '0';
+
+      -- Verify UDMP response is correct
+      wait until sim_rx_valid = '1';
+      assert sim_rx_size = sim_tx_size + 4;
+      assert sim_rx_data(64*8-1 downto 64*8-42*8) = X"AABBCCDDEEFF0011223344550800" &              -- MAC header
+                                                    X"4500001C0000000040010000C0A8014DC0A80101" &  -- IP header
+                                                    X"1234432101020304";                           -- UDP
 
       assert debug = sim_rx_data(64*8-42*8+32*8-1 downto 64*8-42*8);
 

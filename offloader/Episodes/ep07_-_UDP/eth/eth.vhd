@@ -21,7 +21,7 @@ entity eth is
       udp_tx_rden_o  : out   std_logic;
       udp_tx_data_i  : in    std_logic_vector(7 downto 0);
       udp_tx_sof_i   : in    std_logic;
-      udp_tx_eof_i   : in    std_logic
+      udp_tx_eof_i   : in    std_logic;
 
       -- Connected to PHY
       eth_txd_o      : out   std_logic_vector(1 downto 0);
@@ -78,7 +78,7 @@ architecture Structural of eth is
    signal udp_tx_rden      : std_logic;
    signal udp_tx_data      : std_logic_vector(7 downto 0);
    signal udp_tx_sof       : std_logic;
-   signal udp_tx_eof       : std_logic
+   signal udp_tx_eof       : std_logic;
 
    -- Input to_eth_tx
    signal tx_data          : std_logic_vector(7 downto 0);
@@ -209,7 +209,7 @@ begin
    )
    port map (
       clk_i          => clk_i,
-      rst_i          => rst_i,
+      rst_i          => rst,
       rx_phy_data_i  => st_data,
       rx_phy_sof_i   => st_sof,
       rx_phy_eof_i   => st_eof,

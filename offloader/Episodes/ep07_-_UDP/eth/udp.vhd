@@ -27,11 +27,11 @@ entity udp is
       rx_cli_valid_o : out std_logic;
 
       -- Egress from client
-      tx_cli_empty_i : out std_logic;
-      tx_cli_rden_o  : in  std_logic;
-      tx_cli_data_i  : out std_logic_vector(7 downto 0);
-      tx_cli_sof_i   : out std_logic;
-      tx_cli_eof_i   : out std_logic
+      tx_cli_empty_i : in  std_logic;
+      tx_cli_rden_o  : out std_logic;
+      tx_cli_data_i  : in  std_logic_vector(7 downto 0);
+      tx_cli_sof_i   : in  std_logic;
+      tx_cli_eof_i   : in  std_logic;
 
       -- Egress to PHY
       tx_phy_empty_o : out std_logic;
