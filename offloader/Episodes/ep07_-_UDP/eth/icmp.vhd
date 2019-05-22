@@ -194,10 +194,10 @@ begin
 
             when CHKSUM_ST =>
                -- Calculate checksum of IP header
-               rsp_data(17*8+7 downto 16*8) <= not checksum(hdr_data(27*8+7 downto 8*8));
+               rsp_data(17*8+7 downto 16*8) <= not checksum(rsp_data(27*8+7 downto 8*8));
 
                -- Calculate checksum of ICMP header
-               rsp_data( 5*8+7 downto  4*8) <= not checksum(hdr_data(7*8+7 downto 0*8));
+               rsp_data( 5*8+7 downto  4*8) <= not checksum(rsp_data(7*8+7 downto 0*8));
 
                -- Send packet to host
                rsp_valid <= '1';
@@ -220,16 +220,20 @@ begin
       G_PL_SIZE => 42            -- Size of ARP packet
    )
    port map (
-      clk_i      => clk_i,
-      rst_i      => rst_i,
-      pl_valid_i => rsp_valid,
-      pl_data_i  => rsp_data,
-      pl_size_i  => X"3C",       -- Minimum frame size is 60 bytes.
-      tx_empty_o => tx_empty_o,
-      tx_rden_i  => tx_rden_i,
-      tx_sof_o   => tx_sof_o,
-      tx_eof_o   => tx_eof_o,
-      tx_data_o  => tx_data_o
+      clk_i       => clk_i,
+      rst_i       => rst_i,
+      hdr_valid_i => rsp_valid,
+      hdr_data_i  => rsp_data,
+      hdr_size_i  => X"3C",       -- Minimum frame size is 60 bytes.
+      hdr_more_i  => '0',
+      pl_valid_i  => '0',
+      pl_eof_i    => '0',
+      pl_data_i   => (others => '0'),
+      tx_empty_o  => tx_empty_o,
+      tx_rden_i   => tx_rden_i,
+      tx_sof_o    => tx_sof_o,
+      tx_eof_o    => tx_eof_o,
+      tx_data_o   => tx_data_o
    ); -- i_wide2byte
 
 

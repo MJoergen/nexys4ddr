@@ -57,8 +57,8 @@ architecture Structural of udp is
    signal rx_pl_eof    : std_logic;
    signal rx_pl_data   : std_logic_vector(7 downto 0);
 
---   signal tx_rsp_valid : std_logic;
---   signal tx_rsp_data  : std_logic_vector(42*8-1 downto 0);
+   signal tx_rsp_valid : std_logic;
+   signal tx_rsp_data  : std_logic_vector(42*8-1 downto 0);
 
    -- The format of a MAC+IP+UDP header is as follows:
    -- 41 : MAC_DST[47 downto 40]       (Broadcast address)
@@ -145,12 +145,13 @@ begin
 
          -- Handle wrap-around
          res_v := (X"0" & res_v(15 downto 0)) + (X"0000" & res_v(19 downto 16));
-         report to_hstring(res_v);
          return res_v(15 downto 0);
       end function checksum;
 
    begin
       if rising_edge(clk_i) then
+
+         tx_rsp_valid <= '0'; -- Default
 
          if rx_phy_valid_i = '1' then
             rx_pl_sof <= rx_hdr_more;
@@ -169,12 +170,38 @@ begin
                      rx_hdr_more = '1' then                                            -- More data follows
                      -- Ignore UDP header checksum
 
+                     -- Build response:
+                     -- MAC header
+                     tx_rsp_data(41*8+7 downto 36*8) <= rx_hdr_data(35*8+7 downto 30*8);  -- MAC_DST
+                     tx_rsp_data(35*8+7 downto 30*8) <= G_MY_MAC;                         -- MAC_SRC
+                     tx_rsp_data(29*8+7 downto 28*8) <= X"0800";                          -- MAC_TYPELEN
+                     -- IP header
+                     tx_rsp_data(27*8+7 downto 27*8) <= X"45";                            -- IP_VIHL
+                     tx_rsp_data(26*8+7 downto 26*8) <= X"00";                            -- IP_DSCP
+                     tx_rsp_data(25*8+7 downto 24*8) <= rx_hdr_data(25*8+7 downto 24*8);  -- IP_LENGTH
+                     tx_rsp_data(23*8+7 downto 22*8) <= X"0000";                          -- IP_ID
+                     tx_rsp_data(21*8+7 downto 20*8) <= X"0000";                          -- IP_FRAG
+                     tx_rsp_data(19*8+7 downto 19*8) <= X"40";                            -- IP_TTL
+                     tx_rsp_data(18*8+7 downto 18*8) <= X"11";                            -- IP_PROTOCOL = UDP
+                     tx_rsp_data(17*8+7 downto 16*8) <= X"0000";                          -- IP_CHKSUM
+                     tx_rsp_data(15*8+7 downto 12*8) <= G_MY_IP;                          -- IP_SRC
+                     tx_rsp_data(11*8+7 downto  8*8) <= rx_hdr_data(15*8+7 downto 12*8);  -- IP_DST
+                     -- UDP header
+                     tx_rsp_data( 7*8+7 downto  6*8) <= rx_hdr_data( 5*8+7 downto  4*8);  -- UDP_SRC
+                     tx_rsp_data( 5*8+7 downto  4*8) <= rx_hdr_data( 7*8+7 downto  6*8);  -- UDP_DST
+                     tx_rsp_data( 3*8+7 downto  2*8) <= rx_hdr_data( 3*8+7 downto  2*8);  -- UDP_LEN
+                     tx_rsp_data( 1*8+7 downto  0*8) <= X"0000";                          -- UDP_CHKSUM
+
                      rx_state_r <= FWD_ST;
                   end if;
                end if;
 
             when FWD_ST =>
                if rx_pl_valid = '1' and rx_pl_eof = '1' then
+                  -- Calculate checksum of IP header
+                  tx_rsp_data(17*8+7 downto 16*8) <= not checksum(tx_rsp_data(27*8+7 downto 8*8));
+                  tx_rsp_valid <= '1'; -- Start sending response
+
                   rx_state_r <= IDLE_ST;
                end if;
          end case;
@@ -192,33 +219,33 @@ begin
    rx_cli_valid_o <= rx_pl_valid when rx_state_r = FWD_ST else '0';
 
 
---   --------------------------------------------------
---   -- Instantiate wide2byte
---   --------------------------------------------------
---
---   i_wide2byte : entity work.wide2byte
---   generic map (
---      G_PL_SIZE => 42            -- Size of ARP packet
---   )
---   port map (
---      clk_i      => clk_i,
---      rst_i      => rst_i,
---      pl_valid_i => tx_rsp_valid,
---      pl_data_i  => tx_rsp_data,
---      pl_size_i  => X"3C",       -- Minimum frame size is 60 bytes.
---      tx_empty_o => tx_phy_empty_o,
---      tx_rden_i  => tx_phy_rden_i,
---      tx_sof_o   => tx_phy_sof_o,
---      tx_eof_o   => tx_phy_eof_o,
---      tx_data_o  => tx_phy_data_o
---   ); -- i_wide2byte
+   --------------------------------------------------
+   -- Instantiate wide2byte
+   --------------------------------------------------
 
-   -- TBD
-   tx_cli_rden_o  <= '0';
-   tx_phy_empty_o <= '1';
-   tx_phy_data_o  <= (others => '0');
-   tx_phy_sof_o   <= '0';
-   tx_phy_eof_o   <= '0';
+   tx_cli_rden_o  <= not tx_cli_empty_i;
+
+
+   i_wide2byte : entity work.wide2byte
+   generic map (
+      G_PL_SIZE => 42            -- Size of UDP header
+   )
+   port map (
+      clk_i       => clk_i,
+      rst_i       => rst_i,
+      hdr_valid_i => tx_rsp_valid,
+      hdr_data_i  => tx_rsp_data,
+      hdr_size_i  => X"2A",
+      hdr_more_i  => '1',
+      pl_valid_i  => tx_cli_rden_o,
+      pl_eof_i    => tx_cli_eof_i,
+      pl_data_i   => tx_cli_data_i,
+      tx_empty_o  => tx_phy_empty_o,
+      tx_rden_i   => tx_phy_rden_i,
+      tx_sof_o    => tx_phy_sof_o,
+      tx_eof_o    => tx_phy_eof_o,
+      tx_data_o   => tx_phy_data_o
+   ); -- i_wide2byte
 
 end Structural;
 

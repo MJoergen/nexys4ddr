@@ -59,9 +59,9 @@ begin
 
    rd_en <= tx_rden_i;
    tx_empty_o <= rd_empty;
-   tx_sof_o   <= rd_data(9);
-   tx_eof_o   <= rd_data(8);
-   tx_data_o  <= rd_data(7 downto 0);
+   tx_sof_o   <= rd_data(9)          when rd_empty = '0' else '0';
+   tx_eof_o   <= rd_data(8)          when rd_empty = '0' else '0';
+   tx_data_o  <= rd_data(7 downto 0) when rd_empty = '0' else (others => '0');
 
 end Structural;
 

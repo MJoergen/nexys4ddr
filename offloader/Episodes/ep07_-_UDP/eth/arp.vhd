@@ -163,16 +163,20 @@ begin
       G_PL_SIZE => 42            -- Size of ARP packet
    )
    port map (
-      clk_i      => clk_i,
-      rst_i      => rst_i,
-      pl_valid_i => rsp_valid,
-      pl_data_i  => rsp_data,
-      pl_size_i  => X"3C",       -- Minimum frame size is 60 bytes.
-      tx_empty_o => tx_empty_o,
-      tx_rden_i  => tx_rden_i,
-      tx_sof_o   => tx_sof_o,
-      tx_eof_o   => tx_eof_o,
-      tx_data_o  => tx_data_o
+      clk_i       => clk_i,
+      rst_i       => rst_i,
+      hdr_valid_i => rsp_valid,
+      hdr_data_i  => rsp_data,
+      hdr_size_i  => X"3C",       -- Minimum frame size is 60 bytes.
+      hdr_more_i  => '0',
+      pl_valid_i  => '0',
+      pl_eof_i    => '0',
+      pl_data_i   => (others => '0'),
+      tx_empty_o  => tx_empty_o,
+      tx_rden_i   => tx_rden_i,
+      tx_sof_o    => tx_sof_o,
+      tx_eof_o    => tx_eof_o,
+      tx_data_o   => tx_data_o
    ); -- i_wide2byte
 
 

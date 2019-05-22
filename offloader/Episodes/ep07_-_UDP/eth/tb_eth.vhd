@@ -51,6 +51,7 @@ architecture simulation of tb_eth is
    signal rx_ok        : std_logic;
 
    -- Signals for reception of the Ethernet frames.
+   signal exp_rx_data  : std_logic_vector(64*8-1 downto 0);
    signal sim_rx_valid : std_logic;
    signal sim_rx_size  : std_logic_vector(7 downto 0);
    signal sim_rx_data  : std_logic_vector(64*8-1 downto 0);
@@ -89,17 +90,22 @@ begin
       G_PL_SIZE  => 64
    )
    port map (
-      clk_i      => clk,
-      rst_i      => rst,
-      pl_valid_i => sim_tx_valid,
-      pl_size_i  => sim_tx_size,
-      pl_data_i  => sim_tx_data,
+      clk_i       => clk,
+      rst_i       => rst,
+      hdr_valid_i => sim_tx_valid,
+      hdr_size_i  => sim_tx_size,
+      hdr_data_i  => sim_tx_data,
+      hdr_more_i  => '0',
       --
-      tx_empty_o => tx_empty,
-      tx_data_o  => tx_data,
-      tx_sof_o   => tx_sof,
-      tx_eof_o   => tx_eof,
-      tx_rden_i  => tx_rden
+      pl_valid_i  => '0',
+      pl_eof_i    => '0',
+      pl_data_i   => (others => '0'),
+      --
+      tx_empty_o  => tx_empty,
+      tx_data_o   => tx_data,
+      tx_sof_o    => tx_sof,
+      tx_eof_o    => tx_eof,
+      tx_rden_i   => tx_rden
    ); -- i_wide2byte
 
    i_eth_tx : entity work.eth_tx
@@ -266,11 +272,17 @@ begin
       sim_tx_data(64*8-1 downto 64*8-42*8) <= X"001122334455AABBCCDDEEFF0800" &              -- MAC header
                                               X"4500001C0000000040010000C0A80101C0A8014D" &  -- IP header
                                               X"0800000001020304";                           -- ICMP
+      exp_rx_data(64*8-1 downto 64*8-42*8) <= X"AABBCCDDEEFF0011223344550800" &              -- MAC header
+                                              X"4500001C0000000040010000C0A8014DC0A80101" &  -- IP header
+                                              X"0000000001020304";                           -- ICMP
+                                             
       -- Wait one clock cycle.
       wait until clk = '1';
       -- Updated data with correct checksum
       sim_tx_data(64*8-42*8+17*8+7 downto 64*8-42*8+16*8) <= not checksum(sim_tx_data(64*8-42*8+27*8+7 downto 64*8-42*8+8*8));
       sim_tx_data(64*8-42*8+ 5*8+7 downto 64*8-42*8+ 4*8) <= not checksum(sim_tx_data(64*8-42*8+ 7*8+7 downto 64*8-42*8+0*8));
+      exp_rx_data(64*8-42*8+17*8+7 downto 64*8-42*8+16*8) <= not checksum(exp_rx_data(64*8-42*8+27*8+7 downto 64*8-42*8+8*8));
+      exp_rx_data(64*8-42*8+ 5*8+7 downto 64*8-42*8+ 4*8) <= not checksum(exp_rx_data(64*8-42*8+ 7*8+7 downto 64*8-42*8+0*8));
 
       sim_tx_size  <= X"3C";
       sim_tx_valid <= '1';
@@ -280,9 +292,7 @@ begin
       -- Verify ICMP response is correct
       wait until sim_rx_valid = '1';
       assert sim_rx_size = sim_tx_size + 4;
-      assert sim_rx_data(64*8-1 downto 64*8-42*8) = X"AABBCCDDEEFF0011223344550800" &              -- MAC header
-                                                    X"4500001C0000000040010000C0A8014DC0A80101" &  -- IP header
-                                                    X"0000000001020304";                           -- ICMP
+      assert sim_rx_data(64*8-1 downto 64*8-42*8) = exp_rx_data(64*8-1 downto 64*8-42*8);
 
       -- Wait a little while to ease debugging                                               
       wait for 200 ns;
@@ -293,13 +303,18 @@ begin
       --------------------------------------------------
       sim_tx_data <= (others => '0');
       sim_tx_data(64*8-1 downto 4*8) <= X"001122334455AABBCCDDEEFF0800" &              -- MAC header
-                                        X"4500001C0000000040110000C0A80101C0A8014D" &  -- IP header
+                                        X"4500002E0000000040110000C0A80101C0A8014D" &  -- IP header
                                         X"43211234001A0000" &                          -- UDP header
                                         X"000102030405060708090A0B0C0D0E0F1011";       -- UDP payload
+      exp_rx_data(64*8-1 downto 4*8) <= X"AABBCCDDEEFF0011223344550800" &              -- MAC header
+                                        X"4500002E0000000040110000C0A8014DC0A80101" &  -- IP header
+                                        X"12344321001A0000" &                          -- UDP header
+                                        X"FFFEFDFCFBFAF9F8F7F6F5F4F3F2F1F0EFEE";       -- UDP payload
       -- Wait one clock cycle.
       wait until clk = '1';
       -- Update data with correct IP header checksum
       sim_tx_data(64*8-42*8+17*8+7 downto 64*8-42*8+16*8) <= not checksum(sim_tx_data(64*8-42*8+27*8+7 downto 64*8-42*8+8*8));
+      exp_rx_data(64*8-42*8+17*8+7 downto 64*8-42*8+16*8) <= not checksum(exp_rx_data(64*8-42*8+27*8+7 downto 64*8-42*8+8*8));
       -- Ignore UDP checksum
 
       sim_tx_size  <= X"3C";
@@ -310,11 +325,7 @@ begin
       -- Verify UDMP response is correct
       wait until sim_rx_valid = '1';
       assert sim_rx_size = sim_tx_size + 4;
-      assert sim_rx_data(64*8-1 downto 64*8-42*8) = X"AABBCCDDEEFF0011223344550800" &              -- MAC header
-                                                    X"4500001C0000000040010000C0A8014DC0A80101" &  -- IP header
-                                                    X"1234432101020304";                           -- UDP
-
-      assert debug = sim_rx_data(64*8-42*8+32*8-1 downto 64*8-42*8);
+      assert sim_rx_data(64*8-1 downto 64*8-42*8) = exp_rx_data(64*8-1 downto 64*8-42*8);
 
       -- Wait a little while to ease debugging                                               
       wait for 200 ns;

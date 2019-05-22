@@ -234,17 +234,18 @@ begin
    --------------------------------------------------
    -- Lazy multiplexer.
    -- This will geenerate corrupted packets if
-   -- the two blocks, ARP and ICMP, try to
+   -- any of the three blocks ARP, ICMP, or UDP try to
    -- send at the same time.
    --------------------------------------------------
 
-   tx_empty <= icmp_tx_empty and arp_tx_empty;
-   tx_data  <= icmp_tx_data  or arp_tx_data;
-   tx_sof   <= icmp_tx_sof   or arp_tx_sof;
-   tx_eof   <= icmp_tx_eof   or arp_tx_eof;
+   tx_empty <= arp_tx_empty and icmp_tx_empty and udp_tx_empty;
+   tx_data  <= arp_tx_data  or  icmp_tx_data  or  udp_tx_data;
+   tx_sof   <= arp_tx_sof   or  icmp_tx_sof   or  udp_tx_sof;
+   tx_eof   <= arp_tx_eof   or  icmp_tx_eof   or  udp_tx_eof;
 
    arp_tx_rden  <= tx_rden and not arp_tx_empty;
    icmp_tx_rden <= tx_rden and not icmp_tx_empty;
+   udp_tx_rden  <= tx_rden and not udp_tx_empty;
 
 
    --------------------------------------------------

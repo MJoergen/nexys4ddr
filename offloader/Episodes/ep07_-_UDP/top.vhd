@@ -38,6 +38,8 @@ architecture structural of top is
    signal vga_clk : std_logic;
    signal eth_clk : std_logic;
 
+   signal eth_rst : std_logic;
+
    -- Connected to UDP client
    signal eth_rx_data  : std_logic_vector(7 downto 0);
    signal eth_rx_sof   : std_logic;
@@ -47,7 +49,7 @@ architecture structural of top is
    signal eth_tx_rden  : std_logic;
    signal eth_tx_data  : std_logic_vector(7 downto 0);
    signal eth_tx_sof   : std_logic;
-   signal eth_tx_eof   : std_logic
+   signal eth_tx_eof   : std_logic;
 
    -- Test signal
    signal eth_debug : std_logic_vector(255 downto 0);
@@ -114,6 +116,7 @@ begin
       eth_refclk_o   => eth_refclk_o
    ); -- i_eth
 
+   eth_rst <= not eth_rstn_o;
 
    --------------------------------------------------
    -- Instantiate Inverter
@@ -121,8 +124,8 @@ begin
 
    i_inverter : entity work.inverter
    port map (
-      clk_i      => clk,
-      rst_i      => rst,
+      clk_i      => eth_clk,
+      rst_i      => eth_rst,
       rx_data_i  => eth_rx_data,
       rx_sof_i   => eth_rx_sof,
       rx_eof_i   => eth_rx_eof,
