@@ -28,35 +28,34 @@ end eth;
 
 architecture Structural of eth is
 
-   signal rst          : std_logic                     := '1';
-   signal rst_cnt      : std_logic_vector(20 downto 0) := (others => '1');
-   signal debug        : std_logic_vector(255 downto 0);
+   signal rst      : std_logic                     := '1';
+   signal rst_cnt  : std_logic_vector(20 downto 0) := (others => '1');
+   signal debug    : std_logic_vector(255 downto 0);
+
+   -- Connected to eth_rx
+   signal rx_valid : std_logic;
+   signal rx_data  : std_logic_vector(7 downto 0);
+   signal rx_last  : std_logic;
+   signal rx_ok    : std_logic;
+
+   -- Output from strip_crc
+   signal st_valid : std_logic;
+   signal st_data  : std_logic_vector(7 downto 0);
+   signal st_last  : std_logic;
+
+   -- Output from byte2wide
+   signal pa_valid : std_logic;
+   signal pa_data  : std_logic_vector(42*8-1 downto 0);
+   signal pa_last  : std_logic;
+   signal pa_bytes : std_logic_vector(5 downto 0);
+   signal pa_first : std_logic;
 
    -- Connected to eth_tx
    -- TBD: For now, we just assign default values to these signals
-   signal tx_data      : std_logic_vector(7 downto 0)  := X"00";
-   signal tx_sof       : std_logic                     := '0';
-   signal tx_eof       : std_logic                     := '0';
-   signal tx_empty     : std_logic                     := '1';
-   signal tx_rden      : std_logic;
-
-   -- Connected to eth_rx
-   signal rx_data      : std_logic_vector(7 downto 0);
-   signal rx_sof       : std_logic;
-   signal rx_eof       : std_logic;
-   signal rx_valid     : std_logic;
-   signal rx_ok        : std_logic;
-
-   -- Output from strip_crc
-   signal st_data      : std_logic_vector(7 downto 0);
-   signal st_sof       : std_logic;
-   signal st_eof       : std_logic;
-   signal st_valid     : std_logic;
-
-   -- Output from byte2wide
-   signal pa_valid     : std_logic;
-   signal pa_data      : std_logic_vector(42*8-1 downto 0);
-   signal pa_size      : std_logic_vector(7 downto 0);
+   signal tx_data  : std_logic_vector(7 downto 0)  := X"00";
+   signal tx_last  : std_logic                     := '0';
+   signal tx_empty : std_logic                     := '1';
+   signal tx_rden  : std_logic;
 
 begin
 
@@ -68,11 +67,15 @@ begin
    p_debug : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if pa_valid = '1' then
+         if pa_valid = '1' and pa_first = '1' then
             debug <= pa_data(255 downto 0);
          end if;
+         if pa_valid = '1' then
+            pa_first <= pa_last;
+         end if;
          if rst = '1' then
-            debug <= (others => '1');  -- All ones means no frame received yet.
+            pa_first <= '1';
+            debug    <= (others => '1');  -- All ones means no frame received yet.
          end if;         
       end if;
    end process p_debug;
@@ -109,51 +112,44 @@ begin
 
    i_eth_rx : entity work.eth_rx
    port map (
-      eth_clk_i    => clk_i,
-      eth_rst_i    => rst,
-      rx_data_o    => rx_data,
-      rx_sof_o     => rx_sof,
-      rx_eof_o     => rx_eof,
-      rx_valid_o   => rx_valid,
-      rx_ok_o      => rx_ok,
-      eth_rxd_i    => eth_rxd_i,
-      eth_rxerr_i  => eth_rxerr_i,
-      eth_crsdv_i  => eth_crsdv_i
+      eth_clk_i   => clk_i,
+      eth_rst_i   => rst,
+      rx_valid_o  => rx_valid,
+      rx_data_o   => rx_data,
+      rx_last_o   => rx_last,
+      rx_ok_o     => rx_ok,
+      eth_rxd_i   => eth_rxd_i,
+      eth_rxerr_i => eth_rxerr_i,
+      eth_crsdv_i => eth_crsdv_i
    ); -- i_eth_rx
 
    i_strip_crc : entity work.strip_crc
    port map (
-      clk_i          => clk_i,
-      rst_i          => rst,
-      rx_valid_i     => rx_valid,
-      rx_sof_i       => rx_sof,
-      rx_eof_i       => rx_eof,
-      rx_ok_i        => rx_ok,
-      rx_data_i      => rx_data,
-      out_valid_o    => st_valid,
-      out_sof_o      => st_sof,
-      out_eof_o      => st_eof,
-      out_data_o     => st_data
+      clk_i       => clk_i,
+      rst_i       => rst,
+      rx_valid_i  => rx_valid,
+      rx_data_i   => rx_data,
+      rx_last_i   => rx_last,
+      rx_ok_i     => rx_ok,
+      out_valid_o => st_valid,
+      out_data_o  => st_data,
+      out_last_o  => st_last
    ); -- i_strip_crc
 
    i_byte2wide : entity work.byte2wide
    generic map (
-      G_HDR_SIZE  => 42          -- Size of ARP frame
+      G_SIZE     => 42          -- Size of ARP frame
    )
    port map (
-      clk_i       => clk_i,
-      rst_i       => rst,
-      rx_valid_i  => st_valid,
-      rx_sof_i    => st_sof,
-      rx_eof_i    => st_eof,
-      rx_data_i   => st_data,
-      hdr_valid_o => pa_valid,
-      hdr_data_o  => pa_data,
-      hdr_size_o  => pa_size,
-      hdr_more_o  => open,       -- Not used
-      pl_valid_o  => open,       -- Not used
-      pl_eof_o    => open,       -- Not used
-      pl_data_o   => open        -- Not used
+      clk_i      => clk_i,
+      rst_i      => rst,
+      rx_valid_i => st_valid,
+      rx_data_i  => st_data,
+      rx_last_i  => st_last,
+      tx_valid_o => pa_valid,
+      tx_data_o  => pa_data,
+      tx_last_o  => pa_last,
+      tx_bytes_o => pa_bytes
    ); -- i_wide2byte
 
 
@@ -166,8 +162,7 @@ begin
       eth_clk_i    => clk_i,
       eth_rst_i    => rst,
       tx_data_i    => tx_data,
-      tx_sof_i     => tx_sof,
-      tx_eof_i     => tx_eof,
+      tx_last_i    => tx_last,
       tx_empty_i   => tx_empty,
       tx_rden_o    => tx_rden,
       tx_err_o     => open,
