@@ -14,8 +14,8 @@ use ieee.numeric_std_unsigned.all;
 --
 -- The interface to the receiver is a "pushing" interface with no flow-control.
 -- The frame data bytes are forwarded one byte every four clock cycles.  The
--- first byte has "rx_sof_o" asserted, the last byte has "rx_eof_o" asserted.
--- At end of frame, i.e. when "rx_eof_o" is asserted, the client must examine
+-- first byte has "rx_sof_o" asserted, the last byte has "rx_last_o" asserted.
+-- At end of frame, i.e. when "rx_last_o" is asserted, the client must examine
 -- the "rx_ok_o" signal to determine whether any errors occurred during frame
 -- reception.
 --
@@ -39,8 +39,7 @@ entity eth_rx is
 
       -- Client interface
       rx_valid_o  : out std_logic;
-      rx_sof_o    : out std_logic;  -- Start Of Frame
-      rx_eof_o    : out std_logic;  -- End Of Frame
+      rx_last_o   : out std_logic;  -- End Of Frame
       rx_data_o   : out std_logic_vector(7 downto 0);
       rx_ok_o     : out std_logic;  -- Valid only at EOF.  -- True if frame has correct CRC and no errors.
 
@@ -65,8 +64,7 @@ architecture Structural of eth_rx is
    signal crc       : std_logic_vector(31 downto 0);
 
    signal rx_valid  : std_logic;
-   signal rx_sof    : std_logic;  -- Start Of Frame
-   signal rx_eof    : std_logic;  -- End Of Frame
+   signal rx_last   : std_logic;  -- End Of Frame
    signal rx_data   : std_logic_vector(7 downto 0);
    signal rx_ok     : std_logic;  -- Valid only at EOF.  -- True if frame has no errors and correct CRC.
 
@@ -81,8 +79,7 @@ begin
 
          -- Set default values
          rx_valid <= '0';
-         rx_sof   <= '0';
-         rx_eof   <= '0';
+         rx_last  <= '0';
          rx_data  <= X"00";
          rx_ok    <= '0';
 
@@ -126,7 +123,6 @@ begin
                end if;
                if eth_crsdv_i = '0' or eth_rxerr_i = '1' then
                   fsm_state <= IDLE_ST;
-                  sof       <= '0';
                end if;
 
             -- Process the frame
@@ -134,9 +130,8 @@ begin
                if dibit_cnt = 3 then
                   rx_valid <= '1';
                   rx_data  <= data;
-                  rx_sof   <= sof;
-                  rx_eof   <= (not eth_crsdv_i) or eth_rxerr_i;
-                  sof      <= '0';
+                  rx_last  <= (not eth_crsdv_i) or eth_rxerr_i;
+                  sof      <= '0';              -- Indicate data hase been forwarded
                   -- Check CRC at End Of Frame
                   if eth_crsdv_i = '0' and eth_rxerr_i = '0' and crc = X"C704DD7B" then
                      rx_ok <= '1';
@@ -146,14 +141,12 @@ begin
                   end if;
                elsif eth_crsdv_i = '0' or eth_rxerr_i = '1' then
                   fsm_state <= IDLE_ST;
-                  sof       <= '0';
 
                   -- If frame has already started, end it now.
                   if sof = '0' then
                      rx_valid <= '1';
                      rx_data  <= data;
-                     rx_sof   <= sof;
-                     rx_eof   <= '1';
+                     rx_last  <= '1';
                      rx_ok    <= '0';
                   end if;
                end if;
@@ -169,8 +162,7 @@ begin
 
    -- Drive output signals
    rx_valid_o <= rx_valid;
-   rx_sof_o   <= rx_sof;
-   rx_eof_o   <= rx_eof;
+   rx_last_o  <= rx_last;
    rx_data_o  <= rx_data;
    rx_ok_o    <= rx_ok;
 

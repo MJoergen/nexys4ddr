@@ -32,20 +32,18 @@ architecture Structural of eth is
    signal rst_cnt  : std_logic_vector(20 downto 0) := (others => '1');
    signal debug    : std_logic_vector(255 downto 0);
 
+   -- Connected to eth_rx
+   signal rx_valid : std_logic;
+   signal rx_data  : std_logic_vector(7 downto 0);
+   signal rx_eof   : std_logic;
+   signal rx_ok    : std_logic;
+
    -- Connected to eth_tx
    -- TBD: For now, we just assign default values to these signals
    signal tx_data  : std_logic_vector(7 downto 0)  := X"00";
-   signal tx_sof   : std_logic                     := '0';
    signal tx_eof   : std_logic                     := '0';
    signal tx_empty : std_logic                     := '1';
    signal tx_rden  : std_logic;
-
-   -- Connected to eth_rx
-   signal rx_data  : std_logic_vector(7 downto 0);
-   signal rx_sof   : std_logic;
-   signal rx_eof   : std_logic;
-   signal rx_valid : std_logic;
-   signal rx_ok    : std_logic;
 
 begin
 
@@ -97,10 +95,9 @@ begin
    port map (
       eth_clk_i    => clk_i,
       eth_rst_i    => rst,
-      rx_data_o    => rx_data,
-      rx_sof_o     => rx_sof,
-      rx_eof_o     => rx_eof,
       rx_valid_o   => rx_valid,
+      rx_data_o    => rx_data,
+      rx_eof_o     => rx_eof,
       rx_ok_o      => rx_ok,
       eth_rxd_i    => eth_rxd_i,
       eth_rxerr_i  => eth_rxerr_i,
@@ -117,7 +114,6 @@ begin
       eth_clk_i    => clk_i,
       eth_rst_i    => rst,
       tx_data_i    => tx_data,
-      tx_sof_i     => tx_sof,
       tx_eof_i     => tx_eof,
       tx_empty_i   => tx_empty,
       tx_rden_o    => tx_rden,
