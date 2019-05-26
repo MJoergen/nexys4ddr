@@ -35,13 +35,13 @@ architecture Structural of eth is
    -- Connected to eth_rx
    signal rx_valid : std_logic;
    signal rx_data  : std_logic_vector(7 downto 0);
-   signal rx_eof   : std_logic;
+   signal rx_last  : std_logic;
    signal rx_ok    : std_logic;
 
    -- Connected to eth_tx
    -- TBD: For now, we just assign default values to these signals
    signal tx_data  : std_logic_vector(7 downto 0)  := X"00";
-   signal tx_eof   : std_logic                     := '0';
+   signal tx_last  : std_logic                     := '0';
    signal tx_empty : std_logic                     := '1';
    signal tx_rden  : std_logic;
 
@@ -57,7 +57,7 @@ begin
    p_debug : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if rx_valid = '1' and rx_eof = '1' and rx_ok = '1' then
+         if rx_valid = '1' and rx_last = '1' and rx_ok = '1' then
             debug <= debug + 1;
          end if;
          if rst = '1' then
@@ -97,7 +97,7 @@ begin
       eth_rst_i    => rst,
       rx_valid_o   => rx_valid,
       rx_data_o    => rx_data,
-      rx_eof_o     => rx_eof,
+      rx_last_o    => rx_last,
       rx_ok_o      => rx_ok,
       eth_rxd_i    => eth_rxd_i,
       eth_rxerr_i  => eth_rxerr_i,
@@ -114,7 +114,7 @@ begin
       eth_clk_i    => clk_i,
       eth_rst_i    => rst,
       tx_data_i    => tx_data,
-      tx_eof_i     => tx_eof,
+      tx_last_i    => tx_last,
       tx_empty_i   => tx_empty,
       tx_rden_o    => tx_rden,
       tx_err_o     => open,
