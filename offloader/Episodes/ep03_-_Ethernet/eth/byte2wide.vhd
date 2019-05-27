@@ -3,11 +3,11 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
 -- This module converts a stream of bytes into a wider bus interface.
--- The first byte received is placed in MSB, i.e.  tx_data_o(G_SIZE*8-1 downto G_SIZE*8-8);
+-- The first byte received is placed in MSB, i.e.  tx_data_o(G_BYTES*8-1 downto G_BYTES*8-8);
 
 entity byte2wide is
    generic (
-      G_SIZE     : integer
+      G_BYTES    : integer
    );
    port (
       clk_i      : in  std_logic;
@@ -21,7 +21,7 @@ entity byte2wide is
       -- Transmitinterface (wide data bus)
       tx_valid_o : out std_logic;
       tx_last_o  : out std_logic;
-      tx_data_o  : out std_logic_vector(G_SIZE*8-1 downto 0);
+      tx_data_o  : out std_logic_vector(G_BYTES*8-1 downto 0);
       tx_bytes_o : out std_logic_vector(5 downto 0)
    );
 end byte2wide;
@@ -30,7 +30,7 @@ architecture Structural of byte2wide is
 
    signal tx_valid_r : std_logic;
    signal tx_last_r  : std_logic;
-   signal tx_data_r  : std_logic_vector(G_SIZE*8-1 downto 0);
+   signal tx_data_r  : std_logic_vector(G_BYTES*8-1 downto 0);
    signal tx_bytes_r : std_logic_vector(5 downto 0);
 
    type t_state is (IDLE_ST, FWD_ST);
@@ -52,15 +52,15 @@ begin
                tx_data_r  <= (others => '0');
 
                if rx_valid_i = '1' then
-                  tx_data_r(G_SIZE*8-1 downto G_SIZE*8-8) <= rx_data_i;
+                  tx_data_r(G_BYTES*8-1 downto G_BYTES*8-8) <= rx_data_i;
                   tx_bytes_r <= to_stdlogicvector(1, 6);
                   state_r    <= FWD_ST;
                end if;
 
             when FWD_ST =>
                if rx_valid_i = '1' then
-                  tx_data_r(G_SIZE*8-1-to_integer(tx_bytes_r)*8 downto
-                            G_SIZE*8-8-to_integer(tx_bytes_r)*8) <= rx_data_i;
+                  tx_data_r(G_BYTES*8-1-to_integer(tx_bytes_r)*8 downto
+                            G_BYTES*8-8-to_integer(tx_bytes_r)*8) <= rx_data_i;
                   tx_bytes_r <= tx_bytes_r + 1;
 
                   if rx_last_i = '1' then
@@ -69,7 +69,7 @@ begin
                      state_r    <= IDLE_ST;
                   end if;
 
-                  if tx_bytes_r = G_SIZE-1 then
+                  if tx_bytes_r = G_BYTES-1 then
                      tx_valid_r  <= '1';
                      tx_bytes_r <= (others => '0');
                   end if;

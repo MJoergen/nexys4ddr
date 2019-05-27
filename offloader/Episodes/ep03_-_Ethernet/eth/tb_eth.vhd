@@ -108,7 +108,7 @@ begin
 
    i_wide2byte : entity work.wide2byte
    generic map (
-      G_SIZE => 64
+      G_BYTES => 64
    )
    port map (
       clk_i      => clk,
@@ -165,7 +165,7 @@ begin
 
    i_byte2wide : entity work.byte2wide
    generic map (
-      G_SIZE => 64
+      G_BYTES => 64
    )
    port map (
       clk_i      => clk,
