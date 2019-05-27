@@ -13,7 +13,7 @@ architecture simulation of tb_eth is
       valid : std_logic;
       data  : std_logic_vector(64*8-1 downto 0);
       last  : std_logic;
-      size  : std_logic_vector(5 downto 0);
+      bytes : std_logic_vector(5 downto 0);
    end record t_sim;
 
    signal clk          : std_logic;
@@ -84,7 +84,7 @@ begin
       rx_valid_i => sim_tx.valid,
       rx_data_i  => sim_tx.data,
       rx_last_i  => sim_tx.last,
-      rx_bytes_i => sim_tx.size,
+      rx_bytes_i => sim_tx.bytes,
       --
       tx_empty_o => tx_empty,
       tx_data_o  => tx_data,
@@ -155,11 +155,10 @@ begin
       rx_valid_i => rx_valid,
       rx_data_i  => rx_data,
       rx_last_i  => rx_last,
-      --
       tx_valid_o => sim_rx.valid,
       tx_data_o  => sim_rx.data,
       tx_last_o  => sim_rx.last,
-      tx_bytes_o => sim_rx.size
+      tx_bytes_o => sim_rx.bytes
    ); -- i_byte2wide
 
 
@@ -194,7 +193,7 @@ begin
                                              X"0001080006040001" &              -- ARP header
                                              X"AABBCCDDEEFF" & X"C0A80001" &    -- SHA & SPA
                                              X"000000000000" & X"C0A8014D";     -- THA & TPA
-         tx.size  <= to_stdlogicvector(60, 6); -- Minimum frame size
+         tx.bytes <= to_stdlogicvector(60, 6); -- Minimum frame size
          tx.last  <= '1';
          tx.valid <= '1';
          wait until clk = '1';
@@ -202,7 +201,7 @@ begin
 
          -- Verify ARP response is correct
          wait until rx.valid = '1';
-         assert rx.size = tx.size + 4;
+         assert rx.bytes = tx.bytes + 4;
          assert rx.data(64*8-1 downto 64*8-42*8) = X"66778899AABB0011223344550806" &  -- MAC header
                                                    X"0001080006040002" &              -- ARP header
                                                    X"001122334455" & X"C0A8014D" &    -- THA & TPA
@@ -230,7 +229,7 @@ begin
          exp_rx_data_v(64*8-42*8+17*8+7 downto 64*8-42*8+16*8) := not checksum(exp_rx_data_v(64*8-42*8+27*8+7 downto 64*8-42*8+8*8));
          exp_rx_data_v(64*8-42*8+ 5*8+7 downto 64*8-42*8+ 4*8) := not checksum(exp_rx_data_v(64*8-42*8+ 7*8+7 downto 64*8-42*8+0*8));
 
-         tx.size  <= to_stdlogicvector(60, 6);
+         tx.bytes <= to_stdlogicvector(60, 6);
          tx.valid <= '1';
          wait until clk = '1';
          tx.valid <= '0';
@@ -239,9 +238,7 @@ begin
          wait until rx.valid = '1';
          wait until clk = '0';
          assert rx.last = '1';
-         assert rx.size = 0;
-         report " rx = " & to_hstring(rx.data(64*8-1 downto 64*8-42*8));
-         report "exp = " & to_hstring(exp_rx_data_v(64*8-1 downto 64*8-42*8));
+         assert rx.bytes = 0;
          assert rx.data(64*8-1 downto 64*8-42*8) = exp_rx_data_v(64*8-1 downto 64*8-42*8);
          assert debug = rx.data(64*8-42*8+32*8-1 downto 64*8-42*8);
       end procedure verify_icmp;

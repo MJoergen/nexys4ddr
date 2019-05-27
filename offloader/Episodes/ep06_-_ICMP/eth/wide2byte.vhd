@@ -110,8 +110,8 @@ begin
                   rd_en   <= '1';                                    -- Consume data from FIFO.
 
                   -- Calculate number of valid bytes in data_r.
-                  if (last_s = '0' or bytes_s = 0) and G_BYTES < 64 then
-                     bytes_r <= to_stdlogicvector(G_BYTES, 6);
+                  if bytes_s = 0 then
+                     bytes_r <= to_stdlogicvector(G_BYTES mod 64, 6);
                   end if;
 
                   tx_last_r  <= '0';
@@ -127,16 +127,19 @@ begin
                   data_r  <= data_r(G_BYTES*8-9 downto 0) & X"00";   -- Shift next data byte up to MSB.
                   bytes_r <= bytes_r-1;
 
-                  if bytes_r-1 = 1 then                              -- No more data left.
-                     if last_r = '1' then
-                        tx_last_r <= '1';                            -- Indicate end of frame.
-                     else
-                        data_r  <= data_s;
-                        last_r  <= last_s;
-                        bytes_r <= bytes_s;
-                        rd_en   <= '1';                              -- Consume more data from FIFO.
-                        assert rd_empty = '0';                       -- If no more data available, this is an error.
+                  if bytes_r-1 = 1 and last_r = '1' then             -- No more data left.
+                     tx_last_r <= '1';                               -- Indicate end of frame.
+                  end if;
+
+                  if bytes_r-1 = 0 and last_r = '0' then
+                     data_r  <= data_s;
+                     last_r  <= last_s;
+                     bytes_r <= bytes_s;
+                     if bytes_s = 0 then
+                        bytes_r <= to_stdlogicvector(G_BYTES mod 64, 6);
                      end if;
+                     rd_en   <= '1';                              -- Consume more data from FIFO.
+                     assert rd_empty = '0';                       -- If no more data available, this is an error.
                   end if;
 
                   if tx_last_r = '1' then                            -- Last byte has been read.

@@ -2,7 +2,8 @@ XILINX_DIR = /opt/Xilinx/Vivado/2018.2
 
 SRCS  = top.vhd cdc.vhd
 SRCS += eth/fifo.vhd eth/strip_crc.vhd eth/byte2wide.vhd eth/wide2byte.vhd
-SRCS += eth/eth_rx.vhd eth/arp.vhd eth/icmp.vhd eth/eth_tx.vhd eth/eth.vhd
+SRCS += eth/eth_rx.vhd eth/eth_tx.vhd eth/eth.vhd eth/pad.vhd
+SRCS += eth/arp.vhd eth/icmp.vhd
 SRCS += vga/vga.vhd vga/pix.vhd vga/rom.vhd 
 
 top.bit: top.tcl $(SRCS) top.xdc Makefile

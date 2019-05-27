@@ -65,11 +65,17 @@ architecture Structural of eth is
    signal icmp_bytes  : std_logic_vector(5 downto 0);
    signal icmp_debug  : std_logic_vector(255 downto 0);
 
-   -- Output from multiplexer
-   signal tx_valid    : std_logic;
-   signal tx_data     : std_logic_vector(60*8-1 downto 0);
-   signal tx_last     : std_logic;
-   signal tx_bytes    : std_logic_vector(5 downto 0);
+   -- Output from Tx arbiter
+   signal arb_valid   : std_logic;
+   signal arb_data    : std_logic_vector(60*8-1 downto 0);
+   signal arb_last    : std_logic;
+   signal arb_bytes   : std_logic_vector(5 downto 0);
+
+   -- Output from padding
+   signal pad_valid   : std_logic;
+   signal pad_data    : std_logic_vector(60*8-1 downto 0);
+   signal pad_last    : std_logic;
+   signal pad_bytes   : std_logic_vector(5 downto 0);
 
    -- Output from wide2byte
    signal wb_empty    : std_logic;
@@ -209,11 +215,30 @@ begin
    -- send at the same time.
    --------------------------------------------------
 
-   tx_valid                         <= icmp_valid or arp_valid;
-   tx_data(60*8-1 downto 60*8-42*8) <= icmp_data  or arp_data;
-   tx_data(60*8-42*8-1 downto  0*8) <= (others => '0');
-   tx_last                          <= icmp_last  or arp_last;
-   tx_bytes                         <= icmp_bytes or arp_bytes;
+   arb_valid                              <= icmp_valid or arp_valid;
+   arb_data(60*8-1      downto 60*8-42*8) <= icmp_data  or arp_data;
+   arb_data(60*8-42*8-1 downto  0*8)      <= (others => '0');
+   arb_last                               <= icmp_last  or arp_last;
+   arb_bytes                              <= icmp_bytes or arp_bytes;
+
+
+   --------------------------------------------------
+   -- Instantiate padding
+   --------------------------------------------------
+
+   i_pad : entity work.pad
+   port map (
+      clk_i      => clk_i,
+      rst_i      => rst,
+      rx_valid_i => arb_valid,
+      rx_data_i  => arb_data,
+      rx_last_i  => arb_last,
+      rx_bytes_i => arb_bytes,
+      tx_valid_o => pad_valid,
+      tx_data_o  => pad_data,
+      tx_last_o  => pad_last,
+      tx_bytes_o => pad_bytes
+   ); -- i_pad
 
 
    --------------------------------------------------
@@ -227,10 +252,10 @@ begin
    port map (
       clk_i      => clk_i,
       rst_i      => rst,
-      rx_valid_i => tx_valid,
-      rx_data_i  => tx_data,
-      rx_last_i  => tx_last,
-      rx_bytes_i => tx_bytes,
+      rx_valid_i => pad_valid,
+      rx_data_i  => pad_data,
+      rx_last_i  => pad_last,
+      rx_bytes_i => pad_bytes,
       tx_empty_o => wb_empty,
       tx_rden_i  => wb_rden,
       tx_data_o  => wb_data,
