@@ -29,6 +29,10 @@ First of all, in the files top.vhd (lines 15-25) and top.xdc (lines 22-33)
 we've added the pins connecting to the Ethernet Phy. In top.vhd the Ethernet
 module is instantiated in lines 77-95.
 
+Since the Ethernet module needs a 50 MHz clock, we generate this in line 60 of
+top.vhd using the same clock divider method as for the VGA clock. The clock
+must also be declared in line 38 of top.xdc.
+
 ## Ethernet module
 
 The files for the Ethernet module are placed in the separate directory eth, and
@@ -107,22 +111,71 @@ This module converts a stream of bytes into a wider bus interface.  Both the
 input stream and the output stream use a pushing interface without
 back-pressure. In my opinion, this is the easiest interface to work with.
 
+The byte2wide module is implemented using a state machine. This is a very
+common design approach. In this module only two states are used:
+
+* IDLE\_ST : This state is used when no data is being forwarded.
+* FWD\_ST : This state is used when a frame is currently being forwarded.
+
+The value of rx\_valid\_i and rx\_last\_i control the transitions between these
+two states. The register tx\_bytes\_r counts the number of bytes received so
+far. When G\_BYTES bytes have been received, this counter is reset to zero, and
+the signal tx\_valid\_r is asserted.
+
+### wide2byte
+This module performs the opposite operation, i.e. converts a wide bus interface
+into a stream of bytes. However, this time the input stream is a pushing
+interface, but the output stream is a pulling interface. The reason for this
+assymmetry is because this module must provide data to the eth\_tx module,
+which requires a pulling interface.
+
+This module is somewhat more complicated that byte2wide, because this module
+receives a wide data bus and only outputs one byte at a time, and therefore the
+input stream needs to be buffered in a FIFO.
+
+So the module instantiates a wide\_fifo in lines 64-80, more on that later.
+This FIFO stores all the input signals and the following state machine controls
+reading out from this FIFO.
+
+The state machine is controlled by the rd\_empty signal that indicates, whether
+or not data is present in the FIFO, and by the tx\_rden\_i signal that
+indicates the receiver has consumed a byte of data.
+
+The data to the output stream is taken from the MSB of the data\_r signal. In
+order to avoid have a large multiplexer reading from an arbitrary position of
+this wide data bus, I've instead chosen to use a simple shift register. This
+approach uses much less logic within the FPGA.
+
+Note the current design can potentially trigger an error, if the transmitter
+only sends the first row of data, and never sends the rest. The reason is that
+this module starts forwarding data to the receiver immediately after the first
+row is received, without waiting for the rest of the frame. This error
+condition I don't think is relevant for our use here, but just in case I've
+added a simulation check for it in line 138.
+
+### wide\_fifo
+The module wide2byte makes use of the wide\_fifo module. This basically
+instantiates a number of Xilinx FIFOs in parallel. The reason is that each FIFO
+only has a data bus of 72 bits. The necessary number of FIFOs is calculated in
+line 33.
+
+Note the use of the "generate" statement in line 57 to instantiate all the
+FIFOs at once. Note futhermore that all the output signals, i.e. fifo\_out,
+rd\_empty, wrerr, and rderr, must all be std\_logic\_vectors, because otherwise
+all FIFO instantiations would drive the same signal and this would result in
+"Multiple Drivers" error.
 
 ## Clock domains
 
-since the Ethernet module needs a 50 MHz clock, we generate this in line 60 of
-top.vhd using the same clock divider method as for the VGA clock. The clock
-must also be declared in line 38 of top.xdc.
-
-Next, the Ethernet module provides a debug signal (currently just counting the
-number of correctly received frames), but this signal (line 42 in top.vhd) is
+The Ethernet module provides a debug signal (currently just counting the number
+of correctly received frames), but this signal (line 42 in top.vhd) is
 synchronous to the Ethernet clock.  However, the VGA module requires a signal
 synchronuous to the VGA clcok, and therefore we need a Clock Domain Crossing,
 This is handled in lines 98-111 in top.vhd, where the cdc module is
 instantiated.
 
 Note how I choose to name the signals by prepending the name with the
-correspoding clock domain, i.e.  all signals synchronous to the VGA clock are
+corresponding clock domain, i.e.  all signals synchronous to the VGA clock are
 prepended with vga\_, and similar for the Ethernet clock.  This naming
 convention helps prevent errors with incorrect clock domain crossings.  Note
 furthermore that only the top level module (and the cdc module) contain more
@@ -133,14 +186,21 @@ The Clock Domain Crossing module (cdc.vhd) is a wrapper for a Xilinx
 Parameterized Macro (XPM), and these XPM's have to be explicitly enabled. This
 is done in line 14 of the Makefile.
 
+This approach for a CDC is a very general approach, but does use a lot of FPGA
+resources. A more simple approach, using e.g. a pair of back-to-back registers
+would work too, but may lead to inconsistencies in the data bus, where all
+parts of the data bus don't necessarily transition on the same clock cycle.
+Another benefit of using the Xilinx XPM is that any required timing constraints
+are handled automatically.
+
 ## Validation in hardware
 
 Since we have no clients connected to the eth\_rx and eth\_tx modules yet, no
-data is transferred yet. However, I've added in lines 53-70 of eth/eth.vhd a
+data is transferred yet. However, I've added in lines 50-67 of eth/eth.vhd a
 simple counter to count the number of valid Ethernet frames received.
 
 When running in hardware the VGA should display a counter that increments
 occassionally, corresponding to each frame received. For instance, ping'ing a
 non-existant IP address on the LAN will cause an ARP request to be broadcasted
-once every second.
+once every second, and this should be reflected in the counter.
 
