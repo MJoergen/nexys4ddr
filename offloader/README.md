@@ -76,6 +76,11 @@ receive and send UDP packets.
 ### Ethernet ###
 3.  [**"Ethernet"**](Episodes/ep03_-_Ethernet). Here we will connect the
     Ethernet port.
+4.  [**"CRC"**](Episodes/ep04_-_CRC). Here we will validate Ethernet CRC and
+    discard frames with CRC errors.
+5.  [**"ARP"**](Episodes/ep05_-_ARP). Here we will respond to ARP requests.
+6.  [**"ICMP"**](Episodes/ep06_-_ICMP). Here we will respond to ICMP requests.
+7.  [**"UDP"**](Episodes/ep07_-_UDP). Here we will respond to UDP requests.
 
 More to come soon...
 
