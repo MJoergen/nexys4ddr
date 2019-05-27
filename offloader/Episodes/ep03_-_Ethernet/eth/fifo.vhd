@@ -5,10 +5,10 @@ use ieee.numeric_std_unsigned.all;
 library UNISIM;
 use UNISIM.Vcomponents.all;
 
--- This module is a wrapper for a wide fifo consisting
+-- This module is a wrapper for a FIFO consisting
 -- of several Xilinx-specific FIFOs in parallel.
 
-entity wide_fifo is
+entity fifo is
    generic (
       G_WIDTH : natural
    );
@@ -26,9 +26,9 @@ entity wide_fifo is
       rd_empty_o : out std_logic;
       rd_error_o : out std_logic
       );
-end entity wide_fifo;
+end entity fifo;
 
-architecture behavioral of wide_fifo is
+architecture behavioral of fifo is
 
    constant C_FIFOS : integer := (G_WIDTH+71) / 72;
 

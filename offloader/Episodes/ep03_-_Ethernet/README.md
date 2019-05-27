@@ -83,6 +83,14 @@ design before testing it in hardware. To this end, I've added a separate
 simulation of just the Ethernet module.  This takes place in the testbench file
 tb\_eth.vhd. To run the simulation, just type "make" in the eth directory.
 
+The actual test consist of sending a number of frames first into the eth\_tx
+module and then connect directly to the eth\_rx module, thus effectively
+simulating a loopback in the Ethernet PHY. This happens in lines 128-163.
+
+To save a lot of duplicate code, I've made use of a common procedure written in
+lines 54-81. VHDL procedures are only rarely used, but can be convenient
+particularly when writing test benches.
+
 To assist in simulation, and for future use, I've added two additional modules,
 wide2byte.vhd and byte2wide.vhd, that can translate between a stream of bytes
 and a stream of words, where the word size is configurable. In the testbench
@@ -133,7 +141,7 @@ This module is somewhat more complicated that byte2wide, because this module
 receives a wide data bus and only outputs one byte at a time, and therefore the
 input stream needs to be buffered in a FIFO.
 
-So the module instantiates a wide\_fifo in lines 64-80, more on that later.
+So the module instantiates a fifo in lines 64-80, more on that later.
 This FIFO stores all the input signals and the following state machine controls
 reading out from this FIFO.
 
@@ -153,8 +161,8 @@ row is received, without waiting for the rest of the frame. This error
 condition I don't think is relevant for our use here, but just in case I've
 added a simulation check for it in line 138.
 
-### wide\_fifo
-The module wide2byte makes use of the wide\_fifo module. This basically
+### fifo
+The module wide2byte makes use of the fifo module. This basically
 instantiates a number of Xilinx FIFOs in parallel. The reason is that each FIFO
 only has a data bus of 72 bits. The necessary number of FIFOs is calculated in
 line 33.

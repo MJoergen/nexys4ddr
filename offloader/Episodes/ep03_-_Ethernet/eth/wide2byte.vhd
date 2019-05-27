@@ -66,7 +66,7 @@ begin
    wr_data(G_BYTES*8+5 downto G_BYTES*8)   <= rx_bytes_i;
    wr_data(G_BYTES*8-1 downto 0)           <= rx_data_i;
 
-   i_wide_fifo : entity work.wide_fifo
+   i_fifo : entity work.fifo
    generic map (
       G_WIDTH => G_BYTES*8+9
    )
