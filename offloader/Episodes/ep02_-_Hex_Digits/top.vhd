@@ -25,7 +25,7 @@ architecture structural of top is
    signal vga_clk : std_logic;
 
    -- Test signal
-   signal vga_hex : std_logic_vector(255 downto 0) := (others => '0');
+   signal vga_hex : std_logic_vector(255 downto 0);
 
 begin
    
@@ -41,7 +41,7 @@ begin
       end if;
    end process clk_cnt_proc;
 
-   vga_clk <= clk_cnt(1);
+   vga_clk <= clk_cnt(1);  -- 25 MHz
 
 
    --------------------------------------------------
