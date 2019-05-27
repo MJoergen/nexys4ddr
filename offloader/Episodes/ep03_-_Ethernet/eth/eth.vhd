@@ -32,7 +32,7 @@ architecture Structural of eth is
    signal rst_cnt  : std_logic_vector(20 downto 0) := (others => '1');
    signal debug    : std_logic_vector(255 downto 0);
 
-   -- Connected to eth_rx
+   -- Output from eth_rx
    signal rx_valid : std_logic;
    signal rx_data  : std_logic_vector(7 downto 0);
    signal rx_last  : std_logic;
@@ -95,13 +95,13 @@ begin
    port map (
       eth_clk_i    => clk_i,
       eth_rst_i    => rst,
+      eth_rxd_i    => eth_rxd_i,
+      eth_rxerr_i  => eth_rxerr_i,
+      eth_crsdv_i  => eth_crsdv_i,
       rx_valid_o   => rx_valid,
       rx_data_o    => rx_data,
       rx_last_o    => rx_last,
-      rx_ok_o      => rx_ok,
-      eth_rxd_i    => eth_rxd_i,
-      eth_rxerr_i  => eth_rxerr_i,
-      eth_crsdv_i  => eth_crsdv_i
+      rx_ok_o      => rx_ok
    ); -- i_eth_rx
 
 
