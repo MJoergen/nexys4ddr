@@ -240,7 +240,9 @@ begin
 
          -- Verify ARP response is correct
          wait until rx.valid = '1';
-         assert rx.bytes = tx.bytes + 4;
+         wait until clk = '0';
+         assert rx.last = '1';
+         assert rx.bytes = 0;
          assert rx.data(64*8-1 downto 64*8-42*8) = X"66778899AABB0011223344550806" &  -- MAC header
                                                    X"0001080006040002" &              -- ARP header
                                                    X"001122334455" & X"C0A8014D" &    -- THA & TPA
@@ -278,10 +280,7 @@ begin
          wait until clk = '0';
          assert rx.last = '1';
          assert rx.bytes = 0;
-         report " rx = " & to_hstring(rx.data(64*8-1 downto 64*8-42*8));
-         report "exp = " & to_hstring(exp_rx_data_v(64*8-1 downto 64*8-42*8));
          assert rx.data(64*8-1 downto 64*8-42*8) = exp_rx_data_v(64*8-1 downto 64*8-42*8);
-         assert debug = rx.data(64*8-42*8+32*8-1 downto 64*8-42*8);
       end procedure verify_icmp;
 
       -- Verify UDP processing
@@ -293,10 +292,11 @@ begin
          -- Send one UDP packet and verify correct UDP response
          --------------------------------------------------
          tx.data <= (others => '0');
-         tx.data(64*8-1 downto 4*8) <= X"001122334455AABBCCDDEEFF0800" &              -- MAC header
+         tx.data(64*8-1 downto 4*8) <=     X"001122334455AABBCCDDEEFF0800" &              -- MAC header
                                            X"4500002E0000000040110000C0A80101C0A8014D" &  -- IP header
                                            X"43211234001A0000" &                          -- UDP header
                                            X"000102030405060708090A0B0C0D0E0F1011";       -- UDP payload
+
          exp_rx_data(64*8-1 downto 4*8) <= X"AABBCCDDEEFF0011223344550800" &              -- MAC header
                                            X"4500002E0000000040110000C0A8014DC0A80101" &  -- IP header
                                            X"12344321001A0000" &                          -- UDP header
@@ -315,10 +315,17 @@ begin
 
          -- Verify UDMP response is correct
          wait until rx.valid = '1';
-         assert rx.bytes = tx.bytes + 4;
+         wait until clk = '0';
+         assert rx.last = '0';
+         assert rx.bytes = 0;
          assert rx.data(64*8-1 downto 64*8-42*8) = exp_rx_data(64*8-1 downto 64*8-42*8)
             report "\nReceived " & to_hstring(rx.data(64*8-1 downto 64*8-42*8)) &
                    "\nExpected " & to_hstring(exp_rx_data(64*8-1 downto 64*8-42*8));
+         assert debug = rx.data(64*8-42*8+32*8-1 downto 64*8-42*8);
+         wait until clk = '1' and rx.valid = '1';
+         wait until clk = '0';
+         assert rx.last = '1';
+         assert rx.bytes = 0;
       end procedure verify_udp;
 
    begin
