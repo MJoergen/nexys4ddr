@@ -201,7 +201,9 @@ begin
 
          -- Verify ARP response is correct
          wait until rx.valid = '1';
-         assert rx.bytes = tx.bytes + 4;
+         wait until clk = '0';
+         assert rx.last = '1';
+         assert rx.bytes = 0;
          assert rx.data(64*8-1 downto 64*8-42*8) = X"66778899AABB0011223344550806" &  -- MAC header
                                                    X"0001080006040002" &              -- ARP header
                                                    X"001122334455" & X"C0A8014D" &    -- THA & TPA

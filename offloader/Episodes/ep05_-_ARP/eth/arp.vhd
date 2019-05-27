@@ -103,6 +103,7 @@ begin
    begin
       if rising_edge(clk_i) then
          tx_valid <= '0'; -- Default value
+         tx_data  <= (others => '0');
 
          -- Is this an ARP request for our IP address?
          if rx_valid_i = '1' and

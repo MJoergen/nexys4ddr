@@ -12,7 +12,8 @@ architecture simulation of tb_eth is
    type t_sim is record
       valid : std_logic;
       data  : std_logic_vector(64*8-1 downto 0);
-      size  : std_logic_vector(5 downto 0);
+      last  : std_logic;
+      bytes : std_logic_vector(5 downto 0);
    end record t_sim;
 
    signal clk       : std_logic;
@@ -82,8 +83,8 @@ begin
       rst_i      => rst,
       rx_valid_i => sim_tx.valid,
       rx_data_i  => sim_tx.data,
-      rx_last_i  => '1',
-      rx_bytes_i => sim_tx.size,
+      rx_last_i  => sim_tx.last,
+      rx_bytes_i => sim_tx.bytes,
       --
       tx_empty_o => tx_empty,
       tx_data_o  => tx_data,
@@ -154,11 +155,10 @@ begin
       rx_valid_i => rx_valid,
       rx_data_i  => rx_data,
       rx_last_i  => rx_last,
-      --
       tx_valid_o => sim_rx.valid,
       tx_data_o  => sim_rx.data,
-      tx_last_o  => open,
-      tx_bytes_o => sim_rx.size
+      tx_last_o  => sim_rx.last,
+      tx_bytes_o => sim_rx.bytes
    ); -- i_byte2wide
 
 
@@ -167,6 +167,34 @@ begin
    --------------------------------------------------
 
    main_test_proc : process
+
+      -- Verify ARP processing
+      procedure verify_arp(signal tx : inout t_sim;
+                           signal rx : in    t_sim) is
+      begin
+         -- Send one ARP request
+         tx.data <= (others => '0');
+         tx.data(64*8-1 downto 64*8-42*8) <= X"FFFFFFFFFFFF66778899AABB0806" &  -- MAC header
+                                             X"0001080006040001" &              -- ARP header
+                                             X"AABBCCDDEEFF" & X"C0A80001" &    -- SHA & SPA
+                                             X"000000000000" & X"C0A8014D";     -- THA & TPA
+         tx.bytes <= to_stdlogicvector(60, 6); -- Minimum frame size
+         tx.last  <= '1';
+         tx.valid <= '1';
+         wait until clk = '1';
+         tx.valid <= '0';
+
+         -- Verify ARP response is correct
+         wait until rx.valid = '1';
+         wait until clk = '0';
+         assert rx.last = '1';
+         assert rx.bytes = 0;
+         assert rx.data(64*8-1 downto 64*8-42*8) = X"66778899AABB0011223344550806" &  -- MAC header
+                                                   X"0001080006040002" &              -- ARP header
+                                                   X"001122334455" & X"C0A8014D" &    -- THA & TPA
+                                                   X"AABBCCDDEEFF" & X"C0A80001";     -- SHA & SPA
+      end procedure verify_arp;
+
    begin
       -- Wait until reset is complete
       sim_tx.valid <= '0';
@@ -174,25 +202,10 @@ begin
       wait until eth_rstn = '1';
       wait until clk = '1';
 
-      -- Send one ARP request
-      sim_tx.data <= (others => '0');
-      sim_tx.data(64*8-1 downto 64*8-42*8) <= X"FFFFFFFFFFFF66778899AABB0806" &  -- MAC header
-                                              X"0001080006040001" &              -- ARP header
-                                              X"AABBCCDDEEFF" & X"C0A80001" &    -- SHA & SPA
-                                              X"000000000000" & X"C0A8014D";     -- THA & TPA
-      sim_tx.size  <= to_stdlogicvector(60, 6); -- Minimum frame size
-      sim_tx.valid <= '1';
-      wait until clk = '1';
-      sim_tx.valid <= '0';
+      verify_arp(sim_tx, sim_rx);
 
-      -- Verify ARP response is correct
-      wait until sim_rx.valid = '1';
-      assert sim_rx.size = sim_tx.size + 4;
-      assert sim_rx.data(64*8-1 downto 64*8-42*8) = X"66778899AABB0011223344550806" &  -- MAC header
-                                                    X"0001080006040002" &              -- ARP header
-                                                    X"001122334455" & X"C0A8014D" &    -- THA & TPA
-                                                    X"AABBCCDDEEFF" & X"C0A80001";     -- SHA & SPA
-      assert debug = sim_rx.data(64*8-42*8+32*8-1 downto 64*8-42*8);
+      -- Wait a little while to ease debugging                                               
+      wait for 200 ns;
 
       -- Stop test
       wait until clk = '1';

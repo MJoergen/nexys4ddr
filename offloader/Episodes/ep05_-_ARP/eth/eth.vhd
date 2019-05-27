@@ -58,7 +58,11 @@ architecture Structural of eth is
    signal arp_bytes  : std_logic_vector(5 downto 0);
    signal arp_debug  : std_logic_vector(255 downto 0);
 
-   signal arp_data_padded : std_logic_vector(60*8-1 downto 0);
+   -- Output from padding
+   signal pad_valid  : std_logic;
+   signal pad_data   : std_logic_vector(60*8-1 downto 0);
+   signal pad_last   : std_logic;
+   signal pad_bytes  : std_logic_vector(5 downto 0);
 
    -- Output from wide2byte
    signal wb_empty   : std_logic;
@@ -139,6 +143,7 @@ begin
       tx_bytes_o => bw_bytes
    ); -- i_byte2wide
 
+
    --------------------------------------------------
    -- Instantiate ARP processing
    --------------------------------------------------
@@ -163,8 +168,25 @@ begin
       debug_o    => arp_debug
    ); -- i_arp
 
-   arp_data_padded(60*8-1 downto 60*8-42*8) <= arp_data;
-   arp_data_padded(60*8-42*8-1 downto  0*8) <= (others => '0');
+
+   --------------------------------------------------
+   -- Instantiate padding
+   --------------------------------------------------
+
+   i_pad : entity work.pad
+   port map (
+      clk_i      => clk_i,
+      rst_i      => rst,
+      rx_valid_i => arp_valid,
+      rx_data_i  => arp_data,
+      rx_last_i  => arp_last,
+      rx_bytes_i => arp_bytes,
+      tx_valid_o => pad_valid,
+      tx_data_o  => pad_data,
+      tx_last_o  => pad_last,
+      tx_bytes_o => pad_bytes
+   ); -- i_pad
+   
 
    --------------------------------------------------
    -- Instantiate Tx path
@@ -177,10 +199,10 @@ begin
    port map (
       clk_i      => clk_i,
       rst_i      => rst,
-      rx_valid_i => arp_valid,
-      rx_data_i  => arp_data_padded,
-      rx_last_i  => arp_last,
-      rx_bytes_i => arp_bytes,
+      rx_valid_i => pad_valid,
+      rx_data_i  => pad_data,
+      rx_last_i  => pad_last,
+      rx_bytes_i => pad_bytes,
       tx_empty_o => wb_empty,
       tx_rden_i  => wb_rden,
       tx_data_o  => wb_data,

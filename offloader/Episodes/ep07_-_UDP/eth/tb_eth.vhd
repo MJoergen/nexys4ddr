@@ -179,8 +179,8 @@ begin
       eth_rxerr_i => '0',
       eth_crsdv_i => eth_txen,
       rx_valid_o  => rx_valid,
-      rx_last_o   => rx_last,
       rx_data_o   => rx_data,
+      rx_last_o   => rx_last,
       rx_ok_o     => rx_ok
    ); -- i_eth_rx
 
@@ -192,8 +192,8 @@ begin
       clk_i      => clk,
       rst_i      => rst,
       rx_valid_i => rx_valid,
-      rx_last_i  => rx_last,
       rx_data_i  => rx_data,
+      rx_last_i  => rx_last,
       tx_valid_o => sim_rx.valid,
       tx_data_o  => sim_rx.data,
       tx_last_o  => sim_rx.last,

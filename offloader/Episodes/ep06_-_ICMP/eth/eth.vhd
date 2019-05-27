@@ -67,7 +67,7 @@ architecture Structural of eth is
 
    -- Output from Tx arbiter
    signal arb_valid   : std_logic;
-   signal arb_data    : std_logic_vector(60*8-1 downto 0);
+   signal arb_data    : std_logic_vector(42*8-1 downto 0);
    signal arb_last    : std_logic;
    signal arb_bytes   : std_logic_vector(5 downto 0);
 
@@ -215,11 +215,10 @@ begin
    -- send at the same time.
    --------------------------------------------------
 
-   arb_valid                              <= icmp_valid or arp_valid;
-   arb_data(60*8-1      downto 60*8-42*8) <= icmp_data  or arp_data;
-   arb_data(60*8-42*8-1 downto  0*8)      <= (others => '0');
-   arb_last                               <= icmp_last  or arp_last;
-   arb_bytes                              <= icmp_bytes or arp_bytes;
+   arb_valid <= icmp_valid or arp_valid;
+   arb_data  <= icmp_data  or arp_data;
+   arb_last  <= icmp_last  or arp_last;
+   arb_bytes <= icmp_bytes or arp_bytes;
 
 
    --------------------------------------------------
