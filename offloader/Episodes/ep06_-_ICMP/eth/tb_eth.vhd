@@ -12,6 +12,7 @@ architecture simulation of tb_eth is
    type t_sim is record
       valid : std_logic;
       data  : std_logic_vector(64*8-1 downto 0);
+      last  : std_logic;
       size  : std_logic_vector(5 downto 0);
    end record t_sim;
 
@@ -82,7 +83,7 @@ begin
       rst_i      => rst,
       rx_valid_i => sim_tx.valid,
       rx_data_i  => sim_tx.data,
-      rx_last_i  => '1',
+      rx_last_i  => sim_tx.last,
       rx_bytes_i => sim_tx.size,
       --
       tx_empty_o => tx_empty,
@@ -157,7 +158,7 @@ begin
       --
       tx_valid_o => sim_rx.valid,
       tx_data_o  => sim_rx.data,
-      tx_last_o  => open,
+      tx_last_o  => sim_rx.last,
       tx_bytes_o => sim_rx.size
    ); -- i_byte2wide
 
@@ -183,6 +184,68 @@ begin
          return res_v(15 downto 0);
       end function checksum;
 
+      -- Verify ARP processing
+      procedure verify_arp(signal tx : inout t_sim;
+                           signal rx : in    t_sim) is
+      begin
+         -- Send one ARP request
+         tx.data <= (others => '0');
+         tx.data(64*8-1 downto 64*8-42*8) <= X"FFFFFFFFFFFF66778899AABB0806" &  -- MAC header
+                                             X"0001080006040001" &              -- ARP header
+                                             X"AABBCCDDEEFF" & X"C0A80001" &    -- SHA & SPA
+                                             X"000000000000" & X"C0A8014D";     -- THA & TPA
+         tx.size  <= to_stdlogicvector(60, 6); -- Minimum frame size
+         tx.last  <= '1';
+         tx.valid <= '1';
+         wait until clk = '1';
+         tx.valid <= '0';
+
+         -- Verify ARP response is correct
+         wait until rx.valid = '1';
+         assert rx.size = tx.size + 4;
+         assert rx.data(64*8-1 downto 64*8-42*8) = X"66778899AABB0011223344550806" &  -- MAC header
+                                                   X"0001080006040002" &              -- ARP header
+                                                   X"001122334455" & X"C0A8014D" &    -- THA & TPA
+                                                   X"AABBCCDDEEFF" & X"C0A80001";     -- SHA & SPA
+      end procedure verify_arp;
+
+      -- Verify ICMP processing
+      procedure verify_icmp(signal tx : inout t_sim;
+                            signal rx : in    t_sim) is
+         variable exp_rx_data_v : std_logic_vector(64*8-1 downto 0);
+      begin
+         -- Send one ICMP request
+         tx.data <= (others => '0');
+         tx.data(64*8-1 downto 64*8-42*8) <= X"001122334455AABBCCDDEEFF0800" &              -- MAC header
+                                             X"4500001C0000000040010000C0A80101C0A8014D" &  -- IP header
+                                             X"0800000001020304";                           -- ICMP
+         exp_rx_data_v(64*8-1 downto 64*8-42*8) := X"AABBCCDDEEFF0011223344550800" &              -- MAC header
+                                                   X"4500001C0000000040010000C0A8014DC0A80101" &  -- IP header
+                                                   X"0000000001020304";                           -- ICMP
+         -- Wait one clock cycle.
+         wait until clk = '1';
+         -- Updated data with correct checksum
+         tx.data(64*8-42*8+17*8+7 downto 64*8-42*8+16*8) <= not checksum(tx.data(64*8-42*8+27*8+7 downto 64*8-42*8+8*8));
+         tx.data(64*8-42*8+ 5*8+7 downto 64*8-42*8+ 4*8) <= not checksum(tx.data(64*8-42*8+ 7*8+7 downto 64*8-42*8+0*8));
+         exp_rx_data_v(64*8-42*8+17*8+7 downto 64*8-42*8+16*8) := not checksum(exp_rx_data_v(64*8-42*8+27*8+7 downto 64*8-42*8+8*8));
+         exp_rx_data_v(64*8-42*8+ 5*8+7 downto 64*8-42*8+ 4*8) := not checksum(exp_rx_data_v(64*8-42*8+ 7*8+7 downto 64*8-42*8+0*8));
+
+         tx.size  <= to_stdlogicvector(60, 6);
+         tx.valid <= '1';
+         wait until clk = '1';
+         tx.valid <= '0';
+
+         -- Verify ICMP response is correct
+         wait until rx.valid = '1';
+         wait until clk = '0';
+         assert rx.last = '1';
+         assert rx.size = 0;
+         report " rx = " & to_hstring(rx.data(64*8-1 downto 64*8-42*8));
+         report "exp = " & to_hstring(exp_rx_data_v(64*8-1 downto 64*8-42*8));
+         assert rx.data(64*8-1 downto 64*8-42*8) = exp_rx_data_v(64*8-1 downto 64*8-42*8);
+         assert debug = rx.data(64*8-42*8+32*8-1 downto 64*8-42*8);
+      end procedure verify_icmp;
+
    begin
       -- Wait until reset is complete
       sim_tx.valid <= '0';
@@ -190,52 +253,13 @@ begin
       wait until eth_rstn = '1';
       wait until clk = '1';
 
-      -- Send one ARP request
-      sim_tx.data <= (others => '0');
-      sim_tx.data(64*8-1 downto 64*8-42*8) <= X"FFFFFFFFFFFF66778899AABB0806" &  -- MAC header
-                                              X"0001080006040001" &              -- ARP header
-                                              X"AABBCCDDEEFF" & X"C0A80001" &    -- SHA & SPA
-                                              X"000000000000" & X"C0A8014D";     -- THA & TPA
-      sim_tx.size  <= to_stdlogicvector(60, 6); -- Minimum frame size
-      sim_tx.valid <= '1';
-      wait until clk = '1';
-      sim_tx.valid <= '0';
-
-      -- Verify ARP response is correct
-      wait until sim_rx.valid = '1';
-      assert sim_rx.size = sim_tx.size + 4;
-      assert sim_rx.data(64*8-1 downto 64*8-42*8) = X"66778899AABB0011223344550806" &  -- MAC header
-                                                    X"0001080006040002" &              -- ARP header
-                                                    X"001122334455" & X"C0A8014D" &    -- THA & TPA
-                                                    X"AABBCCDDEEFF" & X"C0A80001";     -- SHA & SPA
+      verify_arp(sim_tx, sim_rx);
 
       -- Wait a little while to ease debugging                                               
       wait for 200 ns;
+
+      verify_icmp(sim_tx, sim_rx);
     
-      -- Send one ICMP request
-      sim_tx.data <= (others => '0');
-      sim_tx.data(64*8-1 downto 64*8-42*8) <= X"001122334455AABBCCDDEEFF0800" &              -- MAC header
-                                              X"4500001C0000000040010000C0A80101C0A8014D" &  -- IP header
-                                              X"0800000001020304";                           -- ICMP
-      -- Wait one clock cycle.
-      wait until clk = '1';
-      -- Updated data with correct checksum
-      sim_tx.data(64*8-42*8+17*8+7 downto 64*8-42*8+16*8) <= not checksum(sim_tx.data(64*8-42*8+27*8+7 downto 64*8-42*8+8*8));
-      sim_tx.data(64*8-42*8+ 5*8+7 downto 64*8-42*8+ 4*8) <= not checksum(sim_tx.data(64*8-42*8+ 7*8+7 downto 64*8-42*8+0*8));
-
-      sim_tx.size  <= to_stdlogicvector(60, 6);
-      sim_tx.valid <= '1';
-      wait until clk = '1';
-      sim_tx.valid <= '0';
-
-      -- Verify ICMP response is correct
-      wait until sim_rx.valid = '1';
-      assert sim_rx.size = sim_tx.size + 4;
-      assert sim_rx.data(64*8-1 downto 64*8-42*8) = X"AABBCCDDEEFF0011223344550800" &              -- MAC header
-                                                    X"4500001C0000000040010000C0A8014DC0A80101" &  -- IP header
-                                                    X"0000000001020304";                           -- ICMP
-
-      assert debug = sim_rx.data(64*8-42*8+32*8-1 downto 64*8-42*8);
 
       -- Wait a little while to ease debugging                                               
       wait for 200 ns;
