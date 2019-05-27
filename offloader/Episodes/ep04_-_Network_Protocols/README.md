@@ -1,8 +1,8 @@
 # CPU offloader
 # Episode 4 : "Network protocols - part 1"
 
-Welcome to this fourth episode of "CPU offloader", where we prepare to
-implement the network protocols ARP and UDP.
+Welcome to this fourth episode of "CPU offloader", where we proceed with the
+next step towards implementing the network protocols required for this project.
 
 ## Architecture
 
@@ -19,7 +19,7 @@ module described in the following.
 To make it easier for the client of the strip\_crc module, I've chosen to have
 the strip\_crc module discard frames with any errors, including CRC errors.
 This means that the strip\_crc module must buffer up the entire frame
-(including CRC), and only at the end of the frame, when "eof" is asserted,
+(including CRC), and only at the end of the frame, when "last" is asserted,
 should it sample "ok" and possibly discard the entire frame. The internal
 buffer within the strip\_crc module must therefore be able to contain a
 complete Ethernet frame.
@@ -51,11 +51,11 @@ This is what the ctrl\_fifo is for - to store the pointers to the last byte of
 each received frame.
 
 Using a FIFO for the end pointers is just one possible implementation. The
-purpose of this FIFO is really just to determine the correct control signals,
-i.e.  "sof" and "eof". Therefore, an alternative would be to store these two
-control signals along the "data" signal in the ring buffer. However, you would
-still need some way to signal that the ring buffer contains a complete and
-valid frame. because only then may reading from the buffer commence.
+purpose of this FIFO is really just to determine where one frame ends and a new
+frame begins.  Therefore, an alternative would be to store the control signal
+"last" along the "data" signal in the ring buffer. However, you would still
+need some way to signal that the ring buffer contains a complete and valid
+frame. because only then may reading from the buffer commence.
 
 ### Buffer overflow
 
@@ -76,30 +76,17 @@ accept data.  In other words, it is the clients responsibility to always be
 ready to receive data.
 
 We could alternatively allow the client to signal back to strip\_crc an
-indication of "don't send more data just now", aka "back-pressure". However,
+indication of "don't send more data just now", a.k.a. "back-pressure". However,
 then suddenly the possibility of buffer overflow becomes very real, and this
 would therefore add complexity to this module. So to follow the principle of
 small and simple modules, I've chosen to exlude the complexity of
 "back-pressure" from this module, and instead deny the client the possibility
 of applying back-pressure.
 
-## byte2wide
-
-Once we have a valid frame, stripped of the CRC, we want some way to do further
-processing. I've found that it is cumbersome having a one-byte-at-a-time
-interface, so I've added the byte2wide block. The purpose of this block is to
-extract a fixed-size header and output this header as a single wide vector.
-The remaining data is forwarded one-byte-at-a-time.
-
-The idea is to extract (remove), say, the MAC, IP, and UDP headers
-simultaneously, to allow easy examination of the headers to determine the
-further course of action.  The remaining payload can then perhaps be subjected
-to another iteration of byte2wide, if needed.
-
 ## Simulation
 
 The testbench is changed to now instantiate the Ethernet module. We use the
-modules wide2byte and eth\_tx to generat the data stream received from the
+modules wide2byte and eth\_tx to generate the data stream received from the
 Ethernet PHY. Since we still don't have any transmit path implemented, I've
 chosen to sample the received frame header and present them on the debug output
 signal.

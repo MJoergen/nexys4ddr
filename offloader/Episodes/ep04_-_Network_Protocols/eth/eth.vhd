@@ -48,7 +48,7 @@ architecture Structural of eth is
    signal pa_data  : std_logic_vector(42*8-1 downto 0);
    signal pa_last  : std_logic;
    signal pa_bytes : std_logic_vector(5 downto 0);
-   signal pa_first : std_logic;
+   signal pa_first : std_logic;                    -- Asserted only at Start Of Frame.
 
    -- Connected to eth_tx
    -- TBD: For now, we just assign default values to these signals
@@ -138,7 +138,7 @@ begin
 
    i_byte2wide : entity work.byte2wide
    generic map (
-      G_SIZE     => 42          -- Size of ARP frame
+      G_BYTES    => 42
    )
    port map (
       clk_i      => clk_i,
