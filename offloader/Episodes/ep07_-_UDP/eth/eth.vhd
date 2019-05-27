@@ -13,15 +13,14 @@ entity eth is
       debug_o        : out   std_logic_vector(255 downto 0);
 
       -- Connected to UDP client
-      udp_rx_data_o  : out   std_logic_vector(7 downto 0);
-      udp_rx_sof_o   : out   std_logic;
-      udp_rx_eof_o   : out   std_logic;
       udp_rx_valid_o : out   std_logic;
-      udp_tx_empty_i : in    std_logic;
-      udp_tx_rden_o  : out   std_logic;
-      udp_tx_data_i  : in    std_logic_vector(7 downto 0);
-      udp_tx_sof_i   : in    std_logic;
-      udp_tx_eof_i   : in    std_logic;
+      udp_rx_data_o  : out   std_logic_vector(42*8-1 downto 0);
+      udp_rx_last_o  : out   std_logic;
+      udp_rx_bytes_o : out   std_logic_vector(5 downto 0);
+      udp_tx_valid_i : in    std_logic;
+      udp_tx_data_i  : in    std_logic_vector(42*8-1 downto 0);
+      udp_tx_last_i  : in    std_logic;
+      udp_tx_bytes_i : in    std_logic_vector(5 downto 0);
 
       -- Connected to PHY
       eth_txd_o      : out   std_logic_vector(1 downto 0);
@@ -41,51 +40,60 @@ architecture Structural of eth is
 
    constant C_MY_MAC       : std_logic_vector(47 downto 0) := X"001122334455";
    constant C_MY_IP        : std_logic_vector(31 downto 0) := X"C0A8014D";     -- 192.168.1.77
-   constant C_MY_PORT      : std_logic_vector(15 downto 0) := X"1234";         -- 
+   constant C_MY_PORT      : std_logic_vector(15 downto 0) := X"1234";         -- 4660
 
    signal rst              : std_logic                     := '1';
    signal rst_cnt          : std_logic_vector(20 downto 0) := (others => '1');
 
    -- Output from eth_rx
-   signal rx_data          : std_logic_vector(7 downto 0);
-   signal rx_sof           : std_logic;
-   signal rx_eof           : std_logic;
    signal rx_valid         : std_logic;
+   signal rx_data          : std_logic_vector(7 downto 0);
+   signal rx_last          : std_logic;
    signal rx_ok            : std_logic;
 
    -- Output from strip_crc
-   signal st_data          : std_logic_vector(7 downto 0);
-   signal st_sof           : std_logic;
-   signal st_eof           : std_logic;
    signal st_valid         : std_logic;
+   signal st_data          : std_logic_vector(7 downto 0);
+   signal st_last          : std_logic;
+
+   -- Output from byte2wide
+   signal bw_valid         : std_logic;
+   signal bw_data          : std_logic_vector(42*8-1 downto 0);
+   signal bw_last          : std_logic;
+   signal bw_bytes         : std_logic_vector(5 downto 0);
 
    -- Output from ARP
-   signal arp_tx_data      : std_logic_vector(7 downto 0);
-   signal arp_tx_sof       : std_logic;
-   signal arp_tx_eof       : std_logic;
-   signal arp_tx_empty     : std_logic;
-   signal arp_tx_rden      : std_logic;
+   signal arp_valid        : std_logic;
+   signal arp_data         : std_logic_vector(42*8-1 downto 0);
+   signal arp_last         : std_logic;
+   signal arp_bytes        : std_logic_vector(5 downto 0);
+   signal arp_debug        : std_logic_vector(255 downto 0);
 
    -- Output from ICMP
-   signal icmp_tx_data     : std_logic_vector(7 downto 0);
-   signal icmp_tx_sof      : std_logic;
-   signal icmp_tx_eof      : std_logic;
-   signal icmp_tx_empty    : std_logic;
-   signal icmp_tx_rden     : std_logic;
+   signal icmp_valid       : std_logic;
+   signal icmp_data        : std_logic_vector(42*8-1 downto 0);
+   signal icmp_last        : std_logic;
+   signal icmp_bytes       : std_logic_vector(5 downto 0);
+   signal icmp_debug       : std_logic_vector(255 downto 0);
 
    -- Output from UDP
-   signal udp_tx_empty     : std_logic;
-   signal udp_tx_rden      : std_logic;
-   signal udp_tx_data      : std_logic_vector(7 downto 0);
-   signal udp_tx_sof       : std_logic;
-   signal udp_tx_eof       : std_logic;
+   signal udp_valid        : std_logic;
+   signal udp_data         : std_logic_vector(42*8-1 downto 0);
+   signal udp_last         : std_logic;
+   signal udp_bytes        : std_logic_vector(5 downto 0);
+   signal udp_debug        : std_logic_vector(255 downto 0);
 
-   -- Input to_eth_tx
-   signal tx_data          : std_logic_vector(7 downto 0);
-   signal tx_sof           : std_logic;
-   signal tx_eof           : std_logic;
-   signal tx_empty         : std_logic;
-   signal tx_rden          : std_logic;
+   -- Output from Tx arbiter
+   signal arb_valid        : std_logic;
+   signal arb_data         : std_logic_vector(60*8-1 downto 0);
+   signal arb_last         : std_logic;
+   signal arb_bytes        : std_logic_vector(5 downto 0);
+
+   -- Output from wide2byte
+   signal wb_empty    : std_logic;
+   signal wb_rden     : std_logic;
+   signal wb_data     : std_logic_vector(7 downto 0);
+   signal wb_last     : std_logic;
 
 begin
 
@@ -125,11 +133,9 @@ begin
       eth_rxd_i   => eth_rxd_i,
       eth_rxerr_i => eth_rxerr_i,
       eth_crsdv_i => eth_crsdv_i,
-      --
-      rx_data_o   => rx_data,
-      rx_sof_o    => rx_sof,
-      rx_eof_o    => rx_eof,
       rx_valid_o  => rx_valid,
+      rx_data_o   => rx_data,
+      rx_last_o   => rx_last,
       rx_ok_o     => rx_ok
    ); -- i_eth_rx
 
@@ -138,16 +144,29 @@ begin
       clk_i       => clk_i,
       rst_i       => rst,
       rx_valid_i  => rx_valid,
-      rx_sof_i    => rx_sof,
-      rx_eof_i    => rx_eof,
-      rx_ok_i     => rx_ok,
       rx_data_i   => rx_data,
-      --
+      rx_last_i   => rx_last,
+      rx_ok_i     => rx_ok,
       out_valid_o => st_valid,
-      out_sof_o   => st_sof,
-      out_eof_o   => st_eof,
-      out_data_o  => st_data
+      out_data_o  => st_data,
+      out_last_o  => st_last
    ); -- i_strip_crc
+
+   i_byte2wide : entity work.byte2wide
+   generic map (
+      G_BYTES     => 42
+   )
+   port map (
+      clk_i       => clk_i,
+      rst_i       => rst,
+      rx_valid_i  => st_valid,
+      rx_data_i   => st_data,
+      rx_last_i   => st_last,
+      tx_valid_o  => bw_valid,
+      tx_data_o   => bw_data,
+      tx_last_o   => bw_last,
+      tx_bytes_o  => bw_bytes
+   ); -- i_byte2wide
 
 
    --------------------------------------------------
@@ -162,17 +181,16 @@ begin
    port map (
       clk_i      => clk_i,
       rst_i      => rst,
-      rx_data_i  => st_data,
-      rx_sof_i   => st_sof,
-      rx_eof_i   => st_eof,
-      rx_valid_i => st_valid,
+      rx_valid_i => bw_valid,
+      rx_data_i  => bw_data,
+      rx_last_i  => bw_last,
+      rx_bytes_i => bw_bytes,
       --
-      tx_empty_o => arp_tx_empty,
-      tx_rden_i  => arp_tx_rden,
-      tx_data_o  => arp_tx_data,
-      tx_sof_o   => arp_tx_sof,
-      tx_eof_o   => arp_tx_eof,
-      debug_o    => open
+      tx_valid_o => arp_valid,
+      tx_data_o  => arp_data,
+      tx_last_o  => arp_last,
+      tx_bytes_o => arp_bytes,
+      debug_o    => arp_debug
    ); -- i_arp
 
 
@@ -188,18 +206,22 @@ begin
    port map (
       clk_i      => clk_i,
       rst_i      => rst,
-      rx_data_i  => st_data,
-      rx_sof_i   => st_sof,
-      rx_eof_i   => st_eof,
-      rx_valid_i => st_valid,
+      rx_valid_i => bw_valid,
+      rx_data_i  => bw_data,
+      rx_last_i  => bw_last,
+      rx_bytes_i => bw_bytes,
       --
-      tx_empty_o => icmp_tx_empty,
-      tx_rden_i  => icmp_tx_rden,
-      tx_data_o  => icmp_tx_data,
-      tx_sof_o   => icmp_tx_sof,
-      tx_eof_o   => icmp_tx_eof,
-      debug_o    => debug_o
+      tx_valid_o => icmp_valid,
+      tx_data_o  => icmp_data,
+      tx_last_o  => icmp_last,
+      tx_bytes_o => icmp_bytes,
+      debug_o    => icmp_debug
    ); -- i_icmp
+
+
+   --------------------------------------------------
+   -- Instantiate UDP processing
+   --------------------------------------------------
 
    i_udp : entity work.udp
    generic map (
@@ -210,57 +232,71 @@ begin
    port map (
       clk_i          => clk_i,
       rst_i          => rst,
-      rx_phy_data_i  => st_data,
-      rx_phy_sof_i   => st_sof,
-      rx_phy_eof_i   => st_eof,
-      rx_phy_valid_i => st_valid,
-      rx_cli_data_o  => udp_rx_data_o,
-      rx_cli_sof_o   => udp_rx_sof_o,
-      rx_cli_eof_o   => udp_rx_eof_o,
+      rx_phy_valid_i => bw_valid,
+      rx_phy_data_i  => bw_data,
+      rx_phy_last_i  => bw_last,
+      rx_phy_bytes_i => bw_bytes,
+      tx_phy_valid_o => udp_valid,
+      tx_phy_data_o  => udp_data,
+      tx_phy_last_o  => udp_last,
+      tx_phy_bytes_o => udp_bytes,
+      debug_o        => udp_debug,
+      --
       rx_cli_valid_o => udp_rx_valid_o,
-      tx_cli_empty_i => udp_tx_empty_i,
-      tx_cli_rden_o  => udp_tx_rden_o,
+      rx_cli_data_o  => udp_rx_data_o,
+      rx_cli_last_o  => udp_rx_last_o,
+      rx_cli_bytes_o => udp_rx_bytes_o,
+      tx_cli_valid_i => udp_tx_valid_i,
       tx_cli_data_i  => udp_tx_data_i,
-      tx_cli_sof_i   => udp_tx_sof_i,
-      tx_cli_eof_i   => udp_tx_eof_i,
-      tx_phy_empty_o => udp_tx_empty,
-      tx_phy_rden_i  => udp_tx_rden,
-      tx_phy_data_o  => udp_tx_data,
-      tx_phy_sof_o   => udp_tx_sof,
-      tx_phy_eof_o   => udp_tx_eof
+      tx_cli_last_i  => udp_tx_last_i,
+      tx_cli_bytes_i => udp_tx_bytes_i
    ); -- i_udp
 
 
    --------------------------------------------------
    -- Lazy multiplexer.
    -- This will geenerate corrupted packets if
-   -- any of the three blocks ARP, ICMP, or UDP try to
+   -- the three blocks, ARP, ICMP, or UDP, try to
    -- send at the same time.
    --------------------------------------------------
 
-   tx_empty <= arp_tx_empty and icmp_tx_empty and udp_tx_empty;
-   tx_data  <= arp_tx_data  or  icmp_tx_data  or  udp_tx_data;
-   tx_sof   <= arp_tx_sof   or  icmp_tx_sof   or  udp_tx_sof;
-   tx_eof   <= arp_tx_eof   or  icmp_tx_eof   or  udp_tx_eof;
-
-   arp_tx_rden  <= tx_rden and not arp_tx_empty;
-   icmp_tx_rden <= tx_rden and not icmp_tx_empty;
-   udp_tx_rden  <= tx_rden and not udp_tx_empty;
+   arb_valid                         <= icmp_valid or arp_valid or udp_valid;
+   arb_data(60*8-1 downto 60*8-42*8) <= icmp_data  or arp_data  or udp_data;
+   arb_data(60*8-42*8-1 downto  0*8) <= (others => '0');
+   arb_last                          <= icmp_last  or arp_last  or udp_last;
+   arb_bytes                         <= icmp_bytes or arp_bytes or udp_bytes;
 
 
    --------------------------------------------------
    -- Instantiate Tx path
    --------------------------------------------------
 
+   i_wide2byte : entity work.wide2byte
+   generic map (
+      G_BYTES     => 60
+   )
+   port map (
+      clk_i       => clk_i,
+      rst_i       => rst,
+      rx_valid_i  => arb_valid,
+      rx_data_i   => arb_data,
+      rx_last_i   => arb_last,
+      rx_bytes_i  => arb_bytes,
+      --
+      tx_empty_o  => wb_empty,
+      tx_rden_i   => wb_rden,
+      tx_data_o   => wb_data,
+      tx_last_o   => wb_last
+   ); -- i_wide2byte
+
    i_eth_tx : entity work.eth_tx
    port map (
       eth_clk_i  => clk_i,
       eth_rst_i  => rst,
-      tx_data_i  => tx_data,
-      tx_sof_i   => tx_sof,
-      tx_eof_i   => tx_eof,
-      tx_empty_i => tx_empty,
-      tx_rden_o  => tx_rden,
+      tx_data_i  => wb_data,
+      tx_last_i  => wb_last,
+      tx_empty_i => wb_empty,
+      tx_rden_o  => wb_rden,
       tx_err_o   => open,
       eth_txd_o  => eth_txd_o,
       eth_txen_o => eth_txen_o
@@ -273,6 +309,7 @@ begin
 
    eth_refclk_o <= clk_i;
    eth_rstn_o   <= not rst;
+   debug_o      <= udp_debug;
 
 end Structural;
 

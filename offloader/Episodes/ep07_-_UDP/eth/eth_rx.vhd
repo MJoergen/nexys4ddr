@@ -14,8 +14,8 @@ use ieee.numeric_std_unsigned.all;
 --
 -- The interface to the receiver is a "pushing" interface with no flow-control.
 -- The frame data bytes are forwarded one byte every four clock cycles.  The
--- first byte has "rx_sof_o" asserted, the last byte has "rx_eof_o" asserted.
--- At end of frame, i.e. when "rx_eof_o" is asserted, the client must examine
+-- first byte has "rx_sof_o" asserted, the last byte has "rx_last_o" asserted.
+-- At end of frame, i.e. when "rx_last_o" is asserted, the client must examine
 -- the "rx_ok_o" signal to determine whether any errors occurred during frame
 -- reception.
 --
@@ -39,8 +39,7 @@ entity eth_rx is
 
       -- Client interface
       rx_valid_o  : out std_logic;
-      rx_sof_o    : out std_logic;  -- Start Of Frame
-      rx_eof_o    : out std_logic;  -- End Of Frame
+      rx_last_o   : out std_logic;  -- End Of Frame
       rx_data_o   : out std_logic_vector(7 downto 0);
       rx_ok_o     : out std_logic;  -- Valid only at EOF.  -- True if frame has correct CRC and no errors.
 
@@ -53,11 +52,18 @@ end eth_rx;
 
 architecture Structural of eth_rx is
 
+   -- This is the generating polynomial for the CRC-32 used by Ethernet.
+   -- See e.g. https://en.wikipedia.org/wiki/Cyclic_redundancy_check
+   constant C_CRC_POLY : std_logic_vector(31 downto 0) := X"04C11DB7";
+
+   -- This is the expected CRC residue when no errors are present.
+   -- See e.g. https://en.wikipedia.org/wiki/Ethernet_frame
+   constant C_CRC_RESIDUE : std_logic_vector(31 downto 0) := X"C704DD7B";
+
    -- State machine to control the MAC framing
    type t_fsm_state is (IDLE_ST, PRE_ST, PAYLOAD_ST);
    signal fsm_state : t_fsm_state := IDLE_ST;
       
-   signal sof       : std_logic;
    signal data      : std_logic_vector(7 downto 0);
 
    signal dibit_cnt : integer range 0 to 3;
@@ -65,8 +71,7 @@ architecture Structural of eth_rx is
    signal crc       : std_logic_vector(31 downto 0);
 
    signal rx_valid  : std_logic;
-   signal rx_sof    : std_logic;  -- Start Of Frame
-   signal rx_eof    : std_logic;  -- End Of Frame
+   signal rx_last   : std_logic;  -- End Of Frame
    signal rx_data   : std_logic_vector(7 downto 0);
    signal rx_ok     : std_logic;  -- Valid only at EOF.  -- True if frame has no errors and correct CRC.
 
@@ -81,8 +86,7 @@ begin
 
          -- Set default values
          rx_valid <= '0';
-         rx_sof   <= '0';
-         rx_eof   <= '0';
+         rx_last  <= '0';
          rx_data  <= X"00";
          rx_ok    <= '0';
 
@@ -100,7 +104,7 @@ begin
                if eth_rxd_i(i) = crc_v(31) then
                   crc_v :=  crc_v(30 downto 0) & '0';
                else
-                  crc_v := (crc_v(30 downto 0) & '0') xor x"04C11DB7";
+                  crc_v := (crc_v(30 downto 0) & '0') xor C_CRC_POLY;
                end if;
             end loop;
             crc <= crc_v;
@@ -118,15 +122,13 @@ begin
             when PRE_ST =>
                if data = X"D5" then
                   dibit_cnt <= 0;
-                  sof       <= '1';             -- Indicate start of frame.
                   fsm_state <= PAYLOAD_ST;
                end if;
                if newdata_v = X"D5" then
-                  crc       <= (others => '1'); -- Initialize CRC.
+                  crc       <= (others => '1'); -- Initialize CRC calculation.
                end if;
                if eth_crsdv_i = '0' or eth_rxerr_i = '1' then
                   fsm_state <= IDLE_ST;
-                  sof       <= '0';
                end if;
 
             -- Process the frame
@@ -134,43 +136,37 @@ begin
                if dibit_cnt = 3 then
                   rx_valid <= '1';
                   rx_data  <= data;
-                  rx_sof   <= sof;
-                  rx_eof   <= (not eth_crsdv_i) or eth_rxerr_i;
-                  sof      <= '0';
-                  -- Check CRC at End Of Frame
-                  if eth_crsdv_i = '0' and eth_rxerr_i = '0' and crc = X"C704DD7B" then
-                     rx_ok <= '1';
-                  end if;
+                  rx_last  <= '0';
+                  rx_ok    <= '0';
                   if eth_crsdv_i = '0' or eth_rxerr_i = '1' then
+                     rx_last   <= '1';    -- Indicate end of frame.
                      fsm_state <= IDLE_ST;
+                  end if;
+                  -- Check CRC at end of frame
+                  if eth_crsdv_i = '0' and eth_rxerr_i = '0' and crc = C_CRC_RESIDUE then
+                     rx_ok <= '1';
                   end if;
                elsif eth_crsdv_i = '0' or eth_rxerr_i = '1' then
                   fsm_state <= IDLE_ST;
-                  sof       <= '0';
 
-                  -- If frame has already started, end it now.
-                  if sof = '0' then
-                     rx_valid <= '1';
-                     rx_data  <= data;
-                     rx_sof   <= sof;
-                     rx_eof   <= '1';
-                     rx_ok    <= '0';
-                  end if;
+                  -- End frame now.
+                  rx_valid <= '1';
+                  rx_data  <= data;
+                  rx_last  <= '1';
+                  rx_ok    <= '0';
                end if;
 
          end case;
 
          if eth_rst_i = '1' then
             fsm_state <= IDLE_ST;
-            sof       <= '0';
          end if;
       end if;
    end process proc_fsm;
 
    -- Drive output signals
    rx_valid_o <= rx_valid;
-   rx_sof_o   <= rx_sof;
-   rx_eof_o   <= rx_eof;
+   rx_last_o  <= rx_last;
    rx_data_o  <= rx_data;
    rx_ok_o    <= rx_ok;
 

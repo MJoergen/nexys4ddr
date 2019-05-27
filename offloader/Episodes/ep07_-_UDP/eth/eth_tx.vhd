@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
 -- This module sends transmit data to the LAN8720A Ethernet PHY.
--- It automatically calculates the MAC CRC.
+-- It automatically calculates and appends the MAC CRC.
 --
 -- From the NEXYS 4 DDR schematic
 -- RXD0/MODE0   : External pull UP
@@ -46,24 +46,27 @@ use ieee.numeric_std_unsigned.all;
 entity eth_tx is
 
    port (
-      eth_clk_i    : in  std_logic;        -- Must be 50 MHz
-      eth_rst_i    : in  std_logic;
+      eth_clk_i  : in  std_logic;        -- Must be 50 MHz
+      eth_rst_i  : in  std_logic;
 
-      -- Pulling interface
-      tx_data_i    : in  std_logic_vector(7 downto 0);
-      tx_sof_i     : in  std_logic;
-      tx_eof_i     : in  std_logic;
-      tx_empty_i   : in  std_logic;
-      tx_rden_o    : out std_logic;
-      tx_err_o     : out std_logic;
+      -- Client interface
+      tx_rden_o  : out std_logic;
+      tx_err_o   : out std_logic;
+      tx_empty_i : in  std_logic;
+      tx_data_i  : in  std_logic_vector(7 downto 0);
+      tx_last_i  : in  std_logic;
 
       -- Connected to PHY
-      eth_txd_o    : out std_logic_vector(1 downto 0);
-      eth_txen_o   : out std_logic
+      eth_txd_o  : out std_logic_vector(1 downto 0);
+      eth_txen_o : out std_logic
    );
 end eth_tx;
 
 architecture Structural of eth_tx is
+
+   -- This is the generating polynomial for the CRC-32 used by Ethernet.
+   -- See e.g. https://en.wikipedia.org/wiki/Cyclic_redundancy_check
+   constant C_CRC_POLY : std_logic_vector(31 downto 0) := X"04C11DB7";
 
    signal err        : std_logic := '0';
    signal eth_txen   : std_logic := '0';
@@ -96,7 +99,7 @@ begin
                if cur_byte(i) = crc_v(31) then
                   crc_v :=  crc_v(30 downto 0) & '0';
                else
-                  crc_v := (crc_v(30 downto 0) & '0') xor x"04C11DB7";
+                  crc_v := (crc_v(30 downto 0) & '0') xor C_CRC_POLY;
                end if;
             end loop;
             crc <= crc_v;
@@ -114,10 +117,6 @@ begin
                   eth_txen <= '0';
                   cur_byte <= X"00";
                   if tx_empty_i = '0' then
-                     if tx_sof_i = '0' then
-                        err <= '1';
-                     end if;
-                     assert tx_sof_i = '1' report "Missing SOF" severity failure;
                      byte_cnt  <= 7;
                      cur_byte  <= X"55";
                      fsm_state <= PRE1_ST;
@@ -136,9 +135,9 @@ begin
 
                when PRE2_ST    =>
                   crc_enable <= '1';
-                  cur_byte  <= tx_data_i;
-                  rden      <= '1';
-                  fsm_state <= PAYLOAD_ST;
+                  cur_byte   <= tx_data_i;
+                  rden       <= '1';
+                  fsm_state  <= PAYLOAD_ST;
 
                   -- Abort! Data not available yet.
                   if tx_empty_i = '1' then
@@ -152,7 +151,7 @@ begin
                when PAYLOAD_ST =>
                   cur_byte <= tx_data_i;
                   rden     <= '1';
-                  if tx_eof_i = '1' then
+                  if tx_last_i = '1' then
                      fsm_state <= LAST_ST;
                   end if;
 
@@ -208,11 +207,11 @@ begin
    end process proc_mac;
 
    -- Drive output signals
-   eth_txd_o    <= cur_byte(1 downto 0);
-   eth_txen_o   <= eth_txen;
+   eth_txd_o  <= cur_byte(1 downto 0);
+   eth_txen_o <= eth_txen;
 
-   tx_rden_o <= rden;
-   tx_err_o  <= err;
+   tx_rden_o  <= rden;
+   tx_err_o   <= err;
 
 end Structural;
 

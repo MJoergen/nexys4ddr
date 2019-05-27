@@ -2,69 +2,73 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This module takes a parallel input and serializes it one-byte-at-a-time.
--- The MSB is transmitted first, i.e. hdr_data_i(G_PL_SIZE*8-1 downto
--- G_PL_SIZE*8-8).
+-- This module converts a wide bus interface into a stream of bytes.
+-- The MSB is transmitted first, i.e. rx_data_i(G_BYTES*8-1 downto
+-- G_BYTES*8-8).
+
+-- This module immediately starts forwarding data as soon as the first row has
+-- been received. This could potentially trigger an error, if the remainder of
+-- the frame is not received in time. The user of this module must ensure that
+-- the rest of the frame is available in time. Just in case, I've added an
+-- assert to check for this error condition.
 
 entity wide2byte is
    generic (
-      G_PL_SIZE   : integer := 60
+      G_BYTES    : integer
    );
    port (
-      clk_i       : in  std_logic;
-      rst_i       : in  std_logic;
+      clk_i      : in  std_logic;
+      rst_i      : in  std_logic;
 
-      -- Receive interface (wide data bus)
-      hdr_valid_i : in  std_logic;
-      hdr_size_i  : in  std_logic_vector(7 downto 0);
-      hdr_data_i  : in  std_logic_vector(G_PL_SIZE*8-1 downto 0);
-      hdr_more_i  : in  std_logic;
+      -- Receive interface (wide data bus). Pushing interface.
+      rx_valid_i : in  std_logic;
+      rx_data_i  : in  std_logic_vector(G_BYTES*8-1 downto 0);
+      rx_last_i  : in  std_logic;
+      rx_bytes_i : in  std_logic_vector(5 downto 0);           -- Only used when rx\_last\_i is asserted.
 
-      -- Receive interface (byte oriented data bus)
-      pl_valid_i  : in  std_logic;
-      pl_eof_i    : in  std_logic;
-      pl_data_i   : in  std_logic_vector(7 downto 0);
-
-      -- Transmit interface (byte oriented data bus)
-      tx_empty_o  : out std_logic;
-      tx_rden_i   : in  std_logic;
-      tx_data_o   : out std_logic_vector(7 downto 0);
-      tx_sof_o    : out std_logic;
-      tx_eof_o    : out std_logic
+      -- Transmit interface (byte data bus). Pulling interface.
+      tx_empty_o : out std_logic;
+      tx_rden_i  : in  std_logic;
+      tx_data_o  : out std_logic_vector(7 downto 0);
+      tx_last_o  : out std_logic
    );
 end wide2byte;
 
 architecture Structural of wide2byte is
 
-   type t_state is (IDLE_ST, HDR_ST, PL_ST);
+   type t_state is (IDLE_ST, FWD_ST);
    signal state_r    : t_state := IDLE_ST;
 
-   signal size_r     : std_logic_vector(7 downto 0);
-   signal data_r     : std_logic_vector(G_PL_SIZE*8-1 downto 0);
-   signal more_r     : std_logic;
-
+   -- Connected to FIFO
    signal wr_en      : std_logic;
-   signal wr_data    : std_logic_vector(15 downto 0);
+   signal wr_data    : std_logic_vector(G_BYTES*8+8 downto 0);
    signal rd_empty   : std_logic;
    signal rd_en      : std_logic;
-   signal rd_data    : std_logic_vector(15 downto 0);
+   signal rd_data    : std_logic_vector(G_BYTES*8+8 downto 0);
+   signal data_s     : std_logic_vector(G_BYTES*8-1 downto 0);
+   signal last_s     : std_logic;
+   signal bytes_s    : std_logic_vector(5 downto 0);
+
+   signal data_r     : std_logic_vector(G_BYTES*8-1 downto 0);
+   signal last_r     : std_logic;
+   signal bytes_r    : std_logic_vector(5 downto 0);
 
    signal tx_empty_r : std_logic;
-   signal tx_data_r  : std_logic_vector(7 downto 0);
-   signal tx_sof_r   : std_logic;
-   signal tx_eof_r   : std_logic;
+   signal tx_last_r  : std_logic;
+
       
 begin
 
    -- Store payload data in a fifo
-   wr_en                <= pl_valid_i;
-   wr_data(15 downto 9) <= (others => '0');
-   wr_data(8)           <= pl_eof_i;
-   wr_data(7 downto 0)  <= pl_data_i;
+   wr_en                                   <= rx_valid_i;
+   wr_data(G_BYTES*8+8)                    <= rx_last_i;
+   wr_data(G_BYTES*8+7 downto G_BYTES*8+6) <= "00";
+   wr_data(G_BYTES*8+5 downto G_BYTES*8)   <= rx_bytes_i;
+   wr_data(G_BYTES*8-1 downto 0)           <= rx_data_i;
 
    i_fifo : entity work.fifo
    generic map (
-      G_WIDTH => 16                             -- Must be a power of two.
+      G_WIDTH => G_BYTES*8+9
    )
    port map (
       wr_clk_i   => clk_i,
@@ -80,72 +84,81 @@ begin
       rd_error_o => open
    ); -- i_fifo
 
+   -- Decode FIFO output
+   last_s  <= rd_data(G_BYTES*8+8);
+   bytes_s <= rd_data(G_BYTES*8+5 downto G_BYTES*8);
+   data_s  <= rd_data(G_BYTES*8-1 downto 0);
 
-   p_state : process (clk_i)
+
+   ----------------------------------------------
+   -- State machine to control reading from FIFO
+   ----------------------------------------------
+
+   p_fsm : process (clk_i)
    begin
       if rising_edge(clk_i) then
 
+         -- Default value
+         rd_en <= '0';
+
          case state_r is
             when IDLE_ST =>
-               more_r <= '0';
-               if hdr_valid_i = '1' then
-                  tx_empty_r <= '0';
-                  tx_sof_r   <= '1';
-                  tx_eof_r   <= '0';
-                  tx_data_r  <= hdr_data_i(G_PL_SIZE*8-1 downto G_PL_SIZE*8-8);
-                  data_r     <= hdr_data_i(G_PL_SIZE*8-9 downto 0) & X"00";
-                  size_r     <= hdr_size_i-1;
-                  more_r     <= hdr_more_i;
-                  state_r    <= HDR_ST;
+               if rd_empty = '0' then                                -- Data is present in FIFO.
+                  data_r  <= data_s;                                 -- Store entire row of data.
+                  last_r  <= last_s;
+                  bytes_r <= bytes_s;
+                  rd_en   <= '1';                                    -- Consume data from FIFO.
+
+                  -- Calculate number of valid bytes in data_r.
+                  if (last_s = '0' or bytes_s = 0) and G_BYTES < 64 then
+                     bytes_r <= to_stdlogicvector(G_BYTES, 6);
+                  end if;
+
+                  tx_last_r  <= '0';
+                  if last_s = '1' and bytes_s = 1 then               -- In case frame only contains one byte.
+                     tx_last_r <= '1';
+                  end if;
+                  tx_empty_r <= '0';                                 -- Indicate data is ready for the receiver.
+                  state_r <= FWD_ST;
                end if;
 
-            when HDR_ST =>
-               if tx_rden_i = '1' then
-                  tx_sof_r   <= '0';
-                  tx_data_r  <= data_r(G_PL_SIZE*8-1 downto G_PL_SIZE*8-8);
-                  data_r     <= data_r(G_PL_SIZE*8-9 downto 0) & X"00";
-                  size_r     <= size_r-1;
-                  if size_r-1 = 0 and more_r = '0' then
-                     tx_eof_r <= '1';
+            when FWD_ST =>
+               if tx_rden_i = '1' then                               -- Receiver has consumed the data.
+                  data_r  <= data_r(G_BYTES*8-9 downto 0) & X"00";   -- Shift next data byte up to MSB.
+                  bytes_r <= bytes_r-1;
+
+                  if bytes_r-1 = 1 then                              -- No more data left.
+                     if last_r = '1' then
+                        tx_last_r <= '1';                            -- Indicate end of frame.
+                     else
+                        data_r  <= data_s;
+                        last_r  <= last_s;
+                        bytes_r <= bytes_s;
+                        rd_en   <= '1';                              -- Consume more data from FIFO.
+                        assert rd_empty = '0';                       -- If no more data available, this is an error.
+                     end if;
                   end if;
-                  if size_r = 0 and more_r = '0' then
+
+                  if tx_last_r = '1' then                            -- Last byte has been read.
                      tx_empty_r <= '1';
-                     tx_eof_r   <= '0';
-                     tx_data_r  <= X"00";
+                     tx_last_r  <= '0';
                      state_r    <= IDLE_ST;
                   end if;
-                  if size_r = 0 and more_r = '1' then
-                     tx_empty_r <= '1';
-                     state_r    <= PL_ST;
-                  end if;
                end if;
-
-            when PL_ST =>
-               if tx_rden_i = '1' then
-                  if tx_eof_o = '1' then
-                     state_r <= IDLE_ST;
-                  end if;
-               end if;
-
          end case;
 
          if rst_i = '1' then
             tx_empty_r <= '1';
-            tx_sof_r   <= '0';
-            tx_eof_r   <= '0';
-            tx_data_r  <= X"00";
+            tx_last_r  <= '0';
             state_r    <= IDLE_ST;
          end if;
       end if;
-   end process p_state;
+   end process p_fsm;
 
    -- Drive output signals
-   tx_empty_o <= rd_empty            when state_r = PL_ST else tx_empty_r;
-   tx_sof_o   <= rd_data(9)          when state_r = PL_ST else tx_sof_r;
-   tx_eof_o   <= rd_data(8)          when state_r = PL_ST else tx_eof_r;
-   tx_data_o  <= rd_data(7 downto 0) when state_r = PL_ST else tx_data_r;
-
-   rd_en      <= tx_rden_i           when state_r = PL_ST else '0';
+   tx_empty_o <= tx_empty_r;
+   tx_last_o  <= tx_last_r;
+   tx_data_o  <= data_r(G_BYTES*8-1 downto G_BYTES*8-8);
 
 end Structural;
 

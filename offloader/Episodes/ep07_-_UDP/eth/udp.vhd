@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This module detects and responds to ICMP messages.
+-- This module detects and responds to UDP messages.
 
 entity udp is
    generic (
@@ -13,32 +13,31 @@ entity udp is
    port (
       clk_i          : in  std_logic;
       rst_i          : in  std_logic;
+      debug_o        : out std_logic_vector(255 downto 0);
 
       -- Ingress from PHY
-      rx_phy_data_i  : in  std_logic_vector(7 downto 0);
-      rx_phy_sof_i   : in  std_logic;
-      rx_phy_eof_i   : in  std_logic;
       rx_phy_valid_i : in  std_logic;
+      rx_phy_data_i  : in  std_logic_vector(42*8-1 downto 0);
+      rx_phy_last_i  : in  std_logic;
+      rx_phy_bytes_i : in  std_logic_vector(5 downto 0);
 
       -- Ingress to client
-      rx_cli_data_o  : out std_logic_vector(7 downto 0);
-      rx_cli_sof_o   : out std_logic;
-      rx_cli_eof_o   : out std_logic;
       rx_cli_valid_o : out std_logic;
+      rx_cli_data_o  : out std_logic_vector(42*8-1 downto 0);
+      rx_cli_last_o  : out std_logic;
+      rx_cli_bytes_o : out std_logic_vector(5 downto 0);
 
       -- Egress from client
-      tx_cli_empty_i : in  std_logic;
-      tx_cli_rden_o  : out std_logic;
-      tx_cli_data_i  : in  std_logic_vector(7 downto 0);
-      tx_cli_sof_i   : in  std_logic;
-      tx_cli_eof_i   : in  std_logic;
+      tx_cli_valid_i : in  std_logic;
+      tx_cli_data_i  : in  std_logic_vector(42*8-1 downto 0);
+      tx_cli_last_i  : in  std_logic;
+      tx_cli_bytes_i : in  std_logic_vector(5 downto 0);
 
       -- Egress to PHY
-      tx_phy_empty_o : out std_logic;
-      tx_phy_rden_i  : in  std_logic;
-      tx_phy_data_o  : out std_logic_vector(7 downto 0);
-      tx_phy_sof_o   : out std_logic;
-      tx_phy_eof_o   : out std_logic
+      tx_phy_valid_o : out std_logic;
+      tx_phy_data_o  : out std_logic_vector(42*8-1 downto 0);
+      tx_phy_last_o  : out std_logic;
+      tx_phy_bytes_o : out std_logic_vector(5 downto 0)
    );
 end udp;
 
@@ -47,18 +46,17 @@ architecture Structural of udp is
    type t_rx_state is (IDLE_ST, FWD_ST);
    signal rx_state_r : t_rx_state := IDLE_ST;
 
-   -- Output from byte2wide
-   signal rx_hdr_valid : std_logic;
-   signal rx_hdr_data  : std_logic_vector(42*8-1 downto 0);
-   signal rx_hdr_size  : std_logic_vector(7 downto 0);
-   signal rx_hdr_more  : std_logic;
-   signal rx_pl_valid  : std_logic;
-   signal rx_pl_sof    : std_logic;
-   signal rx_pl_eof    : std_logic;
-   signal rx_pl_data   : std_logic_vector(7 downto 0);
+   type t_tx_state is (IDLE_ST, FWD_ST);
+   signal tx_state_r : t_tx_state := IDLE_ST;
 
-   signal tx_rsp_valid : std_logic;
-   signal tx_rsp_data  : std_logic_vector(42*8-1 downto 0);
+   -- Delayed input from client
+   signal tx_cli_valid_d : std_logic;
+   signal tx_cli_data_d  : std_logic_vector(42*8-1 downto 0);
+   signal tx_cli_last_d  : std_logic;
+   signal tx_cli_bytes_d : std_logic_vector(5 downto 0);
+
+   -- Header on egress frame
+   signal tx_phy_data  : std_logic_vector(42*8-1 downto 0);
 
    -- The format of a MAC+IP+UDP header is as follows:
    -- 41 : MAC_DST[47 downto 40]       (Broadcast address)
@@ -104,104 +102,69 @@ architecture Structural of udp is
    -- 01 : UDP_CHKSUM[15 downto 8]
    -- 00 : UDP_CHKSUM[ 7 downto 0]
 
+   -- Calculate the Internet Checksum according to RFC 1071.
+   function checksum(inp : std_logic_vector) return std_logic_vector is
+      variable res_v : std_logic_vector(19 downto 0) := (others => '0');
+      variable val_v : std_logic_vector(15 downto 0);
+   begin
+      for i in 0 to inp'length/16-1 loop
+         val_v := inp(i*16+15+inp'right downto i*16+inp'right);
+         res_v := res_v + (X"0" & val_v);
+      end loop;
+
+      -- Handle wrap-around
+      res_v := (X"0" & res_v(15 downto 0)) + (X"0000" & res_v(19 downto 16));
+      return res_v(15 downto 0);
+   end function checksum;
+
 begin
 
    --------------------------------------------------
-   -- Instantiate byte2wide
+   -- Instantiate ingress state machine
    --------------------------------------------------
 
-   i_byte2wide : entity work.byte2wide
-   generic map (
-      G_HDR_SIZE  => 42          -- Size of ARP packet
-   )
-   port map (
-      clk_i       => clk_i,
-      rst_i       => rst_i,
-      rx_valid_i  => rx_phy_valid_i,
-      rx_sof_i    => rx_phy_sof_i,
-      rx_eof_i    => rx_phy_eof_i,
-      rx_data_i   => rx_phy_data_i,
-      hdr_valid_o => rx_hdr_valid,
-      hdr_data_o  => rx_hdr_data,
-      hdr_size_o  => rx_hdr_size,
-      hdr_more_o  => rx_hdr_more,
-      pl_valid_o  => rx_pl_valid,
-      pl_eof_o    => rx_pl_eof,
-      pl_data_o   => rx_pl_data
-   ); -- i_byte2wide
-
-
-   p_udp : process (clk_i)
-
-      -- Calculate the Internet Checksum according to RFC 1071.
-      function checksum(inp : std_logic_vector) return std_logic_vector is
-         variable res_v : std_logic_vector(19 downto 0) := (others => '0');
-         variable val_v : std_logic_vector(15 downto 0);
-      begin
-         for i in 0 to inp'length/16-1 loop
-            val_v := inp(i*16+15+inp'right downto i*16+inp'right);
-            res_v := res_v + (X"0" & val_v);
-         end loop;
-
-         -- Handle wrap-around
-         res_v := (X"0" & res_v(15 downto 0)) + (X"0000" & res_v(19 downto 16));
-         return res_v(15 downto 0);
-      end function checksum;
-
+   p_udp_rx : process (clk_i)
    begin
       if rising_edge(clk_i) then
-
-         tx_rsp_valid <= '0'; -- Default
-
-         if rx_phy_valid_i = '1' then
-            rx_pl_sof <= rx_hdr_more;
-         end if;
-
          case rx_state_r is
             when IDLE_ST =>
-               -- Is this an UDP packet for our IP address and UDP port?
-               if rx_hdr_valid = '1' then
-                  if rx_hdr_size = 42 and                                              -- Size of UDP header
-                     rx_hdr_data(29*8+7 downto 27*8) = X"080045" and                   -- IPv4 packet
-                     rx_hdr_data(18*8+7 downto 18*8) = X"11" and                       -- UDP protocol
-                     rx_hdr_data(11*8+7 downto  8*8) = G_MY_IP and                     -- For us
-                     checksum(rx_hdr_data(27*8+7 downto 8*8)) = X"FFFF" and            -- IP header checksum correct
-                     rx_hdr_data( 5*8+7 downto  4*8) = G_MY_PORT and                   -- UDP port
-                     rx_hdr_more = '1' then                                            -- More data follows
-                     -- Ignore UDP header checksum
+               if rx_phy_valid_i = '1' and rx_phy_last_i = '0' then                           -- More data follows
+                  -- Is this an UDP packet for our IP address and UDP port?
+                  if rx_phy_data_i(29*8+7 downto 27*8) = X"080045" and                       -- IPv4 packet
+                     rx_phy_data_i(18*8+7 downto 18*8) = X"11" and                           -- UDP protocol
+                     rx_phy_data_i(11*8+7 downto  8*8) = G_MY_IP and                         -- For us
+                     checksum(rx_phy_data_i(27*8+7 downto 8*8)) = X"FFFF" and                -- IP header checksum correct
+                     rx_phy_data_i( 5*8+7 downto  4*8) = G_MY_PORT then                      -- UDP port
+                     -- TBD: Add UDP header checksum verification.
 
                      -- Build response:
                      -- MAC header
-                     tx_rsp_data(41*8+7 downto 36*8) <= rx_hdr_data(35*8+7 downto 30*8);  -- MAC_DST
-                     tx_rsp_data(35*8+7 downto 30*8) <= G_MY_MAC;                         -- MAC_SRC
-                     tx_rsp_data(29*8+7 downto 28*8) <= X"0800";                          -- MAC_TYPELEN
+                     tx_phy_data(41*8+7 downto 36*8) <= rx_phy_data_i(35*8+7 downto 30*8);   -- MAC_DST
+                     tx_phy_data(35*8+7 downto 30*8) <= G_MY_MAC;                            -- MAC_SRC
+                     tx_phy_data(29*8+7 downto 28*8) <= X"0800";                             -- MAC_TYPELEN
                      -- IP header
-                     tx_rsp_data(27*8+7 downto 27*8) <= X"45";                            -- IP_VIHL
-                     tx_rsp_data(26*8+7 downto 26*8) <= X"00";                            -- IP_DSCP
-                     tx_rsp_data(25*8+7 downto 24*8) <= rx_hdr_data(25*8+7 downto 24*8);  -- IP_LENGTH
-                     tx_rsp_data(23*8+7 downto 22*8) <= X"0000";                          -- IP_ID
-                     tx_rsp_data(21*8+7 downto 20*8) <= X"0000";                          -- IP_FRAG
-                     tx_rsp_data(19*8+7 downto 19*8) <= X"40";                            -- IP_TTL
-                     tx_rsp_data(18*8+7 downto 18*8) <= X"11";                            -- IP_PROTOCOL = UDP
-                     tx_rsp_data(17*8+7 downto 16*8) <= X"0000";                          -- IP_CHKSUM
-                     tx_rsp_data(15*8+7 downto 12*8) <= G_MY_IP;                          -- IP_SRC
-                     tx_rsp_data(11*8+7 downto  8*8) <= rx_hdr_data(15*8+7 downto 12*8);  -- IP_DST
+                     tx_phy_data(27*8+7 downto 27*8) <= X"45";                               -- IP_VIHL
+                     tx_phy_data(26*8+7 downto 26*8) <= X"00";                               -- IP_DSCP
+                     tx_phy_data(25*8+7 downto 24*8) <= rx_phy_data_i(25*8+7 downto 24*8);   -- IP_LENGTH
+                     tx_phy_data(23*8+7 downto 22*8) <= X"0000";                             -- IP_ID
+                     tx_phy_data(21*8+7 downto 20*8) <= X"0000";                             -- IP_FRAG
+                     tx_phy_data(19*8+7 downto 19*8) <= X"40";                               -- IP_TTL
+                     tx_phy_data(18*8+7 downto 18*8) <= X"11";                               -- IP_PROTOCOL = UDP
+                     tx_phy_data(17*8+7 downto 16*8) <= X"0000";                             -- IP_CHKSUM
+                     tx_phy_data(15*8+7 downto 12*8) <= G_MY_IP;                             -- IP_SRC
+                     tx_phy_data(11*8+7 downto  8*8) <= rx_phy_data_i(15*8+7 downto 12*8);   -- IP_DST
                      -- UDP header
-                     tx_rsp_data( 7*8+7 downto  6*8) <= rx_hdr_data( 5*8+7 downto  4*8);  -- UDP_SRC
-                     tx_rsp_data( 5*8+7 downto  4*8) <= rx_hdr_data( 7*8+7 downto  6*8);  -- UDP_DST
-                     tx_rsp_data( 3*8+7 downto  2*8) <= rx_hdr_data( 3*8+7 downto  2*8);  -- UDP_LEN
-                     tx_rsp_data( 1*8+7 downto  0*8) <= X"0000";                          -- UDP_CHKSUM
+                     tx_phy_data( 7*8+7 downto  6*8) <= rx_phy_data_i( 5*8+7 downto  4*8);   -- UDP_SRC
+                     tx_phy_data( 5*8+7 downto  4*8) <= rx_phy_data_i( 7*8+7 downto  6*8);   -- UDP_DST
+                     tx_phy_data( 3*8+7 downto  2*8) <= rx_phy_data_i( 3*8+7 downto  2*8);   -- UDP_LEN
+                     tx_phy_data( 1*8+7 downto  0*8) <= X"0000";                             -- UDP_CHKSUM
 
                      rx_state_r <= FWD_ST;
                   end if;
                end if;
 
             when FWD_ST =>
-               if rx_pl_valid = '1' and rx_pl_eof = '1' then
-                  -- Calculate checksum of IP header
-                  tx_rsp_data(17*8+7 downto 16*8) <= not checksum(tx_rsp_data(27*8+7 downto 8*8));
-                  tx_rsp_valid <= '1'; -- Start sending response
-
+               if rx_phy_valid_i = '1' and rx_phy_last_i = '1' then
                   rx_state_r <= IDLE_ST;
                end if;
          end case;
@@ -210,42 +173,69 @@ begin
             rx_state_r <= IDLE_ST;
          end if;
       end if;
-   end process p_udp;
+   end process p_udp_rx;
 
-   -- Connect signals to client
-   rx_cli_data_o  <= rx_pl_data  when rx_state_r = FWD_ST else X"00";
-   rx_cli_sof_o   <= rx_pl_sof   when rx_state_r = FWD_ST else '0';
-   rx_cli_eof_o   <= rx_pl_eof   when rx_state_r = FWD_ST else '0';
-   rx_cli_valid_o <= rx_pl_valid when rx_state_r = FWD_ST else '0';
+   -- Connect ingress signals to client
+   rx_cli_data_o  <= rx_phy_data_i  when rx_state_r = FWD_ST else (others => '0');
+   rx_cli_last_o  <= rx_phy_last_i  when rx_state_r = FWD_ST else '0';
+   rx_cli_bytes_o <= rx_phy_bytes_i when rx_state_r = FWD_ST else (others => '0');
+   rx_cli_valid_o <= rx_phy_valid_i when rx_state_r = FWD_ST else '0';
 
 
    --------------------------------------------------
-   -- Instantiate wide2byte
+   -- Instantiate egress state machine
    --------------------------------------------------
 
-   tx_cli_rden_o  <= not tx_cli_empty_i;
+   p_udp_tx : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
 
+         -- Default values
+         tx_phy_valid_o <= '0';
+         tx_phy_data_o  <= (others => '0');
+         tx_phy_last_o  <= '0';
+         tx_phy_bytes_o <= (others => '0');
 
-   i_wide2byte : entity work.wide2byte
-   generic map (
-      G_PL_SIZE => 42            -- Size of UDP header
-   )
-   port map (
-      clk_i       => clk_i,
-      rst_i       => rst_i,
-      hdr_valid_i => tx_rsp_valid,
-      hdr_data_i  => tx_rsp_data,
-      hdr_size_i  => X"2A",
-      hdr_more_i  => '1',
-      pl_valid_i  => tx_cli_rden_o,
-      pl_eof_i    => tx_cli_eof_i,
-      pl_data_i   => tx_cli_data_i,
-      tx_empty_o  => tx_phy_empty_o,
-      tx_rden_i   => tx_phy_rden_i,
-      tx_sof_o    => tx_phy_sof_o,
-      tx_eof_o    => tx_phy_eof_o,
-      tx_data_o   => tx_phy_data_o
-   ); -- i_wide2byte
+         -- Input pipeline
+         tx_cli_valid_d <= tx_cli_valid_i;
+         tx_cli_data_d  <= tx_cli_data_i;
+         tx_cli_last_d  <= tx_cli_last_i;
+         tx_cli_bytes_d <= tx_cli_bytes_i;
+
+         case tx_state_r is
+            when IDLE_ST =>
+               if tx_cli_valid_i = '1' then
+                  tx_phy_valid_o  <= '1';
+                  tx_phy_data_o   <= tx_phy_data;  -- Send header
+                  -- Calculate checksum of IP header
+                  tx_phy_data_o(17*8+7 downto 16*8) <= not checksum(tx_phy_data(27*8+7 downto 8*8));
+
+                  tx_phy_last_o  <= '0';
+                  tx_phy_bytes_o <= (others => '0');
+                  tx_state_r     <= FWD_ST;
+               end if;
+
+            when FWD_ST =>
+               if tx_cli_valid_d = '1' then
+                  tx_phy_valid_o <= '1';
+                  tx_phy_data_o  <= tx_cli_data_d;
+                  tx_phy_last_o  <= tx_cli_last_d;
+                  tx_phy_bytes_o <= tx_cli_bytes_d;
+
+                  if tx_cli_last_d = '1' then
+                     tx_state_r <= IDLE_ST;
+                  end if;
+               end if;
+         end case;
+
+         if rst_i = '1' then
+            tx_state_r <= IDLE_ST;
+         end if;
+      end if;
+   end process p_udp_tx;
+
+   -- Connect output signals
+   debug_o <= tx_phy_data(255 downto 0);
 
 end Structural;
 
