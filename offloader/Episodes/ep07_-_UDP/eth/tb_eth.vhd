@@ -304,7 +304,7 @@ begin
          -- Wait one clock cycle.
          wait until clk = '1';
          -- Update data with correct IP header checksum
-         tx.data(64*8-42*8+17*8+7 downto 64*8-42*8+16*8) <= not checksum(tx.data(64*8-42*8+27*8+7 downto 64*8-42*8+8*8));
+         tx.data(    64*8-42*8+17*8+7 downto 64*8-42*8+16*8) <= not checksum(    tx.data(64*8-42*8+27*8+7 downto 64*8-42*8+8*8));
          exp_rx_data(64*8-42*8+17*8+7 downto 64*8-42*8+16*8) <= not checksum(exp_rx_data(64*8-42*8+27*8+7 downto 64*8-42*8+8*8));
          -- Ignore UDP checksum
 
@@ -313,19 +313,13 @@ begin
          wait until clk = '1';
          tx.valid <= '0';
 
-         -- Verify UDMP response is correct
+         -- Verify UDP response is correct
          wait until rx.valid = '1';
-         wait until clk = '0';
-         assert rx.last = '0';
-         assert rx.bytes = 0;
-         assert rx.data(64*8-1 downto 64*8-42*8) = exp_rx_data(64*8-1 downto 64*8-42*8)
-            report "\nReceived " & to_hstring(rx.data(64*8-1 downto 64*8-42*8)) &
-                   "\nExpected " & to_hstring(exp_rx_data(64*8-1 downto 64*8-42*8));
-         assert debug = rx.data(64*8-42*8+32*8-1 downto 64*8-42*8);
-         wait until clk = '1' and rx.valid = '1';
          wait until clk = '0';
          assert rx.last = '1';
          assert rx.bytes = 0;
+         assert rx.data(64*8-1 downto 4*8) = exp_rx_data(64*8-1 downto 4*8);
+         assert debug = exp_rx_data(64*8-42*8+32*8-1 downto 64*8-42*8);
       end procedure verify_udp;
 
    begin

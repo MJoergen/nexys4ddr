@@ -34,26 +34,25 @@ end top;
 architecture structural of top is
 
    -- Clock divider for VGA and ETH
-   signal clk_cnt : std_logic_vector(1 downto 0) := (others => '0');
-   signal vga_clk : std_logic;
-   signal eth_clk : std_logic;
+   signal clk_cnt      : std_logic_vector(1 downto 0) := (others => '0');
+   signal vga_clk      : std_logic;
+   signal eth_clk      : std_logic;
 
-   signal eth_rst : std_logic;
+   signal eth_rst      : std_logic;
 
    -- Connected to UDP client
-   signal eth_rx_data  : std_logic_vector(7 downto 0);
-   signal eth_rx_sof   : std_logic;
-   signal eth_rx_eof   : std_logic;
    signal eth_rx_valid : std_logic;
-   signal eth_tx_empty : std_logic;
-   signal eth_tx_rden  : std_logic;
-   signal eth_tx_data  : std_logic_vector(7 downto 0);
-   signal eth_tx_sof   : std_logic;
-   signal eth_tx_eof   : std_logic;
+   signal eth_rx_data  : std_logic_vector(42*8-1 downto 0);
+   signal eth_rx_last  : std_logic;
+   signal eth_rx_bytes : std_logic_vector(5 downto 0);
+   signal eth_tx_valid : std_logic;
+   signal eth_tx_data  : std_logic_vector(42*8-1 downto 0);
+   signal eth_tx_last  : std_logic;
+   signal eth_tx_bytes : std_logic_vector(5 downto 0);
 
    -- Test signal
-   signal eth_debug : std_logic_vector(255 downto 0);
-   signal vga_hex   : std_logic_vector(255 downto 0);
+   signal eth_debug    : std_logic_vector(255 downto 0);
+   signal vga_hex      : std_logic_vector(255 downto 0);
 
 begin
    
@@ -95,15 +94,14 @@ begin
    port map (
       clk_i          => eth_clk,
       debug_o        => eth_debug,
-      udp_rx_data_o  => eth_rx_data,
-      udp_rx_sof_o   => eth_rx_sof,
-      udp_rx_eof_o   => eth_rx_eof,
       udp_rx_valid_o => eth_rx_valid,
-      udp_tx_empty_i => eth_tx_empty,
-      udp_tx_rden_o  => eth_tx_rden,
+      udp_rx_data_o  => eth_rx_data,
+      udp_rx_last_o  => eth_rx_last,
+      udp_rx_bytes_o => eth_rx_bytes,
+      udp_tx_valid_i => eth_tx_valid,
       udp_tx_data_i  => eth_tx_data,
-      udp_tx_sof_i   => eth_tx_sof,
-      udp_tx_eof_i   => eth_tx_eof,
+      udp_tx_last_i  => eth_tx_last,
+      udp_tx_bytes_i => eth_tx_bytes,
       eth_txd_o      => eth_txd_o,
       eth_txen_o     => eth_txen_o,
       eth_rxd_i      => eth_rxd_i,
@@ -118,23 +116,23 @@ begin
 
    eth_rst <= not eth_rstn_o;
 
+
    --------------------------------------------------
-   -- Instantiate Inverter
+   -- Instantiate test module
    --------------------------------------------------
 
    i_inverter : entity work.inverter
    port map (
       clk_i      => eth_clk,
       rst_i      => eth_rst,
-      rx_data_i  => eth_rx_data,
-      rx_sof_i   => eth_rx_sof,
-      rx_eof_i   => eth_rx_eof,
       rx_valid_i => eth_rx_valid,
-      tx_empty_o => eth_tx_empty,
-      tx_rden_i  => eth_tx_rden,
+      rx_data_i  => eth_rx_data,
+      rx_last_i  => eth_rx_last,
+      rx_bytes_i => eth_rx_bytes,
+      tx_valid_o => eth_tx_valid,
       tx_data_o  => eth_tx_data,
-      tx_sof_o   => eth_tx_sof,
-      tx_eof_o   => eth_tx_eof
+      tx_last_o  => eth_tx_last,
+      tx_bytes_o => eth_tx_bytes
    ); -- i_inverter
 
 

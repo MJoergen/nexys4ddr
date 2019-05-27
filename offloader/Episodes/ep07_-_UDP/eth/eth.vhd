@@ -38,56 +38,62 @@ end eth;
 
 architecture Structural of eth is
 
-   constant C_MY_MAC       : std_logic_vector(47 downto 0) := X"001122334455";
-   constant C_MY_IP        : std_logic_vector(31 downto 0) := X"C0A8014D";     -- 192.168.1.77
-   constant C_MY_PORT      : std_logic_vector(15 downto 0) := X"1234";         -- 4660
+   constant C_MY_MAC  : std_logic_vector(47 downto 0) := X"001122334455";
+   constant C_MY_IP   : std_logic_vector(31 downto 0) := X"C0A8014D";     -- 192.168.1.77
+   constant C_MY_PORT : std_logic_vector(15 downto 0) := X"1234";         -- 4660
 
-   signal rst              : std_logic                     := '1';
-   signal rst_cnt          : std_logic_vector(20 downto 0) := (others => '1');
+   signal rst         : std_logic                     := '1';
+   signal rst_cnt     : std_logic_vector(20 downto 0) := (others => '1');
 
    -- Output from eth_rx
-   signal rx_valid         : std_logic;
-   signal rx_data          : std_logic_vector(7 downto 0);
-   signal rx_last          : std_logic;
-   signal rx_ok            : std_logic;
+   signal rx_valid    : std_logic;
+   signal rx_data     : std_logic_vector(7 downto 0);
+   signal rx_last     : std_logic;
+   signal rx_ok       : std_logic;
 
    -- Output from strip_crc
-   signal st_valid         : std_logic;
-   signal st_data          : std_logic_vector(7 downto 0);
-   signal st_last          : std_logic;
+   signal st_valid    : std_logic;
+   signal st_data     : std_logic_vector(7 downto 0);
+   signal st_last     : std_logic;
 
    -- Output from byte2wide
-   signal bw_valid         : std_logic;
-   signal bw_data          : std_logic_vector(42*8-1 downto 0);
-   signal bw_last          : std_logic;
-   signal bw_bytes         : std_logic_vector(5 downto 0);
+   signal bw_valid    : std_logic;
+   signal bw_data     : std_logic_vector(42*8-1 downto 0);
+   signal bw_last     : std_logic;
+   signal bw_bytes    : std_logic_vector(5 downto 0);
 
    -- Output from ARP
-   signal arp_valid        : std_logic;
-   signal arp_data         : std_logic_vector(42*8-1 downto 0);
-   signal arp_last         : std_logic;
-   signal arp_bytes        : std_logic_vector(5 downto 0);
-   signal arp_debug        : std_logic_vector(255 downto 0);
+   signal arp_valid   : std_logic;
+   signal arp_data    : std_logic_vector(42*8-1 downto 0);
+   signal arp_last    : std_logic;
+   signal arp_bytes   : std_logic_vector(5 downto 0);
+   signal arp_debug   : std_logic_vector(255 downto 0);
 
    -- Output from ICMP
-   signal icmp_valid       : std_logic;
-   signal icmp_data        : std_logic_vector(42*8-1 downto 0);
-   signal icmp_last        : std_logic;
-   signal icmp_bytes       : std_logic_vector(5 downto 0);
-   signal icmp_debug       : std_logic_vector(255 downto 0);
+   signal icmp_valid  : std_logic;
+   signal icmp_data   : std_logic_vector(42*8-1 downto 0);
+   signal icmp_last   : std_logic;
+   signal icmp_bytes  : std_logic_vector(5 downto 0);
+   signal icmp_debug  : std_logic_vector(255 downto 0);
 
    -- Output from UDP
-   signal udp_valid        : std_logic;
-   signal udp_data         : std_logic_vector(42*8-1 downto 0);
-   signal udp_last         : std_logic;
-   signal udp_bytes        : std_logic_vector(5 downto 0);
-   signal udp_debug        : std_logic_vector(255 downto 0);
+   signal udp_valid   : std_logic;
+   signal udp_data    : std_logic_vector(42*8-1 downto 0);
+   signal udp_last    : std_logic;
+   signal udp_bytes   : std_logic_vector(5 downto 0);
+   signal udp_debug   : std_logic_vector(255 downto 0);
 
    -- Output from Tx arbiter
-   signal arb_valid        : std_logic;
-   signal arb_data         : std_logic_vector(60*8-1 downto 0);
-   signal arb_last         : std_logic;
-   signal arb_bytes        : std_logic_vector(5 downto 0);
+   signal arb_valid   : std_logic;
+   signal arb_data    : std_logic_vector(60*8-1 downto 0);
+   signal arb_last    : std_logic;
+   signal arb_bytes   : std_logic_vector(5 downto 0);
+
+   -- Output from padding
+   signal pad_valid   : std_logic;
+   signal pad_data    : std_logic_vector(60*8-1 downto 0);
+   signal pad_last    : std_logic;
+   signal pad_bytes   : std_logic_vector(5 downto 0);
 
    -- Output from wide2byte
    signal wb_empty    : std_logic;
@@ -260,11 +266,30 @@ begin
    -- send at the same time.
    --------------------------------------------------
 
-   arb_valid                         <= icmp_valid or arp_valid or udp_valid;
-   arb_data(60*8-1 downto 60*8-42*8) <= icmp_data  or arp_data  or udp_data;
-   arb_data(60*8-42*8-1 downto  0*8) <= (others => '0');
-   arb_last                          <= icmp_last  or arp_last  or udp_last;
-   arb_bytes                         <= icmp_bytes or arp_bytes or udp_bytes;
+   arb_valid <= icmp_valid or arp_valid or udp_valid;
+   arb_data(60*8-1      downto 60*8-42*8)  <= icmp_data  or arp_data  or udp_data;
+   arb_data(60*8-42*8-1 downto 0*8)        <= (others => '0');
+   arb_last  <= icmp_last  or arp_last  or udp_last;
+   arb_bytes <= icmp_bytes or arp_bytes or udp_bytes;
+
+
+   --------------------------------------------------
+   -- Instantiate padding
+   --------------------------------------------------
+
+   i_pad : entity work.pad
+   port map (
+      clk_i      => clk_i,
+      rst_i      => rst,
+      rx_valid_i => arb_valid,
+      rx_data_i  => arb_data,
+      rx_last_i  => arb_last,
+      rx_bytes_i => arb_bytes,
+      tx_valid_o => pad_valid,
+      tx_data_o  => pad_data,
+      tx_last_o  => pad_last,
+      tx_bytes_o => pad_bytes
+   ); -- i_pad
 
 
    --------------------------------------------------
@@ -278,10 +303,10 @@ begin
    port map (
       clk_i       => clk_i,
       rst_i       => rst,
-      rx_valid_i  => arb_valid,
-      rx_data_i   => arb_data,
-      rx_last_i   => arb_last,
-      rx_bytes_i  => arb_bytes,
+      rx_valid_i  => pad_valid,
+      rx_data_i   => pad_data,
+      rx_last_i   => pad_last,
+      rx_bytes_i  => pad_bytes,
       --
       tx_empty_o  => wb_empty,
       tx_rden_i   => wb_rden,
