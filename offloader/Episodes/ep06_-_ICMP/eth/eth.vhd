@@ -28,45 +28,52 @@ end eth;
 
 architecture Structural of eth is
 
-   constant C_MY_MAC    : std_logic_vector(47 downto 0) := X"001122334455";
-   constant C_MY_IP     : std_logic_vector(31 downto 0) := X"C0A8014D";     -- 192.168.1.77
+   constant C_MY_MAC  : std_logic_vector(47 downto 0) := X"001122334455";
+   constant C_MY_IP   : std_logic_vector(31 downto 0) := X"C0A8014D";     -- 192.168.1.77
 
-   signal rst           : std_logic                     := '1';
-   signal rst_cnt       : std_logic_vector(20 downto 0) := (others => '1');
+   signal rst         : std_logic                     := '1';
+   signal rst_cnt     : std_logic_vector(20 downto 0) := (others => '1');
 
    -- Output from eth_rx
-   signal rx_data       : std_logic_vector(7 downto 0);
-   signal rx_sof        : std_logic;
-   signal rx_eof        : std_logic;
-   signal rx_valid      : std_logic;
-   signal rx_ok         : std_logic;
+   signal rx_valid    : std_logic;
+   signal rx_data     : std_logic_vector(7 downto 0);
+   signal rx_last     : std_logic;
+   signal rx_ok       : std_logic;
 
    -- Output from strip_crc
-   signal st_data       : std_logic_vector(7 downto 0);
-   signal st_sof        : std_logic;
-   signal st_eof        : std_logic;
-   signal st_valid      : std_logic;
+   signal st_valid    : std_logic;
+   signal st_data     : std_logic_vector(7 downto 0);
+   signal st_last     : std_logic;
+
+   -- Output from byte2wide
+   signal bw_valid    : std_logic;
+   signal bw_data     : std_logic_vector(42*8-1 downto 0);
+   signal bw_last     : std_logic;
+   signal bw_bytes    : std_logic_vector(5 downto 0);
 
    -- Output from ARP
-   signal arp_tx_data   : std_logic_vector(7 downto 0);
-   signal arp_tx_sof    : std_logic;
-   signal arp_tx_eof    : std_logic;
-   signal arp_tx_empty  : std_logic;
-   signal arp_tx_rden   : std_logic;
+   signal arp_valid   : std_logic;
+   signal arp_data    : std_logic_vector(42*8-1 downto 0);
+   signal arp_last    : std_logic;
+   signal arp_bytes   : std_logic_vector(5 downto 0);
 
    -- Output from ICMP
-   signal icmp_tx_data  : std_logic_vector(7 downto 0);
-   signal icmp_tx_sof   : std_logic;
-   signal icmp_tx_eof   : std_logic;
-   signal icmp_tx_empty : std_logic;
-   signal icmp_tx_rden  : std_logic;
+   signal icmp_valid  : std_logic;
+   signal icmp_data   : std_logic_vector(42*8-1 downto 0);
+   signal icmp_last   : std_logic;
+   signal icmp_bytes  : std_logic_vector(5 downto 0);
 
-   -- Input to_eth_tx
-   signal tx_data       : std_logic_vector(7 downto 0);
-   signal tx_sof        : std_logic;
-   signal tx_eof        : std_logic;
-   signal tx_empty      : std_logic;
-   signal tx_rden       : std_logic;
+   -- Output from multiplexer
+   signal tx_valid    : std_logic;
+   signal tx_data     : std_logic_vector(60*8-1 downto 0);
+   signal tx_last     : std_logic;
+   signal tx_bytes    : std_logic_vector(5 downto 0);
+
+   -- Output from wide2byte
+   signal wb_empty    : std_logic;
+   signal wb_rden     : std_logic;
+   signal wb_data     : std_logic_vector(7 downto 0);
+   signal wb_last     : std_logic;
 
 begin
 
@@ -107,10 +114,9 @@ begin
       eth_rxerr_i => eth_rxerr_i,
       eth_crsdv_i => eth_crsdv_i,
       --
-      rx_data_o   => rx_data,
-      rx_sof_o    => rx_sof,
-      rx_eof_o    => rx_eof,
       rx_valid_o  => rx_valid,
+      rx_data_o   => rx_data,
+      rx_last_o   => rx_last,
       rx_ok_o     => rx_ok
    ); -- i_eth_rx
 
@@ -119,16 +125,30 @@ begin
       clk_i       => clk_i,
       rst_i       => rst,
       rx_valid_i  => rx_valid,
-      rx_sof_i    => rx_sof,
-      rx_eof_i    => rx_eof,
-      rx_ok_i     => rx_ok,
       rx_data_i   => rx_data,
+      rx_last_i   => rx_last,
+      rx_ok_i     => rx_ok,
       --
       out_valid_o => st_valid,
-      out_sof_o   => st_sof,
-      out_eof_o   => st_eof,
-      out_data_o  => st_data
+      out_data_o  => st_data,
+      out_last_o  => st_last
    ); -- i_strip_crc
+
+   i_byte2wide : entity work.byte2wide
+   generic map (
+      G_SIZE     => 42
+   )
+   port map (
+      clk_i      => clk_i,
+      rst_i      => rst,
+      rx_valid_i => st_valid,
+      rx_data_i  => st_data,
+      rx_last_i  => st_last,
+      tx_valid_o => bw_valid,
+      tx_data_o  => bw_data,
+      tx_last_o  => bw_last,
+      tx_bytes_o => bw_bytes
+   ); -- i_byte2wide
 
 
    --------------------------------------------------
@@ -143,16 +163,16 @@ begin
    port map (
       clk_i      => clk_i,
       rst_i      => rst,
-      rx_data_i  => st_data,
-      rx_sof_i   => st_sof,
-      rx_eof_i   => st_eof,
-      rx_valid_i => st_valid,
+      rx_valid_i => bw_valid,
+      rx_data_i  => bw_data,
+      rx_last_i  => bw_last,
+      rx_bytes_i => bw_bytes,
       --
-      tx_empty_o => arp_tx_empty,
-      tx_rden_i  => arp_tx_rden,
-      tx_data_o  => arp_tx_data,
-      tx_sof_o   => arp_tx_sof,
-      tx_eof_o   => arp_tx_eof,
+      tx_valid_o => arp_valid,
+      tx_data_o  => arp_data,
+      tx_last_o  => arp_last,
+      tx_bytes_o => arp_bytes,
+      --
       debug_o    => open
    ); -- i_arp
 
@@ -169,16 +189,16 @@ begin
    port map (
       clk_i      => clk_i,
       rst_i      => rst,
-      rx_data_i  => st_data,
-      rx_sof_i   => st_sof,
-      rx_eof_i   => st_eof,
-      rx_valid_i => st_valid,
+      rx_valid_i => bw_valid,
+      rx_data_i  => bw_data,
+      rx_last_i  => bw_last,
+      rx_bytes_i => bw_bytes,
       --
-      tx_empty_o => icmp_tx_empty,
-      tx_rden_i  => icmp_tx_rden,
-      tx_data_o  => icmp_tx_data,
-      tx_sof_o   => icmp_tx_sof,
-      tx_eof_o   => icmp_tx_eof,
+      tx_valid_o => icmp_valid,
+      tx_data_o  => icmp_data,
+      tx_last_o  => icmp_last,
+      tx_bytes_o => icmp_bytes,
+      --
       debug_o    => debug_o
    ); -- i_icmp
 
@@ -190,28 +210,42 @@ begin
    -- send at the same time.
    --------------------------------------------------
 
-   tx_empty <= icmp_tx_empty and arp_tx_empty;
-   tx_data  <= icmp_tx_data  or arp_tx_data;
-   tx_sof   <= icmp_tx_sof   or arp_tx_sof;
-   tx_eof   <= icmp_tx_eof   or arp_tx_eof;
-
-   arp_tx_rden  <= tx_rden and not arp_tx_empty;
-   icmp_tx_rden <= tx_rden and not icmp_tx_empty;
+   tx_valid                         <= icmp_valid or arp_valid;
+   tx_data(60*8-1 downto 60*8-42*8) <= icmp_data  or arp_data;
+   tx_data(60*8-42*8-1 downto  0*8) <= (others => '0');
+   tx_last                          <= icmp_last  or arp_last;
+   tx_bytes                         <= icmp_bytes or arp_bytes;
 
 
    --------------------------------------------------
    -- Instantiate Tx path
    --------------------------------------------------
 
+   i_wide2byte : entity work.wide2byte
+   generic map (
+      G_SIZE     => 60
+   )
+   port map (
+      clk_i      => clk_i,
+      rst_i      => rst,
+      rx_valid_i => tx_valid,
+      rx_data_i  => tx_data,
+      rx_last_i  => tx_last,
+      rx_bytes_i => tx_bytes,
+      tx_empty_o => wb_empty,
+      tx_rden_i  => wb_rden,
+      tx_data_o  => wb_data,
+      tx_last_o  => wb_last
+   ); -- i_wide2byte
+
    i_eth_tx : entity work.eth_tx
    port map (
       eth_clk_i  => clk_i,
       eth_rst_i  => rst,
-      tx_data_i  => tx_data,
-      tx_sof_i   => tx_sof,
-      tx_eof_i   => tx_eof,
-      tx_empty_i => tx_empty,
-      tx_rden_o  => tx_rden,
+      tx_empty_i => wb_empty,
+      tx_rden_o  => wb_rden,
+      tx_data_i  => wb_data,
+      tx_last_i  => wb_last,
       tx_err_o   => open,
       eth_txd_o  => eth_txd_o,
       eth_txen_o => eth_txen_o

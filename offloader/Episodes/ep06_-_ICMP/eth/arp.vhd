@@ -6,40 +6,34 @@ use ieee.numeric_std_unsigned.all;
 
 entity arp is
    generic (
-      G_MY_MAC     : std_logic_vector(47 downto 0);
-      G_MY_IP      : std_logic_vector(31 downto 0)
+      G_MY_MAC   : std_logic_vector(47 downto 0);
+      G_MY_IP    : std_logic_vector(31 downto 0)
    );
    port (
-      clk_i        : in  std_logic;
-      rst_i        : in  std_logic;
-      debug_o      : out std_logic_vector(255 downto 0);
+      clk_i      : in  std_logic;
+      rst_i      : in  std_logic;
+      debug_o    : out std_logic_vector(255 downto 0);
 
       -- Ingress
-      rx_data_i    : in  std_logic_vector(7 downto 0);
-      rx_sof_i     : in  std_logic;
-      rx_eof_i     : in  std_logic;
-      rx_valid_i   : in  std_logic;
+      rx_valid_i : in  std_logic;
+      rx_data_i  : in  std_logic_vector(42*8-1 downto 0);
+      rx_last_i  : in  std_logic;
+      rx_bytes_i : in  std_logic_vector(5 downto 0);
 
       -- Egress
-      tx_empty_o   : out std_logic;
-      tx_rden_i    : in  std_logic;
-      tx_data_o    : out std_logic_vector(7 downto 0);
-      tx_sof_o     : out std_logic;
-      tx_eof_o     : out std_logic
+      tx_valid_o : out std_logic;
+      tx_data_o  : out std_logic_vector(42*8-1 downto 0);
+      tx_last_o  : out std_logic;
+      tx_bytes_o : out std_logic_vector(5 downto 0)
    );
 end arp;
 
 architecture Structural of arp is
 
-   signal debug        : std_logic_vector(255 downto 0);
+   signal debug    : std_logic_vector(255 downto 0);
 
-   -- Output from byte2wide
-   signal hdr_valid    : std_logic;
-   signal hdr_data     : std_logic_vector(42*8-1 downto 0);
-   signal hdr_size     : std_logic_vector(7 downto 0);
-
-   signal rsp_valid    : std_logic;
-   signal rsp_data     : std_logic_vector(42*8-1 downto 0);
+   signal tx_valid : std_logic;
+   signal tx_data  : std_logic_vector(42*8-1 downto 0);
 
    -- The format of a MAC+ARP frame is as follows:
    -- 41 : MAC_DST[47 downto 40]       (Broadcast address)
@@ -95,8 +89,8 @@ begin
    p_debug : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if rsp_valid = '1' then
-            debug <= rsp_data(255 downto 0);
+         if tx_valid = '1' then
+            debug <= tx_data(255 downto 0);
          end if;
          if rst_i = '1' then
             debug <= (others => '1');
@@ -105,79 +99,38 @@ begin
    end process p_debug;
 
 
-   --------------------------------------------------
-   -- Instantiate byte2wide
-   --------------------------------------------------
-
-   i_byte2wide : entity work.byte2wide
-   generic map (
-      G_HDR_SIZE  => 42          -- Size of ARP packet
-   )
-   port map (
-      clk_i       => clk_i,
-      rst_i       => rst_i,
-      rx_valid_i  => rx_valid_i,
-      rx_sof_i    => rx_sof_i,
-      rx_eof_i    => rx_eof_i,
-      rx_data_i   => rx_data_i,
-      hdr_valid_o => hdr_valid,
-      hdr_data_o  => hdr_data,
-      hdr_size_o  => hdr_size,
-      hdr_more_o  => open,       -- Not used
-      pl_valid_o  => open,       -- Not used
-      pl_eof_o    => open,       -- Not used
-      pl_data_o   => open        -- Not used
-   ); -- i_byte2wide
-
-
    p_arp : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         rsp_valid <= '0'; -- Default value
+         tx_valid <= '0'; -- Default value
+         tx_data  <= (others => '0');
 
          -- Is this an ARP request for our IP address?
-         if hdr_valid = '1' and
-            hdr_size = 42 and                                              -- Size of ARP packet
-            hdr_data(29*8+7 downto 20*8) = X"08060001080006040001" and     -- ARP request ...
-            hdr_data(3*8+7 downto 0) = G_MY_IP then                        -- ... for our IP address
+         if rx_valid_i = '1' and
+            rx_bytes_i = 0 and                                              -- Complete ARP packet
+            rx_data_i(29*8+7 downto 20*8) = X"08060001080006040001" and     -- ARP request ...
+            rx_data_i(3*8+7 downto 0) = G_MY_IP then                        -- ... for our IP address
+
             -- Build response
-            rsp_data(41*8+7 downto 36*8) <= hdr_data(35*8+7 downto 30*8);  -- MAC_DST
-            rsp_data(35*8+7 downto 30*8) <= G_MY_MAC;                      -- MAC_SRC
-            rsp_data(29*8+7 downto 20*8) <= X"08060001080006040002";       -- ARP response
-            rsp_data(19*8+7 downto 14*8) <= G_MY_MAC;                      -- ARP_SHA
-            rsp_data(13*8+7 downto 10*8) <= G_MY_IP;                       -- ARP_SPA
-            rsp_data( 9*8+7 downto  4*8) <= hdr_data(19*8+7 downto 14*8);  -- ARP_THA
-            rsp_data( 3*8+7 downto  0*8) <= hdr_data(13*8+7 downto 10*8);  -- ARP_TPA
-            rsp_valid <= '1';
+            tx_data(41*8+7 downto 36*8) <= rx_data_i(35*8+7 downto 30*8);  -- MAC_DST
+            tx_data(35*8+7 downto 30*8) <= G_MY_MAC;                       -- MAC_SRC
+            tx_data(29*8+7 downto 20*8) <= X"08060001080006040002";        -- ARP response
+            tx_data(19*8+7 downto 14*8) <= G_MY_MAC;                       -- ARP_SHA
+            tx_data(13*8+7 downto 10*8) <= G_MY_IP;                        -- ARP_SPA
+            tx_data( 9*8+7 downto  4*8) <= rx_data_i(19*8+7 downto 14*8);  -- ARP_THA
+            tx_data( 3*8+7 downto  0*8) <= rx_data_i(13*8+7 downto 10*8);  -- ARP_TPA
+            tx_valid <= '1';
          end if;
       end if;
    end process p_arp;
 
-
-   --------------------------------------------------
-   -- Instantiate wide2byte
-   --------------------------------------------------
-
-   i_wide2byte : entity work.wide2byte
-   generic map (
-      G_PL_SIZE => 42            -- Size of ARP packet
-   )
-   port map (
-      clk_i      => clk_i,
-      rst_i      => rst_i,
-      pl_valid_i => rsp_valid,
-      pl_data_i  => rsp_data,
-      pl_size_i  => X"3C",       -- Minimum frame size is 60 bytes.
-      tx_empty_o => tx_empty_o,
-      tx_rden_i  => tx_rden_i,
-      tx_sof_o   => tx_sof_o,
-      tx_eof_o   => tx_eof_o,
-      tx_data_o  => tx_data_o
-   ); -- i_wide2byte
-
-
    -- Connect output signals
    debug_o <= debug;
+
+   tx_valid_o <= tx_valid;
+   tx_data_o  <= tx_data;
+   tx_last_o  <= tx_valid;
+   tx_bytes_o <= (others => '0');
 
 end Structural;
 

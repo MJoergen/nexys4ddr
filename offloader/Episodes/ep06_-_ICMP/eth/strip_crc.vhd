@@ -16,19 +16,17 @@ use ieee.numeric_std_unsigned.all;
 entity strip_crc is
    port (
       -- Input interface
-      clk_i          : in  std_logic;
-      rst_i          : in  std_logic;
-      rx_valid_i     : in  std_logic;
-      rx_sof_i       : in  std_logic;
-      rx_eof_i       : in  std_logic;
-      rx_ok_i        : in  std_logic;  -- Only valid @ EOF
-      rx_data_i      : in  std_logic_vector(7 downto 0);
+      clk_i       : in  std_logic;
+      rst_i       : in  std_logic;
+      rx_valid_i  : in  std_logic;
+      rx_data_i   : in  std_logic_vector(7 downto 0);
+      rx_last_i   : in  std_logic;
+      rx_ok_i     : in  std_logic;  -- Only valid @ LAST
 
       -- Output interface
-      out_valid_o    : out std_logic;
-      out_sof_o      : out std_logic;
-      out_eof_o      : out std_logic;
-      out_data_o     : out std_logic_vector(7 downto 0)
+      out_valid_o : out std_logic;
+      out_data_o  : out std_logic_vector(7 downto 0);
+      out_last_o  : out std_logic
    );
 end strip_crc;
 
@@ -40,16 +38,16 @@ architecture Structural of strip_crc is
    signal rx_buf : t_buf := (others => (others => '0'));
 
    -- Current write pointer.
-   signal wrptr     : std_logic_vector(C_ADDR_SIZE-1 downto 0) := (others => '0');
+   signal wrptr       : std_logic_vector(C_ADDR_SIZE-1 downto 0) := (others => '0');
 
    -- Start of current frame.
-   signal start_ptr : std_logic_vector(C_ADDR_SIZE-1 downto 0) := (others => '0');
+   signal start_ptr   : std_logic_vector(C_ADDR_SIZE-1 downto 0) := (others => '0');
 
    -- Start of current frame.
-   signal end_ptr   : std_logic_vector(C_ADDR_SIZE-1 downto 0) := (others => '0');
+   signal end_ptr     : std_logic_vector(C_ADDR_SIZE-1 downto 0) := (others => '0');
 
    -- Current read pointer.
-   signal rdptr     : std_logic_vector(C_ADDR_SIZE-1 downto 0) := (others => '0');
+   signal rdptr       : std_logic_vector(C_ADDR_SIZE-1 downto 0) := (others => '0');
 
    signal fifo_wren   : std_logic;
    signal fifo_wrdata : std_logic_vector(15 downto 0);
@@ -58,12 +56,11 @@ architecture Structural of strip_crc is
    signal fifo_empty  : std_logic;
 
    type t_fsm_state is (IDLE_ST, FWD_ST);
-   signal fsm_state : t_fsm_state := IDLE_ST;
+   signal fsm_state   : t_fsm_state := IDLE_ST;
 
-   signal out_valid : std_logic;
-   signal out_sof   : std_logic;
-   signal out_eof   : std_logic;
-   signal out_data  : std_logic_vector(7 downto 0);
+   signal out_valid   : std_logic;
+   signal out_last    : std_logic;
+   signal out_data    : std_logic_vector(7 downto 0);
 
 begin
 
@@ -96,7 +93,7 @@ begin
             rx_buf(to_integer(wrptr)) <= rx_data_i;
             wrptr <= wrptr + 1;
 
-            if rx_eof_i = '1' then
+            if rx_last_i = '1' then
                if rx_ok_i = '1' then
                   -- Prepare for next frame (and strip CRC).
                   start_ptr   <= wrptr-3;
@@ -111,7 +108,7 @@ begin
 
          if rst_i = '1' then
             start_ptr <= (others => '0');
-            wrptr <= (others => '0');
+            wrptr     <= (others => '0');
          end if;
       end if;
    end process proc_input;
@@ -122,8 +119,7 @@ begin
       if rising_edge(clk_i) then
          fifo_rden <= '0';
          out_valid <= '0';
-         out_sof   <= '0';
-         out_eof   <= '0';
+         out_last  <= '0';
          out_data  <= (others => '0');
 
          case fsm_state is
@@ -132,8 +128,7 @@ begin
                   fifo_rden <= '1';
                   end_ptr   <= fifo_rddata(C_ADDR_SIZE-1 downto 0);
                   out_valid <= '1';
-                  out_sof   <= '1';
-                  out_eof   <= '0';
+                  out_last  <= '0';
                   out_data  <= rx_buf(to_integer(rdptr));
                   rdptr     <= rdptr + 1;
                   fsm_state <= FWD_ST;
@@ -141,12 +136,11 @@ begin
 
             when FWD_ST =>
                out_valid <= '1';
-               out_sof   <= '0';
-               out_eof   <= '0';
+               out_last  <= '0';
                out_data  <= rx_buf(to_integer(rdptr));
                rdptr     <= rdptr + 1;
                if rdptr = end_ptr then
-                  out_eof   <= '1';
+                  out_last  <= '1';
                   fsm_state <= IDLE_ST;
                end if;
 
@@ -161,8 +155,7 @@ begin
 
    -- Drive output signals
    out_valid_o <= out_valid;
-   out_sof_o   <= out_sof;
-   out_eof_o   <= out_eof;
+   out_last_o  <= out_last;
    out_data_o  <= out_data;
 
 end Structural;

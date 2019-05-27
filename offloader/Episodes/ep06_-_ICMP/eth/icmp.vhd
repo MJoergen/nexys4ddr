@@ -15,17 +15,16 @@ entity icmp is
       debug_o    : out std_logic_vector(255 downto 0);
 
       -- Ingress
-      rx_data_i  : in  std_logic_vector(7 downto 0);
-      rx_sof_i   : in  std_logic;
-      rx_eof_i   : in  std_logic;
       rx_valid_i : in  std_logic;
+      rx_data_i  : in  std_logic_vector(42*8-1 downto 0);
+      rx_last_i  : in  std_logic;
+      rx_bytes_i : in  std_logic_vector(5 downto 0);
 
       -- Egress
-      tx_empty_o : out std_logic;
-      tx_rden_i  : in  std_logic;
-      tx_data_o  : out std_logic_vector(7 downto 0);
-      tx_sof_o   : out std_logic;
-      tx_eof_o   : out std_logic
+      tx_valid_o : out std_logic;
+      tx_data_o  : out std_logic_vector(42*8-1 downto 0);
+      tx_last_o  : out std_logic;
+      tx_bytes_o : out std_logic_vector(5 downto 0)
    );
 end icmp;
 
@@ -34,15 +33,12 @@ architecture Structural of icmp is
    type t_state is (IDLE_ST, CHKSUM_ST);
    signal state_r : t_state := IDLE_ST;
 
-   signal debug        : std_logic_vector(255 downto 0);
+   signal debug    : std_logic_vector(255 downto 0);
 
-   -- Output from byte2wide
-   signal hdr_valid    : std_logic;
-   signal hdr_data     : std_logic_vector(42*8-1 downto 0);
-   signal hdr_size     : std_logic_vector(7 downto 0);
-
-   signal rsp_valid    : std_logic;
-   signal rsp_data     : std_logic_vector(42*8-1 downto 0);
+   signal tx_valid : std_logic;
+   signal tx_data  : std_logic_vector(42*8-1 downto 0);
+   signal tx_last  : std_logic;
+   signal tx_bytes : std_logic_vector(5 downto 0);
 
    -- The format of a MAC+IP+ICMP frame is as follows:
    -- 41 : MAC_DST[47 downto 40]       (Broadcast address)
@@ -98,8 +94,8 @@ begin
    p_debug : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if rsp_valid = '1' then
-            debug <= rsp_data(255 downto 0);
+         if tx_valid = '1' then
+            debug <= tx_data(255 downto 0);
          end if;
          if rst_i = '1' then
             debug <= (others => '1');
@@ -108,32 +104,7 @@ begin
    end process p_debug;
 
 
-   --------------------------------------------------
-   -- Instantiate byte2wide
-   --------------------------------------------------
-
-   i_byte2wide : entity work.byte2wide
-   generic map (
-      G_HDR_SIZE  => 42          -- Size of ARP packet
-   )
-   port map (
-      clk_i       => clk_i,
-      rst_i       => rst_i,
-      rx_valid_i  => rx_valid_i,
-      rx_sof_i    => rx_sof_i,
-      rx_eof_i    => rx_eof_i,
-      rx_data_i   => rx_data_i,
-      hdr_valid_o => hdr_valid,
-      hdr_data_o  => hdr_data,
-      hdr_size_o  => hdr_size,
-      hdr_more_o  => open,       -- Not used
-      pl_valid_o  => open,       -- Not used
-      pl_eof_o    => open,       -- Not used
-      pl_data_o   => open        -- Not used
-   ); -- i_byte2wide
-
-
-   p_arp : process (clk_i)
+   p_icmp : process (clk_i)
 
       -- Calculate the Internet Checksum according to RFC 1071.
       function checksum(inp : std_logic_vector) return std_logic_vector is
@@ -152,55 +123,59 @@ begin
 
    begin
       if rising_edge(clk_i) then
-         rsp_valid <= '0'; -- Default value
+         tx_valid <= '0'; -- Default value
 
          case state_r is
             when IDLE_ST =>
+               tx_data  <= (others => '0');
+               tx_last  <= '0';
+               tx_bytes <= (others => '0');
                -- Is this an ICMP echo request for our IP address?
-               if hdr_valid = '1' then
-                  if hdr_size = 42 and                                              -- Size of ARP packet
-                     hdr_data(29*8+7 downto 27*8) = X"080045" and                   -- IPv4 packet
-                     hdr_data(18*8+7 downto 18*8) = X"01" and                       -- ICMP protocol
-                     hdr_data(11*8+7 downto  8*8) = G_MY_IP and                     -- For us
-                     checksum(hdr_data(27*8+7 downto 8*8)) = X"FFFF" and            -- IP header checksum correct
-                     hdr_data( 7*8+7 downto  6*8) = X"0800" then                    -- ICMP echo request
+               if rx_valid_i = '1' then
+                  if rx_bytes_i = 0 and                                             -- Complete ARP header
+                     rx_data_i(29*8+7 downto 27*8) = X"080045" and                  -- IPv4 packet
+                     rx_data_i(18*8+7 downto 18*8) = X"01" and                      -- ICMP protocol
+                     rx_data_i(11*8+7 downto  8*8) = G_MY_IP and                    -- For us
+                     checksum(rx_data_i(27*8+7 downto 8*8)) = X"FFFF" and           -- IP header checksum correct
+                     rx_data_i( 7*8+7 downto  6*8) = X"0800" then                   -- ICMP echo request
                      -- Ignore ICMP checksum
 
                      -- Build response:
                      -- MAC header
-                     rsp_data(41*8+7 downto 36*8) <= hdr_data(35*8+7 downto 30*8);  -- MAC_DST
-                     rsp_data(35*8+7 downto 30*8) <= G_MY_MAC;                      -- MAC_SRC
-                     rsp_data(29*8+7 downto 28*8) <= X"0800";                       -- MAC_TYPELEN
+                     tx_data(41*8+7 downto 36*8) <= rx_data_i(35*8+7 downto 30*8);  -- MAC_DST
+                     tx_data(35*8+7 downto 30*8) <= G_MY_MAC;                       -- MAC_SRC
+                     tx_data(29*8+7 downto 28*8) <= X"0800";                        -- MAC_TYPELEN
                      -- IP header
-                     rsp_data(27*8+7 downto 27*8) <= X"45";                         -- IP_VIHL
-                     rsp_data(26*8+7 downto 26*8) <= X"00";                         -- IP_DSCP
-                     rsp_data(25*8+7 downto 24*8) <= X"001C";                       -- IP_LENGTH = 20+8
-                     rsp_data(23*8+7 downto 22*8) <= X"0000";                       -- IP_ID
-                     rsp_data(21*8+7 downto 20*8) <= X"0000";                       -- IP_FRAG
-                     rsp_data(19*8+7 downto 19*8) <= X"40";                         -- IP_TTL
-                     rsp_data(18*8+7 downto 18*8) <= X"01";                         -- IP_PROTOCOL = ICMP
-                     rsp_data(17*8+7 downto 16*8) <= X"0000";                       -- IP_CHKSUM
-                     rsp_data(15*8+7 downto 12*8) <= G_MY_IP;                       -- IP_SRC
-                     rsp_data(11*8+7 downto  8*8) <= hdr_data(15*8+7 downto 12*8);  -- IP_DST
+                     tx_data(27*8+7 downto 27*8) <= X"45";                          -- IP_VIHL
+                     tx_data(26*8+7 downto 26*8) <= X"00";                          -- IP_DSCP
+                     tx_data(25*8+7 downto 24*8) <= X"001C";                        -- IP_LENGTH = 20+8
+                     tx_data(23*8+7 downto 22*8) <= X"0000";                        -- IP_ID
+                     tx_data(21*8+7 downto 20*8) <= X"0000";                        -- IP_FRAG
+                     tx_data(19*8+7 downto 19*8) <= X"40";                          -- IP_TTL
+                     tx_data(18*8+7 downto 18*8) <= X"01";                          -- IP_PROTOCOL = ICMP
+                     tx_data(17*8+7 downto 16*8) <= X"0000";                        -- IP_CHKSUM
+                     tx_data(15*8+7 downto 12*8) <= G_MY_IP;                        -- IP_SRC
+                     tx_data(11*8+7 downto  8*8) <= rx_data_i(15*8+7 downto 12*8);  -- IP_DST
                      -- ICMP header
-                     rsp_data( 7*8+7 downto  7*8) <= X"00";                         -- ICMP_TYPE = Reply
-                     rsp_data( 6*8+7 downto  6*8) <= X"00";                         -- ICMP_CODE
-                     rsp_data( 5*8+7 downto  4*8) <= X"0000";                       -- ICMP_CHKSUM
-                     rsp_data( 3*8+7 downto  2*8) <= hdr_data( 3*8+7 downto  2*8);  -- ICMP_ID
-                     rsp_data( 1*8+7 downto  0*8) <= hdr_data( 1*8+7 downto  0*8);  -- ICMP_SEQNUM
+                     tx_data( 7*8+7 downto  7*8) <= X"00";                          -- ICMP_TYPE = Reply
+                     tx_data( 6*8+7 downto  6*8) <= X"00";                          -- ICMP_CODE
+                     tx_data( 5*8+7 downto  4*8) <= X"0000";                        -- ICMP_CHKSUM
+                     tx_data( 3*8+7 downto  2*8) <= rx_data_i( 3*8+7 downto  2*8);  -- ICMP_ID
+                     tx_data( 1*8+7 downto  0*8) <= rx_data_i( 1*8+7 downto  0*8);  -- ICMP_SEQNUM
                      state_r <= CHKSUM_ST;
                   end if;
                end if;
 
             when CHKSUM_ST =>
                -- Calculate checksum of IP header
-               rsp_data(17*8+7 downto 16*8) <= not checksum(rsp_data(27*8+7 downto 8*8));
+               tx_data(17*8+7 downto 16*8) <= not checksum(tx_data(27*8+7 downto 8*8));
 
                -- Calculate checksum of ICMP header
-               rsp_data( 5*8+7 downto  4*8) <= not checksum(rsp_data(7*8+7 downto 0*8));
+               tx_data( 5*8+7 downto  4*8) <= not checksum(tx_data(7*8+7 downto 0*8));
 
                -- Send packet to host
-               rsp_valid <= '1';
+               tx_last  <= '1';
+               tx_valid <= '1';
                state_r <= IDLE_ST;
          end case;
 
@@ -208,33 +183,16 @@ begin
             state_r <= IDLE_ST;
          end if;
       end if;
-   end process p_arp;
-
-
-   --------------------------------------------------
-   -- Instantiate wide2byte
-   --------------------------------------------------
-
-   i_wide2byte : entity work.wide2byte
-   generic map (
-      G_PL_SIZE => 42            -- Size of ARP packet
-   )
-   port map (
-      clk_i      => clk_i,
-      rst_i      => rst_i,
-      pl_valid_i => rsp_valid,
-      pl_data_i  => rsp_data,
-      pl_size_i  => X"3C",       -- Minimum frame size is 60 bytes.
-      tx_empty_o => tx_empty_o,
-      tx_rden_i  => tx_rden_i,
-      tx_sof_o   => tx_sof_o,
-      tx_eof_o   => tx_eof_o,
-      tx_data_o  => tx_data_o
-   ); -- i_wide2byte
+   end process p_icmp;
 
 
    -- Connect output signals
    debug_o <= debug;
+
+   tx_valid_o <= tx_valid;
+   tx_data_o  <= tx_data;
+   tx_last_o  <= tx_last;
+   tx_bytes_o <= tx_bytes;
 
 end Structural;
 
