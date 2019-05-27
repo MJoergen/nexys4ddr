@@ -56,6 +56,7 @@ architecture Structural of eth is
    signal arp_data   : std_logic_vector(42*8-1 downto 0);
    signal arp_last   : std_logic;
    signal arp_bytes  : std_logic_vector(5 downto 0);
+   signal arp_debug  : std_logic_vector(255 downto 0);
 
    signal arp_data_padded : std_logic_vector(60*8-1 downto 0);
 
@@ -103,7 +104,6 @@ begin
       eth_rxd_i   => eth_rxd_i,
       eth_rxerr_i => eth_rxerr_i,
       eth_crsdv_i => eth_crsdv_i,
-      --
       rx_valid_o  => rx_valid,
       rx_data_o   => rx_data,
       rx_last_o   => rx_last,
@@ -118,7 +118,6 @@ begin
       rx_data_i   => rx_data,
       rx_last_i   => rx_last,
       rx_ok_i     => rx_ok,
-      --
       out_valid_o => st_valid,
       out_data_o  => st_data,
       out_last_o  => st_last
@@ -126,7 +125,7 @@ begin
 
    i_byte2wide : entity work.byte2wide
    generic map (
-      G_SIZE     => 42
+      G_BYTES    => 42
    )
    port map (
       clk_i      => clk_i,
@@ -138,7 +137,7 @@ begin
       tx_data_o  => bw_data,
       tx_last_o  => bw_last,
       tx_bytes_o => bw_bytes
-   );
+   ); -- i_byte2wide
 
    --------------------------------------------------
    -- Instantiate ARP processing
@@ -161,8 +160,7 @@ begin
       tx_data_o  => arp_data,
       tx_last_o  => arp_last,
       tx_bytes_o => arp_bytes,
-      --
-      debug_o    => debug_o
+      debug_o    => arp_debug
    ); -- i_arp
 
    arp_data_padded(60*8-1 downto 60*8-42*8) <= arp_data;
@@ -174,7 +172,7 @@ begin
 
    i_wide2byte : entity work.wide2byte
    generic map (
-      G_SIZE     => 60
+      G_BYTES    => 60
    )
    port map (
       clk_i      => clk_i,
@@ -193,10 +191,10 @@ begin
    port map (
       eth_clk_i  => clk_i,
       eth_rst_i  => rst,
-      tx_empty_i => wb_empty,
-      tx_rden_o  => wb_rden,
       tx_data_i  => wb_data,
       tx_last_i  => wb_last,
+      tx_empty_i => wb_empty,
+      tx_rden_o  => wb_rden,
       tx_err_o   => open,
       eth_txd_o  => eth_txd_o,
       eth_txen_o => eth_txen_o
@@ -209,6 +207,7 @@ begin
 
    eth_refclk_o <= clk_i;
    eth_rstn_o   <= not rst;
+   debug_o      <= arp_debug;
 
 end Structural;
 

@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
 -- This module sends transmit data to the LAN8720A Ethernet PHY.
--- It automatically calculates the MAC CRC.
+-- It automatically calculates and appends the MAC CRC.
 --
 -- From the NEXYS 4 DDR schematic
 -- RXD0/MODE0   : External pull UP
@@ -49,7 +49,7 @@ entity eth_tx is
       eth_clk_i  : in  std_logic;        -- Must be 50 MHz
       eth_rst_i  : in  std_logic;
 
-      -- Pulling interface
+      -- Client interface
       tx_rden_o  : out std_logic;
       tx_err_o   : out std_logic;
       tx_empty_i : in  std_logic;
@@ -63,6 +63,10 @@ entity eth_tx is
 end eth_tx;
 
 architecture Structural of eth_tx is
+
+   -- This is the generating polynomial for the CRC-32 used by Ethernet.
+   -- See e.g. https://en.wikipedia.org/wiki/Cyclic_redundancy_check
+   constant C_CRC_POLY : std_logic_vector(31 downto 0) := X"04C11DB7";
 
    signal err        : std_logic := '0';
    signal eth_txen   : std_logic := '0';
@@ -95,7 +99,7 @@ begin
                if cur_byte(i) = crc_v(31) then
                   crc_v :=  crc_v(30 downto 0) & '0';
                else
-                  crc_v := (crc_v(30 downto 0) & '0') xor x"04C11DB7";
+                  crc_v := (crc_v(30 downto 0) & '0') xor C_CRC_POLY;
                end if;
             end loop;
             crc <= crc_v;

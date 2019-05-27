@@ -64,10 +64,10 @@ architecture Structural of strip_crc is
 
 begin
 
-   inst_ctrl_fifo : entity work.fifo
+   i_fifo : entity work.fifo
    generic map (
       G_WIDTH => 16
-      )
+   )
    port map (
       wr_clk_i    => clk_i,
       wr_rst_i    => rst_i,
@@ -80,7 +80,7 @@ begin
       rd_data_o   => fifo_rddata,
       rd_empty_o  => fifo_empty,
       rd_error_o  => open           -- Read from empty fifo
-   ); -- inst_ctrl_fifo
+   ); -- i_fifo
 
 
    proc_input : process (clk_i)
