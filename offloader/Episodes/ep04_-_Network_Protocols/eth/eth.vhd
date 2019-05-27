@@ -32,7 +32,7 @@ architecture Structural of eth is
    signal rst_cnt  : std_logic_vector(20 downto 0) := (others => '1');
    signal debug    : std_logic_vector(255 downto 0);
 
-   -- Connected to eth_rx
+   -- Output from eth_rx
    signal rx_valid : std_logic;
    signal rx_data  : std_logic_vector(7 downto 0);
    signal rx_last  : std_logic;
@@ -44,11 +44,11 @@ architecture Structural of eth is
    signal st_last  : std_logic;
 
    -- Output from byte2wide
-   signal pa_valid : std_logic;
-   signal pa_data  : std_logic_vector(42*8-1 downto 0);
-   signal pa_last  : std_logic;
-   signal pa_bytes : std_logic_vector(5 downto 0);
-   signal pa_first : std_logic;                    -- Asserted only at Start Of Frame.
+   signal bw_valid : std_logic;
+   signal bw_data  : std_logic_vector(42*8-1 downto 0);
+   signal bw_last  : std_logic;
+   signal bw_bytes : std_logic_vector(5 downto 0);
+   signal bw_first : std_logic;                    -- Asserted only at Start Of Frame.
 
    -- Connected to eth_tx
    -- TBD: For now, we just assign default values to these signals
@@ -67,14 +67,14 @@ begin
    p_debug : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if pa_valid = '1' and pa_first = '1' then
-            debug <= pa_data(255 downto 0);
+         if bw_valid = '1' and bw_first = '1' then
+            debug <= bw_data(255 downto 0);
          end if;
-         if pa_valid = '1' then
-            pa_first <= pa_last;
+         if bw_valid = '1' then
+            bw_first <= bw_last;
          end if;
          if rst = '1' then
-            pa_first <= '1';
+            bw_first <= '1';
             debug    <= (others => '1');  -- All ones means no frame received yet.
          end if;         
       end if;
@@ -114,13 +114,13 @@ begin
    port map (
       eth_clk_i   => clk_i,
       eth_rst_i   => rst,
+      eth_rxd_i   => eth_rxd_i,
+      eth_rxerr_i => eth_rxerr_i,
+      eth_crsdv_i => eth_crsdv_i,
       rx_valid_o  => rx_valid,
       rx_data_o   => rx_data,
       rx_last_o   => rx_last,
-      rx_ok_o     => rx_ok,
-      eth_rxd_i   => eth_rxd_i,
-      eth_rxerr_i => eth_rxerr_i,
-      eth_crsdv_i => eth_crsdv_i
+      rx_ok_o     => rx_ok
    ); -- i_eth_rx
 
    i_strip_crc : entity work.strip_crc
@@ -146,11 +146,11 @@ begin
       rx_valid_i => st_valid,
       rx_data_i  => st_data,
       rx_last_i  => st_last,
-      tx_valid_o => pa_valid,
-      tx_data_o  => pa_data,
-      tx_last_o  => pa_last,
-      tx_bytes_o => pa_bytes
-   ); -- i_wide2byte
+      tx_valid_o => bw_valid,
+      tx_data_o  => bw_data,
+      tx_last_o  => bw_last,
+      tx_bytes_o => bw_bytes
+   ); -- i_byte2wide
 
 
    --------------------------------------------------

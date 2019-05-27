@@ -2,15 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This is a self-verifying testbench for the Ethernet Rx and Tx interface
--- modules. The purpose is to verify the modules connecting to the PHY.
---
--- The testbench performs the following:
--- * Generates Ethernet frames for transmission
--- * Sends the frames through the transmit path of the interface module (eth_tx).
--- * Performs a loopback on the PHY side of the interface module.
--- * Stores the frames from the receive path of the interface module (eth_rx).
--- * Compares the received frames with the transmitted frames.
+-- This is a self-verifying testbench for the Ethernet module.
 
 entity tb_eth is
 end tb_eth;
