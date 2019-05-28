@@ -11,8 +11,9 @@ architecture simulation of tb_eth is
 
    type t_sim is record
       valid : std_logic;
-      data  : std_logic_vector(64*8-1 downto 0);
-      size  : std_logic_vector(5 downto 0);
+      data  : std_logic_vector(60*8-1 downto 0);
+      last  : std_logic;
+      bytes : std_logic_vector(5 downto 0);
    end record t_sim;
 
    signal clk       : std_logic;
@@ -47,9 +48,10 @@ architecture simulation of tb_eth is
       wait until clk = '0';
       tx.data <= (others => 'U');
       for i in 0 to size-1 loop
-         tx.data(64*8-1-8*i downto 64*8-8-8*i) <= to_std_logic_vector(i+12, 8);
+         tx.data(60*8-1-8*i downto 60*8-8-8*i) <= to_std_logic_vector(i+12, 8);
       end loop;
-      tx.size  <= to_stdlogicvector(size mod 64, 6);
+      tx.bytes <= to_stdlogicvector(size, 6);
+      tx.last  <= '1';
       tx.valid <= '1';
       wait until clk = '1';
       tx.valid <= '0';
@@ -57,10 +59,10 @@ architecture simulation of tb_eth is
       wait for size*20 ns;
 
       -- Validate received frame
-      if size > 42 then
-         assert debug(32*8-1 downto 42*8-42*8) = tx.data(54*8-1 downto 64*8-42*8);
+      if size > 32 then
+         assert rx(32*8-1 downto 0)           = tx.data(60*8-1 downto 60*8-32*8);
       else
-         assert debug(32*8-1 downto 42*8-size*8) = tx.data(54*8-1 downto 64*8-size*8);
+         assert rx(32*8-1 downto 32*8-size*8) = tx.data(60*8-1 downto 60*8-size*8);
       end if;
 
    end procedure test_frame;
@@ -93,15 +95,15 @@ begin
 
    i_wide2byte : entity work.wide2byte
    generic map (
-      G_BYTES    => 64
+      G_BYTES    => 60
    )
    port map (
       clk_i      => clk,
       rst_i      => rst,
       rx_valid_i => sim_tx.valid,
       rx_data_i  => sim_tx.data,
-      rx_last_i  => '1',
-      rx_bytes_i => sim_tx.size,
+      rx_last_i  => sim_tx.last,
+      rx_bytes_i => sim_tx.bytes,
       --
       tx_empty_o => tx_empty,
       tx_data_o  => tx_data,

@@ -45,7 +45,7 @@ architecture Structural of eth is
 
    -- Output from byte2wide
    signal bw_valid : std_logic;
-   signal bw_data  : std_logic_vector(42*8-1 downto 0);
+   signal bw_data  : std_logic_vector(60*8-1 downto 0);
    signal bw_last  : std_logic;
    signal bw_bytes : std_logic_vector(5 downto 0);
    signal bw_first : std_logic;                    -- Asserted only at Start Of Frame.
@@ -68,7 +68,7 @@ begin
    begin
       if rising_edge(clk_i) then
          if bw_valid = '1' and bw_first = '1' then
-            debug <= bw_data(255 downto 0);
+            debug <= bw_data(60*8-1 downto 60*8-32*8);
          end if;
          if bw_valid = '1' then
             bw_first <= bw_last;
@@ -138,7 +138,7 @@ begin
 
    i_byte2wide : entity work.byte2wide
    generic map (
-      G_BYTES    => 42
+      G_BYTES    => 60
    )
    port map (
       clk_i      => clk_i,
