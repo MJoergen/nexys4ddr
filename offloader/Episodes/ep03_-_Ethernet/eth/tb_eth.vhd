@@ -19,8 +19,9 @@ architecture simulation of tb_eth is
 
    type t_sim is record
       valid : std_logic;
-      data  : std_logic_vector(64*8-1 downto 0);
-      size  : std_logic_vector(5 downto 0);
+      data  : std_logic_vector(60*8-1 downto 0);
+      last  : std_logic;
+      bytes : std_logic_vector(5 downto 0);
    end record t_sim;
 
    signal clk      : std_logic;
@@ -62,9 +63,10 @@ architecture simulation of tb_eth is
       wait until clk = '0';
       tx.data <= (others => 'U');
       for i in 0 to size-1 loop
-         tx.data(64*8-1-8*i downto 64*8-8-8*i) <= to_std_logic_vector(i+12, 8);
+         tx.data(60*8-1-8*i downto 60*8-8-8*i) <= to_std_logic_vector(i+12, 8);
       end loop;
-      tx.size  <= to_stdlogicvector(size mod 64, 6);
+      tx.bytes <= to_stdlogicvector(size, 6);
+      tx.last  <= '1';
       tx.valid <= '1';
       wait until clk = '1';
       tx.valid <= '0';
@@ -72,12 +74,16 @@ architecture simulation of tb_eth is
       -- Validate received frame
       wait until rx.valid = '1';
       wait until clk = '0';
-      if size < 60 then
-         assert rx.size = size + 4;
+      if size < 56 then
+         assert rx.bytes = size + 4;
       else
-         assert rx.size = 0;
+         assert rx.bytes = 0;
       end if;
-      assert rx.data(64*8-1 downto 64*8-16*8) = tx.data(64*8-1 downto 64*8-16*8);
+      if size < 60 then
+         assert rx.data(60*8-1 downto 60*8-size*8) = tx.data(60*8-1 downto 60*8-size*8);
+      else
+         assert rx.data(60*8-1 downto 0)           = tx.data(60*8-1 downto 0);
+      end if;
    end procedure test_frame;
 
 begin
@@ -108,15 +114,15 @@ begin
 
    i_wide2byte : entity work.wide2byte
    generic map (
-      G_BYTES => 64
+      G_BYTES => 60
    )
    port map (
       clk_i      => clk,
       rst_i      => rst,
       rx_valid_i => sim_tx.valid,
       rx_data_i  => sim_tx.data,
-      rx_last_i  => '1',
-      rx_bytes_i => sim_tx.size,
+      rx_last_i  => sim_tx.last,
+      rx_bytes_i => sim_tx.bytes,
       --
       tx_empty_o => tx_empty,
       tx_data_o  => tx_data,
@@ -165,7 +171,7 @@ begin
 
    i_byte2wide : entity work.byte2wide
    generic map (
-      G_BYTES => 64
+      G_BYTES => 60
    )
    port map (
       clk_i      => clk,
@@ -176,8 +182,8 @@ begin
       --
       tx_valid_o => sim_rx.valid,
       tx_data_o  => sim_rx.data,
-      tx_last_o  => open,
-      tx_bytes_o => sim_rx.size
+      tx_last_o  => sim_rx.last,
+      tx_bytes_o => sim_rx.bytes
    ); -- i_byte2wide
 
 
@@ -211,23 +217,23 @@ begin
 
       wait for 100 ns; -- Make a short pause for easier debugging.
 
+      test_frame(55, sim_tx, sim_rx);
+
+      wait for 100 ns; -- Make a short pause for easier debugging.
+
+      test_frame(56, sim_tx, sim_rx);
+
+      wait for 100 ns; -- Make a short pause for easier debugging.
+
+      test_frame(57, sim_tx, sim_rx);
+
+      wait for 100 ns; -- Make a short pause for easier debugging.
+
       test_frame(59, sim_tx, sim_rx);
 
       wait for 100 ns; -- Make a short pause for easier debugging.
 
       test_frame(60, sim_tx, sim_rx);
-
-      wait for 100 ns; -- Make a short pause for easier debugging.
-
-      test_frame(61, sim_tx, sim_rx);
-
-      wait for 100 ns; -- Make a short pause for easier debugging.
-
-      test_frame(63, sim_tx, sim_rx);
-
-      wait for 100 ns; -- Make a short pause for easier debugging.
-
-      test_frame(64, sim_tx, sim_rx);
 
       -- Stop test
       wait until clk = '1';
