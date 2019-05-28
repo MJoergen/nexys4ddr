@@ -33,6 +33,9 @@ end top;
 
 architecture structural of top is
 
+   constant C_MY_MAC : std_logic_vector(47 downto 0) := X"001122334455";
+   constant C_MY_IP  : std_logic_vector(31 downto 0) := X"C0A8014D";     -- 192.168.1.77
+
    -- Clock divider for VGA and ETH
    signal clk_cnt : std_logic_vector(1 downto 0) := (others => '0');
    signal vga_clk : std_logic;
@@ -79,6 +82,10 @@ begin
    --------------------------------------------------
 
    i_eth : entity work.eth
+   generic map (
+      G_MY_MAC => C_MY_MAC,
+      G_MY_IP  => C_MY_IP
+   )
    port map (
       clk_i        => eth_clk,
       debug_o      => eth_debug,

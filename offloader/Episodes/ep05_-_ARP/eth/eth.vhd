@@ -8,6 +8,10 @@ use ieee.numeric_std_unsigned.all;
 
 
 entity eth is
+   generic (
+      G_MY_MAC : std_logic_vector(47 downto 0) := X"001122334455";
+      G_MY_IP  : std_logic_vector(31 downto 0) := X"C0A8014D"      -- 192.168.1.77
+   );
    port (
       clk_i        : in    std_logic;           -- Must be 50 MHz.
       debug_o      : out   std_logic_vector(255 downto 0);
@@ -28,9 +32,6 @@ end eth;
 
 architecture Structural of eth is
 
-   constant C_MY_MAC : std_logic_vector(47 downto 0) := X"001122334455";
-   constant C_MY_IP  : std_logic_vector(31 downto 0) := X"C0A8014D";     -- 192.168.1.77
-
    signal rst        : std_logic                     := '1';
    signal rst_cnt    : std_logic_vector(20 downto 0) := (others => '1');
 
@@ -47,13 +48,13 @@ architecture Structural of eth is
 
    -- Output from byte2wide
    signal bw_valid   : std_logic;
-   signal bw_data    : std_logic_vector(42*8-1 downto 0);
+   signal bw_data    : std_logic_vector(60*8-1 downto 0);
    signal bw_last    : std_logic;
    signal bw_bytes   : std_logic_vector(5 downto 0);
 
    -- Output from ARP
    signal arp_valid  : std_logic;
-   signal arp_data   : std_logic_vector(42*8-1 downto 0);
+   signal arp_data   : std_logic_vector(60*8-1 downto 0);
    signal arp_last   : std_logic;
    signal arp_bytes  : std_logic_vector(5 downto 0);
    signal arp_debug  : std_logic_vector(255 downto 0);
@@ -129,7 +130,7 @@ begin
 
    i_byte2wide : entity work.byte2wide
    generic map (
-      G_BYTES    => 42
+      G_BYTES    => 60
    )
    port map (
       clk_i      => clk_i,
@@ -150,8 +151,8 @@ begin
 
    i_arp : entity work.arp
    generic map (
-      G_MY_MAC   => C_MY_MAC,
-      G_MY_IP    => C_MY_IP
+      G_MY_MAC   => G_MY_MAC,
+      G_MY_IP    => G_MY_IP
    )
    port map (
       clk_i      => clk_i,
