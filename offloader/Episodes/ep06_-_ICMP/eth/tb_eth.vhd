@@ -198,25 +198,12 @@ begin
 
    main_test_proc : process
 
---      -- Calculate the Internet Checksum according to RFC 1071.
---      function checksum(inp : std_logic_vector) return std_logic_vector is
---         variable res_v : std_logic_vector(19 downto 0) := (others => '0');
---         variable val_v : std_logic_vector(15 downto 0);
---      begin
---         for i in 0 to inp'length/16-1 loop
---            val_v := inp(i*16+15+inp'right downto i*16+inp'right);
---            res_v := res_v + (X"0" & val_v);
---         end loop;
---
---         -- Handle wrap-around
---         res_v := (X"0" & res_v(15 downto 0)) + (X"0000" & res_v(19 downto 16));
---         return res_v(15 downto 0);
---      end function checksum;
-
       -- Verify ARP processing
       procedure verify_arp(signal tx : inout t_sim;
                            signal rx : in    t_sim) is
       begin
+
+         report "Verify ARP processing.";
 
          -- Send one ARP request
          tx.valid <= '1';
@@ -258,8 +245,9 @@ begin
       -- Verify ICMP processing
       procedure verify_icmp(signal tx : inout t_sim;
                             signal rx : in    t_sim) is
-         variable exp_rx_data_v : std_logic_vector(64*8-1 downto 0);
       begin
+
+         report "Verify ICMP processing.";
 
          -- Build ICMP request
          tx.data  <= (others => '0');

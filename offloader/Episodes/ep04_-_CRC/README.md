@@ -1,5 +1,5 @@
 # CPU offloader
-# Episode 4 : "Network protocols - part 1"
+# Episode 4 : "CRC"
 
 Welcome to this fourth episode of "CPU offloader", where we proceed with the
 next step towards implementing the network protocols required for this project.
@@ -100,7 +100,7 @@ Our design can still not send any frames, and can still not do anything meaningf
 with the received data. However, using the above blocks it is now possible
 to display on the VGA output a snapshot of the last received frame.
 
-In lines 64-79 of eth/eth.vhd we select byte numbers 10-41 (incl) of the
+In lines 62-81 of eth/eth.vhd we select byte numbers 10-41 (incl) of the
 received frame.  This conveniently gives us the entire ARP header plus four
 bytes of the MAC header.  ARP packets can easily be recognized on the screen by
 looking for xxxx0806 in the beginning.

@@ -68,7 +68,7 @@ begin
    begin
       if rising_edge(clk_i) then
          if bw_valid = '1' and bw_first = '1' then
-            debug <= bw_data(60*8-1 downto 60*8-32*8);
+            debug <= bw_data(50*8-1 downto 50*8-32*8);
          end if;
          if bw_valid = '1' then
             bw_first <= bw_last;

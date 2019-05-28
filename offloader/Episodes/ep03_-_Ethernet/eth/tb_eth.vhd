@@ -72,10 +72,10 @@ architecture simulation of tb_eth is
       tx.valid <= '0';
 
       -- Validate received frame
-      wait until rx.valid = '1';
+      wait until clk = '1' and rx.valid = '1';
       wait until clk = '0';
       if size < 56 then
-         assert rx.bytes = size + 4;
+         assert rx.bytes = size + 4;   -- The received frame includes CRC.
       else
          assert rx.bytes = 0;
       end if;
@@ -114,7 +114,7 @@ begin
 
    i_wide2byte : entity work.wide2byte
    generic map (
-      G_BYTES => 60
+      G_BYTES    => 60
    )
    port map (
       clk_i      => clk,
@@ -129,11 +129,6 @@ begin
       tx_last_o  => tx_last,
       tx_rden_i  => tx_rden
    ); -- i_wide2byte
-
-
-   --------------------------------------------------
-   -- Instantiate Tx path
-   --------------------------------------------------
 
    i_eth_tx : entity work.eth_tx
    port map (
@@ -151,7 +146,7 @@ begin
 
 
    --------------------------------------------------
-   -- Instantiate Rx path
+   -- Instantiate traffic receiver
    --------------------------------------------------
 
    i_eth_rx : entity work.eth_rx
@@ -168,10 +163,9 @@ begin
       rx_ok_o     => rx_ok
    ); -- i_eth_rx
 
-
    i_byte2wide : entity work.byte2wide
    generic map (
-      G_BYTES => 60
+      G_BYTES    => 60
    )
    port map (
       clk_i      => clk,

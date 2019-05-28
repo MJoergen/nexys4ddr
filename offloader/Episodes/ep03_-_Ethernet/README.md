@@ -83,19 +83,21 @@ design before testing it in hardware. To this end, I've added a separate
 simulation of just the Ethernet module.  This takes place in the testbench file
 tb\_eth.vhd. To run the simulation, just type "make" in the eth directory.
 
-The actual test consist of sending a number of frames first into the eth\_tx
+The actual test consists of sending a number of frames first into the eth\_tx
 module and then connect directly to the eth\_rx module, thus effectively
-simulating a loopback in the Ethernet PHY. This happens in lines 128-163.
+simulating a loopback in the Ethernet PHY.
 
 To save a lot of duplicate code, I've made use of a common procedure written in
-lines 54-81. VHDL procedures are only rarely used, but can be convenient
+lines 55-87. VHDL procedures are only rarely used, but can be convenient
 particularly when writing test benches.
 
 To assist in simulation, and for future use, I've added two additional modules,
 wide2byte.vhd and byte2wide.vhd, that can translate between a stream of bytes
 and a stream of words, where the word size is configurable. In the testbench
-the word size is set to 512 bits, i.e. 64 bytes. This is seen in the file
-eth/tb\_eth.vhd lines 109-125 and 166-181.
+the word size is set to 60 bytes.  This is seen in the file eth/tb\_eth.vhd
+lines 115-131 and 166-181.  The value of 60 bytes chosen for the word size is
+convenient because it matches the Ethernet minimum required frame size. This
+will become more clear in later episodes.
 
 ### Byte-ordering
 As soon as we concatenate several bytes together in a wider data bus, the issue
@@ -111,8 +113,7 @@ contents of the wide data bus reads left-to-right.
 The wide data bus uses the same interface as the byte-oriented data bus, except
 that another signal "bytes" has been added. This contains the number of valid
 bytes (starting from the MSB) that are valid in the current clock cycle.  A
-value of 0 means that all bytes in the "data" signal are valid. The signal
-"bytes" must be zero for all clock cycles, except when "last" is asserted.
+value of 0 means that all bytes in the "data" signal are valid.
 
 ### byte2wide
 This module converts a stream of bytes into a wider bus interface.  Both the
@@ -134,14 +135,14 @@ the signal tx\_valid\_r is asserted.
 This module performs the opposite operation, i.e. converts a wide bus interface
 into a stream of bytes. However, this time the input stream is a pushing
 interface, but the output stream is a pulling interface. The reason for this
-assymmetry is because this module must provide data to the eth\_tx module,
+asymmetry is because this module must provide data to the eth\_tx module,
 which requires a pulling interface.
 
 This module is somewhat more complicated that byte2wide, because this module
 receives a wide data bus and only outputs one byte at a time, and therefore the
 input stream needs to be buffered in a FIFO.
 
-So the module instantiates a fifo in lines 64-80, more on that later.
+So the module instantiates a fifo in lines 69-85, more on that later.
 This FIFO stores all the input signals and the following state machine controls
 reading out from this FIFO.
 

@@ -203,6 +203,8 @@ begin
                            signal rx : in    t_sim) is
       begin
 
+         report "Verify ARP processing.";
+
          -- Send one ARP request
          tx.valid <= '1';
          tx.data  <= (others => '0');
