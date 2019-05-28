@@ -4,8 +4,6 @@ use ieee.numeric_std_unsigned.all;
 
 package eth_types_package is
 
-   constant C_MIN_SIZE : natural := 60;
-
    -- Ethernet frame decoding.
    subtype R_MAC_DST   is natural range 59*8+7 downto 54*8;   -- MAC destination                (6 bytes)
    subtype R_MAC_SRC   is natural range 53*8+7 downto 48*8;   -- MAC source                     (6 bytes)

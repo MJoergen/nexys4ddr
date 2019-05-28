@@ -9,11 +9,11 @@ use ieee.numeric_std_unsigned.all;
 
 entity eth is
    generic (
-      G_MY_MAC : std_logic_vector(47 downto 0);
-      G_MY_IP  : std_logic_vector(31 downto 0)
+      G_MY_MAC : std_logic_vector(47 downto 0);    -- MAC address
+      G_MY_IP  : std_logic_vector(31 downto 0)     -- IP address
    );
    port (
-      clk_i        : in    std_logic;           -- Must be 50 MHz.
+      clk_i        : in    std_logic;              -- Must be 50 MHz.
       debug_o      : out   std_logic_vector(255 downto 0);
 
       -- Connected to PHY
@@ -22,9 +22,9 @@ entity eth is
       eth_rxd_i    : in    std_logic_vector(1 downto 0);
       eth_rxerr_i  : in    std_logic;
       eth_crsdv_i  : in    std_logic;
-      eth_intn_i   : in    std_logic;           -- Not used
-      eth_mdio_io  : inout std_logic := 'Z';    -- Not used
-      eth_mdc_o    : out   std_logic := '0';    -- Not used
+      eth_intn_i   : in    std_logic;              -- Not used
+      eth_mdio_io  : inout std_logic := 'Z';       -- Not used
+      eth_mdc_o    : out   std_logic := '0';       -- Not used
       eth_rstn_o   : out   std_logic;
       eth_refclk_o : out   std_logic
    );
@@ -66,17 +66,11 @@ architecture Structural of eth is
    signal icmp_bytes  : std_logic_vector(5 downto 0);
    signal icmp_debug  : std_logic_vector(255 downto 0);
 
-   -- Output from Tx arbiter
+   -- Output from lazy multiplexer
    signal arb_valid   : std_logic;
    signal arb_data    : std_logic_vector(60*8-1 downto 0);
    signal arb_last    : std_logic;
    signal arb_bytes   : std_logic_vector(5 downto 0);
-
-   -- Output from padding
-   signal pad_valid   : std_logic;
-   signal pad_data    : std_logic_vector(60*8-1 downto 0);
-   signal pad_last    : std_logic;
-   signal pad_bytes   : std_logic_vector(5 downto 0);
 
    -- Output from wide2byte
    signal wb_empty    : std_logic;
@@ -223,25 +217,6 @@ begin
 
 
    --------------------------------------------------
-   -- Instantiate padding
-   --------------------------------------------------
-
-   i_pad : entity work.pad
-   port map (
-      clk_i      => clk_i,
-      rst_i      => rst,
-      rx_valid_i => arb_valid,
-      rx_data_i  => arb_data,
-      rx_last_i  => arb_last,
-      rx_bytes_i => arb_bytes,
-      tx_valid_o => pad_valid,
-      tx_data_o  => pad_data,
-      tx_last_o  => pad_last,
-      tx_bytes_o => pad_bytes
-   ); -- i_pad
-
-
-   --------------------------------------------------
    -- Instantiate Tx path
    --------------------------------------------------
 
@@ -252,10 +227,10 @@ begin
    port map (
       clk_i      => clk_i,
       rst_i      => rst,
-      rx_valid_i => pad_valid,
-      rx_data_i  => pad_data,
-      rx_last_i  => pad_last,
-      rx_bytes_i => pad_bytes,
+      rx_valid_i => arb_valid,
+      rx_data_i  => arb_data,
+      rx_last_i  => arb_last,
+      rx_bytes_i => arb_bytes,
       tx_empty_o => wb_empty,
       tx_rden_i  => wb_rden,
       tx_data_o  => wb_data,
