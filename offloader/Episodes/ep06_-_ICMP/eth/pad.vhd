@@ -11,7 +11,7 @@ entity pad is
 
       -- Ingress
       rx_valid_i : in  std_logic;
-      rx_data_i  : in  std_logic_vector(42*8-1 downto 0);
+      rx_data_i  : in  std_logic_vector(60*8-1 downto 0);
       rx_last_i  : in  std_logic;
       rx_bytes_i : in  std_logic_vector(5 downto 0);
 
@@ -45,11 +45,9 @@ begin
 
    -- Connect output signals
    tx_valid_o <= rx_valid_i;
-   tx_data_o(60*8-1      downto 60*8-42*8) <= rx_data_i;
-   tx_data_o(60*8-42*8-1 downto  0)        <= (others => '0');
+   tx_data_o  <= rx_data_i;
    tx_last_o  <= rx_last_i;
-   tx_bytes_o <= (others => '0')          when rx_valid_i = '1' and rx_last_i = '1' and rx_first = '1' else
-                 to_stdlogicvector(42, 6) when rx_valid_i = '1' and rx_bytes_i = 0 else
+   tx_bytes_o <= (others => '0') when rx_valid_i = '1' and rx_last_i = '1' and rx_first = '1' else
                  rx_bytes_i;
 
 end Structural;
