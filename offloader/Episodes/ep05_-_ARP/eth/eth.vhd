@@ -9,8 +9,8 @@ use ieee.numeric_std_unsigned.all;
 
 entity eth is
    generic (
-      G_MY_MAC : std_logic_vector(47 downto 0) := X"001122334455";
-      G_MY_IP  : std_logic_vector(31 downto 0) := X"C0A8014D"      -- 192.168.1.77
+      G_MY_MAC : std_logic_vector(47 downto 0);
+      G_MY_IP  : std_logic_vector(31 downto 0)
    );
    port (
       clk_i        : in    std_logic;           -- Must be 50 MHz.
