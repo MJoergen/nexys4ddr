@@ -33,6 +33,10 @@ end top;
 
 architecture structural of top is
 
+   constant C_MY_MAC : std_logic_vector(47 downto 0) := X"001122334455";
+   constant C_MY_IP  : std_logic_vector(31 downto 0) := X"C0A8014D";     -- 192.168.1.77
+   constant C_MY_UDP : std_logic_vector(15 downto 0) := X"1234";         -- 4660
+
    -- Clock divider for VGA and ETH
    signal clk_cnt      : std_logic_vector(1 downto 0) := (others => '0');
    signal vga_clk      : std_logic;
@@ -42,11 +46,11 @@ architecture structural of top is
 
    -- Connected to UDP client
    signal eth_rx_valid : std_logic;
-   signal eth_rx_data  : std_logic_vector(42*8-1 downto 0);
+   signal eth_rx_data  : std_logic_vector(60*8-1 downto 0);
    signal eth_rx_last  : std_logic;
    signal eth_rx_bytes : std_logic_vector(5 downto 0);
    signal eth_tx_valid : std_logic;
-   signal eth_tx_data  : std_logic_vector(42*8-1 downto 0);
+   signal eth_tx_data  : std_logic_vector(60*8-1 downto 0);
    signal eth_tx_last  : std_logic;
    signal eth_tx_bytes : std_logic_vector(5 downto 0);
 
@@ -91,6 +95,11 @@ begin
    --------------------------------------------------
 
    i_eth : entity work.eth
+   generic map (
+      G_MY_MAC => C_MY_MAC,
+      G_MY_IP  => C_MY_IP,
+      G_MY_UDP => C_MY_UDP
+   )
    port map (
       clk_i          => eth_clk,
       debug_o        => eth_debug,

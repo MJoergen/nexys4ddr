@@ -11,13 +11,13 @@ entity inverter is
 
       -- Ingress to client
       rx_valid_i : in  std_logic;
-      rx_data_i  : in  std_logic_vector(42*8-1 downto 0);
+      rx_data_i  : in  std_logic_vector(60*8-1 downto 0);
       rx_last_i  : in  std_logic;
       rx_bytes_i : in  std_logic_vector(5 downto 0);
 
       -- Egress from client
       tx_valid_o : out std_logic;
-      tx_data_o  : out std_logic_vector(42*8-1 downto 0);
+      tx_data_o  : out std_logic_vector(60*8-1 downto 0);
       tx_last_o  : out std_logic;
       tx_bytes_o : out std_logic_vector(5 downto 0)
    );
