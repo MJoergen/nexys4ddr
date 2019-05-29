@@ -127,10 +127,10 @@ begin
 
 
    --------------------------------------------------
-   -- Instantiate test module
+   -- Instantiate math module
    --------------------------------------------------
 
-   i_inverter : entity work.inverter
+   i_math : entity work.math
    port map (
       clk_i      => eth_clk,
       rst_i      => eth_rst,
@@ -142,7 +142,7 @@ begin
       tx_data_o  => eth_tx_data,
       tx_last_o  => eth_tx_last,
       tx_bytes_o => eth_tx_bytes
-   ); -- i_inverter
+   ); -- i_math
 
 
    --------------------------------------------------
