@@ -198,7 +198,6 @@ begin
       tx_data_o  => icmp_data,
       tx_last_o  => icmp_last,
       tx_bytes_o => icmp_bytes,
-      --
       debug_o    => icmp_debug
    ); -- i_icmp
 
