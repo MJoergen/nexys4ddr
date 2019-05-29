@@ -47,16 +47,21 @@ end udp;
 
 architecture Structural of udp is
 
+   -- Receive path
    type t_rx_state is (IDLE_ST, FWD_ST);
-   signal rx_state_r : t_rx_state := IDLE_ST;
+   signal rx_state_r     : t_rx_state := IDLE_ST;
 
-   signal rx_cli_valid : std_logic;
-   signal rx_cli_data  : std_logic_vector(60*8-1 downto 0);
-   signal rx_cli_last  : std_logic;
-   signal rx_cli_bytes : std_logic_vector(5 downto 0);
+   signal rx_cli_valid   : std_logic;
+   signal rx_cli_data    : std_logic_vector(60*8-1 downto 0);
+   signal rx_cli_last    : std_logic;
+   signal rx_cli_bytes   : std_logic_vector(5 downto 0);
 
+   signal tx_hdr         : std_logic_vector(60*8-1 downto 0);
+
+
+   -- Transmit path
    type t_tx_state is (IDLE_ST, FWD_ST);
-   signal tx_state_r : t_tx_state := IDLE_ST;
+   signal tx_state_r     : t_tx_state := IDLE_ST;
 
    signal debug          : std_logic_vector(255 downto 0);
 
@@ -66,38 +71,13 @@ architecture Structural of udp is
    signal tx_cli_last_d  : std_logic;
    signal tx_cli_bytes_d : std_logic_vector(5 downto 0);
 
-   signal tx_hdr       : std_logic_vector(60*8-1 downto 0);
-
-   -- Header on egress frame
-   signal tx_phy_valid : std_logic;
-   signal tx_phy_data  : std_logic_vector(60*8-1 downto 0);
-   signal tx_phy_last  : std_logic;
-   signal tx_phy_bytes : std_logic_vector(5 downto 0);
-   signal tx_phy_first : std_logic;
+   signal tx_phy_valid   : std_logic;
+   signal tx_phy_data    : std_logic_vector(60*8-1 downto 0);
+   signal tx_phy_last    : std_logic;
+   signal tx_phy_bytes   : std_logic_vector(5 downto 0);
+   signal tx_phy_first   : std_logic;
 
 begin
-
-   --------------------------------------------------
-   -- Generate debug signals.
-   -- This will store bytes 10-41 of the received frame.
-   --------------------------------------------------
-
-   p_debug : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if tx_phy_valid = '1' and tx_phy_first = '1' then
-            debug <= tx_phy_data(255 downto 0);
-         end if;
-         if tx_phy_valid = '1' then
-            tx_phy_first <= tx_phy_last;
-         end if;
-         if rst_i = '1' then
-            debug        <= (others => '1');
-            tx_phy_first <= '1';
-         end if;         
-      end if;
-   end process p_debug;
-
 
    --------------------------------------------------
    -- Instantiate ingress state machine
@@ -227,6 +207,30 @@ begin
          end if;
       end if;
    end process p_udp_tx;
+
+
+   --------------------------------------------------
+   -- Generate debug signals.
+   -- This will store bytes 10-41 of the transmitted frame
+   --------------------------------------------------
+
+   p_debug : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if tx_phy_valid = '1' and tx_phy_first = '1' then
+            debug <= tx_phy_data(50*8-1 downto 50*8-256);
+         end if;
+         if tx_phy_valid = '1' then
+            tx_phy_first <= tx_phy_last;
+         end if;
+         if rst_i = '1' then
+            debug        <= (others => '1');
+            tx_phy_first <= '1';
+         end if;
+      end if;
+   end process p_debug;
+
+
 
    -- Connect output signals
    rx_cli_data_o  <= rx_cli_data;
