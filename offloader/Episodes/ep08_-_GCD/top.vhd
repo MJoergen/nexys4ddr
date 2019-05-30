@@ -33,30 +33,31 @@ end top;
 
 architecture structural of top is
 
-   constant C_MY_MAC : std_logic_vector(47 downto 0) := X"001122334455";
-   constant C_MY_IP  : std_logic_vector(31 downto 0) := X"C0A8014D";     -- 192.168.1.77
-   constant C_MY_UDP : std_logic_vector(15 downto 0) := X"1234";         -- 4660
+   constant C_MY_MAC     : std_logic_vector(47 downto 0) := X"001122334455";
+   constant C_MY_IP      : std_logic_vector(31 downto 0) := X"C0A8014D";     -- 192.168.1.77
+   constant C_MY_UDP     : std_logic_vector(15 downto 0) := X"1234";         -- 4660
 
    -- Clock divider for VGA and ETH
-   signal clk_cnt      : std_logic_vector(1 downto 0) := (others => '0');
-   signal vga_clk      : std_logic;
-   signal eth_clk      : std_logic;
+   signal clk_cnt        : std_logic_vector(1 downto 0) := (others => '0');
+   signal vga_clk        : std_logic;
+   signal eth_clk        : std_logic;
 
-   signal eth_rst      : std_logic;
+   signal eth_rst        : std_logic;
 
    -- Connected to UDP client
-   signal eth_rx_valid : std_logic;
-   signal eth_rx_data  : std_logic_vector(60*8-1 downto 0);
-   signal eth_rx_last  : std_logic;
-   signal eth_rx_bytes : std_logic_vector(5 downto 0);
-   signal eth_tx_valid : std_logic;
-   signal eth_tx_data  : std_logic_vector(60*8-1 downto 0);
-   signal eth_tx_last  : std_logic;
-   signal eth_tx_bytes : std_logic_vector(5 downto 0);
+   signal eth_rx_valid   : std_logic;
+   signal eth_rx_data    : std_logic_vector(60*8-1 downto 0);
+   signal eth_rx_last    : std_logic;
+   signal eth_rx_bytes   : std_logic_vector(5 downto 0);
+   signal eth_tx_valid   : std_logic;
+   signal eth_tx_data    : std_logic_vector(60*8-1 downto 0);
+   signal eth_tx_last    : std_logic;
+   signal eth_tx_bytes   : std_logic_vector(5 downto 0);
+   signal eth_math_debug : std_logic_vector(255 downto 0);
 
    -- Test signal
-   signal eth_debug    : std_logic_vector(255 downto 0);
-   signal vga_hex      : std_logic_vector(255 downto 0);
+   signal eth_debug      : std_logic_vector(255 downto 0);
+   signal vga_hex        : std_logic_vector(255 downto 0);
 
 begin
    
@@ -134,6 +135,7 @@ begin
    port map (
       clk_i      => eth_clk,
       rst_i      => eth_rst,
+      debug_o    => eth_math_debug,
       rx_valid_i => eth_rx_valid,
       rx_data_i  => eth_rx_data,
       rx_last_i  => eth_rx_last,
@@ -155,7 +157,7 @@ begin
    )
    port map (
       src_clk_i  => eth_clk,
-      src_data_i => eth_debug,
+      src_data_i => eth_math_debug,
       dst_clk_i  => vga_clk,
       dst_data_o => vga_hex
    ); -- i_cdc

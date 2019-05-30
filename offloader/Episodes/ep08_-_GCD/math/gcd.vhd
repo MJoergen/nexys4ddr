@@ -135,13 +135,13 @@ begin
                   state <= IDLE_ST;
                end if;
          end case;
-      end if;
 
-      if rst_i = '1' then
-         val1  <= zero;
-         val2  <= zero;
-         shift <= 0;
-         state <= IDLE_ST;
+         if rst_i = '1' then
+            val1  <= zero;
+            val2  <= zero;
+            shift <= 0;
+            state <= IDLE_ST;
+         end if;
       end if;
    end process p_fsm;
 

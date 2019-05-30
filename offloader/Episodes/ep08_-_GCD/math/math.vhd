@@ -8,6 +8,7 @@ entity math is
    port (
       clk_i      : in  std_logic;
       rst_i      : in  std_logic;
+      debug_o    : out std_logic_vector(255 downto 0);
 
       -- Ingress to client
       rx_valid_i : in  std_logic;
@@ -35,11 +36,8 @@ architecture Structural of math is
    signal res   : std_logic_vector(C_SIZE-1 downto 0);
    signal valid : std_logic;
 
-   signal tx_valid : std_logic;
-   signal tx_data  : std_logic_vector(60*8-1 downto 0);
-   signal tx_last  : std_logic;
-   signal tx_bytes : std_logic_vector(5 downto 0);
-
+   signal debug    : std_logic_vector(255 downto 0) := 
+      X"FEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFE";
 begin
 
    -- We just ignore rx_last_i and rx_bytes_i.
@@ -61,11 +59,27 @@ begin
       valid_o => valid
    );
 
-   tx_valid <= valid;
-   tx_data(60*8-1        downto 60*8-C_SIZE)   <= res;
-   tx_data(60*8-1-C_SIZE downto 60*8-C_SIZE*2) <= (others => '0');
-   tx_bytes <= to_stdlogicvector(18, 6);
-   tx_last  <= '1';
+   tx_valid_o <= valid;
+   tx_data_o(60*8-1        downto 60*8-C_SIZE)   <= res;
+   tx_data_o(60*8-1-C_SIZE downto 60*8-C_SIZE*2) <= (others => '0');
+   tx_bytes_o <= to_stdlogicvector(18, 6);
+   tx_last_o  <= '1';
+
+   p_debug : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if rx_valid_i = '1' then
+            debug <= rx_data_i(60*8-1 downto 60*8-256);
+         end if;
+         if valid = '1' then
+            debug <= (others => '0');
+            debug(C_SIZE-1 downto 0) <= res;
+         end if;
+      end if;
+   end process p_debug;
+
+   -- Connect output signal
+   debug_o <= debug;
 
 end Structural;
 

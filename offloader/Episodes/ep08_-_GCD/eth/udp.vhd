@@ -51,10 +51,13 @@ architecture Structural of udp is
    type t_rx_state is (IDLE_ST, FWD_ST);
    signal rx_state_r     : t_rx_state := IDLE_ST;
 
+   signal rx_phy_first   : std_logic;
+
    signal rx_cli_valid   : std_logic;
    signal rx_cli_data    : std_logic_vector(60*8-1 downto 0);
    signal rx_cli_last    : std_logic;
    signal rx_cli_bytes   : std_logic_vector(5 downto 0);
+   signal rx_cli_first   : std_logic;
 
    signal tx_hdr         : std_logic_vector(60*8-1 downto 0);
 
@@ -62,6 +65,8 @@ architecture Structural of udp is
    -- Transmit path
    type t_tx_state is (IDLE_ST, FWD_ST);
    signal tx_state_r     : t_tx_state := IDLE_ST;
+
+   signal tx_cli_first   : std_logic;
 
    signal debug          : std_logic_vector(255 downto 0);
 
@@ -217,14 +222,35 @@ begin
    p_debug : process (clk_i)
    begin
       if rising_edge(clk_i) then
+         if rx_phy_valid_i = '1' and rx_phy_first = '1' then
+            debug <= rx_phy_data_i(50*8-1 downto 50*8-256);
+         end if;
+         if rx_cli_valid = '1' and rx_cli_first = '1' then
+            debug <= rx_cli_data(60*8-1 downto 60*8-256);
+         end if;
+         if tx_cli_valid_i = '1' and tx_cli_first = '1' then
+            debug <= tx_cli_data_i(60*8-1 downto 60*8-256);
+         end if;
          if tx_phy_valid = '1' and tx_phy_first = '1' then
             debug <= tx_phy_data(50*8-1 downto 50*8-256);
+         end if;
+         if rx_phy_valid_i = '1' then
+            rx_phy_first <= rx_phy_last_i;
+         end if;
+         if rx_cli_valid = '1' then
+            rx_cli_first <= rx_cli_last;
+         end if;
+         if tx_cli_valid_i = '1' then
+            tx_cli_first <= tx_cli_last_i;
          end if;
          if tx_phy_valid = '1' then
             tx_phy_first <= tx_phy_last;
          end if;
          if rst_i = '1' then
             debug        <= (others => '1');
+            rx_phy_first <= '1';
+            rx_cli_first <= '1';
+            tx_cli_first <= '1';
             tx_phy_first <= '1';
          end if;
       end if;
