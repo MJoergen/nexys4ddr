@@ -138,8 +138,11 @@ begin
                      if bytes_s = 0 then
                         bytes_r <= to_stdlogicvector(G_BYTES mod 64, 6);
                      end if;
-                     rd_en   <= '1';                              -- Consume more data from FIFO.
-                     assert rd_empty = '0';                       -- If no more data available, this is an error.
+                     if last_s = '1' and bytes_s = 1 then            -- In case frame only contains one byte.
+                        tx_last_r <= '1';
+                     end if;
+                     rd_en   <= '1';                                 -- Consume more data from FIFO.
+                     assert rd_empty = '0';                          -- If no more data available, this is an error.
                   end if;
 
                   if tx_last_r = '1' then                            -- Last byte has been read.
