@@ -17,7 +17,7 @@ sim: $(SRC)
 	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/primitive/*.vhd
 	ghdl -i --std=08 --work=work $(SRC)
 	ghdl -m --std=08 --ieee=synopsys -frelaxed-rules $(TB)
-	ghdl -r $(TB) --assert-level=error --wave=$(WAVE) --stop-time=3us
+	ghdl -r $(TB) --assert-level=error --wave=$(WAVE) --stop-time=5us
 	gtkwave $(WAVE) $(SAVE)
 
 

@@ -59,10 +59,10 @@ architecture simulation of tb_eth is
       wait for size*20 ns;
 
       -- Validate received frame
-      if size > 32 then
-         assert rx(32*8-1 downto 0)           = tx.data(60*8-1 downto 60*8-32*8);
+      if size > 32+10 then
+         assert rx(32*8-1 downto 0)           = tx.data(50*8-1 downto 50*8-32*8);
       else
-         assert rx(32*8-1 downto 32*8-size*8) = tx.data(60*8-1 downto 60*8-size*8);
+         assert rx(32*8-1 downto 32*8-(size-10)*8) = tx.data(50*8-1 downto 50*8-(size-10)*8);
       end if;
 
    end procedure test_frame;
@@ -160,13 +160,13 @@ begin
       wait until clk = '1';
 
       test_frame(16, sim_tx, debug);
-
       wait for 100 ns; -- Make a short pause for easier debugging.
-
       test_frame(32, sim_tx, debug);
-
       wait for 100 ns; -- Make a short pause for easier debugging.
-
+      test_frame(42, sim_tx, debug);
+      wait for 100 ns; -- Make a short pause for easier debugging.
+      test_frame(43, sim_tx, debug);
+      wait for 100 ns; -- Make a short pause for easier debugging.
       test_frame(60, sim_tx, debug);
 
       -- Stop test
