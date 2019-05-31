@@ -20,8 +20,8 @@ architecture simulation of tb_math is
    signal rst          : std_logic;
 
    -- Signals conected to DUT
-   signal sim_tx       : t_sim;
-   signal sim_rx       : t_sim;
+   signal cmd          : t_sim;
+   signal resp         : t_sim;
    signal debug        : std_logic_vector(255 downto 0);
 
    signal exp          : t_sim;
@@ -60,14 +60,14 @@ begin
       clk_i      => clk,
       rst_i      => rst,
       debug_o    => debug,
-      rx_valid_i => sim_rx.valid,
-      rx_data_i  => sim_rx.data,
-      rx_last_i  => sim_rx.last,
-      rx_bytes_i => sim_rx.bytes,
-      tx_valid_o => sim_tx.valid,
-      tx_data_o  => sim_tx.data,
-      tx_last_o  => sim_tx.last,
-      tx_bytes_o => sim_tx.bytes
+      rx_valid_i => cmd.valid,
+      rx_data_i  => cmd.data,
+      rx_last_i  => cmd.last,
+      rx_bytes_i => cmd.bytes,
+      tx_valid_o => resp.valid,
+      tx_data_o  => resp.data,
+      tx_last_o  => resp.last,
+      tx_bytes_o => resp.bytes
    ); -- i_math
 
 
@@ -78,39 +78,52 @@ begin
    main_test_proc : process
 
       -- Verify MULT processing
-      procedure verify_mult(signal tx : inout t_sim;
-                            signal rx : in    t_sim) is
+      procedure verify_mult(val1 : integer;
+                            val2 : integer;
+                            res  : integer) is
       begin
 
-         report "Verify MULT processing.";
+         report "Verify MULT: " & integer'image(val1) & 
+         "*" & integer'image(val2) & "=" & integer'image(res);
 
-         -- Send one ARP request
-         tx.valid <= '1';
-         tx.data  <= (others => '0');
-         tx.last  <= '1';
-         tx.bytes <= (others => '0');       -- Frame size 60 bytes.
+         cmd.valid <= '1';
+         cmd.data  <= (others => '0');
+         cmd.data(60*8-1 downto 42*8)  <= X"0101" &
+            to_stdlogicvector(val1, 64) & 
+            to_stdlogicvector(val2, 64);
+         cmd.last  <= '1';
+         cmd.bytes <= to_stdlogicvector(18, 6);
          wait until clk = '1';
-         tx.valid <= '0';
+         cmd.valid <= '0';
 
          -- Build expected response
          exp.data  <= (others => '0');
+         exp.data(60*8-1 downto 60*8-64)  <= 
+            to_stdlogicvector(res,64);
          exp.last  <= '1';
-         exp.bytes <= (others => '0');
+         exp.bytes <= to_stdlogicvector(18, 6);
 
-         -- Verify ARP response is correct
-         wait until clk = '1' and rx.valid = '1';
+         -- Verify received response is correct
+         wait until clk = '1' and resp.valid = '1';
          wait until clk = '0';
-         assert rx.data  = exp.data;
-         assert rx.last  = exp.last;
-         assert rx.bytes = exp.bytes;
+         assert resp.data  = exp.data;
+         assert resp.last  = exp.last;
+         assert resp.bytes = exp.bytes;
       end procedure verify_mult;
 
    begin
       -- Wait until reset is complete
-      sim_tx.valid <= '0';
+      cmd.valid <= '0';
       wait until clk = '1' and rst = '0';
 
-      verify_mult(sim_tx, sim_rx);
+      for a in 0 to 3 loop 
+         for b in 0 to 3 loop 
+            verify_mult(a, b, a*b);
+         end loop;
+      end loop;
+
+      verify_mult(  7, 13,   91);
+      verify_mult(100, 10, 1000);
 
       -- Stop test
       wait until clk = '1';

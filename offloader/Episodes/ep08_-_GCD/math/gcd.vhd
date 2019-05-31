@@ -54,8 +54,8 @@ architecture Behavioral of gcd is
 
 begin
 
-   res_o   <= val1;
-   valid_o <= '1' when state = DONE_ST else '0';
+   res_o   <= val1 when state = DONE_ST else (others => '0');
+   valid_o <= '1'  when state = DONE_ST else '0';
 
    p_fsm : process (clk_i) is
       variable res1 : std_logic_vector(G_SIZE-1 downto 0);

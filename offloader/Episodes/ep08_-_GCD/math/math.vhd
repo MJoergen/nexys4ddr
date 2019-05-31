@@ -26,24 +26,49 @@ end math;
 
 architecture Structural of math is
 
-   -- The UDP payload consists of 60-42=18 bytes in the first clock cycle.
-   constant C_SIZE : integer := 9*8;
+   constant C_SIZE   : integer := 64;
 
-   -- Signals connected to GCD
-   signal val1  : std_logic_vector(C_SIZE-1 downto 0);
-   signal val2  : std_logic_vector(C_SIZE-1 downto 0);
-   signal start : std_logic;
-   signal res   : std_logic_vector(C_SIZE-1 downto 0);
-   signal valid : std_logic;
+   signal cmd        : std_logic_vector(15 downto 0);
 
-   signal debug    : std_logic_vector(255 downto 0) := 
-      X"FEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFEFE";
+   signal val1       : std_logic_vector(C_SIZE-1 downto 0);
+   signal val2       : std_logic_vector(C_SIZE-1 downto 0);
+
+   signal mult_start : std_logic;
+   signal mult_res   : std_logic_vector(C_SIZE-1 downto 0);
+   signal mult_valid : std_logic;
+
+   signal gcd_start  : std_logic;
+   signal gcd_res    : std_logic_vector(C_SIZE-1 downto 0);
+   signal gcd_valid  : std_logic;
+
+   signal res        : std_logic_vector(C_SIZE-1 downto 0);
+   signal valid      : std_logic;
+
+   signal debug      : std_logic_vector(255 downto 0);
+
 begin
 
    -- We just ignore rx_last_i and rx_bytes_i.
-   val1  <= rx_data_i(60*8-1        downto 60*8-C_SIZE);
-   val2  <= rx_data_i(60*8-1-C_SIZE downto 60*8-C_SIZE*2);
-   start <= rx_valid_i;
+   cmd   <= rx_data_i(60*8-1        downto 58*8);
+   val1  <= rx_data_i(58*8-1        downto 58*8-C_SIZE);
+   val2  <= rx_data_i(58*8-1-C_SIZE downto 58*8-C_SIZE*2);
+
+   mult_start <= rx_valid_i when cmd = X"0101" else '0';
+   gcd_start  <= rx_valid_i when cmd = X"0102" else '0';
+
+   i_mult : entity work.mult
+   generic map (
+      G_SIZE => C_SIZE
+   )
+   port map ( 
+      clk_i   => clk_i,
+      rst_i   => rst_i,
+      val1_i  => val1,
+      val2_i  => val2,
+      start_i => mult_start,
+      res_o   => mult_res,
+      valid_o => mult_valid
+   );
 
    i_gcd : entity work.gcd
    generic map (
@@ -54,14 +79,17 @@ begin
       rst_i   => rst_i,
       val1_i  => val1,
       val2_i  => val2,
-      start_i => start,
-      res_o   => res,
-      valid_o => valid
+      start_i => gcd_start,
+      res_o   => gcd_res,
+      valid_o => gcd_valid
    );
 
+   valid <= mult_valid or gcd_valid;
+   res   <= mult_res   or gcd_res;
+
    tx_valid_o <= valid;
-   tx_data_o(60*8-1        downto 60*8-C_SIZE)   <= res;
-   tx_data_o(60*8-1-C_SIZE downto 60*8-C_SIZE*2) <= (others => '0');
+   tx_data_o(60*8-1        downto 60*8-C_SIZE) <= res;
+   tx_data_o(60*8-1-C_SIZE downto 0)           <= (others => '0');
    tx_bytes_o <= to_stdlogicvector(18, 6);
    tx_last_o  <= '1';
 

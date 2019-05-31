@@ -12,7 +12,7 @@ entity mult is
       val1_i  : in  std_logic_vector(G_SIZE-1 downto 0);
       val2_i  : in  std_logic_vector(G_SIZE-1 downto 0);
       start_i : in  std_logic;
-      res_o   : out std_logic_vector(2*G_SIZE-1 downto 0);
+      res_o   : out std_logic_vector(G_SIZE-1 downto 0);
       valid_o : out std_logic
    );
 end mult;
@@ -38,11 +38,11 @@ begin
 
          case state_r is
             when IDLE_ST =>
+               res_r  <= C_ZERO & C_ZERO;
                if start_i = '1' then
-                  mult_r <= val1_i;
-                  add_r  <= val2_i;
-                  res_r  <= C_ZERO;
-                  state  <= MULT_ST;
+                  mult_r  <= val1_i;
+                  add_r   <= C_ZERO & val2_i;
+                  state_r <= MULT_ST;
                end if;
 
             when MULT_ST =>
@@ -54,7 +54,7 @@ begin
                add_r <= add_r(2*G_SIZE-2 downto 0) & '0';
 
                if mult_r = 0 then
-                  state <= DONE_ST;
+                  state_r <= DONE_ST;
                end if;
 
             when DONE_ST =>
@@ -70,7 +70,7 @@ begin
    end process p_fsm;
 
    -- Connect output signals
-   res_o   <= res_r;
+   res_o   <= res_r(G_SIZE-1 downto 0) when state_r = IDLE_ST else (others => '0');
    valid_o <= valid_r;
 
 end Behavioral;
