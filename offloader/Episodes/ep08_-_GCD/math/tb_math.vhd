@@ -109,13 +109,52 @@ begin
          assert resp.data  = exp.data;
          assert resp.last  = exp.last;
          assert resp.bytes = exp.bytes;
+         wait until clk = '1' and resp.valid = '0';
+         wait until clk = '0';
       end procedure verify_mult;
+
+      -- Verify GCD processing
+      procedure verify_gcd(val1 : integer;
+                           val2 : integer;
+                           res  : integer) is
+      begin
+
+         report "Verify GCD: " & integer'image(val1) & 
+         "*" & integer'image(val2) & "=" & integer'image(res);
+
+         cmd.valid <= '1';
+         cmd.data  <= (others => '0');
+         cmd.data(60*8-1 downto 42*8)  <= X"0102" &
+            to_stdlogicvector(val1, 64) & 
+            to_stdlogicvector(val2, 64);
+         cmd.last  <= '1';
+         cmd.bytes <= to_stdlogicvector(18, 6);
+         wait until clk = '1';
+         cmd.valid <= '0';
+
+         -- Build expected response
+         exp.data  <= (others => '0');
+         exp.data(60*8-1 downto 60*8-64)  <= 
+            to_stdlogicvector(res,64);
+         exp.last  <= '1';
+         exp.bytes <= to_stdlogicvector(18, 6);
+
+         -- Verify received response is correct
+         wait until clk = '1' and resp.valid = '1';
+         wait until clk = '0';
+         assert resp.data  = exp.data;
+         assert resp.last  = exp.last;
+         assert resp.bytes = exp.bytes;
+         wait until clk = '1' and resp.valid = '0';
+         wait until clk = '0';
+      end procedure verify_gcd;
 
    begin
       -- Wait until reset is complete
       cmd.valid <= '0';
       wait until clk = '1' and rst = '0';
 
+      -- Verify MULT
       for a in 0 to 3 loop 
          for b in 0 to 3 loop 
             verify_mult(a, b, a*b);
@@ -124,6 +163,38 @@ begin
 
       verify_mult(  7, 13,   91);
       verify_mult(100, 10, 1000);
+
+      -- Verify GCD
+      verify_gcd(0, 0, 0);
+      verify_gcd(1, 0, 0);
+      verify_gcd(0, 1, 0);
+      verify_gcd(1, 1, 1);
+      verify_gcd(1, 2, 1);
+      verify_gcd(1, 3, 1);
+      verify_gcd(1, 4, 1);
+      verify_gcd(2, 1, 1);
+      verify_gcd(2, 2, 2);
+      verify_gcd(2, 3, 1);
+      verify_gcd(2, 4, 2);
+      verify_gcd(3, 1, 1);
+      verify_gcd(3, 2, 1);
+      verify_gcd(3, 3, 3);
+      verify_gcd(3, 4, 1);
+      verify_gcd(4, 1, 1);
+      verify_gcd(4, 2, 2);
+      verify_gcd(4, 3, 1);
+      verify_gcd(4, 4, 4);
+      verify_gcd(30, 35, 5);
+      verify_gcd(35, 30, 5);
+      verify_gcd(36, 30, 6);
+      verify_gcd(36, 32, 4);
+      verify_gcd(37, 30, 1);
+      verify_gcd(70, 30, 10);
+      verify_gcd(150, 30, 30);
+      verify_gcd(250, 30, 10);
+      verify_gcd(253, 30, 1);
+      verify_gcd(252, 30, 6);
+      
 
       -- Stop test
       wait until clk = '1';
