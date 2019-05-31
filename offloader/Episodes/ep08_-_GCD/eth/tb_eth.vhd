@@ -358,10 +358,12 @@ begin
 
       -- Verify UDP processing
       procedure verify_udp(signal tx : inout t_sim;
-                           signal rx : in    t_sim) is
+                           signal rx : in    t_sim;
+                           constant size : integer) is
+         variable remain : integer;                              
       begin
 
-         report "Verify UDP processing.";
+         report "Verify UDP processing, payload size is " & integer'image(size) & " bytes.";
 
          -- Build UDP request
          tx.data  <= (others => '0');
@@ -370,7 +372,7 @@ begin
          tx.data(R_MAC_TLEN)  <= X"0800";
          tx.data(R_IP_VIHL)   <= X"45";
          tx.data(R_IP_DSCP)   <= X"00";
-         tx.data(R_IP_LEN)    <= X"002E";
+         tx.data(R_IP_LEN)    <= to_stdlogicvector(20+8+size, 16);
          tx.data(R_IP_ID)     <= X"0000";
          tx.data(R_IP_FRAG)   <= X"0000";
          tx.data(R_IP_TTL)    <= X"40";
@@ -380,21 +382,36 @@ begin
          tx.data(R_IP_DST)    <= C_DUT_IP;
          tx.data(R_UDP_SRC)   <= X"4321";
          tx.data(R_UDP_DST)   <= C_DUT_UDP;
-         tx.data(R_UDP_LEN)   <= X"001A";
+         tx.data(R_UDP_LEN)   <= to_stdlogicvector(8+size, 16);
          tx.data(R_UDP_CSUM)  <= X"0000";
-         tx.data(R_UDP_HDR'right-1 downto 0) <= X"000102030405060708090A0B0C0D0E0F1011";       -- UDP payload
-         tx.last  <= '1';
-         tx.bytes <= (others => '0');       -- Frame size 60 bytes.
-         tx.valid <= '0';
+
+         -- UDP payload
+         if size <= 18 then
+            for i in 0 to size-1 loop
+               tx.data(R_UDP_HDR'right-1-i*8 downto R_UDP_HDR'right-8-i*8) <=
+                  to_stdlogicvector(i+size, 8);
+            end loop;
+            tx.last  <= '1';
+            tx.bytes <= (others => '0');  -- Minimum frame size is 60 bytes.
+            tx.valid <= '0';
+         else
+            for i in 0 to 17 loop
+               tx.data(R_UDP_HDR'right-1-i*8 downto R_UDP_HDR'right-8-i*8) <=
+                  to_stdlogicvector(i+size, 8);
+            end loop;
+            tx.last  <= '0';
+            tx.bytes <= (others => '0');  -- Minimum frame size is 60 bytes.
+            tx.valid <= '0';
+         end if;
 
          -- Build expected response
-         exp.data  <= (others => '0');
+         exp.data  <= (others => '1');
          exp.data(R_MAC_DST)   <= X"AABBCCDDEEFF";
          exp.data(R_MAC_SRC)   <= C_DUT_MAC;
          exp.data(R_MAC_TLEN)  <= X"0800";
          exp.data(R_IP_VIHL)   <= X"45";
          exp.data(R_IP_DSCP)   <= X"00";
-         exp.data(R_IP_LEN)    <= X"002E";
+         exp.data(R_IP_LEN)    <= to_stdlogicvector(20+8+size, 16);
          exp.data(R_IP_ID)     <= X"0000";
          exp.data(R_IP_FRAG)   <= X"0000";
          exp.data(R_IP_TTL)    <= X"40";
@@ -404,12 +421,27 @@ begin
          exp.data(R_IP_DST)    <= X"C0A80101";
          exp.data(R_UDP_SRC)   <= C_DUT_UDP;
          exp.data(R_UDP_DST)   <= X"4321";
-         exp.data(R_UDP_LEN)   <= X"001A";
+         exp.data(R_UDP_LEN)   <= to_stdlogicvector(8+size, 16);
          exp.data(R_UDP_CSUM)  <= X"0000";
-         exp.data(R_UDP_HDR'right-1 downto 0) <= X"FFFEFDFCFBFAF9F8F7F6F5F4F3F2F1F0EFEE";       -- UDP payload
-         exp.last  <= '1';
-         exp.bytes <= (others => '0');
-         exp.valid <= '0';
+
+         -- UDP payload
+         if size <= 18 then
+            for i in 0 to size-1 loop
+               exp.data(R_UDP_HDR'right-1-i*8 downto R_UDP_HDR'right-8-i*8) <=
+                  not to_stdlogicvector(i+size, 8);
+            end loop;
+            exp.last  <= '1';
+            exp.bytes <= (others => '0');  -- Minimum frame size is 60 bytes.
+            exp.valid <= '0';
+         else
+            for i in 0 to 17 loop
+               exp.data(R_UDP_HDR'right-1-i*8 downto R_UDP_HDR'right-8-i*8) <=
+                  not to_stdlogicvector(i+size, 8);
+            end loop;
+            exp.last  <= '0';
+            exp.bytes <= (others => '0');  -- Minimum frame size is 60 bytes.
+            exp.valid <= '0';
+         end if;
 
          -- Wait one clock cycle.
          wait until clk = '1';
@@ -422,12 +454,45 @@ begin
          wait until clk = '1';
          tx.valid <= '0';
 
+         if size > 18 then
+            tx.data <= (others => '0');
+            for i in 18 to size-1 loop
+               tx.data(78*8-1-i*8 downto 78*8-8-i*8) <=
+                  to_stdlogicvector(i+size, 8);
+            end loop;
+            tx.last  <= '1';
+            tx.bytes <= to_stdlogicvector(size-18, 6);
+            tx.valid <= '1';
+            wait until clk = '1';
+            tx.valid <= '0';
+         end if;
+
+
          -- Verify UDP response is correct
          wait until clk = '1' and rx.valid = '1';
          wait until clk = '0';
          assert rx.data  = exp.data;
          assert rx.last  = exp.last;
          assert rx.bytes = exp.bytes;
+
+         if size > 18 then
+            exp.data <= (others => '1');
+            for i in 18 to size-1 loop
+               exp.data(78*8-1-i*8 downto 78*8-8-i*8) <=
+                  not to_stdlogicvector(i+size, 8);
+            end loop;
+            exp.last  <= '1';
+            exp.bytes <= to_stdlogicvector(size-18, 6);
+            exp.valid <= '0';
+
+            if rx.valid = '0' then
+               wait until clk = '1' and rx.valid = '1';
+               wait until clk = '0';
+            end if;
+            assert rx.data  = exp.data;
+            assert rx.last  = exp.last;
+            assert rx.bytes = exp.bytes;
+         end if;
 
       end procedure verify_udp;
 
@@ -439,17 +504,31 @@ begin
       wait until clk = '1';
 
       verify_arp(sim_tx, sim_rx);
-
-      -- Wait a little while to ease debugging                                               
-      wait for 200 ns;
-
+      wait for 100 ns; -- Wait a little while to ease debugging                                               
       verify_icmp(sim_tx, sim_rx);
-    
-      -- Wait a little while to ease debugging                                               
-      wait for 200 ns;
-
-      verify_udp(sim_tx, sim_rx);
-    
+      wait for 100 ns; -- Wait a little while to ease debugging                                               
+      verify_udp(sim_tx, sim_rx, 1);
+      wait for 100 ns; -- Wait a little while to ease debugging                                               
+      verify_udp(sim_tx, sim_rx, 2);
+      wait for 100 ns; -- Wait a little while to ease debugging                                               
+      verify_udp(sim_tx, sim_rx, 17);
+      wait for 100 ns; -- Wait a little while to ease debugging                                               
+      verify_udp(sim_tx, sim_rx, 19);
+      wait for 100 ns; -- Wait a little while to ease debugging                                               
+      verify_udp(sim_tx, sim_rx, 20);
+      wait for 100 ns; -- Wait a little while to ease debugging                                               
+      verify_udp(sim_tx, sim_rx, 21);
+      wait for 100 ns; -- Wait a little while to ease debugging                                               
+      verify_udp(sim_tx, sim_rx, 42);
+      wait for 100 ns; -- Wait a little while to ease debugging                                               
+      verify_udp(sim_tx, sim_rx, 59);
+      wait for 100 ns; -- Wait a little while to ease debugging                                               
+      verify_udp(sim_tx, sim_rx, 60);
+      wait for 100 ns; -- Wait a little while to ease debugging                                               
+      verify_udp(sim_tx, sim_rx, 61);
+      wait for 100 ns; -- Wait a little while to ease debugging                                               
+      verify_udp(sim_tx, sim_rx, 63);
+      wait for 100 ns; -- Wait a little while to ease debugging                                               
       -- Wait a little while to ease debugging                                               
       wait for 200 ns;
 

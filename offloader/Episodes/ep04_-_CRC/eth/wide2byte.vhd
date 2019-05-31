@@ -59,6 +59,16 @@ architecture Structural of wide2byte is
       
 begin
 
+   -- Check that 'bytes' is zero except possibly at end of frame.
+   p_assert : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if rx_valid_i = '1' and rx_last_i = '0' then -- Not end of frame
+            assert rx_bytes_i = 0;
+         end if;
+      end if;
+   end process p_assert;
+
    -- Store payload data in a fifo
    wr_en                                   <= rx_valid_i;
    wr_data(G_BYTES*8+8)                    <= rx_last_i;
@@ -138,8 +148,11 @@ begin
                      if bytes_s = 0 then
                         bytes_r <= to_stdlogicvector(G_BYTES mod 64, 6);
                      end if;
-                     rd_en   <= '1';                              -- Consume more data from FIFO.
-                     assert rd_empty = '0';                       -- If no more data available, this is an error.
+                     if last_s = '1' and bytes_s = 1 then            -- In case frame only contains one byte.
+                        tx_last_r <= '1';
+                     end if;
+                     rd_en   <= '1';                                 -- Consume more data from FIFO.
+                     assert rd_empty = '0';                          -- If no more data available, this is an error.
                   end if;
 
                   if tx_last_r = '1' then                            -- Last byte has been read.

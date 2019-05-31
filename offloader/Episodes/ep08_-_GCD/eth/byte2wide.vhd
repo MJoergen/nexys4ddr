@@ -70,6 +70,9 @@ begin
 
             when FWD_ST =>
                if rx_valid_i = '1' then
+                  if tx_bytes_r = 0 then
+                     tx_data_r <= (others => '0');
+                  end if;
                   tx_data_r(G_BYTES*8-1-to_integer(tx_bytes_r)*8 downto    -- Write next byte
                             G_BYTES*8-8-to_integer(tx_bytes_r)*8) <= rx_data_i;
                   tx_bytes_r <= tx_bytes_r + 1;
