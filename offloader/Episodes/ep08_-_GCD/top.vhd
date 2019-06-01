@@ -151,34 +151,22 @@ begin
    -- Instantiate Clock Domain Crossing
    --------------------------------------------------
 
-
-   eth_rx(60*8-1 downto 0)       <= eth_rx_data;
-   eth_rx(60*8+5 downto 60*8)    <= eth_rx_bytes;
-   eth_rx(60*8+7 downto 60*8+6)  <= "00";
-   eth_rx(60*8+8)                <= eth_rx_last;
-
-   i_fifo_em : entity work.fifo
-   generic map (
-      G_WIDTH => eth_rx'length
-   )
+   i_wide_fifo_eth2math : entity work.wide_fifo
    port map (
-      wr_clk_i   => eth_clk,
-      wr_rst_i   => eth_rst,
-      wr_en_i    => eth_rx_valid,
-      wr_data_i  => eth_rx,
-      rd_clk_i   => math_clk,
-      rd_rst_i   => math_rst,
-      rd_en_i    => math_rden,
-      rd_data_o  => math_rx,
-      rd_empty_o => math_empty
-   ); -- i_fifo_em
+      a_clk_i    => eth_clk,
+      a_rst_i    => eth_rst,
+      a_valid_i  => eth_rx_valid,
+      a_data_i   => eth_rx_data,
+      a_last_i   => eth_rx_last,
+      a_bytes_i  => eth_rx_bytes,
+      b_clk_i    => math_clk,
+      b_rst_i    => math_rst,
+      b_valid_o  => math_rx_valid,
+      b_data_o   => math_rx_data,
+      b_last_o   => math_rx_last,
+      b_bytes_o  => math_rx_bytes
+   ); -- i_wide_fifo_eth2math
 
-   math_rden <= not math_empty;
-
-   math_rx_valid   <= math_rden;
-   math_rx_data    <= math_rx(60*8-1 downto 0);
-   math_rx_bytes   <= math_rx(60*8+5 downto 60*8);
-   math_rx_last    <= math_rx(60*8+8);
 
    --------------------------------------------------
    -- Instantiate math module
@@ -199,33 +187,26 @@ begin
       tx_bytes_o => math_tx_bytes
    ); -- i_math
 
-   math_tx(60*8-1 downto 0)       <= math_tx_data;
-   math_tx(60*8+5 downto 60*8)    <= math_tx_bytes;
-   math_tx(60*8+7 downto 60*8+6)  <= "00";
-   math_tx(60*8+8)                <= math_tx_last;
 
-   i_fifo_me : entity work.fifo
-   generic map (
-      G_WIDTH => math_rx'length
-   )
+   --------------------------------------------------
+   -- Instantiate Clock Domain Crossing
+   --------------------------------------------------
+
+   i_wide_fifo_math2eth : entity work.wide_fifo
    port map (
-      wr_clk_i   => math_clk,
-      wr_rst_i   => math_rst,
-      wr_en_i    => math_tx_valid,
-      wr_data_i  => math_tx,
-      rd_clk_i   => eth_clk,
-      rd_rst_i   => eth_rst,
-      rd_en_i    => eth_rden,
-      rd_data_o  => eth_tx,
-      rd_empty_o => eth_empty
-   ); -- i_fifo_em
-
-   eth_rden <= not eth_empty;
-
-   eth_tx_valid <= eth_rden;
-   eth_tx_data  <= eth_tx(60*8-1 downto 0);
-   eth_tx_bytes <= eth_tx(60*8+5 downto 60*8);
-   eth_tx_last  <= eth_tx(60*8+8);
+      a_clk_i    => math_clk,
+      a_rst_i    => math_rst,
+      a_valid_i  => math_tx_valid,
+      a_data_i   => math_tx_data,
+      a_last_i   => math_tx_last,
+      a_bytes_i  => math_tx_bytes,
+      b_clk_i    => eth_clk,
+      b_rst_i    => eth_rst,
+      b_valid_o  => eth_tx_valid,
+      b_data_o   => eth_tx_data,
+      b_last_o   => eth_tx_last,
+      b_bytes_o  => eth_tx_bytes
+   ); -- i_wide_fifo_math2eth
 
 
    --------------------------------------------------
