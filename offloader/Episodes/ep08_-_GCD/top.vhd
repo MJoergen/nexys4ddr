@@ -41,8 +41,12 @@ architecture structural of top is
    signal clk_cnt        : std_logic_vector(1 downto 0) := (others => '0');
    signal vga_clk        : std_logic;
    signal eth_clk        : std_logic;
+   signal math_clk       : std_logic;
 
    signal eth_rst        : std_logic;
+   signal math_rst       : std_logic;
+   signal eth_rst_v      : std_logic_vector(0 downto 0);
+   signal math_rst_v     : std_logic_vector(0 downto 0);
 
    -- Connected to UDP client
    signal eth_rx_valid   : std_logic;
@@ -54,6 +58,26 @@ architecture structural of top is
    signal eth_tx_last    : std_logic;
    signal eth_tx_bytes   : std_logic_vector(5 downto 0);
    signal eth_math_debug : std_logic_vector(255 downto 0);
+   signal eth_rx         : std_logic_vector(60*8-1 + 8 + 1 downto 0);
+   signal eth_tx         : std_logic_vector(60*8-1 + 8 + 1 downto 0);
+
+   signal eth_rden       : std_logic;
+   signal eth_empty      : std_logic;
+
+   signal math_rx_valid  : std_logic;
+   signal math_rx_data   : std_logic_vector(60*8-1 downto 0);
+   signal math_rx_last   : std_logic;
+   signal math_rx_bytes  : std_logic_vector(5 downto 0);
+   signal math_tx_valid  : std_logic;
+   signal math_tx_data   : std_logic_vector(60*8-1 downto 0);
+   signal math_tx_last   : std_logic;
+   signal math_tx_bytes  : std_logic_vector(5 downto 0);
+   signal math_debug     : std_logic_vector(255 downto 0);
+   signal math_rx        : std_logic_vector(60*8-1 + 8 + 1 downto 0);
+   signal math_tx        : std_logic_vector(60*8-1 + 8 + 1 downto 0);
+
+   signal math_rden      : std_logic;
+   signal math_empty     : std_logic;
 
    -- Test signal
    signal eth_debug      : std_logic_vector(255 downto 0);
@@ -73,8 +97,9 @@ begin
       end if;
    end process clk_cnt_proc;
 
-   vga_clk <= clk_cnt(1);  -- 25 MHz
-   eth_clk <= clk_cnt(0);  -- 50 MHz
+   vga_clk  <= clk_cnt(1);    -- 25 MHz
+   eth_clk  <= clk_cnt(0);    -- 50 MHz
+   math_clk <= clk_i;         -- 100 MHz
 
 
    --------------------------------------------------
@@ -126,6 +151,53 @@ begin
 
    eth_rst <= not eth_rstn_o;
 
+   --------------------------------------------------
+   -- Instantiate Clock Domain Crossing
+   --------------------------------------------------
+
+   eth_rst_v <= (0 => eth_rst);
+
+   i_cdc_rst : entity work.cdc
+   generic map (
+      G_WIDTH => 1
+   )
+   port map (
+      src_clk_i  => eth_clk,
+      src_data_i => eth_rst_v,
+      dst_clk_i  => math_clk,
+      dst_data_o => math_rst_v
+   ); -- i_cdc_rst
+
+   math_rst <= math_rst_v(0);
+
+
+   eth_rx(60*8-1 downto 0)       <= eth_rx_data;
+   eth_rx(60*8+5 downto 60*8)    <= eth_rx_bytes;
+   eth_rx(60*8+7 downto 60*8+6)  <= "00";
+   eth_rx(60*8+8)                <= eth_rx_last;
+
+   i_fifo_em : entity work.fifo
+   generic map (
+      G_WIDTH => eth_rx'length
+   )
+   port map (
+      wr_clk_i   => eth_clk,
+      wr_rst_i   => eth_rst,
+      wr_en_i    => eth_rx_valid,
+      wr_data_i  => eth_rx,
+      rd_clk_i   => math_clk,
+      rd_rst_i   => math_rst,
+      rd_en_i    => math_rden,
+      rd_data_o  => math_rx,
+      rd_empty_o => math_empty
+   ); -- i_fifo_em
+
+   math_rden <= not math_empty;
+
+   math_rx_valid   <= math_rden;
+   math_rx_data    <= math_rx(60*8-1 downto 0);
+   math_rx_bytes   <= math_rx(60*8+5 downto 60*8);
+   math_rx_last    <= math_rx(60*8+8);
 
    --------------------------------------------------
    -- Instantiate math module
@@ -133,18 +205,46 @@ begin
 
    i_math : entity work.math
    port map (
-      clk_i      => eth_clk,
-      rst_i      => eth_rst,
-      debug_o    => eth_math_debug,
-      rx_valid_i => eth_rx_valid,
-      rx_data_i  => eth_rx_data,
-      rx_last_i  => eth_rx_last,
-      rx_bytes_i => eth_rx_bytes,
-      tx_valid_o => eth_tx_valid,
-      tx_data_o  => eth_tx_data,
-      tx_last_o  => eth_tx_last,
-      tx_bytes_o => eth_tx_bytes
+      clk_i      => math_clk,
+      rst_i      => math_rst,
+      debug_o    => math_debug,
+      rx_valid_i => math_rx_valid,
+      rx_data_i  => math_rx_data,
+      rx_last_i  => math_rx_last,
+      rx_bytes_i => math_rx_bytes,
+      tx_valid_o => math_tx_valid,
+      tx_data_o  => math_tx_data,
+      tx_last_o  => math_tx_last,
+      tx_bytes_o => math_tx_bytes
    ); -- i_math
+
+   math_tx(60*8-1 downto 0)       <= math_tx_data;
+   math_tx(60*8+5 downto 60*8)    <= math_tx_bytes;
+   math_tx(60*8+7 downto 60*8+6)  <= "00";
+   math_tx(60*8+8)                <= math_tx_last;
+
+   i_fifo_me : entity work.fifo
+   generic map (
+      G_WIDTH => math_rx'length
+   )
+   port map (
+      wr_clk_i   => math_clk,
+      wr_rst_i   => math_rst,
+      wr_en_i    => math_tx_valid,
+      wr_data_i  => math_tx,
+      rd_clk_i   => eth_clk,
+      rd_rst_i   => eth_rst,
+      rd_en_i    => eth_rden,
+      rd_data_o  => eth_tx,
+      rd_empty_o => eth_empty
+   ); -- i_fifo_em
+
+   eth_rden <= not eth_empty;
+
+   eth_tx_valid <= eth_rden;
+   eth_tx_data  <= eth_tx(60*8-1 downto 0);
+   eth_tx_bytes <= eth_tx(60*8+5 downto 60*8);
+   eth_tx_last  <= eth_tx(60*8+8);
 
 
    --------------------------------------------------
@@ -156,8 +256,8 @@ begin
       G_WIDTH => 256
    )
    port map (
-      src_clk_i  => eth_clk,
-      src_data_i => eth_math_debug,
+      src_clk_i  => math_clk,
+      src_data_i => math_debug,
       dst_clk_i  => vga_clk,
       dst_data_o => vga_hex
    ); -- i_cdc
