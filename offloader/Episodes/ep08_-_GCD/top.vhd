@@ -37,16 +37,13 @@ architecture structural of top is
    constant C_MY_IP      : std_logic_vector(31 downto 0) := X"C0A8014D";     -- 192.168.1.77
    constant C_MY_UDP     : std_logic_vector(15 downto 0) := X"1234";         -- 4660
 
-   -- Clock divider for VGA and ETH
-   signal clk_cnt        : std_logic_vector(1 downto 0) := (others => '0');
+   -- Clock and reset
    signal vga_clk        : std_logic;
+   signal vga_rst        : std_logic;
    signal eth_clk        : std_logic;
-   signal math_clk       : std_logic;
-
    signal eth_rst        : std_logic;
+   signal math_clk       : std_logic;
    signal math_rst       : std_logic;
-   signal eth_rst_v      : std_logic_vector(0 downto 0);
-   signal math_rst_v     : std_logic_vector(0 downto 0);
 
    -- Connected to UDP client
    signal eth_rx_valid   : std_logic;
@@ -85,21 +82,20 @@ architecture structural of top is
 
 begin
    
-   --------------------------------------------------
-   -- Divide input clock by 4, from 100 MHz to 25 MHz
-   -- This is close enough to 25.175 MHz.
-   --------------------------------------------------
+   --------------------------------------
+   -- Instantiate Clock and Reset module
+   --------------------------------------
 
-   clk_cnt_proc : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         clk_cnt <= clk_cnt + 1;
-      end if;
-   end process clk_cnt_proc;
-
-   vga_clk  <= clk_cnt(1);    -- 25 MHz
-   eth_clk  <= clk_cnt(0);    -- 50 MHz
-   math_clk <= clk_i;         -- 100 MHz
+   i_clk_rst : entity work.clk_rst
+   port map (
+      sys_clk_i  => clk_i,
+      vga_clk_o  => vga_clk,
+      vga_rst_o  => vga_rst,
+      eth_clk_o  => eth_clk,
+      eth_rst_o  => eth_rst,
+      math_clk_o => math_clk,
+      math_rst_o => math_rst
+   ); -- i_clk_rst
 
 
    --------------------------------------------------
@@ -128,6 +124,7 @@ begin
    )
    port map (
       clk_i          => eth_clk,
+      rst_i          => eth_rst,
       debug_o        => eth_debug,
       udp_rx_valid_o => eth_rx_valid,
       udp_rx_data_o  => eth_rx_data,
@@ -149,26 +146,10 @@ begin
       eth_refclk_o   => eth_refclk_o
    ); -- i_eth
 
-   eth_rst <= not eth_rstn_o;
 
    --------------------------------------------------
    -- Instantiate Clock Domain Crossing
    --------------------------------------------------
-
-   eth_rst_v <= (0 => eth_rst);
-
-   i_cdc_rst : entity work.cdc
-   generic map (
-      G_WIDTH => 1
-   )
-   port map (
-      src_clk_i  => eth_clk,
-      src_data_i => eth_rst_v,
-      dst_clk_i  => math_clk,
-      dst_data_o => math_rst_v
-   ); -- i_cdc_rst
-
-   math_rst <= math_rst_v(0);
 
 
    eth_rx(60*8-1 downto 0)       <= eth_rx_data;

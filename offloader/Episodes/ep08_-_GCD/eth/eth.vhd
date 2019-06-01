@@ -15,6 +15,7 @@ entity eth is
    );
    port (
       clk_i          : in    std_logic;           -- Must be 50 MHz.
+      rst_i          : in    std_logic;           -- Must be at least 25 ms.
       debug_o        : out   std_logic_vector(255 downto 0);
 
       -- Connected to UDP client
@@ -42,9 +43,6 @@ entity eth is
 end eth;
 
 architecture Structural of eth is
-
-   signal rst         : std_logic                     := '1';
-   signal rst_cnt     : std_logic_vector(20 downto 0) := (others => '1');
 
    -- Output from eth_rx
    signal rx_valid    : std_logic;
@@ -99,38 +97,13 @@ architecture Structural of eth is
 begin
 
    --------------------------------------------------
-   -- Generate reset.
-   -- The Ethernet PHY requires a reset pulse of at least 25 ms according to
-   -- the data sheet.
-   -- The reset pulse generated here will have a length of 2^21 cycles at 50
-   -- MHz, i.e. 42 ms.
-   --------------------------------------------------
-
-   p_eth_rst : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if rst_cnt /= 0 then
-            rst_cnt <= rst_cnt - 1;
-         else
-            rst <= '0';
-         end if;
-
--- pragma synthesis_off
--- This is added to make the reset pulse much shorter during simulation.
-         rst_cnt(20 downto 4) <= (others => '0');
--- pragma synthesis_on
-      end if;
-   end process p_eth_rst;
-
-
-   --------------------------------------------------
    -- Instantiate Rx path
    --------------------------------------------------
 
    i_eth_rx : entity work.eth_rx
    port map (
       eth_clk_i   => clk_i,
-      eth_rst_i   => rst,
+      eth_rst_i   => rst_i,
       eth_rxd_i   => eth_rxd_i,
       eth_rxerr_i => eth_rxerr_i,
       eth_crsdv_i => eth_crsdv_i,
@@ -143,7 +116,7 @@ begin
    i_strip_crc : entity work.strip_crc
    port map (
       clk_i       => clk_i,
-      rst_i       => rst,
+      rst_i       => rst_i,
       rx_valid_i  => rx_valid,
       rx_data_i   => rx_data,
       rx_last_i   => rx_last,
@@ -159,7 +132,7 @@ begin
    )
    port map (
       clk_i       => clk_i,
-      rst_i       => rst,
+      rst_i       => rst_i,
       rx_valid_i  => st_valid,
       rx_data_i   => st_data,
       rx_last_i   => st_last,
@@ -181,7 +154,7 @@ begin
    )
    port map (
       clk_i      => clk_i,
-      rst_i      => rst,
+      rst_i      => rst_i,
       rx_valid_i => bw_valid,
       rx_data_i  => bw_data,
       rx_last_i  => bw_last,
@@ -206,7 +179,7 @@ begin
    )
    port map (
       clk_i      => clk_i,
-      rst_i      => rst,
+      rst_i      => rst_i,
       rx_valid_i => bw_valid,
       rx_data_i  => bw_data,
       rx_last_i  => bw_last,
@@ -232,7 +205,7 @@ begin
    )
    port map (
       clk_i          => clk_i,
-      rst_i          => rst,
+      rst_i          => rst_i,
       rx_phy_valid_i => bw_valid,
       rx_phy_data_i  => bw_data,
       rx_phy_last_i  => bw_last,
@@ -277,7 +250,7 @@ begin
    )
    port map (
       clk_i       => clk_i,
-      rst_i       => rst,
+      rst_i       => rst_i,
       rx_valid_i  => arb_valid,
       rx_data_i   => arb_data,
       rx_last_i   => arb_last,
@@ -292,7 +265,7 @@ begin
    i_eth_tx : entity work.eth_tx
    port map (
       eth_clk_i  => clk_i,
-      eth_rst_i  => rst,
+      eth_rst_i  => rst_i,
       tx_data_i  => wb_data,
       tx_last_i  => wb_last,
       tx_empty_i => wb_empty,
@@ -308,7 +281,7 @@ begin
    --------------------------------------------------
 
    eth_refclk_o <= clk_i;
-   eth_rstn_o   <= not rst;
+   eth_rstn_o   <= not rst_i;
    debug_o      <= udp_debug;
 
 end Structural;
