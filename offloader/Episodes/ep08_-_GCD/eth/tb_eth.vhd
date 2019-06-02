@@ -143,6 +143,7 @@ begin
    )
    port map (
       clk_i          => clk,
+      rst_i          => rst,
       debug_o        => debug,
       udp_rx_valid_o => udp_rx_valid,
       udp_rx_data_o  => udp_rx_data,
