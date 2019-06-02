@@ -54,12 +54,6 @@ architecture structural of top is
    signal eth_tx_data    : std_logic_vector(60*8-1 downto 0);
    signal eth_tx_last    : std_logic;
    signal eth_tx_bytes   : std_logic_vector(5 downto 0);
-   signal eth_math_debug : std_logic_vector(255 downto 0);
-   signal eth_rx         : std_logic_vector(60*8-1 + 8 + 1 downto 0);
-   signal eth_tx         : std_logic_vector(60*8-1 + 8 + 1 downto 0);
-
-   signal eth_rden       : std_logic;
-   signal eth_empty      : std_logic;
 
    signal math_rx_valid  : std_logic;
    signal math_rx_data   : std_logic_vector(60*8-1 downto 0);
@@ -70,11 +64,6 @@ architecture structural of top is
    signal math_tx_last   : std_logic;
    signal math_tx_bytes  : std_logic_vector(5 downto 0);
    signal math_debug     : std_logic_vector(255 downto 0);
-   signal math_rx        : std_logic_vector(60*8-1 + 8 + 1 downto 0);
-   signal math_tx        : std_logic_vector(60*8-1 + 8 + 1 downto 0);
-
-   signal math_rden      : std_logic;
-   signal math_empty     : std_logic;
 
    -- Test signal
    signal eth_debug      : std_logic_vector(255 downto 0);
@@ -218,8 +207,8 @@ begin
       G_WIDTH => 256
    )
    port map (
-      src_clk_i  => math_clk,
-      src_data_i => math_debug,
+      src_clk_i  => eth_clk,
+      src_data_i => eth_debug,
       dst_clk_i  => vga_clk,
       dst_data_o => vga_hex
    ); -- i_cdc

@@ -56,12 +56,22 @@ begin
       rd_empty_o => b_empty
    ); -- i_fifo
 
-   b_rden <= not b_empty;
+   p_b_rden : process (b_clk_i)
+   begin
+      if rising_edge(b_clk_i) then
 
-   b_valid_o <= b_rden;
-   b_data_o  <= b_fifo_out(60*8-1 downto 0);
-   b_bytes_o <= b_fifo_out(60*8+5 downto 60*8);
-   b_last_o  <= b_fifo_out(60*8+8);
+         b_rden    <= '0';
+         b_valid_o <= '0';
+         b_data_o  <= b_fifo_out(60*8-1 downto 0);
+         b_bytes_o <= b_fifo_out(60*8+5 downto 60*8);
+         b_last_o  <= b_fifo_out(60*8+8);
+
+         if b_rden = '0' and b_empty = '0' then
+            b_rden    <= '1';
+            b_valid_o <= '1';
+         end if;
+      end if;
+   end process p_b_rden;
 
 end architecture structural;
 

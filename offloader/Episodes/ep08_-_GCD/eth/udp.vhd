@@ -73,6 +73,7 @@ architecture Structural of udp is
    signal tx_cli_data_d  : std_logic_vector(60*8-1 downto 0);
    signal tx_cli_last_d  : std_logic;
    signal tx_cli_bytes_d : std_logic_vector(5 downto 0);
+   signal tx_cli_first   : std_logic;
 
    signal tx_phy_valid   : std_logic;
    signal tx_phy_data    : std_logic_vector(60*8-1 downto 0);
@@ -271,8 +272,14 @@ begin
    p_debug : process (clk_i)
    begin
       if rising_edge(clk_i) then
+         if tx_cli_valid_i = '1' and tx_cli_first = '1' then
+            debug <= tx_cli_data_i(50*8-1 downto 50*8-256);
+         end if;
          if tx_phy_valid = '1' and tx_phy_first = '1' then
             debug <= tx_phy_data(50*8-1 downto 50*8-256);
+         end if;
+         if tx_cli_valid_i = '1' then
+            tx_cli_first <= tx_cli_last_i;
          end if;
          if tx_phy_valid = '1' then
             tx_phy_first <= tx_phy_last;
