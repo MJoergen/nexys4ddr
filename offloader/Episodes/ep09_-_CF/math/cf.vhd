@@ -182,20 +182,20 @@ begin
 
          if start_i = '1' then
             -- Store input values
-            val_n        <= val_n_i;
-            val_2root    <= val_x_i(G_SIZE-2 downto 0) & '0';
+            val_n          <= val_n_i;
+            val_2root      <= val_x_i(G_SIZE-2 downto 0) & '0';
 
             -- Let x_0 = 1, y_0 = 1, p_0 = 0.
             -- Then X^2 = Y mod N.
-            x_prev       <= C_ZERO & C_ONE;
-            y_prev       <= C_ONE;
-            p_prev       <= C_ZERO;
+            x_prev         <= C_ZERO & C_ONE;
+            y_prev         <= C_ONE;
+            p_prev         <= C_ZERO;
 
             -- Let x_1 = M, y_1 = N-M*M, z_1 = 2*M
             -- Then X^2 = -Y mod N.
-            x_cur        <= C_ZERO & val_x_i;
-            y_cur        <= val_y_i;
-            z_cur        <= val_x_i(G_SIZE-2 downto 0) & '0';
+            x_cur          <= C_ZERO & val_x_i;
+            y_cur          <= val_y_i;
+            z_cur          <= val_x_i(G_SIZE-2 downto 0) & '0';
 
             -- Stop all ongoing calculations
             amm_start      <= '0';

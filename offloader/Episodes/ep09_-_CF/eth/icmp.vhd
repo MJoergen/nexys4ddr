@@ -121,9 +121,9 @@ begin
    p_debug : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if tx_valid = '1' then
-            debug <= tx_data(255 downto 0);
-         end if;
+--         if tx_valid = '1' then
+--            debug <= tx_data(255 downto 0);
+--         end if;
          if rst_i = '1' then
             debug <= (others => '1');
          end if;         

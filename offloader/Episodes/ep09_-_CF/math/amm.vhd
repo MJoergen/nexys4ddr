@@ -61,7 +61,6 @@ begin
                   add_r <= add_r(2*G_SIZE-2 downto 0) & '0';
                end if;
 
-
                if mult_r = 0 then
                   state_r <= DONE_ST;
                end if;

@@ -90,8 +90,11 @@ begin
    p_debug : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if tx_valid = '1' then
-            debug <= tx_data(R_ARP_HDR'left downto R_ARP_HDR'left-255);
+--         if tx_valid = '1' then
+--            debug <= tx_data(R_ARP_HDR'left downto R_ARP_HDR'left-255);
+--         end if;
+         if rst_i = '1' then
+            debug <= (others => '0');
          end if;
       end if;
    end process p_debug;
