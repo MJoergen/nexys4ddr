@@ -11,9 +11,8 @@ DUT = ("192.168.1.77", 4660)
 # Test inverter module
 message = "ABC"
 
-print "Sending message:",message
+print "Sending message:",message.encode("hex")
 sock.sendto(message, DUT)
 
-while True:
-   data, server = sock.recvfrom(1500)
-   print "Received message:",data
+data, server = sock.recvfrom(1500)
+print "Received message:",data.encode("hex")
