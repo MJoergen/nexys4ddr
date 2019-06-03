@@ -7,7 +7,7 @@ use ieee.numeric_std_unsigned.all;
 -- The algorithm is identical to the old-school method
 -- using repeated subtractions.
 -- The running time is proportional to the number of bits
--- in the quotient. In other words, to the difference in size'
+-- in the quotient. In other words, to the difference in size
 -- of the numerator and the denominator.
 
 entity divmod is
@@ -52,12 +52,6 @@ begin
                res_q <= (others => '0');
                res_r <= (others => '0');
                valid <= '0';
-               if start_i = '1' then
-                  res_r <= '0' & val_n_i;
-                  val_d <= '0' & val_d_i;
-                  shift <= 0;
-                  state <= SHIFT_ST;
-               end if;
 
             -- Shift the denoinator, until it is larger than the numerator
             when SHIFT_ST =>
@@ -92,6 +86,16 @@ begin
                   state <= IDLE_ST;
                end if;
          end case;
+
+         if start_i = '1' then
+            valid <= '0';
+            res_q <= (others => '0');
+            res_r <= '0' & val_n_i;
+
+            val_d <= '0' & val_d_i;
+            shift <= 0;
+            state <= SHIFT_ST;
+         end if;
 
          if rst_i = '1' then
             state <= IDLE_ST;

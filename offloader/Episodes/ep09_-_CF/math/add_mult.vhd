@@ -39,12 +39,7 @@ begin
 
          case state_r is
             when IDLE_ST =>
-               res_r <= val_b_i;
-               if start_i = '1' then
-                  mult_r  <= val_a_i;
-                  add_r   <= C_ZERO & val_x_i;
-                  state_r <= MULT_ST;
-               end if;
+               null;
 
             when MULT_ST =>
                if mult_r(0) = '1' then
@@ -63,8 +58,14 @@ begin
                if start_i = '0' then
                   state_r <= IDLE_ST;
                end if;
-
          end case;
+
+         if start_i = '1' then
+            res_r   <= val_b_i;
+            mult_r  <= val_a_i;
+            add_r   <= C_ZERO & val_x_i;
+            state_r <= MULT_ST;
+         end if;
 
          if rst_i = '1' then
             state_r <= IDLE_ST;

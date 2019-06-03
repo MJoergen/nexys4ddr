@@ -46,7 +46,7 @@ end cf;
 
 architecture Behavioral of cf is
 
-   type fsm_state is (IDLE_ST, CALC_A_ST, CALC_XY_ST);
+   type fsm_state is (IDLE_ST, CALC_A_ST, CALC_XY_ST, WAIT_ST);
    signal state          : fsm_state;
 
    constant C_ZERO       : std_logic_vector(G_SIZE-1 downto 0) := (others => '0');
@@ -114,7 +114,7 @@ begin
    add_mult_val_a <= a_cur;
    add_mult_val_x <= p_cur - p_prev;
    add_mult_val_b <= C_ZERO & y_prev;
-   y_new <= add_mult_res(G_SIZE-1 downto 0);
+   y_new          <= add_mult_res(G_SIZE-1 downto 0);
 
    -- Calculate z_(n+1) = 2*M - p_n.
    z_new <= val_2root - p_cur;
@@ -122,6 +122,7 @@ begin
    p_fsm : process (clk_i)
    begin
       if rising_edge(clk_i) then
+
          -- Set default values
          res_x          <= C_ZERO & C_ZERO;
          res_y          <= C_ZERO;
@@ -132,35 +133,16 @@ begin
 
          case state is
             when IDLE_ST =>
-               if start_i = '1' then
-                  -- Store input values
-                  val_n        <= val_n_i;
-                  val_2root    <= val_x_i(G_SIZE-2 downto 0) & '0';
-
-                  -- Let x_0 = 1, y_0 = 1, p_0 = 0.
-                  -- Then X^2 = Y mod N.
-                  x_prev       <= C_ZERO & C_ONE;
-                  y_prev       <= C_ONE;
-                  p_prev       <= C_ZERO;
-
-                  -- Let x_1 = M, y_1 = N-M*M, z_1 = 2*M
-                  -- Then X^2 = -Y mod N.
-                  x_cur        <= C_ZERO & val_x_i;
-                  y_cur        <= val_y_i;
-                  z_cur        <= val_x_i(G_SIZE-2 downto 0) & '0';
-
-                  -- Start calculating a_n and p_n.
-                  divmod_start <= '1';
-                  state        <= CALC_A_ST;
-               end if;
+               null;
 
             when CALC_A_ST =>
                if divmod_valid = '1' then
                   -- Store new values of a_n and p_n
-                  a_cur          <= divmod_res_q;
-                  p_cur          <= divmod_res_r;
+                  a_cur <= divmod_res_q;
+                  p_cur <= divmod_res_r;
 
                   -- Start calculating x_(n+1) and y_(n+1).
+                  divmod_start   <= '0';
                   amm_start      <= '1';
                   add_mult_start <= '1';
                   state          <= CALC_XY_ST;
@@ -169,23 +151,58 @@ begin
             when CALC_XY_ST =>
                if amm_valid = '1' and add_mult_valid = '1' then
                   -- Update recursion
-                  x_prev       <= x_cur;
-                  x_cur        <= x_new;
-                  y_prev       <= y_cur;
-                  y_cur        <= y_new;
-                  p_prev       <= p_cur;
-                  z_cur        <= z_new;
+                  x_prev <= x_cur;
+                  x_cur  <= x_new;
+                  y_prev <= y_cur;
+                  y_cur  <= y_new;
+                  p_prev <= p_cur;
+                  z_cur  <= z_new;
 
                   -- Store output values
-                  res_x        <= x_new;
-                  res_y        <= y_new;
-                  valid        <= '1';
+                  res_x  <= x_new;
+                  res_y  <= y_new;
+                  valid  <= '1';
 
                   -- Start calculating a_n and p_n.
-                  divmod_start <= '1';
-                  state        <= CALC_A_ST;
+                  amm_start      <= '0';
+                  add_mult_start <= '0';
+                  divmod_start   <= '1';
+                  state          <= CALC_A_ST;
+               end if;
+
+            when WAIT_ST =>
+               if divmod_valid = '0' and amm_valid = '0' and add_mult_valid = '0' then
+                  -- Start calculating a_n and p_n.
+                  amm_start      <= '0';
+                  add_mult_start <= '0';
+                  divmod_start   <= '1';
+                  state          <= CALC_A_ST;
                end if;
          end case;
+
+         if start_i = '1' then
+            -- Store input values
+            val_n        <= val_n_i;
+            val_2root    <= val_x_i(G_SIZE-2 downto 0) & '0';
+
+            -- Let x_0 = 1, y_0 = 1, p_0 = 0.
+            -- Then X^2 = Y mod N.
+            x_prev       <= C_ZERO & C_ONE;
+            y_prev       <= C_ONE;
+            p_prev       <= C_ZERO;
+
+            -- Let x_1 = M, y_1 = N-M*M, z_1 = 2*M
+            -- Then X^2 = -Y mod N.
+            x_cur        <= C_ZERO & val_x_i;
+            y_cur        <= val_y_i;
+            z_cur        <= val_x_i(G_SIZE-2 downto 0) & '0';
+
+            -- Stop all ongoing calculations
+            amm_start      <= '0';
+            add_mult_start <= '0';
+            divmod_start   <= '0';
+            state          <= WAIT_ST;
+         end if;
 
          if rst_i = '1' then
             state <= IDLE_ST;

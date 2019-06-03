@@ -44,12 +44,6 @@ begin
          case state_r is
             when IDLE_ST =>
                res_r  <= C_ZERO & C_ZERO;
-               if start_i = '1' then
-                  mult_r  <= val_a_i;
-                  add_r   <= val_x_i;
-                  res_r   <= val_b_i;
-                  state_r <= MULT_ST;
-               end if;
 
             when MULT_ST =>
                if mult_r(0) = '1' then
@@ -79,6 +73,13 @@ begin
                end if;
          end case;
 
+         if start_i = '1' then
+            mult_r  <= val_a_i;
+            add_r   <= val_x_i;
+            res_r   <= val_b_i;
+            state_r <= MULT_ST;
+        end if;
+
          if rst_i = '1' then
             state_r <= IDLE_ST;
          end if;
@@ -86,7 +87,7 @@ begin
    end process p_fsm;
 
    -- Connect output signals
-   res_o   <= res_r when state_r = IDLE_ST else (others => '0');
+   res_o   <= res_r;
    valid_o <= valid_r;
 
 end Behavioral;
