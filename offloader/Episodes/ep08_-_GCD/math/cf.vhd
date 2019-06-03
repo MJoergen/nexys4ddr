@@ -11,18 +11,21 @@ use ieee.numeric_std_unsigned.all;
 
 -- Specifically, this module calculates a recurrence relation with the
 -- following initialiazation:
--- 1) x_(-1) = 1
--- 2) x_0 = M
--- 3) y_(-1) = 1
--- 4) y_0 = N-M*M
--- 5) z_0 = 2*M
--- 6) p_(-1) = 0.
--- And then for each step:
+-- 1) x_0 = 1
+-- 2) x_1 = M
+-- 3) y_0 = 1
+-- 4) y_1 = N-M*M
+-- 5) z_1 = 2*M
+-- 6) p_0 = 0.
+-- And then for each n>=2:
 -- 1) a_n = z_n/y_n
 -- 2) p_n = z_n-a_n*y_n
--- 3) y_(n+1) = y_(n-1) + a_n*[p_n - p_(n-1)].
--- 4) x_(n+1) = (a_n * x_n + x_(n-1)) mod N.
+-- 3) x_(n+1) = (a_n * x_n + x_(n-1)) mod N.
+-- 4) y_(n+1) = y_(n-1) + a_n*[p_n - p_(n-1)].
 -- 5) z_(n+1) = 2*M - p_n.
+
+-- Steps 1 and 2 in the recurrence are performed simultaneously using the divmod module.
+-- Steps 3 and 4 are performed simultaneously using the add_mult and amm modules.
 
 entity cf is
    generic (
@@ -51,7 +54,6 @@ architecture Behavioral of cf is
 
    signal val_n          : std_logic_vector(2*G_SIZE-1 downto 0);
    signal val_m          : std_logic_vector(G_SIZE-1 downto 0);
-   signal val_2m         : std_logic_vector(G_SIZE-1 downto 0);
 
    signal x_prev         : std_logic_vector(2*G_SIZE-1 downto 0);
    signal x_cur          : std_logic_vector(2*G_SIZE-1 downto 0);
@@ -97,16 +99,9 @@ architecture Behavioral of cf is
 
 begin
 
-   -- Calculate a_n and p_n such that z_n = a_n*y_n + p_n.
+   -- Calculate a_n = z_n/y_n and p_n = z_n-a_n*y_n.
    divmod_val_n <= z_cur;
    divmod_val_d <= y_cur;
-
-   -- Calculate y_(n+1) = y_(n-1) + a_n*[p_n - p_(n-1)].
-   add_mult_val_a <= a_cur;
-   add_mult_val_x <= p_cur - p_prev;
-   add_mult_val_b <= C_ZERO & y_prev;
-
-   y_new <= add_mult_res(G_SIZE-1 downto 0);
 
    -- Calculate x_(n+1) = (a_n * x_n + x_(n-1)) mod N.
    amm_val_a <= a_cur;
@@ -115,8 +110,14 @@ begin
    amm_val_n <= val_n;
    x_new     <= amm_res;
 
-   -- Calcualte z_(n+1) = 2*M - p_n.
-   z_new <= val_2m - p_cur;
+   -- Calculate y_(n+1) = y_(n-1) + a_n*[p_n - p_(n-1)].
+   add_mult_val_a <= a_cur;
+   add_mult_val_x <= p_cur - p_prev;
+   add_mult_val_b <= C_ZERO & y_prev;
+   y_new <= add_mult_res(G_SIZE-1 downto 0);
+
+   -- Calculate z_(n+1) = 2*M - p_n.
+   z_new <= (val_m_i(G_SIZE-2 downto 0) & '0') - p_cur;
 
    p_fsm : process (clk_i)
    begin
@@ -130,38 +131,44 @@ begin
          add_mult_start <= '0';
 
          case state is
-            -- Store input values
             when IDLE_ST =>
                if start_i = '1' then
-                  val_n  <= val_n_i;
-                  val_m  <= val_m_i;
-                  val_2m <= val_m_i(G_SIZE-2 downto 0) & '0';
+                  -- Store input values
+                  val_n        <= val_n_i;
+                  val_m        <= val_m_i;
 
-                  -- Let x_(-1) = 1, x_0 = M, y_(-1) = 1, y_0 = N-M*M, z_0 = 2*M, p_(-1) = 0.
-                  x_prev <= C_ZERO & C_ONE;
-                  x_cur  <= C_ZERO & val_m_i;
-                  y_prev <= C_ONE;
-                  y_cur  <= val_y_i;
-                  z_cur  <= val_m_i(G_SIZE-2 downto 0) & '0';
-                  p_prev <= C_ZERO;
+                  -- Let x_0 = 1, y_0 = 1, p_0 = 0.
+                  -- Then X^2 = Y mod N.
+                  x_prev       <= C_ZERO & C_ONE;
+                  y_prev       <= C_ONE;
+                  p_prev       <= C_ZERO;
 
+                  -- Let x_1 = M, y_1 = N-M*M, z_1 = 2*M
+                  -- Then X^2 = -Y mod N.
+                  x_cur        <= C_ZERO & val_m_i;
+                  y_cur        <= val_y_i;
+                  z_cur        <= val_m_i(G_SIZE-2 downto 0) & '0';
+
+                  -- Start calculating a_n and p_n.
                   divmod_start <= '1';
                   state        <= CALC_A_ST;
                end if;
 
-            -- Calculate a_n
             when CALC_A_ST =>
                if divmod_valid = '1' then
+                  -- Store new values of a_n and p_n
                   a_cur          <= divmod_res_q;
                   p_cur          <= divmod_res_r;
+
+                  -- Start calculating x_(n+1) and y_(n+1).
                   amm_start      <= '1';
                   add_mult_start <= '1';
                   state          <= CALC_XY_ST;
                end if;
 
-            -- Calculate x_(n+1) and y_(n+1)
             when CALC_XY_ST =>
                if amm_valid = '1' and add_mult_valid = '1' then
+                  -- Update recursion
                   x_prev       <= x_cur;
                   x_cur        <= x_new;
                   y_prev       <= y_cur;
@@ -169,13 +176,15 @@ begin
                   p_prev       <= p_cur;
                   z_cur        <= z_new;
 
+                  -- Store output values
                   res_x        <= x_new;
                   res_y        <= y_new;
                   valid        <= '1';
+
+                  -- Start calculating a_n and p_n.
                   divmod_start <= '1';
                   state        <= CALC_A_ST;
                end if;
-
          end case;
 
          if rst_i = '1' then
@@ -226,9 +235,9 @@ begin
    ); -- i_amm
 
 
-   --------------------
-   -- Instantiate MULT
-   --------------------
+   ------------------------
+   -- Instantiate ADD_MULT
+   ------------------------
 
    i_add_mult : entity work.add_mult
    generic map (
@@ -243,7 +252,12 @@ begin
       start_i  => add_mult_start,
       res_o    => add_mult_res,
       valid_o  => add_mult_valid
-   ); -- i_mult
+   ); -- i_add_mult
+
+
+   --------------------------
+   -- Connect output signals
+   --------------------------
 
    res_x_o <= res_x;
    res_y_o <= res_y;

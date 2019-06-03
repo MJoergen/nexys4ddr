@@ -69,7 +69,9 @@ begin
 
             when DONE_ST =>
                valid_r <= '1';
-               state_r <= IDLE_ST;
+               if start_i = '0' then
+                  state_r <= IDLE_ST;
+               end if;
          end case;
 
          if rst_i = '1' then
