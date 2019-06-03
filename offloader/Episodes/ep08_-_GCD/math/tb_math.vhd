@@ -9,7 +9,7 @@ end tb_math;
 
 architecture simulation of tb_math is
 
-   constant C_SIZE     : integer := 32;
+   constant C_SIZE     : integer := 64;
    constant C_ZERO     : std_logic_vector(C_SIZE-1 downto 0) := (others => '0');
 
    type t_sim is record
@@ -59,6 +59,9 @@ begin
    --------------------------------------------------
 
    i_math : entity work.math
+   generic map (
+      G_SIZE     => C_SIZE
+   )
    port map (
       clk_i      => clk,
       rst_i      => rst,
@@ -263,7 +266,7 @@ begin
          assert val_n - val_m*val_m = val_y;
          cmd.valid <= '1';
          cmd.data  <= (others => '0');
-         cmd.data(60*8-1 downto 42*8)  <= X"0105" &
+         cmd.data(60*8-1 downto 60*8-4*C_SIZE-16)  <= X"0105" &
             to_stdlogicvector(val_n, C_SIZE) & 
             to_stdlogicvector(val_m, C_SIZE) &
             to_stdlogicvector(val_y, C_SIZE) &

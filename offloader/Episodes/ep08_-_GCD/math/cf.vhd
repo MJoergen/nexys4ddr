@@ -2,19 +2,27 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This module performa the Continued Fraction calculations.  Once initialized
--- with N and M=[sqrt(N)], it will repeatedly output values x and y, such that
--- x^2 = y mod N and y<M.
+-- This module performs the Continued Fraction calculations.  Once initialized
+-- with N, X=[sqrt(N)], and Y=N-X*X, it will repeatedly output values X and Y,
+-- such that
+-- 1) X^2 = (-1)^n*Y mod N.
+-- 2) Y<2*sqrt(N).
+-- In other words, the number of bits in Y is approximately half that of X and N.
 
--- Specifically, it performs the following initialiazation:
--- Let x_(-1) = 1, x_0 = M, y_(-1) = 1, y_0 = N-M*M, z_0 = 2*M, p_(-1) = 0.
---
--- Then for each n>0 calculate
--- 1) a_n and p_n such that z_n = a_n*y_n + p_n.
--- 2) y_(n+1) = y_(n-1) + a_n*[p_n - p_(n-1)].
--- 3) x_(n+1) = (a_n * x_n + x_(n-1)) mod N.
--- 4) z_(n+1) = 2*M - p_n.
-
+-- Specifically, this module calculates a recurrence relation with the
+-- following initialiazation:
+-- 1) x_(-1) = 1
+-- 2) x_0 = M
+-- 3) y_(-1) = 1
+-- 4) y_0 = N-M*M
+-- 5) z_0 = 2*M
+-- 6) p_(-1) = 0.
+-- And then for each step:
+-- 1) a_n = z_n/y_n
+-- 2) p_n = z_n-a_n*y_n
+-- 3) y_(n+1) = y_(n-1) + a_n*[p_n - p_(n-1)].
+-- 4) x_(n+1) = (a_n * x_n + x_(n-1)) mod N.
+-- 5) z_(n+1) = 2*M - p_n.
 
 entity cf is
    generic (
@@ -36,55 +44,56 @@ end cf;
 architecture Behavioral of cf is
 
    type fsm_state is (IDLE_ST, CALC_A_ST, CALC_XY_ST);
-   signal state        : fsm_state;
+   signal state          : fsm_state;
 
-   constant C_ZERO     : std_logic_vector(G_SIZE-1 downto 0) := (others => '0');
-   constant C_ONE      : std_logic_vector(G_SIZE-1 downto 0) := to_stdlogicvector(1, G_SIZE);
+   constant C_ZERO       : std_logic_vector(G_SIZE-1 downto 0) := (others => '0');
+   constant C_ONE        : std_logic_vector(G_SIZE-1 downto 0) := to_stdlogicvector(1, G_SIZE);
 
-   signal val_n        : std_logic_vector(2*G_SIZE-1 downto 0);
-   signal val_m        : std_logic_vector(G_SIZE-1 downto 0);
-   signal val_2m       : std_logic_vector(G_SIZE-1 downto 0);
+   signal val_n          : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal val_m          : std_logic_vector(G_SIZE-1 downto 0);
+   signal val_2m         : std_logic_vector(G_SIZE-1 downto 0);
 
-   signal x_prev       : std_logic_vector(2*G_SIZE-1 downto 0);
-   signal x_cur        : std_logic_vector(2*G_SIZE-1 downto 0);
-   signal x_new        : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal x_prev         : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal x_cur          : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal x_new          : std_logic_vector(2*G_SIZE-1 downto 0);
 
-   signal y_prev       : std_logic_vector(G_SIZE-1 downto 0);
-   signal y_cur        : std_logic_vector(G_SIZE-1 downto 0);
-   signal y_new        : std_logic_vector(G_SIZE-1 downto 0);
+   signal y_prev         : std_logic_vector(G_SIZE-1 downto 0);
+   signal y_cur          : std_logic_vector(G_SIZE-1 downto 0);
+   signal y_new          : std_logic_vector(G_SIZE-1 downto 0);
 
-   signal z_cur        : std_logic_vector(G_SIZE-1 downto 0);
-   signal z_new        : std_logic_vector(G_SIZE-1 downto 0);
+   signal z_cur          : std_logic_vector(G_SIZE-1 downto 0);
+   signal z_new          : std_logic_vector(G_SIZE-1 downto 0);
 
-   signal p_prev       : std_logic_vector(G_SIZE-1 downto 0);
-   signal p_cur        : std_logic_vector(G_SIZE-1 downto 0);
+   signal p_prev         : std_logic_vector(G_SIZE-1 downto 0);
+   signal p_cur          : std_logic_vector(G_SIZE-1 downto 0);
 
-   signal a_cur        : std_logic_vector(G_SIZE-1 downto 0);
+   signal a_cur          : std_logic_vector(G_SIZE-1 downto 0);
 
-   signal divmod_val_n : std_logic_vector(G_SIZE-1 downto 0);
-   signal divmod_val_d : std_logic_vector(G_SIZE-1 downto 0);
-   signal divmod_start : std_logic;
-   signal divmod_valid : std_logic;
-   signal divmod_res_q : std_logic_vector(G_SIZE-1 downto 0);
-   signal divmod_res_r : std_logic_vector(G_SIZE-1 downto 0);
+   signal divmod_val_n   : std_logic_vector(G_SIZE-1 downto 0);
+   signal divmod_val_d   : std_logic_vector(G_SIZE-1 downto 0);
+   signal divmod_start   : std_logic;
+   signal divmod_valid   : std_logic;
+   signal divmod_res_q   : std_logic_vector(G_SIZE-1 downto 0);
+   signal divmod_res_r   : std_logic_vector(G_SIZE-1 downto 0);
 
-   signal amm_val_a    : std_logic_vector(G_SIZE-1 downto 0);
-   signal amm_val_x    : std_logic_vector(2*G_SIZE-1 downto 0);
-   signal amm_val_b    : std_logic_vector(2*G_SIZE-1 downto 0);
-   signal amm_val_n    : std_logic_vector(2*G_SIZE-1 downto 0);
-   signal amm_start    : std_logic;
-   signal amm_valid    : std_logic;
-   signal amm_res      : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal amm_val_a      : std_logic_vector(G_SIZE-1 downto 0);
+   signal amm_val_x      : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal amm_val_b      : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal amm_val_n      : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal amm_start      : std_logic;
+   signal amm_valid      : std_logic;
+   signal amm_res        : std_logic_vector(2*G_SIZE-1 downto 0);
 
-   signal mult_val1    : std_logic_vector(G_SIZE-1 downto 0);
-   signal mult_val2    : std_logic_vector(G_SIZE-1 downto 0);
-   signal mult_start   : std_logic;
-   signal mult_valid   : std_logic;
-   signal mult_res     : std_logic_vector(G_SIZE-1 downto 0);
+   signal add_mult_val_a : std_logic_vector(G_SIZE-1 downto 0);
+   signal add_mult_val_x : std_logic_vector(G_SIZE-1 downto 0);
+   signal add_mult_val_b : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal add_mult_start : std_logic;
+   signal add_mult_valid : std_logic;
+   signal add_mult_res   : std_logic_vector(2*G_SIZE-1 downto 0);
 
-   signal res_x        : std_logic_vector(2*G_SIZE-1 downto 0);
-   signal res_y        : std_logic_vector(G_SIZE-1 downto 0);
-   signal valid        : std_logic;
+   signal res_x          : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal res_y          : std_logic_vector(G_SIZE-1 downto 0);
+   signal valid          : std_logic;
 
 begin
 
@@ -93,10 +102,11 @@ begin
    divmod_val_d <= y_cur;
 
    -- Calculate y_(n+1) = y_(n-1) + a_n*[p_n - p_(n-1)].
-   mult_val1 <= a_cur;
-   mult_val2 <= p_cur - p_prev;
+   add_mult_val_a <= a_cur;
+   add_mult_val_x <= p_cur - p_prev;
+   add_mult_val_b <= C_ZERO & y_prev;
 
-   y_new <= y_prev + mult_res;
+   y_new <= add_mult_res(G_SIZE-1 downto 0);
 
    -- Calculate x_(n+1) = (a_n * x_n + x_(n-1)) mod N.
    amm_val_a <= a_cur;
@@ -112,12 +122,12 @@ begin
    begin
       if rising_edge(clk_i) then
          -- Set default values
-         res_x        <= C_ZERO & C_ZERO;
-         res_y        <= C_ZERO;
-         valid        <= '0';
-         divmod_start <= '0';
-         amm_start    <= '0';
-         mult_start   <= '0';
+         res_x          <= C_ZERO & C_ZERO;
+         res_y          <= C_ZERO;
+         valid          <= '0';
+         divmod_start   <= '0';
+         amm_start      <= '0';
+         add_mult_start <= '0';
 
          case state is
             -- Store input values
@@ -142,26 +152,26 @@ begin
             -- Calculate a_n
             when CALC_A_ST =>
                if divmod_valid = '1' then
-                  a_cur      <= divmod_res_q;
-                  p_cur      <= divmod_res_r;
-                  amm_start  <= '1';
-                  mult_start <= '1';
-                  state      <= CALC_XY_ST;
+                  a_cur          <= divmod_res_q;
+                  p_cur          <= divmod_res_r;
+                  amm_start      <= '1';
+                  add_mult_start <= '1';
+                  state          <= CALC_XY_ST;
                end if;
 
             -- Calculate x_(n+1) and y_(n+1)
             when CALC_XY_ST =>
-               if amm_valid = '1' and mult_valid = '1' then
-                  x_prev <= x_cur;
-                  x_cur  <= x_new;
-                  y_prev <= y_cur;
-                  y_cur  <= y_new;
-                  p_prev <= p_cur;
-                  z_cur  <= z_new;
+               if amm_valid = '1' and add_mult_valid = '1' then
+                  x_prev       <= x_cur;
+                  x_cur        <= x_new;
+                  y_prev       <= y_cur;
+                  y_cur        <= y_new;
+                  p_prev       <= p_cur;
+                  z_cur        <= z_new;
 
-                  res_x  <= x_new;
-                  res_y  <= y_new;
-                  valid  <= '1';
+                  res_x        <= x_new;
+                  res_y        <= y_new;
+                  valid        <= '1';
                   divmod_start <= '1';
                   state        <= CALC_A_ST;
                end if;
@@ -220,18 +230,19 @@ begin
    -- Instantiate MULT
    --------------------
 
-   i_mult : entity work.mult
+   i_add_mult : entity work.add_mult
    generic map (
       G_SIZE => G_SIZE
    )
    port map ( 
-      clk_i   => clk_i,
-      rst_i   => rst_i,
-      val1_i  => mult_val1,
-      val2_i  => mult_val2,
-      start_i => mult_start,
-      res_o   => mult_res,
-      valid_o => mult_valid
+      clk_i    => clk_i,
+      rst_i    => rst_i,
+      val_a_i  => add_mult_val_a,
+      val_x_i  => add_mult_val_x,
+      val_b_i  => add_mult_val_b,
+      start_i  => add_mult_start,
+      res_o    => add_mult_res,
+      valid_o  => add_mult_valid
    ); -- i_mult
 
    res_x_o <= res_x;
