@@ -81,6 +81,9 @@ receive and send UDP packets.
 5.  [**"ARP"**](Episodes/ep05_-_ARP). Here we will respond to ARP requests.
 6.  [**"ICMP"**](Episodes/ep06_-_ICMP). Here we will respond to ICMP requests.
 7.  [**"UDP"**](Episodes/ep07_-_UDP). Here we will respond to UDP requests.
+### Math ###
+8.  [**"MATH"**](Episodes/ep08_-_Math). Here we start with the first simple
+mathematical algorithms.
 
 More to come soon...
 
