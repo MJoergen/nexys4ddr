@@ -149,6 +149,44 @@ begin
          wait until clk = '0';
       end procedure verify_gcd;
 
+      -- Verify DIVMOD processing
+      procedure verify_divmod(val_n : integer;
+                              val_d : integer;
+                              res_q : integer;
+                              res_r : integer) is
+      begin
+
+         report "Verify DIVMOD: " & integer'image(val_n) & 
+         "/" & integer'image(val_d) & "=" & integer'image(res_q) & ", " & integer'image(res_r);
+
+         cmd.valid <= '1';
+         cmd.data  <= (others => '0');
+         cmd.data(60*8-1 downto 42*8)  <= X"0103" &
+            to_stdlogicvector(val_n, 64) & 
+            to_stdlogicvector(val_d, 64);
+         cmd.last  <= '1';
+         cmd.bytes <= to_stdlogicvector(18, 6);
+         wait until clk = '1';
+         cmd.valid <= '0';
+
+         -- Build expected response
+         exp.data  <= (others => '0');
+         exp.data(60*8-1 downto 60*8-2*64)  <= 
+            to_stdlogicvector(res_q,64) &
+            to_stdlogicvector(res_r,64);
+         exp.last  <= '1';
+         exp.bytes <= to_stdlogicvector(18, 6);
+
+         -- Verify received response is correct
+         wait until clk = '1' and resp.valid = '1';
+         wait until clk = '0';
+         assert resp.data  = exp.data;
+         assert resp.last  = exp.last;
+         assert resp.bytes = exp.bytes;
+         wait until clk = '1' and resp.valid = '0';
+         wait until clk = '0';
+      end procedure verify_divmod;
+
    begin
       -- Wait until reset is complete
       cmd.valid <= '0';
@@ -195,6 +233,17 @@ begin
       verify_gcd(253, 30, 1);
       verify_gcd(252, 30, 6);
       
+      -- Verify DIVMOD
+      for n in 0 to 20 loop 
+         verify_divmod(n, 3, n/3, n mod 3);
+      end loop;
+
+      for d in 1 to 20 loop 
+         verify_divmod(10, d, 10/d, 10 mod d);
+      end loop;
+
+      verify_divmod(131*251+14, 131, 251, 14);
+      verify_divmod(131*251+14, 251, 131, 14);
 
       -- Stop test
       wait until clk = '1';

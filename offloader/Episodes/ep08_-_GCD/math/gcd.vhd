@@ -61,7 +61,7 @@ begin
       variable res1 : std_logic_vector(G_SIZE-1 downto 0);
       variable res2 : std_logic_vector(G_SIZE-1 downto 0);
       constant zero : std_logic_vector(G_SIZE-1 downto 0) := (others => '0');
-      constant one  : std_logic_vector(G_SIZE-1 downto 0) := (0 => '1', others => '0');
+      constant one  : std_logic_vector(G_SIZE-1 downto 0) := to_stdlogicvector(1, G_SIZE);
       variable c : std_logic_vector(1 downto 0);
    begin
       if rising_edge(clk_i) then
