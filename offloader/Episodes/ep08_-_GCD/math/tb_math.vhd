@@ -9,6 +9,9 @@ end tb_math;
 
 architecture simulation of tb_math is
 
+   constant C_SIZE     : integer := 32;
+   constant C_ZERO     : std_logic_vector(C_SIZE-1 downto 0) := (others => '0');
+
    type t_sim is record
       valid : std_logic;
       data  : std_logic_vector(60*8-1 downto 0);
@@ -89,8 +92,10 @@ begin
          cmd.valid <= '1';
          cmd.data  <= (others => '0');
          cmd.data(60*8-1 downto 42*8)  <= X"0101" &
-            to_stdlogicvector(val1, 64) & 
-            to_stdlogicvector(val2, 64);
+            to_stdlogicvector(val1, C_SIZE) & 
+            to_stdlogicvector(val2, C_SIZE) &
+            C_ZERO &
+            C_ZERO;
          cmd.last  <= '1';
          cmd.bytes <= to_stdlogicvector(18, 6);
          wait until clk = '1';
@@ -98,8 +103,8 @@ begin
 
          -- Build expected response
          exp.data  <= (others => '0');
-         exp.data(60*8-1 downto 60*8-64)  <= 
-            to_stdlogicvector(res,64);
+         exp.data(60*8-1 downto 60*8-C_SIZE)  <= 
+            to_stdlogicvector(res,C_SIZE);
          exp.last  <= '1';
          exp.bytes <= to_stdlogicvector(18, 6);
 
@@ -125,8 +130,10 @@ begin
          cmd.valid <= '1';
          cmd.data  <= (others => '0');
          cmd.data(60*8-1 downto 42*8)  <= X"0102" &
-            to_stdlogicvector(val1, 64) & 
-            to_stdlogicvector(val2, 64);
+            to_stdlogicvector(val1, C_SIZE) & 
+            to_stdlogicvector(val2, C_SIZE) &
+            C_ZERO &
+            C_ZERO;
          cmd.last  <= '1';
          cmd.bytes <= to_stdlogicvector(18, 6);
          wait until clk = '1';
@@ -134,8 +141,8 @@ begin
 
          -- Build expected response
          exp.data  <= (others => '0');
-         exp.data(60*8-1 downto 60*8-64)  <= 
-            to_stdlogicvector(res,64);
+         exp.data(60*8-1 downto 60*8-C_SIZE)  <= 
+            to_stdlogicvector(res,C_SIZE);
          exp.last  <= '1';
          exp.bytes <= to_stdlogicvector(18, 6);
 
@@ -162,8 +169,10 @@ begin
          cmd.valid <= '1';
          cmd.data  <= (others => '0');
          cmd.data(60*8-1 downto 42*8)  <= X"0103" &
-            to_stdlogicvector(val_n, 64) & 
-            to_stdlogicvector(val_d, 64);
+            to_stdlogicvector(val_n, C_SIZE) & 
+            to_stdlogicvector(val_d, C_SIZE) &
+            C_ZERO &
+            C_ZERO;
          cmd.last  <= '1';
          cmd.bytes <= to_stdlogicvector(18, 6);
          wait until clk = '1';
@@ -171,9 +180,9 @@ begin
 
          -- Build expected response
          exp.data  <= (others => '0');
-         exp.data(60*8-1 downto 60*8-2*64)  <= 
-            to_stdlogicvector(res_q,64) &
-            to_stdlogicvector(res_r,64);
+         exp.data(60*8-1 downto 60*8-2*C_SIZE)  <= 
+            to_stdlogicvector(res_q, C_SIZE) &
+            to_stdlogicvector(res_r, C_SIZE);
          exp.last  <= '1';
          exp.bytes <= to_stdlogicvector(18, 6);
 
@@ -187,63 +196,156 @@ begin
          wait until clk = '0';
       end procedure verify_divmod;
 
+      -- Verify AMM processing
+      procedure verify_amm(val_a : integer;
+                           val_x : integer;
+                           val_b : integer;
+                           val_n : integer;
+                           res   : integer) is
+      begin
+
+         report "Verify AMM: " & integer'image(val_a) & 
+         "*" & integer'image(val_x) & "+" & integer'image(val_b) & " mod " & integer'image(val_n) &
+         "=" & integer'image(res);
+
+         cmd.valid <= '1';
+         cmd.data  <= (others => '0');
+         cmd.data(60*8-1 downto 42*8)  <= X"0104" &
+            to_stdlogicvector(val_a, C_SIZE) & 
+            to_stdlogicvector(val_x, C_SIZE) &
+            to_stdlogicvector(val_b, C_SIZE) &
+            to_stdlogicvector(val_n, C_SIZE);
+         cmd.last  <= '1';
+         cmd.bytes <= to_stdlogicvector(18, 6);
+         wait until clk = '1';
+         cmd.valid <= '0';
+
+         -- Build expected response
+         exp.data  <= (others => '0');
+         exp.data(60*8-1 downto 60*8-C_SIZE)  <= 
+            to_stdlogicvector(res, C_SIZE);
+         exp.last  <= '1';
+         exp.bytes <= to_stdlogicvector(18, 6);
+
+         -- Verify received response is correct
+         wait until clk = '1' and resp.valid = '1';
+         wait until clk = '0';
+         assert resp.data  = exp.data;
+         assert resp.last  = exp.last;
+         assert resp.bytes = exp.bytes;
+         wait until clk = '1' and resp.valid = '0';
+         wait until clk = '0';
+      end procedure verify_amm;
+
+      -- Verify CF processing
+      procedure verify_cf(val_n : integer;
+                          val_m : integer;
+                          val_y : integer;
+                          res1  : integer;
+                          res2  : integer;
+                          res3  : integer) is
+      begin
+
+         report "Verify CF: N=" & integer'image(val_n) & 
+         ", M=" & integer'image(val_m) & 
+         ", Y=" & integer'image(val_y) & 
+         " -> " & integer'image(res1) &
+         ", " & integer'image(res2) &
+         ", " & integer'image(res3);
+
+         assert val_n - val_m*val_m = val_y;
+         cmd.valid <= '1';
+         cmd.data  <= (others => '0');
+         cmd.data(60*8-1 downto 42*8)  <= X"0105" &
+            to_stdlogicvector(val_n, C_SIZE) & 
+            to_stdlogicvector(val_m, C_SIZE) &
+            to_stdlogicvector(val_y, C_SIZE) &
+            C_ZERO;
+         cmd.last  <= '1';
+         cmd.bytes <= to_stdlogicvector(18, 6);
+         wait until clk = '1';
+         cmd.valid <= '0';
+
+         -- Build expected response
+         exp.data  <= (others => '0');
+         exp.data(60*8-1 downto 60*8-C_SIZE)  <= 
+            to_stdlogicvector(res1, C_SIZE);
+         exp.last  <= '1';
+         exp.bytes <= to_stdlogicvector(18, 6);
+
+         -- Verify received response is correct
+         wait until clk = '1' and resp.valid = '1';
+         wait until clk = '0';
+         assert resp.data  = exp.data;
+         assert resp.last  = exp.last;
+         assert resp.bytes = exp.bytes;
+         wait until clk = '1' and resp.valid = '0';
+         wait until clk = '0';
+      end procedure verify_cf;
+
    begin
       -- Wait until reset is complete
       cmd.valid <= '0';
       wait until clk = '1' and rst = '0';
 
-      -- Verify MULT
-      for a in 0 to 3 loop 
-         for b in 0 to 3 loop 
-            verify_mult(a, b, a*b);
-         end loop;
-      end loop;
-
-      verify_mult(  7, 13,   91);
-      verify_mult(100, 10, 1000);
-
-      -- Verify GCD
-      verify_gcd(0, 0, 0);
-      verify_gcd(1, 0, 0);
-      verify_gcd(0, 1, 0);
-      verify_gcd(1, 1, 1);
-      verify_gcd(1, 2, 1);
-      verify_gcd(1, 3, 1);
-      verify_gcd(1, 4, 1);
-      verify_gcd(2, 1, 1);
-      verify_gcd(2, 2, 2);
-      verify_gcd(2, 3, 1);
-      verify_gcd(2, 4, 2);
-      verify_gcd(3, 1, 1);
-      verify_gcd(3, 2, 1);
-      verify_gcd(3, 3, 3);
-      verify_gcd(3, 4, 1);
-      verify_gcd(4, 1, 1);
-      verify_gcd(4, 2, 2);
-      verify_gcd(4, 3, 1);
-      verify_gcd(4, 4, 4);
-      verify_gcd(30, 35, 5);
-      verify_gcd(35, 30, 5);
-      verify_gcd(36, 30, 6);
-      verify_gcd(36, 32, 4);
-      verify_gcd(37, 30, 1);
-      verify_gcd(70, 30, 10);
-      verify_gcd(150, 30, 30);
-      verify_gcd(250, 30, 10);
-      verify_gcd(253, 30, 1);
-      verify_gcd(252, 30, 6);
-      
-      -- Verify DIVMOD
-      for n in 0 to 20 loop 
-         verify_divmod(n, 3, n/3, n mod 3);
-      end loop;
-
-      for d in 1 to 20 loop 
-         verify_divmod(10, d, 10/d, 10 mod d);
-      end loop;
-
-      verify_divmod(131*251+14, 131, 251, 14);
-      verify_divmod(131*251+14, 251, 131, 14);
+--       -- Verify MULT
+--       for a in 0 to 3 loop 
+--          for b in 0 to 3 loop 
+--             verify_mult(a, b, a*b);
+--          end loop;
+--       end loop;
+-- 
+--       verify_mult(  7, 13,   91);
+--       verify_mult(100, 10, 1000);
+-- 
+--       -- Verify GCD
+--       verify_gcd(0, 0, 0);
+--       verify_gcd(1, 0, 0);
+--       verify_gcd(0, 1, 0);
+--       verify_gcd(1, 1, 1);
+--       verify_gcd(1, 2, 1);
+--       verify_gcd(1, 3, 1);
+--       verify_gcd(1, 4, 1);
+--       verify_gcd(2, 1, 1);
+--       verify_gcd(2, 2, 2);
+--       verify_gcd(2, 3, 1);
+--       verify_gcd(2, 4, 2);
+--       verify_gcd(3, 1, 1);
+--       verify_gcd(3, 2, 1);
+--       verify_gcd(3, 3, 3);
+--       verify_gcd(3, 4, 1);
+--       verify_gcd(4, 1, 1);
+--       verify_gcd(4, 2, 2);
+--       verify_gcd(4, 3, 1);
+--       verify_gcd(4, 4, 4);
+--       verify_gcd(30, 35, 5);
+--       verify_gcd(35, 30, 5);
+--       verify_gcd(36, 30, 6);
+--       verify_gcd(36, 32, 4);
+--       verify_gcd(37, 30, 1);
+--       verify_gcd(70, 30, 10);
+--       verify_gcd(150, 30, 30);
+--       verify_gcd(250, 30, 10);
+--       verify_gcd(253, 30, 1);
+--       verify_gcd(252, 30, 6);
+--       
+--       -- Verify DIVMOD
+--       for n in 0 to 20 loop 
+--          verify_divmod(n, 3, n/3, n mod 3);
+--       end loop;
+-- 
+--       for d in 1 to 20 loop 
+--          verify_divmod(10, d, 10/d, 10 mod d);
+--       end loop;
+-- 
+--       verify_divmod(131*251+14, 131, 251, 14);
+--       verify_divmod(131*251+14, 251, 131, 14);
+-- 
+--       -- Verify AMM
+--       verify_amm(7, 13, 21, 30, 22); -- 7*13+21 mod 30 = 22
+-- 
+      -- Verify CF
+      verify_cf(77, 8, 13, 1, 2, 3);
 
       -- Stop test
       wait until clk = '1';
