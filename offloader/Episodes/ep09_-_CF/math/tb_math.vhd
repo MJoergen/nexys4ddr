@@ -92,7 +92,11 @@ begin
                           res2_x : integer;
                           res2_y : integer;
                           res3_x : integer;
-                          res3_y : integer) is
+                          res3_y : integer;
+                          res4_x : integer;
+                          res4_y : integer;
+                          res5_x : integer;
+                          res5_y : integer) is
       begin
 
          report "Verify CF: N=" & integer'image(val_n) & 
@@ -100,10 +104,14 @@ begin
             ", Y=" & integer'image(val_y) & 
             " -> (" & integer'image(res1_x) &
             ", " & integer'image(res1_y) &
-            " -> (" & integer'image(res2_x) &
+            ") -> (" & integer'image(res2_x) &
             ", " & integer'image(res2_y) &
             ") -> (" & integer'image(res3_x) &
             ", " & integer'image(res3_y) &
+            ") -> (" & integer'image(res4_x) &
+            ", " & integer'image(res4_y) &
+            ") -> (" & integer'image(res5_x) &
+            ", " & integer'image(res5_y) &
             ")";
 
          assert val_n - val_x*val_x = val_y;
@@ -168,6 +176,40 @@ begin
          assert resp.bytes = exp.bytes;
          wait until clk = '1' and resp.valid = '0';
          wait until clk = '0';
+
+         -- Build expected response 4
+         exp.data  <= (others => '0');
+         exp.data(60*8-1 downto 60*8-3*C_SIZE)  <= 
+            to_stdlogicvector(res4_x, 2*C_SIZE) &
+            to_stdlogicvector(res4_y, C_SIZE);
+         exp.last  <= '1';
+         exp.bytes <= to_stdlogicvector(3*C_SIZE/8, 6);
+
+         -- Verify received response is correct
+         wait until clk = '1' and resp.valid = '1';
+         wait until clk = '0';
+         assert resp.data  = exp.data;
+         assert resp.last  = exp.last;
+         assert resp.bytes = exp.bytes;
+         wait until clk = '1' and resp.valid = '0';
+         wait until clk = '0';
+
+         -- Build expected response 5
+         exp.data  <= (others => '0');
+         exp.data(60*8-1 downto 60*8-3*C_SIZE)  <= 
+            to_stdlogicvector(res5_x, 2*C_SIZE) &
+            to_stdlogicvector(res5_y, C_SIZE);
+         exp.last  <= '1';
+         exp.bytes <= to_stdlogicvector(3*C_SIZE/8, 6);
+
+         -- Verify received response is correct
+         wait until clk = '1' and resp.valid = '1';
+         wait until clk = '0';
+         assert resp.data  = exp.data;
+         assert resp.last  = exp.last;
+         assert resp.bytes = exp.bytes;
+         wait until clk = '1' and resp.valid = '0';
+         wait until clk = '0';
       end procedure verify_cf;
 
    begin
@@ -176,7 +218,7 @@ begin
       wait until clk = '1' and rst = '0';
 
       -- Verify CF
-      verify_cf(2059, 45, 34, 91, 45, 136, 35, 227, 54);
+      verify_cf(2059, 45, 34, 91, 45, 136, 35, 227, 54, 363, 7, 465, 30);
 
       -- Stop test
       wait until clk = '1';
