@@ -35,7 +35,7 @@ entity cf is
       clk_i   : in  std_logic;
       rst_i   : in  std_logic;
       val_n_i : in  std_logic_vector(2*G_SIZE-1 downto 0);
-      val_m_i : in  std_logic_vector(G_SIZE-1 downto 0);
+      val_x_i : in  std_logic_vector(G_SIZE-1 downto 0);
       val_y_i : in  std_logic_vector(G_SIZE-1 downto 0);
       start_i : in  std_logic;
       res_x_o : out std_logic_vector(2*G_SIZE-1 downto 0);
@@ -53,7 +53,7 @@ architecture Behavioral of cf is
    constant C_ONE        : std_logic_vector(G_SIZE-1 downto 0) := to_stdlogicvector(1, G_SIZE);
 
    signal val_n          : std_logic_vector(2*G_SIZE-1 downto 0);
-   signal val_m          : std_logic_vector(G_SIZE-1 downto 0);
+   signal val_2root      : std_logic_vector(G_SIZE-1 downto 0);
 
    signal x_prev         : std_logic_vector(2*G_SIZE-1 downto 0);
    signal x_cur          : std_logic_vector(2*G_SIZE-1 downto 0);
@@ -117,7 +117,7 @@ begin
    y_new <= add_mult_res(G_SIZE-1 downto 0);
 
    -- Calculate z_(n+1) = 2*M - p_n.
-   z_new <= (val_m_i(G_SIZE-2 downto 0) & '0') - p_cur;
+   z_new <= val_2root - p_cur;
 
    p_fsm : process (clk_i)
    begin
@@ -135,7 +135,7 @@ begin
                if start_i = '1' then
                   -- Store input values
                   val_n        <= val_n_i;
-                  val_m        <= val_m_i;
+                  val_2root    <= val_x_i(G_SIZE-2 downto 0) & '0';
 
                   -- Let x_0 = 1, y_0 = 1, p_0 = 0.
                   -- Then X^2 = Y mod N.
@@ -145,9 +145,9 @@ begin
 
                   -- Let x_1 = M, y_1 = N-M*M, z_1 = 2*M
                   -- Then X^2 = -Y mod N.
-                  x_cur        <= C_ZERO & val_m_i;
+                  x_cur        <= C_ZERO & val_x_i;
                   y_cur        <= val_y_i;
-                  z_cur        <= val_m_i(G_SIZE-2 downto 0) & '0';
+                  z_cur        <= val_x_i(G_SIZE-2 downto 0) & '0';
 
                   -- Start calculating a_n and p_n.
                   divmod_start <= '1';

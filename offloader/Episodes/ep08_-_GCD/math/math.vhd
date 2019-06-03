@@ -52,11 +52,6 @@ architecture Structural of math is
    signal divmod_res_r  : std_logic_vector(G_SIZE-1 downto 0);
    signal divmod_valid  : std_logic;
 
-   signal cf_start      : std_logic;
-   signal cf_res_x      : std_logic_vector(G_SIZE-1 downto 0);
-   signal cf_res_y      : std_logic_vector(G_SIZE/2-1 downto 0);
-   signal cf_valid      : std_logic;
-
    signal amm_start     : std_logic;
    signal amm_res       : std_logic_vector(G_SIZE-1 downto 0);
    signal amm_valid     : std_logic;
@@ -79,7 +74,6 @@ begin
    gcd_start    <= rx_valid_i when cmd = X"0102" else '0';
    divmod_start <= rx_valid_i when cmd = X"0103" else '0';
    amm_start    <= rx_valid_i when cmd = X"0104" else '0';
-   cf_start     <= rx_valid_i when cmd = X"0105" else '0';
 
    i_mult : entity work.mult
    generic map (
@@ -140,32 +134,14 @@ begin
       valid_o => amm_valid
    ); -- i_amm
 
-   i_cf : entity work.cf
-   generic map (
-      G_SIZE => G_SIZE/2
-   )
-   port map ( 
-      clk_i   => clk_i,
-      rst_i   => rst_i,
-      val_n_i => val1,
-      val_m_i => val2(G_SIZE/2-1 downto 0),
-      val_y_i => val3(G_SIZE/2-1 downto 0),
-      start_i => cf_start,
-      res_x_o => cf_res_x,
-      res_y_o => cf_res_y, 
-      valid_o => cf_valid
-   );
-
    valid <= mult_valid   or
             gcd_valid    or
             divmod_valid or
-            cf_valid     or
             amm_valid;
 
    res   <= mult_res     & C_ZERO                                   or
             gcd_res      & C_ZERO                                   or
             divmod_res_q & divmod_res_r                             or
-            cf_res_x     & cf_res_y & C_ZERO_HALF                   or
             amm_res      & C_ZERO;
 
    tx_valid_o <= valid;
