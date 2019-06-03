@@ -1,20 +1,20 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Mon Jun  3 12:26:20 2019
+[*] Mon Jun  3 16:07:21 2019
 [*]
-[dumpfile] "/home/mfj/git/nexys4ddr/offloader/Episodes/ep09_-_CF/math/tb_math.ghw"
-[dumpfile_mtime] "Mon Jun  3 12:25:18 2019"
-[dumpfile_size] 37960
-[savefile] "/home/mfj/git/nexys4ddr/offloader/Episodes/ep09_-_CF/math/tb_math.gtkw"
+[dumpfile] "/home/mike/git/nexys4ddr/offloader/Episodes/ep10_-_Fact/math/tb_math.ghw"
+[dumpfile_mtime] "Mon Jun  3 16:06:22 2019"
+[dumpfile_size] 46749
+[savefile] "/home/mike/git/nexys4ddr/offloader/Episodes/ep10_-_Fact/math/tb_math.gtkw"
 [timestart] 0
 [size] 1340 887
 [pos] -1 -1
-*-24.452805 62000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-25.461767 122000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.tb_math.
 [treeopen] top.tb_math.exp.
 [treeopen] top.tb_math.i_math.
-[treeopen] top.tb_math.i_math.i_cf.
+[treeopen] top.tb_math.i_math.i_fact.
 [treeopen] top.tb_math.resp.
 [sst_width] 276
 [signals_width] 486
@@ -60,7 +60,7 @@ top.tb_math.exp.last
 -DIVMOD
 @1401200
 -DIVMOD
-@800200
+@c00200
 -CF
 @28
 top.tb_math.i_math.i_cf.start_i
@@ -128,7 +128,30 @@ top.tb_math.i_math.i_cf.add_mult_start
 top.tb_math.i_math.i_cf.add_mult_valid
 @1401200
 -ADD_MULT
-@1000200
 -CF
+@800200
+-FACT
+@22
+#{top.tb_math.i_math.i_fact.val_i[63:0]} top.tb_math.i_math.i_fact.val_i[63] top.tb_math.i_math.i_fact.val_i[62] top.tb_math.i_math.i_fact.val_i[61] top.tb_math.i_math.i_fact.val_i[60] top.tb_math.i_math.i_fact.val_i[59] top.tb_math.i_math.i_fact.val_i[58] top.tb_math.i_math.i_fact.val_i[57] top.tb_math.i_math.i_fact.val_i[56] top.tb_math.i_math.i_fact.val_i[55] top.tb_math.i_math.i_fact.val_i[54] top.tb_math.i_math.i_fact.val_i[53] top.tb_math.i_math.i_fact.val_i[52] top.tb_math.i_math.i_fact.val_i[51] top.tb_math.i_math.i_fact.val_i[50] top.tb_math.i_math.i_fact.val_i[49] top.tb_math.i_math.i_fact.val_i[48] top.tb_math.i_math.i_fact.val_i[47] top.tb_math.i_math.i_fact.val_i[46] top.tb_math.i_math.i_fact.val_i[45] top.tb_math.i_math.i_fact.val_i[44] top.tb_math.i_math.i_fact.val_i[43] top.tb_math.i_math.i_fact.val_i[42] top.tb_math.i_math.i_fact.val_i[41] top.tb_math.i_math.i_fact.val_i[40] top.tb_math.i_math.i_fact.val_i[39] top.tb_math.i_math.i_fact.val_i[38] top.tb_math.i_math.i_fact.val_i[37] top.tb_math.i_math.i_fact.val_i[36] top.tb_math.i_math.i_fact.val_i[35] top.tb_math.i_math.i_fact.val_i[34] top.tb_math.i_math.i_fact.val_i[33] top.tb_math.i_math.i_fact.val_i[32] top.tb_math.i_math.i_fact.val_i[31] top.tb_math.i_math.i_fact.val_i[30] top.tb_math.i_math.i_fact.val_i[29] top.tb_math.i_math.i_fact.val_i[28] top.tb_math.i_math.i_fact.val_i[27] top.tb_math.i_math.i_fact.val_i[26] top.tb_math.i_math.i_fact.val_i[25] top.tb_math.i_math.i_fact.val_i[24] top.tb_math.i_math.i_fact.val_i[23] top.tb_math.i_math.i_fact.val_i[22] top.tb_math.i_math.i_fact.val_i[21] top.tb_math.i_math.i_fact.val_i[20] top.tb_math.i_math.i_fact.val_i[19] top.tb_math.i_math.i_fact.val_i[18] top.tb_math.i_math.i_fact.val_i[17] top.tb_math.i_math.i_fact.val_i[16] top.tb_math.i_math.i_fact.val_i[15] top.tb_math.i_math.i_fact.val_i[14] top.tb_math.i_math.i_fact.val_i[13] top.tb_math.i_math.i_fact.val_i[12] top.tb_math.i_math.i_fact.val_i[11] top.tb_math.i_math.i_fact.val_i[10] top.tb_math.i_math.i_fact.val_i[9] top.tb_math.i_math.i_fact.val_i[8] top.tb_math.i_math.i_fact.val_i[7] top.tb_math.i_math.i_fact.val_i[6] top.tb_math.i_math.i_fact.val_i[5] top.tb_math.i_math.i_fact.val_i[4] top.tb_math.i_math.i_fact.val_i[3] top.tb_math.i_math.i_fact.val_i[2] top.tb_math.i_math.i_fact.val_i[1] top.tb_math.i_math.i_fact.val_i[0]
+#{top.tb_math.i_math.i_fact.primes_i[63:0]} top.tb_math.i_math.i_fact.primes_i[63] top.tb_math.i_math.i_fact.primes_i[62] top.tb_math.i_math.i_fact.primes_i[61] top.tb_math.i_math.i_fact.primes_i[60] top.tb_math.i_math.i_fact.primes_i[59] top.tb_math.i_math.i_fact.primes_i[58] top.tb_math.i_math.i_fact.primes_i[57] top.tb_math.i_math.i_fact.primes_i[56] top.tb_math.i_math.i_fact.primes_i[55] top.tb_math.i_math.i_fact.primes_i[54] top.tb_math.i_math.i_fact.primes_i[53] top.tb_math.i_math.i_fact.primes_i[52] top.tb_math.i_math.i_fact.primes_i[51] top.tb_math.i_math.i_fact.primes_i[50] top.tb_math.i_math.i_fact.primes_i[49] top.tb_math.i_math.i_fact.primes_i[48] top.tb_math.i_math.i_fact.primes_i[47] top.tb_math.i_math.i_fact.primes_i[46] top.tb_math.i_math.i_fact.primes_i[45] top.tb_math.i_math.i_fact.primes_i[44] top.tb_math.i_math.i_fact.primes_i[43] top.tb_math.i_math.i_fact.primes_i[42] top.tb_math.i_math.i_fact.primes_i[41] top.tb_math.i_math.i_fact.primes_i[40] top.tb_math.i_math.i_fact.primes_i[39] top.tb_math.i_math.i_fact.primes_i[38] top.tb_math.i_math.i_fact.primes_i[37] top.tb_math.i_math.i_fact.primes_i[36] top.tb_math.i_math.i_fact.primes_i[35] top.tb_math.i_math.i_fact.primes_i[34] top.tb_math.i_math.i_fact.primes_i[33] top.tb_math.i_math.i_fact.primes_i[32] top.tb_math.i_math.i_fact.primes_i[31] top.tb_math.i_math.i_fact.primes_i[30] top.tb_math.i_math.i_fact.primes_i[29] top.tb_math.i_math.i_fact.primes_i[28] top.tb_math.i_math.i_fact.primes_i[27] top.tb_math.i_math.i_fact.primes_i[26] top.tb_math.i_math.i_fact.primes_i[25] top.tb_math.i_math.i_fact.primes_i[24] top.tb_math.i_math.i_fact.primes_i[23] top.tb_math.i_math.i_fact.primes_i[22] top.tb_math.i_math.i_fact.primes_i[21] top.tb_math.i_math.i_fact.primes_i[20] top.tb_math.i_math.i_fact.primes_i[19] top.tb_math.i_math.i_fact.primes_i[18] top.tb_math.i_math.i_fact.primes_i[17] top.tb_math.i_math.i_fact.primes_i[16] top.tb_math.i_math.i_fact.primes_i[15] top.tb_math.i_math.i_fact.primes_i[14] top.tb_math.i_math.i_fact.primes_i[13] top.tb_math.i_math.i_fact.primes_i[12] top.tb_math.i_math.i_fact.primes_i[11] top.tb_math.i_math.i_fact.primes_i[10] top.tb_math.i_math.i_fact.primes_i[9] top.tb_math.i_math.i_fact.primes_i[8] top.tb_math.i_math.i_fact.primes_i[7] top.tb_math.i_math.i_fact.primes_i[6] top.tb_math.i_math.i_fact.primes_i[5] top.tb_math.i_math.i_fact.primes_i[4] top.tb_math.i_math.i_fact.primes_i[3] top.tb_math.i_math.i_fact.primes_i[2] top.tb_math.i_math.i_fact.primes_i[1] top.tb_math.i_math.i_fact.primes_i[0]
+@28
+top.tb_math.i_math.i_fact.start_i
+@22
+#{top.tb_math.i_math.i_fact.res_o[63:0]} top.tb_math.i_math.i_fact.res_o[63] top.tb_math.i_math.i_fact.res_o[62] top.tb_math.i_math.i_fact.res_o[61] top.tb_math.i_math.i_fact.res_o[60] top.tb_math.i_math.i_fact.res_o[59] top.tb_math.i_math.i_fact.res_o[58] top.tb_math.i_math.i_fact.res_o[57] top.tb_math.i_math.i_fact.res_o[56] top.tb_math.i_math.i_fact.res_o[55] top.tb_math.i_math.i_fact.res_o[54] top.tb_math.i_math.i_fact.res_o[53] top.tb_math.i_math.i_fact.res_o[52] top.tb_math.i_math.i_fact.res_o[51] top.tb_math.i_math.i_fact.res_o[50] top.tb_math.i_math.i_fact.res_o[49] top.tb_math.i_math.i_fact.res_o[48] top.tb_math.i_math.i_fact.res_o[47] top.tb_math.i_math.i_fact.res_o[46] top.tb_math.i_math.i_fact.res_o[45] top.tb_math.i_math.i_fact.res_o[44] top.tb_math.i_math.i_fact.res_o[43] top.tb_math.i_math.i_fact.res_o[42] top.tb_math.i_math.i_fact.res_o[41] top.tb_math.i_math.i_fact.res_o[40] top.tb_math.i_math.i_fact.res_o[39] top.tb_math.i_math.i_fact.res_o[38] top.tb_math.i_math.i_fact.res_o[37] top.tb_math.i_math.i_fact.res_o[36] top.tb_math.i_math.i_fact.res_o[35] top.tb_math.i_math.i_fact.res_o[34] top.tb_math.i_math.i_fact.res_o[33] top.tb_math.i_math.i_fact.res_o[32] top.tb_math.i_math.i_fact.res_o[31] top.tb_math.i_math.i_fact.res_o[30] top.tb_math.i_math.i_fact.res_o[29] top.tb_math.i_math.i_fact.res_o[28] top.tb_math.i_math.i_fact.res_o[27] top.tb_math.i_math.i_fact.res_o[26] top.tb_math.i_math.i_fact.res_o[25] top.tb_math.i_math.i_fact.res_o[24] top.tb_math.i_math.i_fact.res_o[23] top.tb_math.i_math.i_fact.res_o[22] top.tb_math.i_math.i_fact.res_o[21] top.tb_math.i_math.i_fact.res_o[20] top.tb_math.i_math.i_fact.res_o[19] top.tb_math.i_math.i_fact.res_o[18] top.tb_math.i_math.i_fact.res_o[17] top.tb_math.i_math.i_fact.res_o[16] top.tb_math.i_math.i_fact.res_o[15] top.tb_math.i_math.i_fact.res_o[14] top.tb_math.i_math.i_fact.res_o[13] top.tb_math.i_math.i_fact.res_o[12] top.tb_math.i_math.i_fact.res_o[11] top.tb_math.i_math.i_fact.res_o[10] top.tb_math.i_math.i_fact.res_o[9] top.tb_math.i_math.i_fact.res_o[8] top.tb_math.i_math.i_fact.res_o[7] top.tb_math.i_math.i_fact.res_o[6] top.tb_math.i_math.i_fact.res_o[5] top.tb_math.i_math.i_fact.res_o[4] top.tb_math.i_math.i_fact.res_o[3] top.tb_math.i_math.i_fact.res_o[2] top.tb_math.i_math.i_fact.res_o[1] top.tb_math.i_math.i_fact.res_o[0]
+@28
+top.tb_math.i_math.i_fact.valid_o
+@420
+top.tb_math.i_math.i_fact.state
+@22
+#{top.tb_math.i_math.i_fact.val[63:0]} top.tb_math.i_math.i_fact.val[63] top.tb_math.i_math.i_fact.val[62] top.tb_math.i_math.i_fact.val[61] top.tb_math.i_math.i_fact.val[60] top.tb_math.i_math.i_fact.val[59] top.tb_math.i_math.i_fact.val[58] top.tb_math.i_math.i_fact.val[57] top.tb_math.i_math.i_fact.val[56] top.tb_math.i_math.i_fact.val[55] top.tb_math.i_math.i_fact.val[54] top.tb_math.i_math.i_fact.val[53] top.tb_math.i_math.i_fact.val[52] top.tb_math.i_math.i_fact.val[51] top.tb_math.i_math.i_fact.val[50] top.tb_math.i_math.i_fact.val[49] top.tb_math.i_math.i_fact.val[48] top.tb_math.i_math.i_fact.val[47] top.tb_math.i_math.i_fact.val[46] top.tb_math.i_math.i_fact.val[45] top.tb_math.i_math.i_fact.val[44] top.tb_math.i_math.i_fact.val[43] top.tb_math.i_math.i_fact.val[42] top.tb_math.i_math.i_fact.val[41] top.tb_math.i_math.i_fact.val[40] top.tb_math.i_math.i_fact.val[39] top.tb_math.i_math.i_fact.val[38] top.tb_math.i_math.i_fact.val[37] top.tb_math.i_math.i_fact.val[36] top.tb_math.i_math.i_fact.val[35] top.tb_math.i_math.i_fact.val[34] top.tb_math.i_math.i_fact.val[33] top.tb_math.i_math.i_fact.val[32] top.tb_math.i_math.i_fact.val[31] top.tb_math.i_math.i_fact.val[30] top.tb_math.i_math.i_fact.val[29] top.tb_math.i_math.i_fact.val[28] top.tb_math.i_math.i_fact.val[27] top.tb_math.i_math.i_fact.val[26] top.tb_math.i_math.i_fact.val[25] top.tb_math.i_math.i_fact.val[24] top.tb_math.i_math.i_fact.val[23] top.tb_math.i_math.i_fact.val[22] top.tb_math.i_math.i_fact.val[21] top.tb_math.i_math.i_fact.val[20] top.tb_math.i_math.i_fact.val[19] top.tb_math.i_math.i_fact.val[18] top.tb_math.i_math.i_fact.val[17] top.tb_math.i_math.i_fact.val[16] top.tb_math.i_math.i_fact.val[15] top.tb_math.i_math.i_fact.val[14] top.tb_math.i_math.i_fact.val[13] top.tb_math.i_math.i_fact.val[12] top.tb_math.i_math.i_fact.val[11] top.tb_math.i_math.i_fact.val[10] top.tb_math.i_math.i_fact.val[9] top.tb_math.i_math.i_fact.val[8] top.tb_math.i_math.i_fact.val[7] top.tb_math.i_math.i_fact.val[6] top.tb_math.i_math.i_fact.val[5] top.tb_math.i_math.i_fact.val[4] top.tb_math.i_math.i_fact.val[3] top.tb_math.i_math.i_fact.val[2] top.tb_math.i_math.i_fact.val[1] top.tb_math.i_math.i_fact.val[0]
+#{top.tb_math.i_math.i_fact.primes[63:0]} top.tb_math.i_math.i_fact.primes[63] top.tb_math.i_math.i_fact.primes[62] top.tb_math.i_math.i_fact.primes[61] top.tb_math.i_math.i_fact.primes[60] top.tb_math.i_math.i_fact.primes[59] top.tb_math.i_math.i_fact.primes[58] top.tb_math.i_math.i_fact.primes[57] top.tb_math.i_math.i_fact.primes[56] top.tb_math.i_math.i_fact.primes[55] top.tb_math.i_math.i_fact.primes[54] top.tb_math.i_math.i_fact.primes[53] top.tb_math.i_math.i_fact.primes[52] top.tb_math.i_math.i_fact.primes[51] top.tb_math.i_math.i_fact.primes[50] top.tb_math.i_math.i_fact.primes[49] top.tb_math.i_math.i_fact.primes[48] top.tb_math.i_math.i_fact.primes[47] top.tb_math.i_math.i_fact.primes[46] top.tb_math.i_math.i_fact.primes[45] top.tb_math.i_math.i_fact.primes[44] top.tb_math.i_math.i_fact.primes[43] top.tb_math.i_math.i_fact.primes[42] top.tb_math.i_math.i_fact.primes[41] top.tb_math.i_math.i_fact.primes[40] top.tb_math.i_math.i_fact.primes[39] top.tb_math.i_math.i_fact.primes[38] top.tb_math.i_math.i_fact.primes[37] top.tb_math.i_math.i_fact.primes[36] top.tb_math.i_math.i_fact.primes[35] top.tb_math.i_math.i_fact.primes[34] top.tb_math.i_math.i_fact.primes[33] top.tb_math.i_math.i_fact.primes[32] top.tb_math.i_math.i_fact.primes[31] top.tb_math.i_math.i_fact.primes[30] top.tb_math.i_math.i_fact.primes[29] top.tb_math.i_math.i_fact.primes[28] top.tb_math.i_math.i_fact.primes[27] top.tb_math.i_math.i_fact.primes[26] top.tb_math.i_math.i_fact.primes[25] top.tb_math.i_math.i_fact.primes[24] top.tb_math.i_math.i_fact.primes[23] top.tb_math.i_math.i_fact.primes[22] top.tb_math.i_math.i_fact.primes[21] top.tb_math.i_math.i_fact.primes[20] top.tb_math.i_math.i_fact.primes[19] top.tb_math.i_math.i_fact.primes[18] top.tb_math.i_math.i_fact.primes[17] top.tb_math.i_math.i_fact.primes[16] top.tb_math.i_math.i_fact.primes[15] top.tb_math.i_math.i_fact.primes[14] top.tb_math.i_math.i_fact.primes[13] top.tb_math.i_math.i_fact.primes[12] top.tb_math.i_math.i_fact.primes[11] top.tb_math.i_math.i_fact.primes[10] top.tb_math.i_math.i_fact.primes[9] top.tb_math.i_math.i_fact.primes[8] top.tb_math.i_math.i_fact.primes[7] top.tb_math.i_math.i_fact.primes[6] top.tb_math.i_math.i_fact.primes[5] top.tb_math.i_math.i_fact.primes[4] top.tb_math.i_math.i_fact.primes[3] top.tb_math.i_math.i_fact.primes[2] top.tb_math.i_math.i_fact.primes[1] top.tb_math.i_math.i_fact.primes[0]
+@28
+top.tb_math.i_math.i_fact.gcd_start
+top.tb_math.i_math.i_fact.gcd_valid
+top.tb_math.i_math.i_fact.div_start
+@29
+top.tb_math.i_math.i_fact.div_valid
+@1000200
+-FACT
 [pattern_trace] 1
 [pattern_trace] 0

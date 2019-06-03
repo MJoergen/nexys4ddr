@@ -139,7 +139,8 @@ begin
             -- Verify received response is correct
             wait until clk = '1' and resp.valid = '1';
             wait until clk = '0';
-            assert resp.data  = exp.data;
+            assert resp.data  = exp.data
+               report "Received " & to_hstring(resp.data) & ", expected " & to_hstring(exp.data);
             assert resp.last  = exp.last;
             assert resp.bytes = exp.bytes;
             wait until clk = '1' and resp.valid = '0';

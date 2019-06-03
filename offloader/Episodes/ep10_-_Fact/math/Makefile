@@ -1,6 +1,7 @@
 XILINX_DIR = /opt/Xilinx/Vivado/2018.2
 
 SRC  = mult.vhd gcd.vhd math.vhd amm.vhd divmod.vhd cf.vhd add_mult.vhd
+SRC += fact.vhd divexact.vhd
 SRC += tb_math.vhd
 TB   = tb_math
 WAVE = tb_math.ghw
