@@ -35,7 +35,7 @@ end cf;
 
 architecture Behavioral of cf is
 
-   type fsm_state is (IDLE_ST, CALC_A_ST, CALC_XY_ST, UPDATE_ST);
+   type fsm_state is (IDLE_ST, CALC_A_ST, CALC_XY_ST);
    signal state        : fsm_state;
 
    constant C_ZERO     : std_logic_vector(G_SIZE-1 downto 0) := (others => '0');
@@ -92,9 +92,6 @@ begin
    divmod_val_n <= z_cur;
    divmod_val_d <= y_cur;
 
-   a_cur <= divmod_res_q;
-   p_cur <= divmod_res_r;
-
    -- Calculate y_(n+1) = y_(n-1) + a_n*[p_n - p_(n-1)].
    mult_val1 <= a_cur;
    mult_val2 <= p_cur - p_prev;
@@ -114,9 +111,13 @@ begin
    p_fsm : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         res_x <= C_ZERO & C_ZERO;
-         res_y <= C_ZERO;
-         valid <= '0';
+         -- Set default values
+         res_x        <= C_ZERO & C_ZERO;
+         res_y        <= C_ZERO;
+         valid        <= '0';
+         divmod_start <= '0';
+         amm_start    <= '0';
+         mult_start   <= '0';
 
          case state is
             -- Store input values
@@ -140,8 +141,9 @@ begin
 
             -- Calculate a_n
             when CALC_A_ST =>
-               divmod_start <= '0';
                if divmod_valid = '1' then
+                  a_cur      <= divmod_res_q;
+                  p_cur      <= divmod_res_r;
                   amm_start  <= '1';
                   mult_start <= '1';
                   state      <= CALC_XY_ST;
@@ -149,24 +151,20 @@ begin
 
             -- Calculate x_(n+1) and y_(n+1)
             when CALC_XY_ST =>
-               amm_start  <= '0';
-               mult_start <= '0';
                if amm_valid = '1' and mult_valid = '1' then
-                  state <= UPDATE_ST;
+                  x_prev <= x_cur;
+                  x_cur  <= x_new;
+                  y_prev <= y_cur;
+                  y_cur  <= y_new;
+                  p_prev <= p_cur;
+                  z_cur  <= z_new;
+
+                  res_x  <= x_new;
+                  res_y  <= y_new;
+                  valid  <= '1';
+                  divmod_start <= '1';
+                  state        <= CALC_A_ST;
                end if;
-
-            when UPDATE_ST =>
-               x_prev <= x_cur;
-               x_cur  <= x_new;
-               y_prev <= y_cur;
-               y_cur  <= y_new;
-               p_prev <= p_cur;
-               z_cur  <= z_new;
-
-               res_x  <= x_new;
-               res_y  <= y_new;
-               valid  <= '1';
-               state  <= CALC_A_ST;
 
          end case;
 

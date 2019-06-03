@@ -12,12 +12,9 @@ SAVE = tb_math.gtkw
 #####################################
 
 sim: $(SRC)
-	#ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VCOMP.vhd
-	#ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VPKG.vhd
-	#ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/primitive/*.vhd
 	ghdl -i --std=08 --work=work $(SRC)
 	ghdl -m --std=08 --ieee=synopsys -frelaxed-rules $(TB)
-	ghdl -r $(TB) --assert-level=error --wave=$(WAVE) --stop-time=6us
+	ghdl -r $(TB) --assert-level=error --wave=$(WAVE) --stop-time=1us
 	gtkwave $(WAVE) $(SAVE)
 
 
