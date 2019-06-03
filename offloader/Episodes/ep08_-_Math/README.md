@@ -1,5 +1,5 @@
 # CPU offloader
-# Episode 8 : "GCD"
+# Episode 8 : "Math"
 
 Welcome to this eigth episode of "CPU offloader", where we start
 implementing mathematical functions in our design. In this episode
