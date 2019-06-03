@@ -202,6 +202,10 @@ begin
             add_mult_start <= '0';
             divmod_start   <= '0';
             state          <= WAIT_ST;
+
+            if val_n_i = 0 then
+               state <= IDLE_ST;
+            end if;
          end if;
 
          if rst_i = '1' then

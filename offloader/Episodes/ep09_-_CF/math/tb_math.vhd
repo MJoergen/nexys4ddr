@@ -90,6 +90,27 @@ begin
       type res_vector_t is array (natural range <>) of res_t;
 
       -- Verify CF processing
+      procedure send(val_n  : integer;
+                     val_x  : integer;
+                     val_y  : integer) is
+      begin
+
+         wait until clk = '0';
+         report "Send";
+         cmd.valid <= '1';
+         cmd.data  <= (others => '0');
+         cmd.data(60*8-1 downto 60*8-4*C_SIZE) <=
+            to_stdlogicvector(val_n, 2*C_SIZE) & 
+            to_stdlogicvector(val_x, C_SIZE) &
+            to_stdlogicvector(val_y, C_SIZE);
+         cmd.last  <= '1';
+         cmd.bytes <= to_stdlogicvector(18, 6);
+         wait until clk = '1';
+         cmd.valid <= '0';
+         wait until clk = '1';
+      end procedure send;
+
+      -- Verify CF processing
       procedure verify_cf(val_n  : integer;
                           val_x  : integer;
                           val_y  : integer;
@@ -101,16 +122,7 @@ begin
             ", Y=" & integer'image(val_y);
 
          assert val_n - val_x*val_x = val_y;
-         cmd.valid <= '1';
-         cmd.data  <= (others => '0');
-         cmd.data(60*8-1 downto 60*8-4*C_SIZE) <=
-            to_stdlogicvector(val_n, 2*C_SIZE) & 
-            to_stdlogicvector(val_x, C_SIZE) &
-            to_stdlogicvector(val_y, C_SIZE);
-         cmd.last  <= '1';
-         cmd.bytes <= to_stdlogicvector(18, 6);
-         wait until clk = '1';
-         cmd.valid <= '0';
+         send(val_n, val_x, val_y);
 
          for i in 0 to res'length-1 loop
             report "Verifying response (" & integer'image(res(i).x) &
@@ -175,6 +187,8 @@ begin
 
       -- Verify CF
       verify_cf(2623, 51, 22, res2623);
+      wait for 20 ns;
+      send(0, 1, 1);
       wait for 20 ns;
       verify_cf(2059, 45, 34, res2059);
 
