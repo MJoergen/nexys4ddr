@@ -4,30 +4,28 @@ use ieee.numeric_std_unsigned.all;
 
 -- This is a self-verifying testbench for the Ethernet module.
 
-entity tb_math is
-end tb_math;
+entity tb_alg is
+end tb_alg;
 
-architecture simulation of tb_math is
+architecture simulation of tb_alg is
 
-   constant C_SIZE     : integer := 32;
-   constant C_ZERO     : std_logic_vector(C_SIZE-1 downto 0) := (others => '0');
+   constant C_SIZE : integer := 32;
 
-   type t_sim is record
-      valid : std_logic;
-      data  : std_logic_vector(60*8-1 downto 0);
-      last  : std_logic;
-      bytes : std_logic_vector(5 downto 0);
-   end record t_sim;
-
-   signal clk          : std_logic;
-   signal rst          : std_logic;
+   signal clk           : std_logic;
+   signal rst           : std_logic;
 
    -- Signals conected to DUT
-   signal cmd          : t_sim;
-   signal resp         : t_sim;
-   signal debug        : std_logic_vector(255 downto 0);
-
-   signal exp          : t_sim;
+   signal alg_val_n     : std_logic_vector(2*C_SIZE-1 downto 0);
+   signal alg_val_x     : std_logic_vector(C_SIZE-1 downto 0);
+   signal alg_val_y     : std_logic_vector(C_SIZE-1 downto 0);
+   signal alg_valid     : std_logic;
+   signal alg_cf_res_x  : std_logic_vector(2*C_SIZE-1 downto 0);
+   signal alg_cf_res_y  : std_logic_vector(C_SIZE-1 downto 0);
+   signal alg_cf_valid  : std_logic;
+   signal alg_res_x     : std_logic_vector(2*C_SIZE-1 downto 0);
+   signal alg_res_y     : std_logic_vector(C_SIZE-1 downto 0);
+   signal alg_res_fact  : std_logic_vector(C_SIZE-1 downto 0);
+   signal alg_res_valid : std_logic;
 
    -- Signal to control execution of the testbench.
    signal test_running : std_logic := '1';
@@ -58,23 +56,25 @@ begin
    -- Instantiate DUT
    --------------------------------------------------
 
-   i_math : entity work.math
+   i_alg : entity work.alg
    generic map (
       G_SIZE     => C_SIZE
    )
    port map (
       clk_i      => clk,
       rst_i      => rst,
-      debug_o    => debug,
-      rx_valid_i => cmd.valid,
-      rx_data_i  => cmd.data,
-      rx_last_i  => cmd.last,
-      rx_bytes_i => cmd.bytes,
-      tx_valid_o => resp.valid,
-      tx_data_o  => resp.data,
-      tx_last_o  => resp.last,
-      tx_bytes_o => resp.bytes
-   ); -- i_math
+      val_n_i    => alg_val_n,
+      val_x_i    => alg_val_x,
+      val_y_i    => alg_val_y,
+      valid_i    => alg_valid,
+      cf_res_x_o => alg_cf_res_x,
+      cf_res_y_o => alg_cf_res_y,
+      cf_valid_o => alg_cf_valid,
+      res_x_o    => alg_res_x,
+      res_y_o    => alg_res_y,
+      res_fact_o => alg_res_fact,
+      valid_o    => alg_res_valid
+   ); -- i_alg
 
 
    --------------------------------------------------
@@ -87,28 +87,7 @@ begin
          x : integer;
          y : integer;
       end record res_t;
-      type res_vector_t is array (natural range <>) of res_t;
-
-      -- Verify CF processing
-      procedure send(val_n  : integer;
-                     val_x  : integer;
-                     val_y  : integer) is
-      begin
-
-         wait until clk = '0';
-         report "Send";
-         cmd.valid <= '1';
-         cmd.data  <= (others => '0');
-         cmd.data(60*8-1 downto 60*8-4*C_SIZE) <=
-            to_stdlogicvector(val_n, 2*C_SIZE) & 
-            to_stdlogicvector(val_x, C_SIZE) &
-            to_stdlogicvector(val_y, C_SIZE);
-         cmd.last  <= '1';
-         cmd.bytes <= to_stdlogicvector(18, 6);
-         wait until clk = '1';
-         cmd.valid <= '0';
-         wait until clk = '1';
-      end procedure send;
+      type res_vector_t is array (natural range <>) of res_t;      
 
       -- Verify CF processing
       procedure verify_cf(val_n  : integer;
@@ -122,29 +101,28 @@ begin
             ", Y=" & integer'image(val_y);
 
          assert val_n - val_x*val_x = val_y;
-         send(val_n, val_x, val_y);
+
+         wait until clk = '0';
+         alg_val_n <= to_stdlogicvector(val_n, 2*C_SIZE);
+         alg_val_x <= to_stdlogicvector(val_x, C_SIZE);
+         alg_val_y <= to_stdlogicvector(val_y, C_SIZE);
+         alg_valid <= '1';
+         wait until clk = '1';
+         alg_valid <= '0';
+         wait until clk = '1';
 
          for i in 0 to res'length-1 loop
             report "Verifying response (" & integer'image(res(i).x) &
                ", " & integer'image(res(i).y) & ")";
 
-            -- Build expected response
-            exp.data  <= (others => '0');
-            exp.data(60*8-1 downto 60*8-3*C_SIZE) <= 
-               to_stdlogicvector(res(i).x, 2*C_SIZE) &
-               to_stdlogicvector(res(i).y, C_SIZE);
-            exp.last  <= '1';
-            exp.bytes <= to_stdlogicvector(3*C_SIZE/8, 6);
-
             -- Verify received response is correct
-            wait until clk = '1' and resp.valid = '1';
+            wait until clk = '1' and alg_cf_valid = '1';
             wait until clk = '0';
-            report "Received " & to_hstring(resp.data(60*8-1 downto 60*8-4*C_SIZE));
---            assert resp.data  = exp.data
---               report "Received " & to_hstring(resp.data(60*8-1 downto 60*8-4*C_SIZE)) & ", expected " & to_hstring(exp.data(60*8-1 downto 60*8-3*C_SIZE));
---            assert resp.last  = exp.last;
---            assert resp.bytes = exp.bytes;
-            wait until clk = '1' and resp.valid = '0';
+            assert alg_cf_res_x = to_stdlogicvector(res(i).x, 2*C_SIZE) and
+                   alg_cf_res_y = to_stdlogicvector(res(i).y, C_SIZE)
+               report "Received (" & to_string(alg_cf_res_x) & ", " & to_string(alg_cf_res_y) & ")";
+
+            wait until clk = '1' and alg_cf_valid = '0';
             wait until clk = '0';
 
          end loop;
@@ -184,15 +162,23 @@ begin
 
    begin
       -- Wait until reset is complete
-      cmd.valid <= '0';
+      alg_valid <= '0';
       wait until clk = '1' and rst = '0';
 
       -- Verify CF
       verify_cf(2623, 51, 22, res2623);
-      wait for 20 ns;
-      send(0, 1, 1);
-      wait for 20 ns;
+      wait for 200 ns;
+
+      wait until clk = '0';
+      alg_val_n <= (others => '0');
+      alg_valid <= '1';
+      wait until clk = '1';
+      alg_valid <= '0';
+      wait until clk = '1';
+      wait for 200 ns;
+
       verify_cf(2059, 45, 34, res2059);
+      wait for 200 ns;
 
       -- Stop test
       wait until clk = '1';

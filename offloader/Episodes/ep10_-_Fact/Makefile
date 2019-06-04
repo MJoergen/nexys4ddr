@@ -4,8 +4,9 @@ SRCS  = top.vhd cdc.vhd clk_rst.vhd wide_fifo.vhd
 SRCS += eth/fifo.vhd eth/strip_crc.vhd eth/byte2wide.vhd eth/wide2byte.vhd
 SRCS += eth/eth_rx.vhd eth/eth_tx.vhd eth/eth.vhd
 SRCS += eth/eth_types.vhd eth/arp.vhd eth/icmp.vhd eth/udp.vhd
-SRCS += math/gcd.vhd math/mult.vhd math/math.vhd math/divmod.vhd math/amm.vhd math/cf.vhd math/add_mult.vhd
-SRCS += math/divexact.vhd math/fact.vhd math/alg.vhd
+SRCS += math.vhd 
+SRCS += alg/gcd.vhd alg/mult.vhd alg/divmod.vhd alg/amm.vhd alg/cf.vhd alg/add_mult.vhd
+SRCS += alg/divexact.vhd alg/fact.vhd alg/alg.vhd
 SRCS += vga/vga.vhd vga/pix.vhd vga/rom.vhd 
 
 top.bit: top.tcl $(SRCS) top.xdc Makefile

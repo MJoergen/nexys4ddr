@@ -17,6 +17,10 @@ entity alg is
       val_y_i    : in  std_logic_vector(G_SIZE-1 downto 0);
       valid_i    : in  std_logic;
 
+      cf_res_x_o : out std_logic_vector(2*G_SIZE-1 downto 0);
+      cf_res_y_o : out std_logic_vector(G_SIZE-1 downto 0);
+      cf_valid_o : out std_logic;
+
       res_x_o    : out std_logic_vector(2*G_SIZE-1 downto 0);
       res_y_o    : out std_logic_vector(G_SIZE-1 downto 0);
       res_fact_o : out std_logic_vector(G_SIZE-1 downto 0);
@@ -110,6 +114,9 @@ begin
    res_fact_o <= fact_res;
    valid_o    <= fact_valid;
 
+   cf_res_x_o <= cf_res_x;
+   cf_res_y_o <= cf_res_y;
+   cf_valid_o <= cf_valid;
 
 end Structural;
 
