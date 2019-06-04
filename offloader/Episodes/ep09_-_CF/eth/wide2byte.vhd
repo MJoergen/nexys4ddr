@@ -79,7 +79,7 @@ begin
             wr_ready <= '0';
          end if;
          -- Fifo is now empty
-         if rd_empty = '1' then
+         if rd_empty = '1' and wr_ready = '0' then
             -- If currently in the middle of a frame, the continue discarding
             if rx_valid_i = '1' and rx_last_i = '0' then
                wr_ready <= '0';
@@ -181,6 +181,7 @@ begin
                   end if;
 
                   if tx_last_r = '1' then                            -- Last byte has been read.
+                     report "Finished Tx frame";
                      tx_empty_r <= '1';
                      tx_last_r  <= '0';
                      state_r    <= IDLE_ST;
