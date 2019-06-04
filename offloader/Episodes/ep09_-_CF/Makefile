@@ -25,6 +25,25 @@ top.tcl: Makefile
 fpga: top.bit
 	djtgcfg prog -d Nexys4DDR -i 0 --file $<
 
+#####################################
+# Simulation
+#####################################
+
+TB     = tb
+TB_SRC = $(TB).vhd
+WAVE   = $(TB).ghw
+SAVE   = $(TB).gtkw
+
+sim: $(SRC)
+	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VCOMP.vhd
+	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VPKG.vhd
+	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/primitive/*.vhd
+	ghdl -i --std=08 --work=work $(SRCS) $(TB_SRC)
+	ghdl -m --std=08 --ieee=synopsys -frelaxed-rules $(TB)
+	ghdl -r $(TB) --assert-level=error --wave=$(WAVE) --stop-time=26us
+	gtkwave $(WAVE) $(SAVE)
+
+
 clean:
 	rm -rf usage_statistics_webtalk.*
 	rm -rf vivado*
@@ -33,4 +52,9 @@ clean:
 	rm -rf top.dcp
 	rm -rf .Xil
 	rm -rf .cache
+	rm -rf *.o
+	rm -rf work-obj08.cf
+	rm -rf unisim-obj08.cf
+	rm -rf $(TB)
+	rm -rf $(WAVE)
 
