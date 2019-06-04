@@ -37,6 +37,11 @@ architecture Structural of alg is
 
    constant C_ZERO    : std_logic_vector(G_SIZE-1 downto 0) := (others => '0');
 
+   constant C_PRIMES1 : std_logic_vector(63 downto 0) := X"088886ffdb344692"; -- 2*3*5*7*11*13*17*19*23*29*31*37*41*43*47
+   constant C_PRIMES2 : std_logic_vector(63 downto 0) := X"34091fa96ffdf47b"; -- 53*59*61*67*71*73*79*83*89*97
+   constant C_PRIMES3 : std_logic_vector(63 downto 0) := X"3c47d8d728a77ebb"; -- 101*103*107*109*113*127*131*137*139
+   constant C_PRIMES4 : std_logic_vector(63 downto 0) := X"077ab7da9d709ea9"; -- 149*151*157*163*167*173*179*181
+
    signal cf_start    : std_logic;
    signal cf_res_x    : std_logic_vector(2*G_SIZE-1 downto 0);
    signal cf_res_y    : std_logic_vector(G_SIZE-1 downto 0);
@@ -90,7 +95,7 @@ begin
                fact_val(fact_idx)   <= cf_res_y;
                fact_neg(fact_idx)   <= cf_res_neg;
                fact_x(fact_idx)     <= cf_res_x;
-               fact_primes          <= to_stdlogicvector(2*3*5*7*11*13*17*19, G_SIZE);
+               fact_primes          <= C_PRIMES1;
 
                if fact_idx < G_NUM_FACTS-1 then
                   fact_idx <= fact_idx + 1;
