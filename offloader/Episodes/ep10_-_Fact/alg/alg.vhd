@@ -85,89 +85,30 @@ begin
       valid_o   => cf_valid
    ); -- i_cf
 
-   p_fact_idx : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         fact_start <= (others => '0');
-         if cf_valid = '1' then
-            if fact_busy(fact_idx) = '0' then
-               fact_start(fact_idx) <= '1';
-               fact_val(fact_idx)   <= cf_res_y;
-               fact_neg(fact_idx)   <= cf_res_neg;
-               fact_x(fact_idx)     <= cf_res_x;
-               fact_primes          <= C_PRIMES1;
 
-               if fact_idx < G_NUM_FACTS-1 then
-                  fact_idx <= fact_idx + 1;
-               else
-                  fact_idx <= 0;
-               end if;
-            else
-               report "Missed CF output.";
-            end if;
-         end if;
+   -----------------------
+   -- Instantiate FACTORS
+   -----------------------
 
-         if rst_i = '1' then
-            fact_idx   <= 0;
-         end if;
-      end if;
-   end process p_fact_idx;
+   i_factors : entity work.factors
+   generic map (
+      G_NUM_FACTS  => G_NUM_FACTS,
+      G_SIZE       => G_SIZE
+   )
+   port map (
+      clk_i        => clk_i,
+      rst_i        => rst_i,
+      cf_res_x_i   => cf_res_x,
+      cf_res_y_i   => cf_res_y,
+      cf_res_neg_i => cf_res_neg,
+      cf_valid_i   => cf_valid,
+      res_x_o      => res_x_o,
+      res_y_o      => res_y_o,
+      res_neg_o    => res_neg_o,
+      res_fact_o   => res_fact_o,
+      valid_o      => valid_o
+   ); -- i_factors
 
-
-   ----------------------------
-   -- Instantiate FACT modules
-   ----------------------------
-
-   gen_facts : for i in 0 to G_NUM_FACTS-1 generate
-      i_fact : entity work.fact
-      generic map (
-         G_SIZE   => G_SIZE
-      )
-      port map ( 
-         clk_i    => clk_i,
-         rst_i    => rst_i,
-         primes_i => fact_primes,
-         val_i    => fact_val(i),
-         start_i  => fact_start(i),
-         res_o    => fact_res(i),
-         busy_o   => fact_busy(i),
-         valid_o  => fact_valid(i)
-      ); -- i_fact
-   end generate gen_facts;
-
-
-   -- Arbitrate between possible results
-   p_out : process (fact_res, fact_valid, fact_val)
-      variable res_fact : std_logic_vector(G_SIZE-1 downto 0);
-      variable res_y    : std_logic_vector(G_SIZE-1 downto 0);
-      variable res_x    : std_logic_vector(2*G_SIZE-1 downto 0);
-      variable res_neg  : std_logic;
-      variable valid    : std_logic;
-   begin
-      res_fact := (others => '0');
-      res_neg  := '0';
-      res_y    := (others => '0');
-      res_x    := (others => '0');
-      valid    := '0';
-      for i in 0 to G_NUM_FACTS-1 loop
-         if fact_valid(i) = '1' then
-            if valid = '1' then
-               report "Missed FACT output";
-            end if;
-            res_fact := fact_res(i);
-            res_neg  := fact_neg(i);
-            res_y    := fact_val(i);
-            res_x    := fact_x(i);
-            valid    := '1';
-         end if;
-      end loop;
-
-      res_x_o    <= res_x;
-      res_y_o    <= res_y;
-      res_neg_o  <= res_neg;
-      res_fact_o <= res_fact;
-      valid_o    <= valid;
-   end process p_out;
 
    -- Connect output signals
 
