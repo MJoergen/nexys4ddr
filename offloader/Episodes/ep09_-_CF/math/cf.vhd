@@ -203,6 +203,8 @@ begin
             divmod_start   <= '0';
             state          <= WAIT_ST;
 
+            report "Starting CF, n=" & to_hstring(val_n_i);
+
             if val_n_i = 0 then
                state <= IDLE_ST;
             end if;
