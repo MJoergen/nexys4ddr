@@ -209,10 +209,13 @@ begin
       -- Verify UDP processing
       procedure verify_udp(signal tx : inout t_sim;
                            signal rx : in    t_sim) is
-         constant size   : integer := 16;
+         constant size    : integer := 32;
+         variable payload : std_logic_vector(8*size-1 downto 0);
       begin
 
          report "Verify UDP processing, payload size is " & integer'image(size) & " bytes.";
+
+         wait until eth_refclk = '0';
 
          -- Build UDP request
          tx.data  <= (others => '0');
@@ -234,17 +237,31 @@ begin
          tx.data(R_UDP_LEN)   <= to_stdlogicvector(8+size, 16);
          tx.data(R_UDP_CSUM)  <= X"0000";
 
-         tx.data(R_UDP_HDR'right-1 downto R_UDP_HDR'right-size*8) <=
-            X"000000000000080b0000002d00000022";
-         tx.last  <= '1';
+         payload := X"0000000000000000000000000000080b000000000000002d0000000000000022";
+
+         tx.data(R_UDP_HDR'right-1 downto 0) <=
+            payload(payload'length-1 downto payload'length-R_UDP_HDR'right);
+         tx.last  <= '0';
          tx.bytes <= (others => '0');  -- Minimum frame size is 60 bytes.
          tx.valid <= '0';
 
-         -- Wait one clock cycle.
+         -- Wait one clock cycle to update tx.data.
          wait until eth_refclk = '1';
 
          -- Updated data with correct checksum
          tx.data(R_IP_CSUM)    <= not checksum(tx.data(R_IP_HDR));
+
+         tx.valid <= '1';
+         wait until eth_refclk = '1';
+         tx.valid <= '0';
+
+         tx.data <= (others => '0');
+
+         tx.data(tx.data'length-1 downto tx.data'length-payload'length+R_UDP_HDR'right) <=
+            payload(payload'length-R_UDP_HDR'right-1 downto 0);
+         tx.last  <= '1';
+         tx.bytes <= to_stdlogicvector(payload'length/8+42-60, 6);
+         tx.valid <= '0';
 
          tx.valid <= '1';
          wait until eth_refclk = '1';

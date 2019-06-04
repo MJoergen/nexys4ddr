@@ -1,24 +1,25 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Tue Jun  4 03:34:09 2019
+[*] Tue Jun  4 05:19:43 2019
 [*]
 [dumpfile] "/home/mike/git/nexys4ddr/offloader/Episodes/ep09_-_CF/tb.ghw"
-[dumpfile_mtime] "Tue Jun  4 03:27:17 2019"
-[dumpfile_size] 9988740
+[dumpfile_mtime] "Tue Jun  4 05:15:37 2019"
+[dumpfile_size] 10670026
 [savefile] "/home/mike/git/nexys4ddr/offloader/Episodes/ep09_-_CF/tb.gtkw"
-[timestart] 0
-[size] 1208 678
+[timestart] 8629000000
+[size] 1918 1017
 [pos] -1 -1
-*-33.284546 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-28.090548 9487000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.tb.
-[treeopen] top.tb.i_byte2wide.
-[treeopen] top.tb.i_eth_rx.
+[treeopen] top.tb.i_top.
+[treeopen] top.tb.i_top.i_eth.
 [treeopen] top.tb.i_top.i_eth.i_eth_rx.
+[treeopen] top.tb.i_top.i_eth.i_wide2byte.
 [sst_width] 266
-[signals_width] 190
+[signals_width] 290
 [sst_expanded] 1
-[sst_vpaned_height] 175
+[sst_vpaned_height] 588
 @c00200
 -sim_tx
 @28
@@ -32,6 +33,29 @@ top.tb.sim_tx.last
 @1401200
 -sim_tx
 @c00200
+-wide2byte
+@28
+top.tb.i_wide2byte.rx_valid_i
+@22
+#{top.tb.i_wide2byte.rx_data_i[479:0]} top.tb.i_wide2byte.rx_data_i[479] top.tb.i_wide2byte.rx_data_i[478] top.tb.i_wide2byte.rx_data_i[477] top.tb.i_wide2byte.rx_data_i[476] top.tb.i_wide2byte.rx_data_i[475] top.tb.i_wide2byte.rx_data_i[474] top.tb.i_wide2byte.rx_data_i[473] top.tb.i_wide2byte.rx_data_i[472] top.tb.i_wide2byte.rx_data_i[471] top.tb.i_wide2byte.rx_data_i[470] top.tb.i_wide2byte.rx_data_i[469] top.tb.i_wide2byte.rx_data_i[468] top.tb.i_wide2byte.rx_data_i[467] top.tb.i_wide2byte.rx_data_i[466] top.tb.i_wide2byte.rx_data_i[465] top.tb.i_wide2byte.rx_data_i[464] top.tb.i_wide2byte.rx_data_i[463] top.tb.i_wide2byte.rx_data_i[462] top.tb.i_wide2byte.rx_data_i[461] top.tb.i_wide2byte.rx_data_i[460] top.tb.i_wide2byte.rx_data_i[459] top.tb.i_wide2byte.rx_data_i[458] top.tb.i_wide2byte.rx_data_i[457] top.tb.i_wide2byte.rx_data_i[456] top.tb.i_wide2byte.rx_data_i[455] top.tb.i_wide2byte.rx_data_i[454] top.tb.i_wide2byte.rx_data_i[453] top.tb.i_wide2byte.rx_data_i[452] top.tb.i_wide2byte.rx_data_i[451] top.tb.i_wide2byte.rx_data_i[450] top.tb.i_wide2byte.rx_data_i[449] top.tb.i_wide2byte.rx_data_i[448] top.tb.i_wide2byte.rx_data_i[447] top.tb.i_wide2byte.rx_data_i[446] top.tb.i_wide2byte.rx_data_i[445] top.tb.i_wide2byte.rx_data_i[444] top.tb.i_wide2byte.rx_data_i[443] top.tb.i_wide2byte.rx_data_i[442] top.tb.i_wide2byte.rx_data_i[441] top.tb.i_wide2byte.rx_data_i[440] top.tb.i_wide2byte.rx_data_i[439] top.tb.i_wide2byte.rx_data_i[438] top.tb.i_wide2byte.rx_data_i[437] top.tb.i_wide2byte.rx_data_i[436] top.tb.i_wide2byte.rx_data_i[435] top.tb.i_wide2byte.rx_data_i[434] top.tb.i_wide2byte.rx_data_i[433] top.tb.i_wide2byte.rx_data_i[432] top.tb.i_wide2byte.rx_data_i[431] top.tb.i_wide2byte.rx_data_i[430] top.tb.i_wide2byte.rx_data_i[429] top.tb.i_wide2byte.rx_data_i[428] top.tb.i_wide2byte.rx_data_i[427] top.tb.i_wide2byte.rx_data_i[426] top.tb.i_wide2byte.rx_data_i[425] top.tb.i_wide2byte.rx_data_i[424] top.tb.i_wide2byte.rx_data_i[423] top.tb.i_wide2byte.rx_data_i[422] top.tb.i_wide2byte.rx_data_i[421] top.tb.i_wide2byte.rx_data_i[420] top.tb.i_wide2byte.rx_data_i[419] top.tb.i_wide2byte.rx_data_i[418] top.tb.i_wide2byte.rx_data_i[417] top.tb.i_wide2byte.rx_data_i[416] top.tb.i_wide2byte.rx_data_i[415] top.tb.i_wide2byte.rx_data_i[414] top.tb.i_wide2byte.rx_data_i[413] top.tb.i_wide2byte.rx_data_i[412] top.tb.i_wide2byte.rx_data_i[411] top.tb.i_wide2byte.rx_data_i[410] top.tb.i_wide2byte.rx_data_i[409] top.tb.i_wide2byte.rx_data_i[408] top.tb.i_wide2byte.rx_data_i[407] top.tb.i_wide2byte.rx_data_i[406] top.tb.i_wide2byte.rx_data_i[405] top.tb.i_wide2byte.rx_data_i[404] top.tb.i_wide2byte.rx_data_i[403] top.tb.i_wide2byte.rx_data_i[402] top.tb.i_wide2byte.rx_data_i[401] top.tb.i_wide2byte.rx_data_i[400] top.tb.i_wide2byte.rx_data_i[399] top.tb.i_wide2byte.rx_data_i[398] top.tb.i_wide2byte.rx_data_i[397] top.tb.i_wide2byte.rx_data_i[396] top.tb.i_wide2byte.rx_data_i[395] top.tb.i_wide2byte.rx_data_i[394] top.tb.i_wide2byte.rx_data_i[393] top.tb.i_wide2byte.rx_data_i[392] top.tb.i_wide2byte.rx_data_i[391] top.tb.i_wide2byte.rx_data_i[390] top.tb.i_wide2byte.rx_data_i[389] top.tb.i_wide2byte.rx_data_i[388] top.tb.i_wide2byte.rx_data_i[387] top.tb.i_wide2byte.rx_data_i[386] top.tb.i_wide2byte.rx_data_i[385] top.tb.i_wide2byte.rx_data_i[384] top.tb.i_wide2byte.rx_data_i[383] top.tb.i_wide2byte.rx_data_i[382] top.tb.i_wide2byte.rx_data_i[381] top.tb.i_wide2byte.rx_data_i[380] top.tb.i_wide2byte.rx_data_i[379] top.tb.i_wide2byte.rx_data_i[378] top.tb.i_wide2byte.rx_data_i[377] top.tb.i_wide2byte.rx_data_i[376] top.tb.i_wide2byte.rx_data_i[375] top.tb.i_wide2byte.rx_data_i[374] top.tb.i_wide2byte.rx_data_i[373] top.tb.i_wide2byte.rx_data_i[372] top.tb.i_wide2byte.rx_data_i[371] top.tb.i_wide2byte.rx_data_i[370] top.tb.i_wide2byte.rx_data_i[369] top.tb.i_wide2byte.rx_data_i[368] top.tb.i_wide2byte.rx_data_i[367] top.tb.i_wide2byte.rx_data_i[366] top.tb.i_wide2byte.rx_data_i[365] top.tb.i_wide2byte.rx_data_i[364] top.tb.i_wide2byte.rx_data_i[363] top.tb.i_wide2byte.rx_data_i[362] top.tb.i_wide2byte.rx_data_i[361] top.tb.i_wide2byte.rx_data_i[360] top.tb.i_wide2byte.rx_data_i[359] top.tb.i_wide2byte.rx_data_i[358] top.tb.i_wide2byte.rx_data_i[357] top.tb.i_wide2byte.rx_data_i[356] top.tb.i_wide2byte.rx_data_i[355] top.tb.i_wide2byte.rx_data_i[354] top.tb.i_wide2byte.rx_data_i[353] top.tb.i_wide2byte.rx_data_i[352] top.tb.i_wide2byte.rx_data_i[351] top.tb.i_wide2byte.rx_data_i[350] top.tb.i_wide2byte.rx_data_i[349] top.tb.i_wide2byte.rx_data_i[348] top.tb.i_wide2byte.rx_data_i[347] top.tb.i_wide2byte.rx_data_i[346] top.tb.i_wide2byte.rx_data_i[345] top.tb.i_wide2byte.rx_data_i[344] top.tb.i_wide2byte.rx_data_i[343] top.tb.i_wide2byte.rx_data_i[342] top.tb.i_wide2byte.rx_data_i[341] top.tb.i_wide2byte.rx_data_i[340] top.tb.i_wide2byte.rx_data_i[339] top.tb.i_wide2byte.rx_data_i[338] top.tb.i_wide2byte.rx_data_i[337] top.tb.i_wide2byte.rx_data_i[336] top.tb.i_wide2byte.rx_data_i[335] top.tb.i_wide2byte.rx_data_i[334] top.tb.i_wide2byte.rx_data_i[333] top.tb.i_wide2byte.rx_data_i[332] top.tb.i_wide2byte.rx_data_i[331] top.tb.i_wide2byte.rx_data_i[330] top.tb.i_wide2byte.rx_data_i[329] top.tb.i_wide2byte.rx_data_i[328] top.tb.i_wide2byte.rx_data_i[327] top.tb.i_wide2byte.rx_data_i[326] top.tb.i_wide2byte.rx_data_i[325] top.tb.i_wide2byte.rx_data_i[324] top.tb.i_wide2byte.rx_data_i[323] top.tb.i_wide2byte.rx_data_i[322] top.tb.i_wide2byte.rx_data_i[321] top.tb.i_wide2byte.rx_data_i[320] top.tb.i_wide2byte.rx_data_i[319] top.tb.i_wide2byte.rx_data_i[318] top.tb.i_wide2byte.rx_data_i[317] top.tb.i_wide2byte.rx_data_i[316] top.tb.i_wide2byte.rx_data_i[315] top.tb.i_wide2byte.rx_data_i[314] top.tb.i_wide2byte.rx_data_i[313] top.tb.i_wide2byte.rx_data_i[312] top.tb.i_wide2byte.rx_data_i[311] top.tb.i_wide2byte.rx_data_i[310] top.tb.i_wide2byte.rx_data_i[309] top.tb.i_wide2byte.rx_data_i[308] top.tb.i_wide2byte.rx_data_i[307] top.tb.i_wide2byte.rx_data_i[306] top.tb.i_wide2byte.rx_data_i[305] top.tb.i_wide2byte.rx_data_i[304] top.tb.i_wide2byte.rx_data_i[303] top.tb.i_wide2byte.rx_data_i[302] top.tb.i_wide2byte.rx_data_i[301] top.tb.i_wide2byte.rx_data_i[300] top.tb.i_wide2byte.rx_data_i[299] top.tb.i_wide2byte.rx_data_i[298] top.tb.i_wide2byte.rx_data_i[297] top.tb.i_wide2byte.rx_data_i[296] top.tb.i_wide2byte.rx_data_i[295] top.tb.i_wide2byte.rx_data_i[294] top.tb.i_wide2byte.rx_data_i[293] top.tb.i_wide2byte.rx_data_i[292] top.tb.i_wide2byte.rx_data_i[291] top.tb.i_wide2byte.rx_data_i[290] top.tb.i_wide2byte.rx_data_i[289] top.tb.i_wide2byte.rx_data_i[288] top.tb.i_wide2byte.rx_data_i[287] top.tb.i_wide2byte.rx_data_i[286] top.tb.i_wide2byte.rx_data_i[285] top.tb.i_wide2byte.rx_data_i[284] top.tb.i_wide2byte.rx_data_i[283] top.tb.i_wide2byte.rx_data_i[282] top.tb.i_wide2byte.rx_data_i[281] top.tb.i_wide2byte.rx_data_i[280] top.tb.i_wide2byte.rx_data_i[279] top.tb.i_wide2byte.rx_data_i[278] top.tb.i_wide2byte.rx_data_i[277] top.tb.i_wide2byte.rx_data_i[276] top.tb.i_wide2byte.rx_data_i[275] top.tb.i_wide2byte.rx_data_i[274] top.tb.i_wide2byte.rx_data_i[273] top.tb.i_wide2byte.rx_data_i[272] top.tb.i_wide2byte.rx_data_i[271] top.tb.i_wide2byte.rx_data_i[270] top.tb.i_wide2byte.rx_data_i[269] top.tb.i_wide2byte.rx_data_i[268] top.tb.i_wide2byte.rx_data_i[267] top.tb.i_wide2byte.rx_data_i[266] top.tb.i_wide2byte.rx_data_i[265] top.tb.i_wide2byte.rx_data_i[264] top.tb.i_wide2byte.rx_data_i[263] top.tb.i_wide2byte.rx_data_i[262] top.tb.i_wide2byte.rx_data_i[261] top.tb.i_wide2byte.rx_data_i[260] top.tb.i_wide2byte.rx_data_i[259] top.tb.i_wide2byte.rx_data_i[258] top.tb.i_wide2byte.rx_data_i[257] top.tb.i_wide2byte.rx_data_i[256] top.tb.i_wide2byte.rx_data_i[255] top.tb.i_wide2byte.rx_data_i[254] top.tb.i_wide2byte.rx_data_i[253] top.tb.i_wide2byte.rx_data_i[252] top.tb.i_wide2byte.rx_data_i[251] top.tb.i_wide2byte.rx_data_i[250] top.tb.i_wide2byte.rx_data_i[249] top.tb.i_wide2byte.rx_data_i[248] top.tb.i_wide2byte.rx_data_i[247] top.tb.i_wide2byte.rx_data_i[246] top.tb.i_wide2byte.rx_data_i[245] top.tb.i_wide2byte.rx_data_i[244] top.tb.i_wide2byte.rx_data_i[243] top.tb.i_wide2byte.rx_data_i[242] top.tb.i_wide2byte.rx_data_i[241] top.tb.i_wide2byte.rx_data_i[240] top.tb.i_wide2byte.rx_data_i[239] top.tb.i_wide2byte.rx_data_i[238] top.tb.i_wide2byte.rx_data_i[237] top.tb.i_wide2byte.rx_data_i[236] top.tb.i_wide2byte.rx_data_i[235] top.tb.i_wide2byte.rx_data_i[234] top.tb.i_wide2byte.rx_data_i[233] top.tb.i_wide2byte.rx_data_i[232] top.tb.i_wide2byte.rx_data_i[231] top.tb.i_wide2byte.rx_data_i[230] top.tb.i_wide2byte.rx_data_i[229] top.tb.i_wide2byte.rx_data_i[228] top.tb.i_wide2byte.rx_data_i[227] top.tb.i_wide2byte.rx_data_i[226] top.tb.i_wide2byte.rx_data_i[225] top.tb.i_wide2byte.rx_data_i[224] top.tb.i_wide2byte.rx_data_i[223] top.tb.i_wide2byte.rx_data_i[222] top.tb.i_wide2byte.rx_data_i[221] top.tb.i_wide2byte.rx_data_i[220] top.tb.i_wide2byte.rx_data_i[219] top.tb.i_wide2byte.rx_data_i[218] top.tb.i_wide2byte.rx_data_i[217] top.tb.i_wide2byte.rx_data_i[216] top.tb.i_wide2byte.rx_data_i[215] top.tb.i_wide2byte.rx_data_i[214] top.tb.i_wide2byte.rx_data_i[213] top.tb.i_wide2byte.rx_data_i[212] top.tb.i_wide2byte.rx_data_i[211] top.tb.i_wide2byte.rx_data_i[210] top.tb.i_wide2byte.rx_data_i[209] top.tb.i_wide2byte.rx_data_i[208] top.tb.i_wide2byte.rx_data_i[207] top.tb.i_wide2byte.rx_data_i[206] top.tb.i_wide2byte.rx_data_i[205] top.tb.i_wide2byte.rx_data_i[204] top.tb.i_wide2byte.rx_data_i[203] top.tb.i_wide2byte.rx_data_i[202] top.tb.i_wide2byte.rx_data_i[201] top.tb.i_wide2byte.rx_data_i[200] top.tb.i_wide2byte.rx_data_i[199] top.tb.i_wide2byte.rx_data_i[198] top.tb.i_wide2byte.rx_data_i[197] top.tb.i_wide2byte.rx_data_i[196] top.tb.i_wide2byte.rx_data_i[195] top.tb.i_wide2byte.rx_data_i[194] top.tb.i_wide2byte.rx_data_i[193] top.tb.i_wide2byte.rx_data_i[192] top.tb.i_wide2byte.rx_data_i[191] top.tb.i_wide2byte.rx_data_i[190] top.tb.i_wide2byte.rx_data_i[189] top.tb.i_wide2byte.rx_data_i[188] top.tb.i_wide2byte.rx_data_i[187] top.tb.i_wide2byte.rx_data_i[186] top.tb.i_wide2byte.rx_data_i[185] top.tb.i_wide2byte.rx_data_i[184] top.tb.i_wide2byte.rx_data_i[183] top.tb.i_wide2byte.rx_data_i[182] top.tb.i_wide2byte.rx_data_i[181] top.tb.i_wide2byte.rx_data_i[180] top.tb.i_wide2byte.rx_data_i[179] top.tb.i_wide2byte.rx_data_i[178] top.tb.i_wide2byte.rx_data_i[177] top.tb.i_wide2byte.rx_data_i[176] top.tb.i_wide2byte.rx_data_i[175] top.tb.i_wide2byte.rx_data_i[174] top.tb.i_wide2byte.rx_data_i[173] top.tb.i_wide2byte.rx_data_i[172] top.tb.i_wide2byte.rx_data_i[171] top.tb.i_wide2byte.rx_data_i[170] top.tb.i_wide2byte.rx_data_i[169] top.tb.i_wide2byte.rx_data_i[168] top.tb.i_wide2byte.rx_data_i[167] top.tb.i_wide2byte.rx_data_i[166] top.tb.i_wide2byte.rx_data_i[165] top.tb.i_wide2byte.rx_data_i[164] top.tb.i_wide2byte.rx_data_i[163] top.tb.i_wide2byte.rx_data_i[162] top.tb.i_wide2byte.rx_data_i[161] top.tb.i_wide2byte.rx_data_i[160] top.tb.i_wide2byte.rx_data_i[159] top.tb.i_wide2byte.rx_data_i[158] top.tb.i_wide2byte.rx_data_i[157] top.tb.i_wide2byte.rx_data_i[156] top.tb.i_wide2byte.rx_data_i[155] top.tb.i_wide2byte.rx_data_i[154] top.tb.i_wide2byte.rx_data_i[153] top.tb.i_wide2byte.rx_data_i[152] top.tb.i_wide2byte.rx_data_i[151] top.tb.i_wide2byte.rx_data_i[150] top.tb.i_wide2byte.rx_data_i[149] top.tb.i_wide2byte.rx_data_i[148] top.tb.i_wide2byte.rx_data_i[147] top.tb.i_wide2byte.rx_data_i[146] top.tb.i_wide2byte.rx_data_i[145] top.tb.i_wide2byte.rx_data_i[144] top.tb.i_wide2byte.rx_data_i[143] top.tb.i_wide2byte.rx_data_i[142] top.tb.i_wide2byte.rx_data_i[141] top.tb.i_wide2byte.rx_data_i[140] top.tb.i_wide2byte.rx_data_i[139] top.tb.i_wide2byte.rx_data_i[138] top.tb.i_wide2byte.rx_data_i[137] top.tb.i_wide2byte.rx_data_i[136] top.tb.i_wide2byte.rx_data_i[135] top.tb.i_wide2byte.rx_data_i[134] top.tb.i_wide2byte.rx_data_i[133] top.tb.i_wide2byte.rx_data_i[132] top.tb.i_wide2byte.rx_data_i[131] top.tb.i_wide2byte.rx_data_i[130] top.tb.i_wide2byte.rx_data_i[129] top.tb.i_wide2byte.rx_data_i[128] top.tb.i_wide2byte.rx_data_i[127] top.tb.i_wide2byte.rx_data_i[126] top.tb.i_wide2byte.rx_data_i[125] top.tb.i_wide2byte.rx_data_i[124] top.tb.i_wide2byte.rx_data_i[123] top.tb.i_wide2byte.rx_data_i[122] top.tb.i_wide2byte.rx_data_i[121] top.tb.i_wide2byte.rx_data_i[120] top.tb.i_wide2byte.rx_data_i[119] top.tb.i_wide2byte.rx_data_i[118] top.tb.i_wide2byte.rx_data_i[117] top.tb.i_wide2byte.rx_data_i[116] top.tb.i_wide2byte.rx_data_i[115] top.tb.i_wide2byte.rx_data_i[114] top.tb.i_wide2byte.rx_data_i[113] top.tb.i_wide2byte.rx_data_i[112] top.tb.i_wide2byte.rx_data_i[111] top.tb.i_wide2byte.rx_data_i[110] top.tb.i_wide2byte.rx_data_i[109] top.tb.i_wide2byte.rx_data_i[108] top.tb.i_wide2byte.rx_data_i[107] top.tb.i_wide2byte.rx_data_i[106] top.tb.i_wide2byte.rx_data_i[105] top.tb.i_wide2byte.rx_data_i[104] top.tb.i_wide2byte.rx_data_i[103] top.tb.i_wide2byte.rx_data_i[102] top.tb.i_wide2byte.rx_data_i[101] top.tb.i_wide2byte.rx_data_i[100] top.tb.i_wide2byte.rx_data_i[99] top.tb.i_wide2byte.rx_data_i[98] top.tb.i_wide2byte.rx_data_i[97] top.tb.i_wide2byte.rx_data_i[96] top.tb.i_wide2byte.rx_data_i[95] top.tb.i_wide2byte.rx_data_i[94] top.tb.i_wide2byte.rx_data_i[93] top.tb.i_wide2byte.rx_data_i[92] top.tb.i_wide2byte.rx_data_i[91] top.tb.i_wide2byte.rx_data_i[90] top.tb.i_wide2byte.rx_data_i[89] top.tb.i_wide2byte.rx_data_i[88] top.tb.i_wide2byte.rx_data_i[87] top.tb.i_wide2byte.rx_data_i[86] top.tb.i_wide2byte.rx_data_i[85] top.tb.i_wide2byte.rx_data_i[84] top.tb.i_wide2byte.rx_data_i[83] top.tb.i_wide2byte.rx_data_i[82] top.tb.i_wide2byte.rx_data_i[81] top.tb.i_wide2byte.rx_data_i[80] top.tb.i_wide2byte.rx_data_i[79] top.tb.i_wide2byte.rx_data_i[78] top.tb.i_wide2byte.rx_data_i[77] top.tb.i_wide2byte.rx_data_i[76] top.tb.i_wide2byte.rx_data_i[75] top.tb.i_wide2byte.rx_data_i[74] top.tb.i_wide2byte.rx_data_i[73] top.tb.i_wide2byte.rx_data_i[72] top.tb.i_wide2byte.rx_data_i[71] top.tb.i_wide2byte.rx_data_i[70] top.tb.i_wide2byte.rx_data_i[69] top.tb.i_wide2byte.rx_data_i[68] top.tb.i_wide2byte.rx_data_i[67] top.tb.i_wide2byte.rx_data_i[66] top.tb.i_wide2byte.rx_data_i[65] top.tb.i_wide2byte.rx_data_i[64] top.tb.i_wide2byte.rx_data_i[63] top.tb.i_wide2byte.rx_data_i[62] top.tb.i_wide2byte.rx_data_i[61] top.tb.i_wide2byte.rx_data_i[60] top.tb.i_wide2byte.rx_data_i[59] top.tb.i_wide2byte.rx_data_i[58] top.tb.i_wide2byte.rx_data_i[57] top.tb.i_wide2byte.rx_data_i[56] top.tb.i_wide2byte.rx_data_i[55] top.tb.i_wide2byte.rx_data_i[54] top.tb.i_wide2byte.rx_data_i[53] top.tb.i_wide2byte.rx_data_i[52] top.tb.i_wide2byte.rx_data_i[51] top.tb.i_wide2byte.rx_data_i[50] top.tb.i_wide2byte.rx_data_i[49] top.tb.i_wide2byte.rx_data_i[48] top.tb.i_wide2byte.rx_data_i[47] top.tb.i_wide2byte.rx_data_i[46] top.tb.i_wide2byte.rx_data_i[45] top.tb.i_wide2byte.rx_data_i[44] top.tb.i_wide2byte.rx_data_i[43] top.tb.i_wide2byte.rx_data_i[42] top.tb.i_wide2byte.rx_data_i[41] top.tb.i_wide2byte.rx_data_i[40] top.tb.i_wide2byte.rx_data_i[39] top.tb.i_wide2byte.rx_data_i[38] top.tb.i_wide2byte.rx_data_i[37] top.tb.i_wide2byte.rx_data_i[36] top.tb.i_wide2byte.rx_data_i[35] top.tb.i_wide2byte.rx_data_i[34] top.tb.i_wide2byte.rx_data_i[33] top.tb.i_wide2byte.rx_data_i[32] top.tb.i_wide2byte.rx_data_i[31] top.tb.i_wide2byte.rx_data_i[30] top.tb.i_wide2byte.rx_data_i[29] top.tb.i_wide2byte.rx_data_i[28] top.tb.i_wide2byte.rx_data_i[27] top.tb.i_wide2byte.rx_data_i[26] top.tb.i_wide2byte.rx_data_i[25] top.tb.i_wide2byte.rx_data_i[24] top.tb.i_wide2byte.rx_data_i[23] top.tb.i_wide2byte.rx_data_i[22] top.tb.i_wide2byte.rx_data_i[21] top.tb.i_wide2byte.rx_data_i[20] top.tb.i_wide2byte.rx_data_i[19] top.tb.i_wide2byte.rx_data_i[18] top.tb.i_wide2byte.rx_data_i[17] top.tb.i_wide2byte.rx_data_i[16] top.tb.i_wide2byte.rx_data_i[15] top.tb.i_wide2byte.rx_data_i[14] top.tb.i_wide2byte.rx_data_i[13] top.tb.i_wide2byte.rx_data_i[12] top.tb.i_wide2byte.rx_data_i[11] top.tb.i_wide2byte.rx_data_i[10] top.tb.i_wide2byte.rx_data_i[9] top.tb.i_wide2byte.rx_data_i[8] top.tb.i_wide2byte.rx_data_i[7] top.tb.i_wide2byte.rx_data_i[6] top.tb.i_wide2byte.rx_data_i[5] top.tb.i_wide2byte.rx_data_i[4] top.tb.i_wide2byte.rx_data_i[3] top.tb.i_wide2byte.rx_data_i[2] top.tb.i_wide2byte.rx_data_i[1] top.tb.i_wide2byte.rx_data_i[0]
+@28
+top.tb.i_wide2byte.rx_last_i
+@22
+#{top.tb.i_wide2byte.rx_bytes_i[5:0]} top.tb.i_wide2byte.rx_bytes_i[5] top.tb.i_wide2byte.rx_bytes_i[4] top.tb.i_wide2byte.rx_bytes_i[3] top.tb.i_wide2byte.rx_bytes_i[2] top.tb.i_wide2byte.rx_bytes_i[1] top.tb.i_wide2byte.rx_bytes_i[0]
+@28
+top.tb.i_wide2byte.tx_empty_o
+top.tb.i_wide2byte.tx_rden_i
+@22
+#{top.tb.i_wide2byte.tx_data_o[7:0]} top.tb.i_wide2byte.tx_data_o[7] top.tb.i_wide2byte.tx_data_o[6] top.tb.i_wide2byte.tx_data_o[5] top.tb.i_wide2byte.tx_data_o[4] top.tb.i_wide2byte.tx_data_o[3] top.tb.i_wide2byte.tx_data_o[2] top.tb.i_wide2byte.tx_data_o[1] top.tb.i_wide2byte.tx_data_o[0]
+@28
+top.tb.i_wide2byte.tx_last_o
+top.tb.i_wide2byte.wr_en
+top.tb.i_wide2byte.wr_ready
+top.tb.i_wide2byte.rd_en
+top.tb.i_wide2byte.rd_empty
+@1401200
+-wide2byte
+@c00200
 -math
 @28
 top.tb.i_top.i_math.tx_valid_o
@@ -43,7 +67,7 @@ top.tb.i_top.i_math.tx_last_o
 #{top.tb.i_top.i_math.tx_bytes_o[5:0]} top.tb.i_top.i_math.tx_bytes_o[5] top.tb.i_top.i_math.tx_bytes_o[4] top.tb.i_top.i_math.tx_bytes_o[3] top.tb.i_top.i_math.tx_bytes_o[2] top.tb.i_top.i_math.tx_bytes_o[1] top.tb.i_top.i_math.tx_bytes_o[0]
 @1401200
 -math
-@800200
+@c00201
 -UDP
 @28
 top.tb.i_top.i_eth.i_udp.rx_phy_valid_i
@@ -61,8 +85,23 @@ top.tb.i_top.i_eth.i_udp.tx_phy_valid_o
 top.tb.i_top.i_eth.i_udp.tx_phy_last_o
 @22
 #{top.tb.i_top.i_eth.i_udp.tx_phy_bytes_o[5:0]} top.tb.i_top.i_eth.i_udp.tx_phy_bytes_o[5] top.tb.i_top.i_eth.i_udp.tx_phy_bytes_o[4] top.tb.i_top.i_eth.i_udp.tx_phy_bytes_o[3] top.tb.i_top.i_eth.i_udp.tx_phy_bytes_o[2] top.tb.i_top.i_eth.i_udp.tx_phy_bytes_o[1] top.tb.i_top.i_eth.i_udp.tx_phy_bytes_o[0]
-@1000200
+@1401201
 -UDP
+@800200
+-wide2byte
+@28
+top.tb.i_top.i_eth.i_wide2byte.rx_valid_i
+top.tb.i_top.i_eth.i_wide2byte.rx_last_i
+top.tb.i_top.i_eth.i_wide2byte.wr_en
+top.tb.i_top.i_eth.i_wide2byte.wr_ready
+top.tb.i_top.i_eth.i_wide2byte.tx_empty_o
+top.tb.i_top.i_eth.i_wide2byte.tx_rden_i
+@22
+#{top.tb.i_top.i_eth.i_wide2byte.tx_data_o[7:0]} top.tb.i_top.i_eth.i_wide2byte.tx_data_o[7] top.tb.i_top.i_eth.i_wide2byte.tx_data_o[6] top.tb.i_top.i_eth.i_wide2byte.tx_data_o[5] top.tb.i_top.i_eth.i_wide2byte.tx_data_o[4] top.tb.i_top.i_eth.i_wide2byte.tx_data_o[3] top.tb.i_top.i_eth.i_wide2byte.tx_data_o[2] top.tb.i_top.i_eth.i_wide2byte.tx_data_o[1] top.tb.i_top.i_eth.i_wide2byte.tx_data_o[0]
+@28
+top.tb.i_top.i_eth.i_wide2byte.tx_last_o
+@1000200
+-wide2byte
 @800200
 -eth_rx
 @28
@@ -74,7 +113,7 @@ top.tb.i_eth_rx.rx_last_o
 top.tb.i_eth_rx.rx_ok_o
 @1000200
 -eth_rx
-@800200
+@c00200
 -byte2wide
 @28
 top.tb.i_byte2wide.tx_valid_o
@@ -84,7 +123,7 @@ top.tb.i_byte2wide.tx_valid_o
 top.tb.i_byte2wide.tx_last_o
 @22
 #{top.tb.i_byte2wide.tx_bytes_o[5:0]} top.tb.i_byte2wide.tx_bytes_o[5] top.tb.i_byte2wide.tx_bytes_o[4] top.tb.i_byte2wide.tx_bytes_o[3] top.tb.i_byte2wide.tx_bytes_o[2] top.tb.i_byte2wide.tx_bytes_o[1] top.tb.i_byte2wide.tx_bytes_o[0]
-@1000200
+@1401200
 -byte2wide
 [pattern_trace] 1
 [pattern_trace] 0
