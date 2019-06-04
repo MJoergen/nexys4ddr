@@ -20,11 +20,6 @@ entity alg is
       val_y_i      : in  std_logic_vector(G_SIZE-1 downto 0);
       valid_i      : in  std_logic;
 
-      cf_res_x_o   : out std_logic_vector(2*G_SIZE-1 downto 0);
-      cf_res_y_o   : out std_logic_vector(G_SIZE-1 downto 0);
-      cf_res_neg_o : out std_logic;
-      cf_valid_o   : out std_logic;
-
       res_x_o      : out std_logic_vector(2*G_SIZE-1 downto 0);
       res_y_o      : out std_logic_vector(G_SIZE-1 downto 0);
       res_neg_o    : out std_logic;
@@ -39,6 +34,12 @@ architecture Structural of alg is
    signal cf_res_y    : std_logic_vector(G_SIZE-1 downto 0);
    signal cf_res_neg  : std_logic;
    signal cf_valid    : std_logic;
+
+   signal fs_res_x    : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal fs_res_y    : std_logic_vector(G_SIZE-1 downto 0);
+   signal fs_res_neg  : std_logic;
+   signal fs_res_fact : std_logic_vector(G_SIZE-1 downto 0);
+   signal fs_valid    : std_logic;
 
 begin
 
@@ -80,20 +81,21 @@ begin
       cf_res_y_i   => cf_res_y,
       cf_res_neg_i => cf_res_neg,
       cf_valid_i   => cf_valid,
-      res_x_o      => res_x_o,
-      res_y_o      => res_y_o,
-      res_neg_o    => res_neg_o,
-      res_fact_o   => res_fact_o,
-      valid_o      => valid_o
+      res_x_o      => fs_res_x,
+      res_y_o      => fs_res_y,
+      res_neg_o    => fs_res_neg,
+      res_fact_o   => fs_res_fact,
+      valid_o      => fs_valid
    ); -- i_factors
 
 
    -- Connect output signals
 
-   cf_res_x_o   <= cf_res_x;
-   cf_res_y_o   <= cf_res_y;
-   cf_res_neg_o <= cf_res_neg;
-   cf_valid_o   <= cf_valid;
+   res_x_o    <= fs_res_x;
+   res_y_o    <= fs_res_y;
+   res_neg_o  <= fs_res_neg;
+   res_fact_o <= fs_res_fact;
+   valid_o    <= fs_valid;
 
 end Structural;
 
