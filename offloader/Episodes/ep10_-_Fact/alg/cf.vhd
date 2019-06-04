@@ -32,15 +32,16 @@ entity cf is
       G_SIZE : integer
    );
    port ( 
-      clk_i   : in  std_logic;
-      rst_i   : in  std_logic;
-      val_n_i : in  std_logic_vector(2*G_SIZE-1 downto 0);
-      val_x_i : in  std_logic_vector(G_SIZE-1 downto 0);
-      val_y_i : in  std_logic_vector(G_SIZE-1 downto 0);
-      start_i : in  std_logic;
-      res_x_o : out std_logic_vector(2*G_SIZE-1 downto 0);
-      res_y_o : out std_logic_vector(G_SIZE-1 downto 0);
-      valid_o : out std_logic
+      clk_i     : in  std_logic;
+      rst_i     : in  std_logic;
+      val_n_i   : in  std_logic_vector(2*G_SIZE-1 downto 0);
+      val_x_i   : in  std_logic_vector(G_SIZE-1 downto 0);
+      val_y_i   : in  std_logic_vector(G_SIZE-1 downto 0);
+      start_i   : in  std_logic;
+      res_x_o   : out std_logic_vector(2*G_SIZE-1 downto 0);
+      res_y_o   : out std_logic_vector(G_SIZE-1 downto 0);
+      res_neg_o : out std_logic;
+      valid_o   : out std_logic
    );
 end cf;
 
@@ -70,6 +71,8 @@ architecture Behavioral of cf is
    signal p_cur          : std_logic_vector(G_SIZE-1 downto 0);
 
    signal a_cur          : std_logic_vector(G_SIZE-1 downto 0);
+
+   signal res_neg        : std_logic;
 
    signal divmod_val_n   : std_logic_vector(G_SIZE-1 downto 0);
    signal divmod_val_d   : std_logic_vector(G_SIZE-1 downto 0);
@@ -151,12 +154,13 @@ begin
             when CALC_XY_ST =>
                if amm_valid = '1' and add_mult_valid = '1' then
                   -- Update recursion
-                  x_prev <= x_cur;
-                  x_cur  <= x_new;
-                  y_prev <= y_cur;
-                  y_cur  <= y_new;
-                  p_prev <= p_cur;
-                  z_cur  <= z_new;
+                  x_prev  <= x_cur;
+                  x_cur   <= x_new;
+                  y_prev  <= y_cur;
+                  y_cur   <= y_new;
+                  p_prev  <= p_cur;
+                  z_cur   <= z_new;
+                  res_neg <= not res_neg;
 
                   -- Store output values
                   res_x  <= x_new;
@@ -196,6 +200,8 @@ begin
             x_cur          <= C_ZERO & val_x_i;
             y_cur          <= val_y_i;
             z_cur          <= val_x_i(G_SIZE-2 downto 0) & '0';
+
+            res_neg        <= '1';
 
             -- Stop all ongoing calculations
             amm_start      <= '0';
@@ -280,9 +286,10 @@ begin
    -- Connect output signals
    --------------------------
 
-   res_x_o <= res_x;
-   res_y_o <= res_y;
-   valid_o <= valid;
+   res_x_o   <= res_x;
+   res_y_o   <= res_y;
+   res_neg_o <= res_neg;
+   valid_o   <= valid;
 
 end Behavioral;
 

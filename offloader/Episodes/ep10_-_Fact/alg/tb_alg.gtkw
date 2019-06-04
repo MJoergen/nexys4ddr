@@ -1,22 +1,23 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Tue Jun  4 07:29:28 2019
+[*] Tue Jun  4 09:05:33 2019
 [*]
 [dumpfile] "/home/mfj/git/nexys4ddr/offloader/Episodes/ep10_-_Fact/alg/tb_alg.ghw"
-[dumpfile_mtime] "Tue Jun  4 07:28:36 2019"
-[dumpfile_size] 66531
+[dumpfile_mtime] "Tue Jun  4 09:05:02 2019"
+[dumpfile_size] 663845
 [savefile] "/home/mfj/git/nexys4ddr/offloader/Episodes/ep10_-_Fact/alg/tb_alg.gtkw"
 [timestart] 0
-[size] 1000 600
+[size] 1178 1003
 [pos] -1 -1
-*-28.884884 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-31.401657 990000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.tb_alg.
 [treeopen] top.tb_alg.i_alg.
+[treeopen] top.tb_alg.i_alg.gen_facts[0].i_fact.
 [sst_width] 223
-[signals_width] 158
+[signals_width] 212
 [sst_expanded] 1
-[sst_vpaned_height] 152
+[sst_vpaned_height] 294
 @800200
 -alg
 @28
@@ -35,9 +36,42 @@ top.tb_alg.i_alg.valid_o
 @22
 #{top.tb_alg.i_alg.res_x_o[63:0]} top.tb_alg.i_alg.res_x_o[63] top.tb_alg.i_alg.res_x_o[62] top.tb_alg.i_alg.res_x_o[61] top.tb_alg.i_alg.res_x_o[60] top.tb_alg.i_alg.res_x_o[59] top.tb_alg.i_alg.res_x_o[58] top.tb_alg.i_alg.res_x_o[57] top.tb_alg.i_alg.res_x_o[56] top.tb_alg.i_alg.res_x_o[55] top.tb_alg.i_alg.res_x_o[54] top.tb_alg.i_alg.res_x_o[53] top.tb_alg.i_alg.res_x_o[52] top.tb_alg.i_alg.res_x_o[51] top.tb_alg.i_alg.res_x_o[50] top.tb_alg.i_alg.res_x_o[49] top.tb_alg.i_alg.res_x_o[48] top.tb_alg.i_alg.res_x_o[47] top.tb_alg.i_alg.res_x_o[46] top.tb_alg.i_alg.res_x_o[45] top.tb_alg.i_alg.res_x_o[44] top.tb_alg.i_alg.res_x_o[43] top.tb_alg.i_alg.res_x_o[42] top.tb_alg.i_alg.res_x_o[41] top.tb_alg.i_alg.res_x_o[40] top.tb_alg.i_alg.res_x_o[39] top.tb_alg.i_alg.res_x_o[38] top.tb_alg.i_alg.res_x_o[37] top.tb_alg.i_alg.res_x_o[36] top.tb_alg.i_alg.res_x_o[35] top.tb_alg.i_alg.res_x_o[34] top.tb_alg.i_alg.res_x_o[33] top.tb_alg.i_alg.res_x_o[32] top.tb_alg.i_alg.res_x_o[31] top.tb_alg.i_alg.res_x_o[30] top.tb_alg.i_alg.res_x_o[29] top.tb_alg.i_alg.res_x_o[28] top.tb_alg.i_alg.res_x_o[27] top.tb_alg.i_alg.res_x_o[26] top.tb_alg.i_alg.res_x_o[25] top.tb_alg.i_alg.res_x_o[24] top.tb_alg.i_alg.res_x_o[23] top.tb_alg.i_alg.res_x_o[22] top.tb_alg.i_alg.res_x_o[21] top.tb_alg.i_alg.res_x_o[20] top.tb_alg.i_alg.res_x_o[19] top.tb_alg.i_alg.res_x_o[18] top.tb_alg.i_alg.res_x_o[17] top.tb_alg.i_alg.res_x_o[16] top.tb_alg.i_alg.res_x_o[15] top.tb_alg.i_alg.res_x_o[14] top.tb_alg.i_alg.res_x_o[13] top.tb_alg.i_alg.res_x_o[12] top.tb_alg.i_alg.res_x_o[11] top.tb_alg.i_alg.res_x_o[10] top.tb_alg.i_alg.res_x_o[9] top.tb_alg.i_alg.res_x_o[8] top.tb_alg.i_alg.res_x_o[7] top.tb_alg.i_alg.res_x_o[6] top.tb_alg.i_alg.res_x_o[5] top.tb_alg.i_alg.res_x_o[4] top.tb_alg.i_alg.res_x_o[3] top.tb_alg.i_alg.res_x_o[2] top.tb_alg.i_alg.res_x_o[1] top.tb_alg.i_alg.res_x_o[0]
 #{top.tb_alg.i_alg.res_y_o[31:0]} top.tb_alg.i_alg.res_y_o[31] top.tb_alg.i_alg.res_y_o[30] top.tb_alg.i_alg.res_y_o[29] top.tb_alg.i_alg.res_y_o[28] top.tb_alg.i_alg.res_y_o[27] top.tb_alg.i_alg.res_y_o[26] top.tb_alg.i_alg.res_y_o[25] top.tb_alg.i_alg.res_y_o[24] top.tb_alg.i_alg.res_y_o[23] top.tb_alg.i_alg.res_y_o[22] top.tb_alg.i_alg.res_y_o[21] top.tb_alg.i_alg.res_y_o[20] top.tb_alg.i_alg.res_y_o[19] top.tb_alg.i_alg.res_y_o[18] top.tb_alg.i_alg.res_y_o[17] top.tb_alg.i_alg.res_y_o[16] top.tb_alg.i_alg.res_y_o[15] top.tb_alg.i_alg.res_y_o[14] top.tb_alg.i_alg.res_y_o[13] top.tb_alg.i_alg.res_y_o[12] top.tb_alg.i_alg.res_y_o[11] top.tb_alg.i_alg.res_y_o[10] top.tb_alg.i_alg.res_y_o[9] top.tb_alg.i_alg.res_y_o[8] top.tb_alg.i_alg.res_y_o[7] top.tb_alg.i_alg.res_y_o[6] top.tb_alg.i_alg.res_y_o[5] top.tb_alg.i_alg.res_y_o[4] top.tb_alg.i_alg.res_y_o[3] top.tb_alg.i_alg.res_y_o[2] top.tb_alg.i_alg.res_y_o[1] top.tb_alg.i_alg.res_y_o[0]
-@23
 #{top.tb_alg.i_alg.res_fact_o[31:0]} top.tb_alg.i_alg.res_fact_o[31] top.tb_alg.i_alg.res_fact_o[30] top.tb_alg.i_alg.res_fact_o[29] top.tb_alg.i_alg.res_fact_o[28] top.tb_alg.i_alg.res_fact_o[27] top.tb_alg.i_alg.res_fact_o[26] top.tb_alg.i_alg.res_fact_o[25] top.tb_alg.i_alg.res_fact_o[24] top.tb_alg.i_alg.res_fact_o[23] top.tb_alg.i_alg.res_fact_o[22] top.tb_alg.i_alg.res_fact_o[21] top.tb_alg.i_alg.res_fact_o[20] top.tb_alg.i_alg.res_fact_o[19] top.tb_alg.i_alg.res_fact_o[18] top.tb_alg.i_alg.res_fact_o[17] top.tb_alg.i_alg.res_fact_o[16] top.tb_alg.i_alg.res_fact_o[15] top.tb_alg.i_alg.res_fact_o[14] top.tb_alg.i_alg.res_fact_o[13] top.tb_alg.i_alg.res_fact_o[12] top.tb_alg.i_alg.res_fact_o[11] top.tb_alg.i_alg.res_fact_o[10] top.tb_alg.i_alg.res_fact_o[9] top.tb_alg.i_alg.res_fact_o[8] top.tb_alg.i_alg.res_fact_o[7] top.tb_alg.i_alg.res_fact_o[6] top.tb_alg.i_alg.res_fact_o[5] top.tb_alg.i_alg.res_fact_o[4] top.tb_alg.i_alg.res_fact_o[3] top.tb_alg.i_alg.res_fact_o[2] top.tb_alg.i_alg.res_fact_o[1] top.tb_alg.i_alg.res_fact_o[0]
 @1000200
 -alg
+@c00200
+-fact(0)
+@28
+top.tb_alg.i_alg.gen_facts[0].i_fact.start_i
+top.tb_alg.i_alg.gen_facts[0].i_fact.busy_o
+@22
+#{top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[31:0]} top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[31] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[30] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[29] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[28] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[27] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[26] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[25] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[24] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[23] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[22] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[21] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[20] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[19] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[18] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[17] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[16] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[15] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[14] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[13] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[12] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[11] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[10] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[9] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[8] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[7] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[6] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[5] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[4] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[3] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[2] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[1] top.tb_alg.i_alg.gen_facts[0].i_fact.val_i[0]
+#{top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[31:0]} top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[31] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[30] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[29] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[28] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[27] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[26] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[25] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[24] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[23] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[22] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[21] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[20] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[19] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[18] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[17] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[16] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[15] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[14] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[13] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[12] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[11] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[10] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[9] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[8] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[7] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[6] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[5] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[4] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[3] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[2] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[1] top.tb_alg.i_alg.gen_facts[0].i_fact.primes_i[0]
+@28
+top.tb_alg.i_alg.gen_facts[0].i_fact.valid_o
+@22
+#{top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[31:0]} top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[31] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[30] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[29] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[28] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[27] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[26] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[25] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[24] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[23] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[22] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[21] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[20] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[19] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[18] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[17] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[16] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[15] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[14] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[13] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[12] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[11] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[10] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[9] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[8] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[7] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[6] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[5] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[4] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[3] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[2] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[1] top.tb_alg.i_alg.gen_facts[0].i_fact.res_o[0]
+@1401200
+-fact(0)
+@800023
+#{top.tb_alg.i_alg.fact_valid[4:0]} top.tb_alg.i_alg.fact_valid[4] top.tb_alg.i_alg.fact_valid[3] top.tb_alg.i_alg.fact_valid[2] top.tb_alg.i_alg.fact_valid[1] top.tb_alg.i_alg.fact_valid[0]
+@29
+top.tb_alg.i_alg.fact_valid[4]
+top.tb_alg.i_alg.fact_valid[3]
+top.tb_alg.i_alg.fact_valid[2]
+top.tb_alg.i_alg.fact_valid[1]
+top.tb_alg.i_alg.fact_valid[0]
+@1001201
+-group_end
+@800022
+#{top.tb_alg.i_alg.fact_start[4:0]} top.tb_alg.i_alg.fact_start[4] top.tb_alg.i_alg.fact_start[3] top.tb_alg.i_alg.fact_start[2] top.tb_alg.i_alg.fact_start[1] top.tb_alg.i_alg.fact_start[0]
+@28
+top.tb_alg.i_alg.fact_start[4]
+top.tb_alg.i_alg.fact_start[3]
+top.tb_alg.i_alg.fact_start[2]
+top.tb_alg.i_alg.fact_start[1]
+top.tb_alg.i_alg.fact_start[0]
+@1001200
+-group_end
 [pattern_trace] 1
 [pattern_trace] 0
