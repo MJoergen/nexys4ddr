@@ -1,6 +1,6 @@
 XILINX_DIR = /opt/Xilinx/Vivado/2018.2
 
-SRCS  = top.vhd cdc.vhd clk_rst.vhd wide_fifo.vhd
+SRCS  = top.vhd cdc_new.vhd clk_rst_new.vhd wide_fifo.vhd
 SRCS += eth/fifo.vhd eth/strip_crc.vhd eth/byte2wide.vhd eth/wide2byte.vhd
 SRCS += eth/eth_rx.vhd eth/eth_tx.vhd eth/eth.vhd
 SRCS += eth/eth_types.vhd eth/arp.vhd eth/icmp.vhd eth/udp.vhd
@@ -40,7 +40,7 @@ sim: $(SRC)
 	ghdl -i --std=08 --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/primitive/*.vhd
 	ghdl -i --std=08 --work=work $(SRCS) $(TB_SRC)
 	ghdl -m --std=08 --ieee=synopsys -frelaxed-rules $(TB)
-	ghdl -r $(TB) --assert-level=error --wave=$(WAVE) --stop-time=26us
+	ghdl -r $(TB) --assert-level=error --wave=$(WAVE) --stop-time=60us
 	gtkwave $(WAVE) $(SAVE)
 
 
