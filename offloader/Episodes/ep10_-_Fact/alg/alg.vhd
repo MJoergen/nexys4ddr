@@ -140,6 +140,9 @@ begin
       variable valid    : std_logic;
    begin
       res_fact := (others => '0');
+      res_neg  := '0';
+      res_y    := (others => '0');
+      res_x    := (others => '0');
       valid    := '0';
       for i in 0 to G_NUM_FACTS-1 loop
          if fact_valid(i) = '1' then
