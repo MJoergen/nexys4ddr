@@ -15,8 +15,8 @@ architecture simulation of tb_jacobi is
    signal rst          : std_logic;
 
    -- Signals conected to DUT
-   signal jb_val_k     : std_logic_vector(C_SIZE-1 downto 0);
    signal jb_val_n     : std_logic_vector(C_SIZE-1 downto 0);
+   signal jb_val_k     : std_logic_vector(C_SIZE-1 downto 0);
    signal jb_start     : std_logic;
    signal jb_res       : std_logic_vector(C_SIZE-1 downto 0);
    signal jb_valid     : std_logic;
@@ -57,8 +57,8 @@ begin
    port map ( 
       clk_i   => clk,
       rst_i   => rst,
-      val_k_i => jb_val_k,
       val_n_i => jb_val_n,
+      val_k_i => jb_val_k,
       start_i => jb_start,
       res_o   => jb_res,
       valid_o => jb_valid
@@ -72,8 +72,8 @@ begin
    main_test_proc : process
 
       type res_t is record
-         k : integer;
          n : integer;
+         k : integer;
          j : integer;
       end record res_t;
       type res_vector_t is array (natural range <>) of res_t;      
@@ -89,8 +89,8 @@ begin
                ", J=" & integer'image(res(i).j);
 
             wait until clk = '0';
-            jb_val_k <= to_stdlogicvector(res(i).k, C_SIZE);
             jb_val_n <= to_stdlogicvector(res(i).n, C_SIZE);
+            jb_val_k <= to_stdlogicvector(res(i).k, C_SIZE);
             jb_start <= '1';
             wait until clk = '1';
             jb_start <= '0';
