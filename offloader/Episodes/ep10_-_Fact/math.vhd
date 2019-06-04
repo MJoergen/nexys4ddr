@@ -7,24 +7,25 @@ use ieee.numeric_std_unsigned.all;
 
 entity math is
    generic (
-      G_SIZE : integer
+      G_NUM_FACTS : integer;
+      G_SIZE      : integer
    );
    port (
-      clk_i      : in  std_logic;
-      rst_i      : in  std_logic;
-      debug_o    : out std_logic_vector(255 downto 0);
+      clk_i       : in  std_logic;
+      rst_i       : in  std_logic;
+      debug_o     : out std_logic_vector(255 downto 0);
 
       -- Incoming command
-      rx_valid_i : in  std_logic;
-      rx_data_i  : in  std_logic_vector(60*8-1 downto 0);
-      rx_last_i  : in  std_logic;
-      rx_bytes_i : in  std_logic_vector(5 downto 0);
+      rx_valid_i  : in  std_logic;
+      rx_data_i   : in  std_logic_vector(60*8-1 downto 0);
+      rx_last_i   : in  std_logic;
+      rx_bytes_i  : in  std_logic_vector(5 downto 0);
 
       -- Outgoing response
-      tx_valid_o : out std_logic;
-      tx_data_o  : out std_logic_vector(60*8-1 downto 0);
-      tx_last_o  : out std_logic;
-      tx_bytes_o : out std_logic_vector(5 downto 0)
+      tx_valid_o  : out std_logic;
+      tx_data_o   : out std_logic_vector(60*8-1 downto 0);
+      tx_last_o   : out std_logic;
+      tx_bytes_o  : out std_logic_vector(5 downto 0)
    );
 end math;
 
@@ -59,7 +60,8 @@ begin
 
    i_alg : entity work.alg
    generic map (
-      G_SIZE => G_SIZE
+      G_NUM_FACTS => G_NUM_FACTS,
+      G_SIZE      => G_SIZE
    )
    port map (
       clk_i      => clk_i,

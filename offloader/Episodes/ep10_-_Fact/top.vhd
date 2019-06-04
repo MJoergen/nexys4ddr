@@ -34,6 +34,7 @@ end top;
 architecture structural of top is
 
    constant C_SIZE       : integer := 64;
+   constant C_NUM_FACTS  : integer := 10;
    constant C_MY_MAC     : std_logic_vector(47 downto 0) := X"001122334455";
    constant C_MY_IP      : std_logic_vector(31 downto 0) := X"C0A8014D";     -- 192.168.1.77
    constant C_MY_UDP     : std_logic_vector(15 downto 0) := X"1234";         -- 4660
@@ -164,20 +165,21 @@ begin
 
    i_math : entity work.math
    generic map (
-      G_SIZE     => C_SIZE
+      G_NUM_FACTS => C_NUM_FACTS,
+      G_SIZE      => C_SIZE
    )
    port map (
-      clk_i      => math_clk,
-      rst_i      => math_rst,
-      debug_o    => math_debug,
-      rx_valid_i => math_rx_valid,
-      rx_data_i  => math_rx_data,
-      rx_last_i  => math_rx_last,
-      rx_bytes_i => math_rx_bytes,
-      tx_valid_o => math_tx_valid,
-      tx_data_o  => math_tx_data,
-      tx_last_o  => math_tx_last,
-      tx_bytes_o => math_tx_bytes
+      clk_i       => math_clk,
+      rst_i       => math_rst,
+      debug_o     => math_debug,
+      rx_valid_i  => math_rx_valid,
+      rx_data_i   => math_rx_data,
+      rx_last_i   => math_rx_last,
+      rx_bytes_i  => math_rx_bytes,
+      tx_valid_o  => math_tx_valid,
+      tx_data_o   => math_tx_data,
+      tx_last_o   => math_tx_last,
+      tx_bytes_o  => math_tx_bytes
    ); -- i_math
 
 

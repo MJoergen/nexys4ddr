@@ -9,7 +9,7 @@ end tb_alg;
 
 architecture simulation of tb_alg is
 
-   constant C_SIZE      : integer := 32;
+   constant C_SIZE      : integer := 64;
    constant C_NUM_FACTS : integer := 5;
 
    signal clk           : std_logic;

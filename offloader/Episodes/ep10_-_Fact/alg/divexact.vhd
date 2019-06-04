@@ -1,10 +1,10 @@
--- This computes the exact quotient of q = val1 / val2.
--- It is required that the division is exact, i.e. that there is no remainder.
--- In other words, the algorithm assumes that val1 = q * val2.
---
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
+
+-- This computes the exact quotient of q = val1 / val2.
+-- It is required that the division is exact, i.e. that there is no remainder.
+-- In other words, the algorithm assumes that val1 = q * val2.
 
 entity divexact is
    generic (
@@ -36,8 +36,6 @@ architecture structural of divexact is
 begin
 
    p_fsm : process (clk_i) is
-      variable res1 : std_logic_vector(G_SIZE-1 downto 0);
-      variable res2 : std_logic_vector(G_SIZE-1 downto 0);
    begin
       if rising_edge(clk_i) then
          case state is
