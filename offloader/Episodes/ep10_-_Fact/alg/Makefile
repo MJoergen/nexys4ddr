@@ -1,10 +1,11 @@
 XILINX_DIR = /opt/Xilinx/Vivado/2018.2
 
 SRC  = mult.vhd gcd.vhd amm.vhd divmod.vhd cf.vhd add_mult.vhd
-SRC += fact.vhd divexact.vhd alg.vhd factors.vhd
+SRC += fact.vhd divexact.vhd alg.vhd factors.vhd jacobi.vhd
 
 TB   = tb_cf
 TB   = tb_alg
+TB   = tb_jacobi
 SRC += $(TB).vhd
 WAVE = $(TB).ghw
 SAVE = $(TB).gtkw
