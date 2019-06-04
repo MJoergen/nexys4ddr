@@ -9,7 +9,7 @@ sock = socket.socket(socket.AF_INET,    # Internet
 # IP address and port number of the FPGA device
 DUT = ("192.168.1.77", 4660)
 
-NUM_BYTES = 8
+NUM_BYTES = 4
 
 def enc(x, num_bytes):
    # Convert the number to a hex string. Remove the preceding "0x" and the trailing optional "L".
