@@ -9,7 +9,7 @@ end tb_math;
 
 architecture simulation of tb_math is
 
-   constant C_SIZE     : integer := 64;
+   constant C_SIZE     : integer := 32;
    constant C_ZERO     : std_logic_vector(C_SIZE-1 downto 0) := (others => '0');
 
    type t_sim is record
@@ -139,10 +139,11 @@ begin
             -- Verify received response is correct
             wait until clk = '1' and resp.valid = '1';
             wait until clk = '0';
-            assert resp.data  = exp.data
-               report "Received " & to_hstring(resp.data) & ", expected " & to_hstring(exp.data);
-            assert resp.last  = exp.last;
-            assert resp.bytes = exp.bytes;
+            report "Received " & to_hstring(resp.data(60*8-1 downto 60*8-4*C_SIZE));
+--            assert resp.data  = exp.data
+--               report "Received " & to_hstring(resp.data(60*8-1 downto 60*8-4*C_SIZE)) & ", expected " & to_hstring(exp.data(60*8-1 downto 60*8-3*C_SIZE));
+--            assert resp.last  = exp.last;
+--            assert resp.bytes = exp.bytes;
             wait until clk = '1' and resp.valid = '0';
             wait until clk = '0';
 

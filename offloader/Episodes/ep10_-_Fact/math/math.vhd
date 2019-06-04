@@ -35,77 +35,51 @@ architecture Structural of math is
    signal val_n       : std_logic_vector(2*G_SIZE-1 downto 0);
    signal val_x       : std_logic_vector(G_SIZE-1 downto 0);
    signal val_y       : std_logic_vector(G_SIZE-1 downto 0);
+   signal valid       : std_logic;
 
-   signal cf_start    : std_logic;
-   signal cf_res_x    : std_logic_vector(2*G_SIZE-1 downto 0);
-   signal cf_res_y    : std_logic_vector(G_SIZE-1 downto 0);
-   signal cf_valid    : std_logic;
-
-   signal fact_primes : std_logic_vector(G_SIZE-1 downto 0);
-   signal fact_val    : std_logic_vector(G_SIZE-1 downto 0);
-   signal fact_start  : std_logic;
-   signal fact_res    : std_logic_vector(G_SIZE-1 downto 0);
-   signal fact_valid  : std_logic;
+   signal alg_x       : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal alg_y       : std_logic_vector(G_SIZE-1 downto 0);
+   signal alg_fact    : std_logic_vector(G_SIZE-1 downto 0);
+   signal alg_valid   : std_logic;
 
    signal debug       : std_logic_vector(255 downto 0);
 
 begin
 
-   fact_primes <= to_stdlogicvector(2*3*5*7*11*13*17*19, G_SIZE);
-   fact_val    <= cf_res_y;
-   fact_start  <= cf_valid;
-
    -- We just ignore rx_last_i and rx_bytes_i.
    val_n <= rx_data_i(60*8-1          downto 60*8-2*G_SIZE);
    val_x <= rx_data_i(60*8-1-2*G_SIZE downto 60*8-3*G_SIZE);
    val_y <= rx_data_i(60*8-1-3*G_SIZE downto 60*8-4*G_SIZE);
+   valid <= rx_valid_i;
 
-   cf_start <= rx_valid_i;
 
+   --------------------------------
+   -- Instantiate Algorithm module
+   --------------------------------
 
-   ------------------
-   -- Instantiate CF
-   ------------------
-
-   i_cf : entity work.cf
+   i_alg : entity work.alg
    generic map (
       G_SIZE => G_SIZE
    )
-   port map ( 
-      clk_i   => clk_i,
-      rst_i   => rst_i,
-      val_n_i => val_n,
-      val_x_i => val_x,
-      val_y_i => val_y,
-      start_i => cf_start,
-      res_x_o => cf_res_x,
-      res_y_o => cf_res_y, 
-      valid_o => cf_valid
-   ); -- i_cf
+   port map (
+      clk_i      => clk_i,
+      rst_i      => rst_i,
+      val_n_i    => val_n,
+      val_x_i    => val_x,
+      val_y_i    => val_y,
+      valid_i    => valid,
+      res_x_o    => alg_x,
+      res_y_o    => alg_y,
+      res_fact_o => alg_fact,
+      valid_o    => alg_valid
+   ); -- i_alg
 
 
-   --------------------
-   -- Instantiate FACT
-   --------------------
-
-   i_fact : entity work.fact
-   generic map (
-      G_SIZE   => G_SIZE
-   )
-   port map ( 
-      clk_i    => clk_i,
-      rst_i    => rst_i,
-      primes_i => fact_primes,
-      val_i    => fact_val,
-      start_i  => fact_start,
-      res_o    => fact_res,
-      valid_o  => fact_valid
-   ); -- i_fact
-
-
-   tx_valid_o <= fact_valid;
-   tx_data_o(60*8-1          downto 60*8-G_SIZE) <= fact_res;
-   tx_data_o(60*8-1-G_SIZE downto 0)             <= (others => '0');
+   tx_valid_o <= alg_valid;
+   tx_data_o(60*8-1          downto 60*8-2*G_SIZE) <= alg_x;
+   tx_data_o(60*8-1-2*G_SIZE downto 60*8-3*G_SIZE) <= alg_y;
+   tx_data_o(60*8-1-3*G_SIZE downto 60*8-4*G_SIZE) <= alg_fact;
+   tx_data_o(60*8-1-4*G_SIZE downto 0)             <= (others => '0');
    tx_bytes_o <= to_stdlogicvector(G_SIZE/8, 6);
    tx_last_o  <= '1';
 
@@ -115,9 +89,9 @@ begin
          if rx_valid_i = '1' then
             debug <= rx_data_i(60*8-1 downto 60*8-256);
          end if;
-         if cf_valid = '1' then
+         if alg_valid = '1' then
             debug <= (others => '0');
-            debug(G_SIZE-1 downto 0) <= fact_res;
+            debug(2*G_SIZE-1 downto 0) <= alg_x;
          end if;
       end if;
    end process p_debug;

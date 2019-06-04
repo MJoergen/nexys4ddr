@@ -27,6 +27,7 @@ entity fact is
 
       -- Outputs driven by this module
       res_o    : out std_logic_vector(G_SIZE-1 downto 0);
+      busy_o   : out std_logic;
       valid_o  : out std_logic
    );
 end fact;
@@ -160,6 +161,7 @@ begin
 
    res_o   <= val when state = DONE_ST else (others => '0');
    valid_o <= valid;
+   busy_o  <= '0' when state = IDLE_ST else '1';
 
 end architecture structural;
 
