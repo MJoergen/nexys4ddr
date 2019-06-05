@@ -6,7 +6,7 @@ SRCS += eth/eth_rx.vhd eth/eth_tx.vhd eth/eth.vhd
 SRCS += eth/eth_types.vhd eth/arp.vhd eth/icmp.vhd eth/udp.vhd
 SRCS += math.vhd 
 SRCS += alg/gcd.vhd alg/mult.vhd alg/divmod.vhd alg/amm.vhd alg/cf.vhd alg/add_mult.vhd
-SRCS += alg/divexact.vhd alg/fact.vhd alg/alg.vhd
+SRCS += alg/divexact.vhd alg/fact.vhd alg/alg.vhd alg/factors.vhd
 SRCS += vga/vga.vhd vga/pix.vhd vga/rom.vhd 
 
 top.bit: top.tcl $(SRCS) top.xdc Makefile
