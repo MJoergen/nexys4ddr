@@ -8,26 +8,26 @@ the first part of the Continued Fraction algorithm.
 
 The Continued Fraction algorithm is a recurrence relation that given a number N
 generates pairs of numbers (x\_n, y\_n) with the following two properties:
-* X<sup>2</sup> = (-1)^n\*Y mod N.
+* X<sup>2</sup> = (-1)<sup>n<sup>\*Y mod N.
 * Y < 2\*sqrt(N).
 These numbers will be used in the next episode.
 
-The actual recurrence relations consists of the four state variables x\_n,
-y\_n, z\_n, and p\_n and are given by the following equations:
-* x\_(n+1) = (a\_n \* x\_n + x\_(n-1)) mod N.
-* y\_(n+1) = y\_(n-1) + a\_n\*[p\_n - p\_(n-1)].
-* z\_(n+1) = 2\*M - p\_n,
+The actual recurrence relations consists of the four state variables x<sub>n</sub>,
+y<sub>n</sub>, z<sub>n</sub>, and p<sub>n</sub> and are given by the following equations:
+* x<sub>n+1</sub> = (a<sub>n</sub> \* x<sub>n</sub> + x<sub>n-1</sub>) mod N.
+* y<sub>n+1</sub> = y<sub>n-1</sub> + a<sub>n</sub>\*[p<sub>n</sub> - p<sub>n-1</sub>].
+* z<sub>n+1</sub> = 2\*M - p<sub>n</sub>,
 where 
-* a\_n = z\_n/y\_n
-* p\_n = z\_n - a\_n\*y\_n
+* a<sub>n</sub> = z<sub>n</sub>/y<sub>n</sub>
+* p<sub>n</sub> = z<sub>n</sub> - a<sub>n</sub>\*y<sub>n</sub>
 
 The starting values are given by:
-* x\_0 = 1
-* x\_1 = M
-* y\_0 = 1
-* y\_1 = N-M\*M
-* z\_1 = 2\*M
-* p\_0 = 0,
+* x<sub>0</sub> = 1
+* x<sub>1</sub> = M
+* y<sub>0</sub> = 1
+* y<sub>1</sub> = N-M\*M
+* z<sub>1</sub> = 2\*M
+* p<sub>0</sub> = 0,
 where M=floor(sqrt(N)).
 
 ## Block Diagram
