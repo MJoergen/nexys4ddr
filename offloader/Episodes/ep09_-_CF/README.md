@@ -28,6 +28,7 @@ The starting values are given by:
 * y<sub>1</sub> = N-M\*M
 * z<sub>1</sub> = 2\*M
 * p<sub>0</sub> = 0,
+
 where M=floor(sqrt(N)).
 
 ## Block Diagram
