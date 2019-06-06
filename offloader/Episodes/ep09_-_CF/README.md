@@ -8,7 +8,7 @@ the first part of the Continued Fraction algorithm.
 
 The Continued Fraction algorithm is a recurrence relation that given a number N
 generates pairs of numbers (x\_n, y\_n) with the following two properties:
-* X^2 = (-1)^n\*Y mod N.
+* X<sup>2</sup> = (-1)^n\*Y mod N.
 * Y < 2\*sqrt(N).
 These numbers will be used in the next episode.
 
