@@ -9,9 +9,10 @@ the first part of the Continued Fraction algorithm.
 The Continued Fraction algorithm is a recurrence relation that given a number N
 generates pairs of numbers (x<sub>n</sub>, y<sub>n</sub>) with the following
 two properties:
-* X<sup>2</sup> = (-1)<sup>n</sup>&middot;Y mod N.
-* Y < 2\*sqrt(N).
-These numbers will be used in the next episode.
+* X<sup>2</sup> = Y mod N.
+* |Y| < 2\*sqrt(N).
+
+These number pairs will be used in the next episode.
 
 The actual recurrence relations consists of the four state variables x<sub>n</sub>,
 y<sub>n</sub>, z<sub>n</sub>, and p<sub>n</sub> and are given by the following equations:
