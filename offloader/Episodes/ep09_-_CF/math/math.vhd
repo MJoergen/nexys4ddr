@@ -33,12 +33,11 @@ architecture Structural of math is
    constant C_ZERO : std_logic_vector(G_SIZE-1 downto 0) := (others => '0');
 
    signal val_n    : std_logic_vector(2*G_SIZE-1 downto 0);
-   signal val_x    : std_logic_vector(G_SIZE-1 downto 0);
-   signal val_y    : std_logic_vector(G_SIZE-1 downto 0);
 
    signal cf_start : std_logic;
    signal cf_res_x : std_logic_vector(2*G_SIZE-1 downto 0);
-   signal cf_res_y : std_logic_vector(G_SIZE-1 downto 0);
+   signal cf_res_p : std_logic_vector(G_SIZE-1 downto 0);
+   signal cf_res_w : std_logic;
    signal cf_valid : std_logic;
 
    signal debug    : std_logic_vector(255 downto 0);
@@ -47,8 +46,6 @@ begin
 
    -- We just ignore rx_last_i and rx_bytes_i.
    val_n <= rx_data_i(60*8-1          downto 60*8-2*G_SIZE);
-   val_x <= rx_data_i(60*8-1-2*G_SIZE downto 60*8-3*G_SIZE);
-   val_y <= rx_data_i(60*8-1-3*G_SIZE downto 60*8-4*G_SIZE);
 
    cf_start <= rx_valid_i;
 
@@ -59,18 +56,17 @@ begin
    port map ( 
       clk_i   => clk_i,
       rst_i   => rst_i,
-      val_n_i => val_n,
-      val_x_i => val_x,
-      val_y_i => val_y,
+      val_i   => val_n,
       start_i => cf_start,
       res_x_o => cf_res_x,
-      res_y_o => cf_res_y, 
+      res_p_o => cf_res_p, 
+      res_w_o => cf_res_w, 
       valid_o => cf_valid
    );
 
    tx_valid_o <= cf_valid;
    tx_data_o(60*8-1          downto 60*8-2*G_SIZE) <= cf_res_x;
-   tx_data_o(60*8-1-2*G_SIZE downto 60*8-3*G_SIZE) <= cf_res_y;
+   tx_data_o(60*8-1-2*G_SIZE downto 60*8-3*G_SIZE) <= cf_res_p;
    tx_data_o(60*8-1-3*G_SIZE downto 0)             <= (others => '0');
    tx_bytes_o <= to_stdlogicvector(3*G_SIZE/8, 6);
    tx_last_o  <= '1';

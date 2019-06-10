@@ -3,27 +3,28 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
 -- This module performs the Continued Fraction calculations.  Once initialized
--- with N, X=[sqrt(N)], and Y=N-X*X, it will repeatedly output values X and Y,
--- such that
--- 1) X^2 = (-1)^n*Y mod N.
--- 2) Y<2*sqrt(N).
+-- with the integer N, it will repeatedly output values X and Y, such that
+-- 1) X^2 = Y mod N.
+-- 2) |Y|<2*sqrt(N).
 -- In other words, the number of bits in Y is approximately half that of X and N.
+-- The value of Y is represented as a sign bit in W and an absolute value in P.
 
 -- Specifically, this module calculates a recurrence relation with the
 -- following initialiazation:
--- 1) x_0 = 1
--- 2) x_1 = M
--- 3) y_0 = 1
--- 4) y_1 = N-M*M
--- 5) z_1 = 2*M
--- 6) p_0 = 0.
--- And then for each n>=2:
--- 1) a_n = z_n/y_n
--- 2) p_n = z_n-a_n*y_n
--- 3) x_(n+1) = (a_n * x_n + x_(n-1)) mod N.
--- 4) y_(n+1) = y_(n-1) + a_n*[p_n - p_(n-1)].
--- 5) z_(n+1) = 2*M - p_n.
-
+-- p_0 = 1
+-- r_0 = 0
+-- x_0 = 1
+-- p_1 = N - M*M
+-- s_1 = 2*M
+-- w_1 = -1
+-- x_1 = M,
+-- and then for each n>=2:
+-- 1) a_n = s_n/p_n
+-- 2) r_n = s_n-a_n*p_n
+-- 3) s_(n+1) = 2*M - r\_n
+-- 4) p_(n+1) = a_n (r_n - r_(n-1)) + p_(n-1)
+-- 5) w_(n+1) = - w_n
+-- 6) x_(n+1) = a_n x_n + x_(n-1) mod N
 -- Steps 1 and 2 in the recurrence are performed simultaneously using the divmod module.
 -- Steps 3 and 4 are performed simultaneously using the add_mult and amm modules.
 
@@ -34,43 +35,52 @@ entity cf is
    port ( 
       clk_i   : in  std_logic;
       rst_i   : in  std_logic;
-      val_n_i : in  std_logic_vector(2*G_SIZE-1 downto 0);
-      val_x_i : in  std_logic_vector(G_SIZE-1 downto 0);
-      val_y_i : in  std_logic_vector(G_SIZE-1 downto 0);
+      val_i   : in  std_logic_vector(2*G_SIZE-1 downto 0);  -- N
       start_i : in  std_logic;
-      res_x_o : out std_logic_vector(2*G_SIZE-1 downto 0);
-      res_y_o : out std_logic_vector(G_SIZE-1 downto 0);
+      res_x_o : out std_logic_vector(2*G_SIZE-1 downto 0);  -- X
+      res_p_o : out std_logic_vector(G_SIZE-1 downto 0);    -- |Y|
+      res_w_o : out std_logic;                              -- sign(Y)
       valid_o : out std_logic
    );
 end cf;
 
 architecture Behavioral of cf is
 
-   type fsm_state is (IDLE_ST, CALC_A_ST, CALC_XY_ST, WAIT_ST);
-   signal state          : fsm_state;
-
    constant C_ZERO       : std_logic_vector(G_SIZE-1 downto 0) := (others => '0');
    constant C_ONE        : std_logic_vector(G_SIZE-1 downto 0) := to_stdlogicvector(1, G_SIZE);
+
+   -- State variables
+   type fsm_state is (SQRT_ST, CALC_AR_ST, CALC_XP_ST);
+   signal state          : fsm_state;
 
    signal val_n          : std_logic_vector(2*G_SIZE-1 downto 0);
    signal val_2root      : std_logic_vector(G_SIZE-1 downto 0);
 
-   signal x_prev         : std_logic_vector(2*G_SIZE-1 downto 0);
-   signal x_cur          : std_logic_vector(2*G_SIZE-1 downto 0);
-   signal x_new          : std_logic_vector(2*G_SIZE-1 downto 0);
-
-   signal y_prev         : std_logic_vector(G_SIZE-1 downto 0);
-   signal y_cur          : std_logic_vector(G_SIZE-1 downto 0);
-   signal y_new          : std_logic_vector(G_SIZE-1 downto 0);
-
-   signal z_cur          : std_logic_vector(G_SIZE-1 downto 0);
-   signal z_new          : std_logic_vector(G_SIZE-1 downto 0);
-
    signal p_prev         : std_logic_vector(G_SIZE-1 downto 0);
+   signal r_prev         : std_logic_vector(G_SIZE-1 downto 0);
+   signal x_prev         : std_logic_vector(2*G_SIZE-1 downto 0);
+
    signal p_cur          : std_logic_vector(G_SIZE-1 downto 0);
+   signal s_cur          : std_logic_vector(G_SIZE-1 downto 0);
+   signal w_cur          : std_logic;
+   signal x_cur          : std_logic_vector(2*G_SIZE-1 downto 0);
 
    signal a_cur          : std_logic_vector(G_SIZE-1 downto 0);
+   signal r_cur          : std_logic_vector(G_SIZE-1 downto 0);
 
+   signal p_new          : std_logic_vector(G_SIZE-1 downto 0);
+   signal s_new          : std_logic_vector(G_SIZE-1 downto 0);
+   signal w_new          : std_logic;
+   signal x_new          : std_logic_vector(2*G_SIZE-1 downto 0);
+
+   -- Signals connected to SQRT module
+   signal sqrt_val       : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal sqrt_start     : std_logic;
+   signal sqrt_res       : std_logic_vector(G_SIZE-1 downto 0);
+   signal sqrt_diff      : std_logic_vector(G_SIZE-1 downto 0);
+   signal sqrt_valid     : std_logic;
+
+   -- Signals connected to DIVMOD module
    signal divmod_val_n   : std_logic_vector(G_SIZE-1 downto 0);
    signal divmod_val_d   : std_logic_vector(G_SIZE-1 downto 0);
    signal divmod_start   : std_logic;
@@ -78,6 +88,7 @@ architecture Behavioral of cf is
    signal divmod_res_q   : std_logic_vector(G_SIZE-1 downto 0);
    signal divmod_res_r   : std_logic_vector(G_SIZE-1 downto 0);
 
+   -- Signals connected to AMM module
    signal amm_val_a      : std_logic_vector(G_SIZE-1 downto 0);
    signal amm_val_x      : std_logic_vector(2*G_SIZE-1 downto 0);
    signal amm_val_b      : std_logic_vector(2*G_SIZE-1 downto 0);
@@ -86,6 +97,7 @@ architecture Behavioral of cf is
    signal amm_valid      : std_logic;
    signal amm_res        : std_logic_vector(2*G_SIZE-1 downto 0);
 
+   -- Signals connected to ADD-MULT module
    signal add_mult_val_a : std_logic_vector(G_SIZE-1 downto 0);
    signal add_mult_val_x : std_logic_vector(G_SIZE-1 downto 0);
    signal add_mult_val_b : std_logic_vector(2*G_SIZE-1 downto 0);
@@ -93,15 +105,114 @@ architecture Behavioral of cf is
    signal add_mult_valid : std_logic;
    signal add_mult_res   : std_logic_vector(2*G_SIZE-1 downto 0);
 
+   -- Output signals
    signal res_x          : std_logic_vector(2*G_SIZE-1 downto 0);
-   signal res_y          : std_logic_vector(G_SIZE-1 downto 0);
+   signal res_p          : std_logic_vector(G_SIZE-1 downto 0);
+   signal res_w          : std_logic;
    signal valid          : std_logic;
 
 begin
 
-   -- Calculate a_n = z_n/y_n and p_n = z_n-a_n*y_n.
-   divmod_val_n <= z_cur;
-   divmod_val_d <= y_cur;
+   p_fsm : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+
+         -- Set default values
+         res_x          <= C_ZERO & C_ZERO;
+         res_p          <= C_ZERO;
+         res_w          <= '0';
+         valid          <= '0';
+
+         divmod_start   <= '0';
+         amm_start      <= '0';
+         add_mult_start <= '0';
+
+         case state is
+            when SQRT_ST =>
+               -- Wait until data is ready
+               if sqrt_valid = '1' and divmod_valid = '0' and amm_valid = '0' and add_mult_valid = '0' then
+                  sqrt_start     <= '0';
+
+                  -- Store input values
+                  val_2root      <= sqrt_res(G_SIZE-2 downto 0) & '0';
+
+                  -- Let: p_0 = 1, r_0 = 0, x_0 = 1.
+                  p_prev         <= C_ONE;
+                  r_prev         <= C_ZERO;
+                  x_prev         <= C_ZERO & C_ONE;
+
+                  -- Let: p_1 = N - M*M, s_1 = 2*M, w_1 = -1, x_1 = M.
+                  p_cur          <= sqrt_diff;
+                  s_cur          <= sqrt_res(G_SIZE-2 downto 0) & '0';
+                  w_cur          <= '1';
+                  x_cur          <= C_ZERO & sqrt_res;
+
+                  -- Start calculating a_n and p_n.
+                  amm_start      <= '0';
+                  add_mult_start <= '0';
+                  divmod_start   <= '1';
+                  state          <= CALC_AR_ST;
+               end if;
+
+            when CALC_AR_ST =>
+               if divmod_valid = '1' then
+                  -- Store new values of a_n and r_n
+                  a_cur <= divmod_res_q;
+                  r_cur <= divmod_res_r;
+
+                  -- Start calculating x_(n+1) and p_(n+1).
+                  divmod_start   <= '0';
+                  amm_start      <= '1';
+                  add_mult_start <= '1';
+                  state          <= CALC_XP_ST;
+               end if;
+
+            when CALC_XP_ST =>
+               if amm_valid = '1' and add_mult_valid = '1' then
+                  -- Update recursion
+                  s_cur  <= s_new;
+                  p_cur  <= p_new;
+                  w_cur  <= w_new;
+                  x_cur  <= x_new;
+
+                  p_prev <= p_cur;
+                  r_prev <= r_cur;
+                  x_prev <= x_cur;
+
+                  -- Store output values
+                  res_x  <= x_new;
+                  res_p  <= p_new;
+                  res_w  <= w_new;
+                  valid  <= '1';
+
+                  -- Start calculating a_n and p_n.
+                  amm_start      <= '0';
+                  add_mult_start <= '0';
+                  divmod_start   <= '1';
+                  state          <= CALC_AR_ST;
+               end if;
+         end case;
+
+         -- A start command should be processed from any state
+         if start_i = '1' then
+            val_n      <= val_i;
+            sqrt_start <= '1';
+            state      <= SQRT_ST;
+         end if;
+
+         if rst_i = '1' then
+            sqrt_start <= '0';
+            state      <= SQRT_ST;
+         end if;
+      end if;
+   end process p_fsm;
+
+   -- Calculate M=floor(sqrt(N)).
+   sqrt_val <= val_n;
+
+   -- Calculate a_n = s_n/p_n and r_n = s_n-a_n*p_n.
+   divmod_val_n <= s_cur;
+   divmod_val_d <= p_cur;
 
    -- Calculate x_(n+1) = (a_n * x_n + x_(n-1)) mod N.
    amm_val_a <= a_cur;
@@ -110,111 +221,36 @@ begin
    amm_val_n <= val_n;
    x_new     <= amm_res;
 
-   -- Calculate y_(n+1) = y_(n-1) + a_n*[p_n - p_(n-1)].
+   -- Calculate p_(n+1) = p_(n-1) + a_n*[r_n - r_(n-1)].
    add_mult_val_a <= a_cur;
-   add_mult_val_x <= p_cur - p_prev;
-   add_mult_val_b <= C_ZERO & y_prev;
-   y_new          <= add_mult_res(G_SIZE-1 downto 0);
+   add_mult_val_x <= r_cur - r_prev;
+   add_mult_val_b <= C_ZERO & p_prev;
+   p_new          <= add_mult_res(G_SIZE-1 downto 0);
 
-   -- Calculate z_(n+1) = 2*M - p_n.
-   z_new <= val_2root - p_cur;
+   -- Calculate s_(n+1) = 2*M - r_n.
+   s_new <= val_2root - r_cur;
 
-   p_fsm : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
+   -- Calculate w_(n+1) = - w_n.
+   w_new <= not w_cur;
 
-         -- Set default values
-         res_x          <= C_ZERO & C_ZERO;
-         res_y          <= C_ZERO;
-         valid          <= '0';
-         divmod_start   <= '0';
-         amm_start      <= '0';
-         add_mult_start <= '0';
 
-         case state is
-            when IDLE_ST =>
-               null;
+   --------------------
+   -- Instantiate SQRT
+   --------------------
 
-            when CALC_A_ST =>
-               if divmod_valid = '1' then
-                  -- Store new values of a_n and p_n
-                  a_cur <= divmod_res_q;
-                  p_cur <= divmod_res_r;
-
-                  -- Start calculating x_(n+1) and y_(n+1).
-                  divmod_start   <= '0';
-                  amm_start      <= '1';
-                  add_mult_start <= '1';
-                  state          <= CALC_XY_ST;
-               end if;
-
-            when CALC_XY_ST =>
-               if amm_valid = '1' and add_mult_valid = '1' then
-                  -- Update recursion
-                  x_prev <= x_cur;
-                  x_cur  <= x_new;
-                  y_prev <= y_cur;
-                  y_cur  <= y_new;
-                  p_prev <= p_cur;
-                  z_cur  <= z_new;
-
-                  -- Store output values
-                  res_x  <= x_new;
-                  res_y  <= y_new;
-                  valid  <= '1';
-
-                  -- Start calculating a_n and p_n.
-                  amm_start      <= '0';
-                  add_mult_start <= '0';
-                  divmod_start   <= '1';
-                  state          <= CALC_A_ST;
-               end if;
-
-            when WAIT_ST =>
-               if divmod_valid = '0' and amm_valid = '0' and add_mult_valid = '0' then
-                  -- Start calculating a_n and p_n.
-                  amm_start      <= '0';
-                  add_mult_start <= '0';
-                  divmod_start   <= '1';
-                  state          <= CALC_A_ST;
-               end if;
-         end case;
-
-         if start_i = '1' then
-            -- Store input values
-            val_n          <= val_n_i;
-            val_2root      <= val_x_i(G_SIZE-2 downto 0) & '0';
-
-            -- Let x_0 = 1, y_0 = 1, p_0 = 0.
-            -- Then X^2 = Y mod N.
-            x_prev         <= C_ZERO & C_ONE;
-            y_prev         <= C_ONE;
-            p_prev         <= C_ZERO;
-
-            -- Let x_1 = M, y_1 = N-M*M, z_1 = 2*M
-            -- Then X^2 = -Y mod N.
-            x_cur          <= C_ZERO & val_x_i;
-            y_cur          <= val_y_i;
-            z_cur          <= val_x_i(G_SIZE-2 downto 0) & '0';
-
-            -- Stop all ongoing calculations
-            amm_start      <= '0';
-            add_mult_start <= '0';
-            divmod_start   <= '0';
-            state          <= WAIT_ST;
-
-            report "Starting CF, n=" & to_hstring(val_n_i);
-
-            if val_n_i = 0 then
-               state <= IDLE_ST;
-            end if;
-         end if;
-
-         if rst_i = '1' then
-            state <= IDLE_ST;
-         end if;
-      end if;
-   end process p_fsm;
+   i_sqrt : entity work.sqrt
+   generic map (
+      G_SIZE => G_SIZE
+   )
+   port map ( 
+      clk_i   => clk_i,
+      rst_i   => rst_i,
+      val_i   => sqrt_val,
+      start_i => sqrt_start,
+      res_o   => sqrt_res,
+      diff_o  => sqrt_diff,
+      valid_o => sqrt_valid
+   ); -- i_sqrt
 
 
    ----------------------
@@ -283,7 +319,8 @@ begin
    --------------------------
 
    res_x_o <= res_x;
-   res_y_o <= res_y;
+   res_p_o <= res_p;
+   res_w_o <= res_w;
    valid_o <= valid;
 
 end Behavioral;
