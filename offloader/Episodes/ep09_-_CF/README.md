@@ -1,37 +1,147 @@
 # CPU offloader
 # Episode 9 : "CF"
 
-Welcome to this ninth episode of "CPU offloader", where we implement
-the first part of the Continued Fraction algorithm.
+Welcome to this ninth episode of "CPU offloader", where we implement the first
+part of the Continued Fraction algorithm. This is a general purpose factoring
+algorithm i.e. it can factor any number N.
 
-## Continued Fraction Algorithm
+## Factoring algorithms
 
-The Continued Fraction algorithm is a recurrence relation that given a number N
-generates pairs of numbers (x<sub>n</sub>, y<sub>n</sub>) with the following
-two properties:
-* x<sup>2</sup> = y mod N.
-* |y| < 2&middot;sqrt(N).
+The idea of many factoring algorithms is to generate lots of pairs of numbers
+(x, y) such that x^2 = y mod N with the additional property that y is
+completely factored. By taking the product of several such relations it may be
+possible to write the product of the y's as a square. For instance, if we can
+find y\_1 and y\_2 such that the product y\_1 y\_2 only has even powers of each
+prime factor then this product is a square and we can find z such that y\_1
+y\_2 = z^2.
 
-These number pairs will be used in the next episode.
+From this follows that (x\_1 x\_2)^2 = z^2 mod N, or written differently:
+(x+z)(x-z) = 0 mod N, where x = x\_1 x\_2. A factor of N can then be found by
+computing gcd(x-z, N).
 
-The actual recurrence relations consists of the four state variables x<sub>n</sub>,
-y<sub>n</sub>, z<sub>n</sub>, and p<sub>n</sub> and are given by the following equations:
-* x<sub>n+1</sub> = (a<sub>n</sub> x<sub>n</sub> + x<sub>n-1</sub>) mod N.
-* y<sub>n+1</sub> = y<sub>n-1</sub> + a<sub>n</sub>&middot;(p<sub>n</sub> - p<sub>n-1</sub>).
-* z<sub>n+1</sub> = 2M - p<sub>n</sub>,
-where 
-* a<sub>n</sub> = z<sub>n</sub>/y<sub>n</sub>
-* p<sub>n</sub> = z<sub>n</sub> - a<sub>n</sub> y<sub>n</sub>
+### Example
+Consider for instance the number N=2059, and the three different relations:
 
-The starting values are given by:
-* x<sub>0</sub> = 1
-* x<sub>1</sub> = M
-* y<sub>0</sub> = 1
-* y<sub>1</sub> = N-M<sup>2</sup>
-* z<sub>1</sub> = 2\*M
-* p<sub>0</sub> = 0,
+* 227^2 = 54 mod 2059
+* 465^2 = 30 mod 2059
+* 1758^2 = 5 mod 2059
 
-where M=floor(sqrt(N)).
+By taking the product of these three equations we get the result
+
+(227\*465\*1758)^2 = 90^2 mod 2059
+
+Then we can calculate gcd(227\*465\*1758 - 90, 2059) = 71, which indeed is a
+factor of 2059.
+
+## Continued Fraction algorithm
+
+The Continued Fraction algorithm generates a sequence of pairs of numbers
+(x\_n, y\_n) where |y\_n| &le; 2 sqrt(N).
+
+The main idea is to approximate the square root sqrt(N) by a fraction x/d.
+This means that x^2/d^2 is close to N, and hence that x^2 - N\*d^2 is close to
+zero. We therefore set y = x^2 - N\*d^2, and our two main properties are
+immediately satisfied.
+
+The goal now is to calculate the x and d, and hence the y. We do this by
+starting from the pair of recurrence relations:
+
+* x\_(n+1) = a\_n x\_n + x\_(n-1),
+* d\_(n+1) = a\_n d\_n + d\_(n-1),
+
+with the initial conditions (x\_0 = 1, x\_1 = floor(sqrt(N)), d\_0 = 0, d\_1 =
+1), where the positive integer a\_n is selected such that x\_(n+1) / d\_(n+1)
+is close to sqrt(N). Inserting, solving for a\_n, and choosing to round down to
+nearest integer gives
+
+a\_n = floor[ (sqrt(N) d\_(n-1) - x\_(n-1)) / (x\_n - sqrt(N) d\_n) ].
+
+### Simplifying the algorithm
+
+The above is in principle enough to calculate the a\_n and hence the x\_n.
+However, the formula for a\_n involves the irrational square root sqrt(N).
+Instead, it is possible to simplify the procedure somewhat, and in particular
+to calculate the y\_n using only positive integers.
+
+By expanding the fraction for a\_n with (x\_n + sqrt(N) d\_n) we get the
+alternate expression
+
+a\_n = floor[ (M w\_n - z\_n) / y\_n ]
+
+where M = floor(sqrt(N)) and I have introduced two new variables:
+
+* w\_n = x\_n d\_(n-1) - d\_n x\_(n-1)
+* z\_n = x\_n x\_(n-1) - N d\_n d\_(n-1)
+
+We find the following recurrence relations for these new variables:
+* w\_(n+1) = - w\_n
+* z\_(n+1) = a\_n y\_n + z\_n
+* y\_(n+1) = a\_n (z\_(n+1) + z\_n) + y\_(n-1)
+
+From the first of the above we get that w\_n = (-1)^n. Furthermore, it can be
+shown that w\_n y\_n is always positive, while w\_n z\_n is always negative.
+So we can avoid negative numbers by introducing the new variables
+
+* p\_n = w\_n y\_n
+* q\_n = - w\_n z\_n
+
+The recurrence relations for these are:
+
+* p\_(n+1) = a\_n (q\_n - q\_(n+1)) + p\_(n-1)
+* q\_(n+1) = a\_n p\_n - q\_n
+
+We now expand the fraction for a\_n by w\_n and get
+a\_n = floor[ (M + q\_n) / p\_n ]
+
+So the above can be used as a pair of recurrence relations, together
+with the initial conditions p\_1 = N-M^2 and q\_1 = M, to generate the
+sequences p\_n, q\_n, a\_n, x\_n, and y\_n.
+
+It is possible to show that q\_n^2 + p\_n p\_(n-1) = N, but this relation
+is not useful.
+
+### Further optimizations
+
+In the current implementation I've chosen to consider the division (M + q\_n) /
+p\_n by rewriting it as 
+
+M + q\_n = a\_n p\_n + r\_n
+
+where r\_n is the remainder. It is possible to calculate both a\_n and r\_n
+simultaneously.
+
+From this we find that
+
+* p\_(n+1) = a\_n (r\_n - r\_(n-1)) + p\_(n-1)
+* q\_(n+1) = M - r\_n
+
+### Final implementation
+
+Finally we set s\_n = M + q\_n to get the following algorithm:
+
+From s\_n and p\_n calculate a\_n and r\_n using
+s\_n = a\_n p\_n + r\_n
+
+Then set
+* s\_(n+1) = 2M - r\_n
+* p\_(n+1) = a\_n (r\_n - r\_(n-1)) + p\_(n-1)
+* w\_(n+1) = - w\_n
+* x\_(n+1) = a\_n x\_n + x\_(n-1).
+
+The algorithm is initialized with the following values
+* s\_1 = 2 M
+* p\_1 = N - M\*M
+* w\_1 = -1
+* x\_1 = M
+
+* p\_0 = 1
+* r\_0 = 0
+* x\_0 = 1
+
+Then we have the following properties:
+* x\_n^2 = p\_n w\_n mod N
+* p\_n < 2M.
+
 
 ## Block Diagram
 
