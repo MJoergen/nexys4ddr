@@ -9,7 +9,7 @@ end tb_sqrt;
 
 architecture simulation of tb_sqrt is
 
-   constant C_SIZE     : integer := 64;
+   constant C_SIZE     : integer := 32;
    constant C_ZERO     : std_logic_vector(C_SIZE-1 downto 0) := (others => '0');
 
    signal clk          : std_logic;

@@ -9,7 +9,7 @@ end tb_math;
 
 architecture simulation of tb_math is
 
-   constant C_SIZE     : integer := 64;
+   constant C_SIZE     : integer := 32;
    constant C_ZERO     : std_logic_vector(C_SIZE-1 downto 0) := (others => '0');
 
    type t_sim is record
