@@ -120,9 +120,9 @@ From this we find that
 * p\_(n+1) = a\_n (r\_n - r\_(n-1)) + p\_(n-1)
 * q\_(n+1) = M - r\_n.
 
-### Final implementation
+Finally we set s\_n = M + q\_n to get the following algorithm.
 
-Finally we set s\_n = M + q\_n to get the following algorithm:
+### Final implementation
 
 From s\_n and p\_n calculate a\_n and r\_n using
 
