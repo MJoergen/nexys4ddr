@@ -89,11 +89,11 @@ avoid negative numbers by introducing the new variables:
 The recurrence relations for these are:
 
 8. p\_(n+1) = a\_n (q\_n - q\_(n+1)) + p\_(n-1)
-9. q\_(n+1) = a\_n p\_n - q\_n
+9. q\_(n+1) = a\_n p\_n - q\_n.
 
 We now expand the fraction for a\_n by w\_n and get
 
-10. a\_n = floor[ (M + q\_n) / p\_n ]
+10. a\_n = floor[ (M + q\_n) / p\_n ].
 
 So the above can be used as a pair of recurrence relations, together
 with the initial conditions:
@@ -104,14 +104,13 @@ with the initial conditions:
 to generate the sequences p\_n, q\_n, a\_n, x\_n, and y\_n.
 
 It is possible to show that q\_n^2 + p\_n p\_(n-1) = N, but this relation
-is not useful.
+is not needed.
 
 ### Further optimizations
 
-In the current implementation I've chosen to consider the division (M + q\_n) /
-p\_n by rewriting it as 
+In the current implementation I've chosen to rewrite equation 10 as:
 
-* M + q\_n = a\_n p\_n + r\_n
+* M + q\_n = a\_n p\_n + r\_n,
 
 where r\_n is the remainder. It is possible to calculate both a\_n and r\_n
 simultaneously from this equation.
@@ -119,7 +118,7 @@ simultaneously from this equation.
 From this we find that
 
 * p\_(n+1) = a\_n (r\_n - r\_(n-1)) + p\_(n-1)
-* q\_(n+1) = M - r\_n
+* q\_(n+1) = M - r\_n.
 
 ### Final implementation
 
@@ -130,12 +129,14 @@ From s\_n and p\_n calculate a\_n and r\_n using
 1. s\_n = a\_n p\_n + r\_n
 
 Then set
+
 2. s\_(n+1) = 2M - r\_n
 3. p\_(n+1) = a\_n (r\_n - r\_(n-1)) + p\_(n-1)
 4. w\_(n+1) = - w\_n
 5. x\_(n+1) = a\_n x\_n + x\_(n-1).
 
 The algorithm is initialized with the following values
+
 * s\_1 = 2 M
 * p\_1 = N - M\*M
 * w\_1 = -1
@@ -146,6 +147,7 @@ The algorithm is initialized with the following values
 * x\_0 = 1
 
 Then we have the following properties:
+
 * x\_n^2 = p\_n w\_n mod N
 * p\_n < 2M.
 
