@@ -70,33 +70,38 @@ alternate expression
 
 where I have introduced two new variables:
 
-5. w\_n = x\_n d\_(n-1) - d\_n x\_(n-1)
-6. z\_n = x\_n x\_(n-1) - N d\_n d\_(n-1)
+* w\_n = x\_n d\_(n-1) - d\_n x\_(n-1)
+* z\_n = x\_n x\_(n-1) - N d\_n d\_(n-1)
 
 We find the following recurrence relations for these new variables:
 
-7. w\_(n+1) = - w\_n
-8. z\_(n+1) = a\_n y\_n + z\_n
-9. y\_(n+1) = a\_n (z\_(n+1) + z\_n) + y\_(n-1)
+5. w\_(n+1) = - w\_n
+6. z\_(n+1) = a\_n y\_n + z\_n
+7. y\_(n+1) = a\_n (z\_(n+1) + z\_n) + y\_(n-1)
 
-From the first of the above we get that w\_n = (-1)^n. Furthermore, it can be
-shown that w\_n y\_n is always positive, while w\_n z\_n is always negative.
-So we can avoid negative numbers by introducing the new variables
+From equation 5. we get that w\_n = (-1)^n. Furthermore, it can be shown that
+w\_n y\_n is always positive, while w\_n z\_n is always negative.  So we can
+avoid negative numbers by introducing the new variables:
 
-10. p\_n = w\_n y\_n
-11. q\_n = - w\_n z\_n
+* p\_n = w\_n y\_n
+* q\_n = - w\_n z\_n.
 
 The recurrence relations for these are:
 
-12. p\_(n+1) = a\_n (q\_n - q\_(n+1)) + p\_(n-1)
-13. q\_(n+1) = a\_n p\_n - q\_n
+8. p\_(n+1) = a\_n (q\_n - q\_(n+1)) + p\_(n-1)
+9. q\_(n+1) = a\_n p\_n - q\_n
 
 We now expand the fraction for a\_n by w\_n and get
-a\_n = floor[ (M + q\_n) / p\_n ]
+
+10. a\_n = floor[ (M + q\_n) / p\_n ]
 
 So the above can be used as a pair of recurrence relations, together
-with the initial conditions p\_1 = N-M^2 and q\_1 = M, to generate the
-sequences p\_n, q\_n, a\_n, x\_n, and y\_n.
+with the initial conditions:
+
+* p\_1 = N-M^2
+* q\_1 = M,
+
+to generate the sequences p\_n, q\_n, a\_n, x\_n, and y\_n.
 
 It is possible to show that q\_n^2 + p\_n p\_(n-1) = N, but this relation
 is not useful.
@@ -106,28 +111,29 @@ is not useful.
 In the current implementation I've chosen to consider the division (M + q\_n) /
 p\_n by rewriting it as 
 
-14. M + q\_n = a\_n p\_n + r\_n
+* M + q\_n = a\_n p\_n + r\_n
 
 where r\_n is the remainder. It is possible to calculate both a\_n and r\_n
-simultaneously.
+simultaneously from this equation.
 
 From this we find that
 
-15. p\_(n+1) = a\_n (r\_n - r\_(n-1)) + p\_(n-1)
-16. q\_(n+1) = M - r\_n
+* p\_(n+1) = a\_n (r\_n - r\_(n-1)) + p\_(n-1)
+* q\_(n+1) = M - r\_n
 
 ### Final implementation
 
 Finally we set s\_n = M + q\_n to get the following algorithm:
 
 From s\_n and p\_n calculate a\_n and r\_n using
-s\_n = a\_n p\_n + r\_n
+
+1. s\_n = a\_n p\_n + r\_n
 
 Then set
-* s\_(n+1) = 2M - r\_n
-* p\_(n+1) = a\_n (r\_n - r\_(n-1)) + p\_(n-1)
-* w\_(n+1) = - w\_n
-* x\_(n+1) = a\_n x\_n + x\_(n-1).
+2. s\_(n+1) = 2M - r\_n
+3. p\_(n+1) = a\_n (r\_n - r\_(n-1)) + p\_(n-1)
+4. w\_(n+1) = - w\_n
+5. x\_(n+1) = a\_n x\_n + x\_(n-1).
 
 The algorithm is initialized with the following values
 * s\_1 = 2 M
