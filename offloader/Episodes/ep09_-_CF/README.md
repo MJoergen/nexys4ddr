@@ -8,14 +8,14 @@ algorithm i.e. it can factor any number N.
 ## Factoring algorithms
 
 The idea of many factoring algorithms is to generate lots of pairs of numbers
-(x, y) such that x^2 = y mod N with the additional property that y is
+(x, y) such that x^2 = y mod N, with the additional property that each y is
 completely factored. By taking the product of several such relations it may be
 possible to write the product of the y's as a square. For instance, if we can
 find y\_1 and y\_2 such that the product y\_1 y\_2 only has even powers of each
 prime factor then this product is a square and we can find z such that y\_1
 y\_2 = z^2.
 
-From this follows that (x\_1 x\_2)^2 = z^2 mod N, or written differently:
+From this it follows that (x\_1 x\_2)^2 = z^2 mod N, or written differently:
 (x+z)(x-z) = 0 mod N, where x = x\_1 x\_2. A factor of N can then be found by
 computing gcd(x-z, N).
 
@@ -40,55 +40,56 @@ The Continued Fraction algorithm generates a sequence of pairs of numbers
 
 The main idea is to approximate the square root sqrt(N) by a fraction x/d.
 This means that x^2/d^2 is close to N, and hence that x^2 - N\*d^2 is close to
-zero. We therefore set y = x^2 - N\*d^2, and our two main properties are
-immediately satisfied.
+zero. We therefore set y = x^2 - N\*d^2, and we immediately have that x^2 = y
+mod N and that y is small.
 
 The goal now is to calculate the x and d, and hence the y. We do this by
 starting from the pair of recurrence relations:
 
-* x\_(n+1) = a\_n x\_n + x\_(n-1),
-* d\_(n+1) = a\_n d\_n + d\_(n-1),
+1. x\_(n+1) = a\_n x\_n + x\_(n-1),
+2. d\_(n+1) = a\_n d\_n + d\_(n-1),
 
-with the initial conditions (x\_0 = 1, x\_1 = floor(sqrt(N)), d\_0 = 0, d\_1 =
-1), where the positive integer a\_n is selected such that x\_(n+1) / d\_(n+1)
-is close to sqrt(N). Inserting, solving for a\_n, and choosing to round down to
-nearest integer gives
+with the initial conditions (x\_0 = 1, x\_1 = M, d\_0 = 0, d\_1 = 1), where the
+positive integer a\_n is selected such that x\_(n+1) / d\_(n+1) is close to
+sqrt(N). Here M = floor(sqrt(N)). Inserting, solving for a\_n, and choosing to
+round down to nearest integer gives
 
-a\_n = floor[ (sqrt(N) d\_(n-1) - x\_(n-1)) / (x\_n - sqrt(N) d\_n) ].
+3. a\_n = floor[ (sqrt(N) d\_(n-1) - x\_(n-1)) / (x\_n - sqrt(N) d\_n) ].
 
 ### Simplifying the algorithm
 
 The above is in principle enough to calculate the a\_n and hence the x\_n.
 However, the formula for a\_n involves the irrational square root sqrt(N).
 Instead, it is possible to simplify the procedure somewhat, and in particular
-to calculate the y\_n using only positive integers.
+to calculate the a\_n using only integer arithmetic.
 
 By expanding the fraction for a\_n with (x\_n + sqrt(N) d\_n) we get the
 alternate expression
 
-a\_n = floor[ (M w\_n - z\_n) / y\_n ]
+4. a\_n = floor[ (M w\_n - z\_n) / y\_n ]
 
-where M = floor(sqrt(N)) and I have introduced two new variables:
+where I have introduced two new variables:
 
-* w\_n = x\_n d\_(n-1) - d\_n x\_(n-1)
-* z\_n = x\_n x\_(n-1) - N d\_n d\_(n-1)
+5. w\_n = x\_n d\_(n-1) - d\_n x\_(n-1)
+6. z\_n = x\_n x\_(n-1) - N d\_n d\_(n-1)
 
 We find the following recurrence relations for these new variables:
-* w\_(n+1) = - w\_n
-* z\_(n+1) = a\_n y\_n + z\_n
-* y\_(n+1) = a\_n (z\_(n+1) + z\_n) + y\_(n-1)
+
+7. w\_(n+1) = - w\_n
+8. z\_(n+1) = a\_n y\_n + z\_n
+9. y\_(n+1) = a\_n (z\_(n+1) + z\_n) + y\_(n-1)
 
 From the first of the above we get that w\_n = (-1)^n. Furthermore, it can be
 shown that w\_n y\_n is always positive, while w\_n z\_n is always negative.
 So we can avoid negative numbers by introducing the new variables
 
-* p\_n = w\_n y\_n
-* q\_n = - w\_n z\_n
+10. p\_n = w\_n y\_n
+11. q\_n = - w\_n z\_n
 
 The recurrence relations for these are:
 
-* p\_(n+1) = a\_n (q\_n - q\_(n+1)) + p\_(n-1)
-* q\_(n+1) = a\_n p\_n - q\_n
+12. p\_(n+1) = a\_n (q\_n - q\_(n+1)) + p\_(n-1)
+13. q\_(n+1) = a\_n p\_n - q\_n
 
 We now expand the fraction for a\_n by w\_n and get
 a\_n = floor[ (M + q\_n) / p\_n ]
@@ -105,15 +106,15 @@ is not useful.
 In the current implementation I've chosen to consider the division (M + q\_n) /
 p\_n by rewriting it as 
 
-M + q\_n = a\_n p\_n + r\_n
+14. M + q\_n = a\_n p\_n + r\_n
 
 where r\_n is the remainder. It is possible to calculate both a\_n and r\_n
 simultaneously.
 
 From this we find that
 
-* p\_(n+1) = a\_n (r\_n - r\_(n-1)) + p\_(n-1)
-* q\_(n+1) = M - r\_n
+15. p\_(n+1) = a\_n (r\_n - r\_(n-1)) + p\_(n-1)
+16. q\_(n+1) = M - r\_n
 
 ### Final implementation
 
