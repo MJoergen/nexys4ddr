@@ -220,7 +220,6 @@ begin
                   if tx_cli_last_i = '1' then
                      if tx_cli_bytes_i <= 18 then
                         tx_phy_last  <= '1';
-                        tx_phy_bytes <= tx_cli_bytes_i + 42;
                         tx_state_r   <= IDLE_ST;
                      else
                         tx_state_r   <= LAST_ST;

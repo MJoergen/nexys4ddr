@@ -19,15 +19,15 @@ def enc(x, num_bytes):
    return str_x.decode("hex")
 
 def dec(s, num_bytes):
-   x = int(s.encode('hex')[0:2*num_bytes], 16)
-   y = int(s.encode('hex')[2*num_bytes:4*num_bytes], 16)
+   x = int(s.encode('hex')[0:4*num_bytes], 16)
+   y = int(s.encode('hex')[4*num_bytes:6*num_bytes], 16)
    return x,y
 
 def offloader(num):
    print "The number is:", num
 
    # Generate message
-   message = enc(num, 2*NUM_BYTES)
+   message = enc(num, 2*NUM_BYTES) + enc(0, NUM_BYTES)
 
    print "Sending message: ",message.encode('hex')
    sock.sendto(message, DUT)
