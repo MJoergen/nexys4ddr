@@ -2,8 +2,8 @@
 # Episode 8 : "Math"
 
 Welcome to this eigth episode of "CPU offloader", where we start
-implementing mathematical functions in our design. In this episode
-we implement Multiplication and GCD.
+implementing mathematical functions in our design. The first
+funcion we'll implement is the integer square root.
 
 ## Cleanup
 Before we proceed, I've decided to clean up the top module. First of all, I've
@@ -22,11 +22,21 @@ both input and output.
 
 ## Math module
 In the top module, the inverter module is replaced by a math module, and a new
-diretory math is added.  Some kind of data formatting is needed, and I've
-decided to use the first two bytes as a command, and the following bytes as two
-operands. This happens in lines 52-54 of math.vhd. The command decoding happens
-in lines 56-57. Currently, two different operations are supported, GCD and
-MULT. Both these operations are instantiated separately.
+diretory math is added.
+So far, this math module just instantiates the square root function.
+
+## Sqrt module
+The integer square root is calculated using the description in
+[wikipedia](https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Binary_numeral_system_(base_2))
+Actually, the module calculates both the integer square root M = floor(sqrt(N))
+and the remainder R = N-M\*M. The control signals are fairly simple: On the
+input side the value N is presented on the input bus val\_i, and the input
+signal start\_i is pulsed once. Some time later the result will be present on
+the output busses res\_o and diff\_o, and the output signal valid\_p will be
+pulsed once. There is an extra signal busy\_o which is asserted when a
+calculation is in progress. It is not possible to interrupt a calculation, and
+asserting start\_i will be ignored as long as busy\_o is asserted.
+This implementation takes a fixed number of clock cycles regardless of the input.
 
 ## Testing in simulaion
 Since there is a lot of processing involved in simulating the Ethernet
@@ -34,8 +44,15 @@ interface, it is much faster to have a separate test bench for the Math module.
 So in the math directory just type make, and the math test bench in
 tb\_math.vhd is run.
 
+I've also made a separate test bench just for the sqrt module. Just uncomment
+the line "#TB = tb\_sqrt" in the top of the Makefile.
+
 ## Testing in hardware
 When the FPGA is programmed, it just waits for commands sent via UDP. So I've
 modified the test program main.py to send specially formatted UDP frames to the
 FPGA, and listen for corresponding replies.
+
+It is important that the test program assumes the same data size as the FPGA
+design. In the FPGA this is controlled in top.vhd in line 36. In the test program
+it is in main.py in line 12.
 

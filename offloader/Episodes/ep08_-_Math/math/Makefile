@@ -2,7 +2,7 @@ XILINX_DIR = /opt/Xilinx/Vivado/2018.2
 
 SRC  = math.vhd sqrt.vhd
 TB   = tb_math
-TB   = tb_sqrt
+#TB   = tb_sqrt
 
 SRC += $(TB).vhd
 WAVE = $(TB).ghw
