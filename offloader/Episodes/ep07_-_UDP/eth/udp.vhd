@@ -168,11 +168,13 @@ begin
                rx_cli_data_r(42*8-1 downto  0*8) <= (others => '0');
                rx_cli_valid_r                    <= '1';
 
-               if rx_phy_bytes_d = 0 then
-                  rx_cli_bytes_r <= to_stdlogicvector(60 - 42, 6);
-               else
-                  rx_cli_bytes_r <= rx_phy_bytes_d - 42;
-               end if;
+               rx_cli_bytes_r <= to_stdlogicvector(to_integer(tx_hdr(R_UDP_LEN)) - 8, 6);
+
+--               if rx_phy_bytes_d = 0 then
+--                  rx_cli_bytes_r <= to_stdlogicvector(60 - 42, 6);
+--               else
+--                  rx_cli_bytes_r <= rx_phy_bytes_d - 42;
+--               end if;
                rx_cli_last_r <= '1';
                rx_state_r <= IDLE_ST;
 
