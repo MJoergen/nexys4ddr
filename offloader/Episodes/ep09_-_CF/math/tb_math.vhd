@@ -9,7 +9,7 @@ end tb_math;
 
 architecture simulation of tb_math is
 
-   constant C_SIZE     : integer := 32;
+   constant C_SIZE     : integer := 72;
    constant C_ZERO     : std_logic_vector(C_SIZE-1 downto 0) := (others => '0');
 
    type t_sim is record
@@ -121,9 +121,13 @@ begin
 
             -- Build expected response
             exp.data  <= (others => '0');
-            exp.data(60*8-1 downto 60*8-3*C_SIZE) <= 
-               to_stdlogicvector(res(i).x, 2*C_SIZE) &
-               to_stdlogicvector(res(i).y, C_SIZE);
+            exp.data(60*8-1 downto 60*8-2*C_SIZE) <= to_stdlogicvector(res(i).x, 2*C_SIZE);
+
+            if res(i).y > 0 then
+               exp.data(60*8-1-2*C_SIZE downto 60*8-3*C_SIZE) <= to_stdlogicvector(res(i).y, C_SIZE);
+            else
+               exp.data(60*8-1-2*C_SIZE downto 60*8-3*C_SIZE) <= (not to_stdlogicvector(-res(i).y, C_SIZE)) + 1;
+            end if;
             exp.last  <= '1';
             exp.bytes <= to_stdlogicvector(3*C_SIZE/8, 6);
 
@@ -142,34 +146,34 @@ begin
 
       -- These values are copied from the spread sheet cf.xlsx.
       constant res2059 : res_vector_t := (
-         (  91, 45),
-         ( 136, 35),
-         ( 227, 54),
-         ( 363,  7),
-         ( 465, 30),
-         (1293, 59),
-         (1758,  5),
-         ( 294, 42),
-         ( 287,  9),
-         ( 818, 51),
-         (1105, 38),
-         (1923, 35),
-         ( 833,  6),
-         (1231, 63),
-         (   5, 25));
+         (  91,  45),
+         ( 136, -35),
+         ( 227,  54),
+         ( 363,  -7),
+         ( 465,  30),
+         (1293, -59),
+         (1758,   5),
+         ( 294, -42),
+         ( 287,   9),
+         ( 818, -51),
+         (1105,  38),
+         (1923, -35),
+         ( 833,   6),
+         (1231, -63),
+         (   5,  25));
 
       constant res2623 : res_vector_t := (
-         ( 205, 57),
-         ( 256, 39),
-         ( 461, 58),
-         ( 717, 19),
-         ( 706, 66),
-         (1423, 27),
-         ( 929, 74),
-         (2352,  3),
-         (2478, 41),
-         (2062, 39),
-         (1356, 13));
+         ( 205,  57),
+         ( 256, -39),
+         ( 461,  58),
+         ( 717, -19),
+         ( 706,  66),
+         (1423, -27),
+         ( 929,  74),
+         (2352,  -3),
+         (2478,  41),
+         (2062, -39),
+         (1356,  13));
 
    begin
       -- Wait until reset is complete
@@ -178,7 +182,7 @@ begin
 
       -- Verify CF
       verify_cf(2623, res2623);
-      wait for 20 ns;
+      wait for 10 ns;
       verify_cf(2059, res2059);
 
       -- Stop test

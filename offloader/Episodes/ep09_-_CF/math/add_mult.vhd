@@ -14,6 +14,7 @@ entity add_mult is
       val_b_i  : in  std_logic_vector(2*G_SIZE-1 downto 0);
       start_i  : in  std_logic;
       res_o    : out std_logic_vector(2*G_SIZE-1 downto 0);
+      busy_o   : out std_logic;
       valid_o  : out std_logic
    );
 end add_mult;
@@ -27,7 +28,7 @@ architecture Behavioral of add_mult is
    signal res_r    : std_logic_vector(2*G_SIZE-1 downto 0);
    signal valid_r  : std_logic;
 
-   type fsm_state is (IDLE_ST, MULT_ST, DONE_ST);
+   type fsm_state is (IDLE_ST, MULT_ST);
    signal state_r  : fsm_state;
 
 begin
@@ -50,12 +51,7 @@ begin
                add_r <= add_r(2*G_SIZE-2 downto 0) & '0';
 
                if mult_r = 0 then
-                  state_r <= DONE_ST;
-               end if;
-
-            when DONE_ST =>
-               valid_r <= '1';
-               if start_i = '0' then
+                  valid_r <= '1';
                   state_r <= IDLE_ST;
                end if;
          end case;
@@ -74,8 +70,9 @@ begin
    end process p_fsm;
 
    -- Connect output signals
-   res_o   <= res_r when state_r = IDLE_ST else (others => '0');
+   res_o   <= res_r;
    valid_o <= valid_r;
+   busy_o  <= '0' when state_r = IDLE_ST else '1';
 
 end Behavioral;
 

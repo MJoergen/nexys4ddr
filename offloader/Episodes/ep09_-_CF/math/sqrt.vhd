@@ -20,6 +20,7 @@ entity sqrt is
       start_i : in  std_logic;
       res_o   : out std_logic_vector(G_SIZE-1 downto 0);    -- M = floor(sqrt(N))
       diff_o  : out std_logic_vector(G_SIZE-1 downto 0);    -- N - M*M
+      busy_o  : out std_logic;
       valid_o : out std_logic
    );
 end sqrt;
@@ -28,7 +29,7 @@ architecture Behavioral of sqrt is
 
    constant C_ZERO : std_logic_vector(G_SIZE-1 downto 0) := (others => '0');
 
-   type fsm_state is (IDLE_ST, CALC_ST, DONE_ST);
+   type fsm_state is (IDLE_ST, CALC_ST);
    signal state_r : fsm_state;
 
    signal val_r   : std_logic_vector(2*G_SIZE-1 downto 0);
@@ -48,6 +49,9 @@ begin
 
          case state_r is
             when IDLE_ST =>
+               res_r <= (others => '0');
+               val_r <= (others => '0');
+
                if start_i = '1' then
                   val_r   <= val_i; -- Store input value
                   res_r   <= C_ZERO & C_ZERO;
@@ -67,11 +71,6 @@ begin
                   bit_r <= "00" & bit_r(2*G_SIZE-1 downto 2);
                else
                   valid_r <= '1';
-                  state_r <= DONE_ST;
-               end if;
-
-            when DONE_ST =>
-               if start_i = '0' then
                   state_r <= IDLE_ST;
                end if;
          end case;
@@ -87,6 +86,7 @@ begin
    res_o   <= res_r(G_SIZE-1 downto 0);
    diff_o  <= val_r(G_SIZE-1 downto 0);
    valid_o <= valid_r;
+   busy_o  <= '0' when state_r = IDLE_ST else '1';
 
 end Behavioral;
 

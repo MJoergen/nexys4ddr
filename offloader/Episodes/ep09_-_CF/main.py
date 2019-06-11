@@ -9,7 +9,7 @@ sock = socket.socket(socket.AF_INET,    # Internet
 # IP address and port number of the FPGA device
 DUT = ("192.168.1.77", 4660)
 
-NUM_BYTES = 4
+NUM_BYTES = 9
 
 def enc(x, num_bytes):
    # Convert the number to a hex string. Remove the preceding "0x" and the trailing optional "L".
@@ -21,13 +21,15 @@ def enc(x, num_bytes):
 def dec(s, num_bytes):
    x = int(s.encode('hex')[0:4*num_bytes], 16)
    y = int(s.encode('hex')[4*num_bytes:6*num_bytes], 16)
+   if y > 2**(NUM_BYTES*8-1):
+       y -= 2**(NUM_BYTES*8)
    return x,y
 
 def offloader(num):
    print "The number is:", num
 
    # Generate message
-   message = enc(num, 2*NUM_BYTES) + enc(0, NUM_BYTES)
+   message = enc(num, 2*NUM_BYTES)
 
    print "Sending message: ",message.encode('hex')
    sock.sendto(message, DUT)
@@ -40,6 +42,6 @@ def offloader(num):
       x,p = dec(data, NUM_BYTES)
       print x,p
 
-offloader(2059)
+offloader(2**22+1)
 
 

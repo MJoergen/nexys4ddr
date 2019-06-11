@@ -22,6 +22,7 @@ entity divmod is
       start_i : in  std_logic;
       res_q_o : out std_logic_vector(G_SIZE-1 downto 0);
       res_r_o : out std_logic_vector(G_SIZE-1 downto 0);
+      busy_o  : out std_logic;
       valid_o : out std_logic
    );
 end divmod;
@@ -36,7 +37,7 @@ architecture Behavioral of divmod is
    signal res_q : std_logic_vector(G_SIZE-1 downto 0);
    signal res_r : std_logic_vector(G_SIZE downto 0);
 
-   type fsm_state is (IDLE_ST, SHIFT_ST, REDUCE_ST, DONE_ST);
+   type fsm_state is (IDLE_ST, SHIFT_ST, REDUCE_ST);
 
    signal state : fsm_state;
    signal valid : std_logic;
@@ -76,13 +77,7 @@ begin
                   assert val_d(0) = '0';
                   shift <= shift - 1;
                else
-                  state <= DONE_ST;
-               end if;
-
-            -- Present result
-            when DONE_ST =>
-               valid <= '1';
-               if start_i = '0' then
+                  valid <= '1';
                   state <= IDLE_ST;
                end if;
          end case;
@@ -106,6 +101,7 @@ begin
    res_q_o <= res_q;
    res_r_o <= res_r(G_SIZE-1 downto 0);
    valid_o <= valid;
+   busy_o  <= '0' when state = IDLE_ST else '1';
 
 end Behavioral;
 

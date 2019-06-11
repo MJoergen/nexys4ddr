@@ -78,15 +78,17 @@ architecture Behavioral of cf is
    signal sqrt_start     : std_logic;
    signal sqrt_res       : std_logic_vector(G_SIZE-1 downto 0);
    signal sqrt_diff      : std_logic_vector(G_SIZE-1 downto 0);
+   signal sqrt_busy      : std_logic;
    signal sqrt_valid     : std_logic;
 
    -- Signals connected to DIVMOD module
    signal divmod_val_n   : std_logic_vector(G_SIZE-1 downto 0);
    signal divmod_val_d   : std_logic_vector(G_SIZE-1 downto 0);
    signal divmod_start   : std_logic;
-   signal divmod_valid   : std_logic;
    signal divmod_res_q   : std_logic_vector(G_SIZE-1 downto 0);
    signal divmod_res_r   : std_logic_vector(G_SIZE-1 downto 0);
+   signal divmod_busy    : std_logic;
+   signal divmod_valid   : std_logic;
 
    -- Signals connected to AMM module
    signal amm_val_a      : std_logic_vector(G_SIZE-1 downto 0);
@@ -94,16 +96,18 @@ architecture Behavioral of cf is
    signal amm_val_b      : std_logic_vector(2*G_SIZE-1 downto 0);
    signal amm_val_n      : std_logic_vector(2*G_SIZE-1 downto 0);
    signal amm_start      : std_logic;
-   signal amm_valid      : std_logic;
    signal amm_res        : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal amm_busy       : std_logic;
+   signal amm_valid      : std_logic;
 
    -- Signals connected to ADD-MULT module
    signal add_mult_val_a : std_logic_vector(G_SIZE-1 downto 0);
    signal add_mult_val_x : std_logic_vector(G_SIZE-1 downto 0);
    signal add_mult_val_b : std_logic_vector(2*G_SIZE-1 downto 0);
    signal add_mult_start : std_logic;
-   signal add_mult_valid : std_logic;
    signal add_mult_res   : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal add_mult_busy  : std_logic;
+   signal add_mult_valid : std_logic;
 
    -- Output signals
    signal res_x          : std_logic_vector(2*G_SIZE-1 downto 0);
@@ -123,6 +127,7 @@ begin
          res_w          <= '0';
          valid          <= '0';
 
+         sqrt_start     <= '0';
          divmod_start   <= '0';
          amm_start      <= '0';
          add_mult_start <= '0';
@@ -130,9 +135,8 @@ begin
          case state is
             when SQRT_ST =>
                -- Wait until data is ready
-               if sqrt_valid = '1' and divmod_valid = '0' and amm_valid = '0' and add_mult_valid = '0' then
-                  sqrt_start     <= '0';
-
+               if sqrt_valid = '1' then
+                  assert divmod_busy = '0' and amm_busy = '0' and add_mult_busy = '0';
                   -- Store input values
                   val_2root      <= sqrt_res(G_SIZE-2 downto 0) & '0';
 
@@ -148,9 +152,9 @@ begin
                   x_cur          <= C_ZERO & sqrt_res;
 
                   -- Start calculating a_n and p_n.
+                  divmod_start   <= '1';
                   amm_start      <= '0';
                   add_mult_start <= '0';
-                  divmod_start   <= '1';
                   state          <= CALC_AR_ST;
                end if;
 
@@ -186,9 +190,9 @@ begin
                   valid  <= '1';
 
                   -- Start calculating a_n and p_n.
+                  divmod_start   <= '1';
                   amm_start      <= '0';
                   add_mult_start <= '0';
-                  divmod_start   <= '1';
                   state          <= CALC_AR_ST;
                end if;
          end case;
@@ -249,6 +253,7 @@ begin
       start_i => sqrt_start,
       res_o   => sqrt_res,
       diff_o  => sqrt_diff,
+      busy_o  => sqrt_busy,
       valid_o => sqrt_valid
    ); -- i_sqrt
 
@@ -269,6 +274,7 @@ begin
       start_i => divmod_start,
       res_q_o => divmod_res_q,
       res_r_o => divmod_res_r,
+      busy_o  => divmod_busy,
       valid_o => divmod_valid
    ); -- i_divmod
 
@@ -290,6 +296,7 @@ begin
       val_n_i => amm_val_n,
       start_i => amm_start,
       res_o   => amm_res,
+      busy_o  => amm_busy,
       valid_o => amm_valid
    ); -- i_amm
 
@@ -303,14 +310,15 @@ begin
       G_SIZE => G_SIZE
    )
    port map ( 
-      clk_i    => clk_i,
-      rst_i    => rst_i,
-      val_a_i  => add_mult_val_a,
-      val_x_i  => add_mult_val_x,
-      val_b_i  => add_mult_val_b,
-      start_i  => add_mult_start,
-      res_o    => add_mult_res,
-      valid_o  => add_mult_valid
+      clk_i   => clk_i,
+      rst_i   => rst_i,
+      val_a_i => add_mult_val_a,
+      val_x_i => add_mult_val_x,
+      val_b_i => add_mult_val_b,
+      start_i => add_mult_start,
+      res_o   => add_mult_res,
+      busy_o  => add_mult_busy,
+      valid_o => add_mult_valid
    ); -- i_add_mult
 
 

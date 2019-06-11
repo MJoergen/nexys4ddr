@@ -64,12 +64,23 @@ begin
       valid_o => cf_valid
    );
 
-   tx_valid_o <= cf_valid;
-   tx_data_o(60*8-1          downto 60*8-2*G_SIZE) <= cf_res_x;
-   tx_data_o(60*8-1-2*G_SIZE downto 60*8-3*G_SIZE) <= cf_res_p;
-   tx_data_o(60*8-1-3*G_SIZE downto 0)             <= (others => '0');
-   tx_bytes_o <= to_stdlogicvector(3*G_SIZE/8, 6);
-   tx_last_o  <= '1';
+   p_out : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         tx_valid_o <= cf_valid;
+         tx_data_o(60*8-1          downto 60*8-2*G_SIZE) <= cf_res_x;
+         tx_data_o(60*8-1-3*G_SIZE downto 0)             <= (others => '0');
+         tx_bytes_o <= to_stdlogicvector(3*G_SIZE/8, 6);
+         tx_last_o  <= '1';
+
+         if cf_res_w = '0' then
+            tx_data_o(60*8-1-2*G_SIZE downto 60*8-3*G_SIZE) <= cf_res_p;
+         else
+            tx_data_o(60*8-1-2*G_SIZE downto 60*8-3*G_SIZE) <= (not cf_res_p) + 1;
+         end if;
+      end if;
+   end process p_out;
+
 
    p_debug : process (clk_i)
    begin
