@@ -100,6 +100,9 @@ begin
          cmd.bytes <= to_stdlogicvector(2*C_SIZE/8, 6);
          wait until clk = '1';
          cmd.valid <= '0';
+         wait until clk = '1';
+         wait until clk = '0';
+         assert resp.valid = '0';
 
          -- Build expected response
          exp.data  <= (others => '0');
@@ -115,8 +118,6 @@ begin
          assert resp.data  = exp.data;
          assert resp.last  = exp.last;
          assert resp.bytes = exp.bytes;
-         wait until clk = '1' and resp.valid = '0';
-         wait until clk = '0';
       end procedure verify_sqrt;
 
    begin
@@ -126,6 +127,7 @@ begin
 
       -- Verify SQRT
       verify_sqrt(  7,  2, 3);
+      verify_sqrt( 17,  4, 1);
 
       -- Stop test
       wait until clk = '1';

@@ -35,9 +35,9 @@ clock cycles regardless of the input.
 The control signals are fairly simple: On the input side the value N is
 presented on the input bus val\_i, and the input signal start\_i is pulsed
 once. Some time later the result will be present on the output busses res\_o
-and diff\_o, and the output signal valid\_o will be pulsed once. val\_i is only
-read when start\_i is asserted, and likewise should res\_o and diff\_o only be
-read when valid\_o is asserted.
+and diff\_o, and the output signal valid\_o will be held high. val\_i is only
+read when start\_i is asserted. However res\_o and diff\_o will remain valid
+until the next time start\_i is asserted.
 
 There is an extra signal busy\_o which is asserted when a calculation is in
 progress. It is not possible to interrupt a calculation, and asserting start\_i

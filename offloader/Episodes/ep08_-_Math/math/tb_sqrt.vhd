@@ -102,6 +102,7 @@ begin
             wait until clk = '1';
             start <= '0';
             wait until clk = '1';
+            assert valid = '0';
 
             -- Calculate expected response
             exp_sqrt := sqrt(tb(i));
@@ -112,9 +113,6 @@ begin
             wait until clk = '0';
             assert res  = to_stdlogicvector(exp_sqrt, C_SIZE);
             assert diff = to_stdlogicvector(exp_diff, C_SIZE);
-
-            wait until clk = '1' and valid = '0';
-            wait until clk = '0';
          end loop;
       end procedure verify_sqrt;
 
