@@ -29,14 +29,19 @@ So far, this math module just instantiates the square root function.
 The integer square root is calculated using the description in
 [wikipedia](https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Binary_numeral_system_(base_2)).
 Actually, the module calculates both the integer square root M = floor(sqrt(N))
-and the remainder R = N-M\*M. The control signals are fairly simple: On the
-input side the value N is presented on the input bus val\_i, and the input
-signal start\_i is pulsed once. Some time later the result will be present on
-the output busses res\_o and diff\_o, and the output signal valid\_p will be
-pulsed once. There is an extra signal busy\_o which is asserted when a
-calculation is in progress. It is not possible to interrupt a calculation, and
-asserting start\_i will be ignored as long as busy\_o is asserted.
-This implementation takes a fixed number of clock cycles regardless of the input.
+and the remainder R = N-M\*M.  This implementation takes a fixed number of
+clock cycles regardless of the input.
+
+The control signals are fairly simple: On the input side the value N is
+presented on the input bus val\_i, and the input signal start\_i is pulsed
+once. Some time later the result will be present on the output busses res\_o
+and diff\_o, and the output signal valid\_o will be pulsed once. val\_i is only
+read when start\_i is asserted, and likewise should res\_o and diff\_o only be
+read when valid\_o is asserted.
+
+There is an extra signal busy\_o which is asserted when a calculation is in
+progress. It is not possible to interrupt a calculation, and asserting start\_i
+will be ignored as long as busy\_o is asserted. 
 
 ## Testing in simulaion
 Since there is a lot of processing involved in simulating the Ethernet
