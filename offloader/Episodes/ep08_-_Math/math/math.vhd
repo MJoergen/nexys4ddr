@@ -2,7 +2,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This module is a small test module that inverts everything received.
+-- This is Math module. It receives and dispatches command, and returns the
+-- responses.
 
 entity math is
    generic (
@@ -13,13 +14,13 @@ entity math is
       rst_i      : in  std_logic;
       debug_o    : out std_logic_vector(255 downto 0);
 
-      -- Ingress to client
+      -- Incoming command
       rx_valid_i : in  std_logic;
       rx_data_i  : in  std_logic_vector(60*8-1 downto 0);
       rx_last_i  : in  std_logic;
       rx_bytes_i : in  std_logic_vector(5 downto 0);
 
-      -- Egress from client
+      -- Outgoing response
       tx_valid_o : out std_logic;
       tx_data_o  : out std_logic_vector(60*8-1 downto 0);
       tx_last_o  : out std_logic;
