@@ -151,8 +151,27 @@ Then we have the following properties:
 * x\_n^2 = p\_n w\_n mod N
 * p\_n < 2M.
 
+One final note is that all values (expept for x) in this method have only half
+as many bits as N.
 
-## Block Diagram
+## DivMod
+This module calculates the division n/d and returns the quotient q and the
+remainder d.
+
+The control signals follow the same pattern as before: The values of N and D
+are presented on the input busses val\_n\_i and val\_d\_i, and the input signal
+start\_i is pulsed high for one clock cycle.  Some time later the output signal
+valid\_o is held high, and the result of the calculation will be presented on
+the output bussess res\_q\_o and res\_r\_o.  These values will remain valid
+until next time start\_i is asserted.
+
+There is an additional output signal busy\_o which is asserted when a
+calculation is in progress. During a calculation the input signal start\_i is
+ignored.
+
+## Add\_Mult
+
+## Add\_Mult\_Modulo
 
 ## Testing in simulation
 The test bench sends a single command with the value N=2059 and verifies the

@@ -32,14 +32,15 @@ architecture Behavioral of divmod is
    constant C_ZERO : std_logic_vector(G_SIZE-1 downto 0) := (others => '0');
    constant C_ONE  : std_logic_vector(G_SIZE-1 downto 0) := to_stdlogicvector(1, G_SIZE);
 
+   type fsm_state is (IDLE_ST, SHIFT_ST, REDUCE_ST);
+   signal state : fsm_state;
+
    signal val_d : std_logic_vector(G_SIZE downto 0);
    signal shift : integer range 0 to G_SIZE-1;
+
+   -- Output signals
    signal res_q : std_logic_vector(G_SIZE-1 downto 0);
    signal res_r : std_logic_vector(G_SIZE downto 0);
-
-   type fsm_state is (IDLE_ST, SHIFT_ST, REDUCE_ST);
-
-   signal state : fsm_state;
    signal valid : std_logic;
 
 begin
@@ -54,7 +55,6 @@ begin
                   valid <= '0';
                   res_q <= (others => '0');
                   res_r <= '0' & val_n_i;
-
                   val_d <= '0' & val_d_i;
                   shift <= 0;
                   state <= SHIFT_ST;
@@ -89,6 +89,9 @@ begin
          end case;
 
          if rst_i = '1' then
+            res_q <= (others => '0');
+            res_r <= (others => '0');
+            valid <= '0';
             state <= IDLE_ST;
          end if;
       end if;
