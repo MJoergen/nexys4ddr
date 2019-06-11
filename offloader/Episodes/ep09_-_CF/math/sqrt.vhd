@@ -29,14 +29,15 @@ architecture Behavioral of sqrt is
 
    constant C_ZERO : std_logic_vector(G_SIZE-1 downto 0) := (others => '0');
 
-   type fsm_state is (IDLE_ST, CALC_ST);
-   signal state_r : fsm_state;
+   type fsm_state is (IDLE_ST, RESBIT_ST, CALC_ST);
+   signal state_r  : fsm_state;
 
-   signal val_r   : std_logic_vector(2*G_SIZE-1 downto 0);
-   signal bit_r   : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal val_r    : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal bit_r    : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal resbit_r : std_logic_vector(2*G_SIZE-1 downto 0);
 
-   signal res_r   : std_logic_vector(2*G_SIZE-1 downto 0);
-   signal valid_r : std_logic;
+   signal res_r    : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal valid_r  : std_logic;
 
 begin
 
@@ -56,19 +57,24 @@ begin
                   val_r   <= val_i; -- Store input value
                   res_r   <= C_ZERO & C_ZERO;
                   bit_r   <= "01" & to_stdlogicvector(0, 2*G_SIZE-2);
-                  state_r <= CALC_ST;
+                  state_r <= RESBIT_ST;
                end if;
+
+            when RESBIT_ST =>
+               resbit_r <= res_r + bit_r;
+               state_r  <= CALC_ST;
 
             when CALC_ST =>
                if bit_r /= 0 then
-                  if val_r >= res_r + bit_r then
-                     val_r <= val_r - (res_r + bit_r);
+                  if val_r >= resbit_r then
+                     val_r <= val_r - resbit_r;
                      res_r <= ("0" & res_r(2*G_SIZE-1 downto 1)) + bit_r;
                   else
                      res_r <= ("0" & res_r(2*G_SIZE-1 downto 1));
                   end if;
 
-                  bit_r <= "00" & bit_r(2*G_SIZE-1 downto 2);
+                  bit_r   <= "00" & bit_r(2*G_SIZE-1 downto 2);
+                  state_r <= RESBIT_ST;
                else
                   valid_r <= '1';
                   state_r <= IDLE_ST;
