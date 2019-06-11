@@ -26,7 +26,7 @@ use ieee.numeric_std_unsigned.all;
 -- 5) w_(n+1) = - w_n
 -- 6) x_(n+1) = a_n x_n + x_(n-1) mod N
 -- Steps 1 and 2 in the recurrence are performed simultaneously using the divmod module.
--- Steps 3 and 4 are performed simultaneously using the add_mult and amm modules.
+-- Steps 4 and 6 are performed simultaneously using the add_mult and amm modules.
 
 entity cf is
    generic (

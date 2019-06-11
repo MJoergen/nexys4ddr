@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
 -- This module calculates the division n/d = q + r/d,
--- and returns the quotien q and remainder d.
+-- and returns the quotient q and remainder d.
 -- The algorithm is identical to the old-school method
 -- using repeated subtractions.
 -- The running time is proportional to the number of bits

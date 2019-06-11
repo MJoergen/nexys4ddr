@@ -45,17 +45,12 @@ begin
    begin
       if rising_edge(clk_i) then
 
-         -- Default value
-         valid_r <= '0';
-
          case state_r is
             when IDLE_ST =>
-               res_r <= (others => '0');
-               val_r <= (others => '0');
-
                if start_i = '1' then
                   val_r   <= val_i; -- Store input value
-                  res_r   <= C_ZERO & C_ZERO;
+                  res_r   <= (others => '0');
+                  valid_r <= '0';
                   bit_r   <= "01" & to_stdlogicvector(0, 2*G_SIZE-2);
                   state_r <= CALC_ST;
                end if;
@@ -78,6 +73,9 @@ begin
          end case;
 
          if rst_i = '1' then
+            res_r   <= (others => '0');
+            val_r   <= (others => '0');
+            valid_r <= '0';
             state_r <= IDLE_ST;
          end if;
       end if;

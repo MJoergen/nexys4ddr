@@ -96,11 +96,13 @@ begin
 
          for i in 0 to tb'length-1 loop
             -- Start calculation
+            report "Calculating sqrt(" & integer'image(tb(i)) & ")";
             val   <= to_stdlogicvector(tb(i), 2*C_SIZE);
             start <= '1';
             wait until clk = '1';
             start <= '0';
             wait until clk = '1';
+            assert valid = '0';
 
             -- Calculate expected response
             exp_sqrt := sqrt(tb(i));
@@ -111,15 +113,13 @@ begin
             wait until clk = '0';
             assert res  = to_stdlogicvector(exp_sqrt, C_SIZE);
             assert diff = to_stdlogicvector(exp_diff, C_SIZE);
-
-            wait until clk = '1' and valid = '0';
-            wait until clk = '0';
          end loop;
       end procedure verify_sqrt;
 
       constant tb : tb_vector_t := (
             1,   2,    3,    4,    5,    6,    7,    8,
-            9,  10,   11,   12,   13,   14,   15,   27,
+            9,  10,   11,   12,   13,   14,   15,   16,
+           17,  18,   19,   20,   21,   22,   23,   27,
           363, 465, 1293, 1758);
 
    begin
