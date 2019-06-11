@@ -135,7 +135,7 @@ begin
          case state is
             when SQRT_ST =>
                -- Wait until data is ready
-               if sqrt_valid = '1' then
+               if sqrt_start = '0' and sqrt_valid = '1' then
                   assert divmod_busy = '0' and amm_busy = '0' and add_mult_busy = '0';
                   -- Store input values
                   val_2root      <= sqrt_res(G_SIZE-2 downto 0) & '0';
@@ -159,7 +159,7 @@ begin
                end if;
 
             when CALC_AR_ST =>
-               if divmod_valid = '1' then
+               if divmod_start = '0' and divmod_valid = '1' then
                   -- Store new values of a_n and r_n
                   a_cur <= divmod_res_q;
                   r_cur <= divmod_res_r;
@@ -172,7 +172,7 @@ begin
                end if;
 
             when CALC_XP_ST =>
-               if amm_valid = '1' and add_mult_valid = '1' then
+               if amm_start = '0' and amm_valid = '1' and add_mult_start = '0' and add_mult_valid = '1' then
                   -- Update recursion
                   s_cur  <= s_new;
                   p_cur  <= p_new;

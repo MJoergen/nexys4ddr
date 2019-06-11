@@ -50,9 +50,15 @@ begin
          case state is
             -- Store the input values
             when IDLE_ST =>
-               res_q <= (others => '0');
-               res_r <= (others => '0');
-               valid <= '0';
+               if start_i = '1' then
+                  valid <= '0';
+                  res_q <= (others => '0');
+                  res_r <= '0' & val_n_i;
+
+                  val_d <= '0' & val_d_i;
+                  shift <= 0;
+                  state <= SHIFT_ST;
+               end if;
 
             -- Shift the denoinator, until it is larger than the numerator
             when SHIFT_ST =>
@@ -81,16 +87,6 @@ begin
                   state <= IDLE_ST;
                end if;
          end case;
-
-         if start_i = '1' then
-            valid <= '0';
-            res_q <= (others => '0');
-            res_r <= '0' & val_n_i;
-
-            val_d <= '0' & val_d_i;
-            shift <= 0;
-            state <= SHIFT_ST;
-         end if;
 
          if rst_i = '1' then
             state <= IDLE_ST;
