@@ -42,6 +42,5 @@ def offloader(num):
       x,p = dec(data, NUM_BYTES)
       print x,p
 
-offloader(2**22+1)
-
+offloader(7*(2**128+1))
 

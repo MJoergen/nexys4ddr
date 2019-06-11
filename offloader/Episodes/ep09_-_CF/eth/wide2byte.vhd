@@ -181,7 +181,6 @@ begin
                   end if;
 
                   if tx_last_r = '1' then                            -- Last byte has been read.
-                     report "Finished Tx frame";
                      tx_empty_r <= '1';
                      tx_last_r  <= '0';
                      state_r    <= IDLE_ST;
