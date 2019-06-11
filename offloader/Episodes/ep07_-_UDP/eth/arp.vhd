@@ -93,6 +93,9 @@ begin
          if tx_valid = '1' then
             debug <= tx_data(R_ARP_HDR'left downto R_ARP_HDR'left-255);
          end if;
+         if rst_i = '1' then
+            debug <= (others => '0');
+         end if;
       end if;
    end process p_debug;
 

@@ -17,6 +17,7 @@ entity fifo is
       wr_rst_i   : in  std_logic;
       wr_en_i    : in  std_logic;
       wr_data_i  : in  std_logic_vector(G_WIDTH-1 downto 0);
+      wr_full_o  : out std_logic;
       wr_error_o : out std_logic;
       --
       rd_clk_i   : in  std_logic;
@@ -25,7 +26,7 @@ entity fifo is
       rd_data_o  : out std_logic_vector(G_WIDTH-1 downto 0);
       rd_empty_o : out std_logic;
       rd_error_o : out std_logic
-      );
+   );
 end entity fifo;
 
 architecture behavioral of fifo is
@@ -37,6 +38,7 @@ architecture behavioral of fifo is
    signal fifo_in  : std_logic_vector(C_FIFOS*72-1 downto 0);
    signal fifo_out : std_logic_vector(C_FIFOS*72-1 downto 0);
 
+   signal wr_full  : std_logic_vector(C_FIFOS-1 downto 0);
    signal rd_empty : std_logic_vector(C_FIFOS-1 downto 0);
    signal rderr    : std_logic_vector(C_FIFOS-1 downto 0);
    signal wrerr    : std_logic_vector(C_FIFOS-1 downto 0);
@@ -75,7 +77,7 @@ begin  -- architecture behavioral
             REGCE         => '0',
             DO            => fifo_out(i*72+63 downto i*72),
             DOP           => fifo_out(i*72+71 downto i*72+64),
-            FULL          => open,
+            FULL          => wr_full(i),
             ALMOSTFULL    => open,
             EMPTY         => rd_empty(i),
             ALMOSTEMPTY   => open,
@@ -118,6 +120,7 @@ begin  -- architecture behavioral
    -- Drive output siganls
    rd_data_o  <= fifo_out(G_WIDTH-1 downto 0);
    rd_empty_o <= rd_empty(0); -- All FIFOs are read from simultaneously, so they all have the same value of rd_empty.
+   wr_full_o  <= wr_full(0);
    wr_error_o <= wrerr_l;
    rd_error_o <= rderr_l;
 

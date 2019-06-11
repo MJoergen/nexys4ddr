@@ -40,6 +40,7 @@ architecture Structural of wide2byte is
    signal state_r    : t_state := IDLE_ST;
 
    -- Connected to FIFO
+   signal wr_ready   : std_logic;
    signal wr_en      : std_logic;
    signal wr_data    : std_logic_vector(G_BYTES*8+8 downto 0);
    signal rd_empty   : std_logic;
@@ -69,8 +70,32 @@ begin
       end if;
    end process p_assert;
 
+   -- Discard next frame if already busy sending.
+   p_stop : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         -- Frame completely stored, and fifo contains data, then discard following.
+         if rx_valid_i = '1' and rx_last_i = '1' and rd_empty = '0' then
+            wr_ready <= '0';
+         end if;
+         -- Fifo is now empty
+         if rd_empty = '1' and wr_ready = '0' then
+            -- If currently in the middle of a frame, the continue discarding
+            if rx_valid_i = '1' and rx_last_i = '0' then
+               wr_ready <= '0';
+            -- Otherwise, resume transmission.
+            else
+               wr_ready <= '1';
+            end if;
+         end if;
+         if rst_i = '1' then
+            wr_ready <= '1';
+         end if;
+      end if;
+   end process p_stop;
+
    -- Store payload data in a fifo
-   wr_en                                   <= rx_valid_i;
+   wr_en                                   <= rx_valid_i and wr_ready;
    wr_data(G_BYTES*8+8)                    <= rx_last_i;
    wr_data(G_BYTES*8+7 downto G_BYTES*8+6) <= "00";
    wr_data(G_BYTES*8+5 downto G_BYTES*8)   <= rx_bytes_i;
