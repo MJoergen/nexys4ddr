@@ -33,7 +33,7 @@ end top;
 
 architecture structural of top is
 
-   constant C_SIZE       : integer := 64;
+   constant C_SIZE       : integer := 72;
    constant C_MY_MAC     : std_logic_vector(47 downto 0) := X"001122334455";
    constant C_MY_IP      : std_logic_vector(31 downto 0) := X"C0A8014D";     -- 192.168.1.77
    constant C_MY_UDP     : std_logic_vector(15 downto 0) := X"1234";         -- 4660
@@ -211,8 +211,8 @@ begin
       G_WIDTH => 256
    )
    port map (
-      src_clk_i  => eth_clk,
-      src_data_i => eth_debug,
+      src_clk_i  => math_clk,
+      src_data_i => math_debug,
       dst_clk_i  => vga_clk,
       dst_data_o => vga_hex
    ); -- i_cdc
