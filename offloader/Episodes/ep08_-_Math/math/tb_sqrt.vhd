@@ -96,6 +96,7 @@ begin
 
          for i in 0 to tb'length-1 loop
             -- Start calculation
+            report "Calculating sqrt(" & integer'image(tb(i)) & ")";
             val   <= to_stdlogicvector(tb(i), 2*C_SIZE);
             start <= '1';
             wait until clk = '1';
@@ -119,7 +120,8 @@ begin
 
       constant tb : tb_vector_t := (
             1,   2,    3,    4,    5,    6,    7,    8,
-            9,  10,   11,   12,   13,   14,   15,   27,
+            9,  10,   11,   12,   13,   14,   15,   16,
+           17,  18,   19,   20,   21,   22,   23,   27,
           363, 465, 1293, 1758);
 
    begin
