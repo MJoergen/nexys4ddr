@@ -40,6 +40,8 @@ architecture Structural of math is
    signal cf_res_w : std_logic;
    signal cf_valid : std_logic;
 
+   signal cnt      : std_logic_vector(31 downto 0);
+
    signal debug    : std_logic_vector(255 downto 0);
 
 begin
@@ -64,13 +66,27 @@ begin
       valid_o => cf_valid
    );
 
+   p_cnt : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if cf_valid = '1' then
+            cnt <= cnt + 1;
+         end if;
+         if cf_start = '1' then
+            cnt <= (others => '0');
+         end if;
+      end if;
+   end process p_cnt;
+
+
    p_out : process (clk_i)
    begin
       if rising_edge(clk_i) then
          tx_valid_o <= cf_valid;
-         tx_data_o(60*8-1          downto 60*8-2*G_SIZE) <= cf_res_x;
-         tx_data_o(60*8-1-3*G_SIZE downto 0)             <= (others => '0');
-         tx_bytes_o <= to_stdlogicvector(3*G_SIZE/8, 6);
+         tx_data_o(60*8-1           downto 60*8-2*G_SIZE)    <= cf_res_x;
+         tx_data_o(60*8-1-3*G_SIZE  downto 60*8-32-3*G_SIZE) <= cnt;
+         tx_data_o(60*8-33-3*G_SIZE downto 0)                <= (others => '0');
+         tx_bytes_o <= to_stdlogicvector(3*G_SIZE/8+4, 6);
          tx_last_o  <= '1';
 
          if cf_res_w = '0' then

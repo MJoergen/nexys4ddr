@@ -180,4 +180,6 @@ I've added a spread sheet cf.xlsx which performs the above calculations. Using
 this spread sheet it is possible to calculate the expected responses.
 
 ## Testing in hardware
+Just run the program main.py, and it will use the number N=7\*(2^128+1). This design
+will generate pairs (x,y) at a rate of about 7 million each second.
 
