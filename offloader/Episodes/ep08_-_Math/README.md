@@ -27,7 +27,7 @@ So far, this math module just instantiates the square root function.
 
 ## Sqrt module
 The integer square root is calculated using the description in
-[wikipedia](https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Binary_numeral_system_(base_2))
+[wikipedia](https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Binary_numeral_system_(base_2)).
 Actually, the module calculates both the integer square root M = floor(sqrt(N))
 and the remainder R = N-M\*M. The control signals are fairly simple: On the
 input side the value N is presented on the input bus val\_i, and the input
