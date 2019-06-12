@@ -2,8 +2,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This is Math module. It receives and dispatches command, and returns the
--- responses.
+-- This is Math module. It receives a single number N, sends this number to the
+-- SQRT module, and sends back the value pair (res,siff) as a single response.
 
 entity math is
    generic (
