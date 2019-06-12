@@ -32,13 +32,15 @@ architecture Structural of math is
 
    constant C_ZERO : std_logic_vector(G_SIZE-1 downto 0) := (others => '0');
 
-   signal val_n    : std_logic_vector(2*G_SIZE-1 downto 0);
-
+   signal cf_val_n : std_logic_vector(2*G_SIZE-1 downto 0);
    signal cf_start : std_logic;
    signal cf_res_x : std_logic_vector(2*G_SIZE-1 downto 0);
    signal cf_res_p : std_logic_vector(G_SIZE-1 downto 0);
    signal cf_res_w : std_logic;
    signal cf_valid : std_logic;
+
+   signal res_y    : std_logic_vector(G_SIZE-1 downto 0);
+   signal res      : std_logic_vector(3*G_SIZE+31 downto 0);
 
    signal cnt      : std_logic_vector(31 downto 0);
 
@@ -47,8 +49,7 @@ architecture Structural of math is
 begin
 
    -- We just ignore rx_last_i and rx_bytes_i.
-   val_n <= rx_data_i(60*8-1          downto 60*8-2*G_SIZE);
-
+   cf_val_n <= rx_data_i(60*8-1 downto 60*8-2*G_SIZE);
    cf_start <= rx_valid_i;
 
    i_cf : entity work.cf
@@ -58,7 +59,7 @@ begin
    port map ( 
       clk_i   => clk_i,
       rst_i   => rst_i,
-      val_i   => val_n,
+      val_i   => cf_val_n,
       start_i => cf_start,
       res_x_o => cf_res_x,
       res_p_o => cf_res_p, 
@@ -78,22 +79,17 @@ begin
       end if;
    end process p_cnt;
 
+   res_y <= cf_res_p when cf_res_w = '0' else (not cf_res_p) + 1;
+   res   <= cf_res_x & res_y & cnt;
 
    p_out : process (clk_i)
    begin
       if rising_edge(clk_i) then
          tx_valid_o <= cf_valid;
-         tx_data_o(60*8-1           downto 60*8-2*G_SIZE)    <= cf_res_x;
-         tx_data_o(60*8-1-3*G_SIZE  downto 60*8-32-3*G_SIZE) <= cnt;
-         tx_data_o(60*8-33-3*G_SIZE downto 0)                <= (others => '0');
-         tx_bytes_o <= to_stdlogicvector(3*G_SIZE/8+4, 6);
+         tx_data_o <= (others => '0');
+         tx_data_o(60*8-1 downto 60*8-res'length) <= res;
+         tx_bytes_o <= to_stdlogicvector(res'length/8, 6);
          tx_last_o  <= '1';
-
-         if cf_res_w = '0' then
-            tx_data_o(60*8-1-2*G_SIZE downto 60*8-3*G_SIZE) <= cf_res_p;
-         else
-            tx_data_o(60*8-1-2*G_SIZE downto 60*8-3*G_SIZE) <= (not cf_res_p) + 1;
-         end if;
       end if;
    end process p_out;
 
@@ -104,9 +100,11 @@ begin
          if rx_valid_i = '1' then
             debug <= rx_data_i(60*8-1 downto 60*8-256);
          end if;
-         if cf_valid = '1' then
-            debug <= (others => '0');
-            debug(2*G_SIZE-1 downto 0) <= cf_res_x;
+         if tx_valid_o = '1' then
+            debug <= tx_data_o(60*8-1 downto 60*8-256);
+         end if;
+         if rst_i = '1' then
+            debug <= (others => '1');
          end if;
       end if;
    end process p_debug;

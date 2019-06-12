@@ -128,8 +128,9 @@ begin
             else
                exp.data(60*8-1-2*C_SIZE downto 60*8-3*C_SIZE) <= (not to_stdlogicvector(-res(i).y, C_SIZE)) + 1;
             end if;
+            exp.data(60*8-1-3*C_SIZE downto 60*8-3*C_SIZE-32) <= to_stdlogicvector(i, 32);
             exp.last  <= '1';
-            exp.bytes <= to_stdlogicvector(3*C_SIZE/8, 6);
+            exp.bytes <= to_stdlogicvector(3*C_SIZE/8+4, 6);
 
             -- Verify received response is correct
             wait until clk = '1' and resp.valid = '1';
