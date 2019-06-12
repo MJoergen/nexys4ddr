@@ -33,7 +33,7 @@ end top;
 
 architecture structural of top is
 
-   constant C_SIZE       : integer := 64;
+   constant C_SIZE       : integer := 72;
    constant C_NUM_FACTS  : integer := 10;
    constant C_MY_MAC     : std_logic_vector(47 downto 0) := X"001122334455";
    constant C_MY_IP      : std_logic_vector(31 downto 0) := X"C0A8014D";     -- 192.168.1.77
