@@ -213,8 +213,8 @@ begin
       G_WIDTH => 256
    )
    port map (
-      src_clk_i  => eth_clk,
-      src_data_i => eth_debug,
+      src_clk_i  => math_clk,
+      src_data_i => math_debug,
       dst_clk_i  => vga_clk,
       dst_data_o => vga_hex
    ); -- i_cdc

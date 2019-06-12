@@ -19,17 +19,17 @@ def enc(x, num_bytes):
    return str_x.decode("hex")
 
 def dec(s, num_bytes):
-   x = int(s.encode('hex')[0:2*num_bytes], 16)
-   y = int(s.encode('hex')[2*num_bytes:4*num_bytes], 16)
+   x = int(s.encode('hex')[0:4*num_bytes], 16)
+   y = int(s.encode('hex')[4*num_bytes:6*num_bytes], 16)
+   if y > 2**(NUM_BYTES*8-1):
+       y -= 2**(NUM_BYTES*8)
    return x,y
 
 def offloader(num):
    print "The number is:", num
-   x = int(math.floor(math.sqrt(num)))
-   y = num - x*x
 
    # Generate message
-   message = enc(num, 2*NUM_BYTES) + enc(x, NUM_BYTES) + enc(y, NUM_BYTES)
+   message = enc(num, 2*NUM_BYTES)
 
    print "Sending message: ",message.encode('hex')
    sock.sendto(message, DUT)
