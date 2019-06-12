@@ -40,11 +40,16 @@ begin
    p_fsm : process (clk_i) is
    begin
       if rising_edge(clk_i) then
-         valid_r <= '0';  -- Default value
 
          case state_r is
             when IDLE_ST =>
-               res_r  <= C_ZERO & C_ZERO;
+               if start_i = '1' then
+                  mult_r  <= val_a_i;
+                  add_r   <= val_x_i;
+                  res_r   <= val_b_i;
+                  valid_r <= '0';
+                  state_r <= MULT_ST;
+               end if;
 
             when MULT_ST =>
                if mult_r(0) = '1' then
@@ -67,13 +72,6 @@ begin
                   state_r <= IDLE_ST;
                end if;
          end case;
-
-         if start_i = '1' then
-            mult_r  <= val_a_i;
-            add_r   <= val_x_i;
-            res_r   <= val_b_i;
-            state_r <= MULT_ST;
-        end if;
 
          if rst_i = '1' then
             state_r <= IDLE_ST;
