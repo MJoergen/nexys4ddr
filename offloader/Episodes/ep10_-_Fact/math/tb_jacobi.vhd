@@ -20,6 +20,7 @@ architecture simulation of tb_jacobi is
    signal jb_start     : std_logic;
    signal jb_res       : std_logic_vector(C_SIZE-1 downto 0);
    signal jb_valid     : std_logic;
+   signal jb_busy      : std_logic;
 
    -- Signal to control execution of the testbench.
    signal test_running : std_logic := '1';
@@ -61,7 +62,8 @@ begin
       val_k_i => jb_val_k,
       start_i => jb_start,
       res_o   => jb_res,
-      valid_o => jb_valid
+      valid_o => jb_valid,
+      busy_o  => jb_busy
    ); -- i_jacobi
 
 
@@ -95,6 +97,9 @@ begin
             wait until clk = '1';
             jb_start <= '0';
             wait until clk = '1';
+            wait until clk = '0';
+            assert jb_busy = '1';
+            assert jb_valid = '0';
 
             exp := (others => '0');
             if res(i).j = 1 then
@@ -108,9 +113,6 @@ begin
             wait until clk = '0';
             assert jb_res = exp
                report "Received " & to_string(jb_res);
-
-            wait until clk = '1' and jb_valid = '0';
-            wait until clk = '0';
 
          end loop;
 

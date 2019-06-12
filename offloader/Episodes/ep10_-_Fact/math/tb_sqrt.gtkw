@@ -1,0 +1,36 @@
+[*]
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Wed Jun 12 13:34:25 2019
+[*]
+[dumpfile] "/home/mfj/git/nexys4ddr/offloader/Episodes/ep10_-_Fact/math/tb_sqrt.ghw"
+[dumpfile_mtime] "Wed Jun 12 13:33:53 2019"
+[dumpfile_size] 20458
+[savefile] "/home/mfj/git/nexys4ddr/offloader/Episodes/ep10_-_Fact/math/tb_sqrt.gtkw"
+[timestart] 0
+[size] 1000 600
+[pos] -1 -1
+*-29.201378 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.tb_sqrt.
+[treeopen] top.tb_sqrt.i_sqrt.
+[sst_width] 223
+[signals_width] 126
+[sst_expanded] 1
+[sst_vpaned_height] 152
+@800200
+-sqrt
+@28
+top.tb_sqrt.i_sqrt.start_i
+@22
+#{top.tb_sqrt.i_sqrt.val_i[63:0]} top.tb_sqrt.i_sqrt.val_i[63] top.tb_sqrt.i_sqrt.val_i[62] top.tb_sqrt.i_sqrt.val_i[61] top.tb_sqrt.i_sqrt.val_i[60] top.tb_sqrt.i_sqrt.val_i[59] top.tb_sqrt.i_sqrt.val_i[58] top.tb_sqrt.i_sqrt.val_i[57] top.tb_sqrt.i_sqrt.val_i[56] top.tb_sqrt.i_sqrt.val_i[55] top.tb_sqrt.i_sqrt.val_i[54] top.tb_sqrt.i_sqrt.val_i[53] top.tb_sqrt.i_sqrt.val_i[52] top.tb_sqrt.i_sqrt.val_i[51] top.tb_sqrt.i_sqrt.val_i[50] top.tb_sqrt.i_sqrt.val_i[49] top.tb_sqrt.i_sqrt.val_i[48] top.tb_sqrt.i_sqrt.val_i[47] top.tb_sqrt.i_sqrt.val_i[46] top.tb_sqrt.i_sqrt.val_i[45] top.tb_sqrt.i_sqrt.val_i[44] top.tb_sqrt.i_sqrt.val_i[43] top.tb_sqrt.i_sqrt.val_i[42] top.tb_sqrt.i_sqrt.val_i[41] top.tb_sqrt.i_sqrt.val_i[40] top.tb_sqrt.i_sqrt.val_i[39] top.tb_sqrt.i_sqrt.val_i[38] top.tb_sqrt.i_sqrt.val_i[37] top.tb_sqrt.i_sqrt.val_i[36] top.tb_sqrt.i_sqrt.val_i[35] top.tb_sqrt.i_sqrt.val_i[34] top.tb_sqrt.i_sqrt.val_i[33] top.tb_sqrt.i_sqrt.val_i[32] top.tb_sqrt.i_sqrt.val_i[31] top.tb_sqrt.i_sqrt.val_i[30] top.tb_sqrt.i_sqrt.val_i[29] top.tb_sqrt.i_sqrt.val_i[28] top.tb_sqrt.i_sqrt.val_i[27] top.tb_sqrt.i_sqrt.val_i[26] top.tb_sqrt.i_sqrt.val_i[25] top.tb_sqrt.i_sqrt.val_i[24] top.tb_sqrt.i_sqrt.val_i[23] top.tb_sqrt.i_sqrt.val_i[22] top.tb_sqrt.i_sqrt.val_i[21] top.tb_sqrt.i_sqrt.val_i[20] top.tb_sqrt.i_sqrt.val_i[19] top.tb_sqrt.i_sqrt.val_i[18] top.tb_sqrt.i_sqrt.val_i[17] top.tb_sqrt.i_sqrt.val_i[16] top.tb_sqrt.i_sqrt.val_i[15] top.tb_sqrt.i_sqrt.val_i[14] top.tb_sqrt.i_sqrt.val_i[13] top.tb_sqrt.i_sqrt.val_i[12] top.tb_sqrt.i_sqrt.val_i[11] top.tb_sqrt.i_sqrt.val_i[10] top.tb_sqrt.i_sqrt.val_i[9] top.tb_sqrt.i_sqrt.val_i[8] top.tb_sqrt.i_sqrt.val_i[7] top.tb_sqrt.i_sqrt.val_i[6] top.tb_sqrt.i_sqrt.val_i[5] top.tb_sqrt.i_sqrt.val_i[4] top.tb_sqrt.i_sqrt.val_i[3] top.tb_sqrt.i_sqrt.val_i[2] top.tb_sqrt.i_sqrt.val_i[1] top.tb_sqrt.i_sqrt.val_i[0]
+@28
+top.tb_sqrt.i_sqrt.valid_o
+@22
+#{top.tb_sqrt.i_sqrt.res_o[31:0]} top.tb_sqrt.i_sqrt.res_o[31] top.tb_sqrt.i_sqrt.res_o[30] top.tb_sqrt.i_sqrt.res_o[29] top.tb_sqrt.i_sqrt.res_o[28] top.tb_sqrt.i_sqrt.res_o[27] top.tb_sqrt.i_sqrt.res_o[26] top.tb_sqrt.i_sqrt.res_o[25] top.tb_sqrt.i_sqrt.res_o[24] top.tb_sqrt.i_sqrt.res_o[23] top.tb_sqrt.i_sqrt.res_o[22] top.tb_sqrt.i_sqrt.res_o[21] top.tb_sqrt.i_sqrt.res_o[20] top.tb_sqrt.i_sqrt.res_o[19] top.tb_sqrt.i_sqrt.res_o[18] top.tb_sqrt.i_sqrt.res_o[17] top.tb_sqrt.i_sqrt.res_o[16] top.tb_sqrt.i_sqrt.res_o[15] top.tb_sqrt.i_sqrt.res_o[14] top.tb_sqrt.i_sqrt.res_o[13] top.tb_sqrt.i_sqrt.res_o[12] top.tb_sqrt.i_sqrt.res_o[11] top.tb_sqrt.i_sqrt.res_o[10] top.tb_sqrt.i_sqrt.res_o[9] top.tb_sqrt.i_sqrt.res_o[8] top.tb_sqrt.i_sqrt.res_o[7] top.tb_sqrt.i_sqrt.res_o[6] top.tb_sqrt.i_sqrt.res_o[5] top.tb_sqrt.i_sqrt.res_o[4] top.tb_sqrt.i_sqrt.res_o[3] top.tb_sqrt.i_sqrt.res_o[2] top.tb_sqrt.i_sqrt.res_o[1] top.tb_sqrt.i_sqrt.res_o[0]
+#{top.tb_sqrt.i_sqrt.diff_o[31:0]} top.tb_sqrt.i_sqrt.diff_o[31] top.tb_sqrt.i_sqrt.diff_o[30] top.tb_sqrt.i_sqrt.diff_o[29] top.tb_sqrt.i_sqrt.diff_o[28] top.tb_sqrt.i_sqrt.diff_o[27] top.tb_sqrt.i_sqrt.diff_o[26] top.tb_sqrt.i_sqrt.diff_o[25] top.tb_sqrt.i_sqrt.diff_o[24] top.tb_sqrt.i_sqrt.diff_o[23] top.tb_sqrt.i_sqrt.diff_o[22] top.tb_sqrt.i_sqrt.diff_o[21] top.tb_sqrt.i_sqrt.diff_o[20] top.tb_sqrt.i_sqrt.diff_o[19] top.tb_sqrt.i_sqrt.diff_o[18] top.tb_sqrt.i_sqrt.diff_o[17] top.tb_sqrt.i_sqrt.diff_o[16] top.tb_sqrt.i_sqrt.diff_o[15] top.tb_sqrt.i_sqrt.diff_o[14] top.tb_sqrt.i_sqrt.diff_o[13] top.tb_sqrt.i_sqrt.diff_o[12] top.tb_sqrt.i_sqrt.diff_o[11] top.tb_sqrt.i_sqrt.diff_o[10] top.tb_sqrt.i_sqrt.diff_o[9] top.tb_sqrt.i_sqrt.diff_o[8] top.tb_sqrt.i_sqrt.diff_o[7] top.tb_sqrt.i_sqrt.diff_o[6] top.tb_sqrt.i_sqrt.diff_o[5] top.tb_sqrt.i_sqrt.diff_o[4] top.tb_sqrt.i_sqrt.diff_o[3] top.tb_sqrt.i_sqrt.diff_o[2] top.tb_sqrt.i_sqrt.diff_o[1] top.tb_sqrt.i_sqrt.diff_o[0]
+@28
+top.tb_sqrt.i_sqrt.busy_o
+@1000200
+-sqrt
+[pattern_trace] 1
+[pattern_trace] 0

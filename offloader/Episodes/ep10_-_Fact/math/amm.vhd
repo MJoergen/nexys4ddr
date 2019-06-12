@@ -18,6 +18,7 @@ entity amm is
       val_n_i : in  std_logic_vector(2*G_SIZE-1 downto 0);
       start_i : in  std_logic;
       res_o   : out std_logic_vector(2*G_SIZE-1 downto 0);
+      busy_o  : out std_logic;
       valid_o : out std_logic
    );
 end amm;
@@ -31,7 +32,7 @@ architecture Behavioral of amm is
    signal res_r    : std_logic_vector(2*G_SIZE-1 downto 0);
    signal valid_r  : std_logic;
 
-   type fsm_state is (IDLE_ST, MULT_ST, DONE_ST);
+   type fsm_state is (IDLE_ST, MULT_ST);
    signal state_r  : fsm_state;
 
 begin
@@ -39,11 +40,16 @@ begin
    p_fsm : process (clk_i) is
    begin
       if rising_edge(clk_i) then
-         valid_r <= '0';  -- Default value
 
          case state_r is
             when IDLE_ST =>
-               res_r  <= C_ZERO & C_ZERO;
+               if start_i = '1' then
+                  mult_r  <= val_a_i;
+                  add_r   <= val_x_i;
+                  res_r   <= val_b_i;
+                  valid_r <= '0';
+                  state_r <= MULT_ST;
+               end if;
 
             when MULT_ST =>
                if mult_r(0) = '1' then
@@ -62,22 +68,10 @@ begin
                end if;
 
                if mult_r = 0 then
-                  state_r <= DONE_ST;
-               end if;
-
-            when DONE_ST =>
-               valid_r <= '1';
-               if start_i = '0' then
+                  valid_r <= '1';
                   state_r <= IDLE_ST;
                end if;
          end case;
-
-         if start_i = '1' then
-            mult_r  <= val_a_i;
-            add_r   <= val_x_i;
-            res_r   <= val_b_i;
-            state_r <= MULT_ST;
-        end if;
 
          if rst_i = '1' then
             state_r <= IDLE_ST;
@@ -88,6 +82,7 @@ begin
    -- Connect output signals
    res_o   <= res_r;
    valid_o <= valid_r;
+   busy_o  <= '0' when state_r = IDLE_ST else '1';
 
 end Behavioral;
 

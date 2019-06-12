@@ -9,20 +9,18 @@ end tb_alg;
 
 architecture simulation of tb_alg is
 
-   constant C_SIZE      : integer := 64;
-   constant C_NUM_FACTS : integer := 5;
+   constant C_SIZE      : integer := 72;
+   constant C_NUM_FACTS : integer := 10;
 
    signal clk           : std_logic;
    signal rst           : std_logic;
 
    -- Signals conected to DUT
-   signal alg_val_n     : std_logic_vector(2*C_SIZE-1 downto 0);
-   signal alg_val_x     : std_logic_vector(C_SIZE-1 downto 0);
-   signal alg_val_y     : std_logic_vector(C_SIZE-1 downto 0);
-   signal alg_valid     : std_logic;
+   signal alg_val       : std_logic_vector(2*C_SIZE-1 downto 0);
+   signal alg_start     : std_logic;
    signal alg_res_x     : std_logic_vector(2*C_SIZE-1 downto 0);
-   signal alg_res_y     : std_logic_vector(C_SIZE-1 downto 0);
-   signal alg_res_neg   : std_logic;
+   signal alg_res_p     : std_logic_vector(C_SIZE-1 downto 0);
+   signal alg_res_w     : std_logic;
    signal alg_res_fact  : std_logic_vector(C_SIZE-1 downto 0);
    signal alg_res_valid : std_logic;
 
@@ -63,13 +61,11 @@ begin
    port map (
       clk_i       => clk,
       rst_i       => rst,
-      val_n_i     => alg_val_n,
-      val_x_i     => alg_val_x,
-      val_y_i     => alg_val_y,
-      valid_i     => alg_valid,
+      val_i       => alg_val,
+      start_i     => alg_start,
       res_x_o     => alg_res_x,
-      res_y_o     => alg_res_y,
-      res_neg_o   => alg_res_neg,
+      res_p_o     => alg_res_p,
+      res_w_o     => alg_res_w,
       res_fact_o  => alg_res_fact,
       valid_o     => alg_res_valid
    ); -- i_alg
@@ -88,48 +84,41 @@ begin
       type res_vector_t is array (natural range <>) of res_t;      
 
       -- Verify FACT processing
-      procedure verify_fact(val_n  : integer;
-                            val_x  : integer;
-                            val_y  : integer) is
-         variable res_x   : integer;                               
-         variable res_y   : integer;                               
-         variable res_neg : std_logic;                               
-         variable res_f   : integer;                               
+      procedure verify_fact(val_n  : integer) is
+         variable res_x : integer;                               
+         variable res_p : integer;                               
+         variable res_w : std_logic;                               
+         variable res_f : integer;                               
       begin
 
-         report "Verify FACT: N=" & integer'image(val_n) & 
-            ", X=" & integer'image(val_x) & 
-            ", Y=" & integer'image(val_y);
-
-         assert val_n - val_x*val_x = val_y;
+         report "Verify FACT: N=" & integer'image(val_n);
 
          wait until clk = '0';
-         alg_val_n <= to_stdlogicvector(val_n, 2*C_SIZE);
-         alg_val_x <= to_stdlogicvector(val_x, C_SIZE);
-         alg_val_y <= to_stdlogicvector(val_y, C_SIZE);
-         alg_valid <= '1';
+         alg_val   <= to_stdlogicvector(val_n, 2*C_SIZE);
+         alg_start <= '1';
          wait until clk = '1';
-         alg_valid <= '0';
+         alg_start <= '0';
          wait until clk = '1';
 
          while true loop
             wait until clk = '1';
             if alg_res_valid = '1' then
-               res_x   := to_integer(alg_res_x);
-               res_y   := to_integer(alg_res_y);
-               res_neg := alg_res_neg;
-               res_f   := to_integer(alg_res_fact);
+               res_x := to_integer(alg_res_x);
+               res_p := to_integer(alg_res_p);
+               res_w := alg_res_w;
+               res_f := to_integer(alg_res_fact);
 
                report "x=" & integer'image(res_x) & ", " &
-                  "y=" & integer'image(res_y) & ", " &
+                  "p=" & integer'image(res_p) & ", " &
+                  "w=" & std_logic'image(res_w) & ", " &
                   "f=" & integer'image(res_f);
 
-               if res_neg = '0' then
-                  assert (res_x * res_x - res_y) mod val_n = 0;
+               if res_w = '0' then
+                  assert (res_x * res_x - res_p) mod val_n = 0;
                else
-                  assert (res_x * res_x + res_y) mod val_n = 0;
+                  assert (res_x * res_x + res_p) mod val_n = 0;
                end if;
-               assert res_y mod res_f = 0;
+               assert res_p mod res_f = 0;
             end if;
 
          end loop;
@@ -138,11 +127,11 @@ begin
 
    begin
       -- Wait until reset is complete
-      alg_valid <= '0';
+      alg_start <= '0';
       wait until clk = '1' and rst = '0';
 
       -- Verify FACT
-      verify_fact(31861, 178, 177);
+      verify_fact(31861);
       wait;
 
       -- Stop test

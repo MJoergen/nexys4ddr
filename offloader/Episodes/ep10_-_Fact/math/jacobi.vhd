@@ -50,7 +50,8 @@ entity jacobi is
       val_k_i : in  std_logic_vector(G_SIZE-1 downto 0);
       start_i : in  std_logic;
       res_o   : out std_logic_vector(G_SIZE-1 downto 0);
-      valid_o : out std_logic
+      valid_o : out std_logic;
+      busy_o  : out std_logic
    );
 end jacobi;
 
@@ -100,7 +101,6 @@ begin
 
          -- Set default values
          dm_start <= '0';
-         valid    <= '0';
 
          case state is
             when IDLE_ST =>
@@ -108,13 +108,14 @@ begin
                   val_n <= val_n_i;
                   val_k <= val_k_i;
                   res   <= C_ONE;
+                  valid <= '0';
 
                   dm_start <= '1';
-                  state <= DIVMOD_ST;
+                  state    <= DIVMOD_ST;
                end if;
 
             when DIVMOD_ST =>
-               if dm_valid = '1' then
+               if dm_start = '0' and dm_valid = '1' then
                   val_n <= dm_res_r;
                   state <= REDUCE_ST;
 
@@ -158,6 +159,7 @@ begin
    -- Connect output signals
    res_o   <= res;
    valid_o <= valid;
+   busy_o  <= '0' when state = IDLE_ST else '1';
 
 end structural;
 

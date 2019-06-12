@@ -8,36 +8,34 @@ use ieee.numeric_std_unsigned.all;
 
 entity alg is
    generic (
-      G_NUM_FACTS  : integer;
-      G_SIZE       : integer
+      G_NUM_FACTS : integer;
+      G_SIZE      : integer
    );
    port (
-      clk_i        : in  std_logic;
-      rst_i        : in  std_logic;
+      clk_i       : in  std_logic;
+      rst_i       : in  std_logic;
 
-      val_n_i      : in  std_logic_vector(2*G_SIZE-1 downto 0);
-      val_x_i      : in  std_logic_vector(G_SIZE-1 downto 0);
-      val_y_i      : in  std_logic_vector(G_SIZE-1 downto 0);
-      valid_i      : in  std_logic;
+      val_i       : in  std_logic_vector(2*G_SIZE-1 downto 0);
+      start_i     : in  std_logic;
 
-      res_x_o      : out std_logic_vector(2*G_SIZE-1 downto 0);
-      res_y_o      : out std_logic_vector(G_SIZE-1 downto 0);
-      res_neg_o    : out std_logic;
-      res_fact_o   : out std_logic_vector(G_SIZE-1 downto 0);
-      valid_o      : out std_logic
+      res_x_o     : out std_logic_vector(2*G_SIZE-1 downto 0);
+      res_p_o     : out std_logic_vector(G_SIZE-1 downto 0);
+      res_w_o     : out std_logic;
+      res_fact_o  : out std_logic_vector(G_SIZE-1 downto 0);
+      valid_o     : out std_logic
    );
 end alg;
 
 architecture Structural of alg is
 
    signal cf_res_x    : std_logic_vector(2*G_SIZE-1 downto 0);
-   signal cf_res_y    : std_logic_vector(G_SIZE-1 downto 0);
-   signal cf_res_neg  : std_logic;
+   signal cf_res_p    : std_logic_vector(G_SIZE-1 downto 0);
+   signal cf_res_w    : std_logic;
    signal cf_valid    : std_logic;
 
    signal fs_res_x    : std_logic_vector(2*G_SIZE-1 downto 0);
-   signal fs_res_y    : std_logic_vector(G_SIZE-1 downto 0);
-   signal fs_res_neg  : std_logic;
+   signal fs_res_p    : std_logic_vector(G_SIZE-1 downto 0);
+   signal fs_res_w    : std_logic;
    signal fs_res_fact : std_logic_vector(G_SIZE-1 downto 0);
    signal fs_valid    : std_logic;
 
@@ -54,13 +52,11 @@ begin
    port map ( 
       clk_i     => clk_i,
       rst_i     => rst_i,
-      val_n_i   => val_n_i,
-      val_x_i   => val_x_i,
-      val_y_i   => val_y_i,
-      start_i   => valid_i,
+      val_i     => val_i,
+      start_i   => start_i,
       res_x_o   => cf_res_x,
-      res_y_o   => cf_res_y, 
-      res_neg_o => cf_res_neg, 
+      res_p_o   => cf_res_p, 
+      res_w_o   => cf_res_w,
       valid_o   => cf_valid
    ); -- i_cf
 
@@ -78,12 +74,12 @@ begin
       clk_i        => clk_i,
       rst_i        => rst_i,
       cf_res_x_i   => cf_res_x,
-      cf_res_y_i   => cf_res_y,
-      cf_res_neg_i => cf_res_neg,
+      cf_res_p_i   => cf_res_p,
+      cf_res_w_i   => cf_res_w,
       cf_valid_i   => cf_valid,
       res_x_o      => fs_res_x,
-      res_y_o      => fs_res_y,
-      res_neg_o    => fs_res_neg,
+      res_p_o      => fs_res_p,
+      res_w_o      => fs_res_w,
       res_fact_o   => fs_res_fact,
       valid_o      => fs_valid
    ); -- i_factors
@@ -92,8 +88,8 @@ begin
    -- Connect output signals
 
    res_x_o    <= fs_res_x;
-   res_y_o    <= fs_res_y;
-   res_neg_o  <= fs_res_neg;
+   res_p_o    <= fs_res_p;
+   res_w_o    <= fs_res_w;
    res_fact_o <= fs_res_fact;
    valid_o    <= fs_valid;
 
