@@ -526,12 +526,6 @@ begin
       wait for 100 ns; -- Wait a little while to ease debugging                                               
       verify_udp(sim_tx, sim_rx, 60);
       wait for 100 ns; -- Wait a little while to ease debugging                                               
-      verify_udp(sim_tx, sim_rx, 61);
-      wait for 100 ns; -- Wait a little while to ease debugging                                               
-      verify_udp(sim_tx, sim_rx, 63);
-      wait for 100 ns; -- Wait a little while to ease debugging                                               
-      -- Wait a little while to ease debugging                                               
-      wait for 200 ns;
 
       -- Stop test
       wait until clk = '1';

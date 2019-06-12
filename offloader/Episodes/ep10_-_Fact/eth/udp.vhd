@@ -166,15 +166,10 @@ begin
             when LAST_ST =>
                rx_cli_data_r(60*8-1 downto 42*8) <= rx_phy_data_d(60*8-42*8-1 downto 0);
                rx_cli_data_r(42*8-1 downto  0*8) <= (others => '0');
-               rx_cli_valid_r                    <= '1';
-
-               if rx_phy_bytes_d = 0 then
-                  rx_cli_bytes_r <= to_stdlogicvector(60 - 42, 6);
-               else
-                  rx_cli_bytes_r <= rx_phy_bytes_d - 42;
-               end if;
-               rx_cli_last_r <= '1';
-               rx_state_r <= IDLE_ST;
+               rx_cli_valid_r <= '1';
+               rx_cli_bytes_r <= to_stdlogicvector(to_integer(tx_hdr(R_UDP_LEN)) - 8, 6);
+               rx_cli_last_r  <= '1';
+               rx_state_r     <= IDLE_ST;
 
          end case;
 
@@ -190,6 +185,7 @@ begin
    --------------------------------------------------
 
    p_udp_tx : process (clk_i)
+      variable tx_phy_data_v : std_logic_vector(60*8-1 downto 0);
    begin
       if rising_edge(clk_i) then
 
@@ -209,18 +205,19 @@ begin
          case tx_state_r is
             when IDLE_ST =>
                if tx_cli_valid_i = '1' then
-
                   tx_phy_valid <= '1';
-                  tx_phy_data(60*8-1      downto 60*8-42*8) <= tx_hdr(60*8-1        downto 60*8-42*8);
-                  tx_phy_data(60*8-1-42*8 downto 0)         <= tx_cli_data_i(60*8-1 downto 42*8);
-                  tx_phy_data(R_IP_CSUM) <= not checksum(tx_hdr(R_IP_HDR)); -- Calculate checksum of IP header
+                  tx_phy_data_v(60*8-1      downto 60*8-42*8) := tx_hdr(60*8-1        downto 60*8-42*8);
+                  tx_phy_data_v(60*8-1-42*8 downto 0)         := tx_cli_data_i(60*8-1 downto 42*8);
+                  tx_phy_data_v(R_IP_LEN)                     := ("0000000000" & tx_cli_bytes_i) + 28;
+                  tx_phy_data_v(R_UDP_LEN)                    := ("0000000000" & tx_cli_bytes_i) + 8;
+                  tx_phy_data_v(R_IP_CSUM)                    := not checksum(tx_phy_data_v(R_IP_HDR)); -- Calculate checksum of IP header
+                  tx_phy_data  <= tx_phy_data_v;
                   tx_phy_last  <= '0';
-                  tx_phy_bytes <= (others => '0');
+                  tx_phy_bytes <= (others => '0'); -- 60 bytes is minimum frame size.
                   tx_state_r   <= FWD_ST;
                   if tx_cli_last_i = '1' then
                      if tx_cli_bytes_i <= 18 then
                         tx_phy_last  <= '1';
-                        tx_phy_bytes <= tx_cli_bytes_i + 42;
                         tx_state_r   <= IDLE_ST;
                      else
                         tx_state_r   <= LAST_ST;
@@ -272,18 +269,18 @@ begin
    p_debug : process (clk_i)
    begin
       if rising_edge(clk_i) then
---         if tx_cli_valid_i = '1' and tx_cli_first = '1' then
---            debug <= tx_cli_data_i(50*8-1 downto 50*8-256);
---         end if;
---         if tx_phy_valid = '1' and tx_phy_first = '1' then
---            debug <= tx_phy_data(50*8-1 downto 50*8-256);
---         end if;
---         if tx_cli_valid_i = '1' then
---            tx_cli_first <= tx_cli_last_i;
---         end if;
---         if tx_phy_valid = '1' then
---            tx_phy_first <= tx_phy_last;
---         end if;
+        if tx_cli_valid_i = '1' and tx_cli_first = '1' then
+           debug <= tx_cli_data_i(50*8-1 downto 50*8-256);
+        end if;
+        if tx_phy_valid = '1' and tx_phy_first = '1' then
+           debug <= tx_phy_data(50*8-1 downto 50*8-256);
+        end if;
+        if tx_cli_valid_i = '1' then
+           tx_cli_first <= tx_cli_last_i;
+        end if;
+        if tx_phy_valid = '1' then
+           tx_phy_first <= tx_phy_last;
+        end if;
          if rst_i = '1' then
             debug        <= (others => '1');
             tx_phy_first <= '1';
