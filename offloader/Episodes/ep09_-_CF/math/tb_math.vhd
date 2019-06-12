@@ -147,6 +147,7 @@ begin
 
       -- These values are copied from the spread sheet cf.xlsx.
       constant res2059 : res_vector_t := (
+         (  45, -34),
          (  91,  45),
          ( 136, -35),
          ( 227,  54),
@@ -164,6 +165,7 @@ begin
          (   5,  25));
 
       constant res2623 : res_vector_t := (
+         (  51, -22),
          ( 205,  57),
          ( 256, -39),
          ( 461,  58),

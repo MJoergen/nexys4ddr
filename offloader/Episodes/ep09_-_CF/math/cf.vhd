@@ -138,24 +138,25 @@ begin
                if sqrt_start = '0' and sqrt_valid = '1' then
                   assert divmod_busy = '0' and amm_busy = '0' and add_mult_busy = '0';
                   -- Store input values
-                  val_2root      <= sqrt_res(G_SIZE-2 downto 0) & '0';
+                  val_2root <= sqrt_res(G_SIZE-2 downto 0) & '0';
 
                   -- Let: p_0 = 1, r_0 = 0, x_0 = 1.
-                  p_prev         <= C_ONE;
-                  r_prev         <= C_ZERO;
-                  x_prev         <= C_ZERO & C_ONE;
+                  p_prev <= C_ONE;
+                  r_prev <= C_ZERO;
+                  x_prev <= C_ZERO & C_ONE;
 
                   -- Let: p_1 = N - M*M, s_1 = 2*M, w_1 = -1, x_1 = M.
-                  p_cur          <= sqrt_diff;
-                  s_cur          <= sqrt_res(G_SIZE-2 downto 0) & '0';
-                  w_cur          <= '1';
-                  x_cur          <= C_ZERO & sqrt_res;
+                  p_cur <= sqrt_diff;
+                  s_cur <= sqrt_res(G_SIZE-2 downto 0) & '0';
+                  w_cur <= '1';
+                  x_cur <= C_ZERO & sqrt_res;
+
+                  -- Store output values
+                  valid <= '1';
 
                   -- Start calculating a_n and p_n.
-                  divmod_start   <= '1';
-                  amm_start      <= '0';
-                  add_mult_start <= '0';
-                  state          <= CALC_AR_ST;
+                  divmod_start <= '1';
+                  state        <= CALC_AR_ST;
                end if;
 
             when CALC_AR_ST =>
@@ -165,7 +166,6 @@ begin
                   r_cur <= divmod_res_r;
 
                   -- Start calculating x_(n+1) and p_(n+1).
-                  divmod_start   <= '0';
                   amm_start      <= '1';
                   add_mult_start <= '1';
                   state          <= CALC_XP_ST;
@@ -184,16 +184,11 @@ begin
                   x_prev <= x_cur;
 
                   -- Store output values
-                  res_x  <= x_new;
-                  res_p  <= p_new;
-                  res_w  <= w_new;
                   valid  <= '1';
 
                   -- Start calculating a_n and p_n.
-                  divmod_start   <= '1';
-                  amm_start      <= '0';
-                  add_mult_start <= '0';
-                  state          <= CALC_AR_ST;
+                  divmod_start <= '1';
+                  state        <= CALC_AR_ST;
                end if;
          end case;
 
@@ -326,9 +321,9 @@ begin
    -- Connect output signals
    --------------------------
 
-   res_x_o <= res_x;
-   res_p_o <= res_p;
-   res_w_o <= res_w;
+   res_x_o <= x_cur;
+   res_p_o <= p_cur;
+   res_w_o <= w_cur;
    valid_o <= valid;
 
 end Behavioral;
