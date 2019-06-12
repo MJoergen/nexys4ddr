@@ -21,9 +21,11 @@ def enc(x, num_bytes):
 def dec(s, num_bytes):
    x = int(s.encode('hex')[0:4*num_bytes], 16)
    y = int(s.encode('hex')[4*num_bytes:6*num_bytes], 16)
+   f = int(s.encode('hex')[6*num_bytes:8*num_bytes], 16)
+   c = int(s.encode('hex')[8*num_bytes:8*num_bytes+32], 16)
    if y > 2**(NUM_BYTES*8-1):
        y -= 2**(NUM_BYTES*8)
-   return x,y
+   return x,y,f,c
 
 def offloader(num):
    print "The number is:", num

@@ -50,6 +50,7 @@ begin
    cf_val_n <= rx_data_i(60*8-1 downto 60*8-2*G_SIZE);
    cf_start <= rx_valid_i;
 
+
    -------------------------
    -- Instantiate CF module
    -------------------------
@@ -67,7 +68,7 @@ begin
       res_p_o => cf_res_p, 
       res_w_o => cf_res_w, 
       valid_o => cf_valid
-   );
+   ); -- i_cf
 
    p_cnt : process (clk_i)
    begin

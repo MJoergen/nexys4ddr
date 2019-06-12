@@ -31,20 +31,20 @@ end math;
 
 architecture Structural of math is
 
-   signal alg_val   : std_logic_vector(2*G_SIZE-1 downto 0);
-   signal alg_start : std_logic;
-   signal alg_x     : std_logic_vector(2*G_SIZE-1 downto 0);
-   signal alg_p     : std_logic_vector(G_SIZE-1 downto 0);
-   signal alg_w     : std_logic;
-   signal alg_fact  : std_logic_vector(G_SIZE-1 downto 0);
-   signal alg_valid : std_logic;
+   signal alg_val      : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal alg_start    : std_logic;
+   signal alg_res_x    : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal alg_res_p    : std_logic_vector(G_SIZE-1 downto 0);
+   signal alg_res_w    : std_logic;
+   signal alg_res_fact : std_logic_vector(G_SIZE-1 downto 0);
+   signal alg_valid    : std_logic;
 
-   signal res_y     : std_logic_vector(G_SIZE-1 downto 0);
-   signal res       : std_logic_vector(4*G_SIZE+31 downto 0);
+   signal res_y        : std_logic_vector(G_SIZE-1 downto 0);
+   signal res          : std_logic_vector(4*G_SIZE+31 downto 0);
 
-   signal cnt       : std_logic_vector(31 downto 0);
+   signal cnt          : std_logic_vector(31 downto 0);
 
-   signal debug     : std_logic_vector(255 downto 0);
+   signal debug        : std_logic_vector(255 downto 0);
 
 begin
 
@@ -92,7 +92,7 @@ begin
    ------------------------
    
    res_y <= alg_res_p when alg_res_w = '0' else (not alg_res_p) + 1;
-   res   <= alg_res_x & res_y & alg_fact & cnt;
+   res   <= alg_res_x & res_y & alg_res_fact & cnt;
    
    p_out : process (clk_i)
    begin
