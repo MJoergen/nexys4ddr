@@ -30,8 +30,6 @@ end math;
 
 architecture Structural of math is
 
-   constant C_ZERO : std_logic_vector(G_SIZE-1 downto 0) := (others => '0');
-
    signal cf_val_n : std_logic_vector(2*G_SIZE-1 downto 0);
    signal cf_start : std_logic;
    signal cf_res_x : std_logic_vector(2*G_SIZE-1 downto 0);
@@ -51,6 +49,10 @@ begin
    -- We just ignore rx_last_i and rx_bytes_i.
    cf_val_n <= rx_data_i(60*8-1 downto 60*8-2*G_SIZE);
    cf_start <= rx_valid_i;
+
+   -------------------------
+   -- Instantiate CF module
+   -------------------------
 
    i_cf : entity work.cf
    generic map (
@@ -79,17 +81,22 @@ begin
       end if;
    end process p_cnt;
 
+
+   ------------------------
+   -- Drive output signals
+   ------------------------
+
    res_y <= cf_res_p when cf_res_w = '0' else (not cf_res_p) + 1;
    res   <= cf_res_x & res_y & cnt;
 
    p_out : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         tx_valid_o <= cf_valid;
-         tx_data_o <= (others => '0');
+         tx_data_o  <= (others => '0');
          tx_data_o(60*8-1 downto 60*8-res'length) <= res;
          tx_bytes_o <= to_stdlogicvector(res'length/8, 6);
          tx_last_o  <= '1';
+         tx_valid_o <= cf_valid;
       end if;
    end process p_out;
 
