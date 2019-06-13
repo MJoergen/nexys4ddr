@@ -28,13 +28,17 @@ architecture Structural of factors is
 
    constant C_ZERO    : std_logic_vector(G_SIZE-1 downto 0) := (others => '0');
 
-   constant C_PRIMES1 : std_logic_vector(71 downto 0) := X"00088886ffdb344692"; -- 2*3*5*7*11*13*17*19*23*29*31*37*41*43*47
-   constant C_PRIMES2 : std_logic_vector(71 downto 0) := X"0034091fa96ffdf47b"; -- 53*59*61*67*71*73*79*83*89*97
-   constant C_PRIMES3 : std_logic_vector(71 downto 0) := X"003c47d8d728a77ebb"; -- 101*103*107*109*113*127*131*137*139
-   constant C_PRIMES4 : std_logic_vector(71 downto 0) := X"00077ab7da9d709ea9"; -- 149*151*157*163*167*173*179*181
-
    type res2_vector is array (natural range <>) of std_logic_vector(2*G_SIZE-1 downto 0);
    type res_vector is array (natural range <>) of std_logic_vector(G_SIZE-1 downto 0);
+
+   constant C_PRIMES : res_vector := (
+      X"683ba8ff3e8b8a015e", -- 2*3*5*7*11*13*17*19*23*29*31*37*41*43*47*53*59
+      X"485b2c5de43e46e77d", -- 61*67*71*73*79*83*89*97*101*103*107 
+      X"79ccb68227152cf3c7", -- 109*113*127*131*137*139*149*151*157*163
+      X"0f7904b436e31510f3", -- 167*173*179*181*191*193*197*199*211
+      X"008b45a8fd62e4ee5d", -- 223*227*229*233*239*241*251*257
+      X"020f33695f0d471f95"  -- 263*269*271*277*281*283*293*307
+   );
 
    signal fact_primes : std_logic_vector(G_SIZE-1 downto 0);
    signal fact_x      : res2_vector(G_NUM_FACTS-1 downto 0);
@@ -59,7 +63,7 @@ begin
                fact_val(fact_idx)   <= cf_res_p_i;
                fact_w(fact_idx)     <= cf_res_w_i;
                fact_x(fact_idx)     <= cf_res_x_i;
-               fact_primes          <= C_PRIMES1;
+               fact_primes          <= C_PRIMES(0);
 
                if fact_idx < G_NUM_FACTS-1 then
                   fact_idx <= fact_idx + 1;

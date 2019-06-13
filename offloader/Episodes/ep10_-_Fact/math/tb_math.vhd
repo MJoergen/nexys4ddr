@@ -93,7 +93,7 @@ begin
       cmd.valid <= '1';
       cmd.data  <= (others => '0');
       cmd.data(60*8-1 downto 60*8-2*C_SIZE) <=
-         to_stdlogicvector(2059, 2*C_SIZE);
+         to_stdlogicvector(1879048199, 2*C_SIZE);
       cmd.last  <= '1';
       cmd.bytes <= to_stdlogicvector(2*C_SIZE/8, 6);
       wait until clk = '1';

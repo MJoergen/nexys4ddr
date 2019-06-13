@@ -91,7 +91,7 @@ begin
    res_p_o    <= fs_res_p;
    res_w_o    <= fs_res_w;
    res_fact_o <= fs_res_fact;
-   valid_o    <= fs_valid;
+   valid_o    <= fs_valid when fs_res_fact = 1 else '0';
 
 end Structural;
 
