@@ -9,18 +9,18 @@ end tb_sqrt;
 
 architecture simulation of tb_sqrt is
 
-   constant C_SIZE     : integer := 32;
+   constant C_SIZE     : integer := 72;
    constant C_ZERO     : std_logic_vector(C_SIZE-1 downto 0) := (others => '0');
 
    signal clk          : std_logic;
    signal rst          : std_logic;
 
    -- Signals conected to DUT
-   signal val          : std_logic_vector(2*C_SIZE-1 downto 0);
-   signal start        : std_logic;
-   signal res          : std_logic_vector(C_SIZE-1 downto 0);
-   signal diff         : std_logic_vector(C_SIZE-1 downto 0);
-   signal valid        : std_logic;
+   signal dut_val      : std_logic_vector(2*C_SIZE-1 downto 0);
+   signal dut_start    : std_logic;
+   signal dut_res      : std_logic_vector(C_SIZE-1 downto 0);
+   signal dut_diff     : std_logic_vector(C_SIZE-1 downto 0);
+   signal dut_valid    : std_logic;
 
    -- Signal to control execution of the testbench.
    signal test_running : std_logic := '1';
@@ -58,11 +58,11 @@ begin
    port map (
       clk_i   => clk,
       rst_i   => rst,
-      val_i   => val,
-      start_i => start,
-      res_o   => res,
-      diff_o  => diff,
-      valid_o => valid
+      val_i   => dut_val,
+      start_i => dut_start,
+      res_o   => dut_res,
+      diff_o  => dut_diff,
+      valid_o => dut_valid
    ); -- i_sqrt
 
 
@@ -72,63 +72,68 @@ begin
 
    main_test_proc : process
 
-      function sqrt(v : integer) return integer is
-         variable r : integer;
-      begin
-         r := 0;
+      -- Verify SQRT processing
+      procedure verify_sqrt(val : integer) is
 
-         while r*r <= v loop
-            r := r + 1;
-         end loop;
+         -- Calculate the integer square root.
+         function sqrt(v : integer) return integer is
+            variable r : integer;
+         begin
+            r := 0;
 
-         return r-1;
-      end function sqrt;
+            while r*r <= v loop
+               r := r + 1;
+            end loop;
 
-      type tb_vector_t is array (natural range <>) of integer;
+            return r-1;
+         end function sqrt;
 
-      -- Verify SQRT
-      procedure verify_sqrt(tb : tb_vector_t) is
          variable exp_sqrt : integer;
          variable exp_diff : integer;
-      begin
 
-         report "Verify SQRT";
+      begin -- procedure verify_sqrt
 
-         for i in 0 to tb'length-1 loop
-            -- Start calculation
-            report "Calculating sqrt(" & integer'image(tb(i)) & ")";
-            val   <= to_stdlogicvector(tb(i), 2*C_SIZE);
-            start <= '1';
-            wait until clk = '1';
-            start <= '0';
-            wait until clk = '1';
-            assert valid = '0';
+         -- Calculate expected response
+         exp_sqrt := sqrt(val);
+         exp_diff := val - exp_sqrt*exp_sqrt;
 
-            -- Calculate expected response
-            exp_sqrt := sqrt(tb(i));
-            exp_diff := tb(i) - exp_sqrt*exp_sqrt;
+         report "Verify SQRT: " & integer'image(val) & 
+            " -> " & integer'image(exp_sqrt) & ", " & integer'image(exp_diff);
 
-            -- Verify received response is correct
-            wait until clk = '1' and valid = '1';
-            wait until clk = '0';
-            assert res  = to_stdlogicvector(exp_sqrt, C_SIZE);
-            assert diff = to_stdlogicvector(exp_diff, C_SIZE);
-         end loop;
+         -- Start calculation
+         dut_val   <= to_stdlogicvector(val, 2*C_SIZE);
+         dut_start <= '1';
+         wait until clk = '1';
+         dut_start <= '0';
+         wait until clk = '1';
+         assert dut_valid = '0';
+
+         -- Verify received response is correct
+         wait until clk = '1' and dut_valid = '1';
+         wait until clk = '0';
+         assert dut_res  = to_stdlogicvector(exp_sqrt, C_SIZE);
+         assert dut_diff = to_stdlogicvector(exp_diff, C_SIZE);
       end procedure verify_sqrt;
-
-      constant tb : tb_vector_t := (
-            1,   2,    3,    4,    5,    6,    7,    8,
-            9,  10,   11,   12,   13,   14,   15,   16,
-           17,  18,   19,   20,   21,   22,   23,   27,
-          363, 465, 1293, 1758);
 
    begin
       -- Wait until reset is complete
-      start <= '0';
+      dut_start <= '0';
       wait until clk = '1' and rst = '0';
 
-      -- Verify SQRT
-      verify_sqrt(tb);
+      -- Verify SQRT for a lot of small integers
+      for i in 0 to 100 loop
+         verify_sqrt(i);
+      end loop;
+
+      -- Verify SQRT for some large integers
+      verify_sqrt(1000);
+      verify_sqrt(1000*10);
+      verify_sqrt(1000*100);
+      verify_sqrt(1000*1000);
+      verify_sqrt(1000*1000*10);
+      verify_sqrt(1000*1000*100);
+      verify_sqrt(1000*1000*1000);
+
       wait for 20 ns;
 
       -- Stop test

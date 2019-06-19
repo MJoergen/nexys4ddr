@@ -1,9 +1,9 @@
 # CPU offloader
 # Episode 8 : "Math"
 
-Welcome to this eigth episode of "CPU offloader", where we start
+Welcome to this eighth episode of "CPU offloader", where we start
 implementing mathematical functions in our design. The first
-funcion we'll implement is the integer square root.
+function we'll implement is the integer square root.
 
 ## Cleanup
 Before we proceed, I've decided to clean up the top module. First of all, I've
@@ -13,12 +13,12 @@ Reset module too. This simplifies both the eth.vhd and top.vhd files. Remember
 to update the top.xdc file.
 
 ## Clock domain crossing
-It seems that the math functions should run at a faster clock rate than 50 MHz,
-so I've added a new Math clock (currently at 100 MHz) to the Clock and Reset
-module.  Furthermore, I've added Clock Domain Crossings in the top module
-between the Ethernet clock and the Math clock. This Clock Domain Crossing is
-implemented as a fifo in the file wide\_fifo.vhd and takes the wide data bus as
-both input and output.
+It seems that the math functions should be able to run at a faster clock rate
+than 50 MHz, so I've added a new Math clock (currently at 100 MHz) to the Clock
+and Reset module.  Furthermore, I've added Clock Domain Crossings in the top
+module between the Ethernet clock and the Math clock. This Clock Domain
+Crossing is implemented as a fifo in the file wide\_fifo.vhd and takes the wide
+data bus as both input and output.
 
 ## Math module
 In the top module, the inverter module is replaced by a math module, and a new
@@ -30,7 +30,7 @@ The integer square root is calculated using the description in
 [wikipedia](https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Binary_numeral_system_(base_2)).
 Actually, the module calculates both the integer square root M = floor(sqrt(N))
 and the remainder R = N-M\*M.  This implementation takes a fixed number of
-clock cycles regardless of the input.
+clock cycles regardless of the input value.
 
 The control signals are fairly simple: On the input side the value N is
 presented on the input bus val\_i, and the input signal start\_i is pulsed

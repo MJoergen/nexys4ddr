@@ -2,14 +2,14 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This is a self-verifying testbench for the Ethernet module.
+-- This is a self-verifying testbench for the Math module.
 
 entity tb_math is
 end tb_math;
 
 architecture simulation of tb_math is
 
-   constant C_SIZE     : integer := 32;
+   constant C_SIZE     : integer := 72;
    constant C_ZERO     : std_logic_vector(C_SIZE-1 downto 0) := (others => '0');
 
    type t_sim is record
@@ -84,13 +84,32 @@ begin
    main_test_proc : process
 
       -- Verify SQRT processing
-      procedure verify_sqrt(val  : integer;
-                            res  : integer;
-                            diff : integer) is
-      begin
+      procedure verify_sqrt(val  : integer) is
+
+         -- Calculate the integer square root.
+         function sqrt(v : integer) return integer is
+            variable r : integer;
+         begin
+            r := 0;
+
+            while r*r <= v loop
+               r := r + 1;
+            end loop;
+
+            return r-1;
+         end function sqrt;
+
+         variable exp_sqrt : integer;
+         variable exp_diff : integer;
+
+      begin -- procedure verify_sqrt
+
+         -- Calculate expected response
+         exp_sqrt := sqrt(val);
+         exp_diff := val - exp_sqrt*exp_sqrt;
 
          report "Verify SQRT: " & integer'image(val) & 
-         " -> " & integer'image(res) & ", " & integer'image(diff);
+            " -> " & integer'image(exp_sqrt) & ", " & integer'image(exp_diff);
 
          cmd.valid <= '1';
          cmd.data  <= (others => '0');
@@ -107,8 +126,8 @@ begin
          -- Build expected response
          exp.data  <= (others => '0');
          exp.data(60*8-1 downto 60*8-2*C_SIZE) <= 
-            to_stdlogicvector(res, C_SIZE) &
-            to_stdlogicvector(diff, C_SIZE);
+            to_stdlogicvector(exp_sqrt, C_SIZE) &
+            to_stdlogicvector(exp_diff, C_SIZE);
          exp.last  <= '1';
          exp.bytes <= to_stdlogicvector(2*C_SIZE/8, 6);
 
@@ -125,9 +144,21 @@ begin
       cmd.valid <= '0';
       wait until clk = '1' and rst = '0';
 
-      -- Verify SQRT
-      verify_sqrt(  7,  2, 3);
-      verify_sqrt( 17,  4, 1);
+      -- Verify SQRT for a lot of small integers
+      for i in 0 to 100 loop
+         verify_sqrt(i);
+      end loop;
+
+      -- Verify SQRT for some large integers
+      verify_sqrt(1000);
+      verify_sqrt(1000*10);
+      verify_sqrt(1000*100);
+      verify_sqrt(1000*1000);
+      verify_sqrt(1000*1000*10);
+      verify_sqrt(1000*1000*100);
+      verify_sqrt(1000*1000*1000);
+
+      wait for 20 ns;
 
       -- Stop test
       wait until clk = '1';

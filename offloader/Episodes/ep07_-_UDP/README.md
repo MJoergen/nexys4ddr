@@ -16,7 +16,7 @@ it into an UDP frame to be sent.
 The interface from the UDP module to the UDP client is the same as before, i.e.
 a 60 byte wide bus interface.
 
-The current design has a very simple client (inverted.vhd) that bit-wise
+The current design has a very simple client (inverter.vhd) that bit-wise
 inverts the received payload and sends it back.
 
 ## Other changes
@@ -34,7 +34,7 @@ The UDP module contains a receive path (Ethernet to client) and a transmit path
 (client to Ethernet). These two paths are almost completely separate, except
 that the receive path stores the header needed in the transmit path. In
 particular the UDP response header is not sent until the client has data to
-send.  This design allows the client to send multiple replys to a single
+send.  This design allows the client to send multiple replies to a single
 request.
 
 ## Testing in simulation

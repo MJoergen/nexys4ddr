@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
 -- This is Math module. It receives a single number N, sends this number to the
--- SQRT module, and sends back the value pair (res,siff) as a single response.
+-- SQRT module, and sends back the value pair (res, diff) as a single response.
 
 entity math is
    generic (
@@ -30,16 +30,16 @@ end math;
 
 architecture Structural of math is
 
-   signal sqrt_val      : std_logic_vector(2*G_SIZE-1 downto 0);  -- N
-   signal sqrt_start    : std_logic;
-   signal sqrt_res      : std_logic_vector(G_SIZE-1 downto 0);    -- M = floor(sqrt(N))
-   signal sqrt_diff     : std_logic_vector(G_SIZE-1 downto 0);    -- N - M*M
-   signal sqrt_busy     : std_logic;
-   signal sqrt_valid    : std_logic;
+   signal sqrt_val   : std_logic_vector(2*G_SIZE-1 downto 0);  -- N
+   signal sqrt_start : std_logic;
+   signal sqrt_res   : std_logic_vector(G_SIZE-1 downto 0);    -- M = floor(sqrt(N))
+   signal sqrt_diff  : std_logic_vector(G_SIZE-1 downto 0);    -- N - M*M
+   signal sqrt_busy  : std_logic;
+   signal sqrt_valid : std_logic;
 
-   signal res           : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal res        : std_logic_vector(2*G_SIZE-1 downto 0);
 
-   signal debug         : std_logic_vector(255 downto 0);
+   signal debug      : std_logic_vector(255 downto 0);
 
 begin
 
