@@ -133,7 +133,7 @@ Then set
 2. s\_(n+1) = 2M - r\_n
 3. p\_(n+1) = a\_n (r\_n - r\_(n-1)) + p\_(n-1)
 4. w\_(n+1) = - w\_n
-5. x\_(n+1) = a\_n x\_n + x\_(n-1).
+5. x\_(n+1) = a\_n x\_n + x\_(n-1) mod N.
 
 The algorithm is initialized with the following values
 

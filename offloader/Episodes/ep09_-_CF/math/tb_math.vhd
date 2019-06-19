@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This is a self-verifying testbench for the Ethernet module.
+-- This is a self-verifying testbench for the Math module.
 
 entity tb_math is
 end tb_math;

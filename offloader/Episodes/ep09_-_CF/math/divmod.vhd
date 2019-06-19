@@ -10,6 +10,16 @@ use ieee.numeric_std_unsigned.all;
 -- in the quotient. In other words, to the difference in size
 -- of the numerator and the denominator.
 
+-- The values N and D are presented on the input busses val_n_i and val_d_i,
+-- and the input signal start_i is pulsed once. Some time later the result will
+-- be present on the output busses res_q_o and res_r_o, and the output signal
+-- valid_o will be held high. The result will remain valid until the next
+-- time start_i is asserted.
+
+-- There is an extra signal busy_o which is asserted when a calculation is in
+-- progress. It is not possible to interrupt a calculation, and asserting
+-- start_i will be ignored as long as busy_o is asserted.
+
 entity divmod is
    generic (
       G_SIZE : integer
@@ -52,11 +62,11 @@ begin
             -- Store the input values
             when IDLE_ST =>
                if start_i = '1' then
-                  valid <= '0';
-                  res_q <= (others => '0');
-                  res_r <= '0' & val_n_i;
                   val_d <= '0' & val_d_i;
                   shift <= 0;
+                  res_q <= (others => '0');
+                  res_r <= '0' & val_n_i;
+                  valid <= '0';
                   state <= SHIFT_ST;
                end if;
 
