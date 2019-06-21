@@ -37,7 +37,7 @@ architecture structural of fact is
    constant C_ZERO : std_logic_vector(G_SIZE-1 downto 0) := (others => '0');
    constant C_ONE  : std_logic_vector(G_SIZE-1 downto 0) := to_stdlogicvector(1, G_SIZE);
 
-   type fsm_state is (IDLE_ST, GCD_ST, DIV_ST, DONE_ST);
+   type fsm_state is (IDLE_ST, GCD_ST, DIV_ST);
    signal state : fsm_state;
 
    signal val       : std_logic_vector(G_SIZE-1 downto 0);
@@ -90,7 +90,7 @@ begin
                if gcd_valid = '1' then
                   if gcd_res = C_ONE then
                      valid <= '1';
-                     state <= DONE_ST;
+                     state <= IDLE_ST;
                   else
                      primes    <= gcd_res;
                      div_start <= '1';
@@ -105,12 +105,10 @@ begin
                   state     <= GCD_ST;
                end if;
 
-            when DONE_ST   =>
-               state <= IDLE_ST;
-
          end case;
 
          if rst_i = '1' then
+            valid <= '0';
             state <= IDLE_ST;
          end if;
       end if;
@@ -159,7 +157,7 @@ begin
    -- Connect output signals
    --------------------------
 
-   res_o   <= val when state = DONE_ST else (others => '0');
+   res_o   <= val;
    valid_o <= valid;
    busy_o  <= '0' when state = IDLE_ST else '1';
 
