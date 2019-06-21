@@ -28,10 +28,9 @@ architecture Structural of factors is
 
    constant C_ZERO    : std_logic_vector(G_SIZE-1 downto 0) := (others => '0');
 
-   type res2_vector is array (natural range <>) of std_logic_vector(2*G_SIZE-1 downto 0);
-   type res_vector is array (natural range <>) of std_logic_vector(G_SIZE-1 downto 0);
+   type primes_vector  is array (natural range <>) of std_logic_vector(G_SIZE-1 downto 0);
 
-   constant C_PRIMES : res_vector := (
+   constant C_PRIMES : primes_vector := (
       X"683ba8ff3e8b8a015e", -- 2*3*5*7*11*13*17*19*23*29*31*37*41*43*47*53*59
       X"485b2c5de43e46e77d", -- 61*67*71*73*79*83*89*97*101*103*107 
       X"79ccb68227152cf3c7", -- 109*113*127*131*137*139*149*151*157*163
@@ -40,30 +39,40 @@ architecture Structural of factors is
       X"020f33695f0d471f95"  -- 263*269*271*277*281*283*293*307
    );
 
-   signal fact_primes : std_logic_vector(G_SIZE-1 downto 0);
-   signal fact_x      : res2_vector(G_NUM_FACTS-1 downto 0);
-   signal fact_val    : res_vector(G_NUM_FACTS-1 downto 0);
-   signal fact_w      : std_logic_vector(G_NUM_FACTS-1 downto 0);
-   signal fact_start  : std_logic_vector(G_NUM_FACTS-1 downto 0);
-   signal fact_res    : res_vector(G_NUM_FACTS-1 downto 0);
-   signal fact_busy   : std_logic_vector(G_NUM_FACTS-1 downto 0);
-   signal fact_valid  : std_logic_vector(G_NUM_FACTS-1 downto 0);
+   type t_fact_in is record
+      x      : std_logic_vector(2*G_SIZE-1 downto 0);
+      w      : std_logic;
+      primes : std_logic_vector(G_SIZE-1 downto 0);
+      val    : std_logic_vector(G_SIZE-1 downto 0);
+      start  : std_logic;
+   end record t_fact_in;
+   type fact_in_vector is array (natural range <>) of t_fact_in;
+   type t_fact_out is record
+      res    : std_logic_vector(G_SIZE-1 downto 0);
+      busy   : std_logic;
+      valid  : std_logic;
+   end record t_fact_out;
+   type fact_out_vector is array (natural range <>) of t_fact_out;
 
-   signal fact_idx    : integer range 0 to G_NUM_FACTS-1;
+   signal fact_in  : fact_in_vector(G_NUM_FACTS-1 downto 0);
+   signal fact_out : fact_out_vector(G_NUM_FACTS-1 downto 0);
+   signal fact_idx : integer range 0 to G_NUM_FACTS-1;
 
 begin
 
    p_fact_idx : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         fact_start <= (others => '0');
+         for i in 0 to G_NUM_FACTS-1 loop
+            fact_in(i).start <= '0';
+         end loop;
          if cf_valid_i = '1' then
-            if fact_busy(fact_idx) = '0' then
-               fact_start(fact_idx) <= '1';
-               fact_val(fact_idx)   <= cf_res_p_i;
-               fact_w(fact_idx)     <= cf_res_w_i;
-               fact_x(fact_idx)     <= cf_res_x_i;
-               fact_primes          <= C_PRIMES(0);
+            if fact_out(fact_idx).busy = '0' then
+               fact_in(fact_idx).start  <= '1';
+               fact_in(fact_idx).val    <= cf_res_p_i;
+               fact_in(fact_idx).w      <= cf_res_w_i;
+               fact_in(fact_idx).x      <= cf_res_x_i;
+               fact_in(fact_idx).primes <= C_PRIMES(0);
 
                if fact_idx < G_NUM_FACTS-1 then
                   fact_idx <= fact_idx + 1;
@@ -94,18 +103,18 @@ begin
       port map ( 
          clk_i    => clk_i,
          rst_i    => rst_i,
-         primes_i => fact_primes,
-         val_i    => fact_val(i),
-         start_i  => fact_start(i),
-         res_o    => fact_res(i),
-         busy_o   => fact_busy(i),
-         valid_o  => fact_valid(i)
+         primes_i => fact_in(i).primes,
+         val_i    => fact_in(i).val,
+         start_i  => fact_in(i).start,
+         res_o    => fact_out(i).res,
+         busy_o   => fact_out(i).busy,
+         valid_o  => fact_out(i).valid
       ); -- i_fact
    end generate gen_facts;
 
 
    -- Arbitrate between possible results
-   p_out : process (fact_res, fact_valid, fact_val)
+   p_out : process (fact_in, fact_out)
       variable res_fact : std_logic_vector(G_SIZE-1 downto 0);
       variable res_p    : std_logic_vector(G_SIZE-1 downto 0);
       variable res_x    : std_logic_vector(2*G_SIZE-1 downto 0);
@@ -118,14 +127,14 @@ begin
       res_x    := (others => '0');
       valid    := '0';
       for i in 0 to G_NUM_FACTS-1 loop
-         if fact_valid(i) = '1' then
+         if fact_out(i).valid = '1' then
             if valid = '1' then
                report "Missed FACT output";
             end if;
-            res_fact := fact_res(i);
-            res_w    := fact_w(i);
-            res_p    := fact_val(i);
-            res_x    := fact_x(i);
+            res_fact := fact_out(i).res;
+            res_w    := fact_in(i).w;
+            res_p    := fact_in(i).val;
+            res_x    := fact_in(i).x;
             valid    := '1';
          end if;
       end loop;

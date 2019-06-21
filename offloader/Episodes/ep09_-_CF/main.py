@@ -39,8 +39,8 @@ def offloader(num):
       #print "Received message:",data.encode('hex')
 
       # Decode message received from offloader
-      x,p = dec(data, NUM_BYTES)
-      print x,p
+      x,y = dec(data, NUM_BYTES)
+      print x,y
 
 offloader(7*(2**128+1))
 

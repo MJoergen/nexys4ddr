@@ -28,11 +28,13 @@ end alg;
 
 architecture Structural of alg is
 
+   -- Output from Continued Fraction module.
    signal cf_res_x    : std_logic_vector(2*G_SIZE-1 downto 0);
    signal cf_res_p    : std_logic_vector(G_SIZE-1 downto 0);
    signal cf_res_w    : std_logic;
    signal cf_valid    : std_logic;
 
+   -- Output from Factors module.
    signal fs_res_x    : std_logic_vector(2*G_SIZE-1 downto 0);
    signal fs_res_p    : std_logic_vector(G_SIZE-1 downto 0);
    signal fs_res_w    : std_logic;
@@ -87,6 +89,7 @@ begin
 
    -- Connect output signals
 
+   -- Only indicate 'valid' when the y-value is completely factored.
    res_x_o    <= fs_res_x;
    res_p_o    <= fs_res_p;
    res_w_o    <= fs_res_w;

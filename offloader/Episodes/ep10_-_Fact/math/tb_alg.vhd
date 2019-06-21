@@ -21,7 +21,6 @@ architecture simulation of tb_alg is
    signal alg_res_x     : std_logic_vector(2*C_SIZE-1 downto 0);
    signal alg_res_p     : std_logic_vector(C_SIZE-1 downto 0);
    signal alg_res_w     : std_logic;
-   signal alg_res_fact  : std_logic_vector(C_SIZE-1 downto 0);
    signal alg_res_valid : std_logic;
 
    -- Signal to control execution of the testbench.
@@ -66,7 +65,6 @@ begin
       res_x_o     => alg_res_x,
       res_p_o     => alg_res_p,
       res_w_o     => alg_res_w,
-      res_fact_o  => alg_res_fact,
       valid_o     => alg_res_valid
    ); -- i_alg
 
@@ -75,23 +73,38 @@ begin
    -- Main test procedure starts here
    --------------------------------------------------
 
+   -- Verify FACT processing
+   verify_proc : process
+      variable res_x : integer;                               
+      variable res_p : integer;                               
+      variable res_w : std_logic;                               
+      variable res_f : integer;                               
+   begin
+      wait until clk = '1';
+      if alg_res_valid = '1' and alg_val /= 0 then
+         res_x := to_integer(alg_res_x);
+         res_p := to_integer(alg_res_p);
+         res_w := alg_res_w;
+
+         report "x=" & integer'image(res_x) & ", " &
+            "p=" & integer'image(res_p) & ", " &
+            "w=" & std_logic'image(res_w);
+
+         if res_w = '0' then
+            assert (res_x * res_x - res_p) mod to_integer(alg_val) = 0;
+         else
+            assert (res_x * res_x + res_p) mod to_integer(alg_val) = 0;
+         end if;
+      end if;
+   end process verify_proc;
+
    main_test_proc : process
 
-      type res_t is record
-         x : integer;
-         y : integer;
-      end record res_t;
-      type res_vector_t is array (natural range <>) of res_t;      
-
-      -- Verify FACT processing
-      procedure verify_fact(val_n  : integer) is
-         variable res_x : integer;                               
-         variable res_p : integer;                               
-         variable res_w : std_logic;                               
-         variable res_f : integer;                               
+      -- The number val_n should be no greater than 65536/sqrt(2) = 46340,
+      -- because the square must be within a signed 32 bit number.
+      procedure start_fact(val_n  : integer) is
       begin
-
-         report "Verify FACT: N=" & integer'image(val_n);
+         report "Start FACT: N=" & integer'image(val_n);
 
          wait until clk = '0';
          alg_val   <= to_stdlogicvector(val_n, 2*C_SIZE);
@@ -99,31 +112,7 @@ begin
          wait until clk = '1';
          alg_start <= '0';
          wait until clk = '1';
-
-         while true loop
-            wait until clk = '1';
-            if alg_res_valid = '1' then
-               res_x := to_integer(alg_res_x);
-               res_p := to_integer(alg_res_p);
-               res_w := alg_res_w;
-               res_f := to_integer(alg_res_fact);
-
-               report "x=" & integer'image(res_x) & ", " &
-                  "p=" & integer'image(res_p) & ", " &
-                  "w=" & std_logic'image(res_w) & ", " &
-                  "f=" & integer'image(res_f);
-
-               if res_w = '0' then
-                  assert (res_x * res_x - res_p) mod val_n = 0;
-               else
-                  assert (res_x * res_x + res_p) mod val_n = 0;
-               end if;
-               assert res_p mod res_f = 0;
-            end if;
-
-         end loop;
-
-      end procedure verify_fact;
+      end procedure start_fact;
 
    begin
       -- Wait until reset is complete
@@ -131,8 +120,14 @@ begin
       wait until clk = '1' and rst = '0';
 
       -- Verify FACT
-      verify_fact(31861);
-      wait;
+      start_fact(31861);
+      wait for 10 us;
+      start_fact(0);
+      wait for 1 us;
+      start_fact(45649);
+      wait for 10 us;
+      start_fact(0);
+      wait for 1 us;
 
       -- Stop test
       wait until clk = '1';
