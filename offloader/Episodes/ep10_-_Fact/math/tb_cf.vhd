@@ -9,7 +9,7 @@ end tb_cf;
 
 architecture simulation of tb_cf is
 
-   constant C_SIZE     : integer := 64;
+   constant C_SIZE     : integer := 72;
 
    signal clk          : std_logic;
    signal rst          : std_logic;

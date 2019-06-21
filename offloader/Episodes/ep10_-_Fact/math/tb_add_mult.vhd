@@ -2,12 +2,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This is a self-verifying testbench for the integer square root module.
+-- This is a self-verifying testbench for the multiplication module.
 
-entity tb_sqrt is
-end tb_sqrt;
+entity tb_add_mult is
+end tb_add_mult;
 
-architecture simulation of tb_sqrt is
+architecture simulation of tb_add_mult is
 
    constant C_SIZE     : integer := 72;
    constant C_ZERO     : std_logic_vector(C_SIZE-1 downto 0) := (others => '0');
@@ -16,10 +16,12 @@ architecture simulation of tb_sqrt is
    signal rst          : std_logic;
 
    -- Signals conected to DUT
-   signal dut_val      : std_logic_vector(2*C_SIZE-1 downto 0);
+   signal dut_val_a    : std_logic_vector(C_SIZE-1 downto 0);
+   signal dut_val_x    : std_logic_vector(C_SIZE-1 downto 0);
+   signal dut_val_b    : std_logic_vector(2*C_SIZE-1 downto 0);
    signal dut_start    : std_logic;
-   signal dut_res      : std_logic_vector(C_SIZE-1 downto 0);
-   signal dut_diff     : std_logic_vector(C_SIZE-1 downto 0);
+   signal dut_res      : std_logic_vector(2*C_SIZE-1 downto 0);
+   signal dut_busy     : std_logic;
    signal dut_valid    : std_logic;
 
    -- Signal to control execution of the testbench.
@@ -51,19 +53,21 @@ begin
    -- Instantiate DUT
    --------------------------------------------------
 
-   i_sqrt : entity work.sqrt
+   i_add_mult : entity work.add_mult
    generic map (
-      G_SIZE  => C_SIZE
+      G_SIZE => C_SIZE
    )
-   port map (
+   port map ( 
       clk_i   => clk,
       rst_i   => rst,
-      val_i   => dut_val,
+      val_a_i => dut_val_a,
+      val_x_i => dut_val_x,
+      val_b_i => dut_val_b,
       start_i => dut_start,
       res_o   => dut_res,
-      diff_o  => dut_diff,
+      busy_o  => dut_busy,
       valid_o => dut_valid
-   ); -- i_sqrt
+   ); -- i_add_mult
 
 
    --------------------------------------------------
@@ -72,36 +76,27 @@ begin
 
    main_test_proc : process
 
-      -- Verify SQRT processing
-      procedure verify_sqrt(val : integer) is
+      -- Verify ADD_MULT processing
+      procedure verify_add_mult(val_a : integer;
+                                val_x : integer;
+                                val_b : integer) is
 
-         -- Calculate the integer square root.
-         function sqrt(v : integer) return integer is
-            variable r : integer;
-         begin
-            r := 0;
+         variable exp : integer;
 
-            while r*r <= v loop
-               r := r + 1;
-            end loop;
-
-            return r-1;
-         end function sqrt;
-
-         variable exp_sqrt : integer;
-         variable exp_diff : integer;
-
-      begin -- procedure verify_sqrt
+      begin -- procedure verify_add_mult
 
          -- Calculate expected response
-         exp_sqrt := sqrt(val);
-         exp_diff := val - exp_sqrt*exp_sqrt;
+         exp := val_a * val_x + val_b;
 
-         report "Verify SQRT: " & integer'image(val) & 
-            " -> " & integer'image(exp_sqrt) & ", " & integer'image(exp_diff);
+         report "Verify ADD_MULT: " & integer'image(val_a) &
+            " * "  & integer'image(val_x) & 
+            " + "  & integer'image(val_b) & 
+            " -> " & integer'image(exp);
 
          -- Start calculation
-         dut_val   <= to_stdlogicvector(val, 2*C_SIZE);
+         dut_val_a <= to_stdlogicvector(val_a, C_SIZE);
+         dut_val_x <= to_stdlogicvector(val_x, C_SIZE);
+         dut_val_b <= to_stdlogicvector(val_b, 2*C_SIZE);
          dut_start <= '1';
          wait until clk = '1';
          dut_start <= '0';
@@ -111,28 +106,27 @@ begin
          -- Verify received response is correct
          wait until clk = '1' and dut_valid = '1';
          wait until clk = '0';
-         assert dut_res  = to_stdlogicvector(exp_sqrt, C_SIZE);
-         assert dut_diff = to_stdlogicvector(exp_diff, C_SIZE);
-      end procedure verify_sqrt;
+         assert dut_res = to_stdlogicvector(exp, 2*C_SIZE);
+      end procedure verify_add_mult;
 
    begin
       -- Wait until reset is complete
       dut_start <= '0';
       wait until clk = '1' and rst = '0';
 
-      -- Verify SQRT for a lot of small integers
-      for i in 0 to 100 loop
-         verify_sqrt(i);
+      -- Verify ADD_MULT for a lot of small integers
+      for a in 0 to 5 loop
+         for x in 0 to 5 loop
+            for b in 0 to 5 loop
+               verify_add_mult(a, x, b);
+            end loop;
+         end loop;
       end loop;
 
-      -- Verify SQRT for some large integers
-      verify_sqrt(1000);
-      verify_sqrt(1000*10);
-      verify_sqrt(1000*100);
-      verify_sqrt(1000*1000);
-      verify_sqrt(1000*1000*10);
-      verify_sqrt(1000*1000*100);
-      verify_sqrt(1000*1000*1000);
+      -- Verify ADD_MULT for some large integers
+      verify_add_mult(21, 321, 4321);
+      verify_add_mult(321, 4321, 54321);
+      verify_add_mult(5321, 54321, 654321);
 
       wait for 20 ns;
 

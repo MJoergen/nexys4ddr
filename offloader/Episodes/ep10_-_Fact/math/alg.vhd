@@ -2,9 +2,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This is the algorithm module.
--- It instantiates the Continued Fraction module to continuously generate pairs (x,y).
--- It then dispatches the y-values to an array of factoring modules.factoring modules.
+-- This is the algorithm module.  It instantiates the Continued Fraction module
+-- to continuously generate pairs (x, y).  It then dispatches the y-values to
+-- an array of factoring modules.  If the y-values are completely factored,
+-- then return the (x, y) pair.
 
 entity alg is
    generic (
@@ -21,7 +22,6 @@ entity alg is
       res_x_o     : out std_logic_vector(2*G_SIZE-1 downto 0);
       res_p_o     : out std_logic_vector(G_SIZE-1 downto 0);
       res_w_o     : out std_logic;
-      res_fact_o  : out std_logic_vector(G_SIZE-1 downto 0);
       valid_o     : out std_logic
    );
 end alg;
@@ -90,7 +90,6 @@ begin
    res_x_o    <= fs_res_x;
    res_p_o    <= fs_res_p;
    res_w_o    <= fs_res_w;
-   res_fact_o <= fs_res_fact;
    valid_o    <= fs_valid when fs_res_fact = 1 else '0';
 
 end Structural;

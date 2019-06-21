@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
 -- This is Math module. It receives a single number N, sends this number to the
--- ALG module, and sends back each value (x,y) as a separate response.
+-- ALG module, and sends back each value pair (x,y) as a separate response.
 
 entity math is
    generic (
@@ -36,11 +36,10 @@ architecture Structural of math is
    signal alg_res_x    : std_logic_vector(2*G_SIZE-1 downto 0);
    signal alg_res_p    : std_logic_vector(G_SIZE-1 downto 0);
    signal alg_res_w    : std_logic;
-   signal alg_res_fact : std_logic_vector(G_SIZE-1 downto 0);
    signal alg_valid    : std_logic;
 
    signal res_y        : std_logic_vector(G_SIZE-1 downto 0);
-   signal res          : std_logic_vector(4*G_SIZE+31 downto 0);
+   signal res          : std_logic_vector(3*G_SIZE+31 downto 0);
 
    signal cnt          : std_logic_vector(31 downto 0);
 
@@ -70,7 +69,6 @@ begin
       res_x_o    => alg_res_x,
       res_p_o    => alg_res_p,
       res_w_o    => alg_res_w,
-      res_fact_o => alg_res_fact,
       valid_o    => alg_valid
    ); -- i_alg
 
@@ -92,7 +90,7 @@ begin
    ------------------------
    
    res_y <= alg_res_p when alg_res_w = '0' else (not alg_res_p) + 1;
-   res   <= alg_res_x & res_y & alg_res_fact & cnt;
+   res   <= alg_res_x & res_y & cnt;
    
    p_out : process (clk_i)
    begin

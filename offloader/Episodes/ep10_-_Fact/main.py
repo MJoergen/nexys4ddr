@@ -21,11 +21,10 @@ def enc(x, num_bytes):
 def dec(s, num_bytes):
    x = int(s.encode('hex')[0:4*num_bytes], 16)
    y = int(s.encode('hex')[4*num_bytes:6*num_bytes], 16)
-   f = int(s.encode('hex')[6*num_bytes:8*num_bytes], 16)
-   c = int(s.encode('hex')[8*num_bytes:8*num_bytes+32], 16)
+   c = int(s.encode('hex')[6*num_bytes:6*num_bytes+32], 16)
    if y > 2**(NUM_BYTES*8-1):
        y -= 2**(NUM_BYTES*8)
-   return x,y,f,c
+   return x,y,c
 
 def offloader(num):
    print "The number is:", num
@@ -41,8 +40,8 @@ def offloader(num):
       #print "Received message:",data.encode('hex')
 
       # Decode message received from offloader
-      x,y = dec(data, NUM_BYTES)
-      print x,y
+      x,y,c = dec(data, NUM_BYTES)
+      print x,y,c
 
 #offloader(7*(2**128+1))
 offloader(1879048199)
