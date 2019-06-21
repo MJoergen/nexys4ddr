@@ -169,15 +169,37 @@ There is an additional output signal busy\_o which is asserted when a
 calculation is in progress. During a calculation the input signal start\_i is
 ignored.
 
+The running time is proportional to the number of bits in the quotient. In
+other words, to the difference in size of the numerator and the denominator.
+
 ## Add\_Mult
+The Add\_Mult module calculates a\*x+b for integer values of a, x, and b.
+The algorithm used is again just like the old-school method of shift and add.
+
+The running time of this algorithm is proportional to the number of bits in
+'a'.
+
+The extra addition of b comes at zero cost, because this just amounts to
+setting the initial value of the summation register.
 
 ## Add\_Mult\_Modulo
+A separate module is written to calculate a\*x+b mod n. The algorithm is very
+similar to the Add\_Mult module, except that an extra subtraction is performed
+at each iteration. So the running time of this algorithm is the same as
+Add\_Mult, and requires no separate division step. But the amount of logic
+needed is a bit larger due to the extra subtraction step.
 
 ## Testing in simulation
-The test bench sends a single command with the value N=2059 and verifies the
-first three responses generated.
-I've added a spread sheet cf.xlsx which performs the above calculations. Using
-this spread sheet it is possible to calculate the expected responses.
+A number of separate test benches have been made, one for each of the specific
+modules DivMod, Add\_Mult, and Add\_Mult\_Modulo. This is very convenient
+during debugging, and only when these modules are working completely as
+expected should the CF module be tested.
+
+The CF module has its own test bench tb\_cf.vhd that sends three commands with
+the values N=2059, N=2623, and N=3922201. For each value the test bench
+verifies the first several responses generated.  I've added a spread sheet
+cf.xlsx which performs the calculations in the algorithm described. Using this
+spread sheet it is possible to calculate the expected responses.
 
 ## Testing in hardware
 Just run the program main.py, and it will use the number N=7\*(2^128+1). This design
