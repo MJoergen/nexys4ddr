@@ -9,20 +9,26 @@ use ieee.numeric_std_unsigned.all;
 
 entity alg is
    generic (
-      G_NUM_FACTS : integer;
-      G_SIZE      : integer
+      G_NUM_FACTS     : integer;
+      G_SIZE          : integer
    );
    port (
-      clk_i       : in  std_logic;
-      rst_i       : in  std_logic;
+      clk_i           : in  std_logic;
+      rst_i           : in  std_logic;
 
-      val_i       : in  std_logic_vector(2*G_SIZE-1 downto 0);
-      start_i     : in  std_logic;
+      cfg_primes_i    : in  std_logic_vector(3 downto 0);    -- Number of primes.
+      mon_cf_o        : out std_logic_vector(31 downto 0);   -- Number of generated CF.
+      mon_miss_cf_o   : out std_logic_vector(31 downto 0);   -- Number of missed CF.
+      mon_miss_fact_o : out std_logic_vector(31 downto 0);   -- Number of missed FACT.
+      mon_factored_o  : out std_logic_vector(31 downto 0);   -- Number of completely factored.
 
-      res_x_o     : out std_logic_vector(2*G_SIZE-1 downto 0);
-      res_p_o     : out std_logic_vector(G_SIZE-1 downto 0);
-      res_w_o     : out std_logic;
-      valid_o     : out std_logic
+      val_i           : in  std_logic_vector(2*G_SIZE-1 downto 0);
+      start_i         : in  std_logic;
+
+      res_x_o         : out std_logic_vector(2*G_SIZE-1 downto 0);
+      res_p_o         : out std_logic_vector(G_SIZE-1 downto 0);
+      res_w_o         : out std_logic;
+      valid_o         : out std_logic
    );
 end alg;
 
@@ -38,7 +44,6 @@ architecture Structural of alg is
    signal fs_res_x    : std_logic_vector(2*G_SIZE-1 downto 0);
    signal fs_res_p    : std_logic_vector(G_SIZE-1 downto 0);
    signal fs_res_w    : std_logic;
-   signal fs_res_fact : std_logic_vector(G_SIZE-1 downto 0);
    signal fs_valid    : std_logic;
 
 begin
@@ -69,31 +74,34 @@ begin
 
    i_factors : entity work.factors
    generic map (
-      G_NUM_FACTS  => G_NUM_FACTS,
-      G_SIZE       => G_SIZE
+      G_NUM_FACTS     => G_NUM_FACTS,
+      G_SIZE          => G_SIZE
    )
    port map (
-      clk_i        => clk_i,
-      rst_i        => rst_i,
-      cf_res_x_i   => cf_res_x,
-      cf_res_p_i   => cf_res_p,
-      cf_res_w_i   => cf_res_w,
-      cf_valid_i   => cf_valid,
-      res_x_o      => fs_res_x,
-      res_p_o      => fs_res_p,
-      res_w_o      => fs_res_w,
-      res_fact_o   => fs_res_fact,
-      valid_o      => fs_valid
+      clk_i           => clk_i,
+      rst_i           => rst_i,
+      cfg_primes_i    => cfg_primes_i,
+      mon_miss_cf_o   => mon_miss_cf_o,
+      mon_miss_fact_o => mon_miss_fact_o,
+      mon_cf_o        => mon_cf_o,
+      mon_factored_o  => mon_factored_o,
+      cf_res_x_i      => cf_res_x,
+      cf_res_p_i      => cf_res_p,
+      cf_res_w_i      => cf_res_w,
+      cf_valid_i      => cf_valid,
+      res_x_o         => fs_res_x,
+      res_p_o         => fs_res_p,
+      res_w_o         => fs_res_w,
+      valid_o         => fs_valid
    ); -- i_factors
 
 
    -- Connect output signals
 
-   -- Only indicate 'valid' when the y-value is completely factored.
    res_x_o    <= fs_res_x;
    res_p_o    <= fs_res_p;
    res_w_o    <= fs_res_w;
-   valid_o    <= fs_valid when fs_res_fact = 1 else '0';
+   valid_o    <= fs_valid;
 
 end Structural;
 

@@ -9,22 +9,29 @@ end tb_alg;
 
 architecture simulation of tb_alg is
 
-   constant C_SIZE      : integer := 72;
-   constant C_NUM_FACTS : integer := 10;
+   constant C_SIZE          : integer := 72;
+   constant C_NUM_FACTS     : integer := 20;
+   constant C_PRIMES        : integer := 4;
 
-   signal clk           : std_logic;
-   signal rst           : std_logic;
+   signal clk               : std_logic;
+   signal rst               : std_logic;
 
    -- Signals conected to DUT
-   signal alg_val       : std_logic_vector(2*C_SIZE-1 downto 0);
-   signal alg_start     : std_logic;
-   signal alg_res_x     : std_logic_vector(2*C_SIZE-1 downto 0);
-   signal alg_res_p     : std_logic_vector(C_SIZE-1 downto 0);
-   signal alg_res_w     : std_logic;
-   signal alg_res_valid : std_logic;
+   signal alg_cfg_primes    : std_logic_vector(3 downto 0);    -- Number of primes.
+   signal alg_mon_cf        : std_logic_vector(31 downto 0);   -- Number of generated CF.
+   signal alg_mon_miss_cf   : std_logic_vector(31 downto 0);   -- Number of missed CF.
+   signal alg_mon_miss_fact : std_logic_vector(31 downto 0);   -- Number of missed FACT.
+   signal alg_mon_factored  : std_logic_vector(31 downto 0);   -- Number of completely factored.
+
+   signal alg_val           : std_logic_vector(2*C_SIZE-1 downto 0);
+   signal alg_start         : std_logic;
+   signal alg_res_x         : std_logic_vector(2*C_SIZE-1 downto 0);
+   signal alg_res_p         : std_logic_vector(C_SIZE-1 downto 0);
+   signal alg_res_w         : std_logic;
+   signal alg_res_valid     : std_logic;
 
    -- Signal to control execution of the testbench.
-   signal test_running : std_logic := '1';
+   signal test_running      : std_logic := '1';
 
 begin
 
@@ -47,6 +54,7 @@ begin
       wait;
    end process proc_rst;
 
+   alg_cfg_primes <= to_stdlogicvector(C_PRIMES, 4);
 
    --------------------------------------------------
    -- Instantiate DUT
@@ -54,18 +62,23 @@ begin
 
    i_alg : entity work.alg
    generic map (
-      G_NUM_FACTS => C_NUM_FACTS,
-      G_SIZE      => C_SIZE
+      G_NUM_FACTS     => C_NUM_FACTS,
+      G_SIZE          => C_SIZE
    )
    port map (
-      clk_i       => clk,
-      rst_i       => rst,
-      val_i       => alg_val,
-      start_i     => alg_start,
-      res_x_o     => alg_res_x,
-      res_p_o     => alg_res_p,
-      res_w_o     => alg_res_w,
-      valid_o     => alg_res_valid
+      clk_i           => clk,
+      rst_i           => rst,
+      cfg_primes_i    => alg_cfg_primes ,
+      mon_miss_cf_o   => alg_mon_miss_cf,
+      mon_miss_fact_o => alg_mon_miss_fact,
+      mon_cf_o        => alg_mon_cf,
+      mon_factored_o  => alg_mon_factored,
+      val_i           => alg_val,
+      start_i         => alg_start,
+      res_x_o         => alg_res_x,
+      res_p_o         => alg_res_p,
+      res_w_o         => alg_res_w,
+      valid_o         => alg_res_valid
    ); -- i_alg
 
 
@@ -132,6 +145,12 @@ begin
       -- Stop test
       wait until clk = '1';
       report "Test completed";
+      report "Num_Facts     = " & integer'image(C_NUM_FACTS);
+      report "Primes        = " & integer'image(C_PRIMES);
+      report "Mon_CF        = " & integer'image(to_integer(alg_mon_cf));
+      report "Mon_Miss_CF   = " & integer'image(to_integer(alg_mon_miss_cf));
+      report "Mon_Miss_Fact = " & integer'image(to_integer(alg_mon_miss_fact));
+      report "Mon_Factored  = " & integer'image(to_integer(alg_mon_factored));
       test_running <= '0';
       wait;
    end process main_test_proc;

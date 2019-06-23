@@ -4,45 +4,36 @@ use ieee.numeric_std_unsigned.all;
 
 entity factors is
    generic (
-      G_NUM_FACTS  : integer;
-      G_SIZE       : integer
+      G_NUM_FACTS     : integer;
+      G_SIZE          : integer
    );
    port (
-      clk_i        : in  std_logic;
-      rst_i        : in  std_logic;
+      clk_i           : in  std_logic;
+      rst_i           : in  std_logic;
 
-      cf_res_x_i   : in  std_logic_vector(2*G_SIZE-1 downto 0);
-      cf_res_p_i   : in  std_logic_vector(G_SIZE-1 downto 0);
-      cf_res_w_i   : in  std_logic;
-      cf_valid_i   : in  std_logic;
+      cfg_primes_i    : in  std_logic_vector(3 downto 0);    -- Number of primes.
+      mon_cf_o        : out std_logic_vector(31 downto 0);   -- Number of generated CF.
+      mon_miss_cf_o   : out std_logic_vector(31 downto 0);   -- Number of missed CF.
+      mon_miss_fact_o : out std_logic_vector(31 downto 0);   -- Number of missed FACT.
+      mon_factored_o  : out std_logic_vector(31 downto 0);   -- Number of completely factored.
 
-      res_x_o      : out std_logic_vector(2*G_SIZE-1 downto 0);
-      res_p_o      : out std_logic_vector(G_SIZE-1 downto 0);
-      res_w_o      : out std_logic;
-      res_fact_o   : out std_logic_vector(G_SIZE-1 downto 0);
-      valid_o      : out std_logic
+      cf_res_x_i      : in  std_logic_vector(2*G_SIZE-1 downto 0);
+      cf_res_p_i      : in  std_logic_vector(G_SIZE-1 downto 0);
+      cf_res_w_i      : in  std_logic;
+      cf_valid_i      : in  std_logic;
+
+      res_x_o         : out std_logic_vector(2*G_SIZE-1 downto 0);
+      res_p_o         : out std_logic_vector(G_SIZE-1 downto 0);
+      res_w_o         : out std_logic;
+      valid_o         : out std_logic
    );
 end factors;
 
 architecture Structural of factors is
 
-   constant C_ZERO    : std_logic_vector(G_SIZE-1 downto 0) := (others => '0');
-
-   type primes_vector  is array (natural range <>) of std_logic_vector(G_SIZE-1 downto 0);
-
-   constant C_PRIMES : primes_vector := (
-      X"683ba8ff3e8b8a015e", -- 2*3*5*7*11*13*17*19*23*29*31*37*41*43*47*53*59
-      X"485b2c5de43e46e77d", -- 61*67*71*73*79*83*89*97*101*103*107 
-      X"79ccb68227152cf3c7", -- 109*113*127*131*137*139*149*151*157*163
-      X"0f7904b436e31510f3", -- 167*173*179*181*191*193*197*199*211
-      X"008b45a8fd62e4ee5d", -- 223*227*229*233*239*241*251*257
-      X"020f33695f0d471f95"  -- 263*269*271*277*281*283*293*307
-   );
-
    type t_fact_in is record
       x      : std_logic_vector(2*G_SIZE-1 downto 0);
       w      : std_logic;
-      primes : std_logic_vector(G_SIZE-1 downto 0);
       val    : std_logic_vector(G_SIZE-1 downto 0);
       start  : std_logic;
    end record t_fact_in;
@@ -58,6 +49,11 @@ architecture Structural of factors is
    signal fact_out : fact_out_vector(G_NUM_FACTS-1 downto 0);
    signal fact_idx : integer range 0 to G_NUM_FACTS-1;
 
+   signal mon_cf        : std_logic_vector(31 downto 0);   -- Number of generated CF
+   signal mon_miss_cf   : std_logic_vector(31 downto 0);   -- Number of missed CF
+   signal mon_miss_fact : std_logic_vector(31 downto 0);   -- Number of missed FACT
+   signal mon_factored  : std_logic_vector(31 downto 0);   -- Number of completely factored.
+
 begin
 
    p_fact_idx : process (clk_i)
@@ -67,12 +63,12 @@ begin
             fact_in(i).start <= '0';
          end loop;
          if cf_valid_i = '1' then
+            mon_cf <= mon_cf + 1;
             if fact_out(fact_idx).busy = '0' then
                fact_in(fact_idx).start  <= '1';
                fact_in(fact_idx).val    <= cf_res_p_i;
                fact_in(fact_idx).w      <= cf_res_w_i;
                fact_in(fact_idx).x      <= cf_res_x_i;
-               fact_in(fact_idx).primes <= C_PRIMES(0);
 
                if fact_idx < G_NUM_FACTS-1 then
                   fact_idx <= fact_idx + 1;
@@ -80,12 +76,15 @@ begin
                   fact_idx <= 0;
                end if;
             else
+               mon_miss_cf <= mon_miss_cf + 1;
                report "Missed CF output.";
             end if;
          end if;
 
          if rst_i = '1' then
-            fact_idx   <= 0;
+            fact_idx    <= 0;
+            mon_cf      <= (others => '0');
+            mon_miss_cf <= (others => '0');
          end if;
       end if;
    end process p_fact_idx;
@@ -96,56 +95,72 @@ begin
    ----------------------------
 
    gen_facts : for i in 0 to G_NUM_FACTS-1 generate
-      i_fact : entity work.fact
+      i_fact_all : entity work.fact_all
       generic map (
          G_SIZE   => G_SIZE
       )
       port map ( 
-         clk_i    => clk_i,
-         rst_i    => rst_i,
-         primes_i => fact_in(i).primes,
-         val_i    => fact_in(i).val,
-         start_i  => fact_in(i).start,
-         res_o    => fact_out(i).res,
-         busy_o   => fact_out(i).busy,
-         valid_o  => fact_out(i).valid
+         clk_i     => clk_i,
+         rst_i     => rst_i,
+         primes_i  => cfg_primes_i,
+         val_i     => fact_in(i).val,
+         start_i   => fact_in(i).start,
+         res_o     => fact_out(i).res,
+         busy_o    => fact_out(i).busy,
+         valid_o   => fact_out(i).valid
       ); -- i_fact
    end generate gen_facts;
 
 
    -- Arbitrate between possible results
-   p_out : process (fact_in, fact_out)
-      variable res_fact : std_logic_vector(G_SIZE-1 downto 0);
+   p_out : process (clk_i)
       variable res_p    : std_logic_vector(G_SIZE-1 downto 0);
       variable res_x    : std_logic_vector(2*G_SIZE-1 downto 0);
       variable res_w    : std_logic;
       variable valid    : std_logic;
    begin
-      res_fact := (others => '0');
-      res_w    := '0';
-      res_p    := (others => '0');
-      res_x    := (others => '0');
-      valid    := '0';
-      for i in 0 to G_NUM_FACTS-1 loop
-         if fact_out(i).valid = '1' then
-            if valid = '1' then
-               report "Missed FACT output";
+      if rising_edge(clk_i) then
+         res_w    := '0';
+         res_p    := (others => '0');
+         res_x    := (others => '0');
+         valid    := '0';
+         for i in 0 to G_NUM_FACTS-1 loop
+            if fact_out(i).valid = '1' then
+               if valid = '1' then
+                  report "Missed FACT output";
+                  mon_miss_fact <= mon_miss_fact + 1;
+               else
+                  -- Only indicate 'valid' when the y-value is completely factored.
+                  if fact_out(i).res = 1 then
+                     res_w    := fact_in(i).w;
+                     res_p    := fact_in(i).val;
+                     res_x    := fact_in(i).x;
+                     valid    := '1';
+                     mon_factored <= mon_factored + 1;
+                  end if;
+               end if;
             end if;
-            res_fact := fact_out(i).res;
-            res_w    := fact_in(i).w;
-            res_p    := fact_in(i).val;
-            res_x    := fact_in(i).x;
-            valid    := '1';
-         end if;
-      end loop;
+         end loop;
 
-      -- Connect output signals
-      res_x_o    <= res_x;
-      res_p_o    <= res_p;
-      res_w_o    <= res_w;
-      res_fact_o <= res_fact;
-      valid_o    <= valid;
+         -- Connect output signals
+         res_x_o    <= res_x;
+         res_p_o    <= res_p;
+         res_w_o    <= res_w;
+         valid_o    <= valid;
+
+         if rst_i = '1' then
+            mon_miss_fact <= (others => '0');
+            mon_factored  <= (others => '0');
+         end if;
+      end if;
    end process p_out;
+
+
+   -- Connect output signals
+   mon_cf_o        <= mon_cf;
+   mon_miss_cf_o   <= mon_miss_cf;
+   mon_miss_fact_o <= mon_miss_fact;
+   mon_factored_o  <= mon_factored;
 
 end Structural;
 

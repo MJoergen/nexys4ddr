@@ -1,9 +1,10 @@
 XILINX_DIR = /opt/Xilinx/Vivado/2018.2
 
 SRC  = math.vhd sqrt.vhd cf.vhd divmod.vhd amm.vhd add_mult.vhd
-SRC += alg.vhd gcd.vhd divexact.vhd fact.vhd divexact.vhd math.vhd factors.vhd jacobi.vhd
+SRC += alg.vhd gcd.vhd divexact.vhd fact.vhd fact_all.vhd divexact.vhd math.vhd factors.vhd jacobi.vhd
 TB   = tb_math
 TB   = tb_alg
+#TB   = tb_fact_all
 #TB   = tb_fact
 #TB   = tb_jacobi
 #TB   = tb_cf
@@ -24,7 +25,7 @@ SAVE = $(TB).gtkw
 sim: $(SRC)
 	ghdl -i --std=08 --work=work $(SRC)
 	ghdl -m --std=08 --ieee=synopsys -frelaxed-rules $(TB)
-	ghdl -r $(TB) --assert-level=error --wave=$(WAVE) --stop-time=50us
+	ghdl -r $(TB) --assert-level=error --wave=$(WAVE) --stop-time=90us
 	gtkwave $(WAVE) $(SAVE)
 
 
