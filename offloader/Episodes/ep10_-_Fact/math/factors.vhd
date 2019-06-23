@@ -49,6 +49,9 @@ architecture Structural of factors is
    signal fact_out : fact_out_vector(G_NUM_FACTS-1 downto 0);
    signal fact_idx : integer range 0 to G_NUM_FACTS-1;
 
+   signal out_idx  : std_logic_vector(4 downto 0);
+   signal valid    : std_logic;
+
    signal mon_cf        : std_logic_vector(31 downto 0);   -- Number of generated CF
    signal mon_miss_cf   : std_logic_vector(31 downto 0);   -- Number of missed CF
    signal mon_miss_fact : std_logic_vector(31 downto 0);   -- Number of missed FACT
@@ -114,16 +117,12 @@ begin
 
    -- Arbitrate between possible results
    p_out : process (clk_i)
-      variable res_p    : std_logic_vector(G_SIZE-1 downto 0);
-      variable res_x    : std_logic_vector(2*G_SIZE-1 downto 0);
-      variable res_w    : std_logic;
-      variable valid    : std_logic;
+      variable out_idx_v : std_logic_vector(4 downto 0);
+      variable valid_v   : std_logic;
    begin
       if rising_edge(clk_i) then
-         res_w    := '0';
-         res_p    := (others => '0');
-         res_x    := (others => '0');
-         valid    := '0';
+         valid_v  := '0';
+
          for i in 0 to G_NUM_FACTS-1 loop
             if fact_out(i).valid = '1' then
                if valid = '1' then
@@ -132,21 +131,16 @@ begin
                else
                   -- Only indicate 'valid' when the y-value is completely factored.
                   if fact_out(i).res = 1 then
-                     res_w    := fact_in(i).w;
-                     res_p    := fact_in(i).val;
-                     res_x    := fact_in(i).x;
-                     valid    := '1';
+                     out_idx_v    := to_stdlogicvector(i, 5);
+                     valid_v      := '1';
                      mon_factored <= mon_factored + 1;
                   end if;
                end if;
             end if;
          end loop;
 
-         -- Connect output signals
-         res_x_o    <= res_x;
-         res_p_o    <= res_p;
-         res_w_o    <= res_w;
-         valid_o    <= valid;
+         out_idx <= out_idx_v;
+         valid   <= valid_v;
 
          if rst_i = '1' then
             mon_miss_fact <= (others => '0');
@@ -155,6 +149,10 @@ begin
       end if;
    end process p_out;
 
+   res_w_o <= fact_in(to_integer(out_idx)).w;
+   res_p_o <= fact_in(to_integer(out_idx)).val;
+   res_x_o <= fact_in(to_integer(out_idx)).x;
+   valid_o <= valid;
 
    -- Connect output signals
    mon_cf_o        <= mon_cf;
