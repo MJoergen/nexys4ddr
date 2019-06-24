@@ -10,11 +10,11 @@ The first step is to consider the product of many small primes.  For instance
 the product of all primes from 2 to 59 gives the value 0x683ba8ff3e8b8a015e,
 which conveniently fits into 72 bits.  Call this product P. So to determine
 whether a given number Y factors completely over these small primes, just
-calculate the gcd(Y, P). If this value is non-zero, then divide Y by this number
-and repeat. If Y reaches the value 1, then the orioginal value Y can be
+calculate the gcd(Y, P). If this value is non-zero, then divide Y by this
+number and repeat. If Y reaches the value 1, then the original value Y can be
 completely factored over these small primes. Otherwise, if the gcd becomes 1
 before Y reaches 1, then the original value Y can not be completely factored.
-This may conveniently be described by the following pseudo-code
+This may conveniently be described by the following pseudo-code:
 
 ```
 do
@@ -27,17 +27,16 @@ So to perform the above algorithm, we need to calculate the gcd and to perform
 a division.
 
 ### gcd
-The original gcd algorithm described by Euclid involves division, and we could
-use the existing divmod module. However, I've chosen a different algorithm with
-the expectaion that it is faster and smaller. Basically the algorithm works in
-two steps:
+The original gcd algorithm described by Euclid involves division, and therefore
+we could use the existing divmod module. However, I've chosen a different
+algorithm with the expectation that it is faster and smaller. Basically the
+algorithm works in the following steps:
 
-First it finds the greatest common power of 2, by repeatedly dividing both
-numbers by two, if they are both even.
-
-Second, whenever one number is even it is divided by two. Otherwise, both
-numbers must be odd, and the smallest is subtracted from the largest.  If the
-two numbers are equal, that will be the gcd.
+1. Find the greatest common power of 2, by repeatedly dividing both numbers by
+two, as long as they are both even.
+2. Whenever one number is even it is divided by two.
+3. If both numbers are odd, the smallest is subtracted from the largest.
+4. Repeat steps 2 and 3 until the two numbers are equal. This will be the gcd.
 
 ### divexact
 To calculate Y=Y/P we can make use of the fact that we know the remainder will
