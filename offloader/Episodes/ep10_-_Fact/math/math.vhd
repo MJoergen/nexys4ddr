@@ -2,8 +2,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This is Math module. It receives a single number N, sends this number to the
--- ALG module, and sends back each value pair (x,y) as a separate response.
+-- This is Math module. It receives a number N and a configuration parameter
+-- cfg_primes, and sends these to the ALG module.
+-- In return, it gets a sequence of value pairs (x,y) and four statistics
+-- counters (CF, Miss_CF, Miss_Fact, Factored). All this is sent back as a
+-- response.
 
 entity math is
    generic (
@@ -32,6 +35,7 @@ end math;
 architecture Structural of math is
 
    signal alg_cfg_primes    : std_logic_vector(3 downto 0);    -- Number of primes.
+   signal alg_cfg_factors   : std_logic_vector(7 downto 0);    -- Number of factors.
    signal alg_mon_cf        : std_logic_vector(31 downto 0);   -- Number of generated CF.
    signal alg_mon_miss_cf   : std_logic_vector(31 downto 0);   -- Number of missed CF.
    signal alg_mon_miss_fact : std_logic_vector(31 downto 0);   -- Number of missed FACT.
@@ -46,24 +50,23 @@ architecture Structural of math is
    signal res_y             : std_logic_vector(G_SIZE-1 downto 0);
    signal res               : std_logic_vector(3*G_SIZE+4*32-1 downto 0);
 
-   signal cnt               : std_logic_vector(31 downto 0);
-
    signal debug             : std_logic_vector(255 downto 0);
 
 begin
 
    -- We just ignore rx_last_i and rx_bytes_i.
-   p_alg : process (clk_i)
+   p_alg_start : process (clk_i)
    begin
       if rising_edge(clk_i) then
          alg_start <= '0';
          if rx_valid_i = '1' then
-            alg_val        <= rx_data_i(60*8-1          downto 60*8-2*G_SIZE);
-            alg_cfg_primes <= rx_data_i(60*8-2*G_SIZE-1 downto 60*8-2*G_SIZE-4);
-            alg_start      <= '1';
+            alg_val         <= rx_data_i(60*8-1          downto 60*8-2*G_SIZE);
+            alg_cfg_factors <= rx_data_i(60*8-2*G_SIZE-1 downto 60*8-2*G_SIZE-8);
+            alg_cfg_primes  <= rx_data_i(60*8-2*G_SIZE-9 downto 60*8-2*G_SIZE-12);
+            alg_start       <= '1';
          end if;
       end if;
-   end process p_alg;
+   end process p_alg_start;
 
 
    --------------------------------
@@ -78,17 +81,18 @@ begin
    port map (
       clk_i           => clk_i,
       rst_i           => rst_i,
-      cfg_primes_i    => alg_cfg_primes,
-      mon_cf_o        => alg_mon_cf,
-      mon_miss_cf_o   => alg_mon_miss_cf,
-      mon_miss_fact_o => alg_mon_miss_fact,
-      mon_factored_o  => alg_mon_factored,
-      val_i           => alg_val,
       start_i         => alg_start,
+      cfg_primes_i    => alg_cfg_primes,
+      cfg_factors_i   => alg_cfg_factors,
+      val_i           => alg_val,
+      valid_o         => alg_valid,
       res_x_o         => alg_res_x,
       res_p_o         => alg_res_p,
       res_w_o         => alg_res_w,
-      valid_o         => alg_valid
+      mon_cf_o        => alg_mon_cf,
+      mon_miss_cf_o   => alg_mon_miss_cf,
+      mon_miss_fact_o => alg_mon_miss_fact,
+      mon_factored_o  => alg_mon_factored
    ); -- i_alg
 
 

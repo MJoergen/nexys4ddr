@@ -17,6 +17,7 @@ entity alg is
       rst_i           : in  std_logic;
 
       cfg_primes_i    : in  std_logic_vector(3 downto 0);    -- Number of primes.
+      cfg_factors_i   : in  std_logic_vector(7 downto 0);    -- Number of factors.
       mon_cf_o        : out std_logic_vector(31 downto 0);   -- Number of generated CF.
       mon_miss_cf_o   : out std_logic_vector(31 downto 0);   -- Number of missed CF.
       mon_miss_fact_o : out std_logic_vector(31 downto 0);   -- Number of missed FACT.
@@ -81,6 +82,7 @@ begin
       clk_i           => clk_i,
       rst_i           => rst_i,
       cfg_primes_i    => cfg_primes_i,
+      cfg_factors_i   => cfg_factors_i,
       mon_miss_cf_o   => mon_miss_cf_o,
       mon_miss_fact_o => mon_miss_fact_o,
       mon_cf_o        => mon_cf_o,

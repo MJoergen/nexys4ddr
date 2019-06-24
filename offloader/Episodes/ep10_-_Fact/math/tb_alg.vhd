@@ -18,6 +18,7 @@ architecture simulation of tb_alg is
 
    -- Signals conected to DUT
    signal alg_cfg_primes    : std_logic_vector(3 downto 0);    -- Number of primes.
+   signal alg_cfg_factors   : std_logic_vector(7 downto 0);    -- Number of factors.
    signal alg_mon_cf        : std_logic_vector(31 downto 0);   -- Number of generated CF.
    signal alg_mon_miss_cf   : std_logic_vector(31 downto 0);   -- Number of missed CF.
    signal alg_mon_miss_fact : std_logic_vector(31 downto 0);   -- Number of missed FACT.
@@ -54,7 +55,8 @@ begin
       wait;
    end process proc_rst;
 
-   alg_cfg_primes <= to_stdlogicvector(C_PRIMES, 4);
+   alg_cfg_primes  <= to_stdlogicvector(C_PRIMES,    4);
+   alg_cfg_afctors <= to_stdlogicvector(C_NUM_FACTS, 8);
 
    --------------------------------------------------
    -- Instantiate DUT
@@ -68,7 +70,8 @@ begin
    port map (
       clk_i           => clk,
       rst_i           => rst,
-      cfg_primes_i    => alg_cfg_primes ,
+      cfg_primes_i    => alg_cfg_primes,
+      cfg_factors_i   => alg_cfg_factors,
       mon_miss_cf_o   => alg_mon_miss_cf,
       mon_miss_fact_o => alg_mon_miss_fact,
       mon_cf_o        => alg_mon_cf,

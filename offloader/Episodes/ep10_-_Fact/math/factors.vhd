@@ -12,6 +12,7 @@ entity factors is
       rst_i           : in  std_logic;
 
       cfg_primes_i    : in  std_logic_vector(3 downto 0);    -- Number of primes.
+      cfg_factors_i   : in  std_logic_vector(7 downto 0);    -- Number of factors.
       mon_cf_o        : out std_logic_vector(31 downto 0);   -- Number of generated CF.
       mon_miss_cf_o   : out std_logic_vector(31 downto 0);   -- Number of missed CF.
       mon_miss_fact_o : out std_logic_vector(31 downto 0);   -- Number of missed FACT.
@@ -59,21 +60,25 @@ architecture Structural of factors is
 
 begin
 
+   -- Dispatch command to next avaiable fact_all nmodule in a round-robin
+   -- scheme,
    p_fact_idx : process (clk_i)
    begin
       if rising_edge(clk_i) then
          for i in 0 to G_NUM_FACTS-1 loop
             fact_in(i).start <= '0';
          end loop;
+
          if cf_valid_i = '1' then
             mon_cf <= mon_cf + 1;
             if fact_out(fact_idx).busy = '0' then
-               fact_in(fact_idx).start  <= '1';
-               fact_in(fact_idx).val    <= cf_res_p_i;
-               fact_in(fact_idx).w      <= cf_res_w_i;
-               fact_in(fact_idx).x      <= cf_res_x_i;
+               fact_in(fact_idx).start <= '1';
+               fact_in(fact_idx).val   <= cf_res_p_i;
+               fact_in(fact_idx).w     <= cf_res_w_i;
+               fact_in(fact_idx).x     <= cf_res_x_i;
 
-               if fact_idx < G_NUM_FACTS-1 then
+               -- Select next fact_all module.
+               if fact_idx < cfg_factors_i-1 then
                   fact_idx <= fact_idx + 1;
                else
                   fact_idx <= 0;
