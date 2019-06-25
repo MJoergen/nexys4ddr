@@ -2,11 +2,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This is Math module. It receives a number N and a configuration parameter
--- cfg_primes, and sends these to the ALG module.
--- In return, it gets a sequence of value pairs (x,y) and four statistics
--- counters (CF, Miss_CF, Miss_Fact, Factored). All this is sent back as a
--- response.
+-- This is Math module. It receives a number N and two configuration
+-- parameters, cfg_factors and cfg_primes, and sends these to the ALG module.
+-- In return, it gets a sequence of value pairs (x,y) and five statistics
+-- counters (CF, Miss_CF, Miss_Fact, Factored, Clk_cnt). All this is sent back
+-- as a response.
 
 entity math is
    generic (

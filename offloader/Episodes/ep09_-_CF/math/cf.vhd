@@ -50,7 +50,7 @@ architecture Behavioral of cf is
    constant C_ONE        : std_logic_vector(G_SIZE-1 downto 0) := to_stdlogicvector(1, G_SIZE);
 
    -- State variables
-   type fsm_state is (SQRT_ST, CALC_AR_ST, CALC_XP_ST);
+   type fsm_state is (IDLE_ST, SQRT_ST, CALC_AR_ST, CALC_XP_ST);
    signal state          : fsm_state;
 
    signal val_n          : std_logic_vector(2*G_SIZE-1 downto 0);
@@ -133,6 +133,9 @@ begin
          add_mult_start <= '0';
 
          case state is
+            when IDLE_ST =>
+               null;
+
             when SQRT_ST =>
                -- Wait until data is ready
                if sqrt_start = '0' and sqrt_valid = '1' then
@@ -197,6 +200,11 @@ begin
             val_n      <= val_i;
             sqrt_start <= '1';
             state      <= SQRT_ST;
+
+            if val_i = 0 then
+               sqrt_start <= '0';
+               state      <= IDLE_ST;
+            end if;
          end if;
 
          if rst_i = '1' then

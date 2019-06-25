@@ -2,11 +2,13 @@
 ## Type 'make help'
 
 # List of source files
-SRC  = math.vhd sqrt.vhd cf.vhd divmod.vhd amm.vhd add_mult.vhd
+SRC  = math.vhd sqrt.vhd divmod.vhd add_mult.vhd amm.vhd cf.vhd
 SRC += alg.vhd gcd.vhd divexact.vhd fact.vhd fact_all.vhd divexact.vhd math.vhd factors.vhd jacobi.vhd
 
 # List of test benches
-TBS  = tb_sqrt tb_divmod tb_add_mult tb_amm tb_cf tb_jacobi tb_fact tb_fact_all tb_alg tb_math
+TBS  = tb_sqrt tb_divmod tb_add_mult tb_amm tb_cf
+TBS += tb_jacobi tb_fact tb_fact_all tb_alg tb_math
+TBS += tb_math
 
 # Select last testbench as default
 TB  ?= $(lastword $(TBS))
