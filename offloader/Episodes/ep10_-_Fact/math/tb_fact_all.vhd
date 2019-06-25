@@ -17,7 +17,7 @@ architecture simulation of tb_fact_all is
 
    -- Signals conected to DUT
    signal dut_val      : std_logic_vector(C_SIZE-1 downto 0);
-   signal dut_primes   : std_logic_vector(3 downto 0);
+   signal dut_primes   : std_logic_vector(7 downto 0);
    signal dut_start    : std_logic;
    signal dut_res      : std_logic_vector(C_SIZE-1 downto 0);
    signal dut_busy     : std_logic;
@@ -94,7 +94,7 @@ begin
 
          -- Start calculation
          dut_val    <= to_stdlogicvector(val, C_SIZE);
-         dut_primes <= "0110";
+         dut_primes <= "00000110";
          dut_start  <= '1';
          wait until clk = '1';
          dut_start <= '0';

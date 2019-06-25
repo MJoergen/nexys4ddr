@@ -17,7 +17,7 @@ architecture simulation of tb_alg is
    signal rst               : std_logic;
 
    -- Signals conected to DUT
-   signal alg_cfg_primes    : std_logic_vector(3 downto 0);    -- Number of primes.
+   signal alg_cfg_primes    : std_logic_vector(7 downto 0);    -- Number of primes.
    signal alg_cfg_factors   : std_logic_vector(7 downto 0);    -- Number of factors.
    signal alg_mon_cf        : std_logic_vector(31 downto 0);   -- Number of generated CF.
    signal alg_mon_miss_cf   : std_logic_vector(31 downto 0);   -- Number of missed CF.
@@ -56,7 +56,7 @@ begin
       wait;
    end process proc_rst;
 
-   alg_cfg_primes  <= to_stdlogicvector(C_PRIMES,    4);
+   alg_cfg_primes  <= to_stdlogicvector(C_PRIMES,    8);
    alg_cfg_factors <= to_stdlogicvector(C_NUM_FACTS, 8);
 
    --------------------------------------------------
