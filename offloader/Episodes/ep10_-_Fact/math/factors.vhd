@@ -78,7 +78,7 @@ begin
                fact_in(fact_idx).x     <= cf_res_x_i;
 
                -- Select next fact_all module.
-               if fact_idx < cfg_factors_i-1 then
+               if fact_idx < cfg_factors_i-1 and fact_idx < G_NUM_FACTS-1 then
                   fact_idx <= fact_idx + 1;
                else
                   fact_idx <= 0;

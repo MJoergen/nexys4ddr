@@ -56,7 +56,7 @@ begin
    end process proc_rst;
 
    alg_cfg_primes  <= to_stdlogicvector(C_PRIMES,    4);
-   alg_cfg_afctors <= to_stdlogicvector(C_NUM_FACTS, 8);
+   alg_cfg_factors <= to_stdlogicvector(C_NUM_FACTS, 8);
 
    --------------------------------------------------
    -- Instantiate DUT

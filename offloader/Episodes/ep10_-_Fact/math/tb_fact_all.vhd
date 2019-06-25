@@ -17,7 +17,7 @@ architecture simulation of tb_fact_all is
 
    -- Signals conected to DUT
    signal dut_val      : std_logic_vector(C_SIZE-1 downto 0);
-   signal dut_factors  : std_logic_vector(3 downto 0);
+   signal dut_primes   : std_logic_vector(3 downto 0);
    signal dut_start    : std_logic;
    signal dut_res      : std_logic_vector(C_SIZE-1 downto 0);
    signal dut_busy     : std_logic;
@@ -57,14 +57,14 @@ begin
       G_SIZE  => C_SIZE
    )
    port map (
-      clk_i     => clk,
-      rst_i     => rst,
-      val_i     => dut_val,
-      factors_i => dut_factors,
-      start_i   => dut_start,
-      res_o     => dut_res,
-      busy_o    => dut_busy,
-      valid_o   => dut_valid
+      clk_i    => clk,
+      rst_i    => rst,
+      val_i    => dut_val,
+      primes_i => dut_primes,
+      start_i  => dut_start,
+      res_o    => dut_res,
+      busy_o   => dut_busy,
+      valid_o  => dut_valid
    ); -- i_fact_all
 
 
@@ -93,9 +93,9 @@ begin
             " -> " & integer'image(exp_res);
 
          -- Start calculation
-         dut_val     <= to_stdlogicvector(val, C_SIZE);
-         dut_factors <= "0110";
-         dut_start   <= '1';
+         dut_val    <= to_stdlogicvector(val, C_SIZE);
+         dut_primes <= "0110";
+         dut_start  <= '1';
          wait until clk = '1';
          dut_start <= '0';
          wait until clk = '1';

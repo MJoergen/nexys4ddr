@@ -73,7 +73,7 @@ begin
 
             when WORKING_ST =>
                if fact_start = '0' and fact_valid = '1' then
-                  if fact_res = 1 or prime_idx+1 = primes then
+                  if fact_res = 1 or prime_idx+1 = primes or prime_idx+1 = C_PRIMES'length then
                      res   <= fact_res;
                      valid <= '1';
                      state <= IDLE_ST;
