@@ -34,7 +34,7 @@ end math;
 
 architecture Structural of math is
 
-   signal alg_cfg_primes    : std_logic_vector(3 downto 0);    -- Number of primes.
+   signal alg_cfg_primes    : std_logic_vector(7 downto 0);    -- Number of primes.
    signal alg_cfg_factors   : std_logic_vector(7 downto 0);    -- Number of factors.
    signal alg_mon_cf        : std_logic_vector(31 downto 0);   -- Number of generated CF.
    signal alg_mon_miss_cf   : std_logic_vector(31 downto 0);   -- Number of missed CF.
@@ -63,7 +63,7 @@ begin
          if rx_valid_i = '1' then
             alg_val         <= rx_data_i(60*8-1          downto 60*8-2*G_SIZE);
             alg_cfg_factors <= rx_data_i(60*8-2*G_SIZE-1 downto 60*8-2*G_SIZE-8);
-            alg_cfg_primes  <= rx_data_i(60*8-2*G_SIZE-9 downto 60*8-2*G_SIZE-12);
+            alg_cfg_primes  <= rx_data_i(60*8-2*G_SIZE-9 downto 60*8-2*G_SIZE-16);
             alg_start       <= '1';
          end if;
       end if;

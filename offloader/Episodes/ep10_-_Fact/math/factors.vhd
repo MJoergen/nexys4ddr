@@ -11,7 +11,7 @@ entity factors is
       clk_i           : in  std_logic;
       rst_i           : in  std_logic;
 
-      cfg_primes_i    : in  std_logic_vector(3 downto 0);    -- Number of primes.
+      cfg_primes_i    : in  std_logic_vector(7 downto 0);    -- Number of primes.
       cfg_factors_i   : in  std_logic_vector(7 downto 0);    -- Number of factors.
       mon_cf_o        : out std_logic_vector(31 downto 0);   -- Number of generated CF.
       mon_miss_cf_o   : out std_logic_vector(31 downto 0);   -- Number of missed CF.

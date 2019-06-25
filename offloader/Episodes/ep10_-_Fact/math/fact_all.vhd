@@ -11,7 +11,7 @@ entity fact_all is
       rst_i    : in  std_logic;
 
       val_i    : in  std_logic_vector(G_SIZE-1 downto 0);
-      primes_i : in  std_logic_vector(3 downto 0);
+      primes_i : in  std_logic_vector(7 downto 0);
       start_i  : in  std_logic;
 
       -- Outputs driven by this module
@@ -45,8 +45,8 @@ architecture structural of fact_all is
    type fsm_state is (IDLE_ST, WORKING_ST);
    signal state : fsm_state;
 
-   signal primes      : std_logic_vector(3 downto 0);
-   signal prime_idx   : std_logic_vector(3 downto 0);
+   signal primes      : std_logic_vector(7 downto 0);
+   signal prime_idx   : std_logic_vector(7 downto 0);
 
    signal res         : std_logic_vector(G_SIZE-1 downto 0);
    signal busy        : std_logic;
@@ -68,7 +68,7 @@ begin
                if start_i = '1' then
                   fact_val   <= val_i;
                   primes     <= primes_i;
-                  prime_idx  <= "0000";
+                  prime_idx  <= X"00";
                   fact_start <= '1';
                   state      <= WORKING_ST;
                   clkcnt     <= (others => '0');
