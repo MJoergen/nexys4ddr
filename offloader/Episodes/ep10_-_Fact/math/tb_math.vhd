@@ -9,7 +9,7 @@ end tb_math;
 
 architecture simulation of tb_math is
 
-   constant C_NUM_FACTS : integer := 10;
+   constant C_NUM_FACTS : integer := 40;
    constant C_PRIMES    : integer := 6;
    constant C_SIZE      : integer := 72;
    constant C_ZERO      : std_logic_vector(C_SIZE-1 downto 0) := (others => '0');
@@ -29,8 +29,8 @@ architecture simulation of tb_math is
    signal resp          : t_sim;
    signal debug         : std_logic_vector(255 downto 0);
 
-   signal cfg_primes    : std_logic_vector(3 downto 0);    -- Number of primes.
    signal cfg_factors   : std_logic_vector(7 downto 0);    -- Number of factors.
+   signal cfg_primes    : std_logic_vector(3 downto 0);    -- Number of primes.
    signal mon_cf        : std_logic_vector(31 downto 0);   -- Number of generated CF.
    signal mon_miss_cf   : std_logic_vector(31 downto 0);   -- Number of missed CF.
    signal mon_miss_fact : std_logic_vector(31 downto 0);   -- Number of missed FACT.
@@ -95,7 +95,7 @@ begin
       cmd.valid <= '0';
       wait until clk = '1' and rst = '0';
 
-      cfg_factors <= to_stdlogicvector(10, 8);
+      cfg_factors <= to_stdlogicvector(40, 8);
       cfg_primes  <= to_stdlogicvector(6, 4);
 
       wait until clk = '0';

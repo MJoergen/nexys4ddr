@@ -50,7 +50,7 @@ architecture Structural of factors is
    signal fact_out : fact_out_vector(G_NUM_FACTS-1 downto 0);
    signal fact_idx : integer range 0 to G_NUM_FACTS-1;
 
-   signal out_idx  : std_logic_vector(4 downto 0);
+   signal out_idx  : std_logic_vector(7 downto 0);
    signal valid    : std_logic;
 
    signal mon_cf        : std_logic_vector(31 downto 0);   -- Number of generated CF
@@ -122,11 +122,12 @@ begin
 
    -- Arbitrate between possible results
    p_out : process (clk_i)
-      variable out_idx_v : std_logic_vector(4 downto 0);
+      variable out_idx_v : std_logic_vector(7 downto 0);
       variable valid_v   : std_logic;
    begin
       if rising_edge(clk_i) then
-         valid_v  := '0';
+         out_idx_v := X"00";
+         valid_v   := '0';
 
          for i in 0 to G_NUM_FACTS-1 loop
             if fact_out(i).valid = '1' then
@@ -136,7 +137,7 @@ begin
                else
                   -- Only indicate 'valid' when the y-value is completely factored.
                   if fact_out(i).res = 1 then
-                     out_idx_v    := to_stdlogicvector(i, 5);
+                     out_idx_v    := to_stdlogicvector(i, 8);
                      valid_v      := '1';
                      mon_factored <= mon_factored + 1;
                   end if;
