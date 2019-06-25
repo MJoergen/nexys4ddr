@@ -53,13 +53,13 @@ primes in lines 28-35.
 ## factors
 The time required to reach a conclusion about the factorisation of the number Y
 is quite long, much longer than it takes to generate the numbers Y. Therefore,
-I've decided to instantiate a number of fact\_all module in parallel, and
-dispatch each computer Y to the next avaiable fact\_all module. This is all
+I've decided to instantiate a number of fact\_all modules in parallel, and
+dispatch each computed Y to the next avaiable fact\_all module. This is all
 done in the factors module.
 
 The dispaching is basically a round-robin scheme, where a simple counter
-indicates the next instantiation to receive a command.  If the fact\_all module
-is available it gets the command and the counter is incremented with
+indicates the next instance to receive a command.  If the fact\_all module
+is available it gets the command and the instance counter is incremented with
 wrap-around. Otherwise, the Y value is discarded. This all takes place in the
 process in lines 62-97.
 
@@ -80,15 +80,14 @@ I'm now counting the following:
 * Number of (X, Y) pairs discarded, because all Factoring modules are busy.
 * Number of (X, Y) pairs discarded, because two Factoring modules respond simultaneously.
 * Number of completely factored (X, Y) pairs.
+* Average number of clock cycles to factor a single Y value.
 
 Furthermore, I've made it possible to control the number of primes to factor
 over, as well as the number of factoring modules to use.
 
 ## Testing in simulation
 We have added many small modules in this episode, and I've chosen to write a small
-test bench for each of these small modules. The makefile is common, so you'll manually
-need to select the test bench to run. This is done by un-commenting the corresponding
-name in lines 5-14 of math/Makefile.
+test bench for each of these small modules.
 
 ## Testing in hardware
 
