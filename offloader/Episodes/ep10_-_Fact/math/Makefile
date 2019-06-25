@@ -1,5 +1,3 @@
-XILINX_DIR = /opt/Xilinx/Vivado/2018.2
-
 ## This makefile is used to simulate each of the modules.
 ## Type 'make help'
 
