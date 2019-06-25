@@ -17,6 +17,7 @@ entity factors is
       mon_miss_cf_o   : out std_logic_vector(31 downto 0);   -- Number of missed CF.
       mon_miss_fact_o : out std_logic_vector(31 downto 0);   -- Number of missed FACT.
       mon_factored_o  : out std_logic_vector(31 downto 0);   -- Number of completely factored.
+      mon_clkcnt_o    : out std_logic_vector(15 downto 0);   -- Average clock count factoring.
 
       cf_res_x_i      : in  std_logic_vector(2*G_SIZE-1 downto 0);
       cf_res_p_i      : in  std_logic_vector(G_SIZE-1 downto 0);
@@ -43,20 +44,22 @@ architecture Structural of factors is
       res    : std_logic_vector(G_SIZE-1 downto 0);
       busy   : std_logic;
       valid  : std_logic;
+      clkcnt : std_logic_vector(15 downto 0);
    end record t_fact_out;
    type fact_out_vector is array (natural range <>) of t_fact_out;
 
-   signal fact_in  : fact_in_vector(G_NUM_FACTS-1 downto 0);
-   signal fact_out : fact_out_vector(G_NUM_FACTS-1 downto 0);
-   signal fact_idx : integer range 0 to G_NUM_FACTS-1;
+   signal fact_in       : fact_in_vector(G_NUM_FACTS-1 downto 0);
+   signal fact_out      : fact_out_vector(G_NUM_FACTS-1 downto 0);
+   signal fact_idx      : integer range 0 to G_NUM_FACTS-1;
 
-   signal out_idx  : std_logic_vector(7 downto 0);
-   signal valid    : std_logic;
+   signal out_idx       : std_logic_vector(7 downto 0);
+   signal valid         : std_logic;
 
    signal mon_cf        : std_logic_vector(31 downto 0);   -- Number of generated CF
    signal mon_miss_cf   : std_logic_vector(31 downto 0);   -- Number of missed CF
    signal mon_miss_fact : std_logic_vector(31 downto 0);   -- Number of missed FACT
    signal mon_factored  : std_logic_vector(31 downto 0);   -- Number of completely factored.
+   signal mon_clkcnt    : std_logic_vector(31 downto 0);   -- Average clock count factoring.
 
 begin
 
@@ -115,22 +118,33 @@ begin
          start_i   => fact_in(i).start,
          res_o     => fact_out(i).res,
          busy_o    => fact_out(i).busy,
-         valid_o   => fact_out(i).valid
+         valid_o   => fact_out(i).valid,
+         clkcnt_o  => fact_out(i).clkcnt
       ); -- i_fact
    end generate gen_facts;
 
 
    -- Arbitrate between possible results
    p_out : process (clk_i)
-      variable out_idx_v : std_logic_vector(7 downto 0);
-      variable valid_v   : std_logic;
+      variable out_idx_v    : std_logic_vector(7 downto 0);
+      variable valid_v      : std_logic;
+      variable mon_clkcnt_v : std_logic_vector(31 downto 0);
+      variable diff_v       : std_logic_vector(31 downto 0);
+      variable delta_v      : std_logic_vector(31 downto 0);
    begin
       if rising_edge(clk_i) then
-         out_idx_v := X"00";
-         valid_v   := '0';
+         out_idx_v    := out_idx;
+         valid_v      := '0';
+         mon_clkcnt_v := mon_clkcnt;
 
          for i in 0 to G_NUM_FACTS-1 loop
             if fact_out(i).valid = '1' then
+               -- Calculate running average.
+               diff_v := fact_out(i).clkcnt & X"0000" - mon_clkcnt_v;
+               delta_v := (others => diff_v(31));
+               delta_v(31-8 downto 0) := diff_v(31 downto 8);
+               mon_clkcnt_v := mon_clkcnt_v + delta_v;
+
                if valid = '1' then
                   report "Missed FACT output";
                   mon_miss_fact <= mon_miss_fact + 1;
@@ -145,12 +159,15 @@ begin
             end if;
          end loop;
 
-         out_idx <= out_idx_v;
-         valid   <= valid_v;
+         out_idx    <= out_idx_v;
+         valid      <= valid_v;
+         mon_clkcnt <= mon_clkcnt_v;
 
          if rst_i = '1' then
+            out_idx       <= (others => '0');
             mon_miss_fact <= (others => '0');
             mon_factored  <= (others => '0');
+            mon_clkcnt    <= (others => '0');
          end if;
       end if;
    end process p_out;
@@ -165,6 +182,7 @@ begin
    mon_miss_cf_o   <= mon_miss_cf;
    mon_miss_fact_o <= mon_miss_fact;
    mon_factored_o  <= mon_factored;
+   mon_clkcnt_o    <= mon_clkcnt(31 downto 16);
 
 end Structural;
 

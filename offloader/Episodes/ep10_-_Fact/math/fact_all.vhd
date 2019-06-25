@@ -17,6 +17,7 @@ entity fact_all is
       -- Outputs driven by this module
       res_o    : out std_logic_vector(G_SIZE-1 downto 0);
       busy_o   : out std_logic;
+      clkcnt_o : out std_logic_vector(15 downto 0);
       valid_o  : out std_logic
    );
 end fact_all;
@@ -50,6 +51,7 @@ architecture structural of fact_all is
    signal res         : std_logic_vector(G_SIZE-1 downto 0);
    signal busy        : std_logic;
    signal valid       : std_logic;
+   signal clkcnt      : std_logic_vector(15 downto 0);
 
 begin
 
@@ -69,9 +71,11 @@ begin
                   prime_idx  <= "0000";
                   fact_start <= '1';
                   state      <= WORKING_ST;
+                  clkcnt     <= (others => '0');
                end if;
 
             when WORKING_ST =>
+               clkcnt <= clkcnt + 1;
                if fact_start = '0' and fact_valid = '1' then
                   if fact_res = 1 or prime_idx+1 = primes or prime_idx+1 = C_PRIMES'length then
                      res   <= fact_res;
@@ -118,9 +122,10 @@ begin
    -- Connect output signals
    --------------------------
 
-   res_o   <= res;
-   valid_o <= valid;
-   busy_o  <= '0' when state = IDLE_ST else '1';
+   res_o    <= res;
+   valid_o  <= valid;
+   busy_o   <= '0' when state = IDLE_ST else '1';
+   clkcnt_o <= clkcnt;
 
 end architecture structural;
 

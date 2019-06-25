@@ -9,7 +9,7 @@ end tb_math;
 
 architecture simulation of tb_math is
 
-   constant C_NUM_FACTS : integer := 40;
+   constant C_NUM_FACTS : integer := 30;
    constant C_PRIMES    : integer := 6;
    constant C_SIZE      : integer := 72;
    constant C_ZERO      : std_logic_vector(C_SIZE-1 downto 0) := (others => '0');
@@ -29,12 +29,14 @@ architecture simulation of tb_math is
    signal resp          : t_sim;
    signal debug         : std_logic_vector(255 downto 0);
 
+   signal val           : std_logic_vector(2*C_SIZE-1 downto 0);
    signal cfg_factors   : std_logic_vector(7 downto 0);    -- Number of factors.
    signal cfg_primes    : std_logic_vector(3 downto 0);    -- Number of primes.
    signal mon_cf        : std_logic_vector(31 downto 0);   -- Number of generated CF.
    signal mon_miss_cf   : std_logic_vector(31 downto 0);   -- Number of missed CF.
    signal mon_miss_fact : std_logic_vector(31 downto 0);   -- Number of missed FACT.
    signal mon_factored  : std_logic_vector(31 downto 0);   -- Number of completely factored.
+   signal mon_clkcnt    : std_logic_vector(15 downto 0);   -- Average clock count factoring.
 
    -- Signal to control execution of the testbench.
    signal test_running : std_logic := '1';
@@ -95,14 +97,15 @@ begin
       cmd.valid <= '0';
       wait until clk = '1' and rst = '0';
 
-      cfg_factors <= to_stdlogicvector(40, 8);
-      cfg_primes  <= to_stdlogicvector(6, 4);
+      val         <= to_stdlogicvector(7*(2**28+1), 2*C_SIZE);
+      cfg_factors <= to_stdlogicvector(30, 8);
+      cfg_primes  <= to_stdlogicvector(4, 4);
 
       wait until clk = '0';
       cmd.valid <= '1';
       cmd.data  <= (others => '0');
       cmd.data(60*8-1 downto 60*8-2*C_SIZE-12) <=
-         to_stdlogicvector(1879048199, 2*C_SIZE) & cfg_factors & cfg_primes;
+         val & cfg_factors & cfg_primes;
       cmd.last  <= '1';
       cmd.bytes <= to_stdlogicvector(2*C_SIZE/8, 6);
       wait until clk = '1';
@@ -115,10 +118,11 @@ begin
       wait until clk = '1' and resp.valid = '1';
       wait until clk = '0';
 
-      mon_cf        <= resp.data(60*8-3*C_SIZE-0*32-1 downto 60*8-3*C_SIZE-1*32);
-      mon_miss_cf   <= resp.data(60*8-3*C_SIZE-1*32-1 downto 60*8-3*C_SIZE-2*32);
-      mon_miss_fact <= resp.data(60*8-3*C_SIZE-2*32-1 downto 60*8-3*C_SIZE-3*32);
-      mon_factored  <= resp.data(60*8-3*C_SIZE-3*32-1 downto 60*8-3*C_SIZE-4*32);
+      mon_cf        <= resp.data(60*8-3*C_SIZE-0*32-1 downto 60*8-3*C_SIZE-0*32-32);
+      mon_miss_cf   <= resp.data(60*8-3*C_SIZE-1*32-1 downto 60*8-3*C_SIZE-1*32-32);
+      mon_miss_fact <= resp.data(60*8-3*C_SIZE-2*32-1 downto 60*8-3*C_SIZE-2*32-32);
+      mon_factored  <= resp.data(60*8-3*C_SIZE-3*32-1 downto 60*8-3*C_SIZE-3*32-32);
+      mon_clkcnt    <= resp.data(60*8-3*C_SIZE-4*32-1 downto 60*8-3*C_SIZE-4*32-16);
 
       -- Stop test
       wait until clk = '1';
@@ -129,6 +133,7 @@ begin
       report "Mon_Miss_CF   = " & integer'image(to_integer(mon_miss_cf));
       report "Mon_Miss_Fact = " & integer'image(to_integer(mon_miss_fact));
       report "Mon_Factored  = " & integer'image(to_integer(mon_factored));
+      report "Mon_ClkCnt    = " & integer'image(to_integer(mon_clkcnt));
       test_running <= '0';
       wait;
    end process main_test_proc;

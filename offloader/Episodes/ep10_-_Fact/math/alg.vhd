@@ -22,6 +22,7 @@ entity alg is
       mon_miss_cf_o   : out std_logic_vector(31 downto 0);   -- Number of missed CF.
       mon_miss_fact_o : out std_logic_vector(31 downto 0);   -- Number of missed FACT.
       mon_factored_o  : out std_logic_vector(31 downto 0);   -- Number of completely factored.
+      mon_clkcnt_o    : out std_logic_vector(15 downto 0);   -- Average clock count factoring.
 
       val_i           : in  std_logic_vector(2*G_SIZE-1 downto 0);
       start_i         : in  std_logic;
@@ -87,6 +88,7 @@ begin
       mon_miss_fact_o => mon_miss_fact_o,
       mon_cf_o        => mon_cf_o,
       mon_factored_o  => mon_factored_o,
+      mon_clkcnt_o    => mon_clkcnt_o,
       cf_res_x_i      => cf_res_x,
       cf_res_p_i      => cf_res_p,
       cf_res_w_i      => cf_res_w,

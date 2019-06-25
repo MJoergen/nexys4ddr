@@ -40,6 +40,7 @@ architecture Structural of math is
    signal alg_mon_miss_cf   : std_logic_vector(31 downto 0);   -- Number of missed CF.
    signal alg_mon_miss_fact : std_logic_vector(31 downto 0);   -- Number of missed FACT.
    signal alg_mon_factored  : std_logic_vector(31 downto 0);   -- Number of completely factored.
+   signal alg_mon_clkcnt    : std_logic_vector(15 downto 0);   -- Average clock count factoring.
    signal alg_val           : std_logic_vector(2*G_SIZE-1 downto 0);
    signal alg_start         : std_logic;
    signal alg_res_x         : std_logic_vector(2*G_SIZE-1 downto 0);
@@ -48,7 +49,7 @@ architecture Structural of math is
    signal alg_valid         : std_logic;
 
    signal res_y             : std_logic_vector(G_SIZE-1 downto 0);
-   signal res               : std_logic_vector(3*G_SIZE+4*32-1 downto 0);
+   signal res               : std_logic_vector(3*G_SIZE+4*32+16-1 downto 0);
 
    signal debug             : std_logic_vector(255 downto 0);
 
@@ -92,7 +93,8 @@ begin
       mon_cf_o        => alg_mon_cf,
       mon_miss_cf_o   => alg_mon_miss_cf,
       mon_miss_fact_o => alg_mon_miss_fact,
-      mon_factored_o  => alg_mon_factored
+      mon_factored_o  => alg_mon_factored,
+      mon_clkcnt_o    => alg_mon_clkcnt
    ); -- i_alg
 
 
@@ -102,7 +104,7 @@ begin
    
    res_y <= alg_res_p when alg_res_w = '0' else (not alg_res_p) + 1;
    res   <= alg_res_x & res_y & alg_mon_cf & alg_mon_miss_cf &
-            alg_mon_miss_fact & alg_mon_factored;
+            alg_mon_miss_fact & alg_mon_factored & alg_mon_clkcnt;
    
    p_out : process (clk_i)
    begin

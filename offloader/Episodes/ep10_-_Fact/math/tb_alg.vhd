@@ -10,7 +10,7 @@ end tb_alg;
 architecture simulation of tb_alg is
 
    constant C_SIZE          : integer := 72;
-   constant C_NUM_FACTS     : integer := 20;
+   constant C_NUM_FACTS     : integer := 10;
    constant C_PRIMES        : integer := 4;
 
    signal clk               : std_logic;
@@ -23,6 +23,7 @@ architecture simulation of tb_alg is
    signal alg_mon_miss_cf   : std_logic_vector(31 downto 0);   -- Number of missed CF.
    signal alg_mon_miss_fact : std_logic_vector(31 downto 0);   -- Number of missed FACT.
    signal alg_mon_factored  : std_logic_vector(31 downto 0);   -- Number of completely factored.
+   signal alg_mon_clkcnt    : std_logic_vector(15 downto 0);   -- Average clock count factoring.
 
    signal alg_val           : std_logic_vector(2*C_SIZE-1 downto 0);
    signal alg_start         : std_logic;
@@ -76,6 +77,7 @@ begin
       mon_miss_fact_o => alg_mon_miss_fact,
       mon_cf_o        => alg_mon_cf,
       mon_factored_o  => alg_mon_factored,
+      mon_clkcnt_o    => alg_mon_clkcnt,
       val_i           => alg_val,
       start_i         => alg_start,
       res_x_o         => alg_res_x,
@@ -137,11 +139,11 @@ begin
 
       -- Verify FACT
       start_fact(31861);
-      wait for 10 us;
+      wait for 40 us;
       start_fact(0);
       wait for 1 us;
       start_fact(45649);
-      wait for 10 us;
+      wait for 40 us;
       start_fact(0);
       wait for 1 us;
 
@@ -154,6 +156,7 @@ begin
       report "Mon_Miss_CF   = " & integer'image(to_integer(alg_mon_miss_cf));
       report "Mon_Miss_Fact = " & integer'image(to_integer(alg_mon_miss_fact));
       report "Mon_Factored  = " & integer'image(to_integer(alg_mon_factored));
+      report "Mon_ClkCnt    = " & integer'image(to_integer(alg_mon_clkcnt));
       test_running <= '0';
       wait;
    end process main_test_proc;
