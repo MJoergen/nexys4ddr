@@ -31,9 +31,9 @@ systems design.
 
 ## Applications ## 
 The design will be generic enough to accommodate many different applications.
-One of the first applications I tend to write is hardware acceleration of
+One of the first applications I intend to write is hardware acceleration of
 integer factorization. This is the problem of determining the integers p and q,
-given the value of N=p\*q, where N is a very large integer, say approx. 100
+given the value of N=p\*q, where N is a very large integer, say approx. 50
 digits.  On a regular CPU this is a very compute intensive calculation, see
 e.g.  [here](https://en.wikipedia.org/wiki/Integer_factorization_records).
 However, many of the calculations can be massively parallelized leading
@@ -52,7 +52,7 @@ i.e. have a CPU running on the FPGA that runs the network stack.  However,
 since computation speed is important (that is after-all why we are offloading in
 the first place), it makes sense to reduce network latency.
 
-To help debugging, we will make heavy use of the VGA output of the Nexys4DDR.
+To help debugging, we will make use of the VGA output of the Nexys4DDR.
 This is not essential for the offloading functionality itself, but gives a
 pretty cool view of what is going on inside the FPGA.
 
@@ -62,7 +62,7 @@ In the first few episodes we'll be setting up the project, and making a small
 design that can display a string of hexadecimal characters to the VGA output.
 This is very much similar to the first few episodes from the
 [DYOC](https://github.com/MJoergen/nexys4ddr/tree/master/dyoc) series, but
-since we won't be writing a CPU, the design will be somewhat different.
+since we won't be writing a CPU, the design will be slightly different.
 
 In the subsequent episodes, we'll build a network processor, allowing the FPGA to
 receive and send UDP packets.
@@ -83,7 +83,12 @@ receive and send UDP packets.
 7.  [**"UDP"**](Episodes/ep07_-_UDP). Here we will respond to UDP requests.
 ### Math ###
 8.  [**"MATH"**](Episodes/ep08_-_Math). Here we start with the first simple
-mathematical algorithms.
+    matematical algorithms, here the integer square root.
+9.  [**"CF"**](Episodes/ep09_-_CF). Here we will implement the Continued
+    Fraction method to generate a large number of pairs (x, y) needed for the
+    factorisation.
+10. [**"Fact"**](Episodes/ep10_-_Fact). Here we will add factorisation of the
+    intermediate results.
 
 More to come soon...
 
@@ -100,6 +105,7 @@ To get started you need an FPGA board. I'll be using
 The Nexys 4 DDR board uses a Xilinx FPGA, and the toolchain is called
 [Vivado](https://www.xilinx.com/support/download.html).
 Use the Webpack edition, because it is free to use.
+I'm using version 2018.2, but anythig newer than that is fine too.
 
 ## Recommended additional information ##
 

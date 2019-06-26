@@ -59,7 +59,6 @@ architecture Structural of factors is
    signal mon_miss_cf   : std_logic_vector(31 downto 0);   -- Number of missed CF
    signal mon_miss_fact : std_logic_vector(31 downto 0);   -- Number of missed FACT
    signal mon_factored  : std_logic_vector(31 downto 0);   -- Number of completely factored.
-   signal mon_clkcnt    : std_logic_vector(31 downto 0);   -- Average clock count factoring.
 
 begin
 
@@ -135,16 +134,9 @@ begin
       if rising_edge(clk_i) then
          out_idx_v    := out_idx;
          valid_v      := '0';
-         mon_clkcnt_v := mon_clkcnt;
 
          for i in 0 to G_NUM_FACTS-1 loop
             if fact_out(i).valid = '1' then
-               -- Calculate running average.
-               diff_v := fact_out(i).clkcnt & X"0000" - mon_clkcnt_v;
-               delta_v := (others => diff_v(31));
-               delta_v(31-8 downto 0) := diff_v(31 downto 8);
-               mon_clkcnt_v := mon_clkcnt_v + delta_v;
-
                if valid = '1' then
                   report "Missed FACT output";
                   mon_miss_fact <= mon_miss_fact + 1;
@@ -161,13 +153,11 @@ begin
 
          out_idx    <= out_idx_v;
          valid      <= valid_v;
-         mon_clkcnt <= mon_clkcnt_v;
 
          if rst_i = '1' then
             out_idx       <= (others => '0');
             mon_miss_fact <= (others => '0');
             mon_factored  <= (others => '0');
-            mon_clkcnt    <= (others => '0');
          end if;
       end if;
    end process p_out;
@@ -182,7 +172,7 @@ begin
    mon_miss_cf_o   <= mon_miss_cf;
    mon_miss_fact_o <= mon_miss_fact;
    mon_factored_o  <= mon_factored;
-   mon_clkcnt_o    <= mon_clkcnt(31 downto 16);
+   mon_clkcnt_o    <= fact_out(0).clkcnt;
 
 end Structural;
 

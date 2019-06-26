@@ -52,10 +52,13 @@ architecture structural of fact_all is
    signal busy        : std_logic;
    signal valid       : std_logic;
    signal clkcnt      : std_logic_vector(15 downto 0);
+   signal clkcnt_avg  : std_logic_vector(31 downto 0);
 
 begin
 
    p_fsm : process (clk_i) is
+      variable diff_v  : std_logic_vector(31 downto 0);
+      variable delta_v : std_logic_vector(31 downto 0);
    begin
       if rising_edge(clk_i) then
 
@@ -78,9 +81,16 @@ begin
                clkcnt <= clkcnt + 1;
                if fact_start = '0' and fact_valid = '1' then
                   if fact_res = 1 or prime_idx+1 = primes or prime_idx+1 = C_PRIMES'length then
-                     res   <= fact_res;
-                     valid <= '1';
-                     state <= IDLE_ST;
+
+                     -- Calculate running average.
+                     diff_v  := clkcnt & X"0000" - clkcnt_avg;
+                     delta_v := (others => diff_v(31));
+                     delta_v(31-8 downto 0) := diff_v(31 downto 8);
+
+                     clkcnt_avg <= clkcnt_avg + delta_v;
+                     res        <= fact_res;
+                     valid      <= '1';
+                     state      <= IDLE_ST;
                   else
                      fact_val   <= fact_res;
                      prime_idx  <= prime_idx+1;
@@ -90,7 +100,8 @@ begin
          end case;
 
          if rst_i = '1' then
-            state <= IDLE_ST;
+            state      <= IDLE_ST;
+            clkcnt_avg <= (others => '0');
          end if;
       end if;
    end process p_fsm;
@@ -125,7 +136,7 @@ begin
    res_o    <= res;
    valid_o  <= valid;
    busy_o   <= '0' when state = IDLE_ST else '1';
-   clkcnt_o <= clkcnt;
+   clkcnt_o <= clkcnt_avg(31 downto 16);
 
 end architecture structural;
 

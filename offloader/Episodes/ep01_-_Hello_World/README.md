@@ -126,8 +126,8 @@ FPGA board. In the case of the Nexys 4 DDR it is an Artix 7 FPGA.
 And then there is a simple Makefile. You will of course need to update line 1
 in the Makefile with your particular Xilinx install location and version. The
 Makefile defines three targets:
-* top.bit  : This synthesizes (=compiles) the design and generates a binary file.
-* fpga     : This transfers the binary file to the FPGA and starts the FPGA.
+* top.bit  : This synthesizes (=compiles) the design and generates a binary (.bit) file.
+* fpga     : This transfers the binary (.bit) file to the FPGA and starts the FPGA.
 * clean    : This deletes all generated files and returns the directory to its
              original state.
 

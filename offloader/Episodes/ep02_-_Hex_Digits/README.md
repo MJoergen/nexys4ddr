@@ -34,7 +34,7 @@ The VGA logic is implemented in a 3-stage pipeline. This choice reflects very we
 on the actual calculations the VGA module must perform. Let's break it down:
 
 * From the pixel counters, calculate which character number we are currently
-displaying.  Since the screen contains 80x60 characters, this will be a number
+displaying.  Since the screen contains 80x60=4800 characters, this will be a number
 from 0 to 4799. This takes place in lines 122-127.
 
 * From the character number, determine which part of the input signal hex\_i to
