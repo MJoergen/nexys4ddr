@@ -34,8 +34,9 @@ set_property -dict { PACKAGE_PIN D5  IOSTANDARD LVCMOS33 } [get_ports { eth_refc
 
 # Clock definition
 create_clock -name sys_clk -period 10.00 [get_ports {clk_i}];                          # 100 MHz
-create_generated_clock -name vga_clk -source [get_ports {clk_i}] -divide_by 4 [get_pins {i_clk_rst/sys_clk_cnt_reg[1]/Q}];   # 25 Mhz
-create_generated_clock -name eth_clk -source [get_ports {clk_i}] -divide_by 2 [get_pins {i_clk_rst/sys_clk_cnt_reg[0]/Q}];   # 50 Mhz
+create_generated_clock -name vga_clk  -source [get_ports {clk_i}] -divide_by 4 [get_pins {i_clk_rst/sys_clk_cnt_reg[1]/Q}];   # 25 Mhz
+create_generated_clock -name eth_clk  -source [get_ports {clk_i}] -divide_by 2 [get_pins {i_clk_rst/sys_clk_cnt_reg[0]/Q}];   # 50 Mhz
+create_generated_clock -name math_clk -source [get_ports {clk_i}]                      # 100 MHz
 
 # Configuration Bank Voltage Select
 set_property CFGBVS VCCO [current_design]

@@ -53,6 +53,7 @@ begin
    vga_clk  <= sys_clk_cnt(1);    -- 25 MHz
    eth_clk  <= sys_clk_cnt(0);    -- 50 MHz
    math_clk <= sys_clk_i;         -- 100 MHz
+--   math_clk <= sys_clk_cnt(0);    -- 50 MHz
 
 
    --------------------------------------------------
