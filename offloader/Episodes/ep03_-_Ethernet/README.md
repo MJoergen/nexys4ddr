@@ -107,7 +107,7 @@ decided that the MSB byte of the wide data bus is the first byte transmitted or
 received, regardless of the size of the frame or width of the data bus.
 
 The up-side of this choice is that when viewing the result of simulations, the
-contents of the wide data bus reads left-to-right.
+contents of the wide data bus reads conveniently left-to-right.
 
 ### Wide data bus
 The wide data bus uses the same interface as the byte-oriented data bus, except
@@ -195,7 +195,7 @@ The Clock Domain Crossing module (cdc.vhd) is a wrapper for a Xilinx
 Parameterized Macro (XPM), and these XPM's have to be explicitly enabled. This
 is done in line 14 of the Makefile.
 
-This approach for a CDC is a very general approach, but does use a lot of FPGA
+This approach for a CDC is a very general approach and uses a lot of FPGA
 resources. A more simple approach, using e.g. a pair of back-to-back registers
 would work too, but may lead to inconsistencies in the data bus, where all
 parts of the data bus don't necessarily transition on the same clock cycle.

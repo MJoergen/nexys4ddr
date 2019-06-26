@@ -12,7 +12,7 @@ request - send an appropriate response.
 
 The ICMP module instantiates - just like the ARP module - the byte2wide block
 to make it easier to decode incoming packets and generating the response, which
-is the sent through the wide2byte module, again just like the ARP module.
+is then sent through the wide2byte module, again just like the ARP module.
 
 A complication is that the IP header and the ICMP header includes a checksum
 that must be valid. So I've decided to make use of a simple state machine,
@@ -39,6 +39,6 @@ The lazy multiplexer is implemented in lines 186-199 of eth.vhd.
 
 ## Simulation
 Since our implementation checks the validity of the IP and ICMP checksums, our
-test bench must make sure that the pakets sent to the DUT contain the correct
-checksums too. The checkusm function is therefore copied to tb\_eth.vhd, where
+test bench must make sure that the packets sent to the DUT contain the correct
+checksums too. The checksum function is therefore copied to tb\_eth.vhd, where
 the same two-stage approach of generating packets is used, see line 220-229.

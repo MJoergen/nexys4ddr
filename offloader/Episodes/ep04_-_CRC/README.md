@@ -31,7 +31,7 @@ can hold up to 2K bytes.
 The Block RAM acts as a circular ring buffer, with a write pointer controlling
 where the next byte of data is written to. This is similar to the write side of
 a regular FIFO. However, reading from the memory does not commence until the
-entire frame has been writte to memory. Then "ok" is sampled.
+entire frame has been written to memory. Then "ok" is sampled.
 
 If the CRC is valid, the frame must be forwarded, and this module starts
 reading from the memory and updates the corresponding read pointer. However, if
@@ -52,7 +52,7 @@ each received frame.
 
 Using a FIFO for the end pointers is just one possible implementation. The
 purpose of this FIFO is really just to determine where one frame ends and a new
-frame begins.  Therefore, an alternative would be to store the control signal
+frame begins.  Therefore, an alternative could be to store the control signal
 "last" along the "data" signal in the ring buffer. However, you would still
 need some way to signal that the ring buffer contains a complete and valid
 frame. because only then may reading from the buffer commence.

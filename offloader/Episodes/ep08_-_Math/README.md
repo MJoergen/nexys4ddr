@@ -49,8 +49,8 @@ interface, it is much faster to have a separate test bench for the Math module.
 So in the math directory just type make, and the math test bench in
 tb\_math.vhd is run.
 
-I've also made a separate test bench just for the sqrt module. Just uncomment
-the line "#TB = tb\_sqrt" in the top of the Makefile.
+I've also made a separate test bench just for the sqrt module. You can type 'make help'
+to get a list of the test benches implemented.
 
 ## Testing in hardware
 When the FPGA is programmed, it just waits for commands sent via UDP. So I've
