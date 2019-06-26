@@ -87,7 +87,7 @@ begin
                end if;
 
             when GCD_ST =>
-               if gcd_valid = '1' then
+               if gcd_start = '0' and gcd_valid = '1' then
                   if gcd_res = C_ONE then
                      valid <= '1';
                      state <= IDLE_ST;
@@ -99,7 +99,7 @@ begin
                end if;
 
             when DIV_ST =>
-               if div_valid = '1' then
+               if div_start = '0' and div_valid = '1' then
                   val       <= div_res;
                   gcd_start <= '1';
                   state     <= GCD_ST;

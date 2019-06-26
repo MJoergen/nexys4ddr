@@ -50,24 +50,27 @@ architecture structural of fact_all is
    );
    
 
-   signal fact_val    : std_logic_vector(G_SIZE-1 downto 0);
-   signal fact_primes : std_logic_vector(G_SIZE-1 downto 0);
-   signal fact_start  : std_logic;
-   signal fact_res    : std_logic_vector(G_SIZE-1 downto 0);
-   signal fact_busy   : std_logic;
-   signal fact_valid  : std_logic;
+   signal fact_val      : std_logic_vector(G_SIZE-1 downto 0);
+--   signal fact_primes   : std_logic_vector(G_SIZE-1 downto 0);
+   signal fact_start    : std_logic;
+   signal fact_res      : std_logic_vector(G_SIZE-1 downto 0);
+   signal fact_busy     : std_logic;
+   signal fact_valid    : std_logic;
 
    type fsm_state is (IDLE_ST, WORKING_ST);
-   signal state : fsm_state;
+   signal state   : fsm_state;
 
-   signal primes      : std_logic_vector(7 downto 0);
-   signal prime_idx   : std_logic_vector(7 downto 0);
+   signal primes        : std_logic_vector(7 downto 0);
+   signal prime_idx     : std_logic_vector(7 downto 0);
 
-   signal res         : std_logic_vector(G_SIZE-1 downto 0);
-   signal busy        : std_logic;
-   signal valid       : std_logic;
-   signal clkcnt      : std_logic_vector(15 downto 0);
-   signal clkcnt_avg  : std_logic_vector(31 downto 0);
+   signal fact_primes_d : std_logic_vector(G_SIZE-1 downto 0);
+   signal fact_start_d  : std_logic;
+
+   signal res           : std_logic_vector(G_SIZE-1 downto 0);
+   signal busy          : std_logic;
+   signal valid         : std_logic;
+   signal clkcnt        : std_logic_vector(15 downto 0);
+   signal clkcnt_avg    : std_logic_vector(31 downto 0);
 
 begin
 
@@ -125,7 +128,13 @@ begin
       end if;
    end process p_fsm;
 
-   fact_primes <= C_PRIMES(to_integer(prime_idx));
+   p_primes : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         fact_primes_d <= C_PRIMES(to_integer(prime_idx));
+         fact_start_d  <= fact_start;
+      end if;
+   end process p_primes;
 
 
    --------------------
@@ -140,8 +149,8 @@ begin
       clk_i    => clk_i,
       rst_i    => rst_i,
       val_i    => fact_val,
-      primes_i => fact_primes,
-      start_i  => fact_start,
+      primes_i => fact_primes_d,
+      start_i  => fact_start_d,
       res_o    => fact_res,
       busy_o   => fact_busy,
       valid_o  => fact_valid

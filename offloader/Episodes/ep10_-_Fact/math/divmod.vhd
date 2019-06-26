@@ -70,7 +70,7 @@ begin
                   state <= SHIFT_ST;
                end if;
 
-            -- Shift the denoinator, until it is larger than the numerator
+            -- Shift the denominator, until it is larger than the numerator
             when SHIFT_ST =>
                if res_r > val_d then
                   val_d <= val_d(G_SIZE-1 downto 0) & '0';
