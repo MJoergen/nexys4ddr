@@ -38,6 +38,7 @@ architecture Structural of math is
    signal sqrt_valid : std_logic;
 
    signal res        : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal sqrt_valid_d : std_logic;
 
    signal debug      : std_logic_vector(255 downto 0);
 
@@ -80,7 +81,8 @@ begin
          tx_data_o(60*8-1 downto 60*8-res'length) <= res;
          tx_bytes_o <= to_stdlogicvector(res'length/8, 6);
          tx_last_o  <= '1';
-         tx_valid_o <= sqrt_valid;
+         tx_valid_o <= sqrt_valid and not sqrt_valid_d;
+         sqrt_valid_d <= sqrt_valid;
       end if;
    end process p_out;
 
