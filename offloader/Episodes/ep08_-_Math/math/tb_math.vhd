@@ -158,7 +158,7 @@ begin
       verify_sqrt(1000*1000*100);
       verify_sqrt(1000*1000*1000);
 
-      wait for 20 ns;
+      wait for 200 ns;
 
       -- Stop test
       wait until clk = '1';

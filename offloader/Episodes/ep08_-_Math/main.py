@@ -33,7 +33,7 @@ def offloader(num):
 
     # Decode message received from offloader
     r,d = dec(data, NUM_BYTES)
-    return int(r,16), int(d,16)
+    return r, d
 
 # Test SQRT module
 num = 12345678901234567890
