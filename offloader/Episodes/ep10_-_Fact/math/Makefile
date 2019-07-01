@@ -3,11 +3,11 @@
 
 # List of source files
 SRC  = math.vhd sqrt.vhd divmod.vhd add_mult.vhd amm.vhd cf.vhd
-SRC += alg.vhd gcd.vhd divexact.vhd fact.vhd fact_all.vhd divexact.vhd math.vhd factors.vhd jacobi.vhd
+SRC += alg.vhd gcd.vhd divexact.vhd fact.vhd fact_all.vhd divexact.vhd math.vhd ram.vhd factors.vhd jacobi.vhd
 
 # List of test benches
 TBS  = tb_sqrt tb_divmod tb_add_mult tb_amm tb_cf
-TBS += tb_jacobi tb_fact tb_fact_all tb_alg tb_math
+TBS += tb_jacobi tb_fact tb_fact_all tb_alg
 TBS += tb_math
 
 # Select last testbench as default
