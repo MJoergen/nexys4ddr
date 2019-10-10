@@ -9,6 +9,10 @@ use ieee.numeric_std_unsigned.all;
 -- rms = y          when        x < y/4
 -- rms = x/2 + 7y/8 when y/4 <= x <= y
 -- This has a maximum error of about 0.039*y at x=y.
+--
+-- Calculating x/2 + 7y/8 is done by first calculating 4x+7y and then
+-- dividing by 8.
+-- The output is stored in 10.3 fixed point.
 
 entity rms is
    generic (
@@ -17,7 +21,7 @@ entity rms is
    port (
       x_i   : in  std_logic_vector(G_SIZE-1 downto 0);
       y_i   : in  std_logic_vector(G_SIZE-1 downto 0);
-      rms_o : out std_logic_vector(G_SIZE-1 downto 0)
+      rms_o : out std_logic_vector(G_SIZE+2 downto 0)
    );
 end rms;
 
@@ -25,8 +29,8 @@ architecture structural of rms is
 
    signal min_s : std_logic_vector(G_SIZE-1 downto 0);   -- The minimum of x and y.
    signal max_s : std_logic_vector(G_SIZE-1 downto 0);   -- The maximum of x and y.
-   signal sum_s : std_logic_vector(G_SIZE-1 downto 0);   -- The intermediate value: x + y/2.
-   signal rms_s : std_logic_vector(G_SIZE-1 downto 0);   -- The output value.
+   signal sum_s : std_logic_vector(G_SIZE+2 downto 0);   -- The intermediate value: 4x+7y.
+   signal rms_s : std_logic_vector(G_SIZE+2 downto 0);   -- The output value.
 
 begin
 
@@ -41,18 +45,19 @@ begin
          max_o => max_s
       );
 
-   -- Calculate x/2 + 7y/8.
-   sum_s <= ("0" & min_s(G_SIZE-1 downto 1))       -- x/2
-            + max_s                                -- y
-            - ("000" & max_s(G_SIZE-1 downto 3));  -- y/8
+   -- Calculate the intermediate value: 4x+7y.
+   sum_s <= ("0" & min_s & "00")                --   4x
+            + (max_s & "000")                   -- + 8y
+            - ("000" & max_s);                  -- - y
 
+   -- The values into and out of this block are stored in 10.3 fixed point.
    i_minmax_rms : entity work.minmax
       generic map (
-         G_SIZE => G_SIZE
+         G_SIZE => G_SIZE+3
       )
       port map (
-         a_i   => max_s,
-         b_i   => sum_s,
+         a_i   => max_s & "000", -- y
+         b_i   => sum_s,         -- x/2 + 7y/8.
          min_o => open,
          max_o => rms_s
       );

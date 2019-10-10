@@ -18,17 +18,18 @@ use ieee.numeric_std_unsigned.all;
 
 entity move is
    generic (
-      G_SIZE   : integer;
-      G_STARTX : std_logic_vector(G_SIZE-1 downto 0);
-      G_STARTY : std_logic_vector(G_SIZE-1 downto 0);
-      G_VELX   : std_logic_vector(3 downto 0);
-      G_VELY   : std_logic_vector(3 downto 0)
+      G_SIZE   : integer
    );
    port (
-      clk_i  : in  std_logic;                      -- 100 MHz
-      move_i : in  std_logic;
-      x_o    : out std_logic_vector(9 downto 0);
-      y_o    : out std_logic_vector(9 downto 0)
+      clk_i    : in  std_logic;
+      rst_i    : in  std_logic;
+      startx_i : in  std_logic_vector(G_SIZE-1 downto 0);
+      starty_i : in  std_logic_vector(G_SIZE-1 downto 0);
+      velx_i   : in  std_logic_vector(3 downto 0);
+      vely_i   : in  std_logic_vector(3 downto 0);
+      move_i   : in  std_logic;
+      x_o      : out std_logic_vector(9 downto 0);
+      y_o      : out std_logic_vector(9 downto 0)
    );
 end move;
 
@@ -48,10 +49,10 @@ architecture structural of move is
    constant C_VPIXELS : integer := 480;
 
    -- Position and movement of first Voronoi point
-   signal x_r      : std_logic_vector(G_SIZE+2 downto 0) := G_STARTX & "000";
-   signal y_r      : std_logic_vector(G_SIZE+2 downto 0) := G_STARTY & "000";
-   signal velx_r   : std_logic_vector(G_SIZE+2 downto 0) := sign_extend(G_VELX);
-   signal vely_r   : std_logic_vector(G_SIZE+2 downto 0) := sign_extend(G_VELY);
+   signal x_r      : std_logic_vector(G_SIZE+2 downto 0);
+   signal y_r      : std_logic_vector(G_SIZE+2 downto 0);
+   signal velx_r   : std_logic_vector(G_SIZE+2 downto 0);
+   signal vely_r   : std_logic_vector(G_SIZE+2 downto 0);
    constant C_ZERO : std_logic_vector(G_SIZE+2 downto 0) := (others => '0');
 
 begin
@@ -78,6 +79,13 @@ begin
             if y_r(G_SIZE+2 downto 3) < 5 and vely_r(vely_r'left) = '1' then
                vely_r <= C_ZERO-vely_r;
             end if;
+         end if;
+
+         if rst_i = '1' then
+            x_r    <= startx_i & "000";
+            y_r    <= starty_i & "000";
+            velx_r <= sign_extend(velx_i);
+            vely_r <= sign_extend(vely_i);
          end if;
       end if;
    end process p_move;
