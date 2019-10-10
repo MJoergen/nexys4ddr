@@ -27,3 +27,5 @@ image quality is greatly enhanced.
 
 [**Episode 5**](Episodes/ep05) : Improving movement of Voronoi points.
 
+[**Episode 6**](Episodes/ep06) : Removing strange visual rastering effect.
+
