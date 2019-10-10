@@ -14,7 +14,7 @@ entity voronoi is
 
       vga_hs_o  : out std_logic;
       vga_vs_o  : out std_logic;
-      vga_col_o : out std_logic_vector(7 downto 0)    -- RRRGGGBB
+      vga_col_o : out std_logic_vector(11 downto 0)    -- RRRRGGGGBBBB
    );
 end voronoi;
 
@@ -49,38 +49,10 @@ architecture structural of voronoi is
    signal dist_s : t_coord_vector(C_NUM_POINTS-1 downto 0);
 
    signal mindist_r : std_logic_vector(9 downto 0);
+   signal colour_r  : std_logic_vector(2 downto 0);
 
    -- Colour of current pixel.
-   signal vga_col_r : std_logic_vector(7 downto 0);
-
-   -- Convert from RGB format to 8-bit VGA colour.
-   function vga_col(r : integer; g : integer; b : integer) return std_logic_vector is
-   begin
-      return to_stdlogicvector(r, 3) & to_stdlogicvector(g, 3) & to_stdlogicvector(b, 2);
-   end function vga_col;
-
-   type t_col_vector is array(natural range <>) of std_logic_vector(7 downto 0);
-
-   -- List of 16 colours
-   constant C_COLORS : t_col_vector(15 downto 0) :=
-   (
-      vga_col(7,7,3),
-      vga_col(6,7,3),
-      vga_col(6,6,3),
-      vga_col(5,6,3),
-      vga_col(5,5,3),
-      vga_col(5,5,2),
-      vga_col(4,5,2),
-      vga_col(4,4,2),
-      vga_col(3,4,2),
-      vga_col(3,3,2),
-      vga_col(3,3,1),
-      vga_col(2,3,1),
-      vga_col(2,2,1),
-      vga_col(1,2,1),
-      vga_col(1,1,1),
-      vga_col(1,1,0)
-   );
+   signal vga_col_r : std_logic_vector(11 downto 0);
 
 begin
 
@@ -153,18 +125,26 @@ begin
    end generate gen_voronoi;
 
 
+   ------------------------------------------------
+   -- Determine which Voronoi point is the nearest
+   ------------------------------------------------
+
    p_mindist : process (vga_clk_s)
       variable mindist_v : std_logic_vector(9 downto 0);
+      variable colour_v : std_logic_vector(2 downto 0);
    begin
       if rising_edge(vga_clk_s) then
+         colour_v  := "000";
          mindist_v := dist_s(0);
          for i in 1 to C_NUM_POINTS-1 loop
             if dist_s(i) < mindist_v then
                mindist_v := dist_s(i);
+               colour_v  := to_stdlogicvector(i mod 7, 3);
             end if;
          end loop;
 
          mindist_r <= mindist_v;
+         colour_r  <= colour_v;
       end if;
    end process p_mindist;
 
@@ -174,10 +154,20 @@ begin
    --------------------------------------------------
 
    p_vga_col : process (vga_clk_s)
+      variable brightness_v : std_logic_vector(3 downto 0);
    begin
       if rising_edge(vga_clk_s) then
-
-         vga_col_r <= C_COLORS(to_integer(mindist_r(6 downto 3)));
+         brightness_v := not mindist_r(6 downto 3);
+         case colour_r is
+            when "000" => vga_col_r <= brightness_v & brightness_v & brightness_v;
+            when "001" => vga_col_r <= brightness_v & brightness_v &       "0000";
+            when "010" => vga_col_r <= brightness_v &       "0000" & brightness_v;
+            when "011" => vga_col_r <= brightness_v &       "0000" &       "0000";
+            when "100" => vga_col_r <=       "0000" & brightness_v & brightness_v;
+            when "101" => vga_col_r <=       "0000" & brightness_v &       "0000";
+            when "110" => vga_col_r <=       "0000" &       "0000" & brightness_v;
+            when "111" => vga_col_r <=       "0000" &       "0000" &       "0000";
+         end case;
 
          -- Make sure colour is black outside the visible area.
          if pix_x_s >= H_PIXELS or pix_y_s >= V_PIXELS then
