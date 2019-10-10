@@ -23,3 +23,7 @@ image quality is greatly enhanced.
 
 [**Episode 3**](Episodes/ep03) : Several Voronoi points are now in use.
 
+[**Episode 4**](Episodes/ep04) : Improving colour scheme.
+
+[**Episode 5**](Episodes/ep05) : Improving movement of Voronoi points.
+

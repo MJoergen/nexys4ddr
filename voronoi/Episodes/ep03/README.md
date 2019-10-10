@@ -16,4 +16,5 @@ a lot of time in each clock period. If we do run into problems, we should add a
 register to the dist\_s signals.
 
 ## Future work
-TBD.
+* Improve the colour scheme.
+* Improve movement of the Voronoi points.
