@@ -51,8 +51,15 @@ architecture structural of voronoi is
    signal mindist_r : std_logic_vector(9 downto 0);
    signal colour_r  : std_logic_vector(2 downto 0);
 
+   signal pix_x_r   : std_logic_vector(9 downto 0) := (others => '0');
+   signal pix_y_r   : std_logic_vector(9 downto 0) := (others => '0');
+   signal vga_hs_r  : std_logic;
+   signal vga_vs_r  : std_logic;
+
    -- Colour of current pixel.
-   signal vga_col_r : std_logic_vector(11 downto 0);
+   signal vga_hs_d  : std_logic;
+   signal vga_vs_d  : std_logic;
+   signal vga_col_d : std_logic_vector(11 downto 0);
 
 begin
 
@@ -99,8 +106,12 @@ begin
       i_move : entity work.move
          generic map (
             G_SIZE   => 10,
-            G_STARTX => to_stdlogicvector(i*23 mod H_PIXELS, 10),
-            G_STARTY => to_stdlogicvector(i*i*37 mod V_PIXELS, 10)
+            -- Make sure the point is not too close to the border
+            G_STARTX => to_stdlogicvector(10 + ((i*23)    mod (H_PIXELS-20)), 10),
+            G_STARTY => to_stdlogicvector(10 + ((i*i*37)  mod (V_PIXELS-20)), 10),
+            -- Make sure the initial velocity is not zero.
+            G_VELX   => to_stdlogicvector( 1 + ((i*i*2)   mod 15),             4),
+            G_VELY   => to_stdlogicvector( 1 + ((i*i*i*3) mod 15),             4)
          )
          port map (
             clk_i  => vga_clk_s,
@@ -145,6 +156,10 @@ begin
 
          mindist_r <= mindist_v;
          colour_r  <= colour_v;
+         pix_x_r   <= pix_x_s;
+         pix_y_r   <= pix_y_s;
+         vga_hs_r  <= vga_hs_s;
+         vga_vs_r  <= vga_vs_s;
       end if;
    end process p_mindist;
 
@@ -159,20 +174,23 @@ begin
       if rising_edge(vga_clk_s) then
          brightness_v := not mindist_r(6 downto 3);
          case colour_r is
-            when "000" => vga_col_r <= brightness_v & brightness_v & brightness_v;
-            when "001" => vga_col_r <= brightness_v & brightness_v &       "0000";
-            when "010" => vga_col_r <= brightness_v &       "0000" & brightness_v;
-            when "011" => vga_col_r <= brightness_v &       "0000" &       "0000";
-            when "100" => vga_col_r <=       "0000" & brightness_v & brightness_v;
-            when "101" => vga_col_r <=       "0000" & brightness_v &       "0000";
-            when "110" => vga_col_r <=       "0000" &       "0000" & brightness_v;
-            when "111" => vga_col_r <=       "0000" &       "0000" &       "0000";
+            when "000" => vga_col_d <= brightness_v & brightness_v & brightness_v;
+            when "001" => vga_col_d <= brightness_v & brightness_v &       "0000";
+            when "010" => vga_col_d <= brightness_v &       "0000" & brightness_v;
+            when "011" => vga_col_d <= brightness_v &       "0000" &       "0000";
+            when "100" => vga_col_d <=       "0000" & brightness_v & brightness_v;
+            when "101" => vga_col_d <=       "0000" & brightness_v &       "0000";
+            when "110" => vga_col_d <=       "0000" &       "0000" & brightness_v;
+            when "111" => vga_col_d <=       "0000" &       "0000" &       "0000";
          end case;
 
          -- Make sure colour is black outside the visible area.
-         if pix_x_s >= H_PIXELS or pix_y_s >= V_PIXELS then
-            vga_col_r <= (others => '0'); -- Black colour.
+         if pix_x_r >= H_PIXELS or pix_y_r >= V_PIXELS then
+            vga_col_d <= (others => '0'); -- Black colour.
          end if;
+
+         vga_hs_d  <= vga_hs_r;
+         vga_vs_d  <= vga_vs_r;
       end if;
    end process p_vga_col;
 
@@ -181,9 +199,9 @@ begin
    -- Drive output signals
    --------------------------------------------------
 
-   vga_hs_o  <= vga_hs_s;
-   vga_vs_o  <= vga_vs_s;
-   vga_col_o <= vga_col_r;
+   vga_hs_o  <= vga_hs_d;
+   vga_vs_o  <= vga_vs_d;
+   vga_col_o <= vga_col_d;
 
 end architecture structural;
 

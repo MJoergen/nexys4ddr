@@ -38,9 +38,6 @@ architecture structural of vga is
    signal pix_x_r : std_logic_vector(9 downto 0) := (others => '0');
    signal pix_y_r : std_logic_vector(9 downto 0) := (others => '0');
 
-   signal hs_r    : std_logic;
-   signal vs_r    : std_logic;
-
 begin
 
    ---------------------------------------------------
@@ -73,43 +70,11 @@ begin
 
    
    --------------------------------------------------
-   -- Generate horizontal sync signal
-   --------------------------------------------------
-
-   p_hs : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if pix_x_r >= HS_START and pix_x_r < HS_START+HS_TIME then
-            hs_r <= '0';
-         else
-            hs_r <= '1';
-         end if;
-      end if;
-   end process p_hs;
-
-
-   --------------------------------------------------
-   -- Generate vertical sync signal
-   --------------------------------------------------
-
-   p_vs : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if pix_y_r >= VS_START and pix_y_r < VS_START+VS_TIME then
-            vs_r <= '0';
-         else
-            vs_r <= '1';
-         end if;
-      end if;
-   end process p_vs;
-
-   
-   --------------------------------------------------
    -- Drive output signals
    --------------------------------------------------
 
-   hs_o    <= hs_r;
-   vs_o    <= vs_r;
+   hs_o    <= '1' when pix_x_r >= HS_START and pix_x_r < HS_START+HS_TIME else '0';
+   vs_o    <= '1' when pix_y_r >= VS_START and pix_y_r < VS_START+VS_TIME else '0';
    pix_x_o <= pix_x_r;
    pix_y_o <= pix_y_r;
 
