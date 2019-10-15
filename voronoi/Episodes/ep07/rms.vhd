@@ -7,12 +7,10 @@ use ieee.numeric_std_unsigned.all;
 -- rms = sqrt(x^2 + y^2).
 -- The approximation boils down to (assuming 0 < x < y).
 --
--- 32*rms =        32*y when        x < y/4
--- 32*rms = 12*x + 29*y when y/4 <= x < y/2
--- 32*rms = 20*x + 25*y when y/2 <= x
+-- 32*rms =        32*y when         x <  y/8
+-- 32*rms =  8*x + 31*y when  y/8 <= x < 2y/5
+-- 32*rms = 18*x + 27*y when 2y/5 <= x
 --
--- Calculating x/2 + 7y/8 is done by first calculating 4x+7y and then
--- dividing by 8.
 -- The output is stored in 10.5 fixed point.
 
 
@@ -49,19 +47,17 @@ begin
          max_o => max_s
       );
 
-   -- Calculate 12x + 29y
+   -- Calculate 8x + 31y
    line1_s <=  ("00" & min_s & "000")  --   8x
-             + ("000" & min_s & "00")  -- + 4x
              + (max_s & "00000")       -- +32y
-             - ("0000" & max_s & "0")  -- - 2y
              - ("00000" & max_s);      -- -  y
 
-   -- Calculate 20x + 25y
+   -- Calculate 18x + 27y
    line2_s <=  ("0" & min_s & "0000")  --  16x
-             + ("000" & min_s & "00")  -- + 4x
-             + ("0" & max_s & "0000")  -- +16y
-             + ("00" & max_s & "000")  -- + 8y
-             + ("00000" & max_s);      -- +  y
+             + ("0000" & min_s & "0")  -- + 2x
+             + (     max_s & "00000")  -- +32y
+             - ("000" & max_s & "00")  -- - 4y
+             - ("00000" & max_s);      -- -  y
 
    i_minmax_linemax : entity work.minmax
       generic map (
