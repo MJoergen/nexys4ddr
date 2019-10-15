@@ -13,7 +13,7 @@ entity dist is
       y1_i   : in  std_logic_vector(G_SIZE-1 downto 0);
       x2_i   : in  std_logic_vector(G_SIZE-1 downto 0);
       y2_i   : in  std_logic_vector(G_SIZE-1 downto 0);
-      dist_o : out std_logic_vector(G_SIZE+2 downto 0)
+      dist_o : out std_logic_vector(G_SIZE+4 downto 0)
    );
 end dist;
 

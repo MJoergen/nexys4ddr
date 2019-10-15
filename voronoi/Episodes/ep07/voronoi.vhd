@@ -41,7 +41,7 @@ architecture structural of voronoi is
    signal move_s  : std_logic;
 
    -- A vector of coordinates.
-   type t_coord_vector is array(natural range <>) of std_logic_vector(12 downto 0);
+   type t_coord_vector is array(natural range <>) of std_logic_vector(14 downto 0);
 
    constant C_NUM_POINTS : integer := 32;
 
@@ -59,7 +59,7 @@ architecture structural of voronoi is
    signal vga_vs_r   : std_logic;
 
    -- Colour of current pixel.
-   signal mindist_d0 : std_logic_vector(12 downto 0);
+   signal mindist_d0 : std_logic_vector(14 downto 0);
    signal colour_d0  : std_logic_vector(2 downto 0);
    signal pix_x_d0   : std_logic_vector(9 downto 0) := (others => '0');
    signal pix_y_d0   : std_logic_vector(9 downto 0) := (others => '0');
@@ -162,8 +162,8 @@ begin
             velx_i   => init(i).velx,
             vely_i   => init(i).vely,
             move_i   => move_s,
-            x_o      => vx_r(i)(12 downto 3),
-            y_o      => vy_r(i)(12 downto 3)
+            x_o      => vx_r(i)(14 downto 5),
+            y_o      => vy_r(i)(14 downto 5)
          ); -- i_move
 
       -- This is a small combinatorial block that computes the distance
@@ -173,8 +173,8 @@ begin
             G_SIZE => 10
          )
          port map (
-            x1_i   => vx_r(i)(12 downto 3),
-            y1_i   => vy_r(i)(12 downto 3),
+            x1_i   => vx_r(i)(14 downto 5),
+            y1_i   => vy_r(i)(14 downto 5),
             x2_i   => pix_x_s,
             y2_i   => pix_y_s,
             dist_o => dist_s(i)
@@ -203,9 +203,9 @@ begin
    ------------------------------------------------
 
    p_mindist : process (vga_clk_s)
-      variable mindist1_v : std_logic_vector(12 downto 0);
+      variable mindist1_v : std_logic_vector(14 downto 0);
       variable colour1_v  : std_logic_vector(2 downto 0);
-      variable mindist2_v : std_logic_vector(12 downto 0);
+      variable mindist2_v : std_logic_vector(14 downto 0);
       variable colour2_v  : std_logic_vector(2 downto 0);
    begin
       if rising_edge(vga_clk_s) then
@@ -252,7 +252,7 @@ begin
       variable brightness_v : std_logic_vector(3 downto 0);
    begin
       if rising_edge(vga_clk_s) then
-         brightness_v := not mindist_d0(9 downto 6);
+         brightness_v := not mindist_d0(11 downto 8);
          case colour_d0 is
             when "000" => vga_col_d1 <= brightness_v & brightness_v & brightness_v;
             when "001" => vga_col_d1 <= brightness_v & brightness_v &       "0000";
