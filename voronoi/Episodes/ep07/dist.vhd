@@ -6,14 +6,15 @@ use ieee.numeric_std_unsigned.all;
 -- between two points.
 entity dist is
    generic (
-      G_SIZE : integer
+      G_RESOLUTION : integer;
+      G_SIZE       : integer
    );
    port (
       x1_i   : in  std_logic_vector(G_SIZE-1 downto 0);
       y1_i   : in  std_logic_vector(G_SIZE-1 downto 0);
       x2_i   : in  std_logic_vector(G_SIZE-1 downto 0);
       y2_i   : in  std_logic_vector(G_SIZE-1 downto 0);
-      dist_o : out std_logic_vector(G_SIZE+4 downto 0)
+      dist_o : out std_logic_vector(G_SIZE+G_RESOLUTION-1 downto 0)
    );
 end dist;
 
@@ -61,7 +62,8 @@ begin
    -- Calculate the distance.
    i_rms : entity work.rms
       generic map (
-         G_SIZE => G_SIZE
+         G_RESOLUTION => G_RESOLUTION,
+         G_SIZE       => G_SIZE
       )
       port map (
          x_i   => xdist_s,

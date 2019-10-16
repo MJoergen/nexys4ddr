@@ -23,8 +23,9 @@ end voronoi;
 
 architecture structural of voronoi is
 
-   constant H_PIXELS : integer := 640;
-   constant V_PIXELS : integer := 480;
+   constant H_PIXELS     : integer := 640;
+   constant V_PIXELS     : integer := 480;
+   constant C_RESOLUTION : integer := 7;
 
    -- Clock divider for VGA clock
    signal vga_cnt_r : std_logic_vector(1 downto 0) := (others => '0');
@@ -41,7 +42,7 @@ architecture structural of voronoi is
    signal move_s  : std_logic;
 
    -- A vector of coordinates.
-   type t_coord_vector is array(natural range <>) of std_logic_vector(14 downto 0);
+   type t_coord_vector is array(natural range <>) of std_logic_vector(9+C_RESOLUTION downto 0);
 
    constant C_NUM_POINTS : integer := 32;
 
@@ -59,7 +60,7 @@ architecture structural of voronoi is
    signal vga_vs_r   : std_logic;
 
    -- Colour of current pixel.
-   signal mindist_d0 : std_logic_vector(14 downto 0);
+   signal mindist_d0 : std_logic_vector(9+C_RESOLUTION downto 0);
    signal colour_d0  : std_logic_vector(2 downto 0);
    signal pix_x_d0   : std_logic_vector(9 downto 0) := (others => '0');
    signal pix_y_d0   : std_logic_vector(9 downto 0) := (others => '0');
@@ -88,8 +89,8 @@ architecture structural of voronoi is
       res_v.startx := to_stdlogicvector(10 + ((i*23)    mod (H_PIXELS-20)), 10);
       res_v.starty := to_stdlogicvector(10 + ((i*i*37)  mod (V_PIXELS-20)), 10);
       -- Make sure the initial velocity is not zero.
-      res_v.velx   := to_stdlogicvector( 1 + ((i*i*2)   mod 15),             4);
-      res_v.vely   := to_stdlogicvector( 1 + ((i*i*i*3) mod 15),             4);
+      res_v.velx   := to_stdlogicvector( 1 + ((i*i*7)   mod 15),             4);
+      res_v.vely   := to_stdlogicvector( 1 + ((i*i*i*4) mod 15),             4);
 
       return res_v;
    end function init;
@@ -162,19 +163,20 @@ begin
             velx_i   => init(i).velx,
             vely_i   => init(i).vely,
             move_i   => move_s,
-            x_o      => vx_r(i)(14 downto 5),
-            y_o      => vy_r(i)(14 downto 5)
+            x_o      => vx_r(i)(9+C_RESOLUTION downto C_RESOLUTION),
+            y_o      => vy_r(i)(9+C_RESOLUTION downto C_RESOLUTION)
          ); -- i_move
 
       -- This is a small combinatorial block that computes the distance
       -- from the current pixel to the Voronoi center.
       i_dist : entity work.dist
          generic map (
-            G_SIZE => 10
+            G_RESOLUTION => C_RESOLUTION,
+            G_SIZE       => 10
          )
          port map (
-            x1_i   => vx_r(i)(14 downto 5),
-            y1_i   => vy_r(i)(14 downto 5),
+            x1_i   => vx_r(i)(9+C_RESOLUTION downto C_RESOLUTION),
+            y1_i   => vy_r(i)(9+C_RESOLUTION downto C_RESOLUTION),
             x2_i   => pix_x_s,
             y2_i   => pix_y_s,
             dist_o => dist_s(i)
@@ -203,9 +205,9 @@ begin
    ------------------------------------------------
 
    p_mindist : process (vga_clk_s)
-      variable mindist1_v : std_logic_vector(14 downto 0);
+      variable mindist1_v : std_logic_vector(9+C_RESOLUTION downto 0);
       variable colour1_v  : std_logic_vector(2 downto 0);
-      variable mindist2_v : std_logic_vector(14 downto 0);
+      variable mindist2_v : std_logic_vector(9+C_RESOLUTION downto 0);
       variable colour2_v  : std_logic_vector(2 downto 0);
    begin
       if rising_edge(vga_clk_s) then
@@ -252,7 +254,7 @@ begin
       variable brightness_v : std_logic_vector(3 downto 0);
    begin
       if rising_edge(vga_clk_s) then
-         brightness_v := not mindist_d0(11 downto 8);
+         brightness_v := not mindist_d0(C_RESOLUTION+6 downto C_RESOLUTION+3);
          case colour_d0 is
             when "000" => vga_col_d1 <= brightness_v & brightness_v & brightness_v;
             when "001" => vga_col_d1 <= brightness_v & brightness_v &       "0000";
