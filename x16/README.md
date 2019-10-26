@@ -10,6 +10,9 @@ implemented in the FPGA on the Digilent board.
 * 128 kB ROM (Banked)
 * 2 MB RAM (Banked)
 * VIA chips (Interfaces to keyboard)
+* SD card
+
+The VERA chip contains additional 128 kB of video RAM.
 
 The FPGA on the Digilent board is a Xilinx Artix-7 (XC7A100T), which contains
 540 kB of Block RAM. So, this project will not support the full 2 MB of RAM
@@ -23,7 +26,7 @@ on the X16.
 
 ### I/O memory map
 * 0x9F00 - 0x9F1F : Reserved
-* 0x9F20 - 0x9F3F : VERA
+* 0x9F20 - 0x9F3F : [VERA](https://github.com/commanderx16/x16-docs/blob/master/VERA%20Programmer's%20Reference.md)
 * 0x9F40 - 0x9F5F : Reserved
 * 0x9F60 - 0x9F6F : VIA1 (Selects ROM and RAM bank)
 * 0x9F70 - 0x9F7F : VIA2 (Connected to PS/2 keyboard)
