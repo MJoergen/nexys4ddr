@@ -1,7 +1,7 @@
-XILINX_DIR = /opt/Xilinx/Vivado/2019.1
+XILINX_DIR = /opt/Xilinx/Vivado/2018.2
 
 SOURCES  = x16.tcl x16.vhd x16.xdc clk.vhd
-SOURCES += vera/vera.vhd
+SOURCES += vera/vera.vhd vera/pix.vhd vera/vga.vhd
 SOURCES += cpu_65c02/cpu_65c02.vhd
   
 x16.bit: $(SOURCES)

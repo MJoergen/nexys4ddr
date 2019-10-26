@@ -31,8 +31,9 @@ architecture structural of x16 is
    constant C_FONT_FILE     : string := "font8x8.txt";      -- Initial fonts for VERA.
 
    signal vga_clk           : std_logic;   -- 25 MHz
-   signal cpu_clk           : std_logic;   --  8 MHz
+   signal vga_rst           : std_logic;
 
+   signal cpu_clk           : std_logic;   --  8 MHz
    signal cpu_rst           : std_logic;
    signal cpu_irq           : std_logic;
    signal cpu_addr          : std_logic_vector(15 downto 0);
@@ -65,6 +66,7 @@ begin
       )
       port map (
          clk_i     => vga_clk,
+         rst_i     => vga_rst,
          vga_hs_o  => vga_hs_o,
          vga_vs_o  => vga_vs_o,
          vga_col_o => vga_col_o

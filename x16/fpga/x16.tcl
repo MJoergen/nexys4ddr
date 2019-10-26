@@ -1,7 +1,7 @@
 # This is a tcl command script for the Vivado tool chain
 read_vhdl -vhdl2008 { \
    clk.vhd x16.vhd \
-   vera/vera.vhd \
+   vera/vera.vhd vera/pix.vhd vera/vga.vhd \
    cpu_65c02/cpu_65c02.vhd \
 }
 read_xdc x16.xdc
