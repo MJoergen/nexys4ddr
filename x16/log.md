@@ -23,7 +23,8 @@ the dyoc project, where I just need to modify it for the 65C02.
 ## 2019-10-27
 I've determined all the writes performed by the KERNAL/BASIC during startup,
 and this gives information on how to initialize the VERA. I will need to
-emulate this when testing (before I implement the CPU).
+emulate this when testing (before I implement the CPU). See the
+[README](fpga/vera/README.md) in the vera subdirectory.
 
 I've started implementing mode 0 (the default text mode). However, I've
 immediately run into a problem. For each pixel being displayed, the VERA must
