@@ -46,6 +46,9 @@ The ROM is banked as follows
 To select the ROM bank, write to bits 2-0 of address 0x9F60.
 To select the RAM bank, write to address 0x9F61.
 
+## Log
+I'm keeping a [log](log.md) of my progress, so I can keep track of all my
+ideas.
 
 ## Links
 * [Nexys4DDR board from Digilent](https://reference.digilentinc.com/reference/programmable-logic/nexys-4-ddr/start)
