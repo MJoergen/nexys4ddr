@@ -30,6 +30,7 @@ immediately run into a problem. For each pixel being displayed, the VERA must
 perform two reads from the Video RAM:
 1. Reading from the MAP area to get the character value at the corresponding pixel.
 2. Reading from the TILE area to get the tile data for this character.
+
 Initially I had planned to place the MAP and TILE area in two separate Block RAMs,
 so that they could be performed simultaneously. However, with the very flexible
 interface of the VERA this is not possible. So I need to rethink this.
