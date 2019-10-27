@@ -32,8 +32,8 @@ perform two reads from the Video RAM:
 1. Reading from the MAP area to get the character value at the corresponding pixel.
 2. Reading from the TILE area to get the tile data for this character.
 
-Initially I had planned to place the MAP and TILE area in two separate Block RAMs,
-so that they could be performed simultaneously. However, with the very flexible
-interface of the VERA this is not possible. So I need to rethink this.
-Furthermore, when implementing the sprite functionality I will need to perform
-additional reads from the Video RAM.
+Initially I had planned to place the MAP and TILE areas in two separate Block
+RAMs, so that the reads could be performed simultaneously. However, with the
+very flexible interface of the VERA this is not possible. So I need to rethink
+this.  Furthermore, when implementing the sprite functionality I will need to
+perform additional reads from the Video RAM.
