@@ -20,3 +20,18 @@ process that simulates the CPU writes to the VERA.
 I will wait with implementing the CPU, as I already have a working 6502 from
 the dyoc project, where I just need to modify it for the 65C02.
 
+## 2019-10-27
+I've determined all the writes performed by the KERNAL/BASIC during startup,
+and this gives information on how to initialize the VERA. I will need to
+emulate this when testing (before I implement the CPU).
+
+I've started implementing mode 0 (the default text mode). However, I've
+immediately run into a problem. For each pixel being displayed, the VERA must
+perform two reads from the Video RAM:
+1. Reading from the MAP area to get the character value at the corresponding pixel.
+2. Reading from the TILE area to get the tile data for this character.
+Initially I had planned to place the MAP and TILE area in two separate Block RAMs,
+so that they could be performed simultaneously. However, with the very flexible
+interface of the VERA this is not possible. So I need to rethink this.
+Furthermore, when implementing the sprite functionality I will need to perform
+additional reads from the Video RAM.
