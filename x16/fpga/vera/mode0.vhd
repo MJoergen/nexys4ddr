@@ -12,7 +12,7 @@ use ieee.numeric_std_unsigned.all;
 -- 1. To get the character value at the corresponding pixel (using mapbase_i).
 -- 2. To get the tile data for this character (using tilebase_i).
 
-entity tile is
+entity mode0 is
    port (
       clk_i      : in  std_logic;
       rst_i      : in  std_logic;
@@ -38,9 +38,9 @@ entity tile is
       pix_y_o    : out std_logic_vector( 9 downto 0);
       col_o      : out std_logic_vector(11 downto 0)
    );
-end tile;
+end mode0;
 
-architecture rtl of tile is
+architecture rtl of mode0 is
 
 begin
    
