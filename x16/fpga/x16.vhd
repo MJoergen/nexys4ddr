@@ -28,7 +28,6 @@ end x16;
 architecture structural of x16 is
 
    constant C_ROM_INIT_FILE : string := "../rom.txt";       -- ROM contents.
-   constant C_FONT_FILE     : string := "font8x8.txt";      -- Initial fonts for VERA.
 
    signal vga_clk           : std_logic;   -- 25 MHz
    signal vga_rst           : std_logic;
@@ -61,9 +60,6 @@ begin
    --------------------------------------------------
 
    i_vera : entity work.vera
-      generic map (
-         G_FONT_FILE => C_FONT_FILE
-      )
       port map (
          clk_i     => vga_clk,
          vga_hs_o  => vga_hs_o,

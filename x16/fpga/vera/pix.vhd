@@ -25,8 +25,8 @@ end pix;
 architecture structural of pix is
 
    -- Pixel counters
-   signal pix_x_r : std_logic_vector(9 downto 0);
-   signal pix_y_r : std_logic_vector(9 downto 0);
+   signal pix_x_r : std_logic_vector(9 downto 0) := (others => '0');
+   signal pix_y_r : std_logic_vector(9 downto 0) := (others => '0');
 
 begin
    

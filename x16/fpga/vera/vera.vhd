@@ -5,9 +5,6 @@ use ieee.std_logic_1164.all;
 -- It generates a display with 640x480 pixels at 60 Hz refresh rate.
 
 entity vera is
-   generic (
-      G_FONT_FILE : string                               -- File name with fonts.
-   );
    port (
       clk_i     : in    std_logic;                       -- 25 MHz
 
@@ -105,7 +102,7 @@ begin
          tilebase_i => tilebase_s,
          vaddr_o    => vaddr_s,
          vread_o    => vread_s,
-         vdata_i    => vdata_s,
+         vdata_i    => vaddr_s(7 downto 0), -- vdata_s,
          paddr_o    => paddr_s,
          pdata_i    => pdata_s,
          pix_x_o    => pix_x_out_s,

@@ -106,7 +106,6 @@ begin
          -- Stage 1. Read colour value from Video RAM.
          if pix_x_i(2 downto 0) = 1 then
             map_value_r <= vdata_i; -- Store map value.
-            map_value_r <= vaddr_o(7 downto 0); -- TBD
 
             map_row_v    := pix_y_i(8 downto 3);
             map_column_v := pix_x_i(9 downto 3);
@@ -122,7 +121,6 @@ begin
          -- Stage 2. Read tile value from Video RAM.
          if pix_x_i(2 downto 0) = 2 then
             colour_value_r <= vdata_i; -- Store colour value.
-            colour_value_r <= vaddr_o(7 downto 0); -- TBD
 
             tile_row_v := pix_y_i(2 downto 0);
             tile_offset_v := "000000" & map_value_r & tile_row_v;
