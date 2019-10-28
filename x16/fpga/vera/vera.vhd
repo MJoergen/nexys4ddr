@@ -102,7 +102,7 @@ begin
          tilebase_i => tilebase_s,
          vaddr_o    => vaddr_s,
          vread_o    => vread_s,
-         vdata_i    => vaddr_s(7 downto 0), -- vdata_s,
+         vdata_i    => vdata_s,
          paddr_o    => paddr_s,
          pdata_i    => pdata_s,
          pix_x_o    => pix_x_out_s,
