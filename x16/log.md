@@ -51,7 +51,7 @@ So far, I'm ignoring all writes to the configuration registers, and only
 focusing on getting the reads from Video RAM working properly. I've copied
 (most of) the startup writes performed by the KERNAL/BASIC into a small module
 that simulates the CPU. This should generate the same startup screen as the
-X16.
+X16, albeit with a black background.
 
 To help debug the VERA implementation, I've added a test bench for simulating
 the VERA. This immediately helped me find two bugs in mode0.vhd. One bug was
