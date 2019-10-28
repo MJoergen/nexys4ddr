@@ -9,11 +9,15 @@ use ieee.numeric_std_unsigned.all;
 
 entity vram is
    port (
-      clk_i  : in  std_logic;
-      addr_i : in  std_logic_vector(16 downto 0);  -- 17 bit address allows for 128 kB
-      data_i : in  std_logic_vector( 7 downto 0);
-      wren_i : in  std_logic;
-      data_o : out std_logic_vector( 7 downto 0)
+      clk_i     : in  std_logic;
+      -- Write port
+      wr_addr_i : in  std_logic_vector(16 downto 0);  -- 17 bit address allows for 128 kB
+      wr_en_i   : in  std_logic;
+      wr_data_i : in  std_logic_vector( 7 downto 0);
+      -- Read port
+      rd_addr_i : in  std_logic_vector(16 downto 0);  -- 17 bit address allows for 128 kB
+      rd_en_i   : in  std_logic;
+      rd_data_o : out std_logic_vector( 7 downto 0)
    );
 end vram;
 
@@ -25,17 +29,14 @@ architecture structural of vram is
    -- Initialize memory contents
    signal mem_r : mem_t := (others => (others => '0'));
 
-   -- Data read from memory.
-   signal data_r : std_logic_vector(7 downto 0);
-
 begin
 
    -- Write process
    p_write : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if wren_i = '1' then
-            mem_r(to_integer(addr_i(15 downto 0))) <= data_i;
+         if wr_en_i = '1' then
+            mem_r(to_integer(wr_addr_i(15 downto 0))) <= wr_data_i;
          end if;
       end if;
    end process p_write;
@@ -44,12 +45,11 @@ begin
    p_read : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         data_r <= mem_r(to_integer(addr_i(15 downto 0)));
+         if rd_en_i = '1' then
+            rd_data_o <= mem_r(to_integer(rd_addr_i(15 downto 0)));
+         end if;
       end if;
    end process p_read;
-
-   -- Drive output signals
-   data_o <= data_r;
 
 end structural;
 

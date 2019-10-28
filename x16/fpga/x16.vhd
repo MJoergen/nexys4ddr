@@ -66,7 +66,6 @@ begin
       )
       port map (
          clk_i     => vga_clk,
-         rst_i     => vga_rst,
          vga_hs_o  => vga_hs_o,
          vga_vs_o  => vga_vs_o,
          vga_col_o => vga_col_o

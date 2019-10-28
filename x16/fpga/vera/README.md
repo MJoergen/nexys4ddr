@@ -49,7 +49,7 @@ The values are interpreted as follows:
 The values are interpreted as follows:
 * MODE = 0, which means 16 colour text mode
 * MAPW = 2, which means 128 tiles wide
-* MAPH = 1, which means 64 files high
+* MAPH = 1, which means 64 tiles high
 * TILEW = TILEH = 0, which means each tile is 8x8
 * MAPBASE = 0, which means the MAP area starts at 0x00000
 * TILEBASE = 0x3E00, which means the TILE area starts at 0x0F800

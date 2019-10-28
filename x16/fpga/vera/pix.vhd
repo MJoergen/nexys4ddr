@@ -15,7 +15,6 @@ entity pix is
    );
    port (
       clk_i   : in  std_logic;
-      rst_i   : in  std_logic;
 
       -- Pixel counters
       pix_x_o : out std_logic_vector(9 downto 0);
@@ -43,10 +42,6 @@ begin
          else
             pix_x_r <= pix_x_r + 1;
          end if;
-
-         if rst_i = '1' then
-            pix_x_r <= (others => '0');
-         end if;
       end if;
    end process p_pix_x;
 
@@ -59,10 +54,6 @@ begin
             else
                pix_y_r <= pix_y_r + 1;
             end if;
-         end if;
-
-         if rst_i = '1' then
-            pix_y_r <= (others => '0');
          end if;
       end if;
    end process p_pix_y;

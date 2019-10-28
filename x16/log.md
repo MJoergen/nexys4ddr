@@ -37,3 +37,5 @@ RAMs, so that the reads could be performed simultaneously. However, with the
 very flexible interface of the VERA this is not possible. So I need to rethink
 this.  Furthermore, when implementing the sprite functionality I will need to
 perform additional reads from the Video RAM.
+
+## 2019-10-28
