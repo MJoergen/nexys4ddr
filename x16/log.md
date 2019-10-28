@@ -21,9 +21,9 @@ I will wait with implementing the CPU, as I already have a working 6502 from
 the dyoc project, where I just need to modify it for the 65C02.
 
 ## 2019-10-27
-I've determined all the writes performed by the KERNAL/BASIC during startup,
-and this gives information on how to initialize the VERA. I will need to
-emulate this when testing (before I implement the CPU). See the
+I've generated a list of all the writes performed by the KERNAL/BASIC during
+startup, and this gives information on how to initialize the VERA. I will need
+to emulate this when testing (before I implement the CPU). See the
 [README](fpga/vera/README.md) in the vera subdirectory.
 
 I've started implementing mode 0 (the default text mode). However, I've
@@ -43,6 +43,19 @@ I realized that reading from Video RAM only needs to take place for every tile,
 and not for every pixel. And since each tile is (at least) 8 pixels wide, there
 is adequate time for reading.
 
+The module needs to perform three reads from Video RAM for each eight
+horizontal pixels: Two bytes from the MAP area, and one byte from the TILE
+area.
+
+So far, I'm ignoring all writes to the configuration registers, and only
+focusing on getting the reads from Video RAM working properly. I've copied
+(most of) the startup writes performed by the KERNAL/BASIC into a small module
+that simulates the CPU. This should generate the same startup screen as the
+X16.
+
 To help debug the VERA implementation, I've added a test bench for simulating
-the VERA.
+the VERA. This immediately helped me find two bugs in mode0.vhd. One bug was
+that the staged pixel counters were only updated once every tile, but should be
+updated on every pixel. The other was insufficient delay when reading from
+Video RAM.
 
