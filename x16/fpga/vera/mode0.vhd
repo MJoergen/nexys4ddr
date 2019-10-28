@@ -20,9 +20,10 @@ use ieee.numeric_std_unsigned.all;
 -- Because there may be several pipeline stages in this block, the output must
 -- also include the pixel counters delayed accordingly.
 --
--- This block needs to read the Video RAM twice:
--- 1. To get the tile value at the corresponding pixel (using mapbase_i).
--- 2. To get the tile data for this character (using tilebase_i).
+-- This block needs to read the Video RAM three times:
+-- 1. To get the tile index at the corresponding pixel (using mapbase_i).
+-- 2. To get the colour index at the corresponding pixel (using mapbase_i).
+-- 3. To get the tile data for this character (using tilebase_i).
 --
 -- Since each tile is 8 pixels wide (and hence eight clock cycles),
 -- the reads from Video RAM are staged.
@@ -80,14 +81,21 @@ architecture rtl of mode0 is
 
 begin
 
-   p_stages : process (clk_i)
-      variable map_row_v    : std_logic_vector( 5 downto 0); --  64 tiles high
-      variable map_column_v : std_logic_vector( 6 downto 0); -- 128 tiles wide
-      variable map_offset_v : std_logic_vector(16 downto 0);
-      variable map_value_v  : std_logic_vector( 7 downto 0);
+   ---------------------------------------
+   -- Perform staged reads from Video RAM
+   -- 1. To get the tile index at the corresponding pixel (using mapbase_i).
+   -- 2. To get the colour index at the corresponding pixel (using mapbase_i).
+   -- 3. To get the tile data for this character (using tilebase_i).
+   ---------------------------------------
 
-      variable tile_row_v    : std_logic_vector( 2 downto 0); -- 8 pixels high
-      variable tile_column_v : std_logic_vector( 2 downto 0); -- 8 pixels wide
+   p_stages : process (clk_i)
+      variable map_row_v    : std_logic_vector( 5 downto 0);   --  64 tiles high
+      variable map_column_v : std_logic_vector( 6 downto 0);   -- 128 tiles wide
+      variable map_offset_v : std_logic_vector(16 downto 0);
+      variable map_value_v  : std_logic_vector( 7 downto 0);   -- Tile index
+
+      variable tile_row_v    : std_logic_vector( 2 downto 0);  -- 8 pixels high
+      variable tile_column_v : std_logic_vector( 2 downto 0);  -- 8 pixels wide
       variable tile_offset_v : std_logic_vector(16 downto 0);
    begin
       if rising_edge(clk_i) then
@@ -108,7 +116,7 @@ begin
          pix_x_4r <= pix_x_3r;
          pix_y_4r <= pix_y_3r;
 
-         -- Stage 0. Read map value from Video RAM. Ready in stage 2.
+         -- Stage 0. Read tile index from Video RAM. Ready in stage 2.
          if pix_x_i(2 downto 0) = 0 then
             map_row_v    := pix_y_i(8 downto 3);
             map_column_v := pix_x_i(9 downto 3);
@@ -118,7 +126,7 @@ begin
             vread_o <= '1';
          end if;
 
-         -- Stage 1. Read colour value from Video RAM. Ready in stage 3.
+         -- Stage 1. Read colour index from Video RAM. Ready in stage 3.
          if pix_x_i(2 downto 0) = 1 then
 
             map_row_v    := pix_y_i(8 downto 3);
@@ -129,9 +137,9 @@ begin
             vread_o <= '1';
          end if;
 
-         -- Stage 2. Read tile value from Video RAM. Ready in stage 4.
+         -- Stage 2. Read tile data from Video RAM. Ready in stage 4.
          if pix_x_i(2 downto 0) = 2 then
-            map_value_v := vdata_i;
+            map_value_v := vdata_i;    -- Store tile index for this tile.
             tile_row_v := pix_y_i(2 downto 0);
             tile_offset_v := "000000" & map_value_v & tile_row_v;
 
@@ -141,16 +149,21 @@ begin
 
          -- Stage 3. Store colour value.
          if pix_x_i(2 downto 0) = 3 then
-            colour_value_r <= vdata_i; -- Store colour value.
+            colour_value_r <= vdata_i; -- Store colour index for this tile.
          end if;
 
          -- Stage 4. Store tile value.
          if pix_x_i(2 downto 0) = 4 then
-            tile_value_r <= vdata_i;   -- Store tile value.
+            tile_value_r <= vdata_i;   -- Store data for this tile.
          end if;
 
       end if;
    end process p_stages;
+
+
+   -------------------------
+   -- Read from palette RAM
+   -------------------------
 
    p_colour : process (clk_i)
       variable tile_column_v : integer range 0 to 7; -- 8 pixels wide
@@ -161,10 +174,10 @@ begin
          tile_column_v := to_integer(pix_x_4r(2 downto 0));
          pixel_v := tile_value_r(tile_column_v);
 
-         if pixel_v = '0' then -- background
-            paddr_o <= "0000" & colour_value_r(7 downto 4);
+         if pixel_v = '0' then
+            paddr_o <= "0000" & colour_value_r(7 downto 4);    -- background
          else
-            paddr_o <= "0000" & colour_value_r(3 downto 0);
+            paddr_o <= "0000" & colour_value_r(3 downto 0);    -- foreground
          end if;
 
          pix_x_5r <= pix_x_4r;
@@ -172,7 +185,11 @@ begin
       end if;
    end process p_colour;
 
-   
+
+   --------------------
+   -- Output registers
+   --------------------
+
    p_output : process (clk_i)
    begin
       if rising_edge(clk_i) then
