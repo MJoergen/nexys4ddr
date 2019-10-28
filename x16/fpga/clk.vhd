@@ -128,15 +128,15 @@ clk_in1_clk_wiz_0 <= clk_in1;
     CLKOUT4_CASCADE      => FALSE,
     COMPENSATION         => "ZHOLD",
     STARTUP_WAIT         => FALSE,
-    DIVCLK_DIVIDE        => 1,
-    CLKFBOUT_MULT_F      => 10.000,
+    DIVCLK_DIVIDE        => 3,
+    CLKFBOUT_MULT_F      => 27.500,
     CLKFBOUT_PHASE       => 0.000,
     CLKFBOUT_USE_FINE_PS => FALSE,
-    CLKOUT0_DIVIDE_F     => 125.000, -- CPU @  8 MHz
+    CLKOUT0_DIVIDE_F     => 36.375, -- VGA @ 25.20 MHz
     CLKOUT0_PHASE        => 0.000,
     CLKOUT0_DUTY_CYCLE   => 0.500,
     CLKOUT0_USE_FINE_PS  => FALSE,
-    CLKOUT1_DIVIDE       => 40,     -- VGA @ 25 MHz
+    CLKOUT1_DIVIDE       => 110,    -- CPU @  8.33 MHz
     CLKOUT1_PHASE        => 0.000,
     CLKOUT1_DUTY_CYCLE   => 0.500,
     CLKOUT1_USE_FINE_PS  => FALSE,
@@ -147,9 +147,9 @@ clk_in1_clk_wiz_0 <= clk_in1;
    (
     CLKFBOUT            => clkfbout_clk_wiz_0,
     CLKFBOUTB           => clkfboutb_unused,
-    CLKOUT0             => cpu_clk_wiz_0,
+    CLKOUT0             => vga_clk_wiz_0,
     CLKOUT0B            => clkout0b_unused,
-    CLKOUT1             => vga_clk_wiz_0,
+    CLKOUT1             => cpu_clk_wiz_0,
     CLKOUT1B            => clkout1b_unused,
     CLKOUT2             => clkout2_unused,
     CLKOUT2B            => clkout2b_unused,
@@ -194,15 +194,15 @@ clk_in1_clk_wiz_0 <= clk_in1;
     I => clkfbout_clk_wiz_0);
 
 
+  clkout0_buf : BUFG
+  port map
+   (O   => vga_clk,
+    I   => vga_clk_wiz_0);
+
   clkout1_buf : BUFG
   port map
    (O   => cpu_clk,
     I   => cpu_clk_wiz_0);
-
-  clkout2_buf : BUFG
-  port map
-   (O   => vga_clk,
-    I   => vga_clk_wiz_0);
 
 end xilinx;
 
