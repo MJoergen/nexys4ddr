@@ -26,7 +26,7 @@ on the X16.
 
 ### I/O memory map
 * 0x9F00 - 0x9F1F : Reserved
-* 0x9F20 - 0x9F3F : [VERA](https://github.com/commanderx16/x16-docs/blob/master/VERA%20Programmer's%20Reference.md)
+* 0x9F20 - 0x9F3F : [VERA](fpga/vera/README.md)
 * 0x9F40 - 0x9F5F : Reserved
 * 0x9F60 - 0x9F6F : VIA1 (Selects ROM and RAM bank)
 * 0x9F70 - 0x9F7F : VIA2 (Connected to PS/2 keyboard)
