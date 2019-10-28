@@ -72,9 +72,11 @@ architecture rtl of mode0 is
    signal pix_x_4r       : std_logic_vector( 9 downto 0);
    signal pix_y_4r       : std_logic_vector( 9 downto 0);
 
-   signal map_value_r    : std_logic_vector(7 downto 0);
-   signal colour_value_r : std_logic_vector(7 downto 0);
-   signal tile_value_r   : std_logic_vector(7 downto 0);
+   signal pix_x_5r       : std_logic_vector( 9 downto 0);
+   signal pix_y_5r       : std_logic_vector( 9 downto 0);
+
+   signal colour_value_r : std_logic_vector( 7 downto 0);
+   signal tile_value_r   : std_logic_vector( 7 downto 0);
 
 begin
 
@@ -82,6 +84,7 @@ begin
       variable map_row_v    : std_logic_vector( 5 downto 0); --  64 tiles high
       variable map_column_v : std_logic_vector( 6 downto 0); -- 128 tiles wide
       variable map_offset_v : std_logic_vector(16 downto 0);
+      variable map_value_v  : std_logic_vector( 7 downto 0);
 
       variable tile_row_v    : std_logic_vector( 2 downto 0); -- 8 pixels high
       variable tile_column_v : std_logic_vector( 2 downto 0); -- 8 pixels wide
@@ -90,7 +93,22 @@ begin
       if rising_edge(clk_i) then
          vread_o <= '0';
 
-         -- Stage 0. Read map value from Video RAM.
+         pix_x_0r <= pix_x_i;
+         pix_y_0r <= pix_y_i;
+
+         pix_x_1r <= pix_x_0r;
+         pix_y_1r <= pix_y_0r;
+
+         pix_x_2r <= pix_x_1r;
+         pix_y_2r <= pix_y_1r;
+
+         pix_x_3r <= pix_x_2r;
+         pix_y_3r <= pix_y_2r;
+
+         pix_x_4r <= pix_x_3r;
+         pix_y_4r <= pix_y_3r;
+
+         -- Stage 0. Read map value from Video RAM. Ready in stage 2.
          if pix_x_i(2 downto 0) = 0 then
             map_row_v    := pix_y_i(8 downto 3);
             map_column_v := pix_x_i(9 downto 3);
@@ -98,14 +116,10 @@ begin
 
             vaddr_o <= mapbase_i + map_offset_v;
             vread_o <= '1';
-
-            pix_x_0r <= pix_x_i;
-            pix_y_0r <= pix_y_i;
          end if;
 
-         -- Stage 1. Read colour value from Video RAM.
+         -- Stage 1. Read colour value from Video RAM. Ready in stage 3.
          if pix_x_i(2 downto 0) = 1 then
-            map_value_r <= vdata_i; -- Store map value.
 
             map_row_v    := pix_y_i(8 downto 3);
             map_column_v := pix_x_i(9 downto 3);
@@ -113,31 +127,26 @@ begin
 
             vaddr_o <= mapbase_i + map_offset_v;
             vread_o <= '1';
-
-            pix_x_1r <= pix_x_0r;
-            pix_y_1r <= pix_y_0r;
          end if;
 
-         -- Stage 2. Read tile value from Video RAM.
+         -- Stage 2. Read tile value from Video RAM. Ready in stage 4.
          if pix_x_i(2 downto 0) = 2 then
-            colour_value_r <= vdata_i; -- Store colour value.
-
+            map_value_v := vdata_i;
             tile_row_v := pix_y_i(2 downto 0);
-            tile_offset_v := "000000" & map_value_r & tile_row_v;
+            tile_offset_v := "000000" & map_value_v & tile_row_v;
 
             vaddr_o <= tilebase_i + tile_offset_v;
             vread_o <= '1';
-
-            pix_x_2r <= pix_x_1r;
-            pix_y_2r <= pix_y_1r;
          end if;
 
-         -- Stage 3. Store tile value.
+         -- Stage 3. Store colour value.
          if pix_x_i(2 downto 0) = 3 then
-            tile_value_r <= vdata_i;   -- Store tile value.
+            colour_value_r <= vdata_i; -- Store colour value.
+         end if;
 
-            pix_x_3r <= pix_x_2r;
-            pix_y_3r <= pix_y_2r;
+         -- Stage 4. Store tile value.
+         if pix_x_i(2 downto 0) = 4 then
+            tile_value_r <= vdata_i;   -- Store tile value.
          end if;
 
       end if;
@@ -149,7 +158,7 @@ begin
       variable tile_offset_v : std_logic_vector(16 downto 0);
    begin
       if rising_edge(clk_i) then
-         tile_column_v := to_integer(pix_x_3r(2 downto 0));
+         tile_column_v := to_integer(pix_x_4r(2 downto 0));
          pixel_v := tile_value_r(tile_column_v);
 
          if pixel_v = '0' then -- background
@@ -158,8 +167,8 @@ begin
             paddr_o <= "0000" & colour_value_r(3 downto 0);
          end if;
 
-         pix_x_4r <= pix_x_3r;
-         pix_y_4r <= pix_y_3r;
+         pix_x_5r <= pix_x_4r;
+         pix_y_5r <= pix_y_4r;
       end if;
    end process p_colour;
 
@@ -167,8 +176,8 @@ begin
    p_output : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         pix_x_o <= pix_x_4r;
-         pix_y_o <= pix_y_4r;
+         pix_x_o <= pix_x_5r;
+         pix_y_o <= pix_y_5r;
          col_o   <= pdata_i;
       end if;
    end process p_output;

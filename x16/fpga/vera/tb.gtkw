@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Mon Oct 28 05:34:59 2019
+[*] Mon Oct 28 07:20:50 2019
 [*]
-[dumpfile] "/home/mike/git/nexys4ddr/x16/fpga/vera/tb.ghw"
-[dumpfile_mtime] "Mon Oct 28 05:33:39 2019"
-[dumpfile_size] 2139177
-[savefile] "/home/mike/git/nexys4ddr/x16/fpga/vera/tb.gtkw"
-[timestart] 0
-[size] 1918 1020
+[dumpfile] "/home/mfj/git/nexys4ddr/x16/fpga/vera/tb.ghw"
+[dumpfile_mtime] "Mon Oct 28 07:20:20 2019"
+[dumpfile_size] 2321363
+[savefile] "/home/mfj/git/nexys4ddr/x16/fpga/vera/tb.gtkw"
+[timestart] 9505900000
+[size] 1853 1145
 [pos] -1 -1
-*-29.181459 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-24.825819 9600000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.tb.
 [treeopen] top.tb.i_vera.
@@ -30,7 +30,6 @@
 #{top.tb.i_vera.i_mode0.pix_x_o[9:0]} top.tb.i_vera.i_mode0.pix_x_o[9] top.tb.i_vera.i_mode0.pix_x_o[8] top.tb.i_vera.i_mode0.pix_x_o[7] top.tb.i_vera.i_mode0.pix_x_o[6] top.tb.i_vera.i_mode0.pix_x_o[5] top.tb.i_vera.i_mode0.pix_x_o[4] top.tb.i_vera.i_mode0.pix_x_o[3] top.tb.i_vera.i_mode0.pix_x_o[2] top.tb.i_vera.i_mode0.pix_x_o[1] top.tb.i_vera.i_mode0.pix_x_o[0]
 #{top.tb.i_vera.i_mode0.pix_y_o[9:0]} top.tb.i_vera.i_mode0.pix_y_o[9] top.tb.i_vera.i_mode0.pix_y_o[8] top.tb.i_vera.i_mode0.pix_y_o[7] top.tb.i_vera.i_mode0.pix_y_o[6] top.tb.i_vera.i_mode0.pix_y_o[5] top.tb.i_vera.i_mode0.pix_y_o[4] top.tb.i_vera.i_mode0.pix_y_o[3] top.tb.i_vera.i_mode0.pix_y_o[2] top.tb.i_vera.i_mode0.pix_y_o[1] top.tb.i_vera.i_mode0.pix_y_o[0]
 #{top.tb.i_vera.i_mode0.col_o[11:0]} top.tb.i_vera.i_mode0.col_o[11] top.tb.i_vera.i_mode0.col_o[10] top.tb.i_vera.i_mode0.col_o[9] top.tb.i_vera.i_mode0.col_o[8] top.tb.i_vera.i_mode0.col_o[7] top.tb.i_vera.i_mode0.col_o[6] top.tb.i_vera.i_mode0.col_o[5] top.tb.i_vera.i_mode0.col_o[4] top.tb.i_vera.i_mode0.col_o[3] top.tb.i_vera.i_mode0.col_o[2] top.tb.i_vera.i_mode0.col_o[1] top.tb.i_vera.i_mode0.col_o[0]
-#{top.tb.i_vera.i_mode0.map_value_r[7:0]} top.tb.i_vera.i_mode0.map_value_r[7] top.tb.i_vera.i_mode0.map_value_r[6] top.tb.i_vera.i_mode0.map_value_r[5] top.tb.i_vera.i_mode0.map_value_r[4] top.tb.i_vera.i_mode0.map_value_r[3] top.tb.i_vera.i_mode0.map_value_r[2] top.tb.i_vera.i_mode0.map_value_r[1] top.tb.i_vera.i_mode0.map_value_r[0]
 #{top.tb.i_vera.i_mode0.colour_value_r[7:0]} top.tb.i_vera.i_mode0.colour_value_r[7] top.tb.i_vera.i_mode0.colour_value_r[6] top.tb.i_vera.i_mode0.colour_value_r[5] top.tb.i_vera.i_mode0.colour_value_r[4] top.tb.i_vera.i_mode0.colour_value_r[3] top.tb.i_vera.i_mode0.colour_value_r[2] top.tb.i_vera.i_mode0.colour_value_r[1] top.tb.i_vera.i_mode0.colour_value_r[0]
 #{top.tb.i_vera.i_mode0.tile_value_r[7:0]} top.tb.i_vera.i_mode0.tile_value_r[7] top.tb.i_vera.i_mode0.tile_value_r[6] top.tb.i_vera.i_mode0.tile_value_r[5] top.tb.i_vera.i_mode0.tile_value_r[4] top.tb.i_vera.i_mode0.tile_value_r[3] top.tb.i_vera.i_mode0.tile_value_r[2] top.tb.i_vera.i_mode0.tile_value_r[1] top.tb.i_vera.i_mode0.tile_value_r[0]
 @1000200

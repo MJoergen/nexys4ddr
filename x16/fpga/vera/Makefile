@@ -1,6 +1,6 @@
 # This Makefile is used for simulation testing of the VERA module.
 
-SOURCES  = vera.vhd pix.vhd vga.vhd vram.vhd palette.vhd mode0.vhd
+SOURCES  = vera.vhd pix.vhd vga.vhd vram.vhd palette.vhd mode0.vhd cpu.vhd
 SOURCES += tb.vhd
 TB       = tb
 WAVE     = tb.ghw
@@ -14,7 +14,7 @@ SAVE     = tb.gtkw
 sim: $(SOURCES)
 	ghdl -i --std=08 --work=work $(SOURCES)
 	ghdl -m --std=08 --ieee=synopsys -frelaxed-rules $(TB)
-	ghdl -r $(TB) --assert-level=error --wave=$(WAVE) --stop-time=4000ns
+	ghdl -r $(TB) --assert-level=error --wave=$(WAVE) --stop-time=12000ns
 	gtkwave $(WAVE) $(SAVE)
 
 
