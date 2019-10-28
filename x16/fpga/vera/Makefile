@@ -1,4 +1,7 @@
 # This Makefile is used for simulation testing of the VERA module.
+# Simulation is done using the program ghdl. It may be available
+# in your OS repository, otherwise it may be downloaded from here:
+# https://github.com/ghdl/ghdl
 
 SOURCES  = vera.vhd pix.vhd vga.vhd vram.vhd palette.vhd mode0.vhd cpu.vhd
 SOURCES += tb.vhd
