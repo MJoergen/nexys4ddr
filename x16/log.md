@@ -39,3 +39,10 @@ this.  Furthermore, when implementing the sprite functionality I will need to
 perform additional reads from the Video RAM.
 
 ## 2019-10-28
+I realized that reading from Video RAM only needs to take place for every tile,
+and not for every pixel. And since each tile is (at least) 8 pixels wide, there
+is adequate time for reading.
+
+To help debug the VERA implementation, I've added a test bench for simulating
+the VERA.
+
