@@ -59,3 +59,23 @@ that the staged pixel counters were only updated once every tile, but should be
 updated on every pixel. The other was insufficient delay when reading from
 Video RAM.
 
+## 2019-10-29
+Testing mode 0 on hardware revealed a simple error of each tile being mirrored,
+which was easy to fix.
+
+I've faked the background colour by initializing the entire VRAM with blue
+colour ('6' for background and foreground). This is just a temporary hack until
+I get the CPU and KERNAL running.
+
+The next step is to get the 65C02 CPU up and running.  On another project
+(https://github.com/MJoergen/cpu65c02) I've ported a complete functional test
+suite for the 65C02. This I will use to test my implementation of the 65C02
+CPU. I already have a working 6502 implementation
+[here](https://github.com/MJoergen/nexys4ddr/tree/master/dyoc), so that should
+be a relatively easy task.
+
+I still need to be very careful about the interface between the CPU and the
+VERA, because they will be running two different clock frequencies.  In
+particular, since reading from the VERA potentially updates the state in the
+VERA (addresses auto-increment) this makes the task very delicate.
+
