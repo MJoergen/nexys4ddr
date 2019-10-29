@@ -60,26 +60,32 @@ end mode0;
 
 architecture rtl of mode0 is
 
-   signal pix_x_0r       : std_logic_vector( 9 downto 0);
-   signal pix_y_0r       : std_logic_vector( 9 downto 0);
+   -- Stage 0
+   signal pix_x_0r        : std_logic_vector( 9 downto 0);
+   signal pix_y_0r        : std_logic_vector( 9 downto 0);
 
-   signal pix_x_1r       : std_logic_vector( 9 downto 0);
-   signal pix_y_1r       : std_logic_vector( 9 downto 0);
+   -- Stage 1
+   signal pix_x_1r        : std_logic_vector( 9 downto 0);
+   signal pix_y_1r        : std_logic_vector( 9 downto 0);
 
-   signal pix_x_2r       : std_logic_vector( 9 downto 0);
-   signal pix_y_2r       : std_logic_vector( 9 downto 0);
+   -- Stage 2
+   signal pix_x_2r        : std_logic_vector( 9 downto 0);
+   signal pix_y_2r        : std_logic_vector( 9 downto 0);
 
-   signal pix_x_3r       : std_logic_vector( 9 downto 0);
-   signal pix_y_3r       : std_logic_vector( 9 downto 0);
+   -- Stage 3
+   signal pix_x_3r        : std_logic_vector( 9 downto 0);
+   signal pix_y_3r        : std_logic_vector( 9 downto 0);
+   signal colour_value_3r : std_logic_vector( 7 downto 0);
 
-   signal pix_x_4r       : std_logic_vector( 9 downto 0);
-   signal pix_y_4r       : std_logic_vector( 9 downto 0);
+   -- Stage 4
+   signal pix_x_4r        : std_logic_vector( 9 downto 0);
+   signal pix_y_4r        : std_logic_vector( 9 downto 0);
+   signal colour_value_4r : std_logic_vector( 7 downto 0);
+   signal tile_value_4r   : std_logic_vector( 7 downto 0);
 
-   signal pix_x_5r       : std_logic_vector( 9 downto 0);
-   signal pix_y_5r       : std_logic_vector( 9 downto 0);
-
-   signal colour_value_r : std_logic_vector( 7 downto 0);
-   signal tile_value_r   : std_logic_vector( 7 downto 0);
+   -- Stage 5
+   signal pix_x_5r        : std_logic_vector( 9 downto 0);
+   signal pix_y_5r        : std_logic_vector( 9 downto 0);
 
 begin
 
@@ -141,7 +147,7 @@ begin
 
          -- Stage 2. Read tile data from Video RAM. Ready in stage 4.
          if pix_x_i(2 downto 0) = 2 then
-            map_value_v := vdata_i;    -- Store tile index for this tile.
+            map_value_v := vdata_i;             -- Store tile index for this tile.
             tile_row_v := pix_y_i(2 downto 0);
             tile_offset_v := "000000" & map_value_v & tile_row_v;
 
@@ -151,12 +157,14 @@ begin
 
          -- Stage 3. Store colour value.
          if pix_x_i(2 downto 0) = 3 then
-            colour_value_r <= vdata_i; -- Store colour index for this tile.
+            colour_value_3r <= vdata_i;         -- Store colour index for this tile.
          end if;
 
          -- Stage 4. Store tile value.
          if pix_x_i(2 downto 0) = 4 then
-            tile_value_r <= vdata_i;   -- Store data for this tile.
+            colour_value_4r <= colour_value_3r; -- Make sure colour and tile values
+                                                -- are properly synchronized.
+            tile_value_4r   <= vdata_i;         -- Store data for this tile.
          end if;
 
       end if;
@@ -176,13 +184,13 @@ begin
          tile_column_v := 7-to_integer(pix_x_4r(2 downto 0));  -- Subtract from 7, because the MSB of the tile data
                                                                -- corresponds to the lowest pixel coordinate.
 
-         pixel_v := tile_value_r(tile_column_v);               -- Get value of this particular pixel.
+         pixel_v := tile_value_4r(tile_column_v);               -- Get value of this particular pixel.
 
          -- Read pixel colour from palette RAM.
          if pixel_v = '0' then
-            paddr_o <= "0000" & colour_value_r(7 downto 4);    -- background
+            paddr_o <= "0000" & colour_value_4r(7 downto 4);    -- background
          else
-            paddr_o <= "0000" & colour_value_r(3 downto 0);    -- foreground
+            paddr_o <= "0000" & colour_value_4r(3 downto 0);    -- foreground
          end if;
 
          pix_x_5r <= pix_x_4r;
