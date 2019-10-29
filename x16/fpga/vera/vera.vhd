@@ -219,11 +219,11 @@ begin
       ); -- i_pix
 
 
-   -------------------------------
-   -- Instantiate mode 0 renderer
-   -------------------------------
+   ------------------------------
+   -- Instantiate layer renderer
+   ------------------------------
 
-   i_mode0 : entity work.mode0
+   i_layer : entity work.layer
       port map (
          clk_i      => clk_i,
          pix_x_i    => pix_x_s,
@@ -238,7 +238,7 @@ begin
          pix_x_o    => pix_x_out_s,
          pix_y_o    => pix_y_out_s,
          col_o      => col_out_s
-      ); -- i_mode0
+      ); -- i_layer
 
 
    ------------------------------

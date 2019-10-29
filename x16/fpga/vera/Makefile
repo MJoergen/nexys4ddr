@@ -3,7 +3,7 @@
 # in your OS repository, otherwise it may be downloaded from here:
 # https://github.com/ghdl/ghdl
 
-SOURCES  = vera.vhd pix.vhd vga.vhd vram.vhd palette.vhd mode0.vhd cpu_interface.vhd cpu_dummy.vhd
+SOURCES  = vera.vhd pix.vhd vga.vhd vram.vhd palette.vhd layer.vhd cpu_interface.vhd cpu_dummy.vhd
 SOURCES += tb.vhd
 TB       = tb
 WAVE     = tb.ghw

@@ -72,6 +72,8 @@ writes to the VERA block have been changed to reflect the external addressing,
 and I've added the writes to the VERA configuration registers. A few of these
 registers are implemented, the rest are ignored.
 
+And I've renamed the file mode0.vhd to layer.vhd to better reflect its purpose.
+
 The next step is to get the 65C02 CPU up and running.  On another project
 (https://github.com/MJoergen/cpu65c02) I've ported a complete functional test
 suite for the 65C02. This I will use to test my implementation of the 65C02

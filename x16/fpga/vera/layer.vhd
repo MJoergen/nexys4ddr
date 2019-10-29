@@ -30,7 +30,7 @@ use ieee.numeric_std_unsigned.all;
 -- Since each tile is 8 pixels wide (and hence eight clock cycles),
 -- the reads from Video RAM are staged.
 
-entity mode0 is
+entity layer is
    port (
       clk_i      : in  std_logic;
 
@@ -56,9 +56,9 @@ entity mode0 is
       pix_y_o    : out std_logic_vector( 9 downto 0);
       col_o      : out std_logic_vector(11 downto 0)
    );
-end mode0;
+end layer;
 
-architecture rtl of mode0 is
+architecture rtl of layer is
 
    -- Stage 0
    signal pix_x_0r        : std_logic_vector( 9 downto 0);
