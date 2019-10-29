@@ -1,6 +1,6 @@
 # VERA #
 
-This directory contains an implementation of (a subset of) the VERA chip for
+This directory contains an implementation of (a subset of) the VERA chip (version 0.8) for
 the Commander X16 computer.
 
 This README contains the notes I've taken during the implementation. These
