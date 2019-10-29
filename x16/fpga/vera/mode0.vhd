@@ -171,7 +171,7 @@ begin
       variable tile_offset_v : std_logic_vector(16 downto 0);
    begin
       if rising_edge(clk_i) then
-         tile_column_v := to_integer(pix_x_4r(2 downto 0));
+         tile_column_v := 7-to_integer(pix_x_4r(2 downto 0));
          pixel_v := tile_value_r(tile_column_v);
 
          if pixel_v = '0' then

@@ -33,6 +33,7 @@ clean:
 	rm -rf vivado*
 	rm -rf x16.bit
 	rm -rf x16.dcp
+	rm -rf x16.tcl
 	rm -rf .Xil
 	rm -rf .cache
 
