@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
 -- This is a file containing the palette memory.
--- A performs a mapping from 8-bit values to 12-bit colours.
+-- It performs a mapping from 8-bit values to 12-bit colours.
 -- TODO: Add a write port.
 
 entity palette is

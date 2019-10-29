@@ -2,8 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This module generates a pair of free-running
--- pixel coordinates.
+-- This module generates a pair of free-running pixel coordinates.
 -- To enable a 640x480 display, you must
 -- choose G_PIX_X_COUNT = 800 amd G_PIX_Y_CUONT = 525
 -- and supply a clock of 25.2 MHz.

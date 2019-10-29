@@ -2,10 +2,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This block contain the entire Video RAM.
+-- This block contains the entire Video RAM.
 
 -- At this early stage, I've only allocated 64 kB.
 -- So only the area between 0x00000 - 0x0FFFF is valid.
+--
+-- TBD: Add a second read port, to connect to the CPU.
 
 entity vram is
    port (
@@ -24,10 +26,10 @@ end vram;
 architecture structural of vram is
 
    -- This defines a type containing an array of bytes
-   type mem_t is array (0 to 65535) of std_logic_vector(7 downto 0);
+   type mem_t is array (0 to 65535) of std_logic_vector(7 downto 0); -- TBD: Change size to 128 kB.
 
    -- Initialize memory contents
-   signal mem_r : mem_t := (others => X"66");   -- Default value. This is a hack to get a blue background colour.
+   signal mem_r : mem_t := (others => X"66");   -- Default value. TBD: This is a hack to get a blue background colour.
 
 begin
 
@@ -36,7 +38,7 @@ begin
    begin
       if rising_edge(clk_i) then
          if wr_en_i = '1' then
-            mem_r(to_integer(wr_addr_i(15 downto 0))) <= wr_data_i;
+            mem_r(to_integer(wr_addr_i(15 downto 0))) <= wr_data_i;  -- TBD: Currently only supports 64 kB.
          end if;
       end if;
    end process p_write;
@@ -46,7 +48,7 @@ begin
    begin
       if rising_edge(clk_i) then
          if rd_en_i = '1' then
-            rd_data_o <= mem_r(to_integer(rd_addr_i(15 downto 0)));
+            rd_data_o <= mem_r(to_integer(rd_addr_i(15 downto 0)));  -- TBD: Currently only supports 64 kB.
          end if;
       end if;
    end process p_read;

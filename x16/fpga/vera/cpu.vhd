@@ -1,12 +1,23 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
--- This block simulates the writes performed by the CPU.
+-- Eventually, this block will handle the interface between the CPU and the
+-- VERA, i.e. translate the CPU memory map into reads and writes to the VERA.
+--
+-- But for now, since there is no CPU, this block has a list of hardcoded
+-- writes that it executes once at startup. These writes are gathered by
+-- running the x16-emulator and having it dump all the writes to VERA.  There
+-- were additional writes to clear the screen, but I've left them out, in order
+-- to keep this file to a manageable size. Instead, I've simulated the clearing
+-- of the screen by intializing the entire Video RAM to the value 0x66, which
+-- corresponds to the blue colour, see vram.vhd.
 
 entity cpu is
    port (
       clk_i     : in  std_logic;
 
+      -- These will be connected to the vram block.
+      -- TBD: What about the configuration settings, i.e. 0xFxxxx?
       wr_addr_o : out std_logic_vector(16 downto 0);
       wr_en_o   : out std_logic;
       wr_data_o : out std_logic_vector( 7 downto 0)

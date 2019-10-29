@@ -4,8 +4,8 @@ use ieee.numeric_std_unsigned.all;
 
 -- This block implements TILE mode 0, i.e. 16 colour text mode.
 -- Furthermore, it is hardcoded that:
--- * MAPW = 2, which means 128 tiles wide
--- * MAPH = 1, which means 64 tiles high
+-- * MAPW  = 2, which means 128 tiles wide
+-- * MAPH  = 1, which means 64 tiles high
 -- * TILEW = 0, which means 8 pixels wide
 -- * TILEH = 0, which means 8 pixels high
 --
@@ -15,15 +15,17 @@ use ieee.numeric_std_unsigned.all;
 -- In the colour index, bits 7-4 is the background colour, while
 -- bits 3-0 is the foreground colour.
 --
--- On input it has the free-running pixel counters.
+-- On input it has the free-running pixel counters, as well as the base
+-- addresses for the MAP and TILE areas.
 -- On output it has colour of the corresponding pixel.
--- Because there may be several pipeline stages in this block, the output must
+-- Because there are several pipeline stages in this block, the output must
 -- also include the pixel counters delayed accordingly.
 --
 -- This block needs to read the Video RAM three times:
 -- 1. To get the tile index at the corresponding pixel (using mapbase_i).
 -- 2. To get the colour index at the corresponding pixel (using mapbase_i).
 -- 3. To get the tile data for this character (using tilebase_i).
+-- Additionally, it needs to read the colour from the palette RAM.
 --
 -- Since each tile is 8 pixels wide (and hence eight clock cycles),
 -- the reads from Video RAM are staged.
@@ -32,7 +34,7 @@ entity mode0 is
    port (
       clk_i      : in  std_logic;
 
-      -- Pixel counters
+      -- Input pixel counters
       pix_x_i    : in  std_logic_vector( 9 downto 0);
       pix_y_i    : in  std_logic_vector( 9 downto 0);
 
@@ -49,7 +51,7 @@ entity mode0 is
       paddr_o    : out std_logic_vector( 7 downto 0);
       pdata_i    : in  std_logic_vector(11 downto 0);
 
-      -- Pixel counters
+      -- Output pixel counters and colour
       pix_x_o    : out std_logic_vector( 9 downto 0);
       pix_y_o    : out std_logic_vector( 9 downto 0);
       col_o      : out std_logic_vector(11 downto 0)
@@ -167,13 +169,16 @@ begin
 
    p_colour : process (clk_i)
       variable tile_column_v : integer range 0 to 7; -- 8 pixels wide
-      variable pixel_v : std_logic;
+      variable pixel_v       : std_logic;
       variable tile_offset_v : std_logic_vector(16 downto 0);
    begin
       if rising_edge(clk_i) then
-         tile_column_v := 7-to_integer(pix_x_4r(2 downto 0));
-         pixel_v := tile_value_r(tile_column_v);
+         tile_column_v := 7-to_integer(pix_x_4r(2 downto 0));  -- Subtract from 7, because the MSB of the tile data
+                                                               -- corresponds to the lowest pixel coordinate.
 
+         pixel_v := tile_value_r(tile_column_v);               -- Get value of this particular pixel.
+
+         -- Read pixel colour from palette RAM.
          if pixel_v = '0' then
             paddr_o <= "0000" & colour_value_r(7 downto 4);    -- background
          else
