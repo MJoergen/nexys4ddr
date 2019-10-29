@@ -27,7 +27,7 @@ architecture structural of vram is
    type mem_t is array (0 to 65535) of std_logic_vector(7 downto 0);
 
    -- Initialize memory contents
-   signal mem_r : mem_t := (others => X"00");
+   signal mem_r : mem_t := (others => X"66");   -- Default value. This is a hack to get a blue background colour.
 
 begin
 
