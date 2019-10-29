@@ -28,6 +28,8 @@ In the first version of this implementation of VERA, all writes to the
 configuration registers will be ignored, i.e.  only default values will be
 used.
 
+## Block diagram
+![Block diagram](Block_diagram.png "")
 
 ## Configuration registers
 * 0xF0000 - 0xF001F : Display composer
