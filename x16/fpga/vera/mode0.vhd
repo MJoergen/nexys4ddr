@@ -166,7 +166,6 @@ begin
                                                 -- are properly synchronized.
             tile_value_4r   <= vdata_i;         -- Store data for this tile.
          end if;
-
       end if;
    end process p_stages;
 

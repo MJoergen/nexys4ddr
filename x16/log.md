@@ -67,6 +67,11 @@ I've faked the background colour by initializing the entire VRAM with blue
 colour ('6' for background and foreground). This is just a temporary hack until
 I get the CPU and KERNAL running.
 
+I've added the translation between the internal and external memory map. The
+writes to the VERA block have been changed to reflect the external addressing,
+and I've added the writes to the VERA configuration registers. A few of these
+registers are implemented, the rest are ignored.
+
 The next step is to get the 65C02 CPU up and running.  On another project
 (https://github.com/MJoergen/cpu65c02) I've ported a complete functional test
 suite for the 65C02. This I will use to test my implementation of the 65C02
@@ -78,4 +83,5 @@ I still need to be very careful about the interface between the CPU and the
 VERA, because they will be running two different clock frequencies.  In
 particular, since reading from the VERA potentially updates the state in the
 VERA (addresses auto-increment) this makes the task very delicate.
+
 

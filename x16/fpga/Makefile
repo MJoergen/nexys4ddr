@@ -8,7 +8,8 @@ SOURCES += vera/vga.vhd
 SOURCES += vera/vram.vhd
 SOURCES += vera/palette.vhd
 SOURCES += vera/mode0.vhd
-SOURCES += vera/cpu.vhd
+SOURCES += vera/cpu_interface.vhd
+SOURCES += vera/cpu_dummy.vhd
 SOURCES += cpu_65c02/cpu_65c02.vhd
   
 x16.bit: x16.tcl $(SOURCES) x16.xdc Makefile

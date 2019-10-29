@@ -1,18 +1,20 @@
 [*]
 [*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Mon Oct 28 07:20:50 2019
+[*] Tue Oct 29 14:03:30 2019
 [*]
 [dumpfile] "/home/mfj/git/nexys4ddr/x16/fpga/vera/tb.ghw"
-[dumpfile_mtime] "Mon Oct 28 07:20:20 2019"
-[dumpfile_size] 2321363
+[dumpfile_mtime] "Tue Oct 29 14:02:57 2019"
+[dumpfile_size] 2108126
 [savefile] "/home/mfj/git/nexys4ddr/x16/fpga/vera/tb.gtkw"
-[timestart] 9505900000
-[size] 1853 1145
+[timestart] 0
+[size] 1920 1172
 [pos] -1 -1
-*-24.825819 9600000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-24.914631 56100000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.tb.
 [treeopen] top.tb.i_vera.
+[treeopen] top.tb.i_vera.i_cpu_interface.
+[treeopen] top.tb.i_vera.i_mode0.
 [treeopen] top.tb.i_vera.i_vram.
 [sst_width] 305
 [signals_width] 249
@@ -30,8 +32,9 @@
 #{top.tb.i_vera.i_mode0.pix_x_o[9:0]} top.tb.i_vera.i_mode0.pix_x_o[9] top.tb.i_vera.i_mode0.pix_x_o[8] top.tb.i_vera.i_mode0.pix_x_o[7] top.tb.i_vera.i_mode0.pix_x_o[6] top.tb.i_vera.i_mode0.pix_x_o[5] top.tb.i_vera.i_mode0.pix_x_o[4] top.tb.i_vera.i_mode0.pix_x_o[3] top.tb.i_vera.i_mode0.pix_x_o[2] top.tb.i_vera.i_mode0.pix_x_o[1] top.tb.i_vera.i_mode0.pix_x_o[0]
 #{top.tb.i_vera.i_mode0.pix_y_o[9:0]} top.tb.i_vera.i_mode0.pix_y_o[9] top.tb.i_vera.i_mode0.pix_y_o[8] top.tb.i_vera.i_mode0.pix_y_o[7] top.tb.i_vera.i_mode0.pix_y_o[6] top.tb.i_vera.i_mode0.pix_y_o[5] top.tb.i_vera.i_mode0.pix_y_o[4] top.tb.i_vera.i_mode0.pix_y_o[3] top.tb.i_vera.i_mode0.pix_y_o[2] top.tb.i_vera.i_mode0.pix_y_o[1] top.tb.i_vera.i_mode0.pix_y_o[0]
 #{top.tb.i_vera.i_mode0.col_o[11:0]} top.tb.i_vera.i_mode0.col_o[11] top.tb.i_vera.i_mode0.col_o[10] top.tb.i_vera.i_mode0.col_o[9] top.tb.i_vera.i_mode0.col_o[8] top.tb.i_vera.i_mode0.col_o[7] top.tb.i_vera.i_mode0.col_o[6] top.tb.i_vera.i_mode0.col_o[5] top.tb.i_vera.i_mode0.col_o[4] top.tb.i_vera.i_mode0.col_o[3] top.tb.i_vera.i_mode0.col_o[2] top.tb.i_vera.i_mode0.col_o[1] top.tb.i_vera.i_mode0.col_o[0]
-#{top.tb.i_vera.i_mode0.colour_value_r[7:0]} top.tb.i_vera.i_mode0.colour_value_r[7] top.tb.i_vera.i_mode0.colour_value_r[6] top.tb.i_vera.i_mode0.colour_value_r[5] top.tb.i_vera.i_mode0.colour_value_r[4] top.tb.i_vera.i_mode0.colour_value_r[3] top.tb.i_vera.i_mode0.colour_value_r[2] top.tb.i_vera.i_mode0.colour_value_r[1] top.tb.i_vera.i_mode0.colour_value_r[0]
-#{top.tb.i_vera.i_mode0.tile_value_r[7:0]} top.tb.i_vera.i_mode0.tile_value_r[7] top.tb.i_vera.i_mode0.tile_value_r[6] top.tb.i_vera.i_mode0.tile_value_r[5] top.tb.i_vera.i_mode0.tile_value_r[4] top.tb.i_vera.i_mode0.tile_value_r[3] top.tb.i_vera.i_mode0.tile_value_r[2] top.tb.i_vera.i_mode0.tile_value_r[1] top.tb.i_vera.i_mode0.tile_value_r[0]
+#{top.tb.i_vera.i_mode0.mapbase_i[16:0]} top.tb.i_vera.i_mode0.mapbase_i[16] top.tb.i_vera.i_mode0.mapbase_i[15] top.tb.i_vera.i_mode0.mapbase_i[14] top.tb.i_vera.i_mode0.mapbase_i[13] top.tb.i_vera.i_mode0.mapbase_i[12] top.tb.i_vera.i_mode0.mapbase_i[11] top.tb.i_vera.i_mode0.mapbase_i[10] top.tb.i_vera.i_mode0.mapbase_i[9] top.tb.i_vera.i_mode0.mapbase_i[8] top.tb.i_vera.i_mode0.mapbase_i[7] top.tb.i_vera.i_mode0.mapbase_i[6] top.tb.i_vera.i_mode0.mapbase_i[5] top.tb.i_vera.i_mode0.mapbase_i[4] top.tb.i_vera.i_mode0.mapbase_i[3] top.tb.i_vera.i_mode0.mapbase_i[2] top.tb.i_vera.i_mode0.mapbase_i[1] top.tb.i_vera.i_mode0.mapbase_i[0]
+@23
+#{top.tb.i_vera.i_mode0.tilebase_i[16:0]} top.tb.i_vera.i_mode0.tilebase_i[16] top.tb.i_vera.i_mode0.tilebase_i[15] top.tb.i_vera.i_mode0.tilebase_i[14] top.tb.i_vera.i_mode0.tilebase_i[13] top.tb.i_vera.i_mode0.tilebase_i[12] top.tb.i_vera.i_mode0.tilebase_i[11] top.tb.i_vera.i_mode0.tilebase_i[10] top.tb.i_vera.i_mode0.tilebase_i[9] top.tb.i_vera.i_mode0.tilebase_i[8] top.tb.i_vera.i_mode0.tilebase_i[7] top.tb.i_vera.i_mode0.tilebase_i[6] top.tb.i_vera.i_mode0.tilebase_i[5] top.tb.i_vera.i_mode0.tilebase_i[4] top.tb.i_vera.i_mode0.tilebase_i[3] top.tb.i_vera.i_mode0.tilebase_i[2] top.tb.i_vera.i_mode0.tilebase_i[1] top.tb.i_vera.i_mode0.tilebase_i[0]
 @1000200
 -Mode0
 @800200
@@ -49,5 +52,19 @@ top.tb.i_vera.i_vram.rd_en_i
 #{top.tb.i_vera.i_vram.rd_data_o[7:0]} top.tb.i_vera.i_vram.rd_data_o[7] top.tb.i_vera.i_vram.rd_data_o[6] top.tb.i_vera.i_vram.rd_data_o[5] top.tb.i_vera.i_vram.rd_data_o[4] top.tb.i_vera.i_vram.rd_data_o[3] top.tb.i_vera.i_vram.rd_data_o[2] top.tb.i_vera.i_vram.rd_data_o[1] top.tb.i_vera.i_vram.rd_data_o[0]
 @1000200
 -vram
+@800200
+-cpu_interface
+@28
+#{top.tb.i_vera.i_cpu_interface.cpu_wr_addr_i[2:0]} top.tb.i_vera.i_cpu_interface.cpu_wr_addr_i[2] top.tb.i_vera.i_cpu_interface.cpu_wr_addr_i[1] top.tb.i_vera.i_cpu_interface.cpu_wr_addr_i[0]
+top.tb.i_vera.i_cpu_interface.cpu_wr_en_i
+@22
+#{top.tb.i_vera.i_cpu_interface.cpu_wr_data_i[7:0]} top.tb.i_vera.i_cpu_interface.cpu_wr_data_i[7] top.tb.i_vera.i_cpu_interface.cpu_wr_data_i[6] top.tb.i_vera.i_cpu_interface.cpu_wr_data_i[5] top.tb.i_vera.i_cpu_interface.cpu_wr_data_i[4] top.tb.i_vera.i_cpu_interface.cpu_wr_data_i[3] top.tb.i_vera.i_cpu_interface.cpu_wr_data_i[2] top.tb.i_vera.i_cpu_interface.cpu_wr_data_i[1] top.tb.i_vera.i_cpu_interface.cpu_wr_data_i[0]
+#{top.tb.i_vera.i_cpu_interface.vera_wr_addr_o[19:0]} top.tb.i_vera.i_cpu_interface.vera_wr_addr_o[19] top.tb.i_vera.i_cpu_interface.vera_wr_addr_o[18] top.tb.i_vera.i_cpu_interface.vera_wr_addr_o[17] top.tb.i_vera.i_cpu_interface.vera_wr_addr_o[16] top.tb.i_vera.i_cpu_interface.vera_wr_addr_o[15] top.tb.i_vera.i_cpu_interface.vera_wr_addr_o[14] top.tb.i_vera.i_cpu_interface.vera_wr_addr_o[13] top.tb.i_vera.i_cpu_interface.vera_wr_addr_o[12] top.tb.i_vera.i_cpu_interface.vera_wr_addr_o[11] top.tb.i_vera.i_cpu_interface.vera_wr_addr_o[10] top.tb.i_vera.i_cpu_interface.vera_wr_addr_o[9] top.tb.i_vera.i_cpu_interface.vera_wr_addr_o[8] top.tb.i_vera.i_cpu_interface.vera_wr_addr_o[7] top.tb.i_vera.i_cpu_interface.vera_wr_addr_o[6] top.tb.i_vera.i_cpu_interface.vera_wr_addr_o[5] top.tb.i_vera.i_cpu_interface.vera_wr_addr_o[4] top.tb.i_vera.i_cpu_interface.vera_wr_addr_o[3] top.tb.i_vera.i_cpu_interface.vera_wr_addr_o[2] top.tb.i_vera.i_cpu_interface.vera_wr_addr_o[1] top.tb.i_vera.i_cpu_interface.vera_wr_addr_o[0]
+@28
+top.tb.i_vera.i_cpu_interface.vera_wr_en_o
+@22
+#{top.tb.i_vera.i_cpu_interface.vera_wr_data_o[7:0]} top.tb.i_vera.i_cpu_interface.vera_wr_data_o[7] top.tb.i_vera.i_cpu_interface.vera_wr_data_o[6] top.tb.i_vera.i_cpu_interface.vera_wr_data_o[5] top.tb.i_vera.i_cpu_interface.vera_wr_data_o[4] top.tb.i_vera.i_cpu_interface.vera_wr_data_o[3] top.tb.i_vera.i_cpu_interface.vera_wr_data_o[2] top.tb.i_vera.i_cpu_interface.vera_wr_data_o[1] top.tb.i_vera.i_cpu_interface.vera_wr_data_o[0]
+@1000200
+-cpu_interface
 [pattern_trace] 1
 [pattern_trace] 0

@@ -8,9 +8,14 @@ use ieee.numeric_std_unsigned.all;
 
 entity palette is
    port (
-      clk_i  : in  std_logic;
-      addr_i : in  std_logic_vector( 7 downto 0);
-      data_o : out std_logic_vector(11 downto 0)
+      clk_i     : in  std_logic;
+      -- CPU write port
+      wr_addr_i : in  std_logic_vector( 8 downto 0);
+      wr_en_i   : in  std_logic;
+      wr_data_i : in  std_logic_vector( 7 downto 0);
+      -- Layer read port
+      rd_addr_i : in  std_logic_vector( 7 downto 0);
+      rd_data_o : out std_logic_vector(11 downto 0)
    );
 end palette;
 
@@ -57,10 +62,23 @@ architecture rtl of palette is
 
 begin
 
+   p_write : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if wr_en_i = '1' then
+            if wr_addr_i(0) = '0' then
+               mem_r(to_integer(wr_addr_i(8 downto 1)))( 7 downto 0) <= wr_data_i;
+            else
+               mem_r(to_integer(wr_addr_i(8 downto 1)))(11 downto 8) <= wr_data_i(3 downto 0);
+            end if;
+         end if;
+      end if;
+   end process p_write;
+
    p_read : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         data_o <= mem_r(to_integer(addr_i));
+         rd_data_o <= mem_r(to_integer(rd_addr_i));
       end if;
    end process p_read;
 
