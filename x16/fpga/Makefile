@@ -2,15 +2,11 @@ XILINX_DIR = /opt/Xilinx/Vivado/2018.2
 
 SOURCES  = x16.vhd
 SOURCES += clk.vhd
-SOURCES += vera/vera.vhd
-SOURCES += vera/pix.vhd
-SOURCES += vera/vga.vhd
-SOURCES += vera/vram.vhd
-SOURCES += vera/palette.vhd
-SOURCES += vera/layer.vhd
-SOURCES += vera/cpu_interface.vhd
-SOURCES += vera/cpu_dummy.vhd
-SOURCES += cpu_65c02/cpu_65c02.vhd
+SOURCES += vera/vera.vhd vera/vram.vhd vera/palette.vhd vera/cdc.vhd
+SOURCES += vera/cpu/mmu.vhd vera/cpu/cpu.vhd vera/cpu/config.vhd
+SOURCES += vera/vga/pix.vhd vera/vga/sync.vhd vera/vga/vga.vhd vera/vga/layer.vhd
+SOURCES += cpu_dummy.vhd
+
   
 x16.bit: x16.tcl $(SOURCES) x16.xdc Makefile
 	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $<"

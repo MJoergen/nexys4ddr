@@ -46,6 +46,9 @@ set_property PULLUP TRUE [get_ports { ps2_data_i } ]
 # Clock definition
 create_clock -name sys_clk -period 10.00 [get_ports {clk_i}];
 
+# CDC
+set_false_path -from [get_clocks] -to [get_pins -hierarchical "*gen_cdc.dst_dat_r_reg[*]/D"]
+
 # Configuration Bank Voltage Select
 set_property CFGBVS VCCO [current_design]
 set_property CONFIG_VOLTAGE 3.3 [current_design]

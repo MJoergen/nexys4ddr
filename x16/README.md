@@ -10,13 +10,14 @@ implemented in the FPGA on the Digilent board.
 * 128 kB ROM (Banked)
 * 2 MB RAM (Banked)
 * VIA chips (Interfaces to keyboard)
-* SD card
+* SD card (TBD)
 
 The VERA chip contains additional 128 kB of video RAM.
 
 The FPGA on the Digilent board is a Xilinx Artix-7 (XC7A100T), which contains
 540 kB of Block RAM. So, this project will not support the full 2 MB of RAM
-on the X16.
+on the X16. It might be possible to use the DDR RAM avaiable on the board, but
+this is TBD.
 
 ## Memory map
 * 0x0000 - 0x9EFF : Low RAM

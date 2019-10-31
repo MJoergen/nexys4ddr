@@ -3,11 +3,13 @@
 # in your OS repository, otherwise it may be downloaded from here:
 # https://github.com/ghdl/ghdl
 
-SOURCES  = vera.vhd pix.vhd vga.vhd vram.vhd palette.vhd layer.vhd cpu_interface.vhd cpu_dummy.vhd
-SOURCES += tb.vhd
+SOURCES  = vera.vhd vram.vhd palette.vhd cdc.vhd                  # Mixed clock domain
+SOURCES += cpu/mmu.vhd cpu/config.vhd cpu/cpu.vhd                 # All CPU clock domain
+SOURCES += vga/pix.vhd vga/sync.vhd vga/vga.vhd vga/layer.vhd     # All VGA clock domain
+SOURCES += test/tb.vhd ../cpu_dummy.vhd
 TB       = tb
-WAVE     = tb.ghw
-SAVE     = tb.gtkw
+WAVE     = test/tb.ghw
+SAVE     = test/tb.gtkw
 
 
 #####################################
@@ -17,8 +19,11 @@ SAVE     = tb.gtkw
 sim: $(SOURCES)
 	ghdl -i --std=08 --work=work $(SOURCES)
 	ghdl -m --std=08 --ieee=synopsys -frelaxed-rules $(TB)
-	ghdl -r $(TB) --assert-level=error --wave=$(WAVE) --stop-time=4200ns
+	ghdl -r $(TB) --assert-level=error --wave=$(WAVE) --stop-time=42000ns
 	gtkwave $(WAVE) $(SAVE)
+
+
+
 
 
 #####################################

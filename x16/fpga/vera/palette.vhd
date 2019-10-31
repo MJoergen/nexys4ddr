@@ -4,18 +4,21 @@ use ieee.numeric_std_unsigned.all;
 
 -- This is a file containing the palette memory.
 -- It performs a mapping from 8-bit values to 12-bit colours.
--- TODO: Add a write port.
 
 entity palette is
    port (
-      clk_i     : in  std_logic;
-      -- CPU write port
-      wr_addr_i : in  std_logic_vector( 8 downto 0);
-      wr_en_i   : in  std_logic;
-      wr_data_i : in  std_logic_vector( 7 downto 0);
-      -- Layer read port
-      rd_addr_i : in  std_logic_vector( 7 downto 0);
-      rd_data_o : out std_logic_vector(11 downto 0)
+      -- CPU port
+      cpu_clk_i     : in  std_logic;
+      cpu_addr_i    : in  std_logic_vector( 8 downto 0);
+      cpu_wr_en_i   : in  std_logic;
+      cpu_wr_data_i : in  std_logic_vector( 7 downto 0);
+      cpu_rd_en_i   : in  std_logic;
+      cpu_rd_data_o : out std_logic_vector( 7 downto 0);
+      -- VGA port
+      vga_clk_i     : in  std_logic;
+      vga_rd_addr_i : in  std_logic_vector( 7 downto 0);
+      vga_rd_en_i   : in  std_logic;
+      vga_rd_data_o : out std_logic_vector(11 downto 0)
    );
 end palette;
 
@@ -59,28 +62,51 @@ architecture rtl of palette is
       X"C6B", X"F7D", X"201", X"413", X"615", X"826", X"A28", X"C3A",
       X"F3C", X"201", X"403", X"604", X"806", X"A08", X"C09", X"F0B"
    );
+ 
+   signal mem_rd_data_r : std_logic_vector(11 downto 0);
+   signal cpu_addr_r    : std_logic;
 
 begin
 
-   p_write : process (clk_i)
+   ---------------
+   -- CPU access.
+   ---------------
+
+   p_cpu : process (cpu_clk_i)
    begin
-      if rising_edge(clk_i) then
-         if wr_en_i = '1' then
-            if wr_addr_i(0) = '0' then
-               mem_r(to_integer(wr_addr_i(8 downto 1)))( 7 downto 0) <= wr_data_i;
+      if rising_edge(cpu_clk_i) then
+         if cpu_wr_en_i = '1' then
+            if cpu_addr_i(0) = '0' then
+               mem_r(to_integer(cpu_addr_i(8 downto 1)))( 7 downto 0) <= cpu_wr_data_i;
             else
-               mem_r(to_integer(wr_addr_i(8 downto 1)))(11 downto 8) <= wr_data_i(3 downto 0);
+               mem_r(to_integer(cpu_addr_i(8 downto 1)))(11 downto 8) <= cpu_wr_data_i(3 downto 0);
             end if;
          end if;
+         if cpu_rd_en_i = '1' then
+            mem_rd_data_r <= mem_r(to_integer(cpu_addr_i(8 downto 1)));
+            cpu_addr_r    <= cpu_addr_i(0);
+         end if;
       end if;
-   end process p_write;
+   end process p_cpu;
 
-   p_read : process (clk_i)
+   -- This multiplexer must be outside the read process, in order to get
+   -- the Vivado tool to infer a block RAM.
+   cpu_rd_data_o <= mem_rd_data_r(7 downto 0) when cpu_addr_r = '0' else
+                    "0000" & mem_rd_data_r(11 downto 8);
+
+
+   ---------------
+   -- VGA access.
+   ---------------
+
+   p_vga : process (vga_clk_i)
    begin
-      if rising_edge(clk_i) then
-         rd_data_o <= mem_r(to_integer(rd_addr_i));
+      if rising_edge(vga_clk_i) then
+         if vga_rd_en_i = '1' then
+            vga_rd_data_o <= mem_r(to_integer(vga_rd_addr_i));
+         end if;
       end if;
-   end process p_read;
+   end process p_vga;
 
 end rtl;
 

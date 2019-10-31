@@ -2,12 +2,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This module generates the VGA output signals.
+-- This module generates the VGA synchronization signals.
 
 -- The module ensures that the mutual relative timing between the
 -- synchronization signals and colour signal adheres to the VESA standard.
 
-entity vga is
+entity sync is
    port (
       clk_i     : in  std_logic;
 
@@ -19,9 +19,9 @@ entity vga is
       vga_vs_o  : out std_logic;
       vga_col_o : out std_logic_vector(11 downto 0)
    );
-end vga;
+end sync;
 
-architecture structural of vga is
+architecture structural of sync is
 
    -- The following constants define a resolution of 640x480 @ 60 Hz.
    -- Requires a clock of 25.175 MHz.
