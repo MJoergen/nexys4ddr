@@ -11,7 +11,9 @@ and from the source code for the X16 emulator.
 
 # Block diagram
 The figure below shows the block diagram.
+
 ![Block diagram](Block_Diagram.png "")
+
 This diagram shows that the VERA module has two separate interfaces, one
 towards the CPU and one to the VGA monitor. Each interface runs in a separate
 clock domain, and the vertical dashed line in the diagram symbolizes the
