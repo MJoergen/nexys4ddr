@@ -48,3 +48,7 @@ The VERA chip has its own private 2 MB address space, with the following structu
 * 0x006 - 0x007 : Horizontal scroll
 * 0x008 - 0x009 : Vertical scroll
 
+The 65C02 processor requires combinatorial reads, i.e. the data should be
+available before the next clock cycle. To achieve this all the Block RAMs are
+clocked on the falling edge of the CPU clock.
+

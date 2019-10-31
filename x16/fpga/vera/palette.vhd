@@ -74,7 +74,7 @@ begin
 
    p_cpu : process (cpu_clk_i)
    begin
-      if rising_edge(cpu_clk_i) then
+      if falling_edge(cpu_clk_i) then
          if cpu_wr_en_i = '1' then
             if cpu_addr_i(0) = '0' then
                mem_r(to_integer(cpu_addr_i(8 downto 1)))( 7 downto 0) <= cpu_wr_data_i;

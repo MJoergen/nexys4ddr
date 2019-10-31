@@ -26,7 +26,7 @@ begin
 
    p_config : process (clk_i)
    begin
-      if rising_edge(clk_i) then
+      if falling_edge(clk_i) then
          map_base_o( 1 downto 0) <= "00";
          tile_base_o(1 downto 0) <= "00";
 

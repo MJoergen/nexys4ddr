@@ -45,8 +45,6 @@ architecture structural of cpu is
 
    -- Read data
    signal config_rd_data_s   : std_logic_vector( 7 downto 0);
-   signal vram_rd_en_d       : std_logic;
-   signal pal_rd_en_d        : std_logic;
 
 begin
 
@@ -89,14 +87,6 @@ begin
       ); -- i_config
 
 
-   p_ram_read : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         vram_rd_en_d <= vram_rd_en_o;
-         pal_rd_en_d  <= pal_rd_en_o;
-      end if;
-   end process p_ram_read;
-
    -- Access Video RAM
    vram_addr_o    <= internal_addr_s(16 downto 0);
    vram_wr_en_o   <= '1' when internal_wr_en_s = '1' and internal_addr_s(19 downto 17) = "000" else '0';
@@ -110,8 +100,8 @@ begin
    pal_rd_en_o   <= '1' when internal_rd_en_s = '1' and internal_addr_s(19 downto 12) = X"F1" else '0';
 
    -- Multiplex CPU read
-   internal_rd_data_s <= vram_rd_data_i when vram_rd_en_d = '1' else
-                         pal_rd_data_i  when pal_rd_en_d  = '1' else
+   internal_rd_data_s <= vram_rd_data_i when vram_rd_en_o = '1' else
+                         pal_rd_data_i  when pal_rd_en_o  = '1' else
                          config_rd_data_s;
 
 end architecture structural;

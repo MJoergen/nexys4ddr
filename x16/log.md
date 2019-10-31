@@ -107,5 +107,13 @@ pins.
 I still don't have the CPU implemented, so I'm using a mock cpu\_dummy module,
 and I've moved this into the top level, i.e. outside the VERA module.
 
+The 65C02 CPU expects reads to be ready the very next clock cycle, this is
+essentially a combinatorial read.  However, since the Block RAMs in the FPGA
+are synchronous, there appears to be a problem. However, I solved that by
+clocking all the Block RAMs on the *falling* edge of the CPU clock. This
+reduces the slack in the timing, but since the CPU is only running at 8 MHz,
+this is no problem.
+
+
 The next step is now to get the CPU running.
 

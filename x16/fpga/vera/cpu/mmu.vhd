@@ -73,7 +73,7 @@ begin
 
    p_read_write : process (clk_i)
    begin
-      if rising_edge(clk_i) then
+      if falling_edge(clk_i) then
          mmu_rd_data_r <= (others => '0');
          if cpu_wr_en_i = '1' then
             case cpu_addr_i is

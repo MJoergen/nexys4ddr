@@ -40,9 +40,7 @@ end cpu_dummy;
 
 architecture structural of cpu_dummy is
 
-   signal rd_en_d    : std_logic;
    signal exp_data_r : std_logic_vector(7 downto 0);
-   signal exp_data_d : std_logic_vector(7 downto 0);
 
    -- This defines a type containing an array of bytes
    type command is record
@@ -2510,11 +2508,9 @@ begin
    p_rd : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         rd_en_d    <= rd_en_o;
-         exp_data_d <= exp_data_r;
-         if rd_en_d = '1' then
-            assert rd_data_i = exp_data_d
-               report "Read " & to_hstring(rd_data_i) & ", expected " & to_hstring(exp_data_d)
+         if rd_en_o = '1' then
+            assert rd_data_i = exp_data_r
+               report "Read " & to_hstring(rd_data_i) & ", expected " & to_hstring(exp_data_r)
                   severity warning;
          end if;
       end if;
