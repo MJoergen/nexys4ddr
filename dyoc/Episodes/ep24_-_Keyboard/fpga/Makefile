@@ -1,4 +1,4 @@
-XILINX_DIR = /opt/Xilinx/Vivado/2017.3
+XILINX_DIR = /opt/Xilinx/Vivado/2018.2
 
 MAIN = main/main.vhd main/ic.vhd main/timer.vhd \
 		 main/cpu/cpu.vhd main/cpu/datapath.vhd main/cpu/ctl.vhd main/cpu/pc.vhd main/cpu/ar.vhd main/cpu/hi.vhd main/cpu/lo.vhd main/cpu/alu.vhd main/cpu/sr.vhd main/cpu/sp.vhd main/cpu/xr.vhd main/cpu/yr.vhd main/cpu/zp.vhd \

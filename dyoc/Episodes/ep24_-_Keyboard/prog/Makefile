@@ -27,7 +27,7 @@ build/main.s: src/main.c
 build/comp.lib: build/crt0.o build/write.o build/clrscr.o build/clock.o build/timer_isr.o \
                 build/sys_irq.o build/irq.o build/kbd_isr.o build/cgetc.o build/read.o build/screensize.o build/kbhit.o
 	cp lib/none.lib $@
-	ar65 r $@ $^
+	ar65 a $@ $^
 
 build/kbhit.o: lib/kbhit.s
 	mkdir -p build
