@@ -75,7 +75,7 @@ begin
    -- This controls the board
    i_queens : entity work.queens
       generic map (
-         NUM_QUEENS => G_NUM_QUEENS
+         G_NUM_QUEENS => G_NUM_QUEENS
       )
       port map ( 
          clk_i    => vga_clk,

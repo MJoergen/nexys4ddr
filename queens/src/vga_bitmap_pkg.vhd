@@ -1,7 +1,7 @@
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
 
-package bitmap_pkg is
+package vga_bitmap_pkg is
     type bitmap_t is array(0 to 255) of std_logic_vector(1 downto 0);
 
     constant bitmap_queen : bitmap_t := (
@@ -220,5 +220,5 @@ package bitmap_pkg is
         "00","00","00","00","00","00","00","00","00","00","00","00","00","00","00","00",
         "00","00","00","00","00","00","00","00","00","00","00","00","00","00","00","00");
 
-end package bitmap_pkg;
+end package vga_bitmap_pkg;
 

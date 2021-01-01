@@ -46,9 +46,9 @@ begin
       ); -- i_vga_ctrl
 
    -- This generates the image
-   i_disp_queens : entity work.disp_queens
+   i_vga_disp_queens : entity work.vga_disp_queens
       generic map (
-         NUM_QUEENS => G_NUM_QUEENS
+         G_NUM_QUEENS => G_NUM_QUEENS
       )
       port map (
          clk_i    => clk_i,

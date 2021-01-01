@@ -1,7 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-entity seg is
+entity display_seg is
    generic (
       G_FREQ : integer
    );
@@ -17,9 +17,9 @@ entity seg is
       seg_dp_o : out std_logic;
       seg_an_o : out std_logic_vector (3 downto 0)
    );
-end entity seg;
+end entity display_seg;
 
-architecture synthesis of seg is
+architecture synthesis of display_seg is
 
    signal clk_en : std_logic;
    signal digit  : integer range 0 to 3;

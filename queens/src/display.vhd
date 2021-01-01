@@ -30,7 +30,7 @@ architecture synthesis of display is
 
 begin
 
-   i_int2seg : entity work.int2seg
+   i_display_int2seg : entity work.display_int2seg
       port map (
          int_i  => value_i,
          seg3_o => seg3,
@@ -41,7 +41,7 @@ begin
       ); -- i_int2seg
 
 
-   i_seg : entity work.seg
+   i_display_seg : entity work.display_seg
       generic map (
          G_FREQ => G_FREQ
       )

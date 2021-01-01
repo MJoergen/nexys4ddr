@@ -2,18 +2,18 @@
 #read_vhdl -vhdl2008 { \
 
 read_vhdl { \
-   src/bitmap_pkg.vhd \
    src/counter.vhd \
    src/clk_wiz_0.vhd \
    src/clk_wiz_0_clk_wiz.vhd \
-   src/digit.vhd \
-   src/disp_queens.vhd \
-   src/int2seg.vhd \
-   src/queens.vhd \
-   src/seg.vhd \
+   src/vga_bitmap_pkg.vhd \
+   src/vga_disp_queens.vhd \
    src/vga_ctrl.vhd \
    src/vga.vhd \
+   src/display_digit.vhd \
+   src/display_int2seg.vhd \
+   src/display_seg.vhd \
    src/display.vhd \
+   src/queens.vhd \
    src/queens_top.vhd
 }
 read_xdc src/queens_top.xdc

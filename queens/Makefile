@@ -1,17 +1,17 @@
 XILINX_DIR = /opt/Xilinx/Vivado/2019.2
 
 SOURCES += src/counter.vhd
-SOURCES += src/bitmap_pkg.vhd
-SOURCES += src/seg.vhd
-SOURCES += src/vga_ctrl.vhd
 SOURCES += src/clk_wiz_0.vhd
 SOURCES += src/clk_wiz_0_clk_wiz.vhd
-SOURCES += src/digit.vhd
-SOURCES += src/disp_queens.vhd
-SOURCES += src/int2seg.vhd
-SOURCES += src/queens.vhd
+SOURCES += src/vga_bitmap_pkg.vhd
+SOURCES += src/vga_ctrl.vhd
+SOURCES += src/vga_disp_queens.vhd
 SOURCES += src/vga.vhd
+SOURCES += src/display_seg.vhd
+SOURCES += src/display_digit.vhd
+SOURCES += src/display_int2seg.vhd
 SOURCES += src/display.vhd
+SOURCES += src/queens.vhd
 SOURCES += src/queens_top.vhd
 
 queens.bit: queens.tcl $(SOURCES)
