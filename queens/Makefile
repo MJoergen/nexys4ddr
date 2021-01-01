@@ -1,22 +1,44 @@
-# Name of top level module
-TOP = queens_top
+XILINX_DIR = /opt/Xilinx/Vivado/2019.2
 
-# List of sources files
-SRC  = src/$(TOP).vhd
-SRC += src/bitmap_pkg.vhd
-SRC += src/queens.vhd
-SRC += src/counter.vhd
-SRC += src/disp_queens.vhd
-SRC += src/vga_ctrl.vhd
-SRC += src/clk.vhd
-SRC += src/seg.vhd
-SRC += src/int2seg.vhd
-SRC += src/digit.vhd
-SRC += src/clk_wiz_0.vhd
-SRC += src/clk_wiz_0_clk_wiz.vhd
+SOURCES += src/bitmap_pkg.vhd
+SOURCES += src/seg.vhd
+SOURCES += src/vga_ctrl.vhd
+SOURCES += src/clk.vhd
+SOURCES += src/clk_wiz_0.vhd
+SOURCES += src/clk_wiz_0_clk_wiz.vhd
+SOURCES += src/counter.vhd
+SOURCES += src/digit.vhd
+SOURCES += src/disp_queens.vhd
+SOURCES += src/int2seg.vhd
+SOURCES += src/queens.vhd
+SOURCES += src/queens_top.vhd
 
-stoptime = --stop-time=1000us
+queens.bit: queens.tcl $(SOURCES)
+	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $<"
 
-include ../xilinx.mk
+fpga: queens.bit
+	djtgcfg prog -d Nexys4DDR -i 0 --file $<
 
+clean:
+	rm -rf usage_statistics_webtalk.*
+	rm -rf vivado*
+	rm -rf queens.bit
+	rm -rf queens.dcp
+	rm -rf .Xil
+	rm -rf .cache
+	rm -rf queens_top.edif
+	rm -rf unisim-obj93.cf
+	rm -rf work-obj93.cf
+	rm -rf yosys.log
+
+# Synthesis using yosys
+
+work-obj93.cf: $(SOURCES)
+	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VCOMP.vhd
+	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VPKG.vhd
+	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/primitive/*.vhd
+	ghdl -a -fsynopsys $^
+
+synth: work-obj93.cf
+	yosys -m ghdl -p 'ghdl -fsynopsys queens_top; synth_xilinx -top queens_top -edif queens_top.edif' > yosys.log
 
