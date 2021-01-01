@@ -1,49 +1,25 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date: 04/25/2014 02:10:40 PM
--- Design Name: 
--- Module Name: vga_ctrl - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description:  This generates the horizontal and vertical synchronization signals
---               for a VGA display with 1280 * 1024 @ 60 Hz refresh rate.
---               User must supply a 108 MHz clock on the input.
---               This is because 1688 * 1066 * 60 Hz = 107,96 MHz.
--- 
--- Dependencies: 
--- 
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
--- 
-----------------------------------------------------------------------------------
-
-
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_ARITH.ALL;
-use IEEE.std_logic_unsigned.all;
-use ieee.math_real.all;
+library ieee;
+use ieee.std_logic_1164.all;
+--use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
+--use ieee.math_real.all;
 
 
 -- simulation library
-library UNISIM;
-use UNISIM.VComponents.all;
+--library UNISIM;
+--use UNISIM.VComponents.all;
 
 -- the vga_ctrl entity declaration
 entity vga_ctrl is
     port (
-        rst_i     : in std_logic;
-        vga_clk_i : in std_logic;
+        clk_i    : in std_logic;
+        rst_i    : in std_logic;
 
-        hs_o      : out std_logic;
-        vs_o      : out std_logic;
-        hcount_o  : out std_logic_vector(11 downto 0);
-        vcount_o  : out std_logic_vector(11 downto 0);
-        blank_o   : out std_logic
+        hs_o     : out std_logic;
+        vs_o     : out std_logic;
+        hcount_o : out std_logic_vector(11 downto 0);
+        vcount_o : out std_logic_vector(11 downto 0);
+        blank_o  : out std_logic
     );
 end vga_ctrl;
 
@@ -102,9 +78,9 @@ begin
 
     ---------------------------------------------------------------
     -- Horizontal counter
-    process (vga_clk_i)
+    process (clk_i)
     begin
-        if (rising_edge(vga_clk_i)) then
+        if (rising_edge(clk_i)) then
             if (h_cntr_reg = (H_MAX - 1)) then
                 h_cntr_reg <= (others =>'0');
             else
@@ -114,9 +90,9 @@ begin
     end process;
 
     -- Vertical counter
-    process (vga_clk_i)
+    process (clk_i)
     begin
-        if (rising_edge(vga_clk_i)) then
+        if (rising_edge(clk_i)) then
             if ((h_cntr_reg = (H_MAX - 1)) and (v_cntr_reg = (V_MAX - 1))) then
                 v_cntr_reg <= (others =>'0');
             elsif (h_cntr_reg = (H_MAX - 1)) then
@@ -126,9 +102,9 @@ begin
     end process;
 
     -- Horizontal sync
-    process (vga_clk_i)
+    process (clk_i)
     begin
-        if (rising_edge(vga_clk_i)) then
+        if (rising_edge(clk_i)) then
             if (h_cntr_reg >= (H_FP + FRAME_WIDTH - 1)) and (h_cntr_reg < (H_FP + FRAME_WIDTH + H_PW - 1)) then
                 h_sync_reg <= H_POL;
             else
@@ -138,9 +114,9 @@ begin
     end process;
 
     -- Vertical sync
-    process (vga_clk_i)
+    process (clk_i)
     begin
-        if (rising_edge(vga_clk_i)) then
+        if (rising_edge(clk_i)) then
             if (v_cntr_reg >= (V_FP + FRAME_HEIGHT - 1)) and (v_cntr_reg < (V_FP + FRAME_HEIGHT + V_PW - 1)) then
                 v_sync_reg <= V_POL;
             else
@@ -160,9 +136,9 @@ begin
 
 
     -- Register Outputs
-    process (vga_clk_i)
+    process (clk_i)
     begin
-        if (rising_edge(vga_clk_i)) then
+        if (rising_edge(clk_i)) then
             h_sync_reg_dly <= h_sync_reg;
             v_sync_reg_dly <= v_sync_reg;
             h_cntr_reg_dly <= h_cntr_reg;

@@ -22,7 +22,7 @@ entity disp_queens is
         NUM_QUEENS: integer
         );
     port (
-        vga_clk_i : in  std_logic; -- Currently not used
+        clk_i     : in  std_logic; -- Currently not used
 
         hcount_i  : in  std_logic_vector(11 downto 0);
         vcount_i  : in  std_logic_vector(11 downto 0);

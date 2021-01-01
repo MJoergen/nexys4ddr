@@ -1,44 +1,42 @@
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
 
 entity counter is
+   generic (
+      G_COUNTER : integer
+   );
+   port (
+      clk_i  : in  std_logic;
+      rst_i  : in  std_logic;
+      inc_i  : in  std_logic_vector(6 downto 0);
+      wrap_o : out std_logic
+   );
+end entity counter;
 
-    generic (
-        FREQ       : integer
-        );
-    port (
-        -- Clock, reset, and enable
-        rst_i      : in  std_logic;
-        clk_i      : in  std_logic;
-        speed_i    : in  std_logic_vector(7 downto 1);
-        en_o       : out std_logic
-        );
+architecture synthesis of counter is
 
-end counter;
-
-architecture Structural of counter is
-
-    signal count   : integer range 0 to FREQ;
+   signal count : integer range 0 to G_COUNTER;
 
 begin
 
-    -- This generates the steps of the game.
-    gen_counter : process (rst_i, clk_i)
-    begin
-        if rst_i = '1' then
-            en_o <= '0';
-            count <= 0;
-        elsif rising_edge(clk_i) then
-            en_o <= '0';
-            if count < freq then
-                count <= count + conv_integer(speed_i);
-            else
-                count <= 0;
-                en_o <= '1';
-            end if;
-        end if;
-    end process gen_counter;
-  
-end Structural;
+   p_count : process (rst_i, clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if count < G_COUNTER then
+            count  <= count + conv_integer(inc_i);
+            wrap_o <= '0';
+         else
+            count  <= 0;
+            wrap_o <= '1';
+         end if;
+
+         if rst_i = '1' then
+            count  <= 0;
+            wrap_o <= '0';
+         end if;
+      end if;
+   end process p_count;
+
+end architecture synthesis;
 

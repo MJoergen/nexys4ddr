@@ -33,38 +33,21 @@ end entity queens_top;
 
 architecture synthesis of queens_top is
 
-  signal queens_en     : std_logic;
+   signal queens_en     : std_logic;
 
-  signal vga_clk       : std_logic;   -- 108 MHz
-  signal rst           : std_logic;
+   signal vga_clk       : std_logic;   -- 108 MHz
+   signal rst           : std_logic;
 
-  signal hcount        : std_logic_vector(11 downto 0);
-  signal vcount        : std_logic_vector(11 downto 0);
-  signal blank         : std_logic;
-
-  signal vga           : std_logic_vector(11 downto 0);
-
-  signal clk_1kHz      : std_logic;
-  signal seg3          : std_logic_vector(6 downto 0);  -- First segment
-  signal seg2          : std_logic_vector(6 downto 0);  -- Second segment
-  signal seg1          : std_logic_vector(6 downto 0);  -- Third segment
-  signal seg0          : std_logic_vector(6 downto 0);  -- Fourth segment
-  signal dp            : std_logic_vector(4 downto 1);
-
-  signal num_solutions : std_logic_vector(13 downto 0);
-  signal board         : std_logic_vector(G_NUM_QUEENS*G_NUM_QUEENS-1 downto 0);
-  signal valid         : std_logic;
-  signal done          : std_logic;
+   signal num_solutions : std_logic_vector(13 downto 0);
+   signal board         : std_logic_vector(G_NUM_QUEENS*G_NUM_QUEENS-1 downto 0);
+   signal valid         : std_logic;
+   signal done          : std_logic;
 
 begin
 
    -- Input / output signals
    rst               <= sw_i(0);
    led_o(7 downto 0) <= sw_i(7 downto 0);
-
-   vga_red_o   <= vga(11 downto 8);
-   vga_green_o <= vga(7 downto 4);
-   vga_blue_o  <= vga(3 downto 0);
 
 
    -- Generate VGA clock
@@ -79,13 +62,13 @@ begin
    -- Generate a single pulse for every time the board should be updated.
    i_counter : entity work.counter
       generic map (
-         FREQ    => G_FREQ
+         G_COUNTER => G_FREQ
       )
       port map (
-         clk_i   => vga_clk,
-         rst_i   => rst,
-         speed_i => sw_i(7 downto 1),
-         en_o    => queens_en
+         clk_i  => vga_clk,
+         rst_i  => rst,
+         inc_i  => sw_i(7 downto 1),
+         wrap_o => queens_en
       ); -- i_counter
 
 
@@ -104,32 +87,21 @@ begin
       ); -- i_queens
 
 
-   -- This generates the image
-   i_disp_queens : entity work.disp_queens
+   -- Display the current board on the VGA output
+   i_vga : entity work.vga
       generic map (
-         NUM_QUEENS => G_NUM_QUEENS
+         G_NUM_QUEENS => G_NUM_QUEENS
       )
       port map (
-         vga_clk_i  => vga_clk,
-         hcount_i   => hcount,
-         vcount_i   => vcount,
-         blank_i    => blank,
-         board_i    => board,
-         vga_o      => vga
-      ); -- i_disp_queens
-
-
-   -- This generates the VGA timing signals
-   i_vga_ctrl : entity work.vga_ctrl
-      port map (
-         vga_clk_i => vga_clk,
-         rst_i     => rst,
-         HS_o      => vga_hs_o,
-         VS_o      => vga_vs_o,
-         hcount_o  => hcount,
-         vcount_o  => vcount,
-         blank_o   => blank
-      ); -- i_vga_ctrl
+         clk_i       => vga_clk,
+         rst_i       => rst,
+         board_i     => board,
+         vga_hs_o    => vga_hs_o,
+         vga_vs_o    => vga_vs_o,
+         vga_red_o   => vga_red_o,
+         vga_green_o => vga_green_o,
+         vga_blue_o  => vga_blue_o
+      ); -- i_vga
 
 
    p_num_solutions : process (vga_clk) is
@@ -145,39 +117,19 @@ begin
    end process p_num_solutions;
 
 
-   i_seg : entity work.seg
-      port map ( 
-         clk_1kHz_i  => clk_1kHz,
-         seg_ca_o    => seg_ca_o,
-         seg_dp_o    => seg_dp_o,
-         seg_an_o    => seg_an_o,
-         seg3_i      => seg3,
-         seg2_i      => seg2,
-         seg1_i      => seg1,
-         seg0_i      => seg0,
-         dp_i        => dp
-      ); -- i_seg
-
-
-   i_int2seg : entity work.int2seg
-      port map (
-         int_i  => num_solutions,
-         seg3_o => seg3,
-         seg2_o => seg2,
-         seg1_o => seg1,
-         seg0_o => seg0,
-         dp_o   => dp
-      ); -- i_int2seg
-
-
-   i_clk : entity work.clk
+   -- Displau current number of solutions on the 7-segment display
+   i_display : entity work.display
       generic map (
-         SCALER => G_FREQ/1000
+         G_FREQ => G_FREQ
       )
       port map (
-         clk_i => vga_clk,
-         clk_o => clk_1kHz
-      ); -- i_clk
+         clk_i    => clk_i,
+         rst_i    => rst,
+         value_i  => num_solutions,
+         seg_ca_o => seg_ca_o,
+         seg_dp_o => seg_dp_o,
+         seg_an_o => seg_an_o
+      ); -- i_display
 
 end architecture synthesis;
 
