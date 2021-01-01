@@ -14,6 +14,9 @@ SOURCES += src/display.vhd
 SOURCES += src/queens.vhd
 SOURCES += src/queens_top.vhd
 
+TB_SOURCES += src/queens_tb.vhd
+TB_SOURCES += src/queens_top_tb.vhd
+
 queens.bit: queens.tcl $(SOURCES)
 	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $<"
 
@@ -31,10 +34,24 @@ clean:
 	rm -rf unisim-obj93.cf
 	rm -rf work-obj93.cf
 	rm -rf yosys.log
+	rm -rf *.ghw
+
+# Simulation using ghdl
+
+sim: work-obj93.cf
+	ghdl -m queens_tb
+	ghdl -r queens_tb --wave=queens_tb.ghw --stop-time=2us
+	gtkwave queens_tb.ghw queens_tb.gtkw
+
+sim_top: work-obj93.cf
+	ghdl -m -fexplicit -fsynopsys queens_top_tb
+	ghdl -r -fexplicit -fsynopsys queens_top_tb --wave=queens_top_tb.ghw --stop-time=2us
+	gtkwave queens_top_tb.ghw queens_top_tb.gtkw
+
 
 # Synthesis using yosys
 
-work-obj93.cf: $(SOURCES)
+work-obj93.cf: $(SOURCES) $(TB_SOURCES)
 	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VCOMP.vhd
 	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VPKG.vhd
 	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/primitive/*.vhd
