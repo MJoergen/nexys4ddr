@@ -18,10 +18,10 @@ $(PRJNAME).fasm: $(PRJNAME).json
 	$(NEXTPNR)/nextpnr-xilinx --chipdb $(CHIPDB) --xdc $(XDC) --json $^ --write $(PRJNAME)_routed.json --fasm $@
 
 $(PRJNAME).json: work-obj93.cf
-	yosys -m ghdl -p "ghdl $(TOPLEVEL); synth_xilinx -flatten -abc9 -nobram -arch $(ARCH) -top $(TOPLEVEL); write_json $@"
+	yosys -m ghdl -p "ghdl -fsynopsys $(TOPLEVEL); synth_xilinx -flatten -abc9 -nobram -arch $(ARCH) -top $(TOPLEVEL); write_json $@"
 
 work-obj93.cf: $(SOURCES)
-	ghdl -a $^
+	ghdl -a -fsynopsys $^
 
 clean:
 	rm -f work-obj93.cf
