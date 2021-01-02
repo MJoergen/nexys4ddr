@@ -22,7 +22,7 @@ end vga_disp_queens;
 
 architecture synthesis of vga_disp_queens is
 
-   constant OFFSET_X : integer := 450;
+   constant OFFSET_X : integer := 250;
    constant OFFSET_Y : integer := 150;
 
    type bitmaps_vector is array(natural range <>) of bitmap_t;
@@ -36,8 +36,8 @@ begin
 
       constant SIZE   : integer := 32;
 
-      variable hcount : integer range 0 to 1688;
-      variable vcount : integer range 0 to 1066;
+      variable hcount : integer range 0 to 800;
+      variable vcount : integer range 0 to 525;
       variable col    : integer range 0 to G_NUM_QUEENS;
       variable row    : integer range 0 to G_NUM_QUEENS;
       variable xdiff  : integer range 0 to SIZE-1;

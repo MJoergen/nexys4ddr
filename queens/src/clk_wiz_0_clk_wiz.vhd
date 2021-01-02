@@ -125,8 +125,8 @@ clk_in1_clk_wiz_0 <= clk_in1;
   generic map
    (
     COMPENSATION   => "INTERNAL",
-    CLKOUT0_DIVIDE => 10,
-    CLKFBOUT_MULT  => 54,
+    CLKOUT0_DIVIDE => 40,
+    CLKFBOUT_MULT  => 50,
     DIVCLK_DIVIDE  => 5,
     REF_JITTER1    => 0.010,
     CLKIN1_PERIOD  => 10.0)
