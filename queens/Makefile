@@ -1,5 +1,8 @@
 XILINX_DIR = /opt/Xilinx/Vivado/2019.2
 
+PRJNAME  = queens
+TOPLEVEL = queens_top
+XDC      = src/queens_top.xdc
 SOURCES += src/counter.vhd
 SOURCES += src/clk_wiz_0.vhd
 SOURCES += src/clk_wiz_0_clk_wiz.vhd
@@ -17,27 +20,6 @@ SOURCES += src/queens_top.vhd
 TB_SOURCES += src/queens_tb.vhd
 TB_SOURCES += src/queens_top_tb.vhd
 
-queens.bit: queens.tcl $(SOURCES)
-	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $<"
-
-fpga: queens.bit
-	djtgcfg prog -d Nexys4DDR -i 0 --file $<
-
-clean:
-	rm -rf usage_statistics_webtalk.*
-	rm -rf vivado*
-	rm -rf queens.bit
-	rm -rf queens.dcp
-	rm -rf .Xil
-	rm -rf .cache
-	rm -rf queens_top.edif
-	rm -rf unisim-obj93.cf
-	rm -rf work-obj93.cf
-	rm -rf yosys.log
-	rm -rf *.ghw
-
-# Simulation using ghdl
-
 sim: work-obj93.cf
 	ghdl -m queens_tb
 	ghdl -r queens_tb --wave=queens_tb.ghw --stop-time=2us
@@ -49,7 +31,24 @@ sim_top: work-obj93.cf
 	gtkwave queens_top_tb.ghw queens_top_tb.gtkw
 
 
-# Synthesis using yosys
+# Don't change anything below this line
+NEXTPNR  = /home/mike/git/daveshah1/nextpnr-xilinx
+CHIPDB   = $(NEXTPNR)/xilinx/xc7a100t.bin
+ARCH     = xc7
+FAMILY   = artix7
+PART     = xc7a100tcsg324-1
+
+synth: $(PRJNAME).bit
+
+$(PRJNAME).bit: $(PRJNAME).fasm
+	${XRAY_DIR}/utils/fasm2frames.py --part $(PART) --db-root ${XRAY_DIR}/database/$(FAMILY) $^ > $(PRJNAME).frames
+	${XRAY_DIR}/build/tools/xc7frames2bit --part_file ${XRAY_DIR}/database/$(FAMILY)/$(PART)/part.yaml --part_name $(PART) --frm_file $(PRJNAME).frames --output_file $@
+
+$(PRJNAME).fasm: $(PRJNAME).json
+	$(NEXTPNR)/nextpnr-xilinx --chipdb $(CHIPDB) --xdc $(XDC) --json $^ --write $(PRJNAME)_routed.json --fasm $@
+
+$(PRJNAME).json: work-obj93.cf
+	yosys -m ghdl -p "ghdl -fsynopsys $(TOPLEVEL); synth_xilinx -flatten -abc9 -nobram -arch $(ARCH) -top $(TOPLEVEL); write_json $@"
 
 work-obj93.cf: $(SOURCES) $(TB_SOURCES)
 	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/unisim_VCOMP.vhd
@@ -57,6 +56,17 @@ work-obj93.cf: $(SOURCES) $(TB_SOURCES)
 	ghdl -i --work=unisim $(XILINX_DIR)/data/vhdl/src/unisims/primitive/*.vhd
 	ghdl -a -fsynopsys $^
 
-synth: work-obj93.cf
-	yosys -m ghdl -p 'ghdl -fsynopsys queens_top; synth_xilinx -top queens_top -edif queens_top.edif' > yosys.log
+clean:
+	rm -f work-obj93.cf
+	rm -f unisim-obj93.cf
+	rm -f $(PRJNAME).json
+	rm -f $(PRJNAME)_routed.json
+	rm -f $(PRJNAME).frames
+	rm -f $(PRJNAME).bit
+	rm -f $(PRJNAME).fasm
+	rm -rf vivado/vivado.cache/
+	rm -rf vivado/vivado.hw/
+	rm -rf vivado/vivado.ip_user_files/
+	rm -rf vivado/vivado.runs/
+	rm -rf vivado/vivado.sim/
 

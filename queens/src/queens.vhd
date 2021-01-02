@@ -60,7 +60,7 @@ begin
                      board(row*G_NUM_QUEENS + G_NUM_QUEENS-1 downto row*G_NUM_QUEENS));
    end generate gen_valid;
 
-   p_board : process (clk_i, rst_i)
+   p_board : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if done = '0' and en_i = '1' then
