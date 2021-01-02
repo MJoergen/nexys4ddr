@@ -4,8 +4,7 @@ PRJNAME  = queens
 TOPLEVEL = queens_top
 XDC      = src/queens_top.xdc
 SOURCES += src/counter.vhd
-SOURCES += src/clk_wiz_0.vhd
-SOURCES += src/clk_wiz_0_clk_wiz.vhd
+SOURCES += src/clk.vhd
 SOURCES += src/vga_bitmap_pkg.vhd
 SOURCES += src/vga_ctrl.vhd
 SOURCES += src/vga_disp_queens.vhd
@@ -27,7 +26,7 @@ sim: work-obj93.cf
 
 sim_top: work-obj93.cf
 	ghdl -m -fexplicit -fsynopsys queens_top_tb
-	ghdl -r -fexplicit -fsynopsys queens_top_tb --wave=queens_top_tb.ghw --stop-time=2us
+	ghdl -r -fexplicit -fsynopsys queens_top_tb --wave=queens_top_tb.ghw --stop-time=7us
 	gtkwave queens_top_tb.ghw queens_top_tb.gtkw
 
 

@@ -1,0 +1,55 @@
+[*]
+[*] GTKWave Analyzer v3.3.103 (w)1999-2019 BSI
+[*] Sat Jan  2 17:51:04 2021
+[*]
+[dumpfile] "/home/mike/git/MJoergen/nexys4ddr/queens/queens_top_tb.ghw"
+[dumpfile_mtime] "Sat Jan  2 17:49:35 2021"
+[dumpfile_size] 1170354
+[savefile] "/home/mike/git/MJoergen/nexys4ddr/queens/queens_top_tb.gtkw"
+[timestart] 0
+[size] 1171 768
+[pos] -1 -1
+*-31.060852 1850000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.queens_top_tb.
+[treeopen] top.queens_top_tb.i_queens_top.
+[treeopen] top.queens_top_tb.i_queens_top.i_queens.
+[treeopen] top.queens_top_tb.i_queens_top.i_vga.
+[sst_width] 249
+[signals_width] 250
+[sst_expanded] 1
+[sst_vpaned_height] 202
+@800200
+-queens
+@28
+top.queens_top_tb.i_queens_top.i_queens.clk_i
+top.queens_top_tb.i_queens_top.i_queens.rst_i
+top.queens_top_tb.i_queens_top.i_queens.en_i
+top.queens_top_tb.i_queens_top.i_queens.valid_o
+top.queens_top_tb.i_queens_top.i_queens.done_o
+@22
+#{top.queens_top_tb.i_queens_top.i_queens.board_o[15:0]} top.queens_top_tb.i_queens_top.i_queens.board_o[15] top.queens_top_tb.i_queens_top.i_queens.board_o[14] top.queens_top_tb.i_queens_top.i_queens.board_o[13] top.queens_top_tb.i_queens_top.i_queens.board_o[12] top.queens_top_tb.i_queens_top.i_queens.board_o[11] top.queens_top_tb.i_queens_top.i_queens.board_o[10] top.queens_top_tb.i_queens_top.i_queens.board_o[9] top.queens_top_tb.i_queens_top.i_queens.board_o[8] top.queens_top_tb.i_queens_top.i_queens.board_o[7] top.queens_top_tb.i_queens_top.i_queens.board_o[6] top.queens_top_tb.i_queens_top.i_queens.board_o[5] top.queens_top_tb.i_queens_top.i_queens.board_o[4] top.queens_top_tb.i_queens_top.i_queens.board_o[3] top.queens_top_tb.i_queens_top.i_queens.board_o[2] top.queens_top_tb.i_queens_top.i_queens.board_o[1] top.queens_top_tb.i_queens_top.i_queens.board_o[0]
+@1000200
+-queens
+@800200
+-vga
+@28
+top.queens_top_tb.i_queens_top.i_vga.clk_i
+top.queens_top_tb.i_queens_top.i_vga.rst_i
+top.queens_top_tb.i_queens_top.i_vga.vga_hs_o
+top.queens_top_tb.i_queens_top.i_vga.vga_vs_o
+@22
+#{top.queens_top_tb.i_queens_top.i_vga.board_i[15:0]} top.queens_top_tb.i_queens_top.i_vga.board_i[15] top.queens_top_tb.i_queens_top.i_vga.board_i[14] top.queens_top_tb.i_queens_top.i_vga.board_i[13] top.queens_top_tb.i_queens_top.i_vga.board_i[12] top.queens_top_tb.i_queens_top.i_vga.board_i[11] top.queens_top_tb.i_queens_top.i_vga.board_i[10] top.queens_top_tb.i_queens_top.i_vga.board_i[9] top.queens_top_tb.i_queens_top.i_vga.board_i[8] top.queens_top_tb.i_queens_top.i_vga.board_i[7] top.queens_top_tb.i_queens_top.i_vga.board_i[6] top.queens_top_tb.i_queens_top.i_vga.board_i[5] top.queens_top_tb.i_queens_top.i_vga.board_i[4] top.queens_top_tb.i_queens_top.i_vga.board_i[3] top.queens_top_tb.i_queens_top.i_vga.board_i[2] top.queens_top_tb.i_queens_top.i_vga.board_i[1] top.queens_top_tb.i_queens_top.i_vga.board_i[0]
+#{top.queens_top_tb.i_queens_top.i_vga.vga_red_o[3:0]} top.queens_top_tb.i_queens_top.i_vga.vga_red_o[3] top.queens_top_tb.i_queens_top.i_vga.vga_red_o[2] top.queens_top_tb.i_queens_top.i_vga.vga_red_o[1] top.queens_top_tb.i_queens_top.i_vga.vga_red_o[0]
+#{top.queens_top_tb.i_queens_top.i_vga.vga_green_o[3:0]} top.queens_top_tb.i_queens_top.i_vga.vga_green_o[3] top.queens_top_tb.i_queens_top.i_vga.vga_green_o[2] top.queens_top_tb.i_queens_top.i_vga.vga_green_o[1] top.queens_top_tb.i_queens_top.i_vga.vga_green_o[0]
+#{top.queens_top_tb.i_queens_top.i_vga.vga_blue_o[3:0]} top.queens_top_tb.i_queens_top.i_vga.vga_blue_o[3] top.queens_top_tb.i_queens_top.i_vga.vga_blue_o[2] top.queens_top_tb.i_queens_top.i_vga.vga_blue_o[1] top.queens_top_tb.i_queens_top.i_vga.vga_blue_o[0]
+@28
+top.queens_top_tb.i_queens_top.i_vga.blank
+@23
+#{top.queens_top_tb.i_queens_top.i_vga.vcount[11:0]} top.queens_top_tb.i_queens_top.i_vga.vcount[11] top.queens_top_tb.i_queens_top.i_vga.vcount[10] top.queens_top_tb.i_queens_top.i_vga.vcount[9] top.queens_top_tb.i_queens_top.i_vga.vcount[8] top.queens_top_tb.i_queens_top.i_vga.vcount[7] top.queens_top_tb.i_queens_top.i_vga.vcount[6] top.queens_top_tb.i_queens_top.i_vga.vcount[5] top.queens_top_tb.i_queens_top.i_vga.vcount[4] top.queens_top_tb.i_queens_top.i_vga.vcount[3] top.queens_top_tb.i_queens_top.i_vga.vcount[2] top.queens_top_tb.i_queens_top.i_vga.vcount[1] top.queens_top_tb.i_queens_top.i_vga.vcount[0]
+@22
+#{top.queens_top_tb.i_queens_top.i_vga.hcount[11:0]} top.queens_top_tb.i_queens_top.i_vga.hcount[11] top.queens_top_tb.i_queens_top.i_vga.hcount[10] top.queens_top_tb.i_queens_top.i_vga.hcount[9] top.queens_top_tb.i_queens_top.i_vga.hcount[8] top.queens_top_tb.i_queens_top.i_vga.hcount[7] top.queens_top_tb.i_queens_top.i_vga.hcount[6] top.queens_top_tb.i_queens_top.i_vga.hcount[5] top.queens_top_tb.i_queens_top.i_vga.hcount[4] top.queens_top_tb.i_queens_top.i_vga.hcount[3] top.queens_top_tb.i_queens_top.i_vga.hcount[2] top.queens_top_tb.i_queens_top.i_vga.hcount[1] top.queens_top_tb.i_queens_top.i_vga.hcount[0]
+@1000200
+-vga
+[pattern_trace] 1
+[pattern_trace] 0

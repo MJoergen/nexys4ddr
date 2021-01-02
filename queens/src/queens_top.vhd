@@ -51,12 +51,12 @@ begin
 
 
    -- Generate VGA clock
-   i_clk_wiz_0 : entity work.clk_wiz_0
+   i_clk : entity work.clk
       port map
       (
-         clk_in1  => clk_i,
-         clk_out1 => vga_clk
-      ); -- i_clk_wiz_0
+         clk_i => clk_i,
+         clk_o => vga_clk
+      ); -- i_clk
 
 
    -- Generate a single pulse for every time the board should be updated.
