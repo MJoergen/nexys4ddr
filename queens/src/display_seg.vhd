@@ -33,7 +33,7 @@ begin
    port map (
       clk_i  => clk_i,
       rst_i  => rst_i,
-      inc_i  => "0000001",
+      inc_i  => "000001",
       wrap_o => clk_en
    ); -- i_counter
 

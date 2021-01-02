@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 entity queens_top is
    generic (
@@ -39,6 +39,8 @@ architecture synthesis of queens_top is
    signal rst           : std_logic;
 
    signal num_solutions : std_logic_vector(13 downto 0);
+   signal num_positions : std_logic_vector(13 downto 0);
+   signal value         : std_logic_vector(13 downto 0);
    signal board         : std_logic_vector(G_NUM_QUEENS*G_NUM_QUEENS-1 downto 0);
    signal valid         : std_logic;
    signal done          : std_logic;
@@ -67,7 +69,7 @@ begin
       port map (
          clk_i  => vga_clk,
          rst_i  => rst,
-         inc_i  => sw_i(7 downto 1),
+         inc_i  => sw_i(7 downto 2),
          wrap_o => queens_en
       ); -- i_counter
 
@@ -108,13 +110,29 @@ begin
    begin
       if rising_edge(vga_clk) then
          if valid = '1' and queens_en = '1' then
-            num_solutions <= num_solutions + "00000000000001";
+            num_solutions <= std_logic_vector(unsigned(num_solutions) + 1);
          end if;
          if rst = '1' then
             num_solutions <= (others => '0');
          end if;
       end if;
    end process p_num_solutions;
+
+
+   p_num_positions : process (vga_clk) is
+   begin
+      if rising_edge(vga_clk) then
+         if queens_en = '1' then
+            num_positions <= std_logic_vector(unsigned(num_positions) + 1);
+         end if;
+         if rst = '1' then
+            num_positions <= (others => '0');
+         end if;
+      end if;
+   end process p_num_positions;
+
+   value <= num_solutions when sw_i(1) = '1' else
+            num_positions;
 
 
    -- Displau current number of solutions on the 7-segment display
@@ -125,7 +143,7 @@ begin
       port map (
          clk_i    => clk_i,
          rst_i    => rst,
-         value_i  => num_solutions,
+         value_i  => value,
          seg_ca_o => seg_ca_o,
          seg_dp_o => seg_dp_o,
          seg_an_o => seg_an_o

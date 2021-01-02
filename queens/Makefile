@@ -57,6 +57,7 @@ work-obj93.cf: $(SOURCES) $(TB_SOURCES)
 
 clean:
 	rm -f queens_tb.ghw
+	rm -f queens_top_tb.ghw
 	rm -f work-obj93.cf
 	rm -f unisim-obj93.cf
 	rm -f $(PRJNAME).json
