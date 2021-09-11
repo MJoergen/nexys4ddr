@@ -39,7 +39,7 @@
 ###############################################################################
 
 # Variables used for synthesis
-VIVADO ?= /opt/Xilinx/Vivado/2017.3
+VIVADO ?= /opt/Xilinx/Vivado/2019.2
 OUTDIR ?= build
 XDC    ?= src/$(TOP).xdc
 TCL    ?= $(TOP).tcl

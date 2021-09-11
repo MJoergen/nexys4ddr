@@ -15,7 +15,7 @@ result = []
 
 a = open(infilename, "rb")
 for c in a.read():
-    h = format(ord(c), '08b')
+    h = format(c, '08b')
     result.append(h)
 a.close()
 
