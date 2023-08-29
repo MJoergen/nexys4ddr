@@ -9,6 +9,9 @@ use ieee.numeric_std_unsigned.all;
 -- pattern on the VGA output.
 
 entity top is
+   generic (
+      G_SIZE : integer
+   );
    port (
       clk_i        : in  std_logic;                      -- 100 MHz
 
@@ -33,7 +36,6 @@ end top;
 
 architecture structural of top is
 
-   constant C_SIZE       : integer := 72;
    constant C_MY_MAC     : std_logic_vector(47 downto 0) := X"001122334455";
    constant C_MY_IP      : std_logic_vector(31 downto 0) := X"C0A8014D";     -- 192.168.1.77
    constant C_MY_UDP     : std_logic_vector(15 downto 0) := X"1234";         -- 4660
@@ -69,6 +71,29 @@ architecture structural of top is
    -- Test signal
    signal eth_debug      : std_logic_vector(255 downto 0);
    signal vga_hex        : std_logic_vector(255 downto 0);
+
+   component math is
+      generic (
+         G_SIZE : integer
+      );
+      port (
+         clk_i      : in  std_logic;
+         rst_i      : in  std_logic;
+         debug_o    : out std_logic_vector(255 downto 0);
+
+         -- Incoming command
+         rx_valid_i : in  std_logic;
+         rx_data_i  : in  std_logic_vector(60*8-1 downto 0);
+         rx_last_i  : in  std_logic;
+         rx_bytes_i : in  std_logic_vector(5 downto 0);
+
+         -- Outgoing response
+         tx_valid_o : out std_logic;
+         tx_data_o  : out std_logic_vector(60*8-1 downto 0);
+         tx_last_o  : out std_logic;
+         tx_bytes_o : out std_logic_vector(5 downto 0)
+      );
+   end component math;
 
 begin
    
@@ -162,9 +187,9 @@ begin
    -- Instantiate math module
    --------------------------------------------------
 
-   i_math : entity work.math
+   i_math : component math
    generic map (
-      G_SIZE     => C_SIZE
+      G_SIZE     => G_SIZE
    )
    port map (
       clk_i      => math_clk,
