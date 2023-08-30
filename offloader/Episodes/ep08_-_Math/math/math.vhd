@@ -6,9 +6,6 @@ use ieee.numeric_std_unsigned.all;
 -- SQRT module, and sends back the value pair (res, diff) as a single response.
 
 entity math is
-   generic (
-      G_SIZE : integer
-   );
    port (
       clk_i      : in  std_logic;
       rst_i      : in  std_logic;
@@ -30,14 +27,16 @@ end math;
 
 architecture Structural of math is
 
-   signal sqrt_val   : std_logic_vector(2*G_SIZE-1 downto 0);  -- N
+   constant C_SIZE : integer := 72;
+
+   signal sqrt_val   : std_logic_vector(2*C_SIZE-1 downto 0);  -- N
    signal sqrt_start : std_logic;
-   signal sqrt_res   : std_logic_vector(G_SIZE-1 downto 0);    -- M = floor(sqrt(N))
-   signal sqrt_diff  : std_logic_vector(G_SIZE-1 downto 0);    -- N - M*M
+   signal sqrt_res   : std_logic_vector(C_SIZE-1 downto 0);    -- M = floor(sqrt(N))
+   signal sqrt_diff  : std_logic_vector(C_SIZE-1 downto 0);    -- N - M*M
    signal sqrt_busy  : std_logic;
    signal sqrt_valid : std_logic;
 
-   signal res        : std_logic_vector(2*G_SIZE-1 downto 0);
+   signal res        : std_logic_vector(2*C_SIZE-1 downto 0);
    signal sqrt_valid_d : std_logic;
 
    signal debug      : std_logic_vector(255 downto 0);
@@ -45,7 +44,7 @@ architecture Structural of math is
 begin
 
    -- We just ignore rx_last_i and rx_bytes_i.
-   sqrt_val   <= rx_data_i(60*8-1 downto 60*8-2*G_SIZE);
+   sqrt_val   <= rx_data_i(60*8-1 downto 60*8-2*C_SIZE);
    sqrt_start <= rx_valid_i;
 
    ---------------------------
@@ -54,7 +53,7 @@ begin
 
    i_sqrt : entity work.sqrt
    generic map (
-      G_SIZE => G_SIZE
+      G_SIZE => C_SIZE
    )
    port map ( 
       clk_i   => clk_i,
