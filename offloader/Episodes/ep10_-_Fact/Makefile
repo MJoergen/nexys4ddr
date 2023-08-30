@@ -1,4 +1,4 @@
-XILINX_DIR = /opt/Xilinx/Vivado/2018.2
+XILINX_DIR = /opt/Xilinx/Vivado/2021.2
 
 SRCS  = top.vhd cdc.vhd clk_rst.vhd wide_fifo.vhd
 SRCS += eth/fifo.vhd eth/strip_crc.vhd eth/byte2wide.vhd eth/wide2byte.vhd

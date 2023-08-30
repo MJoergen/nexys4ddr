@@ -66,7 +66,7 @@ begin
                end if;
                val2  <= val2(G_SIZE-2 downto 0) & "0"; -- Multiply by 2
 
-               if val1(G_SIZE-1 downto index) = C_ZERO(G_SIZE-1 downto index) then
+               if or(val1(G_SIZE-1 downto index)) = '0' then
                   state <= DONE_ST;
                else
                   index <= index + 1;

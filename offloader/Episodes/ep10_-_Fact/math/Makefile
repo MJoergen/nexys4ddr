@@ -25,7 +25,7 @@ SAVE = $(TB).gtkw
 sim: $(SRC)
 	ghdl -i --std=08 --work=work $(SRC)
 	ghdl -m --std=08 --ieee=synopsys -frelaxed-rules $(TB)
-	ghdl -r $(TB) --assert-level=error --wave=$(WAVE) --stop-time=190us
+	ghdl -r --std=08 $(TB) --assert-level=error --wave=$(WAVE) --stop-time=190us
 
 show: $(WAVE) $(SAVE)
 	gtkwave $(WAVE) $(SAVE)
