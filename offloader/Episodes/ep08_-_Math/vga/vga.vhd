@@ -154,7 +154,7 @@ begin
 
    i_rom : entity work.rom
    generic map (
-      G_ROM_FILE  => "font8x8.txt",
+      G_ROM_FILE  => "../font8x8.txt",
       G_ADDR_SIZE => 11,
       G_DATA_SIZE => 8
    )
