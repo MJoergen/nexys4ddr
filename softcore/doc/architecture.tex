@@ -1,4 +1,4 @@
-% Block diagram of the proposed Linux-on-Artix-7 architecture.
+% Block diagram of the proposed soft-core (RISC-V + ChibiOS) architecture on Artix-7.
 % Render with "make" in this directory (pdflatex + pdftoppm).
 \documentclass[tikz,border=8pt]{standalone}
 \usepackage[T1]{fontenc}
@@ -32,45 +32,44 @@
 
   % ---------------- External (board) ----------------
   \node[ext, text width=5.0cm] (lan) at (\xE,2.0)
-    {\textbf{Network}\\boot server: DHCP, TFTP, signed bundles\\log server: NFS / syslog};
+    {\textbf{Network}\\boot server: DHCP, TFTP, signed roles\\log server: syslog};
   \node[ext] (phy)   at (\xE,0)     {Ethernet PHY\\(RMII, 10/100)};
   \node[ext] (flash) at (\xE,-3.0)  {QSPI flash\\shell bitstream only\\\textbf{write-protected}};
-  \node[ext] (mem)   at (\xE,-4.6)  {Memory module (connector)\\HyperRAM $2\times64$\,MB\\+ module-ID EEPROM};
-  \node[ext] (dev)   at (\xE,-6.2)  {On-board sensors\\UART / SPI / I$^2$C};
-  \node[ext] (osc)   at (\xE,-7.6)  {Oscillator};
-  \node[ext] (jtag)  at (\xE,-10.6) {USB-JTAG\\(development)};
-  \node[ext, opt] (gtpc) at (\xE,-11.9) {Connector / SFP\\(optional)};
+  \node[ext] (dev)   at (\xE,-4.6)  {On-board sensors\\UART / SPI / I$^2$C};
+  \node[ext] (osc)   at (\xE,-6.2)  {Oscillator};
+  \node[ext] (jtag)  at (\xE,-10.1) {USB-JTAG\\(development)};
+  \node[ext, opt] (gtpc) at (\xE,-11.4) {Connector / SFP\\(optional)};
 
   % ---------------- Shell (static) ----------------
   \node[io] (io1) at (\xIO,0)    {I/O};
-  \node[io] (io2) at (\xIO,-4.6) {I/O};
-  \node[io] (io3) at (\xIO,-6.2) {I/O};
-  \node[io] (io4) at (\xIO,-7.6) {I/O};
+  \node[io] (io3) at (\xIO,-4.6) {I/O};
+  \node[io] (io4) at (\xIO,-6.2) {I/O};
 
   \node[shl] (mux)   at (\xS,0)     {Pin mux\\loader $\leftrightarrow$ role};
   \node[shl] (ldr)   at (\xS,-1.5)  {Loader CPU + MAC\\DHCP, TFTP, verify};
   \node[shl] (cfg)   at (\xS,-3.0)  {Config engine\\ICAPE2 / STARTUPE2};
-  \node[shl] (clk)   at (\xS,-7.6)  {Clocking\\MMCM (DRP exposed)};
-  \node[shl, minimum height=0.6cm] (xadc) at (\xS,-8.65) {XADC};
-  \node[shl, minimum height=0.6cm] (wdg)  at (\xS,-9.5)  {Watchdog, version regs};
-  \node[shl] (bscan) at (\xS,-10.6) {BSCANE2};
-  \node[shl, opt] (gtp) at (\xS,-11.9) {GTPE2 $\times4$\\(optional)};
+  \node[shl] (clk)   at (\xS,-6.2)  {Clocking\\MMCM (DRP exposed)};
+  \node[shl, minimum height=0.6cm] (xadc) at (\xS,-7.25) {XADC};
+  \node[shl, minimum height=0.6cm] (wdg)  at (\xS,-8.1)  {Watchdog, version regs};
+  \node[shl, minimum height=0.6cm] (logb) at (\xS,-8.95) {Log buffer (block RAM)};
+  \node[shl] (bscan) at (\xS,-10.1) {BSCANE2};
+  \node[shl, opt] (gtp) at (\xS,-11.4) {GTPE2 $\times4$\\(optional)};
 
   % ---------------- Role (reconfigurable) ----------------
   \node[rol] (eth)  at (\xP,0)     {Ethernet MAC\\(LiteEth)};
-  \node[rol] (memc) at (\xP,-4.6)  {Memory controller\\(HyperRAM)};
-  \node[rol] (per)  at (\xP,-6.2)  {UART / SPI / I$^2$C\\controllers};
-  \node[rol, minimum height=2.3cm] (csr) at (\xP,-8.55) {Shell access\\(clocks, DRP,\\watchdog)};
-  \node[rol] (dbg)  at (\xP,-10.6) {Debug module\\(RISC-V debug)};
-  \node[rol, opt] (fut) at (\xP,-11.9) {Future use\\(SGMII, PCIe, \dots)};
+  \node[rol] (per)  at (\xP,-4.6)  {UART / SPI / I$^2$C\\controllers};
+  \node[rol, minimum height=3.4cm] (csr) at (\xP,-7.6)
+    {Shell access\\(clocks, DRP,\\watchdog,\\log buffer)};
+  \node[rol] (dbg)  at (\xP,-10.1) {Debug module\\(RISC-V debug)};
+  \node[rol, opt] (fut) at (\xP,-11.4) {Future use\\(SGMII, PCIe, \dots)};
 
-  \node[draw, fill=blue!22, minimum width=0.6cm, minimum height=11.4cm]
-    (bus) at (\xBus,-5.1) {};
-  \node[rotate=90] at (bus.center) {System bus (Wishbone / AXI)};
+  \node[draw, fill=blue!22, minimum width=0.6cm, minimum height=10.9cm]
+    (bus) at (\xBus,-5.05) {};
+  \node[rotate=90] at (bus.center) {System bus (Wishbone)};
 
-  \node[rol] (cpu)  at (\xC,-1.5) {\textbf{RV64GC CPU}\\(VexiiRiscv)\\MMU, L1 caches};
-  \node[rol] (rom)  at (\xC,-3.6) {Boot ROM\\(LiteX BIOS, BRAM)};
-  \node[rol] (irq)  at (\xC,-5.4) {PLIC / CLINT\\timers};
+  \node[rol] (cpu)  at (\xC,-1.5) {\textbf{RV32IMC CPU}\\(VexRiscv)\\PMP, debug};
+  \node[rol] (ram)  at (\xC,-3.6) {Block RAM\\ChibiOS firmware\\+ data};
+  \node[rol] (irq)  at (\xC,-5.6) {Timer, interrupts};
 
   % ---------------- Links ----------------
   \draw[lnk] (lan) -- (phy);
@@ -81,8 +80,6 @@
   \draw[->, thick] (ldr) -- node[note, right=2pt] {verified bitstream} (cfg);
   \draw[->, thick] (flash) -- node[note, above] {power-on: shell} (cfg);
 
-  \draw[lnk] (mem) -- (io2);
-  \draw[lnk] (io2) -- node[note, pos=0.35, above] {generic pins} (memc);
   \draw[lnk] (dev) -- (io3);
   \draw[lnk] (io3) -- node[note, pos=0.35, above] {generic pins} (per);
   \draw[->, thick] (osc) -- (io4);
@@ -90,14 +87,15 @@
   \draw[lnk] (clk.east) -- node[note, pos=0.6, above] {clocks, DRP} (clk.east -| csr.west);
   \draw[lnk] (xadc.east) -- node[note, pos=0.6, above] {DRP} (xadc.east -| csr.west);
   \draw[lnk] (wdg.east) -- (wdg.east -| csr.west);
+  \draw[lnk] (logb.east) -- (logb.east -| csr.west);
   \draw[lnk] (jtag) -- (bscan);
   \draw[lnk] (bscan) -- node[note, pos=0.6, above] {JTAG} (dbg);
   \draw[lnk, opt] (gtpc) -- (gtp);
   \draw[lnk, opt] (gtp) -- node[note, pos=0.6, above] {data, DRP} (fut);
 
-  \foreach \n in {eth, memc, per, csr, dbg}
+  \foreach \n in {eth, per, csr, dbg}
     \draw[lnk] (\n.east) -- (\n.east -| bus.west);
-  \foreach \n in {cpu, rom, irq}
+  \foreach \n in {cpu, ram, irq}
     \draw[lnk] (\n.west) -- (\n.west -| bus.east);
 
   % ---------------- Regions ----------------
@@ -112,7 +110,7 @@
           inner sep=8pt, fit={(eth) (fut) (cpu) (bus) ($(eth.north)+(0,0.9)$)}]
       (role) {};
     \node[anchor=north west, align=left, font=\small] at (role.north west)
-      {\textbf{ROLE} (reconfigurable partition)\\[-1pt]\scriptsize downloaded over Ethernet at every boot};
+      {\textbf{ROLE} (reconfigurable partition)\\[-1pt]\scriptsize downloaded over Ethernet at every boot, firmware included};
 
     \node[draw, very thick, rounded corners=6pt, inner sep=8pt,
           fit={(shell) (role) ($(shell.north)+(0,0.7)$)}] (fpga) {};
@@ -130,6 +128,7 @@
   % ---------------- Legend ----------------
   \node[anchor=north west, align=left, font=\scriptsize] at ($(fpga.south west)+(0,-0.2)$)
     {I/O = IOBUF + IDDR/ODDR/IDELAY on every board pin, owned by the shell.\\
+     No external RAM: all code and data are in on-chip block RAM.\\
      Dashed = optional (only if the board routes the GTP transceivers).};
 \end{tikzpicture}
 \end{document}
