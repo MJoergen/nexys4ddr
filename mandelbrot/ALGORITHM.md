@@ -39,8 +39,17 @@ scheduler does not use them.
 ## The Mandelbrot iteration
 For each point $c = c_x + i c_y$ in the picture, we iterate
 $z_{n+1} = z_n^2 + c$, starting from $z_0 = 0$. The number of iterations needed
-before $|z|$ grows beyond 2 (or a maximum iteration count is reached) is used
-to colour the pixel.
+before the real or the imaginary part of $z$ is outside the range -2 to 2 (or a
+maximum iteration count is reached) is used to colour the pixel, see
+[Overflow](#overflow).
+
+The usual test is whether $|z|$ is larger than 2. If the real or the imaginary
+part is outside the range -2 to 2, then $|z|$ is at least 2, so the test used
+here detects the points outside the Mandelbrot set too, only sometimes a few
+iterations later (the count differs by at most 2 for the initial view). The
+points that are shown as inside the set are the same with both tests, except
+for points where $|z|$ becomes exactly 2, such as $c = -2$ (see
+[Overflow](#overflow)).
 
 Writing $z = x + iy$, the iteration is
 ```
@@ -198,6 +207,12 @@ the first sum and bits 32 to 15 of the second sum, respectively.
 
 The count returned in cnt\_o is the number of the first iteration where the
 value is out of range, or the maximum count if this does not happen.
+
+The value 2 itself is outside the range. So the point $c = -2$, which is in
+the Mandelbrot set ($z$ is -2, 2, 2, 2, ...), gets the count 2, as if it was
+outside the set. Points very close to -2 are not affected (e.g. for
+$c = -2 + 2^{-16}$, $z_2$ is $2 - 3 \cdot 2^{-16}$, which is in range). This is
+only a single point, so it does not matter for the picture.
 
 The values x+y and x-y, which are the inputs to the multiplier in the second
 clock cycle, are between -4 and 4, so they need 19 bits (3.16 format). The
@@ -412,26 +427,52 @@ pictures. The sum is 16 bits wide, so it wraps around.
 
 ## Timing
 Counters measure the total time it takes to generate the picture as well as the
-total amount of time the iterators are waiting to write to display memory.
+total amount of time the iterators are waiting to write to display memory (see
+[The top level](#the-top-level)).
 
-Note: The numbers in this section were measured on the board with an earlier
-version of the iterator, which did not detect all overflows (see
-[Overflow](#overflow)), and with a main clock of 150 MHz. The number of clock
-cycles has not been measured again since then, and may be lower now, because
-some points are now detected as overflowing earlier. The times below have been
-recalculated for the current main clock of 140.625 MHz.
+The numbers measured on the board were:
+* The total time for the picture: 472\*2^11 clock cycles, which at 140.625 MHz
+  is 6.9 ms.
+* The waiting time of all the column modules: 28642\*2^11 clock cycles in
+  total, i.e. 1.7 ms for each column module. So about a quarter of the time is
+  spent waiting.
 
-The total time taken is 472\*2^11 clock cycles, which at a frequency of 140.625
-MHz becomes 6.9 milliseconds.
+These were measured with an earlier version of the iterator, which did not
+detect all overflows, and which calculated x+y and x-y in 18 bits (see
+[Overflow](#overflow)), and with a main clock of 150 MHz (the times above have
+been recalculated for 140.625 MHz). They have not been measured on the board
+again since then.
 
-The average waiting time for each iterator is 28642/240 \* 2^11 clock cycles,
-which is 1.7 milliseconds. So a quarter of the time is spent waiting. However,
-at this processing speed it really doesn't matter.
+The time for the current design can be estimated with the model
+[`sim/model.py`](sim/model.py), which gives the same number of clock cycles,
+472\*2^11, for the picture. The reason is the following. A column module uses
+3 clock cycles per iteration, plus 7 clock cycles to start the iterator and to
+deliver the result (4 for the points that reach the maximum count). Then the
+result must be accepted by the dispatcher. The round-robin scheduler for the
+results (i\_scheduler\_res) checks each column module once every 240 clock
+cycles, so the time from one result of a column module to the next is always a
+multiple of 240 clock cycles. This has been checked in simulation. So:
+* A pixel with a count up to 77 takes 240 clock cycles, i.e. the iterator is
+  idle for most of the time, waiting for the result to be accepted.
+* A pixel in the set (count 511) takes 3\*511+4 = 1537 clock cycles, which is
+  rounded up to 1680 clock cycles.
 
-Another way of looking at this is that each iterator is using 472\*2^11 clock
-cycles, so a total of 232 million clock cycles. The average amount per pixel is
-then obtained by dividing by 640 and by 480, which gives 755 clock cycles, or
-in other words 252 iterations per pixel.
+For the initial view the average count is 151, so the iterator needs 460 clock
+cycles per pixel on average, but each pixel takes 652 clock cycles on average,
+including the waiting. The total waiting time of all the column modules is then
+28896\*2^11 clock cycles, which agrees with the 28642\*2^11 clock cycles
+measured on the board. The picture is finished when the last column module is
+finished. A single picture column through the middle of the set takes up to
+0.73 million clock cycles (5.2 ms), so these picture columns decide the total
+time. Without the waiting, the picture would take about 4.2 ms (if the work
+was spread evenly over the column modules).
+
+This could be improved by accepting a result as soon as it is ready, e.g.
+with a priority encoder ([`src/priority_pipeline.vhd`](src/priority_pipeline.vhd)
+is a pipelined version of one) instead of the round-robin scheduler, or by
+storing a few results in each column module, so the iterator can continue with
+the next row while it waits. At this speed (about 145 pictures per second) it
+does not matter much, though.
 
 ## Resources and timing closure
 The numbers below come from a successful run of `make vivado` (Vivado 2025.1,
@@ -454,8 +495,9 @@ particular the timing, have not been measured again since then.
 
 The resource numbers are the cell counts after synthesis, taken from
 `vivado.log`, and the available numbers are the totals for the XC7A100T. The
-design uses memory with 2^19 entries of 9 bit, i.e. 128 blocks of 36 kbit
-BRAM, as expected.
+design uses memory with 2^19 entries of 8 bit (the lowest 8 bits of the
+count), i.e. 128 blocks of 36 kbit BRAM (each with 32 kbit of data), as
+expected.
 
 The timing after routing is:
 

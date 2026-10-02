@@ -79,6 +79,16 @@ architecture rtl of dispatcher is
 
 begin
 
+   -- When the scheduler selects a column module, the busy flag of that column
+   -- module (job_busy_s for a job, res_busy_r for a result) is seen by the
+   -- scheduler three clock cycles later. The scheduler selects the same column
+   -- module again G_NUM_ITERATORS clock cycles later at the earliest. With
+   -- fewer than three column modules a job could therefore be started twice
+   -- (and the first one would be lost), or a result accepted twice.
+   assert G_NUM_ITERATORS >= 3
+      report "The dispatcher needs at least three column modules"
+      severity failure;
+
    p_sched_active : process (clk_i)
    begin
       if rising_edge(clk_i) then

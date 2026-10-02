@@ -137,7 +137,7 @@ begin
       check( 0.0,   0.0);    -- In the set, so maximum count
       check(-1.0,   0.0);    -- In the set (period 2), so maximum count
       check( 1.0,   1.0);    -- Escapes immediately
-      check(-2.0,   0.0);    -- Escapes immediately, at the edge of the range
+      check(-2.0,   0.0);    -- In the set, but z = 2 is out of range (see ALGORITHM.md)
       check( 0.5,   0.0);    -- Escapes quickly
       check(-1.0,   0.5);    -- Escapes quickly (example from iterator.vhd)
       check( 0.3,   0.0);    -- Escapes slowly, near the edge of the set
