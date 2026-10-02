@@ -53,12 +53,12 @@
 -- clk_wiz_0_clk_wiz.vhd), and has since been modified by hand, i.e. the
 -- Ethernet clock has been removed.
 --
--- The MMCM multiplies the 100 MHz input clock by 10.5, giving a VCO frequency
--- of 1050 MHz, and generates the following output clocks:
+-- The MMCM multiplies the 100 MHz input clock by 11.25, giving a VCO frequency
+-- of 1125 MHz, and generates the following output clocks:
 --
 --   Output clock   Divider   Freq (MHz)
---   vga_clk           42         25.000
---   main_clk           7        150.000
+--   vga_clk           45         25.000
+--   main_clk           8        140.625
 --
 -- Input clock: clk_in1, 100.000 MHz.
 
@@ -129,14 +129,14 @@ clk_in1_clk_wiz_0 <= clk_in1;
     COMPENSATION         => "ZHOLD",
     STARTUP_WAIT         => FALSE,
     DIVCLK_DIVIDE        => 1,
-    CLKFBOUT_MULT_F      => 10.500,
+    CLKFBOUT_MULT_F      => 11.250,
     CLKFBOUT_PHASE       => 0.000,
     CLKFBOUT_USE_FINE_PS => FALSE,
-    CLKOUT1_DIVIDE       => 42,     -- VGA @ 25 MHz
+    CLKOUT1_DIVIDE       => 45,     -- VGA @ 25 MHz
     CLKOUT1_PHASE        => 0.000,
     CLKOUT1_DUTY_CYCLE   => 0.500,
     CLKOUT1_USE_FINE_PS  => FALSE,
-    CLKOUT2_DIVIDE       => 7,     -- MAIN @ 150 MHz
+    CLKOUT2_DIVIDE       => 8,      -- MAIN @ 140.625 MHz
     CLKOUT2_PHASE        => 0.000,
     CLKOUT2_DUTY_CYCLE   => 0.500,
     CLKOUT2_USE_FINE_PS  => FALSE,

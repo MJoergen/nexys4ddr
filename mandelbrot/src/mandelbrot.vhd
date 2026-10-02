@@ -69,7 +69,7 @@ architecture structural of mandelbrot is
    signal sw_d           : std_logic;
    signal sw_deb         : std_logic;
 
-   -- 23 bits = 8 million cycles @ 150 MHz = 18 times pr second.
+   -- 23 bits = 8 million cycles @ 140.625 MHz = 17 times pr second.
    signal main_upd_cnt   : std_logic_vector(22 downto 0);
    signal main_upd       : std_logic;
    signal btn_r          : std_logic_vector(4 downto 0);
@@ -301,8 +301,8 @@ begin
    -- Connect output signals
    --------------------------
 
-   -- If cnt increments at 150 MHz, then a single count is 13,65 us. The total
-   -- amount wraps around after 0,9 seconds.
+   -- If cnt increments at 140.625 MHz, then a single count is 14,56 us. The total
+   -- amount wraps around after 0,95 seconds.
    led_o <= cnt(26 downto 11) when sw_i(1) = '1' else wait_cnt_tot;
 
    vga_hs_o  <= vga_hs;
