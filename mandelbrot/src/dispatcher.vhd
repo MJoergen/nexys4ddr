@@ -242,11 +242,18 @@ begin
    end process p_wr;
 
 
+   -- The signal done_r stays high until the next start. It is cleared by the
+   -- start, because otherwise the old value of done_r would stop the scheduler
+   -- (see p_sched_active) just after the start. It is not set while a job has
+   -- just been started, because then the busy flag of the column has not been
+   -- set yet.
    p_done : process (clk_i)
    begin
       if rising_edge(clk_i) then
          done_r <= '0';
-         if cur_addr_r = G_NUM_COLS and job_busy_s = 0 then
+         if cur_addr_r = G_NUM_COLS and job_busy_s = 0 and
+            job_start_r = 0 and start_i = '0'
+         then
             done_r <= '1';
          end if;
       end if;
