@@ -21,8 +21,19 @@
 # Requires numpy.
 
 import sys
+from typing import List
+from typing import Optional
+from typing import Tuple
 
 import numpy as np
+from numpy.typing import ArrayLike
+from numpy.typing import NDArray
+
+# Arrays of integers (e.g. 2.16 fixed point numbers or counts), real numbers,
+# and booleans
+IntArray = NDArray[np.int64]
+RealArray = NDArray[np.float64]
+BoolArray = NDArray[np.bool_]
 
 MAX_COUNT = 511      # Must match C_MAX_COUNT in main.vhd
 NUM_COLS  = 640      # Must match C_NUM_COLS in main.vhd
@@ -30,25 +41,26 @@ NUM_ROWS  = 480      # Must match C_NUM_ROWS in main.vhd
 NUM_ITERATORS = 240  # Must match C_NUM_ITERATORS in main.vhd
 
 
-def wrap(v, bits: int) -> np.ndarray:
+def wrap(v: ArrayLike, bits: int) -> IntArray:
     """Interpret the lowest 'bits' bits of v as two's complement numbers."""
     m = 1 << bits
-    v = np.asarray(v, dtype=np.int64) & (m - 1)
-    return np.where(v >= m >> 1, v - m, v)
+    low: IntArray = np.asarray(v, dtype=np.int64) & (m - 1)
+    return np.where(low >= m >> 1, low - m, low)
 
 
-def hw_count(cx, cy, max_count: int = MAX_COUNT) -> np.ndarray:
+def hw_count(cx: ArrayLike, cy: ArrayLike,
+             max_count: int = MAX_COUNT) -> IntArray:
     """Iteration count of src/iterator.vhd. cx and cy are 2.16 fixed point
     numbers, i.e. 18-bit signed integers."""
-    cx = np.asarray(cx, np.int64)
-    cy = np.asarray(cy, np.int64)
-    cx_s = cx << 16                   # 4.32
-    cy_div_2_s = cy << 15             # 4.32, this is cy/2
-    x = np.zeros_like(cx)             # 2.16
-    y = np.zeros_like(cx)             # 2.16
-    cnt = np.zeros_like(cx)
-    done = np.zeros(cx.shape, bool)
-    ovf = np.zeros(cx.shape, bool)
+    cx_i: IntArray = np.asarray(cx, np.int64)
+    cy_i: IntArray = np.asarray(cy, np.int64)
+    cx_s: IntArray = cx_i << 16              # 4.32
+    cy_div_2_s: IntArray = cy_i << 15        # 4.32, this is cy/2
+    x: IntArray = np.zeros_like(cx_i)        # 2.16
+    y: IntArray = np.zeros_like(cx_i)        # 2.16
+    cnt: IntArray = np.zeros_like(cx_i)
+    done: BoolArray = np.zeros(cx_i.shape, bool)
+    ovf: BoolArray = np.zeros(cx_i.shape, bool)
     while True:
         # ADD_ST
         done |= ovf
@@ -73,18 +85,19 @@ def hw_count(cx, cy, max_count: int = MAX_COUNT) -> np.ndarray:
         y = np.where(done, y, wrap(new_y_half_s >> 15, 18))    # Bits 32 downto 15
 
 
-def ref_count(cx, cy, max_count: int = MAX_COUNT) -> np.ndarray:
+def ref_count(cx: ArrayLike, cy: ArrayLike,
+              max_count: int = MAX_COUNT) -> IntArray:
     """Iteration count using real numbers (cx and cy are real numbers). Same
     counting as the iterator: The number of the first iteration where x or y is
     outside the range -2 to 2, or max_count if this does not happen."""
-    cx = np.asarray(cx, float)
-    cy = np.asarray(cy, float)
-    x = np.zeros_like(cx)
-    y = np.zeros_like(cx)
-    cnt = np.full(cx.shape, max_count, np.int64)
-    done = np.zeros(cx.shape, bool)
+    cx_r: RealArray = np.asarray(cx, np.float64)
+    cy_r: RealArray = np.asarray(cy, np.float64)
+    x: RealArray = np.zeros_like(cx_r)
+    y: RealArray = np.zeros_like(cx_r)
+    cnt: IntArray = np.full(cx_r.shape, max_count, np.int64)
+    done: BoolArray = np.zeros(cx_r.shape, bool)
     for n in range(1, max_count):
-        x, y = x*x - y*y + cx, 2*x*y + cy
+        x, y = x*x - y*y + cx_r, 2*x*y + cy_r
         out = ~((x >= -2) & (x < 2) & (y >= -2) & (y < 2)) & ~done
         cnt[out] = n
         done |= out
@@ -94,8 +107,10 @@ def ref_count(cx, cy, max_count: int = MAX_COUNT) -> np.ndarray:
     return cnt
 
 
-def view(startx: int = None, starty: int = None, stepx: int = None,
-         stepy: int = None, cols: int = NUM_COLS, rows: int = NUM_ROWS):
+def view(startx: Optional[int] = None, starty: Optional[int] = None,
+         stepx: Optional[int] = None, stepy: Optional[int] = None,
+         cols: int = NUM_COLS,
+         rows: int = NUM_ROWS) -> Tuple[IntArray, IntArray]:
     """The values of cx and cy (2.16 fixed point) for each pixel, as arrays
     indexed by [row, column]. The default is the initial view in main.vhd."""
     if startx is None:
@@ -110,10 +125,12 @@ def view(startx: int = None, starty: int = None, stepx: int = None,
     # values wrap around.
     cx = wrap(startx + np.arange(cols) * stepx, 18)
     cy = wrap(starty + np.arange(rows) * stepy, 18)
-    return np.meshgrid(cx, cy)
+    cx_grid, cy_grid = np.meshgrid(cx, cy)
+    return cx_grid, cy_grid
 
 
-def pixel_cycles(cnt, num_iterators: int = NUM_ITERATORS) -> np.ndarray:
+def pixel_cycles(cnt: ArrayLike,
+                 num_iterators: int = NUM_ITERATORS) -> IntArray:
     """The number of clock cycles a column module uses for each pixel.
 
     The iterator uses 3 clock cycles per iteration, and a few more to start and
@@ -123,28 +140,29 @@ def pixel_cycles(cnt, num_iterators: int = NUM_ITERATORS) -> np.ndarray:
     always a multiple of num_iterators clock cycles. This has been checked in
     simulation (main_tb) for the first 11744 pixels, and the estimated time
     for the picture is the same as the time measured on the board."""
-    cnt = np.asarray(cnt, np.int64)
-    busy = np.where(cnt == MAX_COUNT, 3*cnt + 4, 3*cnt + 7)
+    cnt_i: IntArray = np.asarray(cnt, np.int64)
+    busy: IntArray = np.where(cnt_i == MAX_COUNT, 3*cnt_i + 4, 3*cnt_i + 7)
     return -(-busy // num_iterators) * num_iterators      # Round up
 
 
-def picture_cycles(cnt, num_iterators: int = NUM_ITERATORS) -> int:
+def picture_cycles(cnt: ArrayLike, num_iterators: int = NUM_ITERATORS) -> int:
     """Estimate the number of clock cycles used to calculate the picture. cnt
     is the count of each pixel, indexed by [row, column]. The picture columns
     are given in order to the first column module that is idle. The time it
     takes the dispatcher to give a job to a column module is not included."""
-    col_cycles = pixel_cycles(cnt, num_iterators).sum(axis=0)
-    idle = [0] * num_iterators       # The time each column module becomes idle
+    col_cycles: IntArray = pixel_cycles(cnt, num_iterators).sum(axis=0)
+    # The time when each column module becomes idle
+    idle: List[int] = [0] * num_iterators
     for c in col_cycles:
         i = idle.index(min(idle))
         idle[i] += int(c)
     return max(idle)
 
 
-def rgb(cnt) -> np.ndarray:
+def rgb(cnt: ArrayLike) -> NDArray[np.uint8]:
     """The colour shown on the VGA output: The lowest 8 bits of the count, as
     RRRGGGBB. Returns an array of 8-bit RGB values."""
-    v = np.asarray(cnt, np.int64) & 0xFF
+    v: IntArray = np.asarray(cnt, np.int64) & 0xFF
     r = ((v >> 5) & 7) * 255 // 7
     g = ((v >> 2) & 7) * 255 // 7
     b = (v & 3) * 255 // 3
@@ -152,7 +170,7 @@ def rgb(cnt) -> np.ndarray:
 
 
 def main() -> None:
-    args = sys.argv[1:]
+    args: List[str] = sys.argv[1:]
     if args not in ([], ["--png"]):
         print("Usage: model.py [--png]")
         sys.exit(2)

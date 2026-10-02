@@ -18,40 +18,45 @@
 
 import os
 import sys
+from typing import List
 
 import numpy as np
 
 import model
+from model import IntArray
 
 
 def main() -> None:
-    default = os.path.join(os.path.dirname(os.path.abspath(__file__)), "main_out.txt")
-    filename = sys.argv[1] if len(sys.argv) > 1 else default
+    default: str = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                "main_out.txt")
+    filename: str = sys.argv[1] if len(sys.argv) > 1 else default
 
     with open(filename) as f:
-        lines = [line.split() for line in f]
-    writes = np.array([[int(v) for v in line] for line in lines if len(line) == 2],
-                      dtype=np.int64).reshape(-1, 2)
+        lines: List[List[str]] = [line.split() for line in f]
+    writes: IntArray = np.array(
+        [[int(v) for v in line] for line in lines if len(line) == 2],
+        dtype=np.int64).reshape(-1, 2)
     if len(writes) == 0:
         print(f"No writes found in {filename}")
         sys.exit(1)
 
-    col = writes[:, 0] >> 9
-    row = writes[:, 0] & 511
-    data = writes[:, 1]
+    col: IntArray = writes[:, 0] >> 9
+    row: IntArray = writes[:, 0] & 511
+    data: IntArray = writes[:, 1]
 
-    errors = 0
+    errors: int = 0
     if col.max() >= model.NUM_COLS or row.max() >= model.NUM_ROWS:
         print("Address outside the picture")
         errors += 1
-    addrs = len(set(writes[:, 0].tolist()))
+    addrs: int = len(set(writes[:, 0].tolist()))
     if addrs != len(writes):
         print(f"{len(writes) - addrs} pixels written more than once")
         errors += 1
 
     cx, cy = model.view()
-    expected = model.hw_count(cx, cy)[row % model.NUM_ROWS, col % model.NUM_COLS]
-    wrong = np.flatnonzero((expected & 0xFF) != data)
+    expected: IntArray = model.hw_count(cx, cy)[row % model.NUM_ROWS,
+                                                col % model.NUM_COLS]
+    wrong: IntArray = np.flatnonzero((expected & 0xFF) != data)
     for i in wrong[:10]:
         print(f"Pixel (column {col[i]}, row {row[i]}): got {data[i]}, "
               f"expected {expected[i] & 0xFF} (count {expected[i]})")
