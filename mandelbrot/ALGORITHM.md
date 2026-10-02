@@ -84,18 +84,11 @@ result in 4.32 bit representation. The actual multiplier is defined in a
 special Xilinx unimacro, and there is a testbench specifically for the
 multiplier ([`sim/mult_tb.vhd`](sim/mult_tb.vhd)).
 
-The testbench is not self-verifying, only investigative. This means one has to
-manually examine the waveforms in order to determine whether the multiplier
-works as expected. This is really just laziness and can easily be fixed.
-
-The testbench currently performs the following multiplications:
-```
--0.000015 * -0.000015 =  0.0000000002
--0.000015 *  0.000015 = -0.0000000002
- 0.000015 *  0.000015 =  0.0000000002
- 1.999985 *  1.999985 =  3.99994
--0.000015 *  1.999985 = -0.00003
-```
+The testbench is self-checking, but it is only a quick check, not an exhaustive
+one. It checks that the latency is exactly one clock cycle, that the product is
+correct for all four combinations of signs, for both small values and for large
+values (including the extremes -2^17 and 2^17-1), and that reset clears the
+product.
 
 The multiplier can be instantiated with a configurable number of clock cycles
 of delay. A single clock cycle of delay is used for the time being. This may
@@ -112,7 +105,7 @@ imaginary values cx and cy). It then iterates the Mandelbrot function a number
 of times and stops when either the maximum iteration count is reached, or an
 overflow occurs.
 
-The testbench is again only investigative, and only tests a single starting
+The testbench for the iterator is only investigative, and only tests a single starting
 value: -1 + 0.5\*i.
 
 The iterator has been heavily optimized to use only a single multiplier, and to

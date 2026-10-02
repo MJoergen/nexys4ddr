@@ -79,9 +79,10 @@ Type `make` to list the supported targets. The most important ones are:
 
 ## Simulation
 There are testbenches in [`sim/`](sim) for `dispatcher`, `column`, `iterator`,
-`mult` and `priority_pipeline`. They are mostly investigative, i.e. they do not
-check the results automatically, so you have to look at the waveforms to see
-that the design works as expected.
+`mult` and `priority_pipeline`. The `mult` testbench is self-checking, and
+stops with an error if the multiplier gives a wrong result. The others are
+investigative, i.e. they do not check the results automatically, so you have to
+look at the waveforms to see that the design works as expected.
 
 The simulation needs the Xilinx `unisim` library, which is compiled from the
 Vivado installation (`XILINX_DIR`) into `sim/lib/` the first time a testbench
