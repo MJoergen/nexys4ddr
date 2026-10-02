@@ -38,7 +38,7 @@ resource usage.
 | [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture.
 | [`src/disp.vhd`](src/disp.vhd), [`src/pix.vhd`](src/pix.vhd) | VGA output. Generates the sync signals and the pixel colour.
 | [`src/clk.vhd`](src/clk.vhd) | Clock generation: 150 MHz for the calculation and 25 MHz for VGA.
-| [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups.
+| [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, and a simulation model of the Xilinx `mult_macro`.
 | [`mandelbrot.xdc`](mandelbrot.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints, and script for synthesis with Vivado, see `make vivado`.
 | [`mandelbrot.xlsx`](mandelbrot.xlsx) | Spreadsheet used during the design.
 | [`ALGORITHM.md`](ALGORITHM.md) | Detailed explanation of the algorithm and the design.
@@ -64,11 +64,14 @@ Type `make` to list the supported targets. The most important ones are:
   `/opt/Xilinx/2025.1/Vivado` (the variable `XILINX_DIR`).
 * `make fpga` programs the board with `mandelbrot.bit`, using `djtgcfg` from
   Digilent Adept.
-* `make sim` runs all the testbenches, see [below](#simulation). This requires
-  [GHDL](https://github.com/ghdl/ghdl), and the Xilinx simulation libraries
-  (`unisim` and `unimacro`) in `../xilinx-vivado`.
-* `make check TB=iterator` runs a single testbench and shows the waveform in
-  GTKWave.
+* `make sim` runs all the testbenches one after another, without opening the
+  waveform viewer, see [below](#simulation). This requires
+  [GHDL](https://github.com/ghdl/ghdl), and takes several minutes, mostly for
+  the `dispatcher` testbench.
+* `make run TB=iterator` runs a single testbench and writes the waveform to
+  `sim/iterator.ghw`. Without `TB` it lists the available testbenches.
+* `make check TB=iterator` does the same as `make run`, and then shows the
+  waveform in [GTKWave](https://github.com/gtkwave/gtkwave).
 * `make clean` removes the generated files.
 
 ## Simulation
@@ -76,3 +79,9 @@ There are testbenches in [`sim/`](sim) for `dispatcher`, `column`, `iterator`,
 `mult` and `priority_pipeline`. They are mostly investigative, i.e. they do not
 check the results automatically, so you have to look at the waveforms to see
 that the design works as expected.
+
+The simulation needs the Xilinx `unisim` library, which is compiled from the
+Vivado installation (`XILINX_DIR`) into `sim/lib/` the first time a testbench
+is run. Xilinx's source for the multiplier macro `mult_macro` does not compile
+in GHDL, so [`sim/mult_macro.vhd`](sim/mult_macro.vhd) is used instead. This is
+a simple model of the multiplier with a latency of one clock cycle.
