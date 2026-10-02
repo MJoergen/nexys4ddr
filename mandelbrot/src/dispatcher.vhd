@@ -57,7 +57,6 @@ architecture rtl of dispatcher is
    signal res_ack_r         : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal res_busy_r        : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal wait_cnt_s        : wait_cnt_vector( G_NUM_ITERATORS-1 downto 0);
-   signal wait_cnt_d        : wait_cnt_vector( G_NUM_ITERATORS-1 downto 0);
 
    signal wr_addr_r         : std_logic_vector(18 downto 0);
    signal wr_data_r         : std_logic_vector( 8 downto 0);
@@ -115,9 +114,9 @@ begin
       ); -- i_scheduler
 
 
-   ---------------------------
+   ----------------------------------
    -- Start any idle column module
-   ---------------------------
+   ----------------------------------
 
    p_job_start : process (clk_i)
    begin
@@ -146,9 +145,9 @@ begin
    end process p_job_start;
 
 
-   ---------------------------------
+   ----------------------------------------
    -- Prepare job for next column module
-   ---------------------------------
+   ----------------------------------------
 
    p_job_cx : process (clk_i)
    begin
@@ -168,9 +167,9 @@ begin
    end process p_job_cx;
 
 
-   -------------------------
+   ------------------------------
    -- Instantiate column modules
-   -------------------------
+   ------------------------------
 
    gen_column : for i in 0 to G_NUM_ITERATORS-1 generate
       i_column : entity work.column
@@ -190,14 +189,14 @@ begin
             res_data_o   => res_data_s(i),
             res_valid_o  => res_valid_s(i),
             res_ack_i    => res_ack_r(i),
-            wait_cnt_O   => wait_cnt_s(i)
+            wait_cnt_o   => wait_cnt_s(i)
          ); -- i_column
       end generate gen_column;
 
 
-   ------------------------------------
+   -----------------------------------------
    -- Find one column module to acknowledge
-   ------------------------------------
+   -----------------------------------------
 
    p_res_busy : process (clk_i)
    begin

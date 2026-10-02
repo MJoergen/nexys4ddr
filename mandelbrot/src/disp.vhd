@@ -2,6 +2,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
+-- This module generates the VGA output signals (640x480 @ 60 Hz) from the
+-- pixel counters. The colour of the pixel at (vga_pix_x_i, vga_pix_y_i) must be
+-- given on vga_col_d3_i three clock cycles later, which is the read latency of
+-- the display memory. The colour is only output inside the visible area.
+
 entity disp is
    port (
       vga_clk_i    : in  std_logic;
@@ -22,15 +27,14 @@ architecture rtl of disp is
    -- See page 17 in "VESA MONITOR TIMING STANDARD"
    -- http://caxapa.ru/thumbs/361638/DMTv1r11.pdf
 
-   -- Define pixel counter range
-   constant H_TOTAL  : integer := 800;
-   constant V_TOTAL  : integer := 525;
-
    -- Define visible screen size
    constant H_PIXELS : integer := 640;
    constant V_PIXELS : integer := 480;
 
-   -- Define VGA timing constants
+   -- Define VGA timing constants. Note: The standard specifies negative
+   -- polarity for both synchronization signals in this mode, but here they are
+   -- generated with positive polarity, i.e. they are high during the sync
+   -- pulse. Most monitors accept either polarity.
    constant HS_START : integer := 656;
    constant HS_TIME  : integer := 96;
    constant VS_START : integer := 490;
@@ -40,7 +44,6 @@ architecture rtl of disp is
    signal vga_pix_y_d  : std_logic_vector(9 downto 0);
    signal vga_hs_d     : std_logic;
    signal vga_vs_d     : std_logic;
-   signal vga_col_d    : std_logic_vector(7 downto 0);
 
    signal vga_pix_x_d2 : std_logic_vector(9 downto 0);
    signal vga_pix_y_d2 : std_logic_vector(9 downto 0);
@@ -51,7 +54,6 @@ architecture rtl of disp is
    signal vga_pix_y_d3 : std_logic_vector(9 downto 0);
    signal vga_hs_d3    : std_logic;
    signal vga_vs_d3    : std_logic;
-   signal vga_col_d3   : std_logic_vector(7 downto 0);
 
    signal vga_hs_d4    : std_logic;
    signal vga_vs_d4    : std_logic;
@@ -84,9 +86,10 @@ begin
    end process p_sync;
 
 
-   ----------------------------------------------
-   -- Add extra pipeline stage for memory output
-   ----------------------------------------------
+   ------------------------------------------------------------------
+   -- Add two more pipeline stages, so the total delay of three clock
+   -- cycles matches the read latency of the display memory
+   ------------------------------------------------------------------
 
    p_pipe : process (vga_clk_i)
    begin
@@ -109,7 +112,6 @@ begin
    ---------------------------
 
    p_out : process (vga_clk_i)
-      variable addr_v : std_logic_vector(18 downto 0);
    begin
       if rising_edge(vga_clk_i) then
          vga_col_d4 <= (others => '0');

@@ -2,8 +2,17 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This is a simple priority encoder.
--- There is room for improvement, in case the input vector is very large.
+-- This is a pipelined priority encoder, for large input vectors. It gives the
+-- same result as the simple priority encoder in priority.vhd, i.e. the index
+-- of the lowest bit set in vector_i, but with a latency of two clock cycles
+-- instead of one.
+--
+-- The input vector is padded with zeros to a square matrix of C_FIRST rows of
+-- C_FIRST bits, where C_FIRST is the smallest power of two whose square is at
+-- least G_SIZE. In the first clock cycle, a priority encoder finds the first
+-- row with a bit set. In the second clock cycle, another priority encoder finds
+-- the first bit set in that row. Each priority encoder therefore only has
+-- C_FIRST inputs, instead of G_SIZE.
 
 entity priority_pipeline is
    generic (

@@ -2,6 +2,18 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
+-- This is the display memory, holding the picture. It has 2^19 entries of 8
+-- bits, and is implemented in block RAM. It has a write port and a read port,
+-- with separate clocks, so it is also the connection between the two clock
+-- domains.
+--
+-- The write port has one clock cycle of latency. On reset (wr_rst_i), the
+-- entire memory is filled with the value 0x55, which takes 2^19 clock cycles.
+-- Writes on the write port are ignored while this is in progress.
+--
+-- The read port has three clock cycles of latency. The read reset (rd_rst_i)
+-- is not used.
+
 entity disp_mem is
    port (
       wr_clk_i    : in  std_logic;

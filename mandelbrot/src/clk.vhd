@@ -61,6 +61,9 @@
 --   main_clk           8        140.625
 --
 -- Input clock: clk_in1, 100.000 MHz.
+--
+-- The output locked is high when the MMCM has locked, i.e. when the output
+-- clocks are stable. It is asynchronous to both output clocks.
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -74,7 +77,9 @@ port
   clk_in1           : in     std_logic;
   -- Clock out ports
   vga_clk           : out    std_logic;
-  main_clk          : out    std_logic
+  main_clk          : out    std_logic;
+  -- Status
+  locked            : out    std_logic
  );
 end clk;
 
@@ -194,15 +199,17 @@ clk_in1_clk_wiz_0 <= clk_in1;
     I => clkfbout_clk_wiz_0);
 
 
-  clkout2_buf : BUFG
+  vga_clk_buf : BUFG
   port map
    (O   => vga_clk,
     I   => vga_clk_wiz_0);
 
-  clkout3_buf : BUFG
+  main_clk_buf : BUFG
   port map
    (O   => main_clk,
     I   => main_clk_wiz_0);
+
+  locked <= locked_int;
 
 end xilinx;
 

@@ -5,9 +5,9 @@ use ieee.math_real.all;
 
 -- This is a simple self-checking testbench for the dispatcher. It is not an
 -- exhaustive test. It uses two instances of the dispatcher, a normal one and
--- one with a single column, i.e. with fewer columns than iterators. It
--- calculates two small pictures with each of them, one after the other, and
--- checks the following for each picture:
+-- one with a single picture column, i.e. with fewer picture columns than column
+-- modules. It calculates two small pictures with each of them, one after the
+-- other, and checks the following for each picture:
 -- * Nothing is written, and done is low, when idle. Done goes low after a
 --   start.
 -- * Each pixel is written exactly once, and no other pixels are written.
@@ -16,8 +16,8 @@ use ieee.math_real.all;
 -- * The value of each pixel is close to the count calculated using real
 --   (floating point) numbers. This is the same check as in iterator_tb.vhd.
 --
--- A small picture, a small number of iterators, and a low maximum count are
--- used to keep the simulation short.
+-- A small picture, a small number of column modules, and a low maximum count
+-- are used to keep the simulation short.
 
 entity dispatcher_tb is
 end entity dispatcher_tb;
@@ -29,8 +29,8 @@ architecture simulation of dispatcher_tb is
    constant C_NUM_COLS      : integer := 64;
    constant C_NUM_ITERATORS : integer := 16;
 
-   -- Number of columns in the second instance. This is less than the number of
-   -- iterators.
+   -- Number of picture columns in the second instance. This is less than the
+   -- number of column modules.
    constant C_SMALL_COLS    : integer := 1;
 
    -- The iterator uses fixed point numbers (with rounding errors), so the count
@@ -257,7 +257,7 @@ begin
       run_picture(dut1_in, dut1_out, C_NUM_COLS, -1.0, -0.3, 0.8, 0.6, "picture 1");
       run_picture(dut1_in, dut1_out, C_NUM_COLS,  0.0,  0.3, 0.5, 0.5, "picture 2");
 
-      -- Dispatcher with a single column, and two pictures.
+      -- Dispatcher with a single picture column, and two pictures.
       run_picture(dut2_in, dut2_out, C_SMALL_COLS, -1.0, -0.3, 0.8, 0.6, "picture 3");
       run_picture(dut2_in, dut2_out, C_SMALL_COLS,  0.0,  0.3, 0.5, 0.5, "picture 4");
 

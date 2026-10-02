@@ -318,8 +318,10 @@ rest of the design into one module for each clock domain:
 The two clock domains communicate only through the display memory, which has
 a write port in the MAIN clock domain and a read port in the VGA clock domain.
 
-**Reset.** The reset button is stretched to eight clock cycles, separately for
-the main clock and for the VGA clock. The VGA reset is connected to the `vga`
+**Reset.** The design is held in reset while the reset button is pressed, and
+while the MMCM is not locked. This signal is synchronized to each clock domain
+(the main clock and the VGA clock), and the reset is then stretched to eight
+clock cycles after it is released. The VGA reset is connected to the `vga`
 module and to the read port of the display memory, but neither of them uses it
 at present.
 

@@ -55,11 +55,11 @@ for details, including the critical paths.
 | [`src/scheduler.vhd`](src/scheduler.vhd) | Round-robin scheduler. Used by the dispatcher both to give jobs to idle column modules and to pick which column module's result to accept.
 | [`src/priority.vhd`](src/priority.vhd), [`src/priority_pipeline.vhd`](src/priority_pipeline.vhd) | Priority encoder, and a pipelined version built from it. Not used in the design yet, only in the `priority_pipeline` testbench.
 | [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture.
-| [`src/disp.vhd`](src/disp.vhd), [`src/pix.vhd`](src/pix.vhd) | VGA output. Generates the sync signals and the pixel colour.
+| [`src/pix.vhd`](src/pix.vhd), [`src/disp.vhd`](src/disp.vhd) | VGA output. `pix` generates the pixel counters, and `disp` generates the sync signals and the pixel colour.
 | [`src/clk.vhd`](src/clk.vhd) | Clock generation: 140.625 MHz for the calculation and 25 MHz for VGA.
 | [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a simulation model of the Xilinx `mult_macro`, and a Python model of the iterator count (`iterator_model.py`).
 | [`mandelbrot.xdc`](mandelbrot.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make vivado`.
-| [`mandelbrot.xlsx`](mandelbrot.xlsx) | Spreadsheet used during the design.
+| [`mandelbrot.xlsx`](mandelbrot.xlsx) | Spreadsheet used during the design. It iterates the example point -1+0.5i from [the iterator section](ALGORITHM.md#iterator) using real numbers.
 | [`ALGORITHM.md`](ALGORITHM.md) | Detailed explanation of the algorithm and the design.
 
 ## Controls

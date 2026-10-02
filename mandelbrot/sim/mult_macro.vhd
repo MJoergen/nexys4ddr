@@ -12,7 +12,8 @@ use ieee.std_logic_1164.all;
 --   use unimacro.vcomponents.all;
 --
 -- Only a signed multiplier with LATENCY = 1 is modelled, i.e. the product is
--- registered once. This corresponds to DEVICE = "7SERIES".
+-- registered once. The generic DEVICE is not used (the design uses
+-- DEVICE = "7SERIES").
 
 package vcomponents is
 

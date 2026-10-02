@@ -2,13 +2,22 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
+-- This is a self-checking testbench for the pipelined priority encoder. It
+-- compares priority_pipeline with the simple priority encoder (priority.vhd),
+-- which is used as the reference. The input vector is a counter, so all
+-- 2^C_SIZE input vectors are tested, which takes 655 us for C_SIZE = 16. The
+-- testbench does not stop by itself, but is stopped by the maximum simulation
+-- time in the Makefile (STOP_TIME).
+--
+-- The pipelined version has one more clock cycle of latency, so the input to
+-- the reference is delayed by one clock cycle.
+
 entity priority_pipeline_tb is
 end entity priority_pipeline_tb;
 
 architecture sim of priority_pipeline_tb is
 
    constant C_SIZE : integer := 16;
-   constant C_SEED : integer := 1247;  -- Some random number
 
    signal clk    : std_logic;
    signal rst    : std_logic;
@@ -20,10 +29,6 @@ architecture sim of priority_pipeline_tb is
    signal vector_reference : std_logic_vector(C_SIZE-1 downto 0);
    signal index_reference  : integer range 0 to C_SIZE-1;
    signal active_reference : std_logic;
-
-   -- Random number generator
-   signal prbs255          : std_logic_vector(254 downto 0)
-                             := to_std_logic_vector(C_SEED, 255);
 
 begin
 
@@ -47,19 +52,6 @@ begin
    end process p_rst;
 
 
-   --------------------------------------------
-   -- Random number generator, based on a PRBS
-   --------------------------------------------
-
-   p_prbs255 : process (clk)
-   begin
-      if rising_edge(clk) then
-         prbs255 <= prbs255(253 downto 0)
-            & (prbs255(254) xor prbs255(13) xor prbs255(17) xor prbs255(126));
-      end if;
-   end process p_prbs255;
-   
-
    -----------------------
    -- Generate test cases
    -----------------------
@@ -68,9 +60,7 @@ begin
    begin
       if rising_edge(clk) then
          vector_reference <= vector_pipeline;   -- Must be delayed one clock cycle
-
---         vector_pipeline <= prbs255(C_SIZE-1 downto 0);
-         vector_pipeline <= vector_pipeline + 1;
+         vector_pipeline  <= vector_pipeline + 1;
 
          if rst = '1' then
             vector_reference <= (others => '0');

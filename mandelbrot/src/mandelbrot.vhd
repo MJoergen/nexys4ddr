@@ -35,13 +35,23 @@ end mandelbrot;
 
 architecture structural of mandelbrot is
 
+   signal locked         : std_logic;
+   signal rstn           : std_logic;
+
    signal main_clk       : std_logic;
+   signal main_rstn_sync : std_logic_vector(1 downto 0) := "00";
    signal main_rst_delay : std_logic_vector(7 downto 0) := X"FF";
    signal main_rst       : std_logic;
 
    signal vga_clk        : std_logic;
+   signal vga_rstn_sync  : std_logic_vector(1 downto 0) := "00";
    signal vga_rst_delay  : std_logic_vector(7 downto 0) := X"FF";
    signal vga_rst        : std_logic;
+
+   -- The registers of the reset synchronizers
+   attribute ASYNC_REG : string;
+   attribute ASYNC_REG of main_rstn_sync : signal is "TRUE";
+   attribute ASYNC_REG of vga_rstn_sync  : signal is "TRUE";
 
    signal wr_addr        : std_logic_vector(18 downto 0);
    signal wr_data        : std_logic_vector( 7 downto 0);
@@ -60,7 +70,8 @@ begin
       port map (
          clk_in1  => clk_i,
          vga_clk  => vga_clk,
-         main_clk => main_clk
+         main_clk => main_clk,
+         locked   => locked
       ); -- i_clk
 
 
@@ -68,13 +79,21 @@ begin
    -- Generate reset signals
    --------------------------------------------------
 
+   -- The design is held in reset while the reset button is pressed, and while
+   -- the MMCM is not locked. This signal is asynchronous, so it is first
+   -- synchronized to each clock domain (two registers), and the reset is then
+   -- stretched to eight clock cycles after it is released.
+   rstn <= rstn_i and locked;
+
    p_main_rst : process (main_clk)
    begin
       if rising_edge(main_clk) then
+         main_rstn_sync <= main_rstn_sync(0) & rstn;
+
          main_rst_delay <= main_rst_delay(6 downto 0) & "0";
          main_rst <= main_rst_delay(7);
 
-         if rstn_i = '0' then
+         if main_rstn_sync(1) = '0' then
             main_rst_delay <= X"FF";
          end if;
       end if;
@@ -83,10 +102,12 @@ begin
    p_vga_rst : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
+         vga_rstn_sync <= vga_rstn_sync(0) & rstn;
+
          vga_rst_delay <= vga_rst_delay(6 downto 0) & "0";
          vga_rst <= vga_rst_delay(7);
 
-         if rstn_i = '0' then
+         if vga_rstn_sync(1) = '0' then
             vga_rst_delay <= X"FF";
          end if;
       end if;
