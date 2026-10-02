@@ -74,7 +74,7 @@ Type `make` to list the supported targets. The most important ones are:
 
 ## Simulation
 There are testbenches in [`sim/`](sim) for `dispatcher`, `column`, `iterator`,
-`mult_macro` and `priority_pipeline`. The `iterator` and `mult_macro`
+`mult_macro` and `priority_pipeline`. The `column`, `iterator` and `mult_macro`
 testbenches are self-checking, and stop with an error if the result is wrong.
 The others are investigative, i.e. they do not check the results automatically,
 so you have to look at the waveforms to see that the design works as expected.

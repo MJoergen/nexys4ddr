@@ -212,6 +212,13 @@ count value for this pixel. The res\_ack\_i is needed, because there may be an
 arbitrarily long delay before the job dispatcher has time to acknowledge the
 result.
 
+The testbench for the column ([`sim/column_tb.vhd`](sim/column_tb.vhd)) is
+self-checking. It runs two jobs of ten rows each, and checks that the column is
+busy only during a job, that the results come in order, that a result stays
+unchanged until it is acknowledged (the acknowledge is delayed by a varying
+number of clock cycles), and that the count for each row is close to the count
+calculated using real numbers.
+
 ## Dispatcher
 This ([`src/dispatcher.vhd`](src/dispatcher.vhd)) is essentially the top level
 entity controlling the calculation of the entire picture. This is perhaps the
