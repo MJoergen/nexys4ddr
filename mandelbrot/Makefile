@@ -20,8 +20,9 @@ SRC += src/mandelbrot.vhd
 # Files used during simulation
 TBS = dispatcher column iterator mult priority_pipeline
 
-# Testbench simulated by the "check" target
-TB = dispatcher
+# Testbench simulated by the "run" and "check" targets. Must be specified on
+# the command line, e.g. "make run TB=iterator".
+TB =
 TB_EXE = $(TB)_tb
 TB_SRC = $(SRC) sim/$(TB)_tb.vhd
 WAVE = sim/$(TB).ghw
@@ -50,8 +51,8 @@ help:
 	@echo "  vivado          Synthesize and implement the design using Vivado ($(NAME).bit)"
 	@echo "  fpga            Program the Nexys4DDR board with $(NAME).bit"
 	@echo "  sim             Simulate all testbenches using ghdl"
-	@echo "  run             Simulate a single testbench (TB=$(TB)) using ghdl, without gtkwave"
-	@echo "  check           Simulate a single testbench (TB=$(TB)) using ghdl and show waveform in gtkwave"
+	@echo "  run             Simulate a single testbench (TB=<name>) using ghdl, without gtkwave"
+	@echo "  check           Simulate a single testbench (TB=<name>) using ghdl and show waveform in gtkwave"
 	@echo "  clean           Remove generated files"
 	@echo ""
 	@echo "Testbench is selected by TB=<name>, e.g. 'make check TB=iterator'."
@@ -84,6 +85,17 @@ sim:
 	   $(MAKE) --no-print-directory run TB=$$tb || exit 1; \
 	done
 
+ifeq ($(TB),)
+
+# No testbench specified, so list the possible ones
+.PHONY: run check
+run check:
+	@echo "Please specify a testbench using TB=<name>, e.g. 'make $@ TB=iterator'."
+	@echo "Available testbenches:"
+	@for tb in $(TBS); do echo "  $$tb"; done
+
+else
+
 # Simulate a single testbench (TB=<name>) and show the waveform
 .PHONY: check
 check: run
@@ -94,6 +106,8 @@ run: $(TB_SRC) $(UNISIM_CF) $(UNIMACRO_CF)
 	ghdl -i $(GHDL_OPTS) --work=work $(TB_SRC)
 	ghdl -m $(GHDL_OPTS) $(TB_EXE)
 	ghdl -r $(GHDL_OPTS) $(TB_EXE) --assert-level=error --wave=$(WAVE) --stop-time=2100us
+
+endif
 
 # Build the simulation libraries
 $(UNISIM_CF): $(XILINX_VHDL)/unisims/unisim_VPKG.vhd $(XILINX_VHDL)/unisims/unisim_VCOMP.vhd
