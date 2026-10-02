@@ -81,10 +81,9 @@ begin
    -- Instantiate Clock generation
    --------------------------------------------------
 
-   i_clk : entity work.clk_wiz_0_clk_wiz
+   i_clk : entity work.clk
       port map (
          clk_in1  => clk_i,
-         eth_clk  => open, -- Not needed yet.
          vga_clk  => vga_clk,
          main_clk => main_clk
       ); -- i_clk
