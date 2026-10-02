@@ -358,21 +358,34 @@ update, the following happens, depending on the buttons that are held down:
 
 The new view is used when the next picture is started.
 
-**The LEDs.** If switch 1 is on, the LEDs show bits 26 to 11 of a counter. This
-counter counts clock cycles while a picture is being calculated, and it is
-cleared when the next picture is started. A single step on the LEDs is therefore
-2^11 clock cycles, which is 14.56 us, and the value wraps around after 0.95
-seconds. If switch 1 is off, the LEDs show the sum of the wait counters of all
-the column modules. The wait counter of a column module counts the clock cycles
-that the module has to wait for its result to be accepted, in the same unit of
-2^11 clock cycles. It is only cleared by reset, so it accumulates over many
-pictures. The sum is 16 bits wide, so it wraps around.
+**The LEDs.** The LEDs show one of two values for the most recently finished
+picture. The values are latched at the end of each picture, because the
+picture is recalculated continuously (about every 7 ms), so the counters
+themselves change too fast to be read.
+* If switch 1 is on, the LEDs show the time taken by the picture. A counter
+  counts clock cycles while a picture is being calculated, and it is cleared
+  when the next picture is started. At the end of the picture, bits 26 to 11
+  of the counter are latched. A single step on the LEDs is therefore 2^11 clock
+  cycles, which is 14.56 us, and the value wraps around after 0.95 seconds.
+* If switch 1 is off, the LEDs show the total waiting time of all the column
+  modules during the picture. The wait counter of a column module counts the
+  clock cycles that the module has to wait for its result to be accepted, in
+  the same unit of 2^11 clock cycles. The wait counters are only cleared by
+  reset, and the dispatcher adds them up (wait\_cnt\_tot\_o). So `main`
+  latches the difference between the sum at the end of this picture and the
+  sum at the end of the previous picture. The sum is 16 bits wide, and the
+  difference is calculated modulo 2^16, so it is correct even when the sum
+  wraps around. Each wait counter is truncated to units of 2^11 clock cycles
+  before the sum, so the value may be up to one unit too low for each column
+  module.
 
 **Other inputs.** The switches 0 and 3 to 7 are not used.
 
 ## Timing
 Counters measure the total time it takes to generate the picture as well as the
-total amount of time the iterators are waiting to write to display memory.
+total amount of time the iterators are waiting to write to display memory. The
+values for the most recent picture are shown on the LEDs, see
+[The top level](#the-top-level).
 
 Note: The numbers in this section were measured on the board with an earlier
 version of the iterator, which did not detect all overflows (see

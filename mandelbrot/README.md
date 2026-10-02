@@ -72,7 +72,7 @@ the board. The switch numbers are the bit numbers of the switch input, i.e.
 | ------- | -----------
 | `BTNL`, `BTNR`, `BTNU`, `BTND` | Pan the picture left, right, up and down, by one pixel for each update.
 | `BTNC` | Zoom in. With switch 2 on, zoom out instead. The top left corner of the view stays fixed.
-| Switch 1 | Selects what the LEDs show. On: the time since the start of the current picture, in units of 14.6 us (2^11 clock cycles). It restarts for each picture. Off: the total time that the column modules have spent waiting for their results to be accepted, summed up over all column modules, in the same unit. It is accumulated since reset.
+| Switch 1 | Selects what the LEDs show, for the most recently finished picture. On: the time taken to calculate the picture, in units of 14.6 us (2^11 clock cycles). Off: the total time that the column modules have spent waiting for their results to be accepted during the picture, summed up over all column modules, in the same unit. The LEDs are updated at the end of each picture.
 | Switches 0 and 3 to 7 | Not used.
 | `CPU RESET` | Resets the design and returns to the initial view.
 
