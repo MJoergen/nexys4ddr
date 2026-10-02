@@ -20,6 +20,8 @@
 -- Cycle 2 : Input to multiplier is (x+y) and (x-y). The product x*y is saved.
 -- Cycle 3 : The new values of x and y are calculated.
 --
+-- The multiplier is 19x18 bits (the DSP48E1 supports 25x18 bits).
+--
 -- The XC7A100T has 240 DSP slices, so up to 240 copies of this
 -- iterator can potentially be instantiated.
 --
@@ -40,9 +42,12 @@
 -- the product itself can be outside the range even if the sum is not, and
 -- the other way around.
 --
--- Note: The values x+y and x-y, which are input to the multiplier, are only
--- 18 bits wide. They wrap around if they are outside the range -2 to 2. This
--- is not detected.
+-- The values x+y and x-y are between -4 and 4, so they need 19 bits (3.16
+-- format), but the second input of the multiplier is only 18 bits wide.
+-- However, at most one of them is outside the range -2 to 2: If x and y have
+-- the same sign bit, then x-y is in range, and otherwise x+y is in range. So
+-- the one that may be out of range is given to the 19-bit input, and the other
+-- one to the 18-bit input. The choice depends only on the sign bits of x and y.
 --
 -- Example:
 -- We start with the point -1+0.5i, i.e. cx = -1 and cy = 0.5
@@ -82,9 +87,14 @@ architecture rtl of iterator is
 
    signal x_r          : std_logic_vector(17 downto 0);
    signal y_r          : std_logic_vector(17 downto 0);
-   signal a_r          : std_logic_vector(17 downto 0);
-   signal b_r          : std_logic_vector(17 downto 0);
-   signal product_s    : std_logic_vector(35 downto 0);
+   signal a_r          : std_logic_vector(18 downto 0);  -- 3.16
+   signal b_r          : std_logic_vector(17 downto 0);  -- 2.16
+   signal x_ext_s      : std_logic_vector(18 downto 0);  -- 3.16
+   signal y_ext_s      : std_logic_vector(18 downto 0);  -- 3.16
+   signal sum_s        : std_logic_vector(18 downto 0);  -- 3.16, x+y
+   signal diff_s       : std_logic_vector(18 downto 0);  -- 3.16, x-y
+   signal mult_p_s     : std_logic_vector(36 downto 0);  -- 5.32
+   signal product_s    : std_logic_vector(35 downto 0);  -- 4.32
    signal product_d_r  : std_logic_vector(35 downto 0);
    signal new_x_s      : std_logic_vector(35 downto 0);  -- 4.32
    signal new_y_half_s : std_logic_vector(35 downto 0);  -- 4.32 (y/2)
@@ -127,8 +137,15 @@ begin
                end if;
 
             when ADD_ST =>
-               a_r     <= x_r + y_r;
-               b_r     <= x_r - y_r;
+               -- The one of x+y and x-y that may be out of range goes to the
+               -- 19-bit input of the multiplier.
+               if x_r(17) = y_r(17) then
+                  a_r <= sum_s;
+                  b_r <= diff_s(17 downto 0);
+               else
+                  a_r <= diff_s;
+                  b_r <= sum_s(17 downto 0);
+               end if;
 
                -- Check for overflow
                if ovf_x_r = '1' or ovf_y_r = '1' then
@@ -153,7 +170,7 @@ begin
                -- y is twice the value of y/2.
                x_r <= new_x_s(33 downto 16);
                y_r <= new_y_half_s(32 downto 15);
-               a_r <= new_x_s(33 downto 16);
+               a_r <= new_x_s(33) & new_x_s(33 downto 16);  -- Sign extended
                b_r <= new_y_half_s(32 downto 15);
 
                ovf_x_r <= ovf_x_s;
@@ -176,21 +193,30 @@ begin
    -- Instantiate multiplier
    --------------------------
 
+   x_ext_s <= x_r(17) & x_r;
+   y_ext_s <= y_r(17) & y_r;
+   sum_s   <= x_ext_s + y_ext_s;
+   diff_s  <= x_ext_s - y_ext_s;
+
    i_mult : mult_macro
       generic map (
          DEVICE  => "7SERIES",
          LATENCY => 1,
-         WIDTH_A => 18,
+         WIDTH_A => 19,
          WIDTH_B => 18
       )
       port map (
          CLK => clk_i,
          RST => rst_i,
          CE  => '1',
-         P   => product_s, -- Output
+         P   => mult_p_s,  -- Output
          A   => a_r,       -- Input
          B   => b_r        -- Input
       ); -- i_mult
+
+   -- Both products, x*y and (x+y)*(x-y) = x*x-y*y, are between -4 and 4, so
+   -- the top bit of the 5.32 result is not needed.
+   product_s <= mult_p_s(35 downto 0);
 
 
    -----------------------------------

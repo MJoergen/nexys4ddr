@@ -58,7 +58,7 @@ architecture structural of main is
    signal cnt            : std_logic_vector(31 downto 0);
 
    -- 23 bits = 8 million cycles @ 140.625 MHz = 17 times per second.
-   signal upd_cnt        : std_logic_vector(22 downto 0);
+   signal upd_cnt        : std_logic_vector(22 downto 0) := (others => '0');
    signal upd            : std_logic;
    signal btn_r          : std_logic_vector(4 downto 0);
    signal sw_r           : std_logic_vector(7 downto 0);

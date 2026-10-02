@@ -143,6 +143,8 @@ begin
       check( 0.3,   0.0);    -- Escapes slowly, near the edge of the set
       check(-0.75,  0.1);    -- Escapes slowly, near the edge of the set
       check(-0.1,   0.65);   -- Escapes slowly, near the edge of the set
+      check(-0.17,  1.09);   -- x+y is out of range (-2 to 2) during the iteration
+      check( 0.02, -1.01);   -- x-y is out of range (-2 to 2) during the iteration
 
       report "iterator_tb: finished";
       std.env.finish;

@@ -40,7 +40,10 @@ clock (setup slack +0.027 ns, hold slack +0.020 ns). The resources used are:
 | Registers | about 53,300          | 126,800
 
 The slack is small, see [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
-for details, including the critical paths.
+for details, including the critical paths. Note that these results were
+measured before the latest change of the iterator (19-bit input to the
+multiplier, see [Overflow](ALGORITHM.md#overflow)), and have not been measured
+again since then.
 
 ## Files
 | File             | Description
@@ -56,7 +59,7 @@ for details, including the critical paths.
 | [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture.
 | [`src/disp.vhd`](src/disp.vhd), [`src/pix.vhd`](src/pix.vhd) | VGA output. Generates the sync signals and the pixel colour.
 | [`src/clk.vhd`](src/clk.vhd) | Clock generation: 140.625 MHz for the calculation and 25 MHz for VGA.
-| [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a simulation model of the Xilinx `mult_macro`, and a Python model of the iterator count (`iterator_model.py`).
+| [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a simulation model of the Xilinx `mult_macro`, a Python model of the iterator count (`iterator_model.py`), a vectorized model of the complete picture (`model.py`), and a script (`cmp_rtl.py`) that compares the output of the testbench `main_tb` with this model.
 | [`mandelbrot.xdc`](mandelbrot.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make vivado`.
 | [`mandelbrot.xlsx`](mandelbrot.xlsx) | Spreadsheet used during the design.
 | [`ALGORITHM.md`](ALGORITHM.md) | Detailed explanation of the algorithm and the design.
@@ -108,6 +111,17 @@ by themselves when they are finished. The `priority_pipeline` testbench compares
 the module with the simple `priority` module for all 65536 input vectors, which
 takes 655 us of simulated time, and it is stopped by the maximum simulation time
 in the Makefile (`STOP_TIME`).
+
+There is also a testbench for `main`, which is not part of `make sim`, because
+it is slow. It writes the calculated picture to a file, which is compared
+bit-accurately with a Python model of the design by the script `cmp_rtl.py`.
+This requires Python with numpy. A partial picture (more than 50000 pixels)
+takes about 13 minutes:
+```
+make run TB=main STOP_TIME=700us
+sim/cmp_rtl.py
+```
+See [Iterator](ALGORITHM.md#iterator) for details.
 
 The simulation does not need any Xilinx libraries. Xilinx's source for the
 multiplier macro `mult_macro` does not compile in GHDL, so

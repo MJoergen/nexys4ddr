@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+
+# Compares the picture calculated by the simulated design (main_tb.vhd) with
+# the bit-accurate model in model.py.
+#
+# The testbench main_tb.vhd writes one line "address data" to sim/main_out.txt
+# for each write to the display memory. The address is the column (10 bits)
+# followed by the row (9 bits), and the data is the lowest 8 bits of the count.
+# A complete picture takes several hours to simulate, so a partial picture is
+# fine: All the pixels written so far are compared, and the last line is
+# ignored if it is incomplete.
+#
+# Usage (from the mandelbrot directory):
+#   make run TB=main STOP_TIME=700us
+#   sim/cmp_rtl.py [sim/main_out.txt]
+#
+# Requires numpy.
+
+import os
+import sys
+
+import numpy as np
+
+import model
+
+
+def main() -> None:
+    default = os.path.join(os.path.dirname(os.path.abspath(__file__)), "main_out.txt")
+    filename = sys.argv[1] if len(sys.argv) > 1 else default
+
+    with open(filename) as f:
+        lines = [line.split() for line in f]
+    writes = np.array([[int(v) for v in line] for line in lines if len(line) == 2],
+                      dtype=np.int64).reshape(-1, 2)
+    if len(writes) == 0:
+        print(f"No writes found in {filename}")
+        sys.exit(1)
+
+    col = writes[:, 0] >> 9
+    row = writes[:, 0] & 511
+    data = writes[:, 1]
+
+    errors = 0
+    if col.max() >= model.NUM_COLS or row.max() >= model.NUM_ROWS:
+        print("Address outside the picture")
+        errors += 1
+    addrs = len(set(writes[:, 0].tolist()))
+    if addrs != len(writes):
+        print(f"{len(writes) - addrs} pixels written more than once")
+        errors += 1
+
+    cx, cy = model.view()
+    expected = model.hw_count(cx, cy)[row % model.NUM_ROWS, col % model.NUM_COLS]
+    wrong = np.flatnonzero((expected & 0xFF) != data)
+    for i in wrong[:10]:
+        print(f"Pixel (column {col[i]}, row {row[i]}): got {data[i]}, "
+              f"expected {expected[i] & 0xFF} (count {expected[i]})")
+    errors += len(wrong)
+
+    print(f"{len(writes)} pixels written ({len(set(col.tolist()))} columns, "
+          f"rows up to {row.max()}), {len(wrong)} differ from the model")
+    sys.exit(1 if errors else 0)
+
+
+if __name__ == "__main__":
+    main()

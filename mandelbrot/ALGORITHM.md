@@ -77,10 +77,16 @@ Some examples are:
 ```
 
 ## Multiplier
-The built-in DSP provides an 18-bit signed multiplier. This generates a 36-bit
-result in 4.32 bit representation. The actual multiplier is defined in a
-special Xilinx unimacro, and there is a testbench specifically for the
-multiplier ([`sim/mult_macro_tb.vhd`](sim/mult_macro_tb.vhd)).
+The built-in DSP provides a 25x18-bit signed multiplier. The iterator uses it
+as a 19x18-bit multiplier, with the first input in 3.16 bit representation and
+the second input in 2.16 bit representation (see [Overflow](#overflow) for why
+the first input has 19 bits). This generates a 37-bit result in 5.32 bit
+representation. The products in the iterator are always between -4 and 4, so
+only the lower 36 bits (in 4.32 bit representation) are used. The actual
+multiplier is defined in a special Xilinx unimacro, and there is a testbench
+specifically for the multiplier
+([`sim/mult_macro_tb.vhd`](sim/mult_macro_tb.vhd)). The testbench uses the
+multiplier with 18x18 bits.
 
 The testbench is self-checking, but it is only a quick check, not an exhaustive
 one. It checks that the latency is exactly one clock cycle, that the product is
@@ -113,11 +119,33 @@ of the iterator, which follows the VHDL literally. It gives the same counts as
 the testbench for the same points, and can be used to compare the iterator with
 the real-number count for many more points (`./iterator_model.py --grid`).
 
+The testbench includes two points where x+y or x-y is outside the range -2 to 2
+during the iteration (see [Overflow](#overflow)). An earlier version of the
+iterator, where these values wrapped around, gave a wrong count for both.
+
+The complete picture can be checked bit-accurately too. The script
+[`sim/model.py`](sim/model.py) is a vectorized (numpy) version of the same
+model, which calculates the count for every pixel of the initial view, using
+the same values of c as the design. Run as a script, it compares the model with
+a calculation using real numbers. The testbench
+[`sim/main_tb.vhd`](sim/main_tb.vhd) runs `main.vhd` with the initial view, and
+writes every write to the display memory to the file `sim/main_out.txt`. The
+script [`sim/cmp_rtl.py`](sim/cmp_rtl.py) then compares these values with the
+model. A complete picture takes several hours to simulate, but a partial picture
+can be compared too:
+```
+make run TB=main STOP_TIME=700us
+sim/cmp_rtl.py
+```
+The 700 us of simulated time (about 13 minutes) gives more than 50000 pixels,
+from all 240 column modules. This testbench is not part of `make sim`.
+
 The iterator has been heavily optimized to use only a single multiplier, and to
 pipeline the calculations. Each iteration takes three clock cycles, and is
 controlled by a simple state machine:
 * In the first clock cycle (ADD\_ST), the multiplier is given the values of x
-  and y, and simultaneously, the values x+y and x-y are calculated.
+  and y, and simultaneously, the values x+y and x-y are calculated (in 19
+  bits).
 * In the second clock cycle (MULT\_ST), the multiplier is given the values of
   (x+y) and (x-y), and the output from x\*y is stored in registers.
 * In the third clock cycle (UPDATE\_ST), the new values of x and y are
@@ -168,10 +196,30 @@ the first sum and bits 32 to 15 of the second sum, respectively.
 The count returned in cnt\_o is the number of the first iteration where the
 value is out of range, or the maximum count if this does not happen.
 
-The values x+y and x-y are still calculated in 18 bits, so they wrap around if
-they are outside the range -2 to 2. This is not detected, and can give a
-different count, compared with an exact calculation, for points where this
-happens before the value of x or y is out of range.
+The values x+y and x-y, which are the inputs to the multiplier in the second
+clock cycle, are between -4 and 4, so they need 19 bits (3.16 format). The
+second input of the multiplier (the B port of the DSP) has only 18 bits.
+However, at most one of x+y and x-y is outside the range -2 to 2:
+* If x and y have the same sign bit, then x-y is in the range -2 to 2.
+* Otherwise, x+y is in the range -2 to 2.
+
+So the one of them that may be out of range is given to the first input of the
+multiplier, which has 19 bits, and the other one to the second input, which has
+18 bits. The choice only depends on the sign bits of x and y, so it does not
+have to wait for the additions.
+
+An earlier version of the iterator calculated x+y and x-y in 18 bits, so they
+wrapped around when they were outside the range -2 to 2. For the initial view
+this gave a different count for about 13% of the pixels, compared with the
+same calculation without the wrap around. It was much worse when zooming in
+near the points -2 and +-i, where the orbits often have x+y or x-y close to
+-2 or 2. Here the picture had straight edges and broken filaments, and some
+points were even wrongly shown as inside or outside the set.
+
+The remaining differences, compared with a calculation using real numbers, come
+from the limited precision of the 2.16 format. For the initial view about 1.5%
+of the pixels have a different count, and about 0.1% (292 pixels) are on the
+other side of the boundary of the set (`sim/model.py`).
 
 TODO: The DSP contains an adder (as well as the multiplier). Perhaps it is
 possible to use this built-in adder and thereby save logic resources. This may
@@ -357,6 +405,11 @@ in other words 252 iterations per pixel.
 The numbers below come from a successful run of `make vivado` (Vivado 2025.1,
 part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 140.625 MHz main clock.
+
+Note: These numbers were measured before the iterator was changed to give x+y
+or x-y to the multiplier with 19 bits (see [Overflow](#overflow)). This adds a
+little logic in front of the multiplier inputs in each iterator, and the
+numbers, in particular the timing, have not been measured again since then.
 
 | Resource         | Used     | Available | Used (%)
 | ---------------- | -------- | --------- | --------

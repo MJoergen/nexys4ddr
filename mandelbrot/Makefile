@@ -137,4 +137,5 @@ clean:
 	rm -rf $(LIB_DIR)
 	rm -rf *.o
 	rm -rf fsm_encoding.os
+	rm -rf sim/main_out.txt
 
