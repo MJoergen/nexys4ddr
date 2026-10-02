@@ -121,6 +121,8 @@ $(UNIMACRO_CF): sim/mult_macro.vhd $(UNISIM_CF)
 clean:
 	rm -rf usage_statistics_webtalk.*
 	rm -rf vivado*
+	rm -rf clockInfo.txt
+	rm -rf tight_setup_hold_pins.txt
 	rm -rf $(NAME).bit
 	rm -rf $(NAME).dcp
 	rm -rf .Xil
