@@ -63,9 +63,8 @@ Type `make` to list the supported targets. The most important ones are:
   Digilent Adept.
 * `make sim` runs all the testbenches one after another, without opening the
   waveform viewer, see [below](#simulation). This requires
-  [GHDL](https://github.com/ghdl/ghdl), and a Vivado installation (the
-  variable `XILINX_DIR`) for the Xilinx simulation libraries. It takes several
-  minutes, mostly for the `dispatcher` testbench.
+  [GHDL](https://github.com/ghdl/ghdl). It takes several minutes, mostly for the
+  `dispatcher` testbench.
 * `make run TB=iterator` runs a single testbench and writes the waveform to
   `sim/iterator.ghw`. Without `TB` it lists the available testbenches. It has
   the same requirements as `make sim`.
@@ -80,8 +79,11 @@ testbenches are self-checking, and stop with an error if the result is wrong.
 The others are investigative, i.e. they do not check the results automatically,
 so you have to look at the waveforms to see that the design works as expected.
 
-The simulation needs the Xilinx `unisim` library, which is compiled from the
-Vivado installation (`XILINX_DIR`) into `sim/lib/` the first time a testbench
-is run. Xilinx's source for the multiplier macro `mult_macro` does not compile
-in GHDL, so [`sim/mult_macro.vhd`](sim/mult_macro.vhd) is used instead. This is
-a simple model of the multiplier with a latency of one clock cycle.
+The simulation does not need any Xilinx libraries. Xilinx's source for the
+multiplier macro `mult_macro` does not compile in GHDL, so
+[`sim/mult_macro.vhd`](sim/mult_macro.vhd) is used instead. This is a simple
+model of the multiplier with a latency of one clock cycle. It is compiled into
+the library `unimacro` in `sim/lib/` the first time a testbench is run.
+
+The clock module (`src/clk.vhd`) and the top level (`src/mandelbrot.vhd`) use
+Xilinx primitives, and are not simulated.

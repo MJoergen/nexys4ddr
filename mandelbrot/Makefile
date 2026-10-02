@@ -23,18 +23,16 @@ TBS = dispatcher column iterator mult_macro priority_pipeline
 # the command line, e.g. "make run TB=iterator".
 TB =
 TB_EXE = $(TB)_tb
-TB_SRC = $(SRC) sim/$(TB)_tb.vhd
+# The clock module and the top level use Xilinx primitives, and are not simulated
+TB_SRC = $(filter-out src/clk.vhd src/mandelbrot.vhd,$(SRC)) sim/$(TB)_tb.vhd
 WAVE = sim/$(TB).ghw
 SAVE = sim/$(TB).gtkw
 
-# The simulation libraries are built into this directory. The unisim library is
-# compiled from the Xilinx sources, while the unimacro library only contains the
-# model of mult_macro in sim/mult_macro.vhd.
-XILINX_VHDL = $(XILINX_DIR)/data/vhdl/src
+# The simulation library "unimacro" is built into this directory. It only
+# contains the model of mult_macro in sim/mult_macro.vhd.
 LIB_DIR     = sim/lib
-UNISIM_CF   = $(LIB_DIR)/unisim/unisim-obj08.cf
 UNIMACRO_CF = $(LIB_DIR)/unimacro/unimacro-obj08.cf
-GHDL_OPTS   = --std=08 --ieee=synopsys -frelaxed-rules -P$(LIB_DIR)/unisim -P$(LIB_DIR)/unimacro
+GHDL_OPTS   = --std=08 --ieee=synopsys -frelaxed-rules -P$(LIB_DIR)/unimacro
 
 
 #####################################
@@ -101,21 +99,17 @@ check: run
 	gtkwave $(WAVE) $(SAVE)
 
 .PHONY: run
-run: $(TB_SRC) $(UNISIM_CF) $(UNIMACRO_CF)
+run: $(TB_SRC) $(UNIMACRO_CF)
 	ghdl -i $(GHDL_OPTS) --work=work $(TB_SRC)
 	ghdl -m $(GHDL_OPTS) $(TB_EXE)
 	ghdl -r $(GHDL_OPTS) $(TB_EXE) --assert-level=error --wave=$(WAVE) --stop-time=2100us
 
 endif
 
-# Build the simulation libraries
-$(UNISIM_CF): $(XILINX_VHDL)/unisims/unisim_VPKG.vhd $(XILINX_VHDL)/unisims/unisim_VCOMP.vhd
-	mkdir -p $(LIB_DIR)/unisim
-	ghdl -a --std=08 --ieee=synopsys -frelaxed-rules --work=unisim --workdir=$(LIB_DIR)/unisim $^
-
-$(UNIMACRO_CF): sim/mult_macro.vhd $(UNISIM_CF)
+# Build the simulation library
+$(UNIMACRO_CF): sim/mult_macro.vhd
 	mkdir -p $(LIB_DIR)/unimacro
-	ghdl -a --std=08 --ieee=synopsys -frelaxed-rules --work=unimacro --workdir=$(LIB_DIR)/unimacro -P$(LIB_DIR)/unisim $<
+	ghdl -a --std=08 --ieee=synopsys -frelaxed-rules --work=unimacro --workdir=$(LIB_DIR)/unimacro $<
 
 clean:
 	rm -rf usage_statistics_webtalk.*
@@ -127,7 +121,6 @@ clean:
 	rm -rf .Xil
 	rm -rf .cache
 	rm -rf work-obj08.cf
-	rm -rf unisim-obj08.cf
 	rm -rf $(TB_EXE)
 	rm -rf */*.ghw
 	rm -rf $(LIB_DIR)
