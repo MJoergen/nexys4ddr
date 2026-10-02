@@ -9,6 +9,32 @@ calculations. Additionally, the FPGA contains 135 BRAMs (of 36 kbit each),
 which are used for storing the results of the calculation, i.e. the actual
 picture to be displayed.
 
+## Instantiation hierarchy
+The modules are instantiated as follows (the entity name is given where it
+differs from the file name):
+```
+mandelbrot                      src/mandelbrot.vhd (top level)
+ +- clk_wiz_0_clk_wiz           src/clk.vhd (MMCM and clock buffers)
+ +- dispatcher                  src/dispatcher.vhd
+ |   +- scheduler               (i_scheduler, selects the column to receive a job)
+ |   +- column  (x 240)         src/column.vhd
+ |   |   +- iterator            src/iterator.vhd
+ |   |       +- mult_macro      (Xilinx unimacro, uses one DSP)
+ |   |       +- add_overflow (x 2)
+ |   +- scheduler               (i_scheduler_res, selects the column whose result is accepted)
+ +- pix                         src/pix.vhd (pixel counters)
+ +- disp_mem                    src/disp_mem.vhd (display memory)
+ +- disp                        src/disp.vhd (VGA output)
+```
+The number of columns (and therefore iterators and DSPs) is set by the generic
+`G_NUM_ITERATORS`, which the top level sets to 240.
+
+The files `src/priority.vhd` and `src/priority_pipeline.vhd` are not part of
+this hierarchy. The module `priority_pipeline` instantiates two `priority`
+modules, but is itself only instantiated by its own testbench
+([`sim/priority_pipeline_tb.vhd`](sim/priority_pipeline_tb.vhd)). The scheduler
+does not use them.
+
 ## The Mandelbrot iteration
 For each point $c = c_x + i c_y$ in the picture, we iterate
 $z_{n+1} = z_n^2 + c$, starting from $z_0 = 0$. The number of iterations needed
@@ -74,6 +100,10 @@ The testbench currently performs the following multiplications:
 The multiplier can be instantiated with a configurable number of clock cycles
 of delay. A single clock cycle of delay is used for the time being. This may
 have to be incremented if the clock frequency is increased.
+
+Note that the simulation model of the multiplier ([`sim/mult_macro.vhd`](sim/mult_macro.vhd))
+only supports a delay of one clock cycle. If the delay is changed, the model
+must be extended too.
 
 ## Iterator
 This component ([`src/iterator.vhd`](src/iterator.vhd)) performs the main

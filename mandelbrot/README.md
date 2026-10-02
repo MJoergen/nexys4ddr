@@ -33,8 +33,9 @@ resource usage.
 | [`src/iterator.vhd`](src/iterator.vhd) | Iterates the Mandelbrot function for a single point, using one DSP.
 | [`src/add_overflow.vhd`](src/add_overflow.vhd) | Adder with overflow detection, used by the iterator.
 | [`src/column.vhd`](src/column.vhd) | Calculates an entire column of the picture using one iterator.
-| [`src/dispatcher.vhd`](src/dispatcher.vhd) | Controls the calculation of the entire picture, and hands out columns.
-| [`src/scheduler.vhd`](src/scheduler.vhd), [`src/priority.vhd`](src/priority.vhd), [`src/priority_pipeline.vhd`](src/priority_pipeline.vhd) | Chooses which idle column gets the next job.
+| [`src/dispatcher.vhd`](src/dispatcher.vhd) | Controls the calculation of the entire picture, and hands out columns. Instantiates the columns.
+| [`src/scheduler.vhd`](src/scheduler.vhd) | Round-robin scheduler. Used by the dispatcher both to give jobs to idle columns and to pick which column's result to accept.
+| [`src/priority.vhd`](src/priority.vhd), [`src/priority_pipeline.vhd`](src/priority_pipeline.vhd) | Priority encoder, and a pipelined version built from it. Not used in the design yet, only in the `priority_pipeline` testbench.
 | [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture.
 | [`src/disp.vhd`](src/disp.vhd), [`src/pix.vhd`](src/pix.vhd) | VGA output. Generates the sync signals and the pixel colour.
 | [`src/clk.vhd`](src/clk.vhd) | Clock generation: 150 MHz for the calculation and 25 MHz for VGA.
@@ -66,10 +67,12 @@ Type `make` to list the supported targets. The most important ones are:
   Digilent Adept.
 * `make sim` runs all the testbenches one after another, without opening the
   waveform viewer, see [below](#simulation). This requires
-  [GHDL](https://github.com/ghdl/ghdl), and takes several minutes, mostly for
-  the `dispatcher` testbench.
+  [GHDL](https://github.com/ghdl/ghdl), and a Vivado installation (the
+  variable `XILINX_DIR`) for the Xilinx simulation libraries. It takes several
+  minutes, mostly for the `dispatcher` testbench.
 * `make run TB=iterator` runs a single testbench and writes the waveform to
-  `sim/iterator.ghw`. Without `TB` it lists the available testbenches.
+  `sim/iterator.ghw`. Without `TB` it lists the available testbenches. It has
+  the same requirements as `make sim`.
 * `make check TB=iterator` does the same as `make run`, and then shows the
   waveform in [GTKWave](https://github.com/gtkwave/gtkwave).
 * `make clean` removes the generated files.
