@@ -5,54 +5,36 @@ picture (640x480) is shown on the VGA output, and you can pan and zoom using the
 buttons on the board.
 
 All 240 DSPs of the FPGA are used in parallel for the calculation, and the
-picture is stored in block RAM. Generating a complete picture takes about 6.4
-ms, with the main clock at 150 MHz.
+picture is stored in block RAM. Generating a complete picture takes about 7 ms,
+with the main clock at 140.625 MHz.
 
 ## Implementation results
-The design is built with Vivado 2025.1 and meets timing at the 150 MHz main
-clock (setup slack +0.047 ns, hold slack +0.018 ns). The resources used are:
+The design is built with Vivado 2025.1 and meets timing at the 140.625 MHz main
+clock (setup slack +0.029 ns, hold slack +0.023 ns). The resources used are:
 
 | Resource  | Used                  | Available
 | --------- | --------------------- | ---------
 | DSP48E1   | 240                   | 240
 | Block RAM | 128 RAMB36 + 1 RAMB18 | 135 RAMB36
-| LUTs      | about 50,600          | 63,400
-| Registers | about 52,600          | 126,800
+| LUTs      | about 52,000          | 63,400
+| Registers | about 53,300          | 126,800
 
 The slack is small, see [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details, including the critical paths.
-
-## The algorithm
-For each pixel, which corresponds to a complex number $c$, we iterate
-$z \mapsto z^2 + c$ starting from $z = 0$, and count how many iterations are
-needed before $|z|$ escapes beyond 2, up to a maximum of 511. This count
-decides the colour of the pixel.
-
-The numbers are 18-bit
-[fixed point](https://en.wikipedia.org/wiki/Fixed-point_arithmetic) (2 integer
-bits and 16 fractional bits), and each iteration needs only two real
-multiplications, using the identity $x^2 - y^2 = (x+y)(x-y)$. Each of the 240
-iterators has a single DSP multiplier, and calculates one iteration every three
-clock cycles. The picture is divided into columns, which a dispatcher hands out
-to the iterators as they become free.
-
-[ALGORITHM.md](ALGORITHM.md) explains the design in detail: the number format,
-the multiplier, the iterator, the columns, the dispatcher, and the timing and
-resource usage.
 
 ## Files
 | File             | Description
 | ---------------- | -----------
 | [`src/mandelbrot.vhd`](src/mandelbrot.vhd) | Top level. The ports are mapped directly to pins on the FPGA.
 | [`src/iterator.vhd`](src/iterator.vhd) | Iterates the Mandelbrot function for a single point, using one DSP.
-| [`src/add_overflow.vhd`](src/add_overflow.vhd) | Adder with overflow detection, used by the iterator.
+| [`src/add_overflow.vhd`](src/add_overflow.vhd) | Signed adder with overflow detection. Not used in the design at the moment, only in its own testbench.
 | [`src/column.vhd`](src/column.vhd) | Calculates an entire column of the picture using one iterator.
 | [`src/dispatcher.vhd`](src/dispatcher.vhd) | Controls the calculation of the entire picture, and hands out columns. Instantiates the columns.
 | [`src/scheduler.vhd`](src/scheduler.vhd) | Round-robin scheduler. Used by the dispatcher both to give jobs to idle columns and to pick which column's result to accept.
 | [`src/priority.vhd`](src/priority.vhd), [`src/priority_pipeline.vhd`](src/priority_pipeline.vhd) | Priority encoder, and a pipelined version built from it. Not used in the design yet, only in the `priority_pipeline` testbench.
 | [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture.
 | [`src/disp.vhd`](src/disp.vhd), [`src/pix.vhd`](src/pix.vhd) | VGA output. Generates the sync signals and the pixel colour.
-| [`src/clk.vhd`](src/clk.vhd) | Clock generation: 150 MHz for the calculation and 25 MHz for VGA.
+| [`src/clk.vhd`](src/clk.vhd) | Clock generation: 140.625 MHz for the calculation and 25 MHz for VGA.
 | [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, and a simulation model of the Xilinx `mult_macro`.
 | [`mandelbrot.xdc`](mandelbrot.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make vivado`.
 | [`mandelbrot.xlsx`](mandelbrot.xlsx) | Spreadsheet used during the design.
@@ -94,10 +76,10 @@ Type `make` to list the supported targets. The most important ones are:
 
 ## Simulation
 There are testbenches in [`sim/`](sim) for `dispatcher`, `column`, `iterator`,
-`add_overflow`, `mult_macro` and `priority_pipeline`. The `add_overflow` and
-`mult_macro` testbenches are self-checking, and stop with an error if the adder
-or multiplier gives a wrong result. The others are investigative, i.e. they do
-not check the results automatically, so you have to look at the waveforms to see
+`add_overflow`, `mult_macro` and `priority_pipeline`. The `iterator`,
+`add_overflow` and `mult_macro` testbenches are self-checking, and stop with an
+error if the result is wrong. The others are investigative, i.e. they do not
+check the results automatically, so you have to look at the waveforms to see
 that the design works as expected.
 
 The simulation needs the Xilinx `unisim` library, which is compiled from the

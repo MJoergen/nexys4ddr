@@ -19,7 +19,6 @@ mandelbrot                      src/mandelbrot.vhd (top level)
  |   +- column  (x 240)         src/column.vhd
  |   |   +- iterator            src/iterator.vhd
  |   |       +- mult_macro      (Xilinx unimacro, uses one DSP)
- |   |       +- add_overflow (x 2)
  |   +- scheduler               (i_scheduler_res, selects the column whose result is accepted)
  +- pix                         src/pix.vhd (pixel counters)
  +- disp_mem                    src/disp_mem.vhd (display memory)
@@ -28,11 +27,15 @@ mandelbrot                      src/mandelbrot.vhd (top level)
 The number of columns (and therefore iterators and DSPs) is set by the generic
 `G_NUM_ITERATORS`, which the top level sets to 240.
 
-The files `src/priority.vhd` and `src/priority_pipeline.vhd` are not part of
-this hierarchy. The module `priority_pipeline` instantiates two `priority`
-modules, but is itself only instantiated by its own testbench
-([`sim/priority_pipeline_tb.vhd`](sim/priority_pipeline_tb.vhd)). The scheduler
-does not use them.
+The files `src/add_overflow.vhd`, `src/priority.vhd` and
+`src/priority_pipeline.vhd` are not part of this hierarchy:
+* `add_overflow` is a signed adder with overflow detection. The iterator used
+  it earlier, but not any longer, see [Overflow](#overflow). It has its own
+  testbench ([`sim/add_overflow_tb.vhd`](sim/add_overflow_tb.vhd)).
+* `priority_pipeline` instantiates two `priority` modules, but is itself only
+  instantiated by its own testbench
+  ([`sim/priority_pipeline_tb.vhd`](sim/priority_pipeline_tb.vhd)). The
+  scheduler does not use them.
 
 ## The Mandelbrot iteration
 For each point $c = c_x + i c_y$ in the picture, we iterate
@@ -104,8 +107,11 @@ imaginary values cx and cy). It then iterates the Mandelbrot function a number
 of times and stops when either the maximum iteration count is reached, or an
 overflow occurs.
 
-The testbench for the iterator is only investigative, and only tests a single starting
-value: -1 + 0.5\*i.
+The testbench for the iterator ([`sim/iterator_tb.vhd`](sim/iterator_tb.vhd))
+is self-checking, but it is not bit-accurate. It runs a few starting values (in
+the set, escaping immediately, escaping quickly, and escaping slowly), and
+compares the count with one calculated using real (floating point) numbers. The
+counts must be equal, within a small tolerance.
 
 The iterator has been heavily optimized to use only a single multiplier, and to
 pipeline the calculations. Each iteration takes three clock cycles, and is
@@ -136,6 +142,35 @@ cnt |   x           |   y
 ```
 The values in the parentheses are the (2.16 fixed point) hexadecimal
 representation of the real numbers.
+
+### Overflow
+The iteration stops when the new value of x or y is outside the range -2 to 2
+(not including 2), which is the range of the 2.16 number format. For points
+that are not in the Mandelbrot set, the values grow quickly once they get out
+of this range.
+
+The two products are calculated in 4.32 format (36 bits), and the new values
+are the sums
+```
+new_x   = (x+y)*(x-y) + cx
+new_y/2 = x*y + cy/2
+```
+also in 4.32 format. The range is checked on these sums, and not on the
+products alone. A product can be between -4 and 4, i.e. outside the range of
+the final value, even when the sum with cx or cy/2 is inside the range, and the
+other way around. The sums are between -6 and 6, so they can not overflow
+the 36 bits. The new x is in range if the three top bits of the sum are equal.
+The new y is twice the second sum, so that is in range if the four top bits of
+the second sum are equal. The new values of x and y are then bits 33 to 16 of
+the first sum and bits 32 to 15 of the second sum, respectively.
+
+The count returned in cnt\_o is the number of the first iteration where the
+value is out of range, or the maximum count if this does not happen.
+
+The values x+y and x-y are still calculated in 18 bits, so they wrap around if
+they are outside the range -2 to 2. This is not detected, and can give a
+different count, compared with an exact calculation, for points where this
+happens before the value of x or y is out of range.
 
 TODO: The DSP contains an adder (as well as the multiplier). Perhaps it is
 possible to use this built-in adder and thereby save logic resources. This may
@@ -207,18 +242,25 @@ calculating, and whenever a column is idle, a new job is sent to this column.
 A separate scheduler module is used to send jobs to the different column
 modules. Currently, the scheduler operates in a round-robin fashion. This
 potentially may give a delay up to 240 clock cycles before an idle column is
-given a job. With 640 jobs, the maximum delay is about 1 ms, assuming the
-columns operate at 150 MHz. This delay is negligible.
+given a job. With 640 jobs, the maximum delay is about 1.1 ms, assuming the
+columns operate at 140.625 MHz. This delay is negligible.
 
 ## Timing
 Counters measure the total time it takes to generate the picture as well as the
 total amount of time the iterators are waiting to write to display memory.
 
-The total time taken is 472\*2^11 clock cycles, which at a frequency of 150 MHz
-becomes 6.4 milliseconds.
+Note: The numbers in this section were measured on the board with an earlier
+version of the iterator, which did not detect all overflows (see
+[Overflow](#overflow)), and with a main clock of 150 MHz. The number of clock
+cycles has not been measured again since then, and may be lower now, because
+some points are now detected as overflowing earlier. The times below have been
+recalculated for the current main clock of 140.625 MHz.
+
+The total time taken is 472\*2^11 clock cycles, which at a frequency of 140.625
+MHz becomes 6.9 milliseconds.
 
 The average waiting time for each iterator is 28642/240 \* 2^11 clock cycles,
-which is 1.6 milliseconds. So a quarter of the time is spent waiting. However,
+which is 1.7 milliseconds. So a quarter of the time is spent waiting. However,
 at this processing speed it really doesn't matter.
 
 Another way of looking at this is that each iterator is using 472\*2^11 clock
@@ -228,15 +270,15 @@ in other words 252 iterations per pixel.
 
 ## Resources and timing closure
 The numbers below come from a successful run of `make vivado` (Vivado 2025.1,
-part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a 150 MHz
-main clock.
+part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
+140.625 MHz main clock.
 
 | Resource         | Used     | Available | Used (%)
 | ---------------- | -------- | --------- | --------
 | DSP48E1          | 240      | 240       | 100
 | Block RAM        | 128 RAMB36 + 1 RAMB18 | 135 RAMB36 | about 95
-| LUTs             | about 50,600 | 63,400 | about 80
-| Registers        | about 52,600 | 126,800 | about 41
+| LUTs             | about 52,000 | 63,400 | about 82
+| Registers        | about 53,300 | 126,800 | about 42
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
 The resource numbers are the cell counts after synthesis, taken from
@@ -244,39 +286,46 @@ The resource numbers are the cell counts after synthesis, taken from
 design uses memory with 2^19 entries of 9 bit, i.e. 128 blocks of 36 kbit
 BRAM, as expected.
 
-The timing after routing and post-route physical optimization is:
+The timing after routing is:
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.047 ns (TNS 0)
-| Hold (WHS)  | +0.018 ns (THS 0)
+| Setup (WNS) | +0.029 ns (TNS 0)
+| Hold (WHS)  | +0.023 ns (THS 0)
 
-The timing is met for all clocks. The 150 MHz main clock (period 6.67 ns) is
-generated from the 100 MHz input clock by the MMCM (multiplied by 10.5 and
-divided by 7), and the only constraint in `mandelbrot.xdc` is the 100 MHz input
-clock. The MMCM also generates the 25 MHz VGA clock.
+These are the estimated timing summaries printed by Vivado during routing (the
+post-route physical optimization found no setup violations, and did not change
+the netlist).
+
+The timing is met for all clocks. The 140.625 MHz main clock (period 7.11 ns)
+is generated from the 100 MHz input clock by the MMCM (multiplied by 11.25 and
+divided by 8), and the only constraint in `mandelbrot.xdc` is the 100 MHz input
+clock. The MMCM also generates the 25 MHz VGA clock (divided by 45).
 
 The slack is small, so the design is close to the limit of what this device and
 this flow can achieve. The critical paths are in the dispatcher: the selection
 of the column in the schedulers (`job_idx_valid` and the `job_busy_o` signals
 from the columns), and the registers for the write address and data going to
-the display memory (`wr_addr_r` and `wr_data_r`). The initial result of placing
-and routing does not meet timing (WNS about -0.2 ns), and it is the post-route
-physical optimization that closes it, so the directives used in
+the display memory (`wr_addr_r` and `wr_data_r`). The directives used in
 `mandelbrot.tcl` matter:
 * `synth_design` with `-directive AreaOptimized_medium`
 * `opt_design` with `-directive ExploreWithRemap`
 * `phys_opt_design` with `-directive AlternateFlowWithRetiming`, both after
   placement and after routing
 
-A change to the design may therefore require different directives. Another
-possible improvement is to pipeline the selection of the column in the
-scheduler, e.g. by dividing the columns into 16 groups of 16. This has not been
-tried.
+The main clock was originally 150 MHz. The design with the earlier version of
+the iterator met timing at that frequency (setup slack +0.047 ns). After the
+overflow detection in the iterator was improved (see [Overflow](#overflow)),
+which uses more logic (about 1,400 more LUTs), the design no longer met timing
+at 150 MHz (setup slack -0.055 ns, with the critical paths in the dispatcher),
+and the main clock was lowered to 140.625 MHz. A possible improvement is to
+pipeline the selection of the column in the scheduler, e.g. by dividing the
+columns into 16 groups of 16, which should allow a higher clock frequency.
+This has not been tried.
 
 The complete run of `make vivado` takes about 10 minutes (synthesis about 2
 minutes, routing about 3 minutes), on a machine with 8 threads.
 
-All 240 DSPs running at 150 MHz gives a peak of 36 billion multiplications per
+All 240 DSPs running at 140.625 MHz gives a peak of 34 billion multiplications per
 second. The iterator uses its multiplier in two out of three clock cycles, so
-the actual rate is about 24 billion multiplications per second.
+the actual rate is about 22 billion multiplications per second.
