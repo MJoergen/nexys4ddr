@@ -6,13 +6,11 @@ use ieee.numeric_std_unsigned.all;
 -- signed (two's complement) numbers of SIZE bits each. The result is also SIZE
 -- bits wide, and wraps around if it does not fit, in which case ovf_o is set.
 --
--- It is used twice in the iterator (see iterator.vhd), with SIZE = 36, to
--- calculate the next values of x and y (in 4.32 fixed point representation):
---   new_x   = (x+y)*(x-y) + cx
---   new_y/2 = x*y + cy/2
--- The overflow flag is used to detect that the iteration has left the range
--- that can be represented, i.e. that the point is not in the Mandelbrot set,
--- and the iterator then stops.
+-- This module was originally used in the iterator (see iterator.vhd), with
+-- SIZE = 36, to detect that the iteration has left the range that can be
+-- represented. The iterator does not use it any longer, because the range
+-- must be checked on a sum where the operands themselves can be outside the
+-- range, and then the overflow flag of this module is not sufficient.
 
 entity add_overflow is
    generic (

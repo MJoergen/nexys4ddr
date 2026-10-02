@@ -38,7 +38,12 @@ use unimacro.vcomponents.all;
 -- 1.5  : 18000
 --
 -- One must take great care to ensure correct detection and handling
--- overflow.
+-- overflow. The iteration stops when the new x or y is outside the range -2 to
+-- 2 (not including 2). The products are calculated in 4.32 fixed point
+-- (36 bits), and the range is checked on the sum of the product and the
+-- offset (cx or cy/2), not on the product alone. This is necessary, because
+-- the product itself can be outside the range even if the sum is not, and
+-- the other way around.
 --
 -- Example:
 -- We start with the point -1+0.5i, i.e. cx = -1 and cy = 0.5
@@ -75,23 +80,21 @@ architecture rtl of iterator is
    signal b_r          : std_logic_vector(17 downto 0);
    signal product_s    : std_logic_vector(35 downto 0);
    signal product_d_r  : std_logic_vector(35 downto 0);
-   signal new_x_s      : std_logic_vector(36 downto 0);
-   signal new_y_half_s : std_logic_vector(36 downto 0);
+   signal new_x_s      : std_logic_vector(35 downto 0);  -- 4.32
+   signal new_y_half_s : std_logic_vector(35 downto 0);  -- 4.32 (y/2)
    signal cnt_r        : std_logic_vector( 8 downto 0);
    signal done_r       : std_logic;
 
    type state_t is (IDLE_ST, ADD_ST, MULT_ST, UPDATE_ST);
    signal state_r : state_t := IDLE_ST;
 
-   signal x2_m_y2_s  : std_logic_vector(35 downto 0);
-   signal cx_s       : std_logic_vector(35 downto 0);
-   signal xy_s       : std_logic_vector(35 downto 0);
-   signal cy_div_2_s : std_logic_vector(35 downto 0);
+   signal cx_s       : std_logic_vector(35 downto 0);  -- 4.32
+   signal cy_div_2_s : std_logic_vector(35 downto 0);  -- 4.32
 
-   signal ovf_x36_s  : std_logic;
-   signal ovf_y36_s  : std_logic;
-   signal ovf_y35_s  : std_logic;
-   signal ovf_y34_s  : std_logic;
+   signal ovf_x_s    : std_logic;
+   signal ovf_y_s    : std_logic;
+   signal ovf_x_r    : std_logic;
+   signal ovf_y_r    : std_logic;
 
 begin
 
@@ -113,10 +116,8 @@ begin
                   cnt_r     <= (others => '0');
                   state_r   <= ADD_ST;
                   done_r    <= '0';
-                  ovf_x36_s <= '0';
-                  ovf_y36_s <= '0';
-                  ovf_y35_s <= '0';
-                  ovf_y34_s <= '0';
+                  ovf_x_r   <= '0';
+                  ovf_y_r   <= '0';
                end if;
 
             when ADD_ST =>
@@ -125,9 +126,7 @@ begin
                state_r <= MULT_ST;
 
                -- Check for overflow
-               if ovf_x36_s = '1' or ovf_y36_s = '1' or 
-                  ovf_y35_s /= ovf_y34_s
-               then
+               if ovf_x_r = '1' or ovf_y_r = '1' then
                   done_r  <= '1';
                   state_r <= IDLE_ST;
                else
@@ -145,15 +144,15 @@ begin
                state_r <= UPDATE_ST;
 
             when UPDATE_ST =>
-               x_r <= new_x_s(35 downto 18);
-               y_r <= new_y_half_s(35) & new_y_half_s(33 downto 18) & "0";
-               a_r <= new_x_s(35 downto 18);
-               b_r <= new_y_half_s(35) & new_y_half_s(33 downto 18) & "0";
+               -- The new values of x and y are in 2.16 format. The new value of
+               -- y is twice the value of y/2.
+               x_r <= new_x_s(33 downto 16);
+               y_r <= new_y_half_s(32 downto 15);
+               a_r <= new_x_s(33 downto 16);
+               b_r <= new_y_half_s(32 downto 15);
 
-               ovf_x36_s <= new_x_s(36);
-               ovf_y36_s <= new_y_half_s(36);
-               ovf_y35_s <= new_y_half_s(35);
-               ovf_y34_s <= new_y_half_s(34);
+               ovf_x_r <= ovf_x_s;
+               ovf_y_r <= ovf_y_s;
 
                state_r <= ADD_ST;
 
@@ -205,38 +204,27 @@ begin
    -- Calculate (x+y)*(x-y) + cx
    ------------------------------
 
-   x2_m_y2_s <= product_s(35) & product_s(32 downto 0) & "00";
-   cx_s      <= cx_i & "00" & X"0000";
-
-   i_add_overflow_x : entity work.add_overflow
-      generic map (
-         SIZE => 36
-      )
-      port map (
-         a_i   => x2_m_y2_s,
-         b_i   => cx_s,
-         r_o   => new_x_s(35 downto 0),
-         ovf_o => new_x_s(36)
-      ); -- i_add_overflow_x
+   -- The product is in 4.32 format and is between -4 and 4. The sum with cx is
+   -- therefore between -6 and 6, so the addition can not overflow. The new x is
+   -- in range if the sum is between -2 and 2, i.e. if the three top bits are
+   -- equal.
+   cx_s      <= (35 downto 34 => cx_i(17)) & cx_i & X"0000";
+   new_x_s   <= product_s + cx_s;
+   ovf_x_s   <= (new_x_s(35) xor new_x_s(34)) or
+                (new_x_s(34) xor new_x_s(33));
 
 
    --------------------------
    -- Calculate (x*y) + cy/2
    --------------------------
 
-   xy_s       <= product_d_r(35) & product_d_r(32 downto 0) & "00";
-   cy_div_2_s <= cy_i(17) & cy_i & "0" & X"0000";
-
-   i_add_overflow_y_half : entity work.add_overflow
-      generic map (
-         SIZE => 36
-      )
-      port map (
-         a_i   => xy_s,
-         b_i   => cy_div_2_s,
-         r_o   => new_y_half_s(35 downto 0),
-         ovf_o => new_y_half_s(36)
-      ); -- i_add_overflow_y_half
+   -- The new y is twice this value. The new y is in range if this value is
+   -- between -1 and 1, i.e. if the four top bits are equal.
+   cy_div_2_s   <= (35 downto 33 => cy_i(17)) & cy_i & (14 downto 0 => '0');
+   new_y_half_s <= product_d_r + cy_div_2_s;
+   ovf_y_s      <= (new_y_half_s(35) xor new_y_half_s(34)) or
+                   (new_y_half_s(34) xor new_y_half_s(33)) or
+                   (new_y_half_s(33) xor new_y_half_s(32));
 
 
    --------------------------
