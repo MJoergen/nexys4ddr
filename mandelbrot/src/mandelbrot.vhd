@@ -20,6 +20,7 @@ use ieee.numeric_std_unsigned.all;
 --   btn_i(3 downto 0): Move the view left, right, up and down.
 --   sw_i(1)          : Select what the LEDs show.
 -- While a button is pressed, the view is updated about 17 times per second.
+-- The view is kept inside the range -2 to 2, see view.vhd.
 -- The other switches are not used.
 
 entity mandelbrot is

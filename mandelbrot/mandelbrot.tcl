@@ -9,6 +9,7 @@ read_vhdl -vhdl2008 src/disp_mem.vhd
 read_vhdl -vhdl2008 src/disp.vhd
 read_vhdl -vhdl2008 src/pix.vhd
 read_vhdl -vhdl2008 src/vga.vhd
+read_vhdl -vhdl2008 src/view.vhd
 read_vhdl -vhdl2008 src/main.vhd
 read_vhdl -vhdl2008 src/clk.vhd
 read_vhdl -vhdl2008 src/mandelbrot.vhd

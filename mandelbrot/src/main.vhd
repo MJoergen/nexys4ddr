@@ -11,6 +11,7 @@ use ieee.numeric_std_unsigned.all;
 --   btn_i(3 downto 0): Move the view left, right, up and down.
 --   sw_i(1)          : Select what the LEDs show.
 -- While a button is pressed, the view is updated about 17 times per second.
+-- The view is kept inside the range -2 to 2, see view.vhd.
 -- The other switches are not used.
 
 entity main is
@@ -78,45 +79,39 @@ begin
    end process p_upd;
 
 
-   p_xy : process (clk_i)
+   p_btn : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if upd = '1' then
-            if btn_r(4) = '1' then
-               if sw_r(2) = '1' then
-                  stepx <= stepx + stepx(17 downto 6) + 1;
-                  stepy <= stepy + stepy(17 downto 6) + 1;
-               else
-                  stepx <= stepx - stepx(17 downto 6) - 1;
-                  stepy <= stepy - stepy(17 downto 6) - 1;
-               end if;
-            end if;
-
-            if btn_r(3) = '1' then
-               startx <= startx - stepx;
-            end if;
-            if btn_r(2) = '1' then
-               startx <= startx + stepx;
-            end if;
-            if btn_r(1) = '1' then
-               starty <= starty - stepy;
-            end if;
-            if btn_r(0) = '1' then
-               starty <= starty + stepy;
-            end if;
-         end if;
-
          btn_r <= btn_i;
          sw_r  <= sw_i;
-
-         if rst_i = '1' then
-            startx <= to_std_logic_vector(integer((C_START_X+4.0)*real(2**16)), 18);
-            starty <= to_std_logic_vector(integer((C_START_Y+4.0)*real(2**16)), 18);
-            stepx  <= to_std_logic_vector(integer(C_SIZE_X*real(2**16))/C_NUM_COLS, 18);
-            stepy  <= to_std_logic_vector(integer(C_SIZE_Y*real(2**16))/C_NUM_ROWS, 18);
-         end if;
       end if;
-   end process p_xy;
+   end process p_btn;
+
+
+   --------------------------------------------------
+   -- Instantiate view control
+   --------------------------------------------------
+
+   i_view : entity work.view
+      generic map (
+         G_NUM_COLS => C_NUM_COLS,
+         G_NUM_ROWS => C_NUM_ROWS,
+         G_START_X  => C_START_X,
+         G_START_Y  => C_START_Y,
+         G_SIZE_X   => C_SIZE_X,
+         G_SIZE_Y   => C_SIZE_Y
+      )
+      port map (
+         clk_i      => clk_i,
+         rst_i      => rst_i,
+         upd_i      => upd,
+         btn_i      => btn_r,
+         zoom_out_i => sw_r(2),
+         startx_o   => startx,
+         starty_o   => starty,
+         stepx_o    => stepx,
+         stepy_o    => stepy
+      ); -- i_view
 
 
    p_active : process (clk_i)

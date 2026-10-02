@@ -14,15 +14,18 @@ The modules are instantiated as follows:
 ```
 mandelbrot                      src/mandelbrot.vhd (top level)
  +- clk                         src/clk.vhd (MMCM and clock buffers)
- +- dispatcher                  src/dispatcher.vhd
- |   +- scheduler               (i_scheduler, selects the column module to receive a job)
- |   +- column  (x 240)         src/column.vhd (the column modules)
- |   |   +- iterator            src/iterator.vhd
- |   |       +- mult_macro      (Xilinx unimacro, uses one DSP)
- |   +- scheduler               (i_scheduler_res, selects the column module whose result is accepted)
- +- pix                         src/pix.vhd (pixel counters)
+ +- main                        src/main.vhd (MAIN clock domain)
+ |   +- view                    src/view.vhd (view control from the buttons)
+ |   +- dispatcher              src/dispatcher.vhd
+ |       +- scheduler           (i_scheduler, selects the column module to receive a job)
+ |       +- column  (x 240)     src/column.vhd (the column modules)
+ |       |   +- iterator        src/iterator.vhd
+ |       |       +- mult_macro  (Xilinx unimacro, uses one DSP)
+ |       +- scheduler           (i_scheduler_res, selects the column module whose result is accepted)
  +- disp_mem                    src/disp_mem.vhd (display memory)
- +- disp                        src/disp.vhd (VGA output)
+ +- vga                         src/vga.vhd (VGA clock domain)
+     +- pix                     src/pix.vhd (pixel counters)
+     +- disp                    src/disp.vhd (VGA output)
 ```
 The number of column modules (and therefore iterators and DSPs) is set by the
 generic `G_NUM_ITERATORS`, which the top level sets to 240.
@@ -353,18 +356,47 @@ view has the real axis from -1.6667 to 1.0 and the imaginary axis from -1.0 to
 1.0, and the pixel size is the size of the view divided by the number of columns
 and rows (640 and 480).
 
-The view is updated at a fixed rate, which is given by a counter of 23 bits. At
-140.625 MHz this is once every 60 ms, i.e. about 17 times per second. At each
-update, the following happens, depending on the buttons that are held down:
-* `BTNL`, `BTNR`: startx is decreased or increased by stepx.
-* `BTNU`, `BTND`: starty is decreased or increased by stepy.
+The view is controlled by the module [`src/view.vhd`](src/view.vhd). It is
+updated at a fixed rate, which is given by a counter of 23 bits in `main.vhd`.
+At 140.625 MHz this is once every 60 ms, i.e. about 17 times per second. At
+each update, the following happens, depending on the buttons that are held
+down:
 * `BTNC`: Zoom. The values of stepx and stepy are both decreased by 1/64 of
   their value plus one least significant bit (zoom in), or increased by the same
   (zoom out, if switch 2 is on). This is about 1.6% per update. The values of
   startx and starty are not changed, so the zoom keeps the top left corner of
-  the view fixed.
+  the view fixed (except at the edge of the range, see below).
+* `BTNL`, `BTNR`: startx is decreased or increased by stepx (`BTNR` has
+  priority if both are held down).
+* `BTNU`, `BTND`: starty is decreased or increased by stepy (`BTND` has
+  priority if both are held down).
 
-The new view is used when the next picture is started.
+The view is always kept inside the range of the 2.16 number format, i.e. -2 to
+2 (not including 2). Otherwise the values of cx and cy, which the dispatcher and
+the column modules calculate by adding stepx and stepy, would wrap around, and
+the picture would show parts of the range twice (e.g. a second copy of the set
+at the right edge). Similarly, the size of a pixel must not become zero or
+negative. So:
+* Panning stops when the first column (row) is at -2, or when the last column
+  (row) is at 2 minus one LSB.
+* Zooming in stops when the size of a pixel is one LSB (2^-16), i.e. the
+  picture is 0.0098 wide. In practice the picture is limited by the precision
+  of the calculation before this.
+* When zooming out would move the last column (row) beyond the range, the view
+  is moved left (up) instead, so the last column (row) stays at the end of the
+  range. Zooming out stops when the view can not get any larger, i.e. when it
+  covers almost the whole range from -2 to 2 in x.
+
+These checks only use additions, comparisons, and multiplications by the
+constant number of columns and rows, which are written as shifts and additions,
+so no DSP is used. The new view is used when the next picture is started.
+
+The view control has a self-checking testbench
+([`sim/view_tb.vhd`](sim/view_tb.vhd)). It holds the buttons down for many
+updates, and checks after every update that the view is inside the range, that
+the size of a pixel is at least one LSB, and that the view is the one expected
+from a simple model. It also checks that panning and zooming reach the ends of
+the range and stop there.
 
 **The LEDs.** If switch 1 is on, the LEDs show bits 26 to 11 of a counter. This
 counter counts clock cycles while a picture is being calculated, and it is
@@ -407,9 +439,10 @@ part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 140.625 MHz main clock.
 
 Note: These numbers were measured before the iterator was changed to give x+y
-or x-y to the multiplier with 19 bits (see [Overflow](#overflow)). This adds a
-little logic in front of the multiplier inputs in each iterator, and the
-numbers, in particular the timing, have not been measured again since then.
+or x-y to the multiplier with 19 bits (see [Overflow](#overflow)), and before
+the limits for pan and zoom were added to the view control (see
+[The top level](#the-top-level)). Both add a little logic, and the numbers, in
+particular the timing, have not been measured again since then.
 
 | Resource         | Used     | Available | Used (%)
 | ---------------- | -------- | --------- | --------

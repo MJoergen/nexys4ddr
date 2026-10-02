@@ -41,15 +41,17 @@ clock (setup slack +0.027 ns, hold slack +0.020 ns). The resources used are:
 
 The slack is small, see [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details, including the critical paths. Note that these results were
-measured before the latest change of the iterator (19-bit input to the
-multiplier, see [Overflow](ALGORITHM.md#overflow)), and have not been measured
-again since then.
+measured before the latest changes of the iterator (19-bit input to the
+multiplier, see [Overflow](ALGORITHM.md#overflow)) and of the view control
+(limits for pan and zoom, see [The top level](ALGORITHM.md#the-top-level)), and
+have not been measured again since then.
 
 ## Files
 | File             | Description
 | ---------------- | -----------
 | [`src/mandelbrot.vhd`](src/mandelbrot.vhd) | Top level. The ports are mapped directly to pins on the FPGA. Instantiates the clock generation, the display memory, and the two modules below, and generates the resets.
 | [`src/main.vhd`](src/main.vhd) | Everything in the MAIN clock domain: view control from buttons and switches, the dispatcher, and the LEDs.
+| [`src/view.vhd`](src/view.vhd) | View control. Pans and zooms the view, and keeps it inside the range of the number format.
 | [`src/vga.vhd`](src/vga.vhd) | Everything in the VGA clock domain: pixel counters and VGA output.
 | [`src/iterator.vhd`](src/iterator.vhd) | Iterates the Mandelbrot function for a single point, using one DSP.
 | [`src/column.vhd`](src/column.vhd) | A column module. Calculates one picture column (all its rows) at a time, using one iterator.
@@ -72,8 +74,8 @@ the board. The switch numbers are the bit numbers of the switch input, i.e.
 
 | Control | Description
 | ------- | -----------
-| `BTNL`, `BTNR`, `BTNU`, `BTND` | Pan the picture left, right, up and down, by one pixel for each update.
-| `BTNC` | Zoom in. With switch 2 on, zoom out instead. The top left corner of the view stays fixed.
+| `BTNL`, `BTNR`, `BTNU`, `BTND` | Pan the picture left, right, up and down, by one pixel for each update. Panning stops at the edge of the number range (-2 to 2).
+| `BTNC` | Zoom in. With switch 2 on, zoom out instead. The top left corner of the view stays fixed, except when zooming out would move the right or bottom edge beyond 2; then the view is moved left or up instead. Zooming stops at the smallest pixel size (2^-16), and when the view can not get larger.
 | Switch 1 | Selects what the LEDs show. On: the time since the start of the current picture, in units of 14.6 us (2^11 clock cycles). It restarts for each picture. Off: the total time that the column modules have spent waiting for their results to be accepted, summed up over all column modules, in the same unit. It is accumulated since reset.
 | Switches 0 and 3 to 7 | Not used.
 | `CPU RESET` | Resets the design and returns to the initial view.
@@ -105,7 +107,7 @@ Type `make` to list the supported targets. The most important ones are:
 
 ## Simulation
 There are testbenches in [`sim/`](sim) for `dispatcher`, `column`, `iterator`,
-`scheduler`, `mult_macro` and `priority_pipeline`. All of them are
+`scheduler`, `view`, `mult_macro` and `priority_pipeline`. All of them are
 self-checking, and stop with an error if the result is wrong. Most of them stop
 by themselves when they are finished. The `priority_pipeline` testbench compares
 the module with the simple `priority` module for all 65536 input vectors, which

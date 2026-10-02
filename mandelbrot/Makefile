@@ -14,21 +14,22 @@ SRC += src/disp_mem.vhd
 SRC += src/disp.vhd
 SRC += src/pix.vhd
 SRC += src/vga.vhd
+SRC += src/view.vhd
 SRC += src/main.vhd
 SRC += src/clk.vhd
 SRC += src/mandelbrot.vhd
 
 # Files used during simulation
-TBS = dispatcher column iterator scheduler mult_macro priority_pipeline
+TBS = dispatcher column iterator scheduler view mult_macro priority_pipeline
 
 # Testbench simulated by the "run" and "check" targets. Must be specified on
 # the command line, e.g. "make run TB=iterator".
 TB =
 
 # Maximum simulation time. This must be longer than the slowest testbench. Most
-# testbenches stop by themselves, the slowest of those is dispatcher (about
-# 140 us). The testbench priority_pipeline does not stop by itself. It needs 655
-# us to test all 65536 input vectors.
+# testbenches stop by themselves, the slowest of those is view (about 240 us).
+# The testbench priority_pipeline does not stop by itself. It needs 655 us to
+# test all 65536 input vectors.
 STOP_TIME = 1ms
 
 TB_EXE = $(TB)_tb
