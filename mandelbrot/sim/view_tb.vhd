@@ -22,6 +22,9 @@ architecture simulation of view_tb is
    constant C_MIN      : integer := -2**17;    -- -2
    constant C_MAX      : integer :=  2**17-1;  --  2-2^-16
 
+   -- The number of clock cycles to wait for an update to finish
+   constant C_UPD_CYCLES : integer := 32;
+
    signal clk      : std_logic;
    signal rst      : std_logic := '1';
    signal upd      : std_logic := '0';
@@ -149,7 +152,11 @@ begin
             upd <= '1';
             wait until rising_edge(clk);
             upd <= '0';
-            wait until rising_edge(clk);
+
+            -- The update takes several clock cycles
+            for j in 1 to C_UPD_CYCLES loop
+               wait until rising_edge(clk);
+            end loop;
 
             check_range;
 

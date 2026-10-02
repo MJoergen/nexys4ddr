@@ -27,10 +27,10 @@ TBS = dispatcher column iterator scheduler view mult_macro priority_pipeline
 TB =
 
 # Maximum simulation time. This must be longer than the slowest testbench. Most
-# testbenches stop by themselves, the slowest of those is view (about 240 us).
+# testbenches stop by themselves, the slowest of those is view (about 2.7 ms).
 # The testbench priority_pipeline does not stop by itself. It needs 655 us to
 # test all 65536 input vectors.
-STOP_TIME = 1ms
+STOP_TIME = 3ms
 
 TB_EXE = $(TB)_tb
 # The clock module and the top level use Xilinx primitives, and are not simulated

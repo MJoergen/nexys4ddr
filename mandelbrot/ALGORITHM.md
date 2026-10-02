@@ -402,9 +402,15 @@ negative. So:
   range. Zooming out stops when the view can not get any larger, i.e. when it
   covers almost the whole range from -2 to 2 in x.
 
-These checks only use additions, comparisons, and multiplications by the
-constant number of columns and rows, which are written as shifts and additions,
-so no DSP is used. The new view is used when the next picture is started.
+The check that the zoomed view fits is a comparison of the new size of a pixel
+with a constant, the largest size for which the view fits. The position of the
+right (bottom) edge needs the size of a pixel multiplied by the number of
+columns (rows) minus one. This is done serially with shifts and subtractions,
+one bit of the constant per clock cycle, so no DSP is used. Doing all of the
+update in a single clock cycle would be far too slow for the MAIN clock, so
+the update is done in small steps over about 16 clock cycles, with at most one
+addition or comparison per step. The outputs are all changed at the end of the
+update. The new view is used when the next picture is started.
 
 The view control has a self-checking testbench
 ([`sim/view_tb.vhd`](sim/view_tb.vhd)). It holds the buttons down for many
