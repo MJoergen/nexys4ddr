@@ -27,6 +27,15 @@ TB_SRC = $(SRC) sim/$(TB)_tb.vhd
 WAVE = sim/$(TB).ghw
 SAVE = sim/$(TB).gtkw
 
+# The simulation libraries are built into this directory. The unisim library is
+# compiled from the Xilinx sources, while the unimacro library only contains the
+# model of mult_macro in sim/mult_macro.vhd.
+XILINX_VHDL = $(XILINX_DIR)/data/vhdl/src
+LIB_DIR     = sim/lib
+UNISIM_CF   = $(LIB_DIR)/unisim/unisim-obj08.cf
+UNIMACRO_CF = $(LIB_DIR)/unimacro/unimacro-obj08.cf
+GHDL_OPTS   = --std=08 --ieee=synopsys -frelaxed-rules -P$(LIB_DIR)/unisim -P$(LIB_DIR)/unimacro
+
 
 #####################################
 # Help (default target)
@@ -41,6 +50,7 @@ help:
 	@echo "  vivado          Synthesize and implement the design using Vivado ($(NAME).bit)"
 	@echo "  fpga            Program the Nexys4DDR board with $(NAME).bit"
 	@echo "  sim             Simulate all testbenches using ghdl"
+	@echo "  run             Simulate a single testbench (TB=$(TB)) using ghdl, without gtkwave"
 	@echo "  check           Simulate a single testbench (TB=$(TB)) using ghdl and show waveform in gtkwave"
 	@echo "  clean           Remove generated files"
 	@echo ""
@@ -80,10 +90,19 @@ check: run
 	gtkwave $(WAVE) $(SAVE)
 
 .PHONY: run
-run: $(TB_SRC)
-	ghdl -i --std=08 --work=work $(TB_SRC)
-	ghdl -m --std=08 --ieee=synopsys -frelaxed-rules -P../xilinx-vivado $(TB_EXE)
-	ghdl -r --std=08 $(TB_EXE) --assert-level=error --wave=$(WAVE) --stop-time=2100us
+run: $(TB_SRC) $(UNISIM_CF) $(UNIMACRO_CF)
+	ghdl -i $(GHDL_OPTS) --work=work $(TB_SRC)
+	ghdl -m $(GHDL_OPTS) $(TB_EXE)
+	ghdl -r $(GHDL_OPTS) $(TB_EXE) --assert-level=error --wave=$(WAVE) --stop-time=2100us
+
+# Build the simulation libraries
+$(UNISIM_CF): $(XILINX_VHDL)/unisims/unisim_VPKG.vhd $(XILINX_VHDL)/unisims/unisim_VCOMP.vhd
+	mkdir -p $(LIB_DIR)/unisim
+	ghdl -a --std=08 --ieee=synopsys -frelaxed-rules --work=unisim --workdir=$(LIB_DIR)/unisim $^
+
+$(UNIMACRO_CF): sim/mult_macro.vhd $(UNISIM_CF)
+	mkdir -p $(LIB_DIR)/unimacro
+	ghdl -a --std=08 --ieee=synopsys -frelaxed-rules --work=unimacro --workdir=$(LIB_DIR)/unimacro -P$(LIB_DIR)/unisim $<
 
 clean:
 	rm -rf usage_statistics_webtalk.*
@@ -96,6 +115,7 @@ clean:
 	rm -rf unisim-obj08.cf
 	rm -rf $(TB_EXE)
 	rm -rf */*.ghw
+	rm -rf $(LIB_DIR)
 	rm -rf *.o
 	rm -rf fsm_encoding.os
 
