@@ -66,6 +66,7 @@ vivado: $(NAME).bit
 $(NAME).bit: $(NAME).tcl $(SRC) $(NAME).xdc
 	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $<"
 
+.PHONY: fpga
 fpga: $(NAME).bit
 	djtgcfg prog -d Nexys4DDR -i 0 --file $<
 
@@ -111,6 +112,7 @@ $(UNIMACRO_CF): sim/mult_macro.vhd
 	mkdir -p $(LIB_DIR)/unimacro
 	ghdl -a --std=08 --ieee=synopsys -frelaxed-rules --work=unimacro --workdir=$(LIB_DIR)/unimacro $<
 
+.PHONY: clean
 clean:
 	rm -rf usage_statistics_webtalk.*
 	rm -rf vivado*
