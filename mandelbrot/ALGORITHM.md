@@ -234,9 +234,10 @@ and the output is:
 ```
 done_o    : out std_logic
 ```
-The signals start\_i and done\_o are pulsed high for one clock cycle to
-initiate the calculation and to indicate completion, respectively. Three
-additional output signals go to the display memory:
+The signal start\_i is pulsed high for one clock cycle to initiate the
+calculation. The signal done\_o goes high when the calculation is finished, and
+stays high until the next start\_i. Three additional output signals go to the
+display memory:
 ```
 wr_addr_o : out std_logic_vector(18 downto 0);
 wr_data_o : out std_logic_vector( 8 downto 0);
@@ -252,6 +253,16 @@ modules. Currently, the scheduler operates in a round-robin fashion. This
 potentially may give a delay up to 240 clock cycles before an idle column is
 given a job. With 640 jobs, the maximum delay is about 1.1 ms, assuming the
 columns operate at 140.625 MHz. This delay is negligible.
+
+The dispatcher has a self-checking testbench
+([`sim/dispatcher_tb.vhd`](sim/dispatcher_tb.vhd)). It calculates two small
+pictures (64 by 16 pixels, with 16 iterators), one right after the other, and
+checks that each pixel is written exactly once, that everything has been written
+when done\_o goes high, that done\_o goes low when a new picture is started, and
+that the value of each pixel is close to the count calculated using real
+numbers. It then repeats this for two pictures with a single column, i.e. with
+fewer columns than iterators, which is a special case for done\_o. The
+simulation takes about 10 seconds.
 
 The scheduler has a small self-checking testbench
 ([`sim/scheduler_tb.vhd`](sim/scheduler_tb.vhd)). It checks that nothing is

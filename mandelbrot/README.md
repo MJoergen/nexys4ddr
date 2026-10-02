@@ -63,8 +63,7 @@ Type `make` to list the supported targets. The most important ones are:
   Digilent Adept.
 * `make sim` runs all the testbenches one after another, without opening the
   waveform viewer, see [below](#simulation). This requires
-  [GHDL](https://github.com/ghdl/ghdl). It takes several minutes, mostly for the
-  `dispatcher` testbench.
+  [GHDL](https://github.com/ghdl/ghdl). It takes about 15 seconds.
 * `make run TB=iterator` runs a single testbench and writes the waveform to
   `sim/iterator.ghw`. Without `TB` it lists the available testbenches. It has
   the same requirements as `make sim`.
@@ -74,11 +73,11 @@ Type `make` to list the supported targets. The most important ones are:
 
 ## Simulation
 There are testbenches in [`sim/`](sim) for `dispatcher`, `column`, `iterator`,
-`scheduler`, `mult_macro` and `priority_pipeline`. The `column`, `iterator`,
-`scheduler` and `mult_macro` testbenches are self-checking, and stop with an
-error if the result is wrong. The others are investigative, i.e. they do not
-check the results automatically, so you have to look at the waveforms to see
-that the design works as expected.
+`scheduler`, `mult_macro` and `priority_pipeline`. All of them are
+self-checking, and stop with an error if the result is wrong, except
+`priority_pipeline`, which is investigative, i.e. it does not check the results
+automatically, so you have to look at the waveforms to see that the design works
+as expected.
 
 The simulation does not need any Xilinx libraries. Xilinx's source for the
 multiplier macro `mult_macro` does not compile in GHDL, so
