@@ -27,7 +27,6 @@ for details, including the critical paths.
 | ---------------- | -----------
 | [`src/mandelbrot.vhd`](src/mandelbrot.vhd) | Top level. The ports are mapped directly to pins on the FPGA.
 | [`src/iterator.vhd`](src/iterator.vhd) | Iterates the Mandelbrot function for a single point, using one DSP.
-| [`src/add_overflow.vhd`](src/add_overflow.vhd) | Signed adder with overflow detection. Not used in the design at the moment, only in its own testbench.
 | [`src/column.vhd`](src/column.vhd) | Calculates an entire column of the picture using one iterator.
 | [`src/dispatcher.vhd`](src/dispatcher.vhd) | Controls the calculation of the entire picture, and hands out columns. Instantiates the columns.
 | [`src/scheduler.vhd`](src/scheduler.vhd) | Round-robin scheduler. Used by the dispatcher both to give jobs to idle columns and to pick which column's result to accept.
@@ -76,11 +75,10 @@ Type `make` to list the supported targets. The most important ones are:
 
 ## Simulation
 There are testbenches in [`sim/`](sim) for `dispatcher`, `column`, `iterator`,
-`add_overflow`, `mult_macro` and `priority_pipeline`. The `iterator`,
-`add_overflow` and `mult_macro` testbenches are self-checking, and stop with an
-error if the result is wrong. The others are investigative, i.e. they do not
-check the results automatically, so you have to look at the waveforms to see
-that the design works as expected.
+`mult_macro` and `priority_pipeline`. The `iterator` and `mult_macro`
+testbenches are self-checking, and stop with an error if the result is wrong.
+The others are investigative, i.e. they do not check the results automatically,
+so you have to look at the waveforms to see that the design works as expected.
 
 The simulation needs the Xilinx `unisim` library, which is compiled from the
 Vivado installation (`XILINX_DIR`) into `sim/lib/` the first time a testbench

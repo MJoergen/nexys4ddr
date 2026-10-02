@@ -4,8 +4,7 @@ XILINX_DIR = /opt/Xilinx/2025.1/Vivado
 NAME = mandelbrot
 
 # List of sources files
-SRC  = src/add_overflow.vhd
-SRC += src/iterator.vhd
+SRC  = src/iterator.vhd
 SRC += src/column.vhd
 SRC += src/priority.vhd
 SRC += src/priority_pipeline.vhd
@@ -18,7 +17,7 @@ SRC += src/clk.vhd
 SRC += src/mandelbrot.vhd
 
 # Files used during simulation
-TBS = dispatcher column iterator add_overflow mult_macro priority_pipeline
+TBS = dispatcher column iterator mult_macro priority_pipeline
 
 # Testbench simulated by the "run" and "check" targets. Must be specified on
 # the command line, e.g. "make run TB=iterator".

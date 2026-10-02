@@ -27,15 +27,11 @@ mandelbrot                      src/mandelbrot.vhd (top level)
 The number of columns (and therefore iterators and DSPs) is set by the generic
 `G_NUM_ITERATORS`, which the top level sets to 240.
 
-The files `src/add_overflow.vhd`, `src/priority.vhd` and
-`src/priority_pipeline.vhd` are not part of this hierarchy:
-* `add_overflow` is a signed adder with overflow detection. The iterator used
-  it earlier, but not any longer, see [Overflow](#overflow). It has its own
-  testbench ([`sim/add_overflow_tb.vhd`](sim/add_overflow_tb.vhd)).
-* `priority_pipeline` instantiates two `priority` modules, but is itself only
-  instantiated by its own testbench
-  ([`sim/priority_pipeline_tb.vhd`](sim/priority_pipeline_tb.vhd)). The
-  scheduler does not use them.
+The files `src/priority.vhd` and `src/priority_pipeline.vhd` are not part of
+this hierarchy. The module `priority_pipeline` instantiates two `priority`
+modules, but is itself only instantiated by its own testbench
+([`sim/priority_pipeline_tb.vhd`](sim/priority_pipeline_tb.vhd)). The
+scheduler does not use them.
 
 ## The Mandelbrot iteration
 For each point $c = c_x + i c_y$ in the picture, we iterate
