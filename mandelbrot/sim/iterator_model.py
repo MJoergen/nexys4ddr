@@ -15,12 +15,15 @@
 #   ./iterator_model.py CX CY    Show both counts for a single point.
 
 import sys
+from typing import Dict
+from typing import List
+from typing import Tuple
 
 MAX_COUNT = 100      # Must match C_MAX_COUNT in iterator_tb.vhd
 TOLERANCE = 1        # Must match C_TOLERANCE in iterator_tb.vhd
 
 # The points used in iterator_tb.vhd
-TB_POINTS = [
+TB_POINTS: List[Tuple[float, float]] = [
     ( 0.0,   0.0),
     (-1.0,   0.0),
     ( 1.0,   1.0),
@@ -33,18 +36,18 @@ TB_POINTS = [
 ]
 
 
-def signed(v, bits):
+def signed(v: int, bits: int) -> int:
     """Interpret the lowest 'bits' bits of v as a two's complement number."""
     v &= (1 << bits) - 1
     return v - (1 << bits) if v >> (bits - 1) else v
 
 
-def to_fixed(r):
+def to_fixed(r: float) -> int:
     """Convert a real number to 2.16 fixed point, as an integer."""
     return signed(round(r * 65536), 18)
 
 
-def real_count(cx, cy, max_count=MAX_COUNT):
+def real_count(cx: float, cy: float, max_count: int = MAX_COUNT) -> int:
     """Iteration count using real numbers. Same as expected_count in the testbench."""
     x = y = 0.0
     for n in range(1, max_count):
@@ -54,7 +57,7 @@ def real_count(cx, cy, max_count=MAX_COUNT):
     return max_count
 
 
-def iterator_count(cx, cy, max_count=MAX_COUNT):
+def iterator_count(cx: float, cy: float, max_count: int = MAX_COUNT) -> int:
     """Iteration count of src/iterator.vhd. The inputs are real numbers."""
     cx_i = to_fixed(cx)            # 2.16
     cy_i = to_fixed(cy)            # 2.16
@@ -96,7 +99,7 @@ def iterator_count(cx, cy, max_count=MAX_COUNT):
         y = signed(new_y_half_s >> 15, 18)    # Bits 32 downto 15
 
 
-def compare(points):
+def compare(points: List[Tuple[float, float]]) -> int:
     """Print a table, and return the number of points outside the tolerance."""
     bad = 0
     print(f"{'cx':>10} {'cy':>10} {'real':>6} {'iterator':>9}")
@@ -113,9 +116,9 @@ def compare(points):
     return bad
 
 
-def grid(n=100):
+def grid(n: int = 100) -> None:
     """Compare a grid of points over the default view."""
-    hist = {}
+    hist: Dict[int, int] = {}
     total = outside = 0
     for i in range(n):
         for j in range(n):
@@ -135,8 +138,8 @@ def grid(n=100):
           f"({100.0 * outside / total:.1f}%)")
 
 
-if __name__ == "__main__":
-    args = sys.argv[1:]
+def main() -> None:
+    args: List[str] = sys.argv[1:]
     if args == ["--grid"]:
         grid()
     elif len(args) == 2:
@@ -146,3 +149,7 @@ if __name__ == "__main__":
     else:
         print(__doc__ if __doc__ else "Usage: iterator_model.py [--grid | CX CY]")
         sys.exit(2)
+
+
+if __name__ == "__main__":
+    main()
