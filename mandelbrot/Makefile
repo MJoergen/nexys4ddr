@@ -1,4 +1,4 @@
-XILINX_DIR = /opt/Xilinx/Vivado/2017.3
+XILINX_DIR = /opt/Xilinx/2025.1/Vivado
 
 # Name of top level module
 NAME = mandelbrot
@@ -30,8 +30,30 @@ SAVE = sim/$(TB).gtkw
 
 
 #####################################
+# Help (default target)
+#####################################
+
+.PHONY: help
+help:
+	@echo "Usage: make <target>"
+	@echo ""
+	@echo "Targets:"
+	@echo "  help            Show this help text (default)"
+	@echo "  vivado          Synthesize and implement the design using Vivado ($(NAME).bit)"
+	@echo "  fpga            Program the Nexys4DDR board with $(NAME).bit"
+	@echo "  sim             Simulate testbench TB=$(TB) using ghdl and show waveform in gtkwave"
+	@echo "  clean           Remove generated files"
+	@echo ""
+	@echo "Testbench is selected by TB=<name>, e.g. 'make sim TB=iterator'."
+	@echo "Available testbenches: dispatcher column iterator mult priority_pipeline"
+
+
+#####################################
 # Generate bit-file and program FPGA
 #####################################
+
+.PHONY: vivado
+vivado: $(NAME).bit
 
 $(NAME).bit: $(NAME).tcl $(SRC) $(NAME).xdc
 	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $<"
