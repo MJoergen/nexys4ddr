@@ -94,10 +94,11 @@ Type `make` to list the supported targets. The most important ones are:
 
 ## Simulation
 There are testbenches in [`sim/`](sim) for `dispatcher`, `column`, `iterator`,
-`mult_macro` and `priority_pipeline`. The `mult_macro` testbench is self-checking, and
-stops with an error if the multiplier gives a wrong result. The others are
-investigative, i.e. they do not check the results automatically, so you have to
-look at the waveforms to see that the design works as expected.
+`add_overflow`, `mult_macro` and `priority_pipeline`. The `add_overflow` and
+`mult_macro` testbenches are self-checking, and stop with an error if the adder
+or multiplier gives a wrong result. The others are investigative, i.e. they do
+not check the results automatically, so you have to look at the waveforms to see
+that the design works as expected.
 
 The simulation needs the Xilinx `unisim` library, which is compiled from the
 Vivado installation (`XILINX_DIR`) into `sim/lib/` the first time a testbench
