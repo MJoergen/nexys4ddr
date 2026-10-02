@@ -420,7 +420,7 @@ part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 | DSP48E1          | 240      | 240       | 100
 | Block RAM        | 128 RAMB36 + 1 RAMB18 | 135 RAMB36 | about 95
 | LUTs             | about 52,000 | 63,400 | about 82
-| Registers        | about 53,300 | 126,800 | about 42
+| Registers        | about 53,400 | 126,800 | about 42
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
 The resource numbers are the cell counts after synthesis, taken from
@@ -434,8 +434,8 @@ The timing after routing is:
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.027 ns (TNS 0)
-| Hold (WHS)  | +0.020 ns (THS 0)
+| Setup (WNS) | +0.023 ns (TNS 0)
+| Hold (WHS)  | +0.026 ns (THS 0)
 
 These are the values from `report_timing_summary` on the final routed design
 (`mandelbrot.dcp`), after the post-route physical optimization.
