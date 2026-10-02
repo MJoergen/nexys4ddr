@@ -107,7 +107,11 @@ The testbench for the iterator ([`sim/iterator_tb.vhd`](sim/iterator_tb.vhd))
 is self-checking, but it is not bit-accurate. It runs a few starting values (in
 the set, escaping immediately, escaping quickly, and escaping slowly), and
 compares the count with one calculated using real (floating point) numbers. The
-counts must be equal, within a small tolerance.
+counts must be equal, within a small tolerance. The script
+[`sim/iterator_model.py`](sim/iterator_model.py) is a bit-accurate Python model
+of the iterator, which follows the VHDL literally. It gives the same counts as
+the testbench for the same points, and can be used to compare the iterator with
+the real-number count for many more points (`./iterator_model.py --grid`).
 
 The iterator has been heavily optimized to use only a single multiplier, and to
 pipeline the calculations. Each iteration takes three clock cycles, and is
