@@ -237,6 +237,7 @@ main clock.
 | Block RAM        | 128 RAMB36 + 1 RAMB18 | 135 RAMB36 | about 95
 | LUTs             | about 50,600 | 63,400 | about 80
 | Registers        | about 52,600 | 126,800 | about 41
+| Clock buffers    | 3 BUFG, 1 MMCM | |
 
 The resource numbers are the cell counts after synthesis, taken from
 `vivado.log`, and the available numbers are the totals for the XC7A100T. The
