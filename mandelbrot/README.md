@@ -8,6 +8,20 @@ All 240 DSPs of the FPGA are used in parallel for the calculation, and the
 picture is stored in block RAM. Generating a complete picture takes about 6.4
 ms, with the main clock at 150 MHz.
 
+## Implementation results
+The design is built with Vivado 2025.1 and meets timing at the 150 MHz main
+clock (setup slack +0.047 ns, hold slack +0.018 ns). The resources used are:
+
+| Resource  | Used                  | Available
+| --------- | --------------------- | ---------
+| DSP48E1   | 240                   | 240
+| Block RAM | 128 RAMB36 + 1 RAMB18 | 135 RAMB36
+| LUTs      | about 50,600          | 63,400
+| Registers | about 52,600          | 126,800
+
+The slack is small, see [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
+for details, including the critical paths.
+
 ## The algorithm
 For each pixel, which corresponds to a complex number $c$, we iterate
 $z \mapsto z^2 + c$ starting from $z = 0$, and count how many iterations are
@@ -40,7 +54,7 @@ resource usage.
 | [`src/disp.vhd`](src/disp.vhd), [`src/pix.vhd`](src/pix.vhd) | VGA output. Generates the sync signals and the pixel colour.
 | [`src/clk.vhd`](src/clk.vhd) | Clock generation: 150 MHz for the calculation and 25 MHz for VGA.
 | [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, and a simulation model of the Xilinx `mult_macro`.
-| [`mandelbrot.xdc`](mandelbrot.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints, and script for synthesis with Vivado, see `make vivado`.
+| [`mandelbrot.xdc`](mandelbrot.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make vivado`.
 | [`mandelbrot.xlsx`](mandelbrot.xlsx) | Spreadsheet used during the design.
 | [`ALGORITHM.md`](ALGORITHM.md) | Detailed explanation of the algorithm and the design.
 
@@ -62,7 +76,8 @@ Type `make` to list the supported targets. The most important ones are:
 * `make vivado` synthesizes and implements the design using
   [Vivado](https://www.amd.com/en/products/software/adaptive-socs-and-fpgas/vivado.html),
   and generates `mandelbrot.bit`. It expects Vivado in
-  `/opt/Xilinx/2025.1/Vivado` (the variable `XILINX_DIR`).
+  `/opt/Xilinx/2025.1/Vivado` (the variable `XILINX_DIR`). It takes about 10
+  minutes, and writes the log to `vivado.log`.
 * `make fpga` programs the board with `mandelbrot.bit`, using `djtgcfg` from
   Digilent Adept.
 * `make sim` runs all the testbenches one after another, without opening the

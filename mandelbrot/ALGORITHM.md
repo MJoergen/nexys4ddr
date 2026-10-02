@@ -227,24 +227,57 @@ cycles, so a total of 232 million clock cycles. The average amount per pixel is
 then obtained by dividing by 640 and by 480, which gives 755 clock cycles, or
 in other words 252 iterations per pixel.
 
-## Resources
-The XC7A100T contains the following number of resources:
+## Resources and timing closure
+The numbers below come from a successful run of `make vivado` (Vivado 2025.1,
+part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a 150 MHz
+main clock.
 
-* 240 DSPs
-* 4.8 Mbit Block RAM
-* 1.1 Mbit Distributed RAM
+| Resource         | Used     | Available | Used (%)
+| ---------------- | -------- | --------- | --------
+| DSP48E1          | 240      | 240       | 100
+| Block RAM        | 128 RAMB36 + 1 RAMB18 | 135 RAMB36 | about 95
+| LUTs             | about 50,600 | 63,400 | about 80
+| Registers        | about 52,600 | 126,800 | about 41
+| Clock buffers    | 4 BUFG, 1 MMCM | |
 
-The design uses memory with 2^19 entries of 9 bit, i.e. 128 blocks of 36 kbit
-BRAM. The FPGA contains 135 of such BRAMs, so that should be possible.
+The resource numbers are the cell counts after synthesis, taken from
+`vivado.log`, and the available numbers are the totals for the XC7A100T. The
+design uses memory with 2^19 entries of 9 bit, i.e. 128 blocks of 36 kbit
+BRAM, as expected.
 
-Timing estimates: Using all 240 DSPs allows a maximum frequency of 57 MHz, i.e.
-13.7 GFLOPS. If we reduce the number to only 64 DSPs then the frequency
-increases to 141 MHz, i.e. 9.1 GFLOPS.
+The timing after routing and post-route physical optimization is:
 
-With all 240 DSPs the bottleneck is the selection of iterator index in
-`src/dispatcher.vhd`. This can perhaps be mitigated by a pipeline structure, by
-dividing into 16 groups of 16 iterators.
+| Check | Slack
+| ----- | -----
+| Setup (WNS) | +0.047 ns (TNS 0)
+| Hold (WHS)  | +0.018 ns (THS 0)
 
-With only 64 DSPs (and the higher frequency) the bottleneck is the addition
-performed after the multiplication in `src/iterator.vhd`. This can probably be
-mitigated by integrating the addition into the DSP itself.
+The timing is met for all clocks. The 150 MHz main clock (period 6.67 ns) is
+generated from the 100 MHz input clock by the MMCM (multiplied by 10.5 and
+divided by 7), and the only constraint in `mandelbrot.xdc` is the 100 MHz input
+clock. The MMCM also generates the 25 MHz VGA clock and a 50 MHz clock.
+
+The slack is small, so the design is close to the limit of what this device and
+this flow can achieve. The critical paths are in the dispatcher: the selection
+of the column in the schedulers (`job_idx_valid` and the `job_busy_o` signals
+from the columns), and the registers for the write address and data going to
+the display memory (`wr_addr_r` and `wr_data_r`). The initial result of placing
+and routing does not meet timing (WNS about -0.2 ns), and it is the post-route
+physical optimization that closes it, so the directives used in
+`mandelbrot.tcl` matter:
+* `synth_design` with `-directive AreaOptimized_medium`
+* `opt_design` with `-directive ExploreWithRemap`
+* `phys_opt_design` with `-directive AlternateFlowWithRetiming`, both after
+  placement and after routing
+
+A change to the design may therefore require different directives. Another
+possible improvement is to pipeline the selection of the column in the
+scheduler, e.g. by dividing the columns into 16 groups of 16. This has not been
+tried.
+
+The complete run of `make vivado` takes about 10 minutes (synthesis about 2
+minutes, routing about 3 minutes), on a machine with 8 threads.
+
+All 240 DSPs running at 150 MHz gives a peak of 36 billion multiplications per
+second. The iterator uses its multiplier in two out of three clock cycles, so
+the actual rate is about 24 billion multiplications per second.
