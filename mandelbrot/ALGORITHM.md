@@ -485,23 +485,30 @@ The numbers below come from a successful run of `make vivado` (Vivado 2025.1,
 part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 140.625 MHz main clock.
 
-Note: These numbers were measured before the iterator was changed to give x+y
-or x-y to the multiplier with 19 bits (see [Overflow](#overflow)), and before
-the limits for pan and zoom were added to the view control (see
-[The top level](#the-top-level)). Both add a little logic, and the numbers, in
-particular the timing, have not been measured again since then.
-
 | Resource         | Used     | Available | Used (%)
 | ---------------- | -------- | --------- | --------
 | DSP48E1          | 240      | 240       | 100
 | Block RAM        | 128 RAMB36 + 1 RAMB18 | 135 RAMB36 | about 95
-| LUTs             | about 52,000 | 63,400 | about 82
-| Registers        | about 53,300 | 126,800 | about 42
+| LUTs             | about 61,900 (cells) | 63,400 | about 98
+| Registers        | about 53,800 | 126,800 | about 42
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
-The resource numbers are the cell counts after synthesis, taken from
-`vivado.log`, and the available numbers are the totals for the XC7A100T. The
-design uses memory with 2^19 entries of 8 bit (the lowest 8 bits of the
+The resource numbers are the cell counts after synthesis (the "Report Cell
+Usage" table in `vivado.log`), and the available numbers are the totals for
+the XC7A100T. The LUTs are the sum of the LUT1 to LUT6 cells (61,875). This is
+the number of LUT cells, not the number of LUTs in the device that are used,
+which can be smaller, because two small LUT cells can share one LUT (which the
+placer does, e.g. "LUT Combining" in `phys_opt_design`). The exact numbers are
+given by `report_utilization` on the routed design. The registers are the FDRE
+and FDSE cells (53,832).
+
+Before the iterator was changed to give x+y or x-y to the multiplier with 19
+bits (see [Overflow](#overflow)), and before the limits for pan and zoom were
+added to the view control (see [The top level](#the-top-level)), the design
+used about 52,000 LUT cells and 53,300 registers. Most of the increase is
+probably in the iterators, because there are 240 of them.
+
+The design uses memory with 2^19 entries of 8 bit (the lowest 8 bits of the
 count), i.e. 128 blocks of 36 kbit BRAM (each with 32 kbit of data), as
 expected.
 
@@ -509,11 +516,11 @@ The timing after routing is:
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.027 ns (TNS 0)
-| Hold (WHS)  | +0.020 ns (THS 0)
+| Setup (WNS) | +0.008 ns (TNS 0)
+| Hold (WHS)  | +0.029 ns (THS 0)
 
-These are the values from `report_timing_summary` on the final routed design
-(`mandelbrot.dcp`), after the post-route physical optimization.
+These are the values from `vivado.log`: the hold slack from the end of
+`route_design`, and the setup slack from the post-route `phys_opt_design`.
 
 The timing is met for all clocks. The 140.625 MHz main clock (period 7.11 ns)
 is generated from the 100 MHz input clock by the MMCM (multiplied by 11.25 and
@@ -521,7 +528,8 @@ divided by 8), and the only constraint in `mandelbrot.xdc` is the 100 MHz input
 clock. The MMCM also generates the 25 MHz VGA clock (divided by 45).
 
 The slack is small, so the design is close to the limit of what this device and
-this flow can achieve. The critical paths are in the dispatcher: the selection
+this flow can achieve. In an earlier run (before the latest changes), the
+critical paths were in the dispatcher: the selection
 of the column module in the schedulers (`job_idx_valid` and the `job_busy_o`
 signals from the column modules), and the registers for the write address and
 data going to the display memory (`wr_addr_r` and `wr_data_r`). The directives used in
@@ -542,8 +550,9 @@ the column modules into 16 groups of 16, which should allow a higher clock
 frequency.
 This has not been tried.
 
-The complete run of `make vivado` takes about 10 minutes (synthesis about 2
-minutes, routing about 3 minutes), on a machine with 8 threads.
+The complete run of `make vivado` takes about 11 minutes (synthesis about 3.5
+minutes, placement about 3 minutes, routing about 3 minutes), on a machine with
+8 threads.
 
 All 240 DSPs running at 140.625 MHz gives a peak of 34 billion multiplications per
 second. The iterator uses its multiplier in two out of three clock cycles, so
