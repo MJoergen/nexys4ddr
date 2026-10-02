@@ -1,3 +1,11 @@
 sim/lib/
 *.ghw
 work-obj08.cf
+mandelbrot.bit
+mandelbrot.dcp
+vivado*
+clockInfo.txt
+tight_setup_hold_pins.txt
+usage_statistics_webtalk.*
+.Xil/
+.cache/
