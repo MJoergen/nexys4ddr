@@ -5,9 +5,17 @@ use ieee.numeric_std_unsigned.all;
 -- This is the top level module. The ports on this entity are mapped directly
 -- to pins on the FPGA.
 --
--- In this version the design can display eight binary digits on the VGA
--- output. The value of the binary digits are controlled by slide switches on
--- the board.
+-- The design calculates the Mandelbrot set, and shows it on the VGA output
+-- (640x480). The picture is calculated by the dispatcher and stored in the
+-- display memory. As soon as one picture is finished, the calculation of the
+-- next picture is started, so the picture is recalculated continuously.
+--
+-- The view is controlled by the buttons and switches on the board:
+--   btn_i(4)         : Zoom in. If sw_i(2) is set then zoom out instead.
+--   btn_i(3 downto 0): Move the view left, right, up and down.
+--   sw_i(1)          : Select what the LEDs show.
+-- While a button is pressed, the view is updated about 17 times per second.
+-- The other switches are not used.
 
 entity mandelbrot is
    port (
@@ -66,10 +74,8 @@ architecture structural of mandelbrot is
    signal vga_col        : std_logic_vector(7 downto 0);
 
    signal cnt            : std_logic_vector(31 downto 0);
-   signal sw_d           : std_logic;
-   signal sw_deb         : std_logic;
 
-   -- 23 bits = 8 million cycles @ 140.625 MHz = 17 times pr second.
+   -- 23 bits = 8 million cycles @ 140.625 MHz = 17 times per second.
    signal main_upd_cnt   : std_logic_vector(22 downto 0);
    signal main_upd       : std_logic;
    signal btn_r          : std_logic_vector(4 downto 0);
@@ -172,35 +178,25 @@ begin
    end process p_xy;
 
 
-   p_debounce : process (main_clk)
-   begin
-      if rising_edge(main_clk) then
-         sw_d <= sw_i(0);
-
-         sw_deb <= '0';
-         if sw_i(0) = '1' and sw_d = '0' then
-            sw_deb <= '1';
-         end if;
-      end if;
-   end process p_debounce;
-
-
    p_active : process (main_clk)
    begin
       if rising_edge(main_clk) then
          start <= '0';
 
+         -- Start a new picture, as soon as the previous one is finished. The
+         -- signal done stays high until the dispatcher has seen the start, so
+         -- done is ignored while start is high. Otherwise done would cancel
+         -- the new picture, and a second start would be generated.
          if active = '0' then
             active <= '1';
             start  <= '1';
-         end if;
-
-         if done = '1' then
+         elsif done = '1' and start = '0' then
             active <= '0';
          end if;
 
          if main_rst = '1' then
             active <= '0';
+            start  <= '0';
          end if;
       end if;
    end process p_active;
@@ -301,8 +297,16 @@ begin
    -- Connect output signals
    --------------------------
 
-   -- If cnt increments at 140.625 MHz, then a single count is 14,56 us. The total
-   -- amount wraps around after 0,95 seconds.
+   -- The LEDs show one of two values, selected by sw_i(1):
+   -- * The time since the start of the current picture. The counter cnt
+   --   increments at 140.625 MHz while a picture is being calculated, and it is
+   --   cleared when the next picture is started. Only bits 26 downto 11 are
+   --   shown, so a single count on the LEDs is 14,56 us. The total amount wraps
+   --   around after 0,95 seconds.
+   -- * The total waiting time of all the column modules, summed up. This is the
+   --   time spent waiting for the result to be acknowledged, in the same units
+   --   (2^11 clock cycles). It is accumulated from reset, and is not cleared
+   --   between pictures.
    led_o <= cnt(26 downto 11) when sw_i(1) = '1' else wait_cnt_tot;
 
    vga_hs_o  <= vga_hs;

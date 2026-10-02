@@ -60,17 +60,24 @@ for details, including the critical paths.
 | [`ALGORITHM.md`](ALGORITHM.md) | Detailed explanation of the algorithm and the design.
 
 ## Controls
-The view is controlled with the buttons and switches on the board:
+The picture is recalculated continuously: as soon as one picture is finished,
+the next one is started. The view is controlled with the buttons and switches on
+the board. The switch numbers are the bit numbers of the switch input, i.e.
+`SW0` to `SW7` on the board.
 
 | Control | Description
 | ------- | -----------
-| `BTNL`, `BTNR`, `BTNU`, `BTND` | Pan the picture left, right, up and down.
-| `BTNC` | Zoom in. With switch 2 on, zoom out instead.
-| Switch 1 | Selects what the LEDs show: a free-running counter (on) or the total time the iterators have spent waiting to write to the display memory (off).
+| `BTNL`, `BTNR`, `BTNU`, `BTND` | Pan the picture left, right, up and down, by one pixel for each update.
+| `BTNC` | Zoom in. With switch 2 on, zoom out instead. The top left corner of the view stays fixed.
+| Switch 1 | Selects what the LEDs show. On: the time since the start of the current picture, in units of 14.6 us (2^11 clock cycles). It restarts for each picture. Off: the total time that the column modules have spent waiting for their results to be accepted, summed up over all column modules, in the same unit. It is accumulated since reset.
+| Switches 0 and 3 to 7 | Not used.
 | `CPU RESET` | Resets the design and returns to the initial view.
 
-The initial view shows the real axis from -1.67 to 1 and the imaginary axis from
--1 to 1.
+While a button is held down, the view is updated about 17 times per second. Each
+update pans by one pixel, or changes the size of a pixel by about 1.6%
+(roughly 30% per second). The initial view shows the real axis from -1.67 to 1
+and the imaginary axis from -1 to 1. See
+[The top level](ALGORITHM.md#the-top-level) for details.
 
 ## Running
 Type `make` to list the supported targets. The most important ones are:
@@ -94,10 +101,11 @@ Type `make` to list the supported targets. The most important ones are:
 ## Simulation
 There are testbenches in [`sim/`](sim) for `dispatcher`, `column`, `iterator`,
 `scheduler`, `mult_macro` and `priority_pipeline`. All of them are
-self-checking, and stop with an error if the result is wrong, except
-`priority_pipeline`, which is investigative, i.e. it does not check the results
-automatically, so you have to look at the waveforms to see that the design works
-as expected.
+self-checking, and stop with an error if the result is wrong. Most of them stop
+by themselves when they are finished. The `priority_pipeline` testbench compares
+the module with the simple `priority` module for all 65536 input vectors, which
+takes 655 us of simulated time, and it is stopped by the maximum simulation time
+in the Makefile (`STOP_TIME`).
 
 The simulation does not need any Xilinx libraries. Xilinx's source for the
 multiplier macro `mult_macro` does not compile in GHDL, so

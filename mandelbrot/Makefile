@@ -22,6 +22,13 @@ TBS = dispatcher column iterator scheduler mult_macro priority_pipeline
 # Testbench simulated by the "run" and "check" targets. Must be specified on
 # the command line, e.g. "make run TB=iterator".
 TB =
+
+# Maximum simulation time. This must be longer than the slowest testbench. Most
+# testbenches stop by themselves, the slowest of those is dispatcher (about
+# 140 us). The testbench priority_pipeline does not stop by itself. It needs 655
+# us to test all 65536 input vectors.
+STOP_TIME = 1ms
+
 TB_EXE = $(TB)_tb
 # The clock module and the top level use Xilinx primitives, and are not simulated
 TB_SRC = $(filter-out src/clk.vhd src/mandelbrot.vhd,$(SRC)) sim/$(TB)_tb.vhd
@@ -103,7 +110,7 @@ check: run
 run: $(TB_SRC) $(UNIMACRO_CF)
 	ghdl -i $(GHDL_OPTS) --work=work $(TB_SRC)
 	ghdl -m $(GHDL_OPTS) $(TB_EXE)
-	ghdl -r $(GHDL_OPTS) $(TB_EXE) --assert-level=error --wave=$(WAVE) --stop-time=2100us
+	ghdl -r $(GHDL_OPTS) $(TB_EXE) --assert-level=error --wave=$(WAVE) --stop-time=$(STOP_TIME)
 
 endif
 

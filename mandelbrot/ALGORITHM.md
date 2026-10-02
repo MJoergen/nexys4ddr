@@ -285,6 +285,51 @@ idle process is started once per round and busy processes never, that the
 processes are started in round-robin order, and that reset restarts the
 scheduler from the first process.
 
+## The top level
+The top level ([`src/mandelbrot.vhd`](src/mandelbrot.vhd)) connects the clock
+generation, the dispatcher, the display memory and the VGA output, and handles
+the buttons and switches.
+
+**Reset.** The reset button is stretched to eight clock cycles, separately for
+the main clock and for the VGA clock.
+
+**Continuous calculation.** A new picture is started as soon as the previous one
+is finished. When the signal done\_o from the dispatcher goes high, the signal
+active is cleared for one clock cycle, and then it is set again together with a
+pulse on start. The dispatcher clears done\_o when it sees the start, so done\_o
+is ignored while start is high.
+
+**The view.** The view is given by the position of the top left corner of the
+picture (startx, starty), and the size of a pixel (stepx, stepy). The initial
+view has the real axis from -1.6667 to 1.0 and the imaginary axis from -1.0 to
+1.0, and the pixel size is the size of the view divided by the number of columns
+and rows (640 and 480).
+
+The view is updated at a fixed rate, which is given by a counter of 23 bits. At
+140.625 MHz this is once every 60 ms, i.e. about 17 times per second. At each
+update, the following happens, depending on the buttons that are held down:
+* `BTNL`, `BTNR`: startx is decreased or increased by stepx.
+* `BTNU`, `BTND`: starty is decreased or increased by stepy.
+* `BTNC`: Zoom. The values of stepx and stepy are both decreased by 1/64 of
+  their value plus one least significant bit (zoom in), or increased by the same
+  (zoom out, if switch 2 is on). This is about 1.6% per update. The values of
+  startx and starty are not changed, so the zoom keeps the top left corner of
+  the view fixed.
+
+The new view is used when the next picture is started.
+
+**The LEDs.** If switch 1 is on, the LEDs show bits 26 to 11 of a counter. This
+counter counts clock cycles while a picture is being calculated, and it is
+cleared when the next picture is started. A single step on the LEDs is therefore
+2^11 clock cycles, which is 14.56 us, and the value wraps around after 0.95
+seconds. If switch 1 is off, the LEDs show the sum of the wait counters of all
+the column modules. The wait counter of a column module counts the clock cycles
+that the module has to wait for its result to be accepted, in the same unit of
+2^11 clock cycles. It is only cleared by reset, so it accumulates over many
+pictures. The sum is 16 bits wide, so it wraps around.
+
+**Other inputs.** The switches 0 and 3 to 7 are not used.
+
 ## Timing
 Counters measure the total time it takes to generate the picture as well as the
 total amount of time the iterators are waiting to write to display memory.
