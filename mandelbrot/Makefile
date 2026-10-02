@@ -33,8 +33,10 @@ TB =
 STOP_TIME = 3ms
 
 TB_EXE = $(TB)_tb
-# The clock module and the top level use Xilinx primitives, and are not simulated
-TB_SRC = $(filter-out src/clk.vhd src/mandelbrot.vhd,$(SRC)) sim/$(TB)_tb.vhd
+# The clock module and the top level use Xilinx primitives, and are not
+# simulated. The bit-accurate model of the iterator (iterator_model_pkg.vhd) is
+# used by several testbenches.
+TB_SRC = $(filter-out src/clk.vhd src/mandelbrot.vhd,$(SRC)) sim/iterator_model_pkg.vhd sim/$(TB)_tb.vhd
 WAVE = sim/$(TB).ghw
 SAVE = sim/$(TB).gtkw
 

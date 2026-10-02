@@ -135,6 +135,13 @@ The testbench includes two points where x+y or x-y is outside the range -2 to 2
 during the iteration (see [Overflow](#overflow)). An earlier version of the
 iterator, where these values wrapped around, gave a wrong count for both.
 
+The same bit-accurate model is also written in VHDL, in the package
+[`sim/iterator_model_pkg.vhd`](sim/iterator_model_pkg.vhd). The testbenches for
+the column module and the dispatcher compare every count with this model, and
+require them to be equal. The iterator testbench still compares with real
+numbers, so that it also checks that the model (i.e. the design) calculates the
+Mandelbrot iteration.
+
 The complete picture can be checked bit-accurately too. The script
 [`sim/model.py`](sim/model.py) is a vectorized (numpy) version of the same
 model, which calculates the count for every pixel of the initial view, using
@@ -292,11 +299,12 @@ arbitrarily long delay before the job dispatcher has time to acknowledge the
 result.
 
 The testbench for the column module ([`sim/column_tb.vhd`](sim/column_tb.vhd))
-is self-checking. It runs two jobs of ten rows each, and checks that the column
-module is busy only during a job, that the results come in order, that a result stays
-unchanged until it is acknowledged (the acknowledge is delayed by a varying
-number of clock cycles), and that the count for each row is close to the count
-calculated using real numbers.
+is self-checking. It runs three jobs of ten rows each, and checks that the
+column module is busy only during a job, that the results come in order, that a
+result stays unchanged until it is acknowledged (the acknowledge is delayed by a
+varying number of clock cycles), and that the count for each row is exactly the
+count calculated by the bit-accurate model (see [Iterator](#iterator)). The
+third job is near the top of the set, where x+y or x-y is often out of range.
 
 ## Dispatcher
 This ([`src/dispatcher.vhd`](src/dispatcher.vhd)) is essentially the top level
@@ -339,8 +347,10 @@ The dispatcher has a self-checking testbench
 pictures (64 by 16 pixels, with 16 column modules), one right after the other,
 and checks that each pixel is written exactly once, that everything has been
 written when done\_o goes high, that done\_o goes low when a new picture is
-started, and that the value of each pixel is close to the count calculated
-using real numbers. It then repeats this for two pictures with a single picture
+started, and that the value of each pixel is exactly the count calculated by
+the bit-accurate model (see [Iterator](#iterator)) for the value of c of that
+pixel. This also checks that each result is written to the right address. It
+then repeats this for two pictures with a single picture
 column, i.e. with fewer picture columns than column modules, which is a special
 case for done\_o. The simulation takes about 10 seconds.
 

@@ -3,6 +3,8 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.math_real.all;
 
+use work.iterator_model_pkg.all;
+
 -- This is a simple self-checking testbench for the dispatcher. It is not an
 -- exhaustive test. It uses two instances of the dispatcher, a normal one and
 -- one with a single column, i.e. with fewer columns than iterators. It
@@ -13,8 +15,10 @@ use ieee.math_real.all;
 -- * Each pixel is written exactly once, and no other pixels are written.
 -- * All pixels have been written when done goes high, and nothing is written
 --   after that.
--- * The value of each pixel is close to the count calculated using real
---   (floating point) numbers. This is the same check as in iterator_tb.vhd.
+-- * The value of each pixel is exactly the count calculated by the
+--   bit-accurate model in iterator_model_pkg.vhd, for the value of c of that
+--   pixel. This also checks that each pixel is calculated with the right value
+--   of c, i.e. that the results are written to the right address.
 --
 -- A small picture, a small number of iterators, and a low maximum count are
 -- used to keep the simulation short.
@@ -32,10 +36,6 @@ architecture simulation of dispatcher_tb is
    -- Number of columns in the second instance. This is less than the number of
    -- iterators.
    constant C_SMALL_COLS    : integer := 1;
-
-   -- The iterator uses fixed point numbers (with rounding errors), so the count
-   -- may differ slightly from the one calculated using real numbers.
-   constant C_TOLERANCE     : integer := 1;
 
    -- Maximum number of clock cycles to wait for a picture
    constant C_TIMEOUT       : integer := 30000;
@@ -75,25 +75,6 @@ architecture simulation of dispatcher_tb is
    begin
       return integer(round(r * 65536.0));
    end function to_fixed;
-
-   -- Calculate the expected iteration count, using real numbers. This models
-   -- the behaviour of the iterator: Count the iterations until x or y is out
-   -- of range (-2 <= x < 2), or until the maximum count is reached.
-   function expected_count (cx_r : real; cy_r : real) return integer is
-      variable x : real := 0.0;
-      variable y : real := 0.0;
-      variable t : real;
-   begin
-      for n in 1 to C_MAX_COUNT-1 loop
-         t := x*x - y*y + cx_r;
-         y := 2.0*x*y + cy_r;
-         x := t;
-         if x < -2.0 or x >= 2.0 or y < -2.0 or y >= 2.0 then
-            return n;
-         end if;
-      end loop;
-      return C_MAX_COUNT;
-   end function expected_count;
 
 begin
 
@@ -223,10 +204,12 @@ begin
          for c in 0 to num_cols-1 loop
             for r in 0 to C_NUM_ROWS-1 loop
                if seen(c, r) /= -1 then
-                  cx_i := startx_i + c * stepx_i;
-                  cy_i := starty_i + r * stepy_i;
-                  exp  := expected_count(real(cx_i) / 65536.0, real(cy_i) / 65536.0);
-                  assert abs(seen(c, r) - exp) <= C_TOLERANCE
+                  -- The dispatcher and the column modules add the steps in 18
+                  -- bits
+                  cx_i := wrap18(startx_i + c * stepx_i);
+                  cy_i := wrap18(starty_i + r * stepy_i);
+                  exp  := iterator_count(cx_i, cy_i, C_MAX_COUNT);
+                  assert seen(c, r) = exp
                      report name & ": Wrong count for pixel (" & integer'image(c) & "," &
                             integer'image(r) & "): got " & integer'image(seen(c, r)) &
                             ", expected " & integer'image(exp)

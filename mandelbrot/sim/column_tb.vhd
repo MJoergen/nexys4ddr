@@ -3,7 +3,9 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.math_real.all;
 
--- This is a simple self-checking testbench for the column. It runs two jobs,
+use work.iterator_model_pkg.all;
+
+-- This is a simple self-checking testbench for the column. It runs three jobs,
 -- each of a few rows, and checks the following:
 -- * The column is not busy, and gives no results, when idle.
 -- * The column is busy from the start of a job until the last result has been
@@ -12,8 +14,9 @@ use ieee.math_real.all;
 --   once.
 -- * A result stays valid, and unchanged, until it is acknowledged. This is
 --   tested by delaying the acknowledge by a varying number of clock cycles.
--- * The iteration count for each row is close to the count calculated using real
---   (floating point) numbers. This is the same check as in iterator_tb.vhd.
+-- * The iteration count for each row is exactly the count calculated by the
+--   bit-accurate model in iterator_model_pkg.vhd, for the value of c of that
+--   row.
 --
 -- Only a few rows, and a low maximum count, are used to keep the simulation
 -- short.
@@ -25,10 +28,6 @@ architecture simulation of column_tb is
 
    constant C_MAX_COUNT   : integer := 50;
    constant C_NUM_ROWS    : integer := 10;
-
-   -- The iterator uses fixed point numbers (with rounding errors), so the count
-   -- may differ slightly from the one calculated using real numbers.
-   constant C_TOLERANCE   : integer := 1;
 
    -- Maximum number of clock cycles to wait for a single row
    constant C_ROW_TIMEOUT : integer := 3*C_MAX_COUNT + 30;
@@ -50,25 +49,6 @@ architecture simulation of column_tb is
    begin
       return integer(round(r * 65536.0));
    end function to_fixed;
-
-   -- Calculate the expected iteration count, using real numbers. This models
-   -- the behaviour of the iterator: Count the iterations until x or y is out
-   -- of range (-2 <= x < 2), or until the maximum count is reached.
-   function expected_count (cx_r : real; cy_r : real) return integer is
-      variable x : real := 0.0;
-      variable y : real := 0.0;
-      variable t : real;
-   begin
-      for n in 1 to C_MAX_COUNT-1 loop
-         t := x*x - y*y + cx_r;
-         y := 2.0*x*y + cy_r;
-         x := t;
-         if x < -2.0 or x >= 2.0 or y < -2.0 or y >= 2.0 then
-            return n;
-         end if;
-      end loop;
-      return C_MAX_COUNT;
-   end function expected_count;
 
 begin
 
@@ -149,12 +129,13 @@ begin
                       ", expected " & integer'image(row)
                severity error;
 
-            cy_i := to_fixed(starty_r) + row * to_fixed(stepy_r);
-            exp  := expected_count(real(to_fixed(cx_r)) / 65536.0, real(cy_i) / 65536.0);
+            -- The column module adds the step in 18 bits
+            cy_i := wrap18(to_fixed(starty_r) + row * to_fixed(stepy_r));
+            exp  := iterator_count(to_fixed(cx_r), cy_i, C_MAX_COUNT);
             act  := to_integer(unsigned(cap_data));
             report name & ": row " & integer'image(row) & ": count = " & integer'image(act) &
                    ", expected = " & integer'image(exp);
-            assert abs(act - exp) <= C_TOLERANCE
+            assert act = exp
                report name & ": Wrong count for row " & integer'image(row) & ": got " &
                       integer'image(act) & ", expected " & integer'image(exp)
                severity error;
@@ -197,6 +178,10 @@ begin
 
       -- Job 2: Points with gradually decreasing counts
       run_job(-0.75, 0.0, 0.0625, "job 2");
+
+      -- Job 3: Points near the top of the set (near i), where x+y or x-y is
+      -- often outside the range -2 to 2 during the iteration
+      run_job(-0.17, 0.95, 0.02, "job 3");
 
       report "column_tb: finished";
       std.env.finish;
