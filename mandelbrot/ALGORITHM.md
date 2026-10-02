@@ -126,8 +126,9 @@ controlled by a simple state machine:
 
 The inputs to this block are: start\_i, cx\_i, and cy\_i. Outputs are done\_o
 and cnt\_o. The values of cx\_i and cy\_i must be held constant for the entire
-calculation. Both start\_i and done\_o are pulsed high for a single clock
-cycle.
+calculation. The signal start\_i is pulsed high for a single clock cycle. The
+signal done\_o goes high when the calculation is finished, and stays high, with
+cnt\_o unchanged, until the next start\_i.
 
 Example: We start with the point -1+0.5i, i.e. cx = -1 and cy = 0.5. The
 expected sequence of points is then:

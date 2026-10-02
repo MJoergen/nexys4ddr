@@ -1,10 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std_unsigned.all;
-
-library unimacro;
-use unimacro.vcomponents.all;
-
 ---------------------------
 -- This module iterates the Mandelbrot fractal equation
 --    new_z = z^2 + c.
@@ -14,19 +7,24 @@ use unimacro.vcomponents.all;
 --    new_y = 2*(x*y) + cy
 -- Inputs to this block are: cx_i and cy_i as well as start_i.
 -- start_i should be pulsed for one clock cycle.
--- cx_i and cy_i must remain constant.
--- On output, done_o will pulse high for one clock cycle, and
--- with the iteration count in cnt_o.
+-- cx_i and cy_i must remain constant until the iteration is finished.
+-- On output, done_o goes high when the iteration is finished, with the
+-- iteration count in cnt_o. Both stay unchanged until the next start_i.
+-- The count is the number of the first iteration where x or y is out of range
+-- (see below), or G_MAX_COUNT if this does not happen.
 --
--- This module works by using a single multiplier in a pipeline fashion
--- Cycle 1 : Input to multiplier is x and y.
--- Cycle 2 : Input to multiplier is (x+y) and (x-y).
+-- This module works by using a single multiplier in a pipeline fashion.
+-- Each iteration takes three clock cycles:
+-- Cycle 1 : Input to multiplier is x and y. The values x+y and x-y are
+--           calculated.
+-- Cycle 2 : Input to multiplier is (x+y) and (x-y). The product x*y is saved.
+-- Cycle 3 : The new values of x and y are calculated.
 --
 -- The XC7A100T has 240 DSP slices, so up to 240 copies of this
 -- iterator can potentially be instantiated.
 --
 -- Real numbers are represented in 2.16 fixed point two's complement
--- form, in the range -2 to 1.9. Examples
+-- form, in the range -2 to 2 (not including 2). Examples
 -- -2   : 20000
 -- -1   : 30000
 -- -0.5 : 38000
@@ -42,9 +40,14 @@ use unimacro.vcomponents.all;
 -- the product itself can be outside the range even if the sum is not, and
 -- the other way around.
 --
+-- Note: The values x+y and x-y, which are input to the multiplier, are only
+-- 18 bits wide. They wrap around if they are outside the range -2 to 2. This
+-- is not detected.
+--
 -- Example:
 -- We start with the point -1+0.5i, i.e. cx = -1 and cy = 0.5
--- The expected sequence of points is then:
+-- The expected sequence of points is then (all values are in 2.16 format,
+-- shown in hexadecimal):
 -- cnt |   x           |   y           | (x+y)*(x-y)   |  x*y
 -- ----+---------------+---------------+---------------+--------
 --  0  | 00000 ( 0)    | 00000 ( 0)    | 00000 ( 0)    | 00000 ( 0)
@@ -53,6 +56,12 @@ use unimacro.vcomponents.all;
 --  3  | 2D000 (-1.19) | 0C000 ( 0.75) | 0D900 ( 0.85) | 31C00 (-0.89)
 --  4  | 3D900 (-0.15) | 2B800 (-1.28) | 261B1 (-1.62) | 031F8 ( 0.20)
 
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std_unsigned.all;
+
+library unimacro;
+use unimacro.vcomponents.all;
 
 entity iterator is
    generic (
@@ -80,7 +89,7 @@ architecture rtl of iterator is
    signal new_x_s      : std_logic_vector(35 downto 0);  -- 4.32
    signal new_y_half_s : std_logic_vector(35 downto 0);  -- 4.32 (y/2)
    signal cnt_r        : std_logic_vector( 8 downto 0);
-   signal done_r       : std_logic;
+   signal done_r       : std_logic := '0';
 
    type state_t is (IDLE_ST, ADD_ST, MULT_ST, UPDATE_ST);
    signal state_r : state_t := IDLE_ST;
@@ -120,7 +129,6 @@ begin
             when ADD_ST =>
                a_r     <= x_r + y_r;
                b_r     <= x_r - y_r;
-               state_r <= MULT_ST;
 
                -- Check for overflow
                if ovf_x_r = '1' or ovf_y_r = '1' then

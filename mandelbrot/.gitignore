@@ -10,3 +10,4 @@ usage_statistics_webtalk.*
 .Xil/
 .cache/
 *.swp
+__pycache__/
