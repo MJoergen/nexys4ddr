@@ -27,7 +27,7 @@ use ieee.numeric_std_unsigned.all;
 -- plus 2, which is in the range 0 to 4. This is the 2.16 value with the sign
 -- bit inverted, interpreted as an unsigned number.
 --
--- The update is calculated over several clock cycles (about 16), one small
+-- The update is calculated over several clock cycles (15), one small
 -- step at a time, because all of it in a single clock cycle is far too slow
 -- for the MAIN clock. The outputs are all changed at the same time, at the
 -- end of the update. Pulses on upd_i during an update are ignored.
@@ -70,15 +70,23 @@ architecture rtl of view is
    -- Inverts the sign bit, to convert between 2.16 and offset binary
    constant C_SIGN      : std_logic_vector(17 downto 0) := "10" & X"0000";
 
-   -- Initial values, in 2.16 format
+   -- Initial view. The positions are in offset binary. They are checked below.
+   constant C_INIT_POSX : integer := integer((G_START_X+4.0)*real(2**16)) - 2**17;
+   constant C_INIT_POSY : integer := integer((G_START_Y+4.0)*real(2**16)) - 2**17;
+   constant C_INIT_DX   : integer := integer(G_SIZE_X*real(2**16))/G_NUM_COLS;
+   constant C_INIT_DY   : integer := integer(G_SIZE_Y*real(2**16))/G_NUM_ROWS;
+
+   -- The same in 2.16 format. The values are limited to the range of the
+   -- format here, so that an initial view outside the range is reported by the
+   -- checks below, and not as an error in the conversion.
    constant C_INIT_STARTX : std_logic_vector(17 downto 0) :=
-      to_std_logic_vector(integer((G_START_X+4.0)*real(2**16)), 18);
+      to_std_logic_vector(maximum(0, minimum(C_INIT_POSX, C_MAX_POS)), 18) xor C_SIGN;
    constant C_INIT_STARTY : std_logic_vector(17 downto 0) :=
-      to_std_logic_vector(integer((G_START_Y+4.0)*real(2**16)), 18);
+      to_std_logic_vector(maximum(0, minimum(C_INIT_POSY, C_MAX_POS)), 18) xor C_SIGN;
    constant C_INIT_STEPX  : std_logic_vector(17 downto 0) :=
-      to_std_logic_vector(integer(G_SIZE_X*real(2**16))/G_NUM_COLS, 18);
+      to_std_logic_vector(maximum(0, minimum(C_INIT_DX, 2**18-1)), 18);
    constant C_INIT_STEPY  : std_logic_vector(17 downto 0) :=
-      to_std_logic_vector(integer(G_SIZE_Y*real(2**16))/G_NUM_ROWS, 18);
+      to_std_logic_vector(maximum(0, minimum(C_INIT_DY, 2**18-1)), 18);
 
    type t_state is (IDLE_ST, ZOOM_ST, STEP_ST, PAN_ST, MULT_ST, CLAMP_ST);
    signal state  : t_state := IDLE_ST;
@@ -120,8 +128,21 @@ begin
       report "The serial multiplication only supports constants below 2^11"
       severity failure;
 
-   assert C_INIT_STEPX <= C_MAX_STEPX and C_INIT_STEPY <= C_MAX_STEPY
-      report "The initial view is outside the range -2 to 2"
+   -- The initial view must be inside the range, like the view after every
+   -- update: The first column (row) is at least -2, the last column (row) is
+   -- less than 2, and the size of a pixel is at least one LSB.
+   assert C_INIT_POSX >= 0 and C_INIT_POSY >= 0
+      report "The initial view starts below -2"
+      severity failure;
+
+   assert C_INIT_DX >= C_MIN_STEP and C_INIT_DY >= C_MIN_STEP
+      report "The initial size of a pixel is less than one LSB"
+      severity failure;
+
+   assert C_INIT_DX <= C_MAX_STEPX and C_INIT_DY <= C_MAX_STEPY and
+          C_INIT_POSX + C_INIT_DX*(G_NUM_COLS-1) <= C_MAX_POS and
+          C_INIT_POSY + C_INIT_DY*(G_NUM_ROWS-1) <= C_MAX_POS
+      report "The initial view ends at 2 or above"
       severity failure;
 
    p_view : process (clk_i)

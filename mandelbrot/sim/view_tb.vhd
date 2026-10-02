@@ -8,8 +8,11 @@ use ieee.numeric_std.all;
 --   (row) is at least -2, and the last column (row) is less than 2.
 -- * The size of a pixel is at least one LSB, and the same in both directions.
 -- * The new view is the expected one, calculated by a simple model.
--- It also checks the initial view, and that panning and zooming reach the ends
--- of the range and stop there (also when starting from the other end).
+-- * The outputs all change in the same clock cycle.
+-- It also checks the initial view, that panning and zooming reach the ends of
+-- the range and stop there (also when starting from the other end), and that a
+-- pulse on upd_i during an update is ignored, but one just after an update is
+-- not.
 
 entity view_tb is
 end entity view_tb;
@@ -24,6 +27,15 @@ architecture simulation of view_tb is
 
    -- The number of clock cycles to wait for an update to finish
    constant C_UPD_CYCLES : integer := 32;
+
+   -- The view: the position of the first column and row (signed 2.16), and
+   -- the size of a pixel
+   type t_view is record
+      sx : integer;
+      sy : integer;
+      dx : integer;
+      dy : integer;
+   end record t_view;
 
    signal clk      : std_logic;
    signal rst      : std_logic := '1';
@@ -62,22 +74,37 @@ begin
 
    p_test : process
 
+      -- The current view (the outputs of the DUT)
+      impure function cur_view return t_view is
+      begin
+         return (sx => to_integer(signed(startx)),
+                 sy => to_integer(signed(starty)),
+                 dx => to_integer(unsigned(stepx)),
+                 dy => to_integer(unsigned(stepy)));
+      end function cur_view;
+
       impure function sx return integer is
       begin
-         return to_integer(signed(startx));
+         return cur_view.sx;
       end function;
       impure function sy return integer is
       begin
-         return to_integer(signed(starty));
+         return cur_view.sy;
       end function;
       impure function dx return integer is
       begin
-         return to_integer(unsigned(stepx));
+         return cur_view.dx;
       end function;
       impure function dy return integer is
       begin
-         return to_integer(unsigned(stepy));
+         return cur_view.dy;
       end function;
+
+      function image (v : t_view) return string is
+      begin
+         return "(" & integer'image(v.sx) & ", " & integer'image(v.sy) & ", " &
+                integer'image(v.dx) & ", " & integer'image(v.dy) & ")";
+      end function image;
 
       -- The expected new size of a pixel when zooming
       function zoom (step : integer; out_v : std_logic) return integer is
@@ -104,6 +131,25 @@ begin
          return minimum(res, C_MAX - (num-1)*step);
       end function pan;
 
+      -- The expected view after one update, with the buttons b
+      function next_view (v : t_view; b : std_logic_vector(4 downto 0);
+                          out_v : std_logic) return t_view is
+         variable res : t_view := v;
+      begin
+         if b(4) = '1' then
+            if zoom(v.dx, out_v) >= 1 and zoom(v.dy, out_v) >= 1 and
+               zoom(v.dx, out_v)*(C_NUM_COLS-1) <= C_MAX - C_MIN and
+               zoom(v.dy, out_v)*(C_NUM_ROWS-1) <= C_MAX - C_MIN
+            then
+               res.dx := zoom(v.dx, out_v);
+               res.dy := zoom(v.dy, out_v);
+            end if;
+         end if;
+         res.sx := pan(v.sx, res.dx, C_NUM_COLS, b(2) = '1', b(3) = '1');
+         res.sy := pan(v.sy, res.dy, C_NUM_ROWS, b(0) = '1', b(1) = '1');
+         return res;
+      end function next_view;
+
       -- Check that the view is in range
       procedure check_range is
       begin
@@ -123,57 +169,115 @@ begin
             severity error;
       end procedure check_range;
 
+      -- Wait until just after the next rising edge of the clock
+      procedure clk_cycle is
+      begin
+         wait until rising_edge(clk);
+         wait for 1 ns;
+      end procedure clk_cycle;
+
+      -- Pulse upd for one clock cycle, and wait for the update to finish. If
+      -- second is larger than zero, pulse upd again, second clock cycles after
+      -- the first pulse. Returns the number of clock cycles in which the view
+      -- changed, and the last clock cycle (counted from the first pulse) in
+      -- which it changed.
+      procedure run_update (second  : in  integer;
+                            changes : out integer;
+                            last    : out integer) is
+         variable prev : t_view;
+         variable v    : t_view;
+      begin
+         changes := 0;
+         last    := -1;
+         prev    := cur_view;
+         upd     <= '1';
+         for i in 0 to second + C_UPD_CYCLES loop
+            clk_cycle;    -- The DUT samples upd in this clock cycle
+            upd <= '0';
+            if i+1 = second then
+               upd <= '1';
+            end if;
+
+            v := cur_view;
+            if v /= prev then
+               changes := changes + 1;
+               last    := i;
+            end if;
+            prev := v;
+         end loop;
+      end procedure run_update;
+
       -- Hold the buttons down for a number of updates, and check the view
       -- after each update.
       procedure hold (b : std_logic_vector(4 downto 0); out_v : std_logic;
                       num : integer) is
-         variable ox, oy, odx, ody : integer;
-         variable ndx, ndy         : integer;
+         variable expected : t_view;
+         variable changes  : integer;
+         variable last     : integer;
       begin
          btn      <= b;
          zoom_out <= out_v;
+         clk_cycle;
          for i in 1 to num loop
-            ox := sx; oy := sy; odx := dx; ody := dy;
-
-            -- The expected new view
-            ndx := odx;
-            ndy := ody;
-            if b(4) = '1' then
-               if zoom(odx, out_v) >= 1 and zoom(ody, out_v) >= 1 and
-                  zoom(odx, out_v)*(C_NUM_COLS-1) <= C_MAX - C_MIN and
-                  zoom(ody, out_v)*(C_NUM_ROWS-1) <= C_MAX - C_MIN
-               then
-                  ndx := zoom(odx, out_v);
-                  ndy := zoom(ody, out_v);
-               end if;
-            end if;
-
-            wait until rising_edge(clk);
-            upd <= '1';
-            wait until rising_edge(clk);
-            upd <= '0';
-
-            -- The update takes several clock cycles
-            for j in 1 to C_UPD_CYCLES loop
-               wait until rising_edge(clk);
-            end loop;
+            expected := next_view(cur_view, b, out_v);
+            run_update(0, changes, last);
 
             check_range;
 
-            assert dx = ndx and dy = ndy and
-                   sx = pan(ox, ndx, C_NUM_COLS, b(2) = '1', b(3) = '1') and
-                   sy = pan(oy, ndy, C_NUM_ROWS, b(0) = '1', b(1) = '1')
+            assert cur_view = expected
                report "Wrong view after update " & integer'image(i) &
-                      ": got (" & integer'image(sx) & ", " & integer'image(sy) &
-                      ", " & integer'image(dx) & ", " & integer'image(dy) &
-                      "), expected (" &
-                      integer'image(pan(ox, ndx, C_NUM_COLS, b(2) = '1', b(3) = '1')) & ", " &
-                      integer'image(pan(oy, ndy, C_NUM_ROWS, b(0) = '1', b(1) = '1')) & ", " &
-                      integer'image(ndx) & ", " & integer'image(ndy) & ")"
+                      ": got " & image(cur_view) & ", expected " & image(expected)
+               severity error;
+
+            assert changes <= 1
+               report "The outputs changed in " & integer'image(changes) &
+                      " different clock cycles during an update"
                severity error;
          end loop;
          btn <= C_NONE;
       end procedure hold;
+
+      -- Check that a second pulse on upd during an update is ignored, and that
+      -- one just after the update is not. The view is panned to the right, so
+      -- that it changes in every update.
+      procedure test_second_pulse is
+         variable expected : t_view;
+         variable changes  : integer;
+         variable len      : integer;
+         variable last     : integer;
+      begin
+         btn      <= C_BTN_R;
+         zoom_out <= '0';
+         clk_cycle;
+
+         -- The clock cycle (counted from the pulse) in which the outputs
+         -- change, i.e. the length of an update
+         expected := next_view(cur_view, C_BTN_R, '0');
+         run_update(0, changes, len);
+         assert changes = 1 and cur_view = expected
+            report "Wrong view after a single update" severity error;
+         report "An update takes " & integer'image(len) & " clock cycles";
+
+         for k in 1 to len+1 loop
+            if k <= len then
+               -- The second pulse is during the update, and is ignored
+               expected := next_view(cur_view, C_BTN_R, '0');
+            else
+               -- The second pulse is just after the update, so there are two
+               -- updates
+               expected := next_view(next_view(cur_view, C_BTN_R, '0'), C_BTN_R, '0');
+            end if;
+
+            run_update(k, changes, last);
+
+            assert cur_view = expected
+               report "Wrong view with a second pulse after " & integer'image(k) &
+                      " clock cycles: got " & image(cur_view) &
+                      ", expected " & image(expected)
+               severity error;
+         end loop;
+         btn <= C_NONE;
+      end procedure test_second_pulse;
 
       procedure do_reset is
       begin
@@ -194,6 +298,9 @@ begin
 
       -- Without buttons nothing changes
       hold(C_NONE, '0', 3);
+
+      -- A pulse on upd during an update is ignored
+      test_second_pulse;
 
       -- Zoom out until the view can not get larger. The top left corner is
       -- fixed until the right edge reaches the end of the range, and then the

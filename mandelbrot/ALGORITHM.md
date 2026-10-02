@@ -408,16 +408,19 @@ right (bottom) edge needs the size of a pixel multiplied by the number of
 columns (rows) minus one. This is done serially with shifts and subtractions,
 one bit of the constant per clock cycle, so no DSP is used. Doing all of the
 update in a single clock cycle would be far too slow for the MAIN clock, so
-the update is done in small steps over about 16 clock cycles, with at most one
+the update is done in small steps over 15 clock cycles, with at most one
 addition or comparison per step. The outputs are all changed at the end of the
 update. The new view is used when the next picture is started.
 
 The view control has a self-checking testbench
 ([`sim/view_tb.vhd`](sim/view_tb.vhd)). It holds the buttons down for many
 updates, and checks after every update that the view is inside the range, that
-the size of a pixel is at least one LSB, and that the view is the one expected
-from a simple model. It also checks that panning and zooming reach the ends of
-the range and stop there.
+the size of a pixel is at least one LSB, that the view is the one expected
+from a simple model, and that the outputs all change in the same clock cycle.
+It also checks that panning and zooming reach the ends of the range and stop
+there, and that a pulse on upd\_i during an update (which takes 15 clock
+cycles) is ignored, but one just after the update is not. The initial view is
+checked when the design is elaborated: it must be inside the range too.
 
 **The LEDs.** If switch 1 is on, the LEDs show bits 26 to 11 of a counter. This
 counter counts clock cycles while a picture is being calculated, and it is
