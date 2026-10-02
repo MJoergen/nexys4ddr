@@ -2,8 +2,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This module instantiates a number of iterators, dispatches jobs to them, and
--- collects results from them.
+-- This module instantiates a number of column modules, dispatches jobs to them
+-- (one picture column per job), and collects results from them.
 
 entity dispatcher is
    generic (
@@ -116,7 +116,7 @@ begin
 
 
    ---------------------------
-   -- Start any idle iterator
+   -- Start any idle column module
    ---------------------------
 
    p_job_start : process (clk_i)
@@ -147,7 +147,7 @@ begin
 
 
    ---------------------------------
-   -- Prepare job for next iterator
+   -- Prepare job for next column module
    ---------------------------------
 
    p_job_cx : process (clk_i)
@@ -169,7 +169,7 @@ begin
 
 
    -------------------------
-   -- Instantiate iterators
+   -- Instantiate column modules
    -------------------------
 
    gen_column : for i in 0 to G_NUM_ITERATORS-1 generate
@@ -196,7 +196,7 @@ begin
 
 
    ------------------------------------
-   -- Find one iterator to acknowledge
+   -- Find one column module to acknowledge
    ------------------------------------
 
    p_res_busy : process (clk_i)
@@ -245,8 +245,8 @@ begin
    -- The signal done_r stays high until the next start. It is cleared by the
    -- start, because otherwise the old value of done_r would stop the scheduler
    -- (see p_sched_active) just after the start. It is not set while a job has
-   -- just been started, because then the busy flag of the column has not been
-   -- set yet.
+   -- just been started, because then the busy flag of the column module has
+   -- not been set yet.
    p_done : process (clk_i)
    begin
       if rising_edge(clk_i) then

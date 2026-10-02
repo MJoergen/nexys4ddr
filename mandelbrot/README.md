@@ -8,6 +8,26 @@ All 240 DSPs of the FPGA are used in parallel for the calculation, and the
 picture is stored in block RAM. Generating a complete picture takes about 7 ms,
 with the main clock at 140.625 MHz.
 
+## The algorithm
+For each pixel, which corresponds to a complex number $c$, we iterate
+$z \mapsto z^2 + c$ starting from $z = 0$, and count the number of iterations
+until the real or the imaginary part of $z$ leaves the range -2 to 2 (the range
+of the number format), up to a maximum of 511. This count decides the colour of
+the pixel.
+
+The numbers are 18-bit
+[fixed point](https://en.wikipedia.org/wiki/Fixed-point_arithmetic) (2 integer
+bits and 16 fractional bits), and each iteration needs only two real
+multiplications, using the identity $x^2 - y^2 = (x+y)(x-y)$. Each of the 240
+column modules contains an iterator with a single DSP multiplier, and the
+iterator calculates one iteration every three clock cycles. The picture is
+divided into picture columns, and the dispatcher gives the next picture column
+to a column module as soon as it is idle.
+
+[ALGORITHM.md](ALGORITHM.md) explains the design in detail: the number format,
+the multiplier, the iterator (including how overflow is detected), the columns,
+the dispatcher, and the timing and resource usage.
+
 ## Implementation results
 The design is built with Vivado 2025.1 and meets timing at the 140.625 MHz main
 clock (setup slack +0.029 ns, hold slack +0.023 ns). The resources used are:
@@ -27,9 +47,9 @@ for details, including the critical paths.
 | ---------------- | -----------
 | [`src/mandelbrot.vhd`](src/mandelbrot.vhd) | Top level. The ports are mapped directly to pins on the FPGA.
 | [`src/iterator.vhd`](src/iterator.vhd) | Iterates the Mandelbrot function for a single point, using one DSP.
-| [`src/column.vhd`](src/column.vhd) | Calculates an entire column of the picture using one iterator.
-| [`src/dispatcher.vhd`](src/dispatcher.vhd) | Controls the calculation of the entire picture, and hands out columns. Instantiates the columns.
-| [`src/scheduler.vhd`](src/scheduler.vhd) | Round-robin scheduler. Used by the dispatcher both to give jobs to idle columns and to pick which column's result to accept.
+| [`src/column.vhd`](src/column.vhd) | A column module. Calculates one picture column (all its rows) at a time, using one iterator.
+| [`src/dispatcher.vhd`](src/dispatcher.vhd) | Controls the calculation of the entire picture: hands out the picture columns to the idle column modules, and collects the results. Instantiates the column modules.
+| [`src/scheduler.vhd`](src/scheduler.vhd) | Round-robin scheduler. Used by the dispatcher both to give jobs to idle column modules and to pick which column module's result to accept.
 | [`src/priority.vhd`](src/priority.vhd), [`src/priority_pipeline.vhd`](src/priority_pipeline.vhd) | Priority encoder, and a pipelined version built from it. Not used in the design yet, only in the `priority_pipeline` testbench.
 | [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture.
 | [`src/disp.vhd`](src/disp.vhd), [`src/pix.vhd`](src/pix.vhd) | VGA output. Generates the sync signals and the pixel colour.

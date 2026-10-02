@@ -15,17 +15,17 @@ The modules are instantiated as follows:
 mandelbrot                      src/mandelbrot.vhd (top level)
  +- clk                         src/clk.vhd (MMCM and clock buffers)
  +- dispatcher                  src/dispatcher.vhd
- |   +- scheduler               (i_scheduler, selects the column to receive a job)
- |   +- column  (x 240)         src/column.vhd
+ |   +- scheduler               (i_scheduler, selects the column module to receive a job)
+ |   +- column  (x 240)         src/column.vhd (the column modules)
  |   |   +- iterator            src/iterator.vhd
  |   |       +- mult_macro      (Xilinx unimacro, uses one DSP)
- |   +- scheduler               (i_scheduler_res, selects the column whose result is accepted)
+ |   +- scheduler               (i_scheduler_res, selects the column module whose result is accepted)
  +- pix                         src/pix.vhd (pixel counters)
  +- disp_mem                    src/disp_mem.vhd (display memory)
  +- disp                        src/disp.vhd (VGA output)
 ```
-The number of columns (and therefore iterators and DSPs) is set by the generic
-`G_NUM_ITERATORS`, which the top level sets to 240.
+The number of column modules (and therefore iterators and DSPs) is set by the
+generic `G_NUM_ITERATORS`, which the top level sets to 240.
 
 The files `src/priority.vhd` and `src/priority_pipeline.vhd` are not part of
 this hierarchy. The module `priority_pipeline` instantiates two `priority`
@@ -179,10 +179,23 @@ perhaps improve the timing slightly. However, overflow detection needs to be
 rewritten then.
 
 ## Columns
-The final picture is sliced into vertical columns, and each column is calculated
-in its entirety, see [`src/column.vhd`](src/column.vhd).
+The following terms are used in this document:
+* A *picture column* is a vertical slice of the picture. Calculating one picture
+  column is one job.
+* A *column module* is an instance of [`src/column.vhd`](src/column.vhd). It
+  calculates one picture column at a time, row by row, using one iterator.
+* An *iterator* is the block in [`src/iterator.vhd`](src/iterator.vhd). It
+  calculates the count for a single point.
 
-The inputs to this block are:
+There is one iterator, and therefore one DSP, in each column module, and there
+are `G_NUM_ITERATORS` column modules (240 in the design). The generics keep
+their names: `G_NUM_COLS` is the number of picture columns, and
+`G_NUM_ITERATORS` is the number of column modules.
+
+The final picture is sliced into vertical picture columns, and each picture
+column is calculated in its entirety by a column module.
+
+The inputs to a column module are:
 ```
 job_start_i  : in  std_logic;
 job_cx_i     : in  std_logic_vector(17 downto 0);
@@ -194,7 +207,7 @@ and the output is:
 job_busy_o   : out std_logic;
 ```
 The signal job\_start\_i is pulsed high for one clock cycle to initiate the
-calculation of an entire column, and the output job\_busy\_o remains high
+calculation of an entire picture column, and the output job\_busy\_o remains high
 until the entire calculation is finished.
 
 The results of the calculation are presented on the following output ports:
@@ -212,9 +225,9 @@ count value for this pixel. The res\_ack\_i is needed, because there may be an
 arbitrarily long delay before the job dispatcher has time to acknowledge the
 result.
 
-The testbench for the column ([`sim/column_tb.vhd`](sim/column_tb.vhd)) is
-self-checking. It runs two jobs of ten rows each, and checks that the column is
-busy only during a job, that the results come in order, that a result stays
+The testbench for the column module ([`sim/column_tb.vhd`](sim/column_tb.vhd))
+is self-checking. It runs two jobs of ten rows each, and checks that the column
+module is busy only during a job, that the results come in order, that a result stays
 unchanged until it is acknowledged (the acknowledge is delayed by a varying
 number of clock cycles), and that the count for each row is close to the count
 calculated using real numbers.
@@ -244,25 +257,26 @@ wr_data_o : out std_logic_vector( 8 downto 0);
 wr_en_o   : out std_logic;
 ```
 
-This module instantiates a configurable number of 'column' modules (ideally 240
-instances, one for each DSP). It keeps track of which columns are currently
-calculating, and whenever a column is idle, a new job is sent to this column.
+This module instantiates a configurable number of column modules (ideally 240
+instances, one for each DSP). It keeps track of which column modules are
+currently calculating, and whenever a column module is idle, a new job (the next
+picture column) is sent to it.
 
 A separate scheduler module is used to send jobs to the different column
 modules. Currently, the scheduler operates in a round-robin fashion. This
-potentially may give a delay up to 240 clock cycles before an idle column is
-given a job. With 640 jobs, the maximum delay is about 1.1 ms, assuming the
-columns operate at 140.625 MHz. This delay is negligible.
+potentially may give a delay up to 240 clock cycles before an idle column module
+is given a job. With 640 jobs, the maximum delay is about 1.1 ms, assuming the
+column modules operate at 140.625 MHz. This delay is negligible.
 
 The dispatcher has a self-checking testbench
 ([`sim/dispatcher_tb.vhd`](sim/dispatcher_tb.vhd)). It calculates two small
-pictures (64 by 16 pixels, with 16 iterators), one right after the other, and
-checks that each pixel is written exactly once, that everything has been written
-when done\_o goes high, that done\_o goes low when a new picture is started, and
-that the value of each pixel is close to the count calculated using real
-numbers. It then repeats this for two pictures with a single column, i.e. with
-fewer columns than iterators, which is a special case for done\_o. The
-simulation takes about 10 seconds.
+pictures (64 by 16 pixels, with 16 column modules), one right after the other,
+and checks that each pixel is written exactly once, that everything has been
+written when done\_o goes high, that done\_o goes low when a new picture is
+started, and that the value of each pixel is close to the count calculated
+using real numbers. It then repeats this for two pictures with a single picture
+column, i.e. with fewer picture columns than column modules, which is a special
+case for done\_o. The simulation takes about 10 seconds.
 
 The scheduler has a small self-checking testbench
 ([`sim/scheduler_tb.vhd`](sim/scheduler_tb.vhd)). It checks that nothing is
@@ -330,9 +344,9 @@ clock. The MMCM also generates the 25 MHz VGA clock (divided by 45).
 
 The slack is small, so the design is close to the limit of what this device and
 this flow can achieve. The critical paths are in the dispatcher: the selection
-of the column in the schedulers (`job_idx_valid` and the `job_busy_o` signals
-from the columns), and the registers for the write address and data going to
-the display memory (`wr_addr_r` and `wr_data_r`). The directives used in
+of the column module in the schedulers (`job_idx_valid` and the `job_busy_o`
+signals from the column modules), and the registers for the write address and
+data going to the display memory (`wr_addr_r` and `wr_data_r`). The directives used in
 `mandelbrot.tcl` matter:
 * `synth_design` with `-directive AreaOptimized_medium`
 * `opt_design` with `-directive ExploreWithRemap`
@@ -345,8 +359,9 @@ overflow detection in the iterator was improved (see [Overflow](#overflow)),
 which uses more logic (about 1,400 more LUTs), the design no longer met timing
 at 150 MHz (setup slack -0.055 ns, with the critical paths in the dispatcher),
 and the main clock was lowered to 140.625 MHz. A possible improvement is to
-pipeline the selection of the column in the scheduler, e.g. by dividing the
-columns into 16 groups of 16, which should allow a higher clock frequency.
+pipeline the selection of the column module in the scheduler, e.g. by dividing
+the column modules into 16 groups of 16, which should allow a higher clock
+frequency.
 This has not been tried.
 
 The complete run of `make vivado` takes about 10 minutes (synthesis about 2

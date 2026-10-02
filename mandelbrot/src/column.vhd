@@ -2,7 +2,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This calculates (sequentially) an entire column
+-- This is a column module. It calculates (sequentially) all the rows of an
+-- entire picture column, using one iterator.
 
 entity column is
    generic (
