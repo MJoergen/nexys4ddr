@@ -253,6 +253,13 @@ potentially may give a delay up to 240 clock cycles before an idle column is
 given a job. With 640 jobs, the maximum delay is about 1.1 ms, assuming the
 columns operate at 140.625 MHz. This delay is negligible.
 
+The scheduler has a small self-checking testbench
+([`sim/scheduler_tb.vhd`](sim/scheduler_tb.vhd)). It checks that nothing is
+started when the scheduler is not active or when everything is busy, that each
+idle process is started once per round and busy processes never, that the
+processes are started in round-robin order, and that reset restarts the
+scheduler from the first process.
+
 ## Timing
 Counters measure the total time it takes to generate the picture as well as the
 total amount of time the iterators are waiting to write to display memory.
