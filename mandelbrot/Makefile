@@ -18,7 +18,7 @@ SRC += src/clk.vhd
 SRC += src/mandelbrot.vhd
 
 # Files used during simulation
-TBS = dispatcher column iterator mult priority_pipeline
+TBS = dispatcher column iterator mult_macro priority_pipeline
 
 # Testbench simulated by the "run" and "check" targets. Must be specified on
 # the command line, e.g. "make run TB=iterator".

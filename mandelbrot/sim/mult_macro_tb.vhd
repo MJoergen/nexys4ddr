@@ -16,10 +16,10 @@ use unimacro.vcomponents.all;
 --   small and large values (including the extreme values -2^17 and 2^17-1).
 -- * That the product is reset.
 
-entity mult_tb is
-end entity mult_tb;
+entity mult_macro_tb is
+end entity mult_macro_tb;
 
-architecture sim of mult_tb is
+architecture sim of mult_macro_tb is
 
    signal clk : std_logic;
    signal rst : std_logic;
@@ -125,12 +125,12 @@ begin
          report "Product not cleared by reset"
          severity error;
 
-      report "mult_tb: finished";
+      report "mult_macro_tb: finished";
       std.env.finish;
    end process p_test;
 
 
-   i_mult : mult_macro
+   i_mult_macro : mult_macro
    generic map (
       DEVICE  => "7SERIES",
       LATENCY => 1,
@@ -144,6 +144,6 @@ begin
       P   => p_s,    -- Output
       A   => a_s,    -- Input
       B   => b_s     -- Input
-   ); -- i_mult
+   ); -- i_mult_macro
 
 end architecture sim;

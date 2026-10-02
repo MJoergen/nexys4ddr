@@ -81,7 +81,7 @@ Some examples are:
 The built-in DSP provides an 18-bit signed multiplier. This generates a 36-bit
 result in 4.32 bit representation. The actual multiplier is defined in a
 special Xilinx unimacro, and there is a testbench specifically for the
-multiplier ([`sim/mult_tb.vhd`](sim/mult_tb.vhd)).
+multiplier ([`sim/mult_macro_tb.vhd`](sim/mult_macro_tb.vhd)).
 
 The testbench is self-checking, but it is only a quick check, not an exhaustive
 one. It checks that the latency is exactly one clock cycle, that the product is
