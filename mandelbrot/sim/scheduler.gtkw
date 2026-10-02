@@ -1,0 +1,29 @@
+[*]
+[*] GTKWave save file for the mandelbrot simulation
+[*]
+[timestart] 0
+[size] 1500 850
+[pos] -1 -1
+[treeopen] top.
+[treeopen] top.scheduler_tb.
+[treeopen] top.scheduler_tb.i_scheduler.
+[sst_width] 250
+[signals_width] 300
+[sst_expanded] 1
+[sst_vpaned_height] 300
+@28
+top.scheduler_tb.i_scheduler.clk_i
+@28
+top.scheduler_tb.i_scheduler.rst_i
+@28
+top.scheduler_tb.i_scheduler.sched_active_i
+@22
+#{top.scheduler_tb.i_scheduler.job_busy_i[5:0]} top.scheduler_tb.i_scheduler.job_busy_i[5] top.scheduler_tb.i_scheduler.job_busy_i[4] top.scheduler_tb.i_scheduler.job_busy_i[3] top.scheduler_tb.i_scheduler.job_busy_i[2] top.scheduler_tb.i_scheduler.job_busy_i[1] top.scheduler_tb.i_scheduler.job_busy_i[0]
+@24
+top.scheduler_tb.i_scheduler.cnt_r
+@28
+top.scheduler_tb.i_scheduler.job_idx_valid_o
+@24
+top.scheduler_tb.i_scheduler.job_idx_start_o
+[pattern_trace] 1
+[pattern_trace] 0

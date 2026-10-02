@@ -1,6 +1,8 @@
 sim/lib/
 *.ghw
 work-obj08.cf
+*_tb
+*.o
 mandelbrot.bit
 mandelbrot.dcp
 vivado*

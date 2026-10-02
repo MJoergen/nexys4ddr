@@ -12,20 +12,22 @@ picture to be displayed.
 ## Instantiation hierarchy
 The modules are instantiated as follows:
 ```
-mandelbrot                      src/mandelbrot.vhd (top level)
+mandelbrot                      src/mandelbrot.vhd (top level, clocks and resets)
  +- clk                         src/clk.vhd (MMCM and clock buffers)
- +- dispatcher                  src/dispatcher.vhd
- |   +- scheduler               (i_scheduler, selects the column module to receive a job)
- |   +- column  (x 240)         src/column.vhd (the column modules)
- |   |   +- iterator            src/iterator.vhd
- |   |       +- mult_macro      (Xilinx unimacro, uses one DSP)
- |   +- scheduler               (i_scheduler_res, selects the column module whose result is accepted)
- +- pix                         src/pix.vhd (pixel counters)
- +- disp_mem                    src/disp_mem.vhd (display memory)
- +- disp                        src/disp.vhd (VGA output)
+ +- main                        src/main.vhd (everything in the MAIN clock domain)
+ |   +- dispatcher              src/dispatcher.vhd
+ |       +- scheduler           (i_scheduler, selects the column module to receive a job)
+ |       +- column  (x 240)     src/column.vhd (the column modules)
+ |       |   +- iterator        src/iterator.vhd
+ |       |       +- mult_macro  (Xilinx unimacro, uses one DSP)
+ |       +- scheduler           (i_scheduler_res, selects the column module whose result is accepted)
+ +- disp_mem                    src/disp_mem.vhd (display memory, between the two clock domains)
+ +- vga                         src/vga.vhd (everything in the VGA clock domain)
+     +- pix                     src/pix.vhd (pixel counters)
+     +- disp                    src/disp.vhd (VGA output)
 ```
 The number of column modules (and therefore iterators and DSPs) is set by the
-generic `G_NUM_ITERATORS`, which the top level sets to 240.
+generic `G_NUM_ITERATORS`, which `main` sets to 240.
 
 The files `src/priority.vhd` and `src/priority_pipeline.vhd` are not part of
 this hierarchy. The module `priority_pipeline` instantiates two `priority`
@@ -36,8 +38,9 @@ scheduler does not use them.
 ## The Mandelbrot iteration
 For each point $c = c_x + i c_y$ in the picture, we iterate
 $z_{n+1} = z_n^2 + c$, starting from $z_0 = 0$. The number of iterations needed
-before $|z|$ grows beyond 2 (or a maximum iteration count is reached) is used
-to colour the pixel.
+before the real or the imaginary part of $z$ is outside the range -2 to 2 (or
+a maximum iteration count is reached) is used to colour the pixel. This is
+not quite the usual test, which is $|z| > 2$, see [Overflow](#overflow).
 
 Writing $z = x + iy$, the iteration is
 ```
@@ -225,6 +228,14 @@ count value for this pixel. The res\_ack\_i is needed, because there may be an
 arbitrarily long delay before the job dispatcher has time to acknowledge the
 result.
 
+Finally, there is a debug output:
+```
+wait_cnt_o   : out std_logic_vector(15 downto 0);
+```
+This is the number of clock cycles the column module has spent waiting for a
+result to be acknowledged, in units of 2^11 clock cycles. It is only cleared
+by reset.
+
 The testbench for the column module ([`sim/column_tb.vhd`](sim/column_tb.vhd))
 is self-checking. It runs two jobs of ten rows each, and checks that the column
 module is busy only during a job, that the results come in order, that a result stays
@@ -256,6 +267,12 @@ wr_addr_o : out std_logic_vector(18 downto 0);
 wr_data_o : out std_logic_vector( 8 downto 0);
 wr_en_o   : out std_logic;
 ```
+The data is the 9-bit count. Only the lower 8 bits are stored in the display
+memory, see [The top level](#the-top-level). Finally, there is a debug output:
+```
+wait_cnt_tot_o : out std_logic_vector(15 downto 0);
+```
+This is the sum of the wait\_cnt\_o outputs of all the column modules.
 
 This module instantiates a configurable number of column modules (ideally 240
 instances, one for each DSP). It keeps track of which column modules are
@@ -265,8 +282,10 @@ picture column) is sent to it.
 A separate scheduler module is used to send jobs to the different column
 modules. Currently, the scheduler operates in a round-robin fashion. This
 potentially may give a delay up to 240 clock cycles before an idle column module
-is given a job. With 640 jobs, the maximum delay is about 1.1 ms, assuming the
-column modules operate at 140.625 MHz. This delay is negligible.
+is given a job, i.e. 1.7 us at 140.625 MHz. The column modules wait in
+parallel, and with 640 jobs and 240 column modules, each column module gets
+fewer than three jobs on average. So the delay adds only a few microseconds to
+the time for a picture, which is about 7 ms. This delay is negligible.
 
 The dispatcher has a self-checking testbench
 ([`sim/dispatcher_tb.vhd`](sim/dispatcher_tb.vhd)). It calculates two small
@@ -286,12 +305,33 @@ processes are started in round-robin order, and that reset restarts the
 scheduler from the first process.
 
 ## The top level
-The top level ([`src/mandelbrot.vhd`](src/mandelbrot.vhd)) connects the clock
-generation, the dispatcher, the display memory and the VGA output, and handles
-the buttons and switches.
+The top level ([`src/mandelbrot.vhd`](src/mandelbrot.vhd)) instantiates the
+clock generation and the display memory, generates the resets, and splits the
+rest of the design into one module for each clock domain:
+* [`src/main.vhd`](src/main.vhd) runs in the MAIN clock domain (140.625 MHz).
+  It handles the buttons and switches, controls the dispatcher, writes the
+  results to the display memory, and drives the LEDs.
+* [`src/vga.vhd`](src/vga.vhd) runs in the VGA clock domain (25 MHz). It
+  generates the pixel counters, reads the display memory, and generates the VGA
+  output.
+
+The two clock domains communicate only through the display memory, which has
+a write port in the MAIN clock domain and a read port in the VGA clock domain.
 
 **Reset.** The reset button is stretched to eight clock cycles, separately for
-the main clock and for the VGA clock.
+the main clock and for the VGA clock. The VGA reset is connected to the `vga`
+module and to the read port of the display memory, but neither of them uses it
+at present.
+
+**The display memory.** The display memory
+([`src/disp_mem.vhd`](src/disp_mem.vhd)) has 2^19 entries of 8 bits. The
+address is the picture column (10 bits) followed by the row (9 bits). The
+dispatcher delivers a 9-bit count for each pixel, but `main` only writes the
+lower 8 bits. The `vga` module uses these 8 bits directly as the colour, in the
+format RRRGGGBB. So the colours repeat for counts from 256 to 511, and the
+points in the set (count 511) are white.
+
+The rest of this section describes `main`.
 
 **Continuous calculation.** A new picture is started as soon as the previous one
 is finished. When the signal done\_o from the dispatcher goes high, the signal
@@ -350,8 +390,10 @@ at this processing speed it really doesn't matter.
 
 Another way of looking at this is that each iterator is using 472\*2^11 clock
 cycles, so a total of 232 million clock cycles. The average amount per pixel is
-then obtained by dividing by 640 and by 480, which gives 755 clock cycles, or
-in other words 252 iterations per pixel.
+then obtained by dividing by 640 and by 480, which gives 755 clock cycles per
+pixel. This includes the time spent waiting (about a quarter, see above), so
+the iterators spend about 570 clock cycles per pixel on the calculation, i.e.
+about 190 iterations per pixel.
 
 ## Resources and timing closure
 The numbers below come from a successful run of `make vivado` (Vivado 2025.1,
@@ -368,8 +410,10 @@ part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 
 The resource numbers are the cell counts after synthesis, taken from
 `vivado.log`, and the available numbers are the totals for the XC7A100T. The
-design uses memory with 2^19 entries of 9 bit, i.e. 128 blocks of 36 kbit
-BRAM, as expected.
+display memory has 2^19 entries of 8 bits, i.e. 128 blocks of 36 kbit BRAM, as
+expected. The single RAMB18 is used by the dispatcher, for the table
+`job_addr_r` that holds the picture column of each column module (240 entries
+of 10 bits).
 
 The timing after routing is:
 
@@ -404,7 +448,7 @@ which uses more logic (about 1,400 more LUTs), the design no longer met timing
 at 150 MHz (setup slack -0.055 ns, with the critical paths in the dispatcher),
 and the main clock was lowered to 140.625 MHz. A possible improvement is to
 pipeline the selection of the column module in the scheduler, e.g. by dividing
-the column modules into 16 groups of 16, which should allow a higher clock
+the column modules into 15 groups of 16, which should allow a higher clock
 frequency.
 This has not been tried.
 

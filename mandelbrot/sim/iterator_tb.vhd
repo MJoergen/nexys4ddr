@@ -10,9 +10,11 @@ use ieee.math_real.all;
 --
 -- The iterator stops when either the maximum count is reached, or when a new
 -- value of x or y is outside the range that can be represented, i.e. outside
--- the range -2 <= x < 2 (and the same for y). In this range the iteration is
--- known to diverge soon after, so this is used to detect that a point is not in
--- the Mandelbrot set.
+-- the range -2 <= x < 2 (and the same for y). Outside this range |z| >= 2, and
+-- the iteration diverges soon after, so this is used to detect that a point is
+-- not in the Mandelbrot set. The only exception is the boundary |z| = 2, e.g.
+-- the point c = -2, which is in the set (z = 0, -2, 2, 2, ...), but is
+-- reported as escaping, because the value 2 can not be represented.
 
 entity iterator_tb is
 end entity iterator_tb;
@@ -137,7 +139,7 @@ begin
       check( 0.0,   0.0);    -- In the set, so maximum count
       check(-1.0,   0.0);    -- In the set (period 2), so maximum count
       check( 1.0,   1.0);    -- Escapes immediately
-      check(-2.0,   0.0);    -- Escapes immediately, at the edge of the range
+      check(-2.0,   0.0);    -- In the set, but reported as escaping (x = 2 is out of range)
       check( 0.5,   0.0);    -- Escapes quickly
       check(-1.0,   0.5);    -- Escapes quickly (example from iterator.vhd)
       check( 0.3,   0.0);    -- Escapes slowly, near the edge of the set

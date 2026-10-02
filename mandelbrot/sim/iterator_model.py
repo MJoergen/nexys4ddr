@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 
-# Bit-accurate model of the iteration count calculated by src/iterator.vhd,
-# compared with the iteration count calculated using real (floating point)
-# numbers, as done in sim/iterator_tb.vhd.
-#
-# The model follows the VHDL literally, including the 18-bit wrap around of
-# x+y and x-y, which is not detected by the iterator. This explains why the
-# count from the iterator may differ from the count calculated using real
-# numbers.
-#
-# Usage:
-#   ./iterator_model.py          Compare the points used in iterator_tb.vhd.
-#   ./iterator_model.py --grid   Compare a grid of points over the default view.
-#   ./iterator_model.py CX CY    Show both counts for a single point.
+"""Bit-accurate model of the iteration count calculated by src/iterator.vhd,
+compared with the iteration count calculated using real (floating point)
+numbers, as done in sim/iterator_tb.vhd.
+
+The model follows the VHDL literally, including the 18-bit wrap around of
+x+y and x-y, which is not detected by the iterator. This explains why the
+count from the iterator may differ from the count calculated using real
+numbers.
+
+Usage:
+  ./iterator_model.py          Compare the points used in iterator_tb.vhd.
+  ./iterator_model.py --grid   Compare a grid of points over the default view.
+  ./iterator_model.py CX CY    Show both counts for a single point.
+"""
 
 import sys
 from typing import Dict
@@ -147,7 +148,7 @@ def main() -> None:
     elif not args:
         sys.exit(1 if compare(TB_POINTS) else 0)
     else:
-        print(__doc__ if __doc__ else "Usage: iterator_model.py [--grid | CX CY]")
+        print(__doc__)
         sys.exit(2)
 
 

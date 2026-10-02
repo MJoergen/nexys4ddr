@@ -18,7 +18,7 @@ SRC += src/main.vhd
 SRC += src/clk.vhd
 SRC += src/mandelbrot.vhd
 
-# Files used during simulation
+# Testbenches, i.e. sim/<name>_tb.vhd
 TBS = dispatcher column iterator scheduler mult_macro priority_pipeline
 
 # Testbench simulated by the "run" and "check" targets. Must be specified on
@@ -132,7 +132,7 @@ clean:
 	rm -rf .Xil
 	rm -rf .cache
 	rm -rf work-obj08.cf
-	rm -rf $(TB_EXE)
+	rm -rf $(addsuffix _tb,$(TBS))
 	rm -rf */*.ghw
 	rm -rf $(LIB_DIR)
 	rm -rf *.o

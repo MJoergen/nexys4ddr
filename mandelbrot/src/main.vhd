@@ -200,6 +200,8 @@ begin
    --   between pictures.
    led_o <= cnt(26 downto 11) when sw_i(1) = '1' else wait_cnt_tot;
 
+   -- The display memory is only 8 bits wide, so only the lower 8 bits of the
+   -- count are written. They are used directly as the colour (RRRGGGBB).
    wr_addr_o <= wr_addr_s;
    wr_data_o <= wr_data_s(7 downto 0);
    wr_en_o   <= wr_en_s;

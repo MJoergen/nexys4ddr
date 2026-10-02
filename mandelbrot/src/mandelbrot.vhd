@@ -15,12 +15,8 @@ use ieee.numeric_std_unsigned.all;
 -- through the display memory. This module instantiates the clock generation,
 -- the display memory, and the two modules above, and generates the resets.
 --
--- The view is controlled by the buttons and switches on the board:
---   btn_i(4)         : Zoom in. If sw_i(2) is set then zoom out instead.
---   btn_i(3 downto 0): Move the view left, right, up and down.
---   sw_i(1)          : Select what the LEDs show.
--- While a button is pressed, the view is updated about 17 times per second.
--- The other switches are not used.
+-- The buttons, switches and LEDs are handled by main.vhd, see the description
+-- there.
 
 entity mandelbrot is
    port (
