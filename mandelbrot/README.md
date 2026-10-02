@@ -1,198 +1,78 @@
 # Mandelbrot
-Here I'll describe in some detail the design of the Mandelbrot program and its
-main parts.  The design is implemented on the Nexys 4 DDR board, which uses a
-Xilinx FPGA XC7A100T. This FPGA has a total of 240 DSP, which will all be used
-for the actual calculations.  Additionally, the FPGA contains 144 BRAMs (of 18
-kbit each), which will be used for storing the results of the calculation, i.e.
-the actual picture to be displayed.
+This draws the [Mandelbrot set](https://en.wikipedia.org/wiki/Mandelbrot_set)
+in VHDL on the Nexys 4 DDR board, which has a Xilinx Artix-7 XC7A100T FPGA. The
+picture (640x480) is shown on the VGA output, and you can pan and zoom using the
+buttons on the board.
 
-## Fixed point arithmetic
-Before we proceed, we need to discuss how to represent decimal numbers in the
-FPGA. I've chosen to use "fixed point binary two's complement", because that is
-the easiest. Specifically, 2.16 bit representation is used, i.e. two bits for
-the integer portion, and 16 bits for the fraction part.
+All 240 DSPs of the FPGA are used in parallel for the calculation, and the
+picture is stored in block RAM. Generating a complete picture takes about 6.4
+ms, with the main clock at 150 MHz.
 
-This means we can represent real numbers in the range -2 .. 2, with an accuracy
-of 0.5^16, i.e. about 5 decimal places of accuracy. A real number x is
-represented using the binary number of x\*2^16, if x is positive, and
-(x+4)\*2^16 if x is negative.
+## The algorithm
+For each pixel, which corresponds to a complex number $c$, we iterate
+$z \mapsto z^2 + c$ starting from $z = 0$, and count how many iterations are
+needed before $|z|$ escapes beyond 2, up to a maximum of 511. This count
+decides the colour of the pixel.
 
-The first bit acts as a sign bit. It is '1' if the number of negative, and it
-is '0' if the number is positive.
+The numbers are 18-bit
+[fixed point](https://en.wikipedia.org/wiki/Fixed-point_arithmetic) (2 integer
+bits and 16 fractional bits), and each iteration needs only two real
+multiplications, using the identity $x^2 - y^2 = (x+y)(x-y)$. Each of the 240
+iterators has a single DSP multiplier, and calculates one iteration every three
+clock cycles. The picture is divided into columns, which a dispatcher hands out
+to the iterators as they become free.
 
-Some examples are:
-```
--2        : 10.0000000000000000
--1.5      : 10.1000000000000000
--1        : 11.0000000000000000
--0.000015 : 11.1111111111111111
- 0        : 00.0000000000000000
- 0.000015 : 00.0000000000000001
- 0.5      : 00.1000000000000000
- 1        : 01.0000000000000000
- 1.5      : 01.1000000000000000
-```
+[ALGORITHM.md](ALGORITHM.md) explains the design in detail: the number format,
+the multiplier, the iterator, the columns, the dispatcher, and the timing and
+resource usage.
 
-## Multiplier
-In this project we're using the built-in DSP to provide an 18-bit signed
-multiplier.  This generates a 36-bit result in 4.32 bit representation.  The
-actual multiplier is defined in a special Xilinx unimacro, but I've written a
-testbench specifically for the multiplier (sim/mult\_tb.vhd).
+## Files
+| File             | Description
+| ---------------- | -----------
+| [`src/mandelbrot.vhd`](src/mandelbrot.vhd) | Top level. The ports are mapped directly to pins on the FPGA.
+| [`src/iterator.vhd`](src/iterator.vhd) | Iterates the Mandelbrot function for a single point, using one DSP.
+| [`src/add_overflow.vhd`](src/add_overflow.vhd) | Adder with overflow detection, used by the iterator.
+| [`src/column.vhd`](src/column.vhd) | Calculates an entire column of the picture using one iterator.
+| [`src/dispatcher.vhd`](src/dispatcher.vhd) | Controls the calculation of the entire picture, and hands out columns.
+| [`src/scheduler.vhd`](src/scheduler.vhd), [`src/priority.vhd`](src/priority.vhd), [`src/priority_pipeline.vhd`](src/priority_pipeline.vhd) | Chooses which idle column gets the next job.
+| [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture.
+| [`src/disp.vhd`](src/disp.vhd), [`src/pix.vhd`](src/pix.vhd) | VGA output. Generates the sync signals and the pixel colour.
+| [`src/clk.vhd`](src/clk.vhd) | Clock generation: 150 MHz for the calculation and 25 MHz for VGA.
+| [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups.
+| [`mandelbrot.xdc`](mandelbrot.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints, and script for synthesis with Vivado, see `make vivado`.
+| [`mandelbrot.xlsx`](mandelbrot.xlsx) | Spreadsheet used during the design.
+| [`ALGORITHM.md`](ALGORITHM.md) | Detailed explanation of the algorithm and the design.
 
-The testbench is not selv-verifying, only investigative. This means one has to
-manually examine the waveforms in order to determine, whether the multiplier
-works as expected.  This is really just lazyness on my part and can easily be
-fixed.
+## Controls
+The view is controlled with the buttons and switches on the board:
 
-Anyway, the testbench currently performs the following multiplications:
-```
--0.000015 * -0.000015 =  0.0000000002
--0.000015 *  0.000015 = -0.0000000002
- 0.000015 *  0.000015 =  0.0000000002
- 1.999985 *  1.999985 =  3.99994
--0.000015 *  1.999985 = -0.00003
-```
+| Control | Description
+| ------- | -----------
+| `BTNL`, `BTNR`, `BTNU`, `BTND` | Pan the picture left, right, up and down.
+| `BTNC` | Zoom in. With switch 2 on, zoom out instead.
+| Switch 1 | Selects what the LEDs show: a free-running counter (on) or the total time the iterators have spent waiting to write to the display memory (off).
+| `CPU RESET` | Resets the design and returns to the initial view.
 
-The multiplier can be instantiated with a configurable number of clock cycles
-of delay. I've chosen just a single clock cycle of delay for the time being.
-This may have to be incremented when we start building the entire system. It's
-very hard to predict what clcok frequencies the final design will be able to
-run at.
+The initial view shows the real axis from -1.67 to 1 and the imaginary axis from
+-1 to 1.
 
+## Running
+Type `make` to list the supported targets. The most important ones are:
+* `make vivado` synthesizes and implements the design using
+  [Vivado](https://www.amd.com/en/products/software/adaptive-socs-and-fpgas/vivado.html),
+  and generates `mandelbrot.bit`. It expects Vivado in
+  `/opt/Xilinx/2025.1/Vivado` (the variable `XILINX_DIR`).
+* `make fpga` programs the board with `mandelbrot.bit`, using `djtgcfg` from
+  Digilent Adept.
+* `make sim` runs all the testbenches, see [below](#simulation). This requires
+  [GHDL](https://github.com/ghdl/ghdl), and the Xilinx simulation libraries
+  (`unisim` and `unimacro`) in `../xilinx-vivado`.
+* `make check TB=iterator` runs a single testbench and shows the waveform in
+  GTKWave.
+* `make clean` removes the generated files.
 
-## Iterator
-This component (see src/iterator.vhd) performs the main calculation. It takes
-as input the complex number c (or rather the real and imaginary values cx and
-cy).  It then iterates the Mandelbrot function a number of times and stops when
-either the maximum iteration count is reached, or an overflow occurs.
-
-The testbench is again only investigative, and only tests a single starting
-value: -1 + 0.5\*i.
-
-The iterator has been heavily optimized to use only a single multiplier, and to
-pipeline the calculations. Furthermore, the calculations have been rewritten to
-use only two (real) multiplications:
-```
-new_x = (x+y)*(x-y) + cx
-new_y = 2*(x*y) + cy
-```
-
-Each iteration takes three clock cycles, and is controlled by a simple state
-machine:
-* In the first clock cycle (ADD\_ST), the multiplier is given the values of x
-  and y, and simultaneously, the values x+y and x-y are calculated.
-* In the second clock cycle (MULT\_ST), the multipluer is given the values of
-  (x+y) and (x-y), and the output from x\*y is stored in registers.
-* In the third clock cycle (UPDATE\_ST), the new values of x and y are
-  calculated.  The above three steps are repeated until a maximum loop count or
-  until an overflow happens.
-
-The inputs to this block are: start\_i, cx\_i, and cy\_i. Outputs are done\_o
-and cnt\_o.  The values of cx\_i and cy\_i must be held constant for the entire
-calculation.  Both start\_i and done\_o are pulsed high for a single clock
-cycle.
-
-Example:
-We start with the point -1+0.5i, i.e. cx = -1 and cy = 0.5
-The expected sequence of points is then:
-```
-cnt |   x           |   y           
-----+---------------+---------------
- 0  |  0    (00000) |  0    (00000)
- 1  | -1    (30000) |  0.5  (08000)
- 2  | -0.25 (3C000) | -0.5  (38000)
- 3  | -1.19 (2D000) |  0.75 (0C000)
- 4  | -0.15 (3D900) | -1.28 (2B800)
-```
-The values in the parenthesis are the (2.16 fixed point) hexadecimal
-representation of the real numbers.
-
-TODO: The DSP contains an adder (as well as the multiplier).  Perhaps it is
-possible to use this built-in adder and thereby save logic reources. This may
-perhaps improve the timing slightly. However, overflow detection needs to be
-rewritten then.
-
-## Columns
-The final picture is sliced into vertical colums, and each column is calculated
-in its entirety, see the file src/column.vhd.
-
-The inputs to this block are:
-```
-job_start_i  : in  std_logic;
-job_cx_i     : in  std_logic_vector(17 downto 0);
-job_starty_i : in  std_logic_vector(17 downto 0);
-job_stepy_i  : in  std_logic_vector(17 downto 0);
-```
-and the output is:
-```
-job_busy_o   : out std_logic;
-```
-The signal job\_start\_i is pulsed high for one clock cycle to initiate the
-calculation of an entire column, and the output job\_busy\_o remains high
-until the entire calculation is finished.
-
-The results of the calculation are presented on the following output ports:
-```
-res_addr_o   : out std_logic_vector( 8 downto 0);
-res_data_o   : out std_logic_vector( 8 downto 0);
-res_valid_o  : out std_logic
-```
-with the additional input port
-```
-res_ack_i    : in  std_logic;
-```
-The res\_addr\_o is the current row number, and res\_data\_o is the calculated
-count value for this pixel. The res\_ack\_i is needed, because there may be an
-arbitrary long delay before the job dispatcher has time to acknowledge the
-result.
-
-## Dispatcher
-This is essentially the top level entity controlling the calculation of the entire
-picture.  This is perhaps the most complicated module.  Again the input signals are:
-```
-start_i   : in  std_logic;
-startx_i  : in  std_logic_vector(17 downto 0);
-starty_i  : in  std_logic_vector(17 downto 0);
-stepx_i   : in  std_logic_vector(17 downto 0);
-stepy_i   : in  std_logic_vector(17 downto 0);
-```
-and the output is:
-```
-done_o    : out std_logic
-```
-Again, the signals start\_i and done\_o are pulsed high for one second to
-initiate the calculation and to indicate completion, respectively.
-Three additional output signals go to the display memory:
-```
-wr_addr_o : out std_logic_vector(18 downto 0);
-wr_data_o : out std_logic_vector( 8 downto 0);
-wr_en_o   : out std_logic;
-```
-
-This module instantiates a configurable number of 'column' modules (ideally 240
-instances, one for each DSP). It keeps track of which columns are currently
-calculating, and whenever a column is idle, a new job is sent to this column.
-
-A separate scheduler module is used to send jobs to the different column
-modules.  Currently, the scheduler operates in a round-robin fashion. This
-potentially may give a delay up to 240 clock cycles before an idle column is
-given a job. With 640 jobs, the maximum delay is about 1 ms, assuming the
-columns operate at 150 MHz. This delay is negligible.
-
-## Timing
-I've added counters to measure the total time it takes to generate the picture
-as well as the total amount of time the iterators are waiting to write to display
-memory.
-
-The total time taken in 472\*2^11 clock cycles, which at a frequency of 150 MHz
-becomes 6,4 milliseconds.
-
-The average waiting time for each iterator is 28642/240 \* 2^11 clock cycles,
-which is 1,6 milliseconds. So a quarter of the time is spent waiting. However,
-at this processing speed it really doesn't matter.
-
-Another way of looking at this is that each iterator is using 472\*2^11 clock cycles, 
-so a total of 232 million clock cycles. The average amount per pixel is then
-obtained by dividing by 640 and by 480, which gives 755 clock cycles, or in other words
-252 iterations per pixel.
-
+## Simulation
+There are testbenches in [`sim/`](sim) for `dispatcher`, `column`, `iterator`,
+`mult` and `priority_pipeline`. They are mostly investigative, i.e. they do not
+check the results automatically, so you have to look at the waveforms to see
+that the design works as expected.
