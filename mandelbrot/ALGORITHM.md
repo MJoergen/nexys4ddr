@@ -10,11 +10,10 @@ which are used for storing the results of the calculation, i.e. the actual
 picture to be displayed.
 
 ## Instantiation hierarchy
-The modules are instantiated as follows (the entity name is given where it
-differs from the file name):
+The modules are instantiated as follows:
 ```
 mandelbrot                      src/mandelbrot.vhd (top level)
- +- clk_wiz_0_clk_wiz           src/clk.vhd (MMCM and clock buffers)
+ +- clk                         src/clk.vhd (MMCM and clock buffers)
  +- dispatcher                  src/dispatcher.vhd
  |   +- scheduler               (i_scheduler, selects the column to receive a job)
  |   +- column  (x 240)         src/column.vhd
@@ -238,7 +237,6 @@ main clock.
 | Block RAM        | 128 RAMB36 + 1 RAMB18 | 135 RAMB36 | about 95
 | LUTs             | about 50,600 | 63,400 | about 80
 | Registers        | about 52,600 | 126,800 | about 41
-| Clock buffers    | 4 BUFG, 1 MMCM | |
 
 The resource numbers are the cell counts after synthesis, taken from
 `vivado.log`, and the available numbers are the totals for the XC7A100T. The
@@ -255,7 +253,7 @@ The timing after routing and post-route physical optimization is:
 The timing is met for all clocks. The 150 MHz main clock (period 6.67 ns) is
 generated from the 100 MHz input clock by the MMCM (multiplied by 10.5 and
 divided by 7), and the only constraint in `mandelbrot.xdc` is the 100 MHz input
-clock. The MMCM also generates the 25 MHz VGA clock and a 50 MHz clock.
+clock. The MMCM also generates the 25 MHz VGA clock.
 
 The slack is small, so the design is close to the limit of what this device and
 this flow can achieve. The critical paths are in the dispatcher: the selection
