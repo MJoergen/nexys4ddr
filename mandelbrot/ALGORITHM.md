@@ -375,12 +375,11 @@ The timing after routing is:
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.029 ns (TNS 0)
-| Hold (WHS)  | +0.023 ns (THS 0)
+| Setup (WNS) | +0.027 ns (TNS 0)
+| Hold (WHS)  | +0.020 ns (THS 0)
 
-These are the estimated timing summaries printed by Vivado during routing (the
-post-route physical optimization found no setup violations, and did not change
-the netlist).
+These are the values from `report_timing_summary` on the final routed design
+(`mandelbrot.dcp`), after the post-route physical optimization.
 
 The timing is met for all clocks. The 140.625 MHz main clock (period 7.11 ns)
 is generated from the 100 MHz input clock by the MMCM (multiplied by 11.25 and

@@ -30,7 +30,7 @@ the dispatcher, and the timing and resource usage.
 
 ## Implementation results
 The design is built with Vivado 2025.1 and meets timing at the 140.625 MHz main
-clock (setup slack +0.029 ns, hold slack +0.023 ns). The resources used are:
+clock (setup slack +0.027 ns, hold slack +0.020 ns). The resources used are:
 
 | Resource  | Used                  | Available
 | --------- | --------------------- | ---------
@@ -45,7 +45,9 @@ for details, including the critical paths.
 ## Files
 | File             | Description
 | ---------------- | -----------
-| [`src/mandelbrot.vhd`](src/mandelbrot.vhd) | Top level. The ports are mapped directly to pins on the FPGA.
+| [`src/mandelbrot.vhd`](src/mandelbrot.vhd) | Top level. The ports are mapped directly to pins on the FPGA. Instantiates the clock generation, the display memory, and the two modules below, and generates the resets.
+| [`src/main.vhd`](src/main.vhd) | Everything in the MAIN clock domain: view control from buttons and switches, the dispatcher, and the LEDs.
+| [`src/vga.vhd`](src/vga.vhd) | Everything in the VGA clock domain: pixel counters and VGA output.
 | [`src/iterator.vhd`](src/iterator.vhd) | Iterates the Mandelbrot function for a single point, using one DSP.
 | [`src/column.vhd`](src/column.vhd) | A column module. Calculates one picture column (all its rows) at a time, using one iterator.
 | [`src/dispatcher.vhd`](src/dispatcher.vhd) | Controls the calculation of the entire picture: hands out the picture columns to the idle column modules, and collects the results. Instantiates the column modules.

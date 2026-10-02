@@ -13,6 +13,8 @@ SRC += src/dispatcher.vhd
 SRC += src/disp_mem.vhd
 SRC += src/disp.vhd
 SRC += src/pix.vhd
+SRC += src/vga.vhd
+SRC += src/main.vhd
 SRC += src/clk.vhd
 SRC += src/mandelbrot.vhd
 
