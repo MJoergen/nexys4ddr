@@ -18,11 +18,10 @@ SRC += src/clk.vhd
 SRC += src/mandelbrot.vhd
 
 # Files used during simulation
+TBS = dispatcher column iterator mult priority_pipeline
+
+# Testbench simulated by the "check" target
 TB = dispatcher
-#TB = column
-#TB = iterator
-#TB = mult
-#TB = priority_pipeline
 TB_EXE = $(TB)_tb
 TB_SRC = $(SRC) sim/$(TB)_tb.vhd
 WAVE = sim/$(TB).ghw
@@ -41,11 +40,12 @@ help:
 	@echo "  help            Show this help text (default)"
 	@echo "  vivado          Synthesize and implement the design using Vivado ($(NAME).bit)"
 	@echo "  fpga            Program the Nexys4DDR board with $(NAME).bit"
-	@echo "  sim             Simulate testbench TB=$(TB) using ghdl and show waveform in gtkwave"
+	@echo "  sim             Simulate all testbenches using ghdl"
+	@echo "  check           Simulate a single testbench (TB=$(TB)) using ghdl and show waveform in gtkwave"
 	@echo "  clean           Remove generated files"
 	@echo ""
-	@echo "Testbench is selected by TB=<name>, e.g. 'make sim TB=iterator'."
-	@echo "Available testbenches: dispatcher column iterator mult priority_pipeline"
+	@echo "Testbench is selected by TB=<name>, e.g. 'make check TB=iterator'."
+	@echo "Available testbenches: $(TBS)"
 
 
 #####################################
@@ -66,12 +66,24 @@ fpga: $(NAME).bit
 # Simulation
 #####################################
 
+# Simulate all testbenches (without opening the waveform viewer)
 .PHONY: sim
-sim: $(TB_SRC)
+sim:
+	@for tb in $(TBS); do \
+	   echo "=== Simulating $$tb ==="; \
+	   $(MAKE) --no-print-directory run TB=$$tb || exit 1; \
+	done
+
+# Simulate a single testbench (TB=<name>) and show the waveform
+.PHONY: check
+check: run
+	gtkwave $(WAVE) $(SAVE)
+
+.PHONY: run
+run: $(TB_SRC)
 	ghdl -i --std=08 --work=work $(TB_SRC)
 	ghdl -m --std=08 --ieee=synopsys -frelaxed-rules -P../xilinx-vivado $(TB_EXE)
 	ghdl -r --std=08 $(TB_EXE) --assert-level=error --wave=$(WAVE) --stop-time=2100us
-	gtkwave $(WAVE) $(SAVE)
 
 clean:
 	rm -rf usage_statistics_webtalk.*
