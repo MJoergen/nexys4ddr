@@ -94,7 +94,7 @@ Type `make` to list the supported targets. The most important ones are:
   Digilent Adept.
 * `make sim` runs all the testbenches one after another, without opening the
   waveform viewer, see [below](#simulation). This requires
-  [GHDL](https://github.com/ghdl/ghdl). It takes about 15 seconds.
+  [GHDL](https://github.com/ghdl/ghdl). It takes about 40 seconds.
 * `make run TB=iterator` runs a single testbench and writes the waveform to
   `sim/iterator.ghw`. Without `TB` it lists the available testbenches. It has
   the same requirements as `make sim`.
@@ -104,7 +104,7 @@ Type `make` to list the supported targets. The most important ones are:
 
 ## Simulation
 There are testbenches in [`sim/`](sim) for `dispatcher`, `column`, `iterator`,
-`scheduler`, `view`, `mult_macro` and `priority_pipeline`. All of them are
+`scheduler`, `view`, `vga`, `mult_macro` and `priority_pipeline`. All of them are
 self-checking, and stop with an error if the result is wrong. Most of them stop
 by themselves when they are finished. The `priority_pipeline` testbench compares
 the module with the simple `priority` module for all 65536 input vectors, which

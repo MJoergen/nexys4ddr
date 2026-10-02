@@ -30,7 +30,8 @@ architecture rtl of disp is
    constant H_PIXELS : integer := 640;
    constant V_PIXELS : integer := 480;
 
-   -- Define VGA timing constants
+   -- Define VGA timing constants. The sync pulses are active low (negative
+   -- polarity), as specified for 640x480 @ 60 Hz in the VESA standard.
    constant HS_START : integer := 656;
    constant HS_TIME  : integer := 96;
    constant VS_START : integer := 490;
@@ -67,15 +68,15 @@ begin
    begin
       if rising_edge(vga_clk_i) then
 
-         vga_hs_d <= '0';
-         vga_vs_d <= '0';
+         vga_hs_d <= '1';
+         vga_vs_d <= '1';
 
          if vga_pix_x_i >= HS_START and vga_pix_x_i < HS_START+HS_TIME then
-            vga_hs_d   <= '1';
+            vga_hs_d   <= '0';
          end if;
-         
+
          if vga_pix_y_i >= VS_START and vga_pix_y_i < VS_START+VS_TIME then
-            vga_vs_d   <= '1';
+            vga_vs_d   <= '0';
          end if;
 
          vga_pix_x_d <= vga_pix_x_i;
