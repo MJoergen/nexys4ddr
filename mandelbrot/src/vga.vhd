@@ -30,8 +30,8 @@ architecture structural of vga is
    signal pix_x : std_logic_vector(9 downto 0);
    signal pix_y : std_logic_vector(9 downto 0);
 
-   signal palette_meta : std_logic_vector(1 downto 0);
-   signal palette_sync : std_logic_vector(1 downto 0);
+   signal palette_meta : std_logic_vector(1 downto 0) := "00";
+   signal palette_sync : std_logic_vector(1 downto 0) := "00";
 
    attribute async_reg : string;
    attribute async_reg of palette_meta : signal is "true";

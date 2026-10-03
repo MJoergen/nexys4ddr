@@ -43,18 +43,18 @@ architecture rtl of disp is
    constant VS_START : integer := 490;
    constant VS_TIME  : integer := 2;
 
-   signal vga_pix_x_d  : std_logic_vector(9 downto 0);
-   signal vga_pix_y_d  : std_logic_vector(9 downto 0);
+   signal vga_pix_x_d  : std_logic_vector(9 downto 0) := (others => '0');
+   signal vga_pix_y_d  : std_logic_vector(9 downto 0) := (others => '0');
    signal vga_hs_d     : std_logic;
    signal vga_vs_d     : std_logic;
 
-   signal vga_pix_x_d2 : std_logic_vector(9 downto 0);
-   signal vga_pix_y_d2 : std_logic_vector(9 downto 0);
+   signal vga_pix_x_d2 : std_logic_vector(9 downto 0) := (others => '0');
+   signal vga_pix_y_d2 : std_logic_vector(9 downto 0) := (others => '0');
    signal vga_hs_d2    : std_logic;
    signal vga_vs_d2    : std_logic;
 
-   signal vga_pix_x_d3 : std_logic_vector(9 downto 0);
-   signal vga_pix_y_d3 : std_logic_vector(9 downto 0);
+   signal vga_pix_x_d3 : std_logic_vector(9 downto 0) := (others => '0');
+   signal vga_pix_y_d3 : std_logic_vector(9 downto 0) := (others => '0');
    signal vga_hs_d3    : std_logic;
    signal vga_vs_d3    : std_logic;
 
