@@ -26,6 +26,7 @@ mandelbrot                      src/mandelbrot.vhd (top level)
  |   +- (p_fps_toggle)          (tells the VGA clock domain that the frame rate has changed)
  |   +- seg                     src/main/seg.vhd (7-segment display)
  +- disp_mem                    src/disp_mem.vhd (display memory, between the two clock domains)
+ +- (p_fps_cdc)                 (moves the frame rate to the VGA clock domain)
  +- vga                         src/vga/vga.vhd (everything in the VGA clock domain)
      +- pix                     src/vga/pix.vhd (pixel counters)
      +- disp                    src/vga/disp.vhd (VGA output, uses the palettes in src/vga/palette_pkg.vhd)
@@ -666,8 +667,9 @@ table in [`src/vga/font_pkg.vhd`](src/vga/font_pkg.vhd), 32 rows of 16 bits
 for each digit. The frame rate (32 bits of digits and 8 bits of blanking) is
 calculated in the MAIN clock domain, so it is moved to the VGA clock domain:
 `main` changes a toggle signal each time the frame rate changes. This is
-synchronized with two registers in `overlay`, and when it changes, the frame
-rate is copied. It is constant for much longer than that (a picture takes far
+synchronized with two registers in the top level (`p_fps_cdc` in
+[`src/mandelbrot.vhd`](src/mandelbrot.vhd)), and when it changes, the frame
+rate is copied, so `overlay` only gets signals in the VGA clock domain. It is constant for much longer than that (a picture takes far
 more than 58 clock cycles), so it is never copied while it changes. The
 constraint in [`mandelbrot.xdc`](mandelbrot.xdc) (`set_max_delay
 -datapath_only`) makes sure that it arrives before the toggle signal, and
@@ -956,7 +958,7 @@ output with a fractional divider. The MMCM also generates the 25 MHz VGA clock
 (divided by 48). The constraints in `mandelbrot.xdc` are the 100 MHz input
 clock, and a maximum delay (`set_max_delay -datapath_only`) for the paths from
 the MAIN clock to the VGA clock, which only carry the frame rate and its toggle
-signal to the overlay (see [The top level](#the-top-level)). Apart from these,
+signal to the synchronizer in the top level (see [The top level](#the-top-level)). Apart from these,
 the two clocks only meet in the display memory, which has a separate clock for
 each port.
 

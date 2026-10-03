@@ -316,7 +316,6 @@ begin
          palette_i => palette,
          fps_digits_i => (others => '0'),
          fps_blank_i  => (others => '1'),
-         fps_toggle_i => '0',
          vga_hs_o  => vga_hs,
          vga_vs_o  => vga_vs,
          vga_col_o => vga_col
