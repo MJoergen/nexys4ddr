@@ -75,7 +75,7 @@ the board. The switch numbers are the bit numbers of the switch input, i.e.
 | ------- | -----------
 | `BTNL`, `BTNR`, `BTNU`, `BTND` | Pan the picture left, right, up and down, by one pixel for each update. Panning stops at the edge of the number range (-2 to 2).
 | `BTNC` | Zoom in. With switch 2 on, zoom out instead. The centre of the picture stays fixed, except when zooming out would move an edge of the view beyond -2 or 2; then the view is moved instead. Zooming stops at the smallest pixel size (2^-16), and when the view can not get larger.
-| Switch 1 | Selects what the LEDs show, for the most recently finished picture. On: the time taken to calculate the picture, in units of 14.6 us (2^11 clock cycles). Off: the total time that the column modules have spent waiting for their results to be accepted during the picture, summed up over all column modules, in the same unit. The LEDs are updated at the end of each picture.
+| Switch 1 | Selects what the LEDs show. On: the time taken to calculate the most recently finished picture, in units of 14.6 us (2^11 clock cycles), updated at the end of each picture. Off: the total time that the column modules have spent waiting for their results to be accepted during a picture, summed up over all column modules, in the same unit, and averaged over 64 pictures (about 0.44 seconds), updated after every 64 pictures.
 | Switches 0 and 3 to 7 | Not used.
 | `CPU RESET` | Resets the design and returns to the initial view.
 

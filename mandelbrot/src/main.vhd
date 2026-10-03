@@ -42,6 +42,10 @@ architecture structural of main is
    constant C_SIZE_X        : real :=  2.6667;
    constant C_SIZE_Y        : real :=  2.0000;
 
+   -- The waiting time on the LEDs is averaged over 2^C_AVG_LOG2 pictures,
+   -- i.e. 64 pictures, which is about 0.44 seconds for the initial view.
+   constant C_AVG_LOG2      : integer := 6;
+
    signal startx         : std_logic_vector(17 downto 0);
    signal starty         : std_logic_vector(17 downto 0);
    signal stepx          : std_logic_vector(17 downto 0);
@@ -59,10 +63,13 @@ architecture structural of main is
 
    signal cnt            : std_logic_vector(26 downto 0);
 
-   -- Values shown on the LEDs, latched at the end of each picture.
+   -- Values shown on the LEDs, latched at the end of each picture (pic_time),
+   -- and at the end of every 2^C_AVG_LOG2 pictures (pic_wait).
    signal pic_time       : std_logic_vector(15 downto 0);
    signal pic_wait       : std_logic_vector(15 downto 0);
    signal wait_cnt_prev  : std_logic_vector(15 downto 0);
+   signal wait_acc       : std_logic_vector(15+C_AVG_LOG2 downto 0);
+   signal avg_cnt        : std_logic_vector(C_AVG_LOG2-1 downto 0);
 
    -- 23 bits = 8 million cycles @ 140.625 MHz = 17 times per second.
    signal upd_cnt        : std_logic_vector(22 downto 0) := (others => '0');
@@ -165,24 +172,45 @@ begin
    -- picture is recalculated continuously, so the counters themselves change
    -- too fast to be read on the LEDs.
    -- * pic_time is the time taken by the picture.
-   -- * pic_wait is the total waiting time of all the column modules during the
-   --   picture. The sum of the wait counters (wait_cnt_tot) is accumulated from
-   --   reset, so this is the difference from the value at the end of the
+   -- * pic_wait is the total waiting time of all the column modules during a
+   --   picture, averaged over 2^C_AVG_LOG2 pictures. The sum of the wait
+   --   counters (wait_cnt_tot) is accumulated from reset, so the waiting time
+   --   during a picture is the difference from the value at the end of the
    --   previous picture. The subtraction is modulo 2^16, so it is correct even
-   --   if wait_cnt_tot has wrapped around.
+   --   if wait_cnt_tot has wrapped around. The differences are added up in
+   --   wait_acc, which is wide enough for 2^C_AVG_LOG2 pictures, and the
+   --   average is the upper 16 bits of wait_acc.
+   --   Each wait counter is truncated to units of 2^11 clock cycles, so the
+   --   waiting time of a single picture can be wrong by up to one unit for each
+   --   column module, i.e. up to about 240. These errors cancel between
+   --   consecutive pictures, so the error of the sum over all the pictures is
+   --   also at most about 240, and the error of the average is at most about
+   --   240/2^C_AVG_LOG2, i.e. about 4.
    p_leds : process (clk_i)
+      variable wait_sum_v : std_logic_vector(15+C_AVG_LOG2 downto 0);
    begin
       if rising_edge(clk_i) then
          if pic_done = '1' then
             pic_time      <= cnt(26 downto 11);
-            pic_wait      <= wait_cnt_tot - wait_cnt_prev;
             wait_cnt_prev <= wait_cnt_tot;
+            avg_cnt       <= avg_cnt + 1;
+
+            wait_sum_v := wait_acc + (wait_cnt_tot - wait_cnt_prev);
+            if avg_cnt = 2**C_AVG_LOG2-1 then
+               -- The last picture of the average
+               pic_wait <= wait_sum_v(15+C_AVG_LOG2 downto C_AVG_LOG2);
+               wait_acc <= (others => '0');
+            else
+               wait_acc <= wait_sum_v;
+            end if;
          end if;
 
          if rst_i = '1' then
             pic_time      <= (others => '0');
             pic_wait      <= (others => '0');
             wait_cnt_prev <= (others => '0');
+            wait_acc      <= (others => '0');
+            avg_cnt       <= (others => '0');
          end if;
       end if;
    end process p_leds;
@@ -219,15 +247,15 @@ begin
    -- Connect output signals
    --------------------------
 
-   -- The LEDs show one of two values for the most recently finished picture,
-   -- selected by sw_i(1):
-   -- * The time taken by the picture. The counter cnt increments at
-   --   140.625 MHz while a picture is being calculated, and only bits 26
-   --   downto 11 are shown, so a single count on the LEDs is 14.56 us. The
-   --   value wraps around after 0.95 seconds.
-   -- * The total waiting time of all the column modules during the picture,
-   --   summed up. This is the time spent waiting for the result to be
-   --   acknowledged, in the same units (2^11 clock cycles).
+   -- The LEDs show one of two values, selected by sw_i(1):
+   -- * The time taken by the most recently finished picture. The counter cnt
+   --   increments at 140.625 MHz while a picture is being calculated, and only
+   --   bits 26 downto 11 are shown, so a single count on the LEDs is 14.56 us.
+   --   The value wraps around after 0.95 seconds.
+   -- * The total waiting time of all the column modules during a picture,
+   --   summed up, and averaged over the last 2^C_AVG_LOG2 pictures. This is
+   --   the time spent waiting for the result to be acknowledged, in the same
+   --   units (2^11 clock cycles).
    led_o <= pic_time when sw_r(1) = '1' else pic_wait;
 
    -- The display memory is only 8 bits wide, so only the lower 8 bits of the

@@ -478,38 +478,47 @@ upd\_i during an update (which takes 17 clock cycles) is ignored, but one just
 after the update is not. The initial view is checked when the design is
 elaborated: it must be inside the range too.
 
-**The LEDs.** The LEDs show one of two values for the most recently finished
-picture. The values are latched at the end of each picture, because the
-picture is recalculated continuously (about every 7 ms), so the counters
-themselves change too fast to be read.
+**The LEDs.** The LEDs show one of two values, for the most recently finished
+picture, or averaged over the last 64 pictures. The values are latched at the
+end of a picture, because the picture is recalculated continuously (about
+every 7 ms), so the counters themselves change too fast to be read.
 * If switch 1 is on, the LEDs show the time taken by the picture. A counter
   counts clock cycles while a picture is being calculated, and it is cleared
   when the next picture is started. At the end of the picture, bits 26 to 11
   of the counter are latched. A single step on the LEDs is therefore 2^11 clock
   cycles, which is 14.56 us, and the value wraps around after 0.95 seconds.
 * If switch 1 is off, the LEDs show the total waiting time of all the column
-  modules during the picture. The wait counter of a column module counts the
+  modules during a picture, averaged over 64 pictures (about 0.44 seconds for
+  the initial view). The wait counter of a column module counts the
   clock cycles that the module has to wait for its result to be accepted, in
   the same unit of 2^11 clock cycles. The wait counters are only cleared by
   reset, and the dispatcher adds them up (wait\_cnt\_tot\_o). So `main`
-  latches the difference between the sum at the end of this picture and the
-  sum at the end of the previous picture. The sum is 16 bits wide, and the
-  difference is calculated modulo 2^16, so it is correct even when the sum
-  wraps around. Each wait counter is truncated to units of 2^11 clock cycles
-  before the sum, so the difference for a column module may be one unit too
-  high or too low, depending on the part of the counter below 2^11 at the
-  start and at the end of the picture. So the value can differ by up to about
-  240 (the number of column modules) from the exact value, and it changes from
-  picture to picture, even when the pictures are the same. Only the upper bits
-  are steady (see [Timing](#timing)).
+  calculates the waiting time of a picture as the difference between the sum
+  at the end of this picture and the sum at the end of the previous picture.
+  The sum is 16 bits wide, and the difference is calculated modulo 2^16, so it
+  is correct even when the sum wraps around. The differences of 64 pictures
+  are added up, and the LEDs show the sum divided by 64 (the constant
+  C\_AVG\_LOG2 in `main.vhd` is 6). The LEDs are updated after every 64
+  pictures, which takes longer when each picture takes longer, e.g. when
+  zooming into the set.
+
+  The averaging is needed because each wait counter is truncated to units of
+  2^11 clock cycles before the sum. So the waiting time of a column module
+  during a single picture may be one unit too high or too low, depending on
+  the part of the counter below 2^11 at the start and at the end of the
+  picture. The waiting time of a single picture can therefore differ by up to
+  about 240 (the number of column modules) from the exact value, and it
+  changes from picture to picture, even when the pictures are the same, so the
+  lower bits would blink. These errors cancel between consecutive pictures, so
+  the error of the sum over 64 pictures is also at most about 240, and the
+  error of the average is at most about 4.
 
 **Other inputs.** The switches 0 and 3 to 7 are not used.
 
 ## Timing
 Counters measure the total time it takes to generate the picture as well as the
 total amount of time the iterators are waiting to write to display memory. The
-values for the most recent picture are shown on the LEDs, see
-[The top level](#the-top-level).
+values are shown on the LEDs, see [The top level](#the-top-level).
 
 The numbers measured on the board, with the current design and the initial
 view, are:
@@ -518,9 +527,10 @@ view, are:
   value is steady.
 * The waiting time of all the column modules (switch 1 off): about
   0x721F = 29215, i.e. 29215\*2^11 clock cycles in total, which is 1.8 ms for
-  each column module, or about a quarter of the time. The lowest bits of this
-  value change from picture to picture, because of the truncation of the wait
-  counters (see [The top level](#the-top-level)).
+  each column module, or about a quarter of the time. This was measured before
+  the value was averaged over 64 pictures, so the lowest bits changed from
+  picture to picture, because of the truncation of the wait counters (see
+  [The top level](#the-top-level)).
 
 Both values agree with the model [`sim/model.py`](sim/model.py), which
 estimates the time for the picture from the count of each pixel, as follows.
