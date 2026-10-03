@@ -642,7 +642,7 @@ calculated, and it is cleared when the next picture is started. At the end of
 a picture, the module [`src/main/fps.vhd`](src/main/fps.vhd) divides the clock frequency
 (188,235,294 Hz) by the value of the counter, and converts the result to
 decimal. The picture is recalculated continuously, so the frame rate is
-updated after every picture (about 340 times per second for the initial view).
+updated after every picture (about 542 times per second for the initial view).
 A single-cycle division would be far too slow for the MAIN clock, so both
 steps are done one bit per clock cycle: a restoring division, with one
 subtraction for each of the 28 bits of the quotient, and then the double
@@ -652,13 +652,13 @@ by one bit). This takes 58 clock cycles, much less than a picture, and the
 widest addition is 29 bits. A frame rate above 99999999 would show as
 99999999, but that would need a picture of fewer than 2 clock cycles. The
 counter is 27 bits wide, so it wraps around after 2^27 clock cycles (0.71 s),
-but a picture takes far less than that: even if every pixel took the maximum
-of 1680 clock cycles (see [Timing](#timing)), a picture would take about 3
-million clock cycles (16 ms).
+but a picture takes far less than that: even if every pixel needed the
+maximum count, the model (see [Timing](#timing)) gives about 2.0 million clock
+cycles (10.8 ms) for the picture.
 
 The digits of the display share the segment signals, so
 [`src/main/seg.vhd`](src/main/seg.vhd) shows them one at a time, each for 2^14 clock
-cycles, i.e. all 8 digits are refreshed every 0.67 ms (1.5 kHz). The
+cycles, i.e. all 8 digits are refreshed every 0.70 ms (1.4 kHz). The
 segments and the digit enables (anodes) are active low. The decimal point is
 not used.
 
@@ -674,11 +674,13 @@ calculated in the MAIN clock domain, so it is moved to the VGA clock domain:
 `main` changes a toggle signal each time the frame rate changes. This is
 synchronized with two registers in the top level (`p_fps_cdc` in
 [`src/mandelbrot.vhd`](src/mandelbrot.vhd)), and when it changes, the frame
-rate is copied, so `overlay` only gets signals in the VGA clock domain. It is constant for much longer than that (a picture takes far
-more than 58 clock cycles), so it is never copied while it changes. The
-constraint in [`nexys4ddr.xdc`](nexys4ddr.xdc) and
-[`mega65-r6.xdc`](mega65-r6.xdc) (`set_max_delay -datapath_only`) makes sure that it arrives before the toggle signal, and
-excludes these paths from the normal timing between the two clocks. The new
+rate is copied, so `overlay` only gets signals in the VGA clock domain. The
+frame rate changes only at the end of a picture, so it is constant for much
+longer than the synchronizer takes (a few VGA clock cycles), and it is never
+copied while it changes. The constraint in [`nexys4ddr.xdc`](nexys4ddr.xdc)
+and [`mega65-r6.xdc`](mega65-r6.xdc) (`set_max_delay -datapath_only`) makes
+sure that it arrives before the toggle signal, and excludes these paths from
+the normal timing between the two clocks. The new
 value is shown from the next frame on, so a frame never shows two values.
 The overlay is a pipeline of five stages after the pixel counters: the position
 in the overlay, the digit, the row of the font, the pixel of the row, and then

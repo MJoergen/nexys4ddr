@@ -132,7 +132,7 @@ Type `make` to list the supported targets. The most important ones are:
 * `make nexys4ddr` synthesizes and implements the design using
   [Vivado](https://www.amd.com/en/products/software/adaptive-socs-and-fpgas/vivado.html),
   and generates `nexys4ddr.bit`. It expects Vivado in
-  `/opt/Xilinx/2025.1/Vivado` (the variable `XILINX_DIR`). It takes about 10
+  `/opt/Xilinx/2025.1/Vivado` (the variable `XILINX_DIR`). It takes about 6.5
   minutes, and writes the log to `vivado.log`.
 * `make mega65-r6` does the same for the MEGA65 R6, and generates
   `mega65-r6.bit`.

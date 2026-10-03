@@ -122,10 +122,11 @@ run check:
 
 else
 
-# Simulate a single testbench (TB=<name>) and show the waveform
+# Simulate a single testbench (TB=<name>) and show the waveform. Not all
+# testbenches have a GTKWave save file (sim/<name>.gtkw).
 .PHONY: check
 check: run
-	gtkwave $(WAVE) $(SAVE)
+	gtkwave $(WAVE) $(wildcard $(SAVE))
 
 .PHONY: run
 run: $(TB_SRC)

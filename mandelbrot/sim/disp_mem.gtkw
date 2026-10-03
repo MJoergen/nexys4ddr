@@ -16,7 +16,7 @@ top.disp_mem_tb.i_disp_mem.wr_clk_i
 @22
 top.disp_mem_tb.i_disp_mem.wr_addr_i[18:0]
 @22
-top.disp_mem_tb.i_disp_mem.wr_data_i[7:0]
+top.disp_mem_tb.i_disp_mem.wr_data_i[8:0]
 @28
 top.disp_mem_tb.i_disp_mem.wr_en_i
 @22
@@ -28,6 +28,6 @@ top.disp_mem_tb.i_disp_mem.rd_addr_i[18:0]
 @22
 top.disp_mem_tb.i_disp_mem.rd_sel_r[18:12]
 @22
-top.disp_mem_tb.i_disp_mem.rd_data_o[7:0]
+top.disp_mem_tb.i_disp_mem.rd_data_o[8:0]
 [pattern_trace] 1
 [pattern_trace] 0
