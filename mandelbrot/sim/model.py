@@ -10,7 +10,8 @@
 #
 # Run as a script, it compares the model with the reference for the initial
 # view (640x480), and prints how many pixels differ. It also estimates the time
-# it takes the design to calculate the picture, see picture_cycles().
+# it takes the design to calculate the picture, see picture_cycles(), and the
+# total time the column modules wait for their results to be accepted.
 #
 # Usage:
 #   ./model.py           Compare the model with the reference.
@@ -130,6 +131,14 @@ def view(startx: Optional[int] = None, starty: Optional[int] = None,
     return cx_grid, cy_grid
 
 
+def iterating_cycles(cnt: ArrayLike) -> IntArray:
+    """The number of clock cycles the iterator needs for each pixel: 3 clock
+    cycles per iteration, plus 7 to start and to deliver the result (4 for
+    the points that reach the maximum count)."""
+    cnt_i: IntArray = np.asarray(cnt, np.int64)
+    return np.where(cnt_i == MAX_COUNT, 3*cnt_i + 4, 3*cnt_i + 7)
+
+
 def pixel_cycles(cnt: ArrayLike,
                  num_iterators: int = NUM_ITERATORS) -> IntArray:
     """The number of clock cycles a column module uses for each pixel.
@@ -141,8 +150,7 @@ def pixel_cycles(cnt: ArrayLike,
     always a multiple of num_iterators clock cycles. This has been checked in
     simulation (main_tb) for the first 11744 pixels, and the estimated time
     for the picture is the same as the time measured on the board."""
-    cnt_i: IntArray = np.asarray(cnt, np.int64)
-    busy: IntArray = np.where(cnt_i == MAX_COUNT, 3*cnt_i + 4, 3*cnt_i + 7)
+    busy: IntArray = iterating_cycles(cnt)
     return -(-busy // num_iterators) * num_iterators      # Round up
 
 
@@ -192,13 +200,21 @@ def main() -> None:
 
     cycles = picture_cycles(hw)
     per_pixel = pixel_cycles(hw).mean()
-    iterating = np.where(hw == MAX_COUNT, 3*hw + 4, 3*hw + 7).mean()
+    iterating = iterating_cycles(hw).mean()
     print(f"Average count {hw.mean():.1f}, i.e. {iterating:.0f} clock cycles "
           f"per pixel for the iterator, and {per_pixel:.0f} clock cycles per "
           f"pixel including the time waiting for the result to be accepted")
     print(f"Estimated time for the picture: {cycles} clock cycles "
           f"({cycles / 2**11:.0f} x 2^11), i.e. {cycles / MAIN_CLOCK_KHZ:.2f} ms "
           f"at {MAIN_CLOCK_KHZ / 1000:.3f} MHz")
+    # The waiting time is the time from the end of the iteration until the
+    # result is accepted. The wait counters, which have been removed from the
+    # design, counted 2 clock cycles more for each pixel, in units of 2^11.
+    waiting = int((pixel_cycles(hw) - iterating_cycles(hw)).sum())
+    print(f"Estimated total waiting time: {waiting} clock cycles "
+          f"({waiting / 2**11:.0f} x 2^11), i.e. {waiting / hw.size:.0f} clock "
+          f"cycles per pixel. The wait counters would have shown "
+          f"{(waiting + 2*hw.size) // 2**11} x 2^11")
 
     if args == ["--png"]:
         from PIL import Image

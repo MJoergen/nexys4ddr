@@ -649,11 +649,16 @@ finished. A single picture column through the middle of the set takes up to
 time. The model gives 472\*2^11 clock cycles for the picture, the same as
 measured.
 
-The model gives a total waiting time of 28896\*2^11 clock cycles, i.e. 192
-clock cycles per pixel on average. The wait counter of a column module counts
-2 clock cycles more for each pixel. With these 2 clock cycles for each of the
-307200 pixels, the expected value on the LEDs is 29196 (0x720C), exactly the
-measured value.
+The model gives a total waiting time of 59,179,719 clock cycles, i.e.
+28896\*2^11 clock cycles, or about 193 clock cycles per pixel on average. The
+wait counter of a column module counted 2 clock cycles more for each pixel.
+With these 2 clock cycles for each of the 307200 pixels, the expected value on
+the LEDs was 29196 (0x720C), exactly the measured value. The wait counters have
+been removed from the design, so the model is now the way to get this value:
+`sim/model.py` prints both numbers (the total waiting time, and the value the
+wait counters would have shown). Like the time for the picture, the waiting
+time was last measured on the board before the schedulers and the done flag
+were pipelined.
 
 The wait counter counts from 3 clock cycles after the result is ready until
 the clock cycle before the acknowledge reaches the column module. When the
