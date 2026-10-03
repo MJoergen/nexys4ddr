@@ -42,6 +42,9 @@ architecture rtl of column is
    signal res_data_s   : std_logic_vector( 8 downto 0);
    signal res_valid_s  : std_logic;
    signal res_addr_r   : std_logic_vector( 8 downto 0);
+   -- High when res_addr_r is the last row. It is a register, so the check
+   -- for the last row is not in the paths to res_addr_r and res_cy_r.
+   signal res_last_r   : std_logic;
 
    signal job_busy_r   : std_logic;
 
@@ -76,15 +79,22 @@ begin
             res_cy_r    <= job_starty_i;
             res_start_r <= '1';
             res_addr_r  <= (others => '0');
+            res_last_r  <= '0';
+            if G_NUM_ROWS = 1 then
+               res_last_r <= '1';
+            end if;
          end if;
 
          if res_valid_s = '1' and res_ack_i = '1' and
-            res_start_r = '0' and
-            res_addr_r + 1 /= G_NUM_ROWS
+            res_start_r = '0' and res_last_r = '0'
          then
             res_addr_r  <= res_addr_r + 1;
             res_cy_r    <= res_cy_r + job_stepy_i;
             res_start_r <= '1';
+            res_last_r  <= '0';
+            if to_integer(res_addr_r) = G_NUM_ROWS-2 then
+               res_last_r <= '1';
+            end if;
          end if;
       end if;
    end process p_fsm;
@@ -93,7 +103,7 @@ begin
    p_job_done : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if res_valid_s = '1' and res_addr_r + 1 = G_NUM_ROWS and
+         if res_valid_s = '1' and res_last_r = '1' and
             res_start_r = '0' and res_ack_i = '1'
          then
             job_busy_r <= '0';

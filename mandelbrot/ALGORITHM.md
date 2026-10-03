@@ -363,10 +363,18 @@ picture column) is sent to it.
 A separate scheduler module is used to send jobs to the different column
 modules. Currently, the scheduler operates in a round-robin fashion. This
 potentially may give a delay up to 240 clock cycles before an idle column module
-is given a job, i.e. 1.4 us at 177.78 MHz. The column modules wait in
+is given a job, i.e. 1.2 us at 195.92 MHz. The column modules wait in
 parallel, and with 640 jobs and 240 column modules, each column module gets
 fewer than three jobs on average. So the delay adds only a few microseconds to
-the time for a picture, which is about 5.4 ms. This delay is negligible.
+the time for a picture, which is about 4.9 ms. This delay is negligible.
+
+The scheduler ([`src/scheduler.vhd`](src/scheduler.vhd)) has a counter that
+goes round all the column modules, one per clock cycle, and selects a column
+module when the counter reaches it and it is idle. Selecting the busy flag of
+one of the 240 column modules in a single clock cycle is too slow, so it is
+done in two steps: first, in each group of 16 column modules, the busy flag at
+the position of the counter in the group is registered, and in the next clock
+cycle the flag of the group of the counter is used.
 
 The column modules are spread over the whole FPGA, so the signals that go from
 the dispatcher to all of them have long routes. To keep each route shorter,
@@ -386,8 +394,14 @@ column module and written to the display memory. The column module keeps its
 result until it has seen the acknowledge, so the result is still there when
 its group selects it. Because of the extra registers, the scheduler sees that
 a column module is busy (with a job, or with a result that has been accepted)
-four clock cycles after it has selected it, so the dispatcher needs at least
-four column modules.
+five clock cycles after it has sampled its busy flag and selected it, so the
+dispatcher needs at least five column modules.
+
+The done flag (done\_o) needs to know that all 240 column modules are idle. The
+busy flags are first combined in each group of 16 column modules, in a
+register, and then the 15 groups are combined. The done flag is not set while
+a job has just been started, until the busy flag of the column module has
+reached the register of its group.
 
 The dispatcher has a self-checking testbench
 ([`sim/dispatcher_tb.vhd`](sim/dispatcher_tb.vhd)). It calculates two small
@@ -403,9 +417,10 @@ column, i.e. with fewer picture columns than column modules, which is a special
 case for done\_o. The simulation takes about 10 seconds.
 
 The scheduler has a small self-checking testbench
-([`sim/scheduler_tb.vhd`](sim/scheduler_tb.vhd)). It checks that nothing is
-started when the scheduler is not active or when everything is busy, that each
-idle process is started once per round and busy processes never, that the
+([`sim/scheduler_tb.vhd`](sim/scheduler_tb.vhd)), with 21 processes, i.e. two
+groups, where the second one is smaller. It checks that nothing is started
+when the scheduler is not active or when everything is busy, that each idle
+process is started once per round and busy processes never, that the
 processes are started in round-robin order, and that reset restarts the
 scheduler from the first process.
 
@@ -414,7 +429,7 @@ The top level ([`src/mandelbrot.vhd`](src/mandelbrot.vhd)) instantiates the
 clock and reset generation ([`src/clk_rst.vhd`](src/clk_rst.vhd)) and the
 display memory, and splits the rest of the design into one module for each
 clock domain:
-* [`src/main.vhd`](src/main.vhd) runs in the MAIN clock domain (177.78 MHz).
+* [`src/main.vhd`](src/main.vhd) runs in the MAIN clock domain (195.92 MHz).
   It handles the buttons and switches, controls the dispatcher, writes the
   results to the display memory, and drives the LEDs.
 * [`src/vga.vhd`](src/vga.vhd) runs in the VGA clock domain (25 MHz). It
@@ -472,7 +487,7 @@ and rows (640 and 480).
 
 The view is controlled by the module [`src/view.vhd`](src/view.vhd). It is
 updated at a fixed rate, which is given by a counter of 23 bits in `main.vhd`.
-At 177.78 MHz this is once every 47 ms, i.e. about 21 times per second. At
+At 195.92 MHz this is once every 43 ms, i.e. about 23 times per second. At
 each update, the following happens, depending on the buttons that are held
 down:
 * `BTNC`: Zoom. The values of stepx and stepy are both decreased by 1/64 of
@@ -534,15 +549,15 @@ time) costs a lot of resources, so it is only there when C\_WAIT\_STAT is true,
 and the default is false. Then the LEDs always show the first value (the time
 for the picture), whatever switch 1 is. The values are latched at the
 end of a picture, because the picture is recalculated continuously (about
-every 5.4 ms), so the counters themselves change too fast to be read.
+every 4.9 ms), so the counters themselves change too fast to be read.
 * If switch 1 is on, the LEDs show the time taken by the picture. A counter
   counts clock cycles while a picture is being calculated, and it is cleared
   when the next picture is started. At the end of the picture, bits 26 to 11
   of the counter are latched. A single step on the LEDs is therefore 2^11 clock
-  cycles, which is 11.52 us, and the value wraps around after 0.75 seconds.
+  cycles, which is 10.45 us, and the value wraps around after 0.69 seconds.
 * If switch 1 is off, and the constant C\_WAIT\_STAT in `main.vhd` is true,
   the LEDs show the total waiting time of all the column modules during a
-  picture, averaged over 64 pictures (about 0.35 seconds for
+  picture, averaged over 64 pictures (about 0.32 seconds for
   the initial view). The wait counter of a column module counts the
   clock cycles that the module has to wait for its result to be accepted, in
   the same unit of 2^11 clock cycles. The wait counters are only cleared by
@@ -619,11 +634,14 @@ values are shown on the LEDs, see [The top level](#the-top-level).
 The numbers measured on the board, with the main clock at 174.55 MHz, the
 waiting-time statistic built in, and the initial view, are:
 * The time for the picture (switch 1 on): 0x01D8 = 472, i.e. 472\*2^11 clock
-  cycles, which was 5.5 ms at 174.55 MHz, and is 5.4 ms (about 184 pictures
-  per second) at the current 177.78 MHz. This value is steady. The same
-  number of clock cycles was measured with the main clock at
+  cycles, which was 5.5 ms at 174.55 MHz, and would be 4.9 ms (about 200
+  pictures per second) at the current 195.92 MHz. This value is steady. The
+  same number of clock cycles was measured with the main clock at
   140.625 MHz (6.9 ms), before the clock was raised (see
-  [Resources and timing closure](#resources-and-timing-closure)).
+  [Resources and timing closure](#resources-and-timing-closure)). It has not
+  been measured since the schedulers and the done flag were pipelined (see
+  [Dispatcher](#dispatcher)), which adds a clock cycle to the time from a
+  result of a column module to its next result.
 * The waiting time of all the column modules (switch 1 off): 0x720C = 29196,
   i.e. 29196\*2^11 clock cycles in total, which is about a quarter of the
   time of each column module. Before the value was averaged over 64 pictures,
@@ -649,7 +667,7 @@ For the initial view the average count is 151, so the iterator needs 460 clock
 cycles per pixel on average, but each pixel takes 652 clock cycles on average,
 including the waiting. The picture is finished when the last column module is
 finished. A single picture column through the middle of the set takes up to
-0.73 million clock cycles (4.1 ms), so these picture columns decide the total
+0.73 million clock cycles (3.7 ms), so these picture columns decide the total
 time. The model gives 472\*2^11 clock cycles for the picture, the same as
 measured.
 
@@ -672,7 +690,7 @@ on the delay of the acknowledge. Neither does the time for the picture, because 
 one result of a column module to the next is still rounded up to the same
 multiple of 240 clock cycles.
 
-Without the waiting, the picture would take about 3.3 ms (if the work was
+Without the waiting, the picture would take about 3.0 ms (if the work was
 spread evenly over the column modules).
 
 Similar values (472\*2^11 clock cycles for the picture, and 28642\*2^11 clock
@@ -686,31 +704,31 @@ This could be improved by accepting a result as soon as it is ready, e.g.
 with a priority encoder ([`src/priority_pipeline.vhd`](src/priority_pipeline.vhd)
 is a pipelined version of one) instead of the round-robin scheduler, or by
 storing a few results in each column module, so the iterator can continue with
-the next row while it waits. At this speed (about 184 pictures per second) it
+the next row while it waits. At this speed (about 200 pictures per second) it
 does not matter much, though.
 
 ## Resources and timing closure
 The numbers below come from a successful run of `make vivado` (Vivado 2025.1,
 part xc7a100tcsg324-1, i.e. speed grade -1) with the default settings, i.e.
 without the waiting-time statistic (C\_WAIT\_STAT false, see
-[The top level](#the-top-level)), which meets timing with a 177.78 MHz main
+[The top level](#the-top-level)), which meets timing with a 195.92 MHz main
 clock.
 
 | Resource         | Used     | Available | Used (%)
 | ---------------- | -------- | --------- | --------
 | DSP48E1          | 240      | 240       | 100
 | Block RAM        | 128 RAMB36 + 1 RAMB18 | 135 RAMB36 | about 95
-| Slices           | 12,602   | 15,850    | 80
-| LUTs             | 36,261   | 63,400    | 57
-| Registers        | 34,937   | 126,800   | 28
+| Slices           | 12,789   | 15,850    | 81
+| LUTs             | 37,119   | 63,400    | 59
+| Registers        | 38,053   | 126,800   | 30
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
 The resource numbers are from `report_utilization` on the routed design
 (`mandelbrot.dcp`), and the available numbers are the totals for the XC7A100T.
-Most of the slices are used, even though only 57% of the LUTs are used.
+Most of the slices are used, even though only 59% of the LUTs are used.
 
 The "Report Cell Usage" table in `vivado.log` gives the cell counts after
-synthesis instead: 49,160 LUT cells (LUT1 to LUT6) and 34,293 registers (FDRE
+synthesis instead: 49,846 LUT cells (LUT1 to LUT6) and 34,597 registers (FDRE
 and FDSE cells). The number of LUT cells is larger than the number of LUTs
 used, because two small LUT cells can share one LUT (the placer does this, e.g.
 "LUT Combining" in `phys_opt_design`). There are more registers after
@@ -746,34 +764,37 @@ The timing after routing is:
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.081 ns (TNS 0)
-| Hold (WHS)  | +0.012 ns (THS 0)
+| Setup (WNS) | +0.132 ns (TNS 0)
+| Hold (WHS)  | +0.014 ns (THS 0)
 
 These are the values from `report_timing_summary` on the routed design
 (`mandelbrot.dcp`), after the post-route `phys_opt_design`.
 
-The timing is met for all clocks. The 177.78 MHz main clock (period 5.63 ns)
+The timing is met for all clocks. The 195.92 MHz main clock (period 5.10 ns)
 is generated from the 100 MHz input clock by the MMCM: it is multiplied by 12,
-which gives 1200 MHz (the maximum for speed grade -1), and divided by 6.75.
+which gives 1200 MHz (the maximum for speed grade -1), and divided by 6.125.
 The main clock uses the output CLKOUT0 of the MMCM, because it is the only
 output with a fractional divider. The only constraint in `mandelbrot.xdc` is
 the 100 MHz input clock. The MMCM also generates the 25 MHz VGA clock (divided
 by 48). The two clocks only meet in the display memory, so there are no timing
 paths between them.
 
-At this frequency, the critical paths are mostly logic, not only routing:
-* The done flag of the dispatcher (from the busy flags of all the 240 column
-  modules to `done_r`), with 22 levels of logic and +0.081 ns of slack.
-* The next row in the column modules (from `res_addr_r` through the check for
-  the last row to `res_cy_r`), with 8 levels of logic.
-* The selection of the column module in the schedulers (from the counter
-  `cnt_r` through the 240-to-1 multiplexer of the busy flags to
-  `job_idx_start_r`), with 5 or 6 levels of logic.
-* The reset from the top level to the view control and the schedulers, and the
-  routes from the registers in the groups to the column modules.
-All of these have less than 0.26 ns of slack. To go faster, the first three
-would have to be pipelined (at 192 MHz, the next row and the schedulers fail
-timing).
+At this frequency, the critical paths are in the iterators, and in the column
+modules around them:
+* From x\_r and y\_r through the additions x+y and x-y and the selection of
+  the inputs of the multiplier to the input registers of the DSP, with 6 or 7
+  levels of logic and +0.132 ns of slack.
+* From the output of the DSP (which is not registered, see
+  [Multiplier](#multiplier)) to x\_r and to the overflow flags.
+* The next row in the column modules (to `res_cy_r`, whose clock enable
+  depends on the result of the iterator).
+* The routes from the registers in the groups to the column modules.
+To go faster, the iterator would have to be changed, e.g. by registering the
+output of the DSP, which would change the three clock cycles of an iteration.
+
+At 177.78 MHz, before the next row in the column modules, the schedulers and
+the done flag were pipelined (see [Dispatcher](#dispatcher)), these were the
+critical paths, with up to 22 levels of logic (the done flag).
 
 At 140.625 MHz, the critical paths were first the routes from single registers
 to all 240 column modules (the job, the reset, and the index of the column
@@ -828,13 +849,28 @@ tried again:
 | 192.00 MHz | -0.061 ns   | +0.007 ns
 
 The main clock was raised to 177.78 MHz, which has about the same slack as
-174.55 MHz had with the waiting-time statistic. It is 26% faster than
-140.625 MHz.
+174.55 MHz had with the waiting-time statistic.
+
+Then the next row in the column modules, the schedulers and the done flag were
+pipelined, and the frequency was tried again:
+
+| Main clock | Setup slack | Hold slack
+| ---------- | ----------- | ----------
+| 188.24 MHz | +0.027 ns   | +0.016 ns
+| 192.00 MHz | +0.064 ns   | +0.014 ns
+| 195.92 MHz | +0.132 ns   | +0.014 ns
+| 200.00 MHz | +0.003 ns   | +0.021 ns
+| 204.26 MHz | +0.001 ns   | +0.051 ns
+| 208.70 MHz | -0.075 ns   | +0.014 ns
+
+The main clock was raised to 195.92 MHz, which has more slack than the
+frequencies just below and above it. It is 39% faster than 140.625 MHz. The
+pipelining costs about 700 LUT cells and 300 registers.
 
 The complete run of `make vivado` takes about 6.5 minutes (synthesis about 2.5
 minutes, placement about 1.5 minutes, routing about 1 minute), on a machine
 with 8 threads.
 
-All 240 DSPs running at 177.78 MHz gives a peak of 43 billion multiplications per
+All 240 DSPs running at 195.92 MHz gives a peak of 47 billion multiplications per
 second. The iterator uses its multiplier in two out of three clock cycles, so
-the actual rate is about 28 billion multiplications per second.
+the actual rate is about 31 billion multiplications per second.

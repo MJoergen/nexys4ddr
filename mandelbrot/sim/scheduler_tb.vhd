@@ -15,8 +15,10 @@ end entity scheduler_tb;
 
 architecture sim of scheduler_tb is
 
-   -- Not a power of two, to test the wrap around of the counter
-   constant C_SIZE : integer := 6;
+   -- Not a power of two, to test the wrap around of the counter, and more than
+   -- 16, so there are two groups of processes (see scheduler.vhd), and the
+   -- second group is smaller.
+   constant C_SIZE : integer := 21;
 
    type count_t is array (0 to C_SIZE-1) of integer;
 
@@ -128,11 +130,11 @@ begin
 
       -- Not active: nothing is started, even if all processes are idle
       active <= '0';
-      check_mask("000000", 3, "not active");
+      check_mask((C_SIZE-1 downto 0 => '0'), 3, "not active");
 
       -- Active, and all processes idle
       active <= '1';
-      check_mask("000000", 4, "all idle");
+      check_mask((C_SIZE-1 downto 0 => '0'), 4, "all idle");
 
       -- Active, and only a single process idle
       for k in 0 to C_SIZE-1 loop
@@ -142,10 +144,14 @@ begin
       end loop;
 
       -- Two idle processes
-      check_mask("101101", 3, "processes 1 and 4 idle");
+      -- Two idle processes, one in each group
+      mask     := (others => '1');
+      mask(1)  := '0';
+      mask(17) := '0';
+      check_mask(mask, 3, "processes 1 and 17 idle");
 
       -- All processes busy
-      check_mask("111111", 3, "all busy");
+      check_mask((C_SIZE-1 downto 0 => '1'), 3, "all busy");
 
       -- Reset restarts the scheduler from the first process
       busy <= (others => '0');
@@ -159,6 +165,11 @@ begin
       wait until rising_edge(clk);
       assert valid = '0' and idx = 0
          report "Not cleared by reset"
+         severity error;
+      -- The busy flag is sampled one clock cycle before the process is started
+      wait until rising_edge(clk);
+      assert valid = '0' and idx = 0
+         report "Started too early after reset"
          severity error;
       wait until rising_edge(clk);
       assert valid = '1' and idx = 0

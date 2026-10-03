@@ -74,6 +74,9 @@ architecture rtl of dispatcher is
    signal grp_stepy_r       : value_vector(C_NUM_GROUPS-1 downto 0);
    signal job_start_d       : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal job_started_d     : std_logic;
+   signal job_started_dd    : std_logic;
+   -- High when any column module in the group is busy with a job
+   signal grp_job_busy_r    : std_logic_vector(C_NUM_GROUPS-1 downto 0);
    signal grp_rst_r         : std_logic_vector(C_NUM_GROUPS-1 downto 0);
 
    -- The index of the column module whose result is accepted, delayed by one
@@ -124,16 +127,17 @@ architecture rtl of dispatcher is
 
 begin
 
-   -- When the scheduler selects a column module, the busy flag of that column
-   -- module is seen by the scheduler four clock cycles later, both for a job
-   -- (job_busy_s, the job goes through job_start_r and job_start_d) and for a
-   -- result (res_busy_r, the acknowledge goes through grp_idx_r and
-   -- res_ack_r). The scheduler selects the same column module again
-   -- G_NUM_ITERATORS clock cycles later at the earliest. With fewer than four
-   -- column modules a job could therefore be started twice (and the first one
-   -- would be lost), or a result accepted twice.
-   assert G_NUM_ITERATORS >= 4
-      report "The dispatcher needs at least four column modules"
+   -- When the scheduler samples the busy flag of a column module and selects
+   -- it, the new busy flag of that column module is sampled by the scheduler
+   -- five clock cycles later at the earliest, both for a job (job_busy_s, the
+   -- selection goes through the scheduler, job_start_r and job_start_d) and
+   -- for a result (res_busy_r, the selection goes through the scheduler,
+   -- grp_idx_r and res_ack_r). The scheduler samples the busy flag of the
+   -- same column module again G_NUM_ITERATORS clock cycles later. With fewer
+   -- than five column modules a job could therefore be started twice (and the
+   -- first one would be lost), or a result accepted twice.
+   assert G_NUM_ITERATORS >= 5
+      report "The dispatcher needs at least five column modules"
       severity failure;
 
    p_sched_active : process (clk_i)
@@ -236,7 +240,7 @@ begin
    -- The column module takes the value of cx when it sees the start of the
    -- job, so job_start_r is delayed too. The values of starty and stepy do not
    -- change during a picture. After a start (start_i), the first job is
-   -- started (job_start_d) four clock cycles later, and by then the new values
+   -- started (job_start_d) five clock cycles later, and by then the new values
    -- have reached the column modules.
    p_grp : process (clk_i)
    begin
@@ -249,8 +253,9 @@ begin
 
          -- These need no reset, because job_start_r and job_started_r are
          -- reset, and the reset lasts more than one clock cycle.
-         job_start_d   <= job_start_r;
-         job_started_d <= job_started_r;
+         job_start_d    <= job_start_r;
+         job_started_d  <= job_started_r;
+         job_started_dd <= job_started_d;
 
          -- The column modules are reset two clock cycles after the rest of the
          -- dispatcher (they register the reset again).
@@ -384,17 +389,36 @@ begin
    end process p_wr;
 
 
+   -- The busy flags of all the column modules are combined in two steps, to
+   -- keep the paths short: first in each group (grp_job_busy_r), and then in
+   -- p_done.
+   gen_grp_job_busy : for g in 0 to C_NUM_GROUPS-1 generate
+      p_grp_job_busy : process (clk_i)
+      begin
+         if rising_edge(clk_i) then
+            grp_job_busy_r(g) <= '0';
+            for i in g*G_GROUP_SIZE to minimum((g+1)*G_GROUP_SIZE, G_NUM_ITERATORS)-1 loop
+               if job_busy_s(i) = '1' then
+                  grp_job_busy_r(g) <= '1';
+               end if;
+            end loop;
+         end if;
+      end process p_grp_job_busy;
+   end generate gen_grp_job_busy;
+
    -- The signal done_r stays high until the next start. It is cleared by the
    -- start, because otherwise the old value of done_r would stop the scheduler
    -- (see p_sched_active) just after the start. It is not set while a job has
-   -- just been started (job_started_r or job_started_d), because then the busy
-   -- flag of the column module has not been set yet.
+   -- just been started (job_started_r, job_started_d or job_started_dd),
+   -- because then the busy flag of the column module has not reached
+   -- grp_job_busy_r yet.
    p_done : process (clk_i)
    begin
       if rising_edge(clk_i) then
          done_r <= '0';
-         if cur_addr_r = G_NUM_COLS and job_busy_s = 0 and
-            job_started_r = '0' and job_started_d = '0' and start_i = '0'
+         if cur_addr_r = G_NUM_COLS and grp_job_busy_r = 0 and
+            job_started_r = '0' and job_started_d = '0' and
+            job_started_dd = '0' and start_i = '0'
          then
             done_r <= '1';
          end if;
