@@ -122,6 +122,26 @@ imaginary values cx and cy). It then iterates the Mandelbrot function a number
 of times and stops when either the maximum iteration count is reached, or an
 overflow occurs.
 
+The inputs to this block are: start\_i, cx\_i, and cy\_i. Outputs are done\_o
+and cnt\_o. The values of cx\_i and cy\_i must be held constant for the entire
+calculation. The signal start\_i is pulsed high for a single clock cycle. The
+signal done\_o goes high when the calculation is finished, and stays high, with
+cnt\_o unchanged, until the next start\_i.
+
+Example: We start with the point -1+0.5i, i.e. cx = -1 and cy = 0.5. The
+expected sequence of points is then:
+```
+cnt |   x           |   y
+----+---------------+---------------
+ 0  |  0    (00000) |  0    (00000)
+ 1  | -1    (30000) |  0.5  (08000)
+ 2  | -0.25 (3C000) | -0.5  (38000)
+ 3  | -1.19 (2D000) |  0.75 (0C000)
+ 4  | -0.15 (3D900) | -1.28 (2B800)
+```
+The values in the parentheses are the (2.16 fixed point) hexadecimal
+representation of the real numbers.
+
 The testbench for the iterator ([`sim/iterator_tb.vhd`](sim/iterator_tb.vhd))
 is self-checking. It runs a few starting values (in the set, escaping
 immediately, escaping quickly, and escaping slowly), and compares the count
@@ -217,26 +237,6 @@ For the initial view, the detection stops 78161 of the 87175 pixels in the set
 early, and the iterator needs 132 clock cycles per pixel on average, instead
 of 460. The rest of the pixels in the set (near the edge of the set) do not
 reach a cycle within 511 iterations.
-
-The inputs to this block are: start\_i, cx\_i, and cy\_i. Outputs are done\_o
-and cnt\_o. The values of cx\_i and cy\_i must be held constant for the entire
-calculation. The signal start\_i is pulsed high for a single clock cycle. The
-signal done\_o goes high when the calculation is finished, and stays high, with
-cnt\_o unchanged, until the next start\_i.
-
-Example: We start with the point -1+0.5i, i.e. cx = -1 and cy = 0.5. The
-expected sequence of points is then:
-```
-cnt |   x           |   y
-----+---------------+---------------
- 0  |  0    (00000) |  0    (00000)
- 1  | -1    (30000) |  0.5  (08000)
- 2  | -0.25 (3C000) | -0.5  (38000)
- 3  | -1.19 (2D000) |  0.75 (0C000)
- 4  | -0.15 (3D900) | -1.28 (2B800)
-```
-The values in the parentheses are the (2.16 fixed point) hexadecimal
-representation of the real numbers.
 
 ### Overflow
 The iteration stops when the new value of x or y is outside the range -2 to 2
