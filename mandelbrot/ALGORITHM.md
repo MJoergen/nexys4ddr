@@ -1114,6 +1114,39 @@ The complete run of `make nexys4ddr` takes about 6.5 minutes (synthesis about 2.
 minutes, placement about 1.5 minutes, routing about 1 minute), on a machine
 with 8 threads.
 
+### MEGA65 R6
+The MEGA65 R6 has an XC7A200T with speed grade -2 (part xc7a200tfbg484-2), and
+the design uses 450 column modules (see
+[`src/mega65_r6.vhd`](src/mega65_r6.vhd)), with the same 188.24 MHz main
+clock. A run of `make mega65-r6` gives:
+
+| Resource         | Used     | Available | Used (%)
+| ---------------- | -------- | --------- | --------
+| DSP48E1          | 450      | 740       | 61
+| Block RAM        | 128 RAMB36 + 2 RAMB18 | 365 RAMB36 | 35
+| Slices           | 26,233   | 33,650    | 78
+| LUTs             | 77,580   | 134,600   | 58
+| Registers        | 77,326   | 269,200   | 29
+
+| Check | Slack
+| ----- | -----
+| Setup (WNS) | +0.178 ns (TNS 0)
+| Hold (WHS)  | +0.023 ns (THS 0)
+
+After synthesis there are 102,755 LUT cells and 77,220 registers. The worst
+setup path is in the scheduler for the jobs (from the counter `cnt_r` to
+`grp_busy_r`, 2 levels of logic, 85% of the delay is routing). The 40 paths
+from the MAIN clock to the VGA clock are reported as safe by `report_cdc`. The
+run takes about 11.5 minutes (with the Nexys 4 DDR build running at the same
+time).
+
+With 450 column modules the model gives 339741 clock cycles for the initial
+view, i.e. 1.80 ms at 188.24 MHz (about 554 pictures per second), only 2%
+faster than with 240 column modules. The display memory is then written in 90%
+of the clock cycles, so the time for the picture is decided by the write port
+of the display memory (at least 307200 clock cycles, see [Timing](#timing)),
+not by the number of column modules.
+
 All 240 DSPs running at 188.24 MHz gives a peak of 45 billion multiplications per
 second. The iterator uses its multiplier in two out of three clock cycles, so
 the actual rate is about 30 billion multiplications per second.

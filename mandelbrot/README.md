@@ -35,16 +35,18 @@ the multiplier, the iterator (including how overflow is detected), the columns,
 the dispatcher, and the timing and resource usage.
 
 ## Implementation results
-The design is built with Vivado 2025.1 and meets timing at the 188.24 MHz main
-clock (setup slack +0.092 ns, hold slack +0.014 ns). The resources used are:
+The design is built with Vivado 2025.1, and meets timing at the 188.24 MHz main
+clock on both boards. The resources used are:
 
-| Resource  | Used                  | Available
-| --------- | --------------------- | ---------
-| DSP48E1   | 240                   | 240
-| Block RAM | 128 RAMB36 + 2 RAMB18 | 135 RAMB36
-| Slices    | 14,723                | 15,850
-| LUTs      | 42,252                | 63,400
-| Registers | 45,018                | 126,800
+| Resource    | Nexys 4 DDR (XC7A100T-1) | Available | MEGA65 R6 (XC7A200T-2) | Available
+| ----------- | ------------------------ | --------- | ---------------------- | ---------
+| DSP48E1     | 240                      | 240       | 450                    | 740
+| Block RAM   | 128 RAMB36 + 2 RAMB18    | 135 RAMB36 | 128 RAMB36 + 2 RAMB18 | 365 RAMB36
+| Slices      | 14,723                   | 15,850    | 26,233                 | 33,650
+| LUTs        | 42,252                   | 63,400    | 77,580                 | 134,600
+| Registers   | 45,018                   | 126,800   | 77,326                 | 269,200
+| Setup slack | +0.092 ns                |           | +0.178 ns              |
+| Hold slack  | +0.014 ns                |           | +0.023 ns              |
 
 See [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details.
@@ -120,7 +122,10 @@ connector.
 The colour palette is always palette 0, and the frame rate is only shown on the
 VGA output.
 The XC7A200T is larger, so the design uses 450 column modules (DSPs) instead
-of 240, see [`src/mega65_r6.vhd`](src/mega65_r6.vhd).
+of 240, see [`src/mega65_r6.vhd`](src/mega65_r6.vhd). This makes the picture
+only slightly faster (about 1.80 ms instead of 1.84 ms, estimated by the
+model), because the display memory can only take one result per clock cycle,
+see [Timing](ALGORITHM.md#timing).
 
 ## Running
 Type `make` to list the supported targets. The most important ones are:
