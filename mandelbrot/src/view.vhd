@@ -18,16 +18,18 @@ use ieee.numeric_std_unsigned.all;
 -- * The right (bottom) edge, i.e. the value of the last column (row), is never
 --   2 or more. Panning stops there.
 -- * The size of a pixel is at least one LSB (2^-16). Zooming in stops there.
--- * Zooming keeps the top left corner fixed. When zooming out would move the
---   right (bottom) edge out of range, the view is moved left (up) instead, so
---   the edge stays at the end of the range. Zooming out stops when the view
---   can not get any larger.
+-- * Zooming keeps the centre of the picture fixed, i.e. the pixel in column
+--   G_NUM_COLS/2 and row G_NUM_ROWS/2 (just right of and below the centre of
+--   the screen) shows the same point before and after the zoom. When zooming
+--   out would move an edge out of range, the view is moved instead, so the
+--   edge stays at the end of the range. Zooming out stops when the view can
+--   not get any larger.
 --
 -- Internally the positions are handled in offset binary, i.e. as the value
 -- plus 2, which is in the range 0 to 4. This is the 2.16 value with the sign
 -- bit inverted, interpreted as an unsigned number.
 --
--- The update is calculated over several clock cycles (15), one small
+-- The update is calculated over several clock cycles (17), one small
 -- step at a time, because all of it in a single clock cycle is far too slow
 -- for the MAIN clock. The outputs are all changed at the same time, at the
 -- end of the update. Pulses on upd_i during an update are ignored.
@@ -67,6 +69,10 @@ architecture rtl of view is
    constant C_MAX_STEPX : natural := C_MAX_POS / (G_NUM_COLS-1);
    constant C_MAX_STEPY : natural := C_MAX_POS / (G_NUM_ROWS-1);
 
+   -- The column and row of the pixel that is kept fixed when zooming
+   constant C_CENTRE_X  : natural := G_NUM_COLS/2;
+   constant C_CENTRE_Y  : natural := G_NUM_ROWS/2;
+
    -- Inverts the sign bit, to convert between 2.16 and offset binary
    constant C_SIGN      : std_logic_vector(17 downto 0) := "10" & X"0000";
 
@@ -88,7 +94,8 @@ architecture rtl of view is
    constant C_INIT_STEPY  : std_logic_vector(17 downto 0) :=
       to_std_logic_vector(maximum(0, minimum(C_INIT_DY, 2**18-1)), 18);
 
-   type t_state is (IDLE_ST, ZOOM_ST, STEP_ST, PAN_ST, MULT_ST, CLAMP_ST);
+   type t_state is (IDLE_ST, ZOOM_ST, STEP_ST, PREP_ST, MULT_ST, CENTRE_ST,
+                    PAN_ST, CLAMP_ST);
    signal state  : t_state := IDLE_ST;
 
    -- The outputs
@@ -108,6 +115,7 @@ architecture rtl of view is
    signal deltay   : std_logic_vector(18 downto 0);
    signal zoomx    : std_logic_vector(18 downto 0);  -- Size of a pixel after zooming
    signal zoomy    : std_logic_vector(18 downto 0);
+   signal zoomed   : std_logic;                      -- The size has been changed
 
    -- Serial multiplication by the constant number of columns (rows) minus one,
    -- one bit of the constant per clock cycle. The product is subtracted from
@@ -121,6 +129,18 @@ architecture rtl of view is
    signal ky       : std_logic_vector(10 downto 0);
    signal limx     : std_logic_vector(28 downto 0);
    signal limy     : std_logic_vector(28 downto 0);
+
+   -- Serial multiplication of the change of the size of a pixel (deltax) by
+   -- the column (row) of the centre, at the same time as the one above. This
+   -- gives the distance the first column (row) must move, to keep the centre
+   -- fixed when zooming. This is small: deltax is at most C_MAX_STEPX/64+1, so
+   -- offx is less than 2^18.
+   signal multdx   : std_logic_vector(18 downto 0);
+   signal multdy   : std_logic_vector(18 downto 0);
+   signal kcx      : std_logic_vector(10 downto 0);
+   signal kcy      : std_logic_vector(10 downto 0);
+   signal offx     : std_logic_vector(18 downto 0);
+   signal offy     : std_logic_vector(18 downto 0);
 
 begin
 
@@ -177,12 +197,86 @@ begin
 
             when STEP_ST =>
                -- Zoom. This is only done if the new view fits in the range.
+               zoomed <= '0';
                if btn(4) = '1' and
                   zoomx >= C_MIN_STEP and zoomy >= C_MIN_STEP and
                   zoomx <= C_MAX_STEPX and zoomy <= C_MAX_STEPY
                then
-                  dx <= zoomx(17 downto 0);
-                  dy <= zoomy(17 downto 0);
+                  dx     <= zoomx(17 downto 0);
+                  dy     <= zoomy(17 downto 0);
+                  zoomed <= '1';
+               end if;
+               state <= PREP_ST;
+
+            when PREP_ST =>
+               -- Prepare the multiplications
+               multx  <= "00000000000" & dx;
+               multy  <= "00000000000" & dy;
+               kx     <= to_std_logic_vector(G_NUM_COLS-1, 11);
+               ky     <= to_std_logic_vector(G_NUM_ROWS-1, 11);
+               limx   <= to_std_logic_vector(C_MAX_POS, 29);
+               limy   <= to_std_logic_vector(C_MAX_POS, 29);
+               multdx <= deltax;
+               multdy <= deltay;
+               kcx    <= to_std_logic_vector(C_CENTRE_X, 11);
+               kcy    <= to_std_logic_vector(C_CENTRE_Y, 11);
+               offx   <= (others => '0');
+               offy   <= (others => '0');
+               state  <= MULT_ST;
+
+            when MULT_ST =>
+               -- Calculate limx = C_MAX_POS - dx*(G_NUM_COLS-1), and the same
+               -- for y. This is never negative, because dx is at most
+               -- C_MAX_STEPX.
+               if kx(0) = '1' then
+                  limx <= limx - multx;
+               end if;
+               if ky(0) = '1' then
+                  limy <= limy - multy;
+               end if;
+               multx <= multx(27 downto 0) & "0";
+               multy <= multy(27 downto 0) & "0";
+               kx    <= "0" & kx(10 downto 1);
+               ky    <= "0" & ky(10 downto 1);
+
+               -- Calculate offx = deltax*C_CENTRE_X, and the same for y
+               if kcx(0) = '1' then
+                  offx <= offx + multdx;
+               end if;
+               if kcy(0) = '1' then
+                  offy <= offy + multdy;
+               end if;
+               multdx <= multdx(17 downto 0) & "0";
+               multdy <= multdy(17 downto 0) & "0";
+               kcx    <= "0" & kcx(10 downto 1);
+               kcy    <= "0" & kcy(10 downto 1);
+
+               if kx = 0 and ky = 0 and kcx = 0 and kcy = 0 then
+                  state <= CENTRE_ST;
+               end if;
+
+            when CENTRE_ST =>
+               -- Keep the centre fixed when zooming: When the size of a pixel
+               -- decreases by deltax (zoom in), the first column moves right
+               -- by deltax*C_CENTRE_X, and the other way around (zoom out). It
+               -- is never moved to before the start of the range. The right
+               -- (bottom) edge is checked at the end.
+               if zoomed = '1' then
+                  if zoom_out = '0' then
+                     posx <= posx + offx;
+                     posy <= posy + offy;
+                  else
+                     if posx >= offx then
+                        posx <= posx - offx;
+                     else
+                        posx <= (others => '0');
+                     end if;
+                     if posy >= offy then
+                        posy <= posy - offy;
+                     else
+                        posy <= (others => '0');
+                     end if;
+                  end if;
                end if;
                state <= PAN_ST;
 
@@ -208,34 +302,7 @@ begin
                      posy <= (others => '0');
                   end if;
                end if;
-
-               -- Prepare the multiplication
-               multx <= "00000000000" & dx;
-               multy <= "00000000000" & dy;
-               kx    <= to_std_logic_vector(G_NUM_COLS-1, 11);
-               ky    <= to_std_logic_vector(G_NUM_ROWS-1, 11);
-               limx  <= to_std_logic_vector(C_MAX_POS, 29);
-               limy  <= to_std_logic_vector(C_MAX_POS, 29);
-               state <= MULT_ST;
-
-            when MULT_ST =>
-               -- Calculate limx = C_MAX_POS - dx*(G_NUM_COLS-1), and the same
-               -- for y. This is never negative, because dx is at most
-               -- C_MAX_STEPX.
-               if kx(0) = '1' then
-                  limx <= limx - multx;
-               end if;
-               if ky(0) = '1' then
-                  limy <= limy - multy;
-               end if;
-               multx <= multx(27 downto 0) & "0";
-               multy <= multy(27 downto 0) & "0";
-               kx    <= "0" & kx(10 downto 1);
-               ky    <= "0" & ky(10 downto 1);
-
-               if kx = 0 and ky = 0 then
-                  state <= CLAMP_ST;
-               end if;
+               state <= CLAMP_ST;
 
             when CLAMP_ST =>
                -- Keep the right and bottom edges in range. This is needed after

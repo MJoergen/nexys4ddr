@@ -7,7 +7,9 @@ use ieee.numeric_std.all;
 -- * The view is inside the range -2 to 2 (not including 2): The first column
 --   (row) is at least -2, and the last column (row) is less than 2.
 -- * The size of a pixel is at least one LSB, and the same in both directions.
--- * The new view is the expected one, calculated by a simple model.
+-- * The new view is the expected one, calculated by a simple model. Zooming
+--   keeps the centre fixed (the pixel in column C_CENTRE_X and row
+--   C_CENTRE_Y), unless the view is moved to keep it inside the range.
 -- * The outputs all change in the same clock cycle.
 -- It also checks the initial view, that panning and zooming reach the ends of
 -- the range and stop there (also when starting from the other end), and that a
@@ -21,6 +23,10 @@ architecture simulation of view_tb is
 
    constant C_NUM_COLS : integer := 640;
    constant C_NUM_ROWS : integer := 480;
+
+   -- The column and row of the pixel that is kept fixed when zooming
+   constant C_CENTRE_X : integer := C_NUM_COLS/2;
+   constant C_CENTRE_Y : integer := C_NUM_ROWS/2;
 
    constant C_MIN      : integer := -2**17;    -- -2
    constant C_MAX      : integer :=  2**17-1;  --  2-2^-16
@@ -100,6 +106,16 @@ begin
          return cur_view.dy;
       end function;
 
+      -- The position of the pixel that is kept fixed when zooming
+      impure function centre_x return integer is
+      begin
+         return sx + C_CENTRE_X*dx;
+      end function;
+      impure function centre_y return integer is
+      begin
+         return sy + C_CENTRE_Y*dy;
+      end function;
+
       function image (v : t_view) return string is
       begin
          return "(" & integer'image(v.sx) & ", " & integer'image(v.sy) & ", " &
@@ -143,10 +159,14 @@ begin
             then
                res.dx := zoom(v.dx, out_v);
                res.dy := zoom(v.dy, out_v);
+
+               -- Keep the centre fixed, but not before the start of the range
+               res.sx := maximum(v.sx + (v.dx - res.dx)*C_CENTRE_X, C_MIN);
+               res.sy := maximum(v.sy + (v.dy - res.dy)*C_CENTRE_Y, C_MIN);
             end if;
          end if;
-         res.sx := pan(v.sx, res.dx, C_NUM_COLS, b(2) = '1', b(3) = '1');
-         res.sy := pan(v.sy, res.dy, C_NUM_ROWS, b(0) = '1', b(1) = '1');
+         res.sx := pan(res.sx, res.dx, C_NUM_COLS, b(2) = '1', b(3) = '1');
+         res.sy := pan(res.sy, res.dy, C_NUM_ROWS, b(0) = '1', b(1) = '1');
          return res;
       end function next_view;
 
@@ -288,6 +308,9 @@ begin
          wait until rising_edge(clk);
       end procedure do_reset;
 
+      variable cx0 : integer;
+      variable cy0 : integer;
+
    begin
       do_reset;
 
@@ -302,11 +325,18 @@ begin
       -- A pulse on upd during an update is ignored
       test_second_pulse;
 
-      -- Zoom out until the view can not get larger. The top left corner is
-      -- fixed until the right edge reaches the end of the range, and then the
-      -- view moves left.
-      hold(C_BTN_C, '1', 60);
-      assert sx + (C_NUM_COLS-1)*dx = C_MAX and zoom(dx, '1')*(C_NUM_COLS-1) > C_MAX - C_MIN
+      -- Zoom in. The centre stays fixed.
+      cx0 := centre_x;
+      cy0 := centre_y;
+      hold(C_BTN_C, '0', 100);
+      assert centre_x = cx0 and centre_y = cy0 and dx < 273
+         report "Zoom in did not keep the centre fixed" severity error;
+
+      -- Zoom out until the view can not get larger. The centre is fixed until
+      -- the left edge reaches the start of the range, and then the view moves
+      -- right.
+      hold(C_BTN_C, '1', 200);
+      assert sx = C_MIN and zoom(dx, '1')*(C_NUM_COLS-1) > C_MAX - C_MIN
          report "Zoom out did not reach the full range in x" severity error;
 
       -- Pan in all directions to the ends of the range
@@ -318,15 +348,18 @@ begin
       hold(C_BTN_L, '0', 20);
       assert sx = C_MIN report "Pan left did not stop at the end" severity error;
 
-      -- Zoom in until the size of a pixel is one LSB. The top left corner is
-      -- fixed.
+      -- Zoom in until the size of a pixel is one LSB. The centre stays fixed.
+      cx0 := centre_x;
+      cy0 := centre_y;
       hold(C_BTN_C, '0', 400);
-      assert dx = 1 and dy = 1 and sx = C_MIN and sy = C_MIN
-         report "Zoom in did not stop at one LSB" severity error;
+      assert dx = 1 and dy = 1 and centre_x = cx0 and centre_y = cy0
+         report "Zoom in did not stop at one LSB, with the centre fixed" severity error;
 
       -- Pan at maximum zoom, right and down at the same time
+      cx0 := sx;
+      cy0 := sy;
       hold(C_BTN_R or C_BTN_D, '0', 200);
-      assert sx = C_MIN + 200 and sy = C_MIN + 200
+      assert sx = cx0 + 200 and sy = cy0 + 200
          report "Wrong pan at maximum zoom" severity error;
 
       -- Zoom out a little, and pan all the way to the right and bottom, both at
@@ -336,9 +369,10 @@ begin
       assert sx + (C_NUM_COLS-1)*dx = C_MAX and sy + (C_NUM_ROWS-1)*dy = C_MAX
          report "Pan right and down did not stop at the end" severity error;
 
-      -- Zoom out from the bottom right corner. The view moves left and up.
+      -- Zoom out from the bottom right corner. The view moves left and up, so
+      -- the right and bottom edges stay in range.
       hold(C_BTN_C, '1', 400);
-      assert sx + (C_NUM_COLS-1)*dx = C_MAX and zoom(dx, '1')*(C_NUM_COLS-1) > C_MAX - C_MIN
+      assert zoom(dx, '1')*(C_NUM_COLS-1) > C_MAX - C_MIN
          report "Zoom out from the right edge did not reach the full range" severity error;
 
       -- Zoom in and pan at the same time, with both left and right (right has

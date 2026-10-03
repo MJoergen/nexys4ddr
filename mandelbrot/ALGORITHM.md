@@ -427,9 +427,12 @@ each update, the following happens, depending on the buttons that are held
 down:
 * `BTNC`: Zoom. The values of stepx and stepy are both decreased by 1/64 of
   their value plus one least significant bit (zoom in), or increased by the same
-  (zoom out, if switch 2 is on). This is about 1.6% per update. The values of
-  startx and starty are not changed, so the zoom keeps the top left corner of
-  the view fixed (except at the edge of the range, see below).
+  (zoom out, if switch 2 is on). This is about 1.6% per update. The zoom keeps
+  the centre of the picture fixed: startx is moved by the change of stepx
+  times 320 (half the number of columns), and starty by the change of stepy
+  times 240, so the pixel in column 320 and row 240 (just right of and below
+  the centre of the screen) shows the same point before and after the zoom
+  (except at the edge of the range, see below).
 * `BTNL`, `BTNR`: startx is decreased or increased by stepx (`BTNR` has
   priority if both are held down).
 * `BTNU`, `BTND`: starty is decreased or increased by stepy (`BTND` has
@@ -446,20 +449,23 @@ negative. So:
 * Zooming in stops when the size of a pixel is one LSB (2^-16), i.e. the
   picture is 0.0098 wide. In practice the picture is limited by the precision
   of the calculation before this.
-* When zooming out would move the last column (row) beyond the range, the view
-  is moved left (up) instead, so the last column (row) stays at the end of the
-  range. Zooming out stops when the view can not get any larger, i.e. when it
-  covers almost the whole range from -2 to 2 in x.
+* When zooming out would move the first column (row) to before -2, or the
+  last column (row) beyond the range, the view is moved right (down) or left
+  (up) instead, so that edge stays at the end of the range. Zooming out stops
+  when the view can not get any larger, i.e. when it covers almost the whole
+  range from -2 to 2 in x.
 
 The check that the zoomed view fits is a comparison of the new size of a pixel
 with a constant, the largest size for which the view fits. The position of the
 right (bottom) edge needs the size of a pixel multiplied by the number of
-columns (rows) minus one. This is done serially with shifts and subtractions,
-one bit of the constant per clock cycle, so no DSP is used. Doing all of the
-update in a single clock cycle would be far too slow for the MAIN clock, so
-the update is done in small steps over 15 clock cycles, with at most one
-addition or comparison per step. The outputs are all changed at the end of the
-update. The new view is used when the next picture is started.
+columns (rows) minus one, and keeping the centre fixed needs the change of the
+size multiplied by 320 (240). These multiplications are done serially with
+shifts and additions or subtractions, one bit of the constant per clock cycle,
+so no DSP is used. Doing all of the update in a single clock cycle would be far
+too slow for the MAIN clock, so the update is done in small steps over 17 clock
+cycles, with at most one addition or comparison per step. The outputs are all
+changed at the end of the update. The new view is used when the next picture is
+started.
 
 The view control has a self-checking testbench
 ([`sim/view_tb.vhd`](sim/view_tb.vhd)). It holds the buttons down for many
@@ -467,9 +473,10 @@ updates, and checks after every update that the view is inside the range, that
 the size of a pixel is at least one LSB, that the view is the one expected
 from a simple model, and that the outputs all change in the same clock cycle.
 It also checks that panning and zooming reach the ends of the range and stop
-there, and that a pulse on upd\_i during an update (which takes 15 clock
-cycles) is ignored, but one just after the update is not. The initial view is
-checked when the design is elaborated: it must be inside the range too.
+there, that zooming in keeps the centre exactly fixed, and that a pulse on
+upd\_i during an update (which takes 17 clock cycles) is ignored, but one just
+after the update is not. The initial view is checked when the design is
+elaborated: it must be inside the range too.
 
 **The LEDs.** The LEDs show one of two values for the most recently finished
 picture. The values are latched at the end of each picture, because the
