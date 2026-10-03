@@ -687,33 +687,40 @@ the next row while it waits. At this speed (about 180 pictures per second) it
 does not matter much, though.
 
 ## Resources and timing closure
-The numbers below come from a build with the waiting-time statistic enabled
-(C\_WAIT\_STAT true, see [The top level](#the-top-level)), which is now off by
-default, so a build with the default settings uses fewer registers and LUTs.
-They come from a successful run of `make vivado` (Vivado 2025.1,
-part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
-174.55 MHz main clock.
+The numbers below come from a successful run of `make vivado` (Vivado 2025.1,
+part xc7a100tcsg324-1, i.e. speed grade -1) with the default settings, i.e.
+without the waiting-time statistic (C\_WAIT\_STAT false, see
+[The top level](#the-top-level)), which meets timing with a 174.55 MHz main
+clock.
 
 | Resource         | Used     | Available | Used (%)
 | ---------------- | -------- | --------- | --------
 | DSP48E1          | 240      | 240       | 100
 | Block RAM        | 128 RAMB36 + 1 RAMB18 | 135 RAMB36 | about 95
-| Slices           | 14,789   | 15,850    | 93
-| LUTs             | 40,542   | 63,400    | 64
-| Registers        | 46,345   | 126,800   | 37
+| Slices           | 12,503   | 15,850    | 79
+| LUTs             | 36,248   | 63,400    | 57
+| Registers        | 34,689   | 126,800   | 27
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
 The resource numbers are from `report_utilization` on the routed design
 (`mandelbrot.dcp`), and the available numbers are the totals for the XC7A100T.
-Most of the slices are used, even though only 64% of the LUTs are used.
+Most of the slices are used, even though only 57% of the LUTs are used.
 
 The "Report Cell Usage" table in `vivado.log` gives the cell counts after
-synthesis instead: 53,386 LUT cells (LUT1 to LUT6) and 44,493 registers (FDRE
+synthesis instead: 49,160 LUT cells (LUT1 to LUT6) and 34,293 registers (FDRE
 and FDSE cells). The number of LUT cells is larger than the number of LUTs
 used, because two small LUT cells can share one LUT (the placer does this, e.g.
 "LUT Combining" in `phys_opt_design`). There are more registers after
 routing than after synthesis, because the physical optimization replicates
 registers with a high fanout, and moves some of them (retiming).
+
+With the waiting-time statistic (C\_WAIT\_STAT true), and with only the lower
+8 bits of the count in the display memory, the design used 53,386 LUT cells and
+44,493 registers after synthesis, and 40,542 LUTs, 46,345 registers, and 14,789
+slices (93%) after routing, and the setup slack at 174.55 MHz was +0.094 ns. So
+the statistic costs about 4,200 LUT cells and 10,200 registers, mostly for the
+27-bit wait counter in each column module and the chain of adders in the
+dispatcher.
 
 Before the post-adder of the DSP was used (see [Multiplier](#multiplier)), the
 design used 61,895 LUT cells and 53,885 registers after synthesis, and 49,087
@@ -726,11 +733,9 @@ The registers that shorten the routes to the column modules and to the BRAMs
 4,600 registers and 500 LUT cells. Before they were added, the setup slack was
 +0.104 ns.
 
-These numbers are from the version where the display memory held only the
-lowest 8 bits of the count: 2^19 entries of 8 bits, i.e. 128 blocks of 36 kbit
-BRAM (each used as 4096 entries of 8 bits), as expected. It now holds all 9
-bits, which should use the same 128 BRAMs (4096 entries of 9 bits each), but
-this has not been checked with Vivado yet. The single RAMB18 is used by the dispatcher, for the table
+The display memory has 2^19 entries of 9 bits (the count), i.e. 128 blocks of
+36 kbit BRAM, each used as 4096 entries of 9 bits (with the parity bits), as
+expected. The single RAMB18 is used by the dispatcher, for the table
 `job_addr_r` that holds the picture column of each column module (240 entries
 of 10 bits).
 
@@ -738,8 +743,8 @@ The timing after routing is:
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.094 ns (TNS 0)
-| Hold (WHS)  | +0.014 ns (THS 0)
+| Setup (WNS) | +0.229 ns (TNS 0)
+| Hold (WHS)  | +0.017 ns (THS 0)
 
 These are the values from `report_timing_summary` on the routed design
 (`mandelbrot.dcp`), after the post-route `phys_opt_design`.
@@ -755,17 +760,18 @@ paths between them.
 
 At this frequency, the critical paths are mostly logic, not only routing:
 * The next row in the column modules (from `res_addr_r` through the check for
-  the last row to `res_cy_r`), with 8 levels of logic and +0.094 ns of slack.
-* The reset of the sum of the wait counters in the dispatcher.
-* The selection of the column module in the schedulers (from `cnt_r` through
-  the 240-to-1 multiplexer of the busy flags to `job_idx_start_r`), with 5
-  levels of logic.
+  the last row to `res_cy_r`), with 8 levels of logic and +0.229 ns of slack.
+* The routes from the registers that hold the job in the dispatcher to the
+  registers in the groups, and from these to the column modules.
+* The state machine and the overflow detection around the DSP in the
+  iterators.
 * The done flag of the dispatcher (from the busy flags of all the 240 column
-  modules to `done_r`), with 23 levels of logic.
-* The overflow detection and the additions around the DSP in the iterators,
-  and the routes from the registers in the groups to the column modules.
-All of these have less than 0.25 ns of slack. To go faster, they would have to
-be pipelined.
+  modules to `done_r`), with 21 levels of logic.
+* The selection of the column module in the schedulers (from the busy flags
+  through the 240-to-1 multiplexer to `job_idx_start_r`), with 5 levels of
+  logic.
+All of these have between 0.23 and 0.30 ns of slack. To go faster, they would
+have to be pipelined.
 
 At 140.625 MHz, the critical paths were first the routes from single registers
 to all 240 column modules (the job, the reset, and the index of the column
@@ -805,9 +811,11 @@ work harder when the timing is tighter, and the result of each run varies by
 about 0.1 ns. Above 174.55 MHz the result depends on luck: 177.78 MHz (and
 184.62 MHz) met timing by a few picoseconds, after the post-route physical
 optimization, but 181.13 MHz did not. So the main clock was raised to
-174.55 MHz, which is 24% faster than 140.625 MHz.
+174.55 MHz, which is 24% faster than 140.625 MHz. These builds had the
+waiting-time statistic; without it (the default), the slack at 174.55 MHz is
++0.229 ns instead of +0.094 ns.
 
-The complete run of `make vivado` takes about 6 minutes (synthesis about 2.5
+The complete run of `make vivado` takes about 6.5 minutes (synthesis about 2.5
 minutes, placement about 1.5 minutes, routing about 1 minute), on a machine
 with 8 threads.
 
