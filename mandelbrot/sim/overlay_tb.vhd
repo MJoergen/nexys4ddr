@@ -216,7 +216,7 @@ begin
    -- Change the frame rate in the middle of the overlay, in the frame before
    -- the one where it is expected. The frame rate is changed twice in frame 0,
    -- and only the last change must be shown in frame 1. The inputs are in the
-   -- VGA clock domain, as from the synchronizer in mandelbrot.vhd.
+   -- VGA clock domain, as from the synchronizer in nexys4ddr.vhd.
    p_fps : process
       procedure set_value (v : value_t) is
       begin

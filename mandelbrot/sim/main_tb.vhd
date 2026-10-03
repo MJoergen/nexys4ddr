@@ -10,7 +10,7 @@ use std.textio.all;
 -- been written.
 --
 -- The generics are the number of column modules and the number of pixels in
--- each write, by default as on the Nexys 4 DDR (mandelbrot.vhd). They can be
+-- each write, by default as on the Nexys 4 DDR (nexys4ddr.vhd). They can be
 -- set with GENERICS, e.g. GENERICS="G_NUM_ITERATORS=450 G_PIXELS=4" as on the
 -- MEGA65 R6 (mega65_r6.vhd).
 --

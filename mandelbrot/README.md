@@ -59,8 +59,8 @@ files that are in both clock domains are in [`src/`](src).
 
 | File             | Description
 | ---------------- | -----------
-| [`src/mandelbrot.vhd`](src/mandelbrot.vhd) | Top level. The ports are mapped directly to pins on the FPGA. Instantiates the clock and reset generation, the display memory, and the two modules below, and moves the frame rate from the MAIN clock domain to the VGA clock domain.
-| [`src/mega65_r6.vhd`](src/mega65_r6.vhd) | Top level for the MEGA65 R6. The same as `mandelbrot.vhd`, but with the ports of the MEGA65.
+| [`src/nexys4ddr.vhd`](src/nexys4ddr.vhd) | Top level. The ports are mapped directly to pins on the FPGA. Instantiates the clock and reset generation, the display memory, and the two modules below, and moves the frame rate from the MAIN clock domain to the VGA clock domain.
+| [`src/mega65_r6.vhd`](src/mega65_r6.vhd) | Top level for the MEGA65 R6. The same as `nexys4ddr.vhd`, but with the ports of the MEGA65.
 | [`src/main/main.vhd`](src/main/main.vhd) | Everything in the MAIN clock domain: view control from buttons and switches, the dispatcher, and the frame rate (shown on the 7-segment display and on the VGA output).
 | [`src/main/view.vhd`](src/main/view.vhd) | View control. Pans and zooms the view, and keeps it inside the range of the number format.
 | [`src/main/fps.vhd`](src/main/fps.vhd), [`src/main/seg.vhd`](src/main/seg.vhd) | Frame rate. `fps` divides the clock frequency by the time taken by a picture and converts the result to decimal, and `seg` multiplexes the digits on the 7-segment display.
@@ -178,5 +178,5 @@ are inferred by Vivado from plain VHDL, see [Multiplier](ALGORITHM.md#multiplier
 The clock and reset module (`src/clk_rst.vhd`) uses Xilinx primitives (the
 MMCM and the clock buffers), and so does the MEGA65 top level
 (`src/mega65_r6.vhd`, the clock of the video DAC). They are not simulated, and
-neither is the Nexys 4 DDR top level (`src/mandelbrot.vhd`), which instantiates
+neither is the Nexys 4 DDR top level (`src/nexys4ddr.vhd`), which instantiates
 `clk_rst`.

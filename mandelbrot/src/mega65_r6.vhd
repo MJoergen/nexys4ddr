@@ -8,7 +8,7 @@ use unisim.vcomponents.all;
 -- This is the top level module for the MEGA65 (board revision R6). The ports
 -- on this entity are mapped directly to pins on the FPGA, see mega65-r6.xdc.
 --
--- It is the same design as mandelbrot.vhd (the top level module for the
+-- It is the same design as nexys4ddr.vhd (the top level module for the
 -- Nexys 4 DDR board), only the ports are different:
 -- * There are no buttons and switches. Instead, the view is controlled by the
 --   joysticks: The directions of joystick port 1 (fa_*) pan the view, and the
@@ -177,7 +177,7 @@ begin
    -- Move the frame rate to the VGA clock domain
    --------------------------------------------------
 
-   -- The same as in mandelbrot.vhd, see there.
+   -- The same as in nexys4ddr.vhd, see there.
    p_fps_cdc : process (vga_clk)
    begin
       if rising_edge(vga_clk) then

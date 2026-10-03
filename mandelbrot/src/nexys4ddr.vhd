@@ -30,7 +30,7 @@ use ieee.numeric_std_unsigned.all;
 -- than the synchronizer takes, so it is never copied while it changes. The
 -- constraints for this are in nexys4ddr.xdc.
 
-entity mandelbrot is
+entity nexys4ddr is
    port (
       clk_i     : in  std_logic;                      -- 100 MHz
       rstn_i    : in  std_logic;
@@ -45,9 +45,9 @@ entity mandelbrot is
       vga_vs_o  : out std_logic;
       vga_col_o : out std_logic_vector( 7 downto 0)    -- RRRGGGBB
    );
-end mandelbrot;
+end nexys4ddr;
 
-architecture structural of mandelbrot is
+architecture structural of nexys4ddr is
 
    -- The number of column modules. The XC7A100T has 240 DSPs, one for each
    -- column module.

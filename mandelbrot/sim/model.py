@@ -44,8 +44,8 @@ MAX_COUNT = 511      # Must match C_MAX_COUNT in main.vhd
 NUM_COLS  = 640      # Must match C_NUM_COLS in main.vhd
 NUM_ROWS  = 480      # Must match C_NUM_ROWS in main.vhd
 JOB_ROWS  = 120      # Must match C_JOB_ROWS in main.vhd
-NUM_ITERATORS = 240  # Must match C_NUM_ITERATORS in mandelbrot.vhd
-PIXELS = 1           # Must match C_PIXELS in mandelbrot.vhd
+NUM_ITERATORS = 240  # Must match C_NUM_ITERATORS in nexys4ddr.vhd
+PIXELS = 1           # Must match C_PIXELS in nexys4ddr.vhd
 GROUP_SIZE = 16      # Must match G_GROUP_SIZE in dispatcher.vhd
 # The same for the MEGA65 R6, see mega65_r6.vhd
 MEGA65_NUM_ITERATORS = 450

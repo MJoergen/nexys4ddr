@@ -14,7 +14,7 @@ document are for the Nexys 4 DDR, unless stated otherwise.
 ## Instantiation hierarchy
 The modules are instantiated as follows:
 ```
-mandelbrot                      src/mandelbrot.vhd (top level)
+nexys4ddr                       src/nexys4ddr.vhd (top level)
  +- clk_rst                     src/clk_rst.vhd (MMCM, clock buffers and resets)
  +- main                        src/main/main.vhd (everything in the MAIN clock domain)
  |   +- view                    src/main/view.vhd (view control from the buttons)
@@ -541,7 +541,7 @@ does this for 21 processes in groups of 5 (so the last group is smaller), and
 for 6 processes in a single group (so the counter has empty positions).
 
 ## The top level
-The top level ([`src/mandelbrot.vhd`](src/mandelbrot.vhd)) instantiates the
+The top level ([`src/nexys4ddr.vhd`](src/nexys4ddr.vhd)) instantiates the
 clock and reset generation ([`src/clk_rst.vhd`](src/clk_rst.vhd)) and the
 display memory, and splits the rest of the design into one module for each
 clock domain:
@@ -714,7 +714,7 @@ for each digit. The frame rate (32 bits of digits and 8 bits of blanking) is
 calculated in the MAIN clock domain, so it is moved to the VGA clock domain:
 `main` changes a toggle signal each time the frame rate changes. This is
 synchronized with two registers in the top level (`p_fps_cdc` in
-[`src/mandelbrot.vhd`](src/mandelbrot.vhd)), and when it changes, the frame
+[`src/nexys4ddr.vhd`](src/nexys4ddr.vhd)), and when it changes, the frame
 rate is copied, so `overlay` only gets signals in the VGA clock domain. The
 frame rate changes only at the end of a picture, so it is constant for much
 longer than the synchronizer takes (a few VGA clock cycles), and it is never

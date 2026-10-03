@@ -9,8 +9,8 @@ NAME = mandelbrot
 BOARDS = nexys4ddr mega65-r6
 
 nexys4ddr_PART = xc7a100tcsg324-1
-nexys4ddr_TOP  = mandelbrot
-nexys4ddr_SRC  = src/mandelbrot.vhd
+nexys4ddr_TOP  = nexys4ddr
+nexys4ddr_SRC  = src/nexys4ddr.vhd
 
 mega65-r6_PART = xc7a200tfbg484-2
 mega65-r6_TOP  = mega65_r6
