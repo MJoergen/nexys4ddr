@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This module runs entirely in the MAIN clock domain (195.918 MHz). It
+-- This module runs entirely in the MAIN clock domain (188.235 MHz). It
 -- controls the view (from the buttons and switches), runs the dispatcher that
 -- calculates the picture, and writes the result to the display memory.
 --
@@ -10,14 +10,14 @@ use ieee.numeric_std_unsigned.all;
 --   btn_i(4)         : Zoom in. If sw_i(2) is set then zoom out instead.
 --   btn_i(3 downto 0): Move the view left, right, up and down.
 --   sw_i(1)          : Select what the LEDs show (if C_WAIT_STAT is true).
--- While a button is pressed, the view is updated about 23 times per second.
+-- While a button is pressed, the view is updated about 22 times per second.
 -- The view is kept inside the range -2 to 2, see view.vhd.
 -- Switches 3 and 4 select the colour palette, but they are used in vga.vhd, not
 -- here. The other switches are not used.
 
 entity main is
    port (
-      clk_i     : in  std_logic;                      -- 195.918 MHz
+      clk_i     : in  std_logic;                      -- 188.235 MHz
       rst_i     : in  std_logic;
 
       btn_i     : in  std_logic_vector( 4 downto 0);  -- "CLRUD"
@@ -50,7 +50,7 @@ architecture structural of main is
    constant C_WAIT_STAT     : boolean := false;
 
    -- The waiting time on the LEDs is averaged over 2^C_AVG_LOG2 pictures,
-   -- i.e. 64 pictures, which is about 0.32 seconds for the initial view.
+   -- i.e. 64 pictures, which is about 0.19 seconds for the initial view.
    constant C_AVG_LOG2      : integer := 6;
 
    signal startx         : std_logic_vector(17 downto 0);
@@ -78,7 +78,7 @@ architecture structural of main is
    signal wait_acc       : std_logic_vector(15+C_AVG_LOG2 downto 0);
    signal avg_cnt        : std_logic_vector(C_AVG_LOG2-1 downto 0);
 
-   -- 23 bits = 8 million cycles @ 195.918 MHz = 23 times per second.
+   -- 23 bits = 8 million cycles @ 188.235 MHz = 22 times per second.
    signal upd_cnt        : std_logic_vector(22 downto 0) := (others => '0');
    signal upd            : std_logic;
    signal btn_r          : std_logic_vector(4 downto 0);
@@ -258,9 +258,9 @@ begin
    -- The LEDs show one of two values, selected by sw_i(1) (only the first one
    -- when C_WAIT_STAT is false):
    -- * The time taken by the most recently finished picture. The counter cnt
-   --   increments at 195.918 MHz while a picture is being calculated, and only
-   --   bits 26 downto 11 are shown, so a single count on the LEDs is 10.45 us.
-   --   The value wraps around after 0.69 seconds.
+   --   increments at 188.235 MHz while a picture is being calculated, and only
+   --   bits 26 downto 11 are shown, so a single count on the LEDs is 10.88 us.
+   --   The value wraps around after 0.71 seconds.
    -- * The total waiting time of all the column modules during a picture,
    --   summed up, and averaged over the last 2^C_AVG_LOG2 pictures. This is
    --   the time spent waiting for the result to be acknowledged, in the same

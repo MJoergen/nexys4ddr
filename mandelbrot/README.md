@@ -5,8 +5,8 @@ picture (640x480) is shown on the VGA output, and you can pan and zoom using the
 buttons on the board.
 
 All 240 DSPs of the FPGA are used in parallel for the calculation, and the
-picture is stored in block RAM. Generating a complete picture takes about 4.9 ms,
-with the main clock at 195.92 MHz.
+picture is stored in block RAM. Generating a complete picture takes about 2.9 ms
+(estimated by the model), with the main clock at 188.24 MHz.
 
 ## The algorithm
 For each pixel, which corresponds to a complex number $c$, we iterate
@@ -22,25 +22,27 @@ The numbers are 18-bit
 bits and 16 fractional bits), and each iteration needs only two real
 multiplications, using the identity $x^2 - y^2 = (x+y)(x-y)$. Each of the 240
 column modules contains an iterator with a single DSP multiplier, and the
-iterator calculates one iteration every three clock cycles. The picture is
-divided into picture columns, and the dispatcher gives the next picture column
-to a column module as soon as it is idle.
+iterator calculates one iteration every three clock cycles. Most points in the
+set are found long before the maximum count, because the values of $z$ start
+to repeat exactly (periodicity detection). The picture is divided into picture
+columns, and the dispatcher gives the next picture column to a column module as
+soon as it is idle.
 
 [ALGORITHM.md](ALGORITHM.md) explains the design in detail: the number format,
 the multiplier, the iterator (including how overflow is detected), the columns,
 the dispatcher, and the timing and resource usage.
 
 ## Implementation results
-The design is built with Vivado 2025.1 and meets timing at the 195.92 MHz main
-clock (setup slack +0.132 ns, hold slack +0.014 ns). The resources used are:
+The design is built with Vivado 2025.1 and meets timing at the 188.24 MHz main
+clock (setup slack +0.088 ns, hold slack +0.017 ns). The resources used are:
 
 | Resource  | Used                  | Available
 | --------- | --------------------- | ---------
 | DSP48E1   | 240                   | 240
 | Block RAM | 128 RAMB36 + 1 RAMB18 | 135 RAMB36
-| Slices    | 12,789                | 15,850
-| LUTs      | 37,119                | 63,400
-| Registers | 38,053                | 126,800
+| Slices    | 14,676                | 15,850
+| LUTs      | 41,965                | 63,400
+| Registers | 45,348                | 126,800
 
 These numbers are with the default settings, i.e. without the waiting-time
 statistic (see [Controls](#controls)). See
@@ -62,7 +64,7 @@ for details.
 | [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture, in 128 blocks.
 | [`src/pix.vhd`](src/pix.vhd), [`src/disp.vhd`](src/disp.vhd) | VGA output. `pix` generates the pixel counters, and `disp` generates the sync signals and the pixel colour.
 | [`src/palette_pkg.vhd`](src/palette_pkg.vhd) | The four colour palettes, which convert the count of a pixel to its colour.
-| [`src/clk_rst.vhd`](src/clk_rst.vhd) | Clock and reset generation: 195.92 MHz for the calculation and 25 MHz for VGA, each with a synchronous reset.
+| [`src/clk_rst.vhd`](src/clk_rst.vhd) | Clock and reset generation: 188.24 MHz for the calculation and 25 MHz for VGA, each with a synchronous reset.
 | [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a Python model of the iterator count (`iterator_model.py`), a vectorized model of the complete picture (`model.py`), the same bit-accurate model in VHDL (`iterator_model_pkg.vhd`, used by the testbenches), and a script (`cmp_rtl.py`) that compares the output of the testbench `main_tb` with this model.
 | [`mandelbrot.xdc`](mandelbrot.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make vivado`.
 | [`mandelbrot.xlsx`](mandelbrot.xlsx) | Spreadsheet used during the design. It iterates the example point -1+0.5i from [the iterator section](ALGORITHM.md#iterator) using real numbers.
@@ -78,14 +80,14 @@ the board. The switch numbers are the bit numbers of the switch input, i.e.
 | ------- | -----------
 | `BTNL`, `BTNR`, `BTNU`, `BTND` | Pan the picture left, right, up and down, by one pixel for each update. Panning stops at the edge of the number range (-2 to 2).
 | `BTNC` | Zoom in. With switch 2 on, zoom out instead. The centre of the picture stays fixed, except when zooming out would move an edge of the view beyond -2 or 2; then the view is moved instead. Zooming stops at the smallest pixel size (2^-16), and when the view can not get larger.
-| Switch 1 | Selects what the LEDs show, but only when the waiting-time statistic is enabled (`C_WAIT_STAT` in `src/main.vhd`, off by default; otherwise the LEDs always show the time for the picture). On: the time taken to calculate the most recently finished picture, in units of 10.4 us (2^11 clock cycles), updated at the end of each picture. Off: the total time that the column modules have spent waiting for their results to be accepted during a picture, summed up over all column modules, in the same unit, and averaged over 64 pictures (about 0.32 seconds), updated after every 64 pictures.
+| Switch 1 | Selects what the LEDs show, but only when the waiting-time statistic is enabled (`C_WAIT_STAT` in `src/main.vhd`, off by default; otherwise the LEDs always show the time for the picture). On: the time taken to calculate the most recently finished picture, in units of 10.9 us (2^11 clock cycles), updated at the end of each picture. Off: the total time that the column modules have spent waiting for their results to be accepted during a picture, summed up over all column modules, in the same unit, and averaged over 64 pictures (about 0.19 seconds), updated after every 64 pictures.
 | Switches 3 and 4 | Select the colour palette (switch 4 is the high bit). 0 (both off): the lower 8 bits of the count are the colour (RRRGGGBB), mostly blue and green, and the set is white. 1: rainbow, the hue goes around the colour circle every 16 counts. 2: fire, black, red, orange, yellow and white, with the square root of the count. 3: blue, white, orange and dark brown, with the logarithm of the count. In the palettes 1 to 3 the set is black.
 | Switches 0 and 5 to 7 | Not used.
 | `CPU RESET` | Resets the design and returns to the initial view.
 
-While a button is held down, the view is updated about 23 times per second. Each
+While a button is held down, the view is updated about 22 times per second. Each
 update pans by one pixel, or changes the size of a pixel by about 1.6%
-(roughly 45% per second). The initial view shows the real axis from -1.67 to 1
+(roughly 40% per second). The initial view shows the real axis from -1.67 to 1
 and the imaginary axis from -1 to 1. See
 [The top level](ALGORITHM.md#the-top-level) for details.
 

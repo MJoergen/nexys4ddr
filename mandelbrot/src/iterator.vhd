@@ -24,6 +24,17 @@
 -- Cycle 3 : The output of the DSP is (x+y)*(x-y) + cx, which gives the new
 --           value of x.
 --
+-- Points in the Mandelbrot set never overflow, so without help they take the
+-- maximum number of iterations. But most of them end up in a cycle: since x
+-- and y have a limited number of bits, the values repeat exactly. This is
+-- detected (periodicity detection, as in Brent's cycle detection): x and y are
+-- saved after iterations 1, 2, 4, 8, 16, ..., and compared with the saved
+-- values in each iteration. When they are equal, the values will repeat
+-- forever without an overflow, so the iteration stops, and the count is
+-- G_MAX_COUNT. This gives exactly the same count as without the detection.
+-- The comparison is registered (match_r), so the iteration stops one
+-- iteration after the match.
+--
 -- The multiplier is 19x18 bits (the DSP48E1 supports 25x18 bits). The product
 -- is registered (in the M register of the DSP), and the constant is registered
 -- too (in the C register), but the sum is not (the P register is not used).
@@ -115,6 +126,11 @@ architecture rtl of iterator is
    signal ovf_x_r    : std_logic;
    signal ovf_y_r    : std_logic;
 
+   -- Periodicity detection
+   signal sx_r       : std_logic_vector(17 downto 0);  -- Saved value of x
+   signal sy_r       : std_logic_vector(17 downto 0);  -- Saved value of y
+   signal match_r    : std_logic;
+
 begin
 
    -----------------
@@ -137,6 +153,7 @@ begin
                   done_r    <= '0';
                   ovf_x_r   <= '0';
                   ovf_y_r   <= '0';
+                  match_r   <= '0';
                end if;
 
             when ADD_ST =>
@@ -153,8 +170,27 @@ begin
                -- Added to x*y in the next clock cycle
                c_r <= cy_div_2_s;
 
-               -- Check for overflow
+               -- Periodicity detection. Here x and y are the values after
+               -- cnt_r iterations. Compare them with the saved values (from an
+               -- earlier iteration, so only from iteration 2), and save them
+               -- if cnt_r is a power of two. The saved values are not cleared
+               -- at the start, because then each bit would need a LUT.
+               match_r <= '0';
+               if cnt_r(8 downto 1) /= 0 and x_r = sx_r and y_r = sy_r then
+                  match_r <= '1';
+               end if;
+               if cnt_r /= 0 and (cnt_r and (cnt_r - 1)) = 0 then
+                  sx_r <= x_r;
+                  sy_r <= y_r;
+               end if;
+
+               -- Check for overflow, and for a cycle found in the previous
+               -- iteration
                if ovf_x_r = '1' or ovf_y_r = '1' then
+                  done_r  <= '1';
+                  state_r <= IDLE_ST;
+               elsif match_r = '1' then
+                  cnt_r   <= std_logic_vector(to_unsigned(G_MAX_COUNT, 9));
                   done_r  <= '1';
                   state_r <= IDLE_ST;
                else

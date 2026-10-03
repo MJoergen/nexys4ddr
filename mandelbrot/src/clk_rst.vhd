@@ -60,7 +60,7 @@
 --
 --   Output clock   Output    Divider   Freq (MHz)
 --   vga_clk        CLKOUT1     48         25.000
---   main_clk       CLKOUT0      6.125    195.918
+--   main_clk       CLKOUT0      6.375    188.235
 --
 -- The main clock uses CLKOUT0, because it is the only output with a
 -- fractional divider.
@@ -85,7 +85,7 @@ entity clk_rst is
       clk_i      : in  std_logic;  -- 100 MHz
       rstn_i     : in  std_logic;  -- Asynchronous, active low
 
-      main_clk_o : out std_logic;  -- 195.918 MHz
+      main_clk_o : out std_logic;  -- 188.235 MHz
       main_rst_o : out std_logic;  -- Synchronous to main_clk_o
 
       vga_clk_o  : out std_logic;  -- 25 MHz
@@ -165,7 +165,7 @@ clk_in1_clk_wiz_0 <= clk_i;
     CLKFBOUT_MULT_F      => 12.000,
     CLKFBOUT_PHASE       => 0.000,
     CLKFBOUT_USE_FINE_PS => FALSE,
-    CLKOUT0_DIVIDE_F     => 6.125,  -- MAIN @ 195.918 MHz
+    CLKOUT0_DIVIDE_F     => 6.375,  -- MAIN @ 188.235 MHz
     CLKOUT0_PHASE        => 0.000,
     CLKOUT0_DUTY_CYCLE   => 0.500,
     CLKOUT0_USE_FINE_PS  => FALSE,

@@ -123,10 +123,16 @@ of times and stops when either the maximum iteration count is reached, or an
 overflow occurs.
 
 The testbench for the iterator ([`sim/iterator_tb.vhd`](sim/iterator_tb.vhd))
-is self-checking, but it is not bit-accurate. It runs a few starting values (in
-the set, escaping immediately, escaping quickly, and escaping slowly), and
-compares the count with one calculated using real (floating point) numbers. The
-counts must be equal, within a small tolerance. The script
+is self-checking. It runs a few starting values (in the set, escaping
+immediately, escaping quickly, and escaping slowly), and compares the count
+with one calculated using real (floating point) numbers. The counts must be
+equal, within a small tolerance. For the points in the set it also checks that
+the periodicity detection stops the iteration long before the maximum count.
+Then it compares the count exactly with the bit-accurate model (see below) for
+a grid of 40 x 30 points over the initial view, and for six points that were
+found by a search with the model, where x or y alone repeats a saved value
+before the point escapes. These fail if the detection compares only x or only
+y. The script
 [`sim/iterator_model.py`](sim/iterator_model.py) is a bit-accurate Python model
 of the iterator, which follows the VHDL literally. It gives the same counts as
 the testbench for the same points, and can be used to compare the iterator with
@@ -176,6 +182,41 @@ controlled by a simple state machine:
 The DSP adds cx or cy/2 to the product in its adder (see [Multiplier](#multiplier)),
 so the constant is changed every clock cycle: cy/2 in MULT\_ST and cx in
 UPDATE\_ST.
+
+### Periodicity detection
+Points in the Mandelbrot set never overflow, so they would take the maximum
+number of iterations (511). For the initial view, 28% of the pixels are in the
+set, and they need 95% of all the iterations. But for most of them the values
+of x and y start to repeat exactly after a while: x and y have only 18 bits
+each, so an orbit that converges to a fixed point or a cycle ends up in an
+exact cycle of values. Once the values after iteration n are equal to the
+values after an earlier iteration m, the iteration repeats the same values for
+ever, without an overflow, so the count is the maximum count. So the iterator
+can stop as soon as it sees a repeated value, and the count is exactly the
+same as without stopping early.
+
+This is detected in the same way as in Brent's cycle detection algorithm. The
+values of x and y are saved (sx\_r and sy\_r) after the iterations 1, 2, 4,
+8, 16, and so on, i.e. after each power of two. In each iteration from
+iteration 2 (in ADD\_ST) the current values are compared with the saved
+values. The saved registers are not cleared at the start of a point, because
+the clear would need an extra LUT for each bit; they are only loaded, using
+the clock enable. The saved values are from an earlier iteration, and the gap between the saved
+iteration and the current one keeps growing, so a cycle is found once the
+saved values are in the cycle and the gap is at least the length of the
+cycle. Both x and y must be equal: in rare cases only one of them repeats,
+for points that escape later.
+
+The result of the comparison is registered (match\_r), and used in the next
+ADD\_ST, so the comparison is not in the paths of the iteration itself. The
+iterator then stops with the count G\_MAX\_COUNT, one iteration after the
+match. The detection uses two 18-bit registers and a 36-bit comparison in
+each iterator.
+
+For the initial view, the detection stops 78161 of the 87175 pixels in the set
+early, and the iterator needs 132 clock cycles per pixel on average, instead
+of 460. The rest of the pixels in the set (near the edge of the set) do not
+reach a cycle within 511 iterations.
 
 The inputs to this block are: start\_i, cx\_i, and cy\_i. Outputs are done\_o
 and cnt\_o. The values of cx\_i and cy\_i must be held constant for the entire
@@ -363,10 +404,10 @@ picture column) is sent to it.
 A separate scheduler module is used to send jobs to the different column
 modules. Currently, the scheduler operates in a round-robin fashion. This
 potentially may give a delay up to 240 clock cycles before an idle column module
-is given a job, i.e. 1.2 us at 195.92 MHz. The column modules wait in
+is given a job, i.e. 1.3 us at 188.24 MHz. The column modules wait in
 parallel, and with 640 jobs and 240 column modules, each column module gets
 fewer than three jobs on average. So the delay adds only a few microseconds to
-the time for a picture, which is about 4.9 ms. This delay is negligible.
+the time for a picture, which is about 2.9 ms. This delay is negligible.
 
 The scheduler ([`src/scheduler.vhd`](src/scheduler.vhd)) has a counter that
 goes round all the column modules, one per clock cycle, and selects a column
@@ -429,7 +470,7 @@ The top level ([`src/mandelbrot.vhd`](src/mandelbrot.vhd)) instantiates the
 clock and reset generation ([`src/clk_rst.vhd`](src/clk_rst.vhd)) and the
 display memory, and splits the rest of the design into one module for each
 clock domain:
-* [`src/main.vhd`](src/main.vhd) runs in the MAIN clock domain (195.92 MHz).
+* [`src/main.vhd`](src/main.vhd) runs in the MAIN clock domain (188.24 MHz).
   It handles the buttons and switches, controls the dispatcher, writes the
   results to the display memory, and drives the LEDs.
 * [`src/vga.vhd`](src/vga.vhd) runs in the VGA clock domain (25 MHz). It
@@ -487,7 +528,7 @@ and rows (640 and 480).
 
 The view is controlled by the module [`src/view.vhd`](src/view.vhd). It is
 updated at a fixed rate, which is given by a counter of 23 bits in `main.vhd`.
-At 195.92 MHz this is once every 43 ms, i.e. about 23 times per second. At
+At 188.24 MHz this is once every 45 ms, i.e. about 22 times per second. At
 each update, the following happens, depending on the buttons that are held
 down:
 * `BTNC`: Zoom. The values of stepx and stepy are both decreased by 1/64 of
@@ -549,15 +590,15 @@ time) costs a lot of resources, so it is only there when C\_WAIT\_STAT is true,
 and the default is false. Then the LEDs always show the first value (the time
 for the picture), whatever switch 1 is. The values are latched at the
 end of a picture, because the picture is recalculated continuously (about
-every 4.9 ms), so the counters themselves change too fast to be read.
+every 2.9 ms), so the counters themselves change too fast to be read.
 * If switch 1 is on, the LEDs show the time taken by the picture. A counter
   counts clock cycles while a picture is being calculated, and it is cleared
   when the next picture is started. At the end of the picture, bits 26 to 11
   of the counter are latched. A single step on the LEDs is therefore 2^11 clock
-  cycles, which is 10.45 us, and the value wraps around after 0.69 seconds.
+  cycles, which is 10.88 us, and the value wraps around after 0.71 seconds.
 * If switch 1 is off, and the constant C\_WAIT\_STAT in `main.vhd` is true,
   the LEDs show the total waiting time of all the column modules during a
-  picture, averaged over 64 pictures (about 0.32 seconds for
+  picture, averaged over 64 pictures (about 0.19 seconds for
   the initial view). The wait counter of a column module counts the
   clock cycles that the module has to wait for its result to be accepted, in
   the same unit of 2^11 clock cycles. The wait counters are only cleared by
@@ -634,14 +675,13 @@ values are shown on the LEDs, see [The top level](#the-top-level).
 The numbers measured on the board, with the main clock at 174.55 MHz, the
 waiting-time statistic built in, and the initial view, are:
 * The time for the picture (switch 1 on): 0x01D8 = 472, i.e. 472\*2^11 clock
-  cycles, which was 5.5 ms at 174.55 MHz, and would be 4.9 ms (about 200
-  pictures per second) at the current 195.92 MHz. This value is steady. The
-  same number of clock cycles was measured with the main clock at
-  140.625 MHz (6.9 ms), before the clock was raised (see
-  [Resources and timing closure](#resources-and-timing-closure)). It has not
-  been measured since the schedulers and the done flag were pipelined (see
-  [Dispatcher](#dispatcher)), which adds a clock cycle to the time from a
-  result of a column module to its next result.
+  cycles, which was 5.5 ms at 174.55 MHz. This value is steady. The same
+  number of clock cycles was measured with the main clock at 140.625 MHz
+  (6.9 ms), before the clock was raised (see
+  [Resources and timing closure](#resources-and-timing-closure)). This was
+  before the periodicity detection (see [Iterator](#iterator)), and before
+  the schedulers and the done flag were pipelined (see
+  [Dispatcher](#dispatcher)).
 * The waiting time of all the column modules (switch 1 off): 0x720C = 29196,
   i.e. 29196\*2^11 clock cycles in total, which is about a quarter of the
   time of each column module. Before the value was averaged over 64 pictures,
@@ -650,32 +690,43 @@ waiting-time statistic built in, and the initial view, are:
   [The top level](#the-top-level)).
 
 Both values agree with the model [`sim/model.py`](sim/model.py), which
-estimates the time for the picture from the count of each pixel, as follows.
-A column module uses 3 clock cycles per iteration, plus 7
-clock cycles to start the iterator and to deliver the result (4 for the points
-that reach the maximum count). Then the result must be accepted by the
-dispatcher. The round-robin scheduler for the results (i\_scheduler\_res)
+estimates the time for the picture from the number of iterations of each pixel,
+as follows. A column module uses 3 clock cycles per iteration, plus 7 clock
+cycles to start the iterator and to deliver the result, i.e. 3n+7 clock
+cycles, where n is the number of iterations done when the iterator stops: the
+count for a pixel that escapes, 510 for a pixel that reaches the maximum
+count, and the iteration after the match for a pixel where a cycle is found.
+Then the result must be accepted by the dispatcher. The round-robin scheduler for the results (i\_scheduler\_res)
 checks each column module once every 240 clock cycles, so the time from one
 result of a column module to the next is always a multiple of 240 clock
 cycles. This has been checked in simulation. So:
 * A pixel with a count up to 77 takes 240 clock cycles, i.e. the iterator is
   idle for most of the time, waiting for the result to be accepted.
-* A pixel in the set (count 511) takes 3\*511+4 = 1537 clock cycles, which is
-  rounded up to 1680 clock cycles.
+* A pixel in the set that does not reach a cycle takes 3\*510+7 = 1537 clock
+  cycles, which is rounded up to 1680 clock cycles. Before the periodicity
+  detection, this was the case for all the pixels in the set.
 
-For the initial view the average count is 151, so the iterator needs 460 clock
-cycles per pixel on average, but each pixel takes 652 clock cycles on average,
-including the waiting. The picture is finished when the last column module is
-finished. A single picture column through the middle of the set takes up to
-0.73 million clock cycles (3.7 ms), so these picture columns decide the total
-time. The model gives 472\*2^11 clock cycles for the picture, the same as
-measured.
+Without the periodicity detection, the iterator needed 460 clock cycles per
+pixel on average for the initial view (the average count is 151), but each
+pixel took 652 clock cycles on average, including the waiting. A single
+picture column through the middle of the set took up to 0.73 million clock
+cycles, so these picture columns decided the total time. The model gave
+472\*2^11 clock cycles for the picture, the same as measured.
 
-The model gives a total waiting time of 28896\*2^11 clock cycles, i.e. 192
-clock cycles per pixel on average. The wait counter of a column module counts
-2 clock cycles more for each pixel. With these 2 clock cycles for each of the
-307200 pixels, the expected value on the LEDs is 29196 (0x720C), exactly the
-measured value.
+With the periodicity detection, the iterator needs 132 clock cycles per pixel
+on average, and each pixel takes 316 clock cycles on average, including the
+waiting. Most of the pixels now take the minimum of 240 clock cycles, and the
+longest picture column takes 0.27 million clock cycles. The model gives
+551040 clock cycles (269\*2^11, so the LEDs should show about 0x010D) for the
+picture, i.e. 2.9 ms at 188.24 MHz, 1.75 times faster than without the
+detection. This has not been measured on the board yet.
+
+Without the periodicity detection, the model gave a total waiting time of
+28896\*2^11 clock cycles, i.e. 192 clock cycles per pixel on average. The wait
+counter of a column module counts 2 clock cycles more for each pixel. With
+these 2 clock cycles for each of the 307200 pixels, the expected value on the
+LEDs was 29196 (0x720C), exactly the measured value. With the periodicity
+detection, the expected value is about 27981 (0x6D4D).
 
 The wait counter counts from 3 clock cycles after the result is ready until
 the clock cycle before the acknowledge reaches the column module. When the
@@ -690,8 +741,10 @@ on the delay of the acknowledge. Neither does the time for the picture, because 
 one result of a column module to the next is still rounded up to the same
 multiple of 240 clock cycles.
 
-Without the waiting, the picture would take about 3.0 ms (if the work was
-spread evenly over the column modules).
+Without the waiting, the picture would take about 0.9 ms (if the work was
+spread evenly over the column modules). So the time for the picture is now
+mostly decided by the round-robin scheduler for the results, which accepts a
+result from each column module only once every 240 clock cycles.
 
 Similar values (472\*2^11 clock cycles for the picture, and 28642\*2^11 clock
 cycles of waiting) were measured earlier, with an iterator which did not detect
@@ -704,36 +757,41 @@ This could be improved by accepting a result as soon as it is ready, e.g.
 with a priority encoder ([`src/priority_pipeline.vhd`](src/priority_pipeline.vhd)
 is a pipelined version of one) instead of the round-robin scheduler, or by
 storing a few results in each column module, so the iterator can continue with
-the next row while it waits. At this speed (about 200 pictures per second) it
-does not matter much, though.
+the next row while it waits. Smaller jobs (e.g. a quarter of a picture
+column) would also spread the work more evenly over the column modules.
 
 ## Resources and timing closure
 The numbers below come from a successful run of `make vivado` (Vivado 2025.1,
 part xc7a100tcsg324-1, i.e. speed grade -1) with the default settings, i.e.
 without the waiting-time statistic (C\_WAIT\_STAT false, see
-[The top level](#the-top-level)), which meets timing with a 195.92 MHz main
+[The top level](#the-top-level)), which meets timing with a 188.24 MHz main
 clock.
 
 | Resource         | Used     | Available | Used (%)
 | ---------------- | -------- | --------- | --------
 | DSP48E1          | 240      | 240       | 100
 | Block RAM        | 128 RAMB36 + 1 RAMB18 | 135 RAMB36 | about 95
-| Slices           | 12,789   | 15,850    | 81
-| LUTs             | 37,119   | 63,400    | 59
-| Registers        | 38,053   | 126,800   | 30
+| Slices           | 14,676   | 15,850    | 93
+| LUTs             | 41,965   | 63,400    | 66
+| Registers        | 45,348   | 126,800   | 36
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
 The resource numbers are from `report_utilization` on the routed design
 (`mandelbrot.dcp`), and the available numbers are the totals for the XC7A100T.
-Most of the slices are used, even though only 59% of the LUTs are used.
+Most of the slices are used, even though only 66% of the LUTs are used.
 
 The "Report Cell Usage" table in `vivado.log` gives the cell counts after
-synthesis instead: 49,846 LUT cells (LUT1 to LUT6) and 34,597 registers (FDRE
+synthesis instead: 55,364 LUT cells (LUT1 to LUT6) and 43,477 registers (FDRE
 and FDSE cells). The number of LUT cells is larger than the number of LUTs
 used, because two small LUT cells can share one LUT (the placer does this, e.g.
 "LUT Combining" in `phys_opt_design`). There are more registers after
 routing than after synthesis, because the physical optimization replicates
 registers with a high fanout, and moves some of them (retiming).
+
+The periodicity detection (see [Iterator](#iterator)) uses about 5,500 LUT cells
+and 8,900 registers (36 registers for the saved values in each iterator), and
+increased the slices used from 81% to 93%. A first version, which cleared the
+saved values at the start of each point, used about 4,100 LUT cells more.
 
 With the waiting-time statistic (C\_WAIT\_STAT true), and with only the lower
 8 bits of the count in the display memory, the design used 53,386 LUT cells and
@@ -764,15 +822,15 @@ The timing after routing is:
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.132 ns (TNS 0)
-| Hold (WHS)  | +0.014 ns (THS 0)
+| Setup (WNS) | +0.088 ns (TNS 0)
+| Hold (WHS)  | +0.017 ns (THS 0)
 
 These are the values from `report_timing_summary` on the routed design
 (`mandelbrot.dcp`), after the post-route `phys_opt_design`.
 
-The timing is met for all clocks. The 195.92 MHz main clock (period 5.10 ns)
+The timing is met for all clocks. The 188.24 MHz main clock (period 5.31 ns)
 is generated from the 100 MHz input clock by the MMCM: it is multiplied by 12,
-which gives 1200 MHz (the maximum for speed grade -1), and divided by 6.125.
+which gives 1200 MHz (the maximum for speed grade -1), and divided by 6.375.
 The main clock uses the output CLKOUT0 of the MMCM, because it is the only
 output with a fractional divider. The only constraint in `mandelbrot.xdc` is
 the 100 MHz input clock. The MMCM also generates the 25 MHz VGA clock (divided
@@ -782,13 +840,14 @@ paths between them.
 At this frequency, the critical paths are in the iterators, and in the column
 modules around them:
 * From x\_r and y\_r through the additions x+y and x-y and the selection of
-  the inputs of the multiplier to the input registers of the DSP, with 6 or 7
-  levels of logic and +0.132 ns of slack.
+  the inputs of the multiplier to the input registers of the DSP, with 7
+  levels of logic and +0.088 ns of slack.
 * From the output of the DSP (which is not registered, see
-  [Multiplier](#multiplier)) to x\_r and to the overflow flags.
+  [Multiplier](#multiplier)) to the overflow flags.
+* The state machine of the iterator (from cnt\_r), and the periodicity
+  detection (to match\_r and the saved values).
 * The next row in the column modules (to `res_cy_r`, whose clock enable
   depends on the result of the iterator).
-* The routes from the registers in the groups to the column modules.
 To go faster, the iterator would have to be changed, e.g. by registering the
 output of the DSP, which would change the three clock cycles of an iteration.
 
@@ -864,13 +923,28 @@ pipelined, and the frequency was tried again:
 | 208.70 MHz | -0.075 ns   | +0.014 ns
 
 The main clock was raised to 195.92 MHz, which has more slack than the
-frequencies just below and above it. It is 39% faster than 140.625 MHz. The
-pipelining costs about 700 LUT cells and 300 registers.
+frequencies just below and above it. The pipelining costs about 700 LUT cells
+and 300 registers.
+
+The periodicity detection (see [Iterator](#iterator)) increased the slices
+used from 81% to 93%, and the slack at 195.92 MHz dropped to +0.004 ns. With
+the detection:
+
+| Main clock | Setup slack | Hold slack
+| ---------- | ----------- | ----------
+| 188.24 MHz | +0.088 ns   | +0.017 ns
+| 192.00 MHz | +0.029 ns   | +0.016 ns
+| 195.92 MHz | +0.004 ns   | +0.014 ns
+
+So the main clock was lowered to 188.24 MHz, which has about the same slack as
+the earlier choices. This is 4% slower than 195.92 MHz, but the detection
+makes the picture 1.75 times faster. The main clock is 34% faster than
+140.625 MHz.
 
 The complete run of `make vivado` takes about 6.5 minutes (synthesis about 2.5
 minutes, placement about 1.5 minutes, routing about 1 minute), on a machine
 with 8 threads.
 
-All 240 DSPs running at 195.92 MHz gives a peak of 47 billion multiplications per
+All 240 DSPs running at 188.24 MHz gives a peak of 45 billion multiplications per
 second. The iterator uses its multiplier in two out of three clock cycles, so
-the actual rate is about 31 billion multiplications per second.
+the actual rate is about 30 billion multiplications per second.

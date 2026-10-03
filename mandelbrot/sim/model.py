@@ -10,7 +10,10 @@
 #
 # Run as a script, it compares the model with the reference for the initial
 # view (640x480), and prints how many pixels differ. It also estimates the time
-# it takes the design to calculate the picture, see picture_cycles().
+# it takes the design to calculate the picture, see picture_cycles(). For this,
+# hw_stop() follows the periodicity detection of the iterator, which stops the
+# iteration early for most points in the set, and checks that it gives the
+# same count as hw_count().
 #
 # Usage:
 #   ./model.py           Compare the model with the reference.
@@ -39,7 +42,7 @@ MAX_COUNT = 511      # Must match C_MAX_COUNT in main.vhd
 NUM_COLS  = 640      # Must match C_NUM_COLS in main.vhd
 NUM_ROWS  = 480      # Must match C_NUM_ROWS in main.vhd
 NUM_ITERATORS = 240  # Must match C_NUM_ITERATORS in main.vhd
-MAIN_CLOCK_KHZ = 1200e3 / 6.125  # The main clock, see clk_rst.vhd
+MAIN_CLOCK_KHZ = 1200e3 / 6.375  # The main clock, see clk_rst.vhd
 
 
 def wrap(v: ArrayLike, bits: int) -> IntArray:
@@ -130,9 +133,58 @@ def view(startx: Optional[int] = None, starty: Optional[int] = None,
     return cx_grid, cy_grid
 
 
-def pixel_cycles(cnt: ArrayLike,
+def hw_stop(cx: ArrayLike, cy: ArrayLike,
+            max_count: int = MAX_COUNT) -> Tuple[IntArray, IntArray]:
+    """Follow src/iterator.vhd including the periodicity detection. Returns
+    the count (which must be the same as from hw_count()), and the number of
+    iterations done when the iterator stops, i.e. the value of cnt_r in the
+    last ADD_ST. x and y are saved after iterations 1, 2, 4, 8, ..., and
+    compared with the saved values in each iteration from iteration 2. A
+    match is registered, and stops the iteration one iteration later, with
+    the count max_count."""
+    cx_i: IntArray = np.asarray(cx, np.int64)
+    cy_i: IntArray = np.asarray(cy, np.int64)
+    x: IntArray = np.zeros_like(cx_i)
+    y: IntArray = np.zeros_like(cx_i)
+    sx: IntArray = np.zeros_like(cx_i)
+    sy: IntArray = np.zeros_like(cx_i)
+    cnt: IntArray = np.zeros_like(cx_i)
+    stop: IntArray = np.zeros_like(cx_i)
+    done: BoolArray = np.zeros(cx_i.shape, bool)
+    ovf: BoolArray = np.zeros(cx_i.shape, bool)
+    match: BoolArray = np.zeros(cx_i.shape, bool)
+    while True:
+        # ADD_ST, with x and y after cnt iterations
+        active = ~done
+        new_match = (cnt >= 2) & (x == sx) & (y == sy)
+        save = active & (cnt != 0) & ((cnt & (cnt - 1)) == 0)
+        stop = np.where(active, cnt, stop)
+        found = active & ~ovf & match
+        cnt = np.where(found, max_count, cnt)
+        done |= active & (ovf | match)
+        active = ~done
+        cnt = np.where(active, cnt + 1, cnt)
+        done |= active & (cnt == max_count)
+        match = np.where(active, new_match, match)
+        sx = np.where(save, x, sx)
+        sy = np.where(save, y, sy)
+        if done.all():
+            return cnt, stop
+
+        # The iteration (MULT_ST and UPDATE_ST), as in hw_count()
+        new_x_s = (x + y) * (x - y) + (cx_i << 16)
+        new_y_half_s = x * y + (cy_i << 15)
+        ovf_x = (new_x_s < -(1 << 33)) | (new_x_s >= (1 << 33))
+        ovf_y = (new_y_half_s < -(1 << 32)) | (new_y_half_s >= (1 << 32))
+        ovf = np.where(done, ovf, ovf_x | ovf_y)
+        x = np.where(done, x, wrap(new_x_s >> 16, 18))
+        y = np.where(done, y, wrap(new_y_half_s >> 15, 18))
+
+
+def pixel_cycles(stop: ArrayLike,
                  num_iterators: int = NUM_ITERATORS) -> IntArray:
-    """The number of clock cycles a column module uses for each pixel.
+    """The number of clock cycles a column module uses for each pixel. stop is
+    the number of iterations done when the iterator stops (see hw_stop()).
 
     The iterator uses 3 clock cycles per iteration, and a few more to start and
     finish. Then the result has to be accepted by the dispatcher. The scheduler
@@ -140,18 +192,19 @@ def pixel_cycles(cnt: ArrayLike,
     num_iterators clock cycles, so the time from one result to the next is
     always a multiple of num_iterators clock cycles. This has been checked in
     simulation (main_tb) for the first 11744 pixels, and the estimated time
-    for the picture is the same as the time measured on the board."""
-    cnt_i: IntArray = np.asarray(cnt, np.int64)
-    busy: IntArray = np.where(cnt_i == MAX_COUNT, 3*cnt_i + 4, 3*cnt_i + 7)
+    for the picture was the same as the time measured on the board (before
+    the periodicity detection)."""
+    busy: IntArray = 3*np.asarray(stop, np.int64) + 7
     return -(-busy // num_iterators) * num_iterators      # Round up
 
 
-def picture_cycles(cnt: ArrayLike, num_iterators: int = NUM_ITERATORS) -> int:
-    """Estimate the number of clock cycles used to calculate the picture. cnt
-    is the count of each pixel, indexed by [row, column]. The picture columns
-    are given in order to the first column module that is idle. The time it
-    takes the dispatcher to give a job to a column module is not included."""
-    col_cycles: IntArray = pixel_cycles(cnt, num_iterators).sum(axis=0)
+def picture_cycles(stop: ArrayLike, num_iterators: int = NUM_ITERATORS) -> int:
+    """Estimate the number of clock cycles used to calculate the picture. stop
+    is the number of iterations done by the iterator for each pixel (see
+    hw_stop()), indexed by [row, column]. The picture columns are given in
+    order to the first column module that is idle. The time it takes the
+    dispatcher to give a job to a column module is not included."""
+    col_cycles: IntArray = pixel_cycles(stop, num_iterators).sum(axis=0)
     # The time when each column module becomes idle
     idle: List[int] = [0] * num_iterators
     for c in col_cycles:
@@ -190,11 +243,19 @@ def main() -> None:
           f"real {(ref == MAX_COUNT).sum()}, "
           f"different {((hw == MAX_COUNT) != (ref == MAX_COUNT)).sum()}")
 
-    cycles = picture_cycles(hw)
-    per_pixel = pixel_cycles(hw).mean()
-    iterating = np.where(hw == MAX_COUNT, 3*hw + 4, 3*hw + 7).mean()
-    print(f"Average count {hw.mean():.1f}, i.e. {iterating:.0f} clock cycles "
-          f"per pixel for the iterator, and {per_pixel:.0f} clock cycles per "
+    detected, stop = hw_stop(cx, cy)
+    in_set = hw == MAX_COUNT
+    print(f"Periodicity detection: same count as without it for all pixels: "
+          f"{bool((detected == hw).all())}. It stops "
+          f"{(in_set & (stop < MAX_COUNT - 1)).sum()} of the {in_set.sum()} "
+          f"pixels in the set early, after {stop[in_set].mean():.0f} "
+          f"iterations on average")
+
+    cycles = picture_cycles(stop)
+    per_pixel = pixel_cycles(stop).mean()
+    iterating = (3*stop + 7).mean()
+    print(f"Average count {hw.mean():.1f}. The iterator needs {iterating:.0f} "
+          f"clock cycles per pixel, and {per_pixel:.0f} clock cycles per "
           f"pixel including the time waiting for the result to be accepted")
     print(f"Estimated time for the picture: {cycles} clock cycles "
           f"({cycles / 2**11:.0f} x 2^11), i.e. {cycles / MAIN_CLOCK_KHZ:.2f} ms "
