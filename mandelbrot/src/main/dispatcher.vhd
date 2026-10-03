@@ -124,6 +124,7 @@ architecture rtl of dispatcher is
    signal res_valid_s       : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal res_ack_r         : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal res_busy_r        : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+   signal res_ready_s       : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
 
    signal wr_addr_r         : std_logic_vector(18 downto 0);
    signal wr_data_r         : std_logic_vector( 8 downto 0);
@@ -151,14 +152,12 @@ architecture rtl of dispatcher is
 begin
 
    -- When the scheduler samples the busy flag of a column module and selects
-   -- it, the new busy flag of that column module is sampled by the scheduler
-   -- five clock cycles later at the earliest, both for a job (job_busy_s, the
-   -- selection goes through the scheduler, job_start_r and job_start_d) and
-   -- for a result (res_busy_r, the selection goes through the scheduler,
-   -- grp_idx_r and res_ack_r). The scheduler samples the busy flag of the
-   -- same column module again G_NUM_ITERATORS clock cycles later. With fewer
-   -- than five column modules a job could therefore be started twice (and the
-   -- first one would be lost), or a result accepted twice.
+   -- it, the new busy flag of that column module (job_busy_s) is sampled by
+   -- the scheduler five clock cycles later at the earliest (the selection goes
+   -- through the scheduler, job_start_r and job_start_d). The scheduler
+   -- samples the busy flag of the same column module again G_NUM_ITERATORS
+   -- clock cycles later. With fewer than five column modules a job could
+   -- therefore be started twice (and the first one would be lost).
    assert G_NUM_ITERATORS >= 5
       report "The dispatcher needs at least five column modules"
       severity failure;
@@ -356,25 +355,33 @@ begin
    end process p_res_busy;
 
 
-   i_scheduler_res : entity work.scheduler
+   -- A column module has a result ready when it is valid and has not been
+   -- acknowledged. When i_res_scheduler selects a column module in clock cycle
+   -- c, the acknowledge (res_ack_r) is high in clock cycle c+2, and
+   -- res_busy_r is high from clock cycle c+3, until the next result. So the
+   -- ready flag is low from clock cycle c+2, as i_res_scheduler requires.
+   res_ready_s <= not res_busy_r and not res_ack_r;
+
+   i_res_scheduler : entity work.res_scheduler
       generic map (
-         G_SIZE => G_NUM_ITERATORS
+         G_SIZE       => G_NUM_ITERATORS,
+         G_GROUP_SIZE => G_GROUP_SIZE
       )
       port map (
-         clk_i           => clk_i,
-         rst_i           => rst_i,
-         sched_active_i  => sched_active_r,
-         job_idx_valid_o => idx_valid_r,
-         job_idx_start_o => idx_iterator_r,
-         job_busy_i      => res_busy_r
-      ); -- i_scheduler_res
+         clk_i       => clk_i,
+         rst_i       => rst_i,
+         active_i    => sched_active_r,
+         ready_i     => res_ready_s,
+         idx_valid_o => idx_valid_r,
+         idx_o       => idx_iterator_r
+      ); -- i_res_scheduler
 
 
    ------------------------
    -- Generate output data
    ------------------------
 
-   -- The result of the column module selected by i_scheduler_res is
+   -- The result of the column module selected by i_res_scheduler is
    -- acknowledged and written in three steps:
    -- 1. The index of the column module goes to each group (grp_idx_r).
    -- 2. Each group acknowledges the selected column module, if it is in the

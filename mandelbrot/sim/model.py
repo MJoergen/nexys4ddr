@@ -10,8 +10,8 @@
 #
 # Run as a script, it compares the model with the reference for the initial
 # view (640x480), and prints how many pixels differ. It also estimates the time
-# it takes the design to calculate the picture, see picture_cycles(), and the
-# total time the column modules wait for their results to be accepted. For
+# it takes the design to calculate the picture, and the time the column modules
+# wait for their results to be accepted, see picture_cycles(). For
 # this, hw_stop() follows the periodicity detection of the iterator, which stops
 # the iteration early for most points in the set, and checks that it gives the
 # same count as hw_count().
@@ -45,6 +45,7 @@ NUM_COLS  = 640      # Must match C_NUM_COLS in main.vhd
 NUM_ROWS  = 480      # Must match C_NUM_ROWS in main.vhd
 JOB_ROWS  = 120      # Must match C_JOB_ROWS in main.vhd
 NUM_ITERATORS = 240  # Must match C_NUM_ITERATORS in mandelbrot.vhd
+GROUP_SIZE = 16      # Must match G_GROUP_SIZE in dispatcher.vhd
 MAIN_CLOCK_KHZ = 1200e3 / 6.375  # The main clock, see clk_rst.vhd
 
 
@@ -191,43 +192,97 @@ def iterating_cycles(stop: ArrayLike) -> IntArray:
     return 3*np.asarray(stop, np.int64) + 7
 
 
-def pixel_cycles(stop: ArrayLike,
-                 num_iterators: int = NUM_ITERATORS) -> IntArray:
-    """The number of clock cycles a column module uses for each pixel. stop is
-    the number of iterations done when the iterator stops (see hw_stop()).
-
-    The iterator uses 3 clock cycles per iteration, and a few more to start and
-    finish. Then the result has to be accepted by the dispatcher. The scheduler
-    for the results (i_scheduler_res) checks each column module once every
-    num_iterators clock cycles, so the time from one result to the next is
-    always a multiple of num_iterators clock cycles. This has been checked in
-    simulation (main_tb) for the first 11744 pixels, and the estimated time
-    for the picture was the same as the time measured on the board (before
-    the periodicity detection)."""
-    busy: IntArray = iterating_cycles(stop)
-    return -(-busy // num_iterators) * num_iterators      # Round up
-
-
 def picture_cycles(stop: ArrayLike, num_iterators: int = NUM_ITERATORS,
-                   job_rows: int = JOB_ROWS) -> int:
-    """Estimate the number of clock cycles used to calculate the picture. stop
-    is the number of iterations done by the iterator for each pixel (see
-    hw_stop()), indexed by [row, column]. Each job is job_rows rows of a
-    picture column, and the jobs are given in the same order as by the
-    dispatcher (all the picture columns of the top block of rows, then all the
-    picture columns of the next block, and so on) to the first column module
-    that is idle. The time it takes the dispatcher to give a job to a column
-    module is not included."""
-    cycles: IntArray = pixel_cycles(stop, num_iterators)
-    rows, cols = cycles.shape
-    job_cycles: IntArray = cycles.reshape(rows // job_rows, job_rows,
-                                          cols).sum(axis=1).flatten()
-    # The time when each column module becomes idle
-    idle: List[int] = [0] * num_iterators
-    heapq.heapify(idle)
-    for c in job_cycles:
-        heapq.heappush(idle, heapq.heappop(idle) + int(c))
-    return max(idle)
+                   job_rows: int = JOB_ROWS,
+                   group_size: int = GROUP_SIZE) -> Tuple[int, int]:
+    """Estimate the number of clock cycles used to calculate the picture, by
+    simulating the dispatcher one clock cycle at a time. stop is the number of
+    iterations done by the iterator for each pixel (see hw_stop()), indexed by
+    [row, column]. Returns the number of clock cycles, and the total number of
+    clock cycles the column modules wait for their results to be accepted.
+
+    Each job is job_rows rows of a picture column, and the jobs are given in
+    the same order as by the dispatcher (all the picture columns of the top
+    block of rows, then all the picture columns of the next block, and so
+    on). The scheduler for the jobs (i_scheduler) visits each column module
+    once every num_iterators clock cycles, and gives it the next job if it is
+    idle. The scheduler for the results (i_res_scheduler) visits one group of
+    group_size column modules in each clock cycle, and accepts the result of
+    one of the column modules of the group that have a result ready, in
+    round-robin order within the group. The next row starts when the result
+    has been accepted, and its result is ready iterating_cycles() clock cycles
+    after the clock cycle in which the scheduler sampled the previous result.
+    The first result of a job is ready iterating_cycles() clock cycles after
+    the job is given."""
+    iter_cycles: IntArray = iterating_cycles(stop)
+    rows, cols = iter_cycles.shape
+    jobs: List[List[int]] = [
+        iter_cycles[b*job_rows:(b+1)*job_rows, c].tolist()
+        for b in range(rows // job_rows) for c in range(cols)]
+    num_groups = -(-num_iterators // group_size)
+    period = max(num_groups, 4)
+    job_latency = 5      # From the visit of i_scheduler to the start of the job
+
+    next_job = 0
+    job: List[List[int]] = [[] for _ in range(num_iterators)]
+    row = [0] * num_iterators
+    # The clock cycle from which the result of each column module is ready,
+    # or None when it has no job
+    ready: List[Optional[int]] = [None] * num_iterators
+    ptr = [0] * num_groups
+    # The clock cycles when idle column modules are given their next job, as
+    # (clock cycle, column module). i_scheduler visits column module i in the
+    # clock cycles i, i+num_iterators, and so on.
+    requests: List[Tuple[int, int]] = [
+        (i + job_latency, i) for i in range(num_iterators)]
+    heapq.heapify(requests)
+    finished = 0
+    last = 0
+    waiting = 0
+    k = 0
+    while True:
+        while requests and requests[0][0] <= k:
+            t, i = heapq.heappop(requests)
+            if next_job < len(jobs):
+                job[i] = jobs[next_job]
+                next_job += 1
+                row[i] = 0
+                ready[i] = t + job[i][0]
+            else:
+                finished += 1
+        if finished == num_iterators:
+            return last, waiting
+
+        # The result accepted in clock cycle k, from the ready flags sampled
+        # in clock cycle k-1
+        g = k % period
+        if g < num_groups:
+            first: Optional[int] = None
+            after: Optional[int] = None
+            since = [0] * group_size
+            for j in range(min(group_size, num_iterators - g*group_size)):
+                r = ready[g*group_size + j]
+                if r is not None and r <= k-1:
+                    since[j] = r
+                    if first is None:
+                        first = j
+                    if after is None and j >= ptr[g]:
+                        after = j
+            if first is not None:
+                j = after if after is not None else first
+                ptr[g] = (j + 1) % group_size
+                i = g*group_size + j
+                waiting += k-1 - since[j]
+                last = k
+                row[i] += 1
+                if row[i] < len(job[i]):
+                    ready[i] = k-1 + job[i][row[i]]
+                else:
+                    ready[i] = None
+                    t = k-1 + job_latency
+                    t += (i - t) % num_iterators
+                    heapq.heappush(requests, (t, i))
+        k += 1
 
 
 def rgb(cnt: ArrayLike) -> NDArray[np.uint8]:
@@ -268,23 +323,15 @@ def main() -> None:
           f"pixels in the set early, after {stop[in_set].mean():.0f} "
           f"iterations on average")
 
-    cycles = picture_cycles(stop)
-    per_pixel = pixel_cycles(stop).mean()
+    cycles, waiting = picture_cycles(stop)
     iterating = iterating_cycles(stop).mean()
     print(f"Average count {hw.mean():.1f}. The iterator needs {iterating:.0f} "
-          f"clock cycles per pixel, and {per_pixel:.0f} clock cycles per "
-          f"pixel including the time waiting for the result to be accepted")
-    print(f"Estimated time for the picture: {cycles} clock cycles "
-          f"({cycles / 2**11:.0f} x 2^11), i.e. {cycles / MAIN_CLOCK_KHZ:.2f} ms "
-          f"at {MAIN_CLOCK_KHZ / 1000:.3f} MHz")
-    # The waiting time is the time from the end of the iteration until the
-    # result is accepted. The wait counters, which have been removed from the
-    # design, counted 2 clock cycles more for each pixel, in units of 2^11.
-    waiting = int((pixel_cycles(stop) - iterating_cycles(stop)).sum())
-    print(f"Estimated total waiting time: {waiting} clock cycles "
-          f"({waiting / 2**11:.0f} x 2^11), i.e. {waiting / hw.size:.0f} clock "
-          f"cycles per pixel. The wait counters would have shown "
-          f"{(waiting + 2*hw.size) // 2**11} x 2^11")
+          f"clock cycles per pixel, and the column modules wait "
+          f"{waiting / hw.size:.0f} clock cycles per pixel on average for the "
+          f"result to be accepted")
+    print(f"Estimated time for the picture: {cycles} clock cycles, i.e. "
+          f"{cycles / MAIN_CLOCK_KHZ:.2f} ms at {MAIN_CLOCK_KHZ / 1000:.3f} MHz "
+          f"({MAIN_CLOCK_KHZ * 1000 / cycles:.0f} pictures per second)")
 
     if args == ["--png"]:
         from PIL import Image

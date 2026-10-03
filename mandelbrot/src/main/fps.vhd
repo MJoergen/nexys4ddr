@@ -22,7 +22,8 @@ use ieee.numeric_std_unsigned.all;
 -- keep their value until the next calculation is finished. digits_o holds one
 -- BCD digit for each 4 bits, the least significant digit in bits 3 downto 0.
 -- blank_o has one bit for each digit, and is set for the leading zeros (but
--- never for the least significant digit).
+-- never for the least significant digit). valid_o is high for one clock cycle,
+-- when the outputs are changed.
 
 entity fps is
    generic (
@@ -38,7 +39,8 @@ entity fps is
       -- The initial values are the same as after reset, so the display
       -- module does not read undefined values before reset (in simulation).
       digits_o : out std_logic_vector(4*G_DIGITS-1 downto 0) := (others => '0');
-      blank_o  : out std_logic_vector(G_DIGITS-1 downto 0) := (0 => '0', others => '1')
+      blank_o  : out std_logic_vector(G_DIGITS-1 downto 0) := (0 => '0', others => '1');
+      valid_o  : out std_logic := '0'
    );
 end entity fps;
 
@@ -97,6 +99,8 @@ begin
       variable zero_v : boolean;
    begin
       if rising_edge(clk_i) then
+         valid_o <= '0';
+
          case state is
             when IDLE_ST =>
                if valid_i = '1' then
@@ -160,11 +164,13 @@ begin
                   blank_o(i) <= '1' when zero_v else '0';
                end loop;
                blank_o(0) <= '0';
+               valid_o    <= '1';
                state <= IDLE_ST;
          end case;
 
          if rst_i = '1' then
             state    <= IDLE_ST;
+            valid_o  <= '0';
             digits_o <= (others => '0');
             blank_o  <= (0 => '0', others => '1');
          end if;

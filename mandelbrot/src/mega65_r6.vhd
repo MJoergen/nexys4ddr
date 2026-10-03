@@ -14,7 +14,8 @@ use unisim.vcomponents.all;
 --   joysticks: The directions of joystick port A pan the view, and the fire
 --   button of port A zooms in. The fire button of port B zooms out.
 -- * The palette can not be selected, so palette 0 is always used.
--- * There is no 7-segment display, so the frame rate is not shown.
+-- * There is no 7-segment display, so the frame rate is only shown on the VGA
+--   output.
 -- * The VGA output goes through a video DAC with 8 bits per colour. The DAC
 --   needs a clock, which is the VGA clock inverted, so the DAC samples the
 --   pixel colour in the middle of each pixel.
@@ -50,9 +51,10 @@ architecture structural of mega65_r6 is
    -- The number of column modules. The XC7A200T has 740 DSPs, but the number
    -- of column modules is limited by the slices: 240 column modules use 92% of
    -- the slices of the XC7A100T, and the XC7A200T has 2.1 times as many. The
-   -- model (sim/model.py) estimates 1.99 ms for the initial picture with 450
-   -- column modules, against 2.22 ms with 240. More column modules give little
-   -- more, because the dispatcher accepts at most one result per clock cycle.
+   -- model (sim/model.py) estimates 1.82 ms for the initial picture with 450
+   -- column modules, against 1.85 ms with 240. More column modules give little
+   -- more, because the dispatcher accepts at most one result per clock cycle,
+   -- i.e. the picture takes at least 640*480 clock cycles (1.63 ms).
    constant C_NUM_ITERATORS : integer := 450;
 
    signal rstn           : std_logic;
@@ -71,6 +73,10 @@ architecture structural of mega65_r6 is
 
    signal rd_addr        : std_logic_vector(18 downto 0);
    signal rd_data        : std_logic_vector( 8 downto 0);
+
+   signal fps_digits     : std_logic_vector(31 downto 0);
+   signal fps_blank      : std_logic_vector( 7 downto 0);
+   signal fps_toggle     : std_logic;
 
    signal vga_col        : std_logic_vector( 7 downto 0);  -- RRRGGGBB
 
@@ -118,6 +124,9 @@ begin
          sw_i      => sw,
          seg_o     => open,
          seg_an_o  => open,
+         fps_digits_o => fps_digits,
+         fps_blank_o  => fps_blank,
+         fps_toggle_o => fps_toggle,
          wr_addr_o => wr_addr,
          wr_data_o => wr_data,
          wr_en_o   => wr_en
@@ -153,7 +162,10 @@ begin
          rst_i     => vga_rst,
          rd_addr_o => rd_addr,
          rd_data_i => rd_data,
-         palette_i => sw(4 downto 3),
+         palette_i => sw(1 downto 0),
+         fps_digits_i => fps_digits,
+         fps_blank_i  => fps_blank,
+         fps_toggle_i => fps_toggle,
          vga_hs_o  => vga_hs_o,
          vga_vs_o  => vga_vs_o,
          vga_col_o => vga_col

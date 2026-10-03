@@ -11,7 +11,8 @@ use std.textio.all;
 --
 -- The testbench is not self-checking. Instead the output is compared with the
 -- bit-accurate model using the script cmp_rtl.py. A complete picture takes
--- several hours to simulate, but a partial picture can be compared too, e.g.
+-- about 1.5 hours to simulate (with STOP_TIME=4ms), and writes a waveform of
+-- about 5 GB, but a partial picture can be compared too, e.g.
 --   make run TB=main STOP_TIME=700us
 --   sim/cmp_rtl.py
 

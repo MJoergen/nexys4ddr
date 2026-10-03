@@ -6,8 +6,8 @@
 # The testbench main_tb.vhd writes one line "address data" to sim/main_out.txt
 # for each write to the display memory. The address is the column (10 bits)
 # followed by the row (9 bits), and the data is the count.
-# A complete picture takes several hours to simulate, so a partial picture is
-# fine: All the pixels written so far are compared, and the last line is
+# A complete picture takes about 1.5 hours to simulate, so a partial picture
+# is fine too: All the pixels written so far are compared, and the last line is
 # ignored if it is incomplete.
 #
 # Usage (from the mandelbrot directory):
