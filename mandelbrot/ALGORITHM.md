@@ -429,9 +429,12 @@ each update, the following happens, depending on the buttons that are held
 down:
 * `BTNC`: Zoom. The values of stepx and stepy are both decreased by 1/64 of
   their value plus one least significant bit (zoom in), or increased by the same
-  (zoom out, if switch 2 is on). This is about 1.6% per update. The values of
-  startx and starty are not changed, so the zoom keeps the top left corner of
-  the view fixed (except at the edge of the range, see below).
+  (zoom out, if switch 2 is on). This is about 1.6% per update. The zoom keeps
+  the centre of the picture fixed: startx is moved by the change of stepx
+  times 320 (half the number of columns), and starty by the change of stepy
+  times 240, so the pixel in column 320 and row 240 (just right of and below
+  the centre of the screen) shows the same point before and after the zoom
+  (except at the edge of the range, see below).
 * `BTNL`, `BTNR`: startx is decreased or increased by stepx (`BTNR` has
   priority if both are held down).
 * `BTNU`, `BTND`: starty is decreased or increased by stepy (`BTND` has
@@ -448,20 +451,23 @@ negative. So:
 * Zooming in stops when the size of a pixel is one LSB (2^-16), i.e. the
   picture is 0.0098 wide. In practice the picture is limited by the precision
   of the calculation before this.
-* When zooming out would move the last column (row) beyond the range, the view
-  is moved left (up) instead, so the last column (row) stays at the end of the
-  range. Zooming out stops when the view can not get any larger, i.e. when it
-  covers almost the whole range from -2 to 2 in x.
+* When zooming out would move the first column (row) to before -2, or the
+  last column (row) beyond the range, the view is moved right (down) or left
+  (up) instead, so that edge stays at the end of the range. Zooming out stops
+  when the view can not get any larger, i.e. when it covers almost the whole
+  range from -2 to 2 in x.
 
 The check that the zoomed view fits is a comparison of the new size of a pixel
 with a constant, the largest size for which the view fits. The position of the
 right (bottom) edge needs the size of a pixel multiplied by the number of
-columns (rows) minus one. This is done serially with shifts and subtractions,
-one bit of the constant per clock cycle, so no DSP is used. Doing all of the
-update in a single clock cycle would be far too slow for the MAIN clock, so
-the update is done in small steps over 15 clock cycles, with at most one
-addition or comparison per step. The outputs are all changed at the end of the
-update. The new view is used when the next picture is started.
+columns (rows) minus one, and keeping the centre fixed needs the change of the
+size multiplied by 320 (240). These multiplications are done serially with
+shifts and additions or subtractions, one bit of the constant per clock cycle,
+so no DSP is used. Doing all of the update in a single clock cycle would be far
+too slow for the MAIN clock, so the update is done in small steps over 17 clock
+cycles, with at most one addition or comparison per step. The outputs are all
+changed at the end of the update. The new view is used when the next picture is
+started.
 
 The view control has a self-checking testbench
 ([`sim/view_tb.vhd`](sim/view_tb.vhd)). It holds the buttons down for many
@@ -469,61 +475,74 @@ updates, and checks after every update that the view is inside the range, that
 the size of a pixel is at least one LSB, that the view is the one expected
 from a simple model, and that the outputs all change in the same clock cycle.
 It also checks that panning and zooming reach the ends of the range and stop
-there, and that a pulse on upd\_i during an update (which takes 15 clock
-cycles) is ignored, but one just after the update is not. The initial view is
-checked when the design is elaborated: it must be inside the range too.
+there, that zooming in keeps the centre exactly fixed, and that a pulse on
+upd\_i during an update (which takes 17 clock cycles) is ignored, but one just
+after the update is not. The initial view is checked when the design is
+elaborated: it must be inside the range too.
 
-**The LEDs.** The LEDs show one of two values for the most recently finished
-picture. The values are latched at the end of each picture, because the
-picture is recalculated continuously (about every 7 ms), so the counters
-themselves change too fast to be read.
+**The LEDs.** The LEDs show one of two values, for the most recently finished
+picture, or averaged over the last 64 pictures. The values are latched at the
+end of a picture, because the picture is recalculated continuously (about
+every 7 ms), so the counters themselves change too fast to be read.
 * If switch 1 is on, the LEDs show the time taken by the picture. A counter
   counts clock cycles while a picture is being calculated, and it is cleared
   when the next picture is started. At the end of the picture, bits 26 to 11
   of the counter are latched. A single step on the LEDs is therefore 2^11 clock
   cycles, which is 14.56 us, and the value wraps around after 0.95 seconds.
 * If switch 1 is off, the LEDs show the total waiting time of all the column
-  modules during the picture. The wait counter of a column module counts the
+  modules during a picture, averaged over 64 pictures (about 0.44 seconds for
+  the initial view). The wait counter of a column module counts the
   clock cycles that the module has to wait for its result to be accepted, in
   the same unit of 2^11 clock cycles. The wait counters are only cleared by
   reset, and the dispatcher adds them up (wait\_cnt\_tot\_o). So `main`
-  latches the difference between the sum at the end of this picture and the
-  sum at the end of the previous picture. The sum is 16 bits wide, and the
-  difference is calculated modulo 2^16, so it is correct even when the sum
-  wraps around. Each wait counter is truncated to units of 2^11 clock cycles
-  before the sum, so the value may be up to one unit too low for each column
-  module.
+  calculates the waiting time of a picture as the difference between the sum
+  at the end of this picture and the sum at the end of the previous picture.
+  The sum is 16 bits wide, and the difference is calculated modulo 2^16, so it
+  is correct even when the sum wraps around. The differences of 64 pictures
+  are added up, and the LEDs show the sum divided by 64 (the constant
+  C\_AVG\_LOG2 in `main.vhd` is 6). The LEDs are updated after every 64
+  pictures, which takes longer when each picture takes longer, e.g. when
+  zooming into the set.
+
+  The averaging is needed because each wait counter is truncated to units of
+  2^11 clock cycles before the sum. So the waiting time of a column module
+  during a single picture may be one unit too high or too low, depending on
+  the part of the counter below 2^11 at the start and at the end of the
+  picture. The waiting time of a single picture can therefore differ by up to
+  about 240 (the number of column modules) from the exact value, and it
+  changes from picture to picture, even when the pictures are the same, so the
+  lower bits would blink. These errors cancel between consecutive pictures, so
+  the error of the sum over 64 pictures is also at most about 240, and the
+  error of the average is at most about 4.
 
 **Other inputs.** The switches 0 and 3 to 7 are not used.
 
 ## Timing
 Counters measure the total time it takes to generate the picture as well as the
 total amount of time the iterators are waiting to write to display memory. The
-values for the most recent picture are shown on the LEDs, see
-[The top level](#the-top-level).
+values are shown on the LEDs, see [The top level](#the-top-level).
 
-The numbers measured on the board were:
-* The total time for the picture: 472\*2^11 clock cycles, which at 140.625 MHz
-  is 6.9 ms.
-* The waiting time of all the column modules: 28642\*2^11 clock cycles in
-  total, i.e. 1.7 ms for each column module. So about a quarter of the time is
-  spent waiting.
+The numbers measured on the board, with the current design and the initial
+view, are:
+* The time for the picture (switch 1 on): 0x01D8 = 472, i.e. 472\*2^11 clock
+  cycles, which at 140.625 MHz is 6.9 ms (about 145 pictures per second). This
+  value is steady.
+* The waiting time of all the column modules (switch 1 off): about
+  0x721F = 29215, i.e. 29215\*2^11 clock cycles in total, which is 1.8 ms for
+  each column module, or about a quarter of the time. This was measured before
+  the value was averaged over 64 pictures, so the lowest bits changed from
+  picture to picture, because of the truncation of the wait counters (see
+  [The top level](#the-top-level)).
 
-These were measured with an earlier version of the iterator, which did not
-detect all overflows, and which calculated x+y and x-y in 18 bits (see
-[Overflow](#overflow)), and with a main clock of 150 MHz (the times above have
-been recalculated for 140.625 MHz). They have not been measured on the board
-again since then.
-
-The time for the current design can be estimated with the model
-[`sim/model.py`](sim/model.py), which gives the same number of clock cycles,
-472\*2^11, for the picture. The reason is the following. A column module uses
-3 clock cycles per iteration, plus 7 clock cycles to start the iterator and to
-deliver the result (4 for the points that reach the maximum count). Then the
-result must be accepted by the dispatcher. The round-robin scheduler for the
-results (i\_scheduler\_res) checks each column module once every 240 clock
-cycles, so the time from one result of a column module to the next is always a
-multiple of 240 clock cycles. This has been checked in simulation. So:
+Both values agree with the model [`sim/model.py`](sim/model.py), which
+estimates the time for the picture from the count of each pixel, as follows.
+A column module uses 3 clock cycles per iteration, plus 7
+clock cycles to start the iterator and to deliver the result (4 for the points
+that reach the maximum count). Then the result must be accepted by the
+dispatcher. The round-robin scheduler for the results (i\_scheduler\_res)
+checks each column module once every 240 clock cycles, so the time from one
+result of a column module to the next is always a multiple of 240 clock
+cycles. This has been checked in simulation. So:
 * A pixel with a count up to 77 takes 240 clock cycles, i.e. the iterator is
   idle for most of the time, waiting for the result to be accepted.
 * A pixel in the set (count 511) takes 3\*511+4 = 1537 clock cycles, which is
@@ -531,13 +550,27 @@ multiple of 240 clock cycles. This has been checked in simulation. So:
 
 For the initial view the average count is 151, so the iterator needs 460 clock
 cycles per pixel on average, but each pixel takes 652 clock cycles on average,
-including the waiting. The total waiting time of all the column modules is then
-28896\*2^11 clock cycles, which agrees with the 28642\*2^11 clock cycles
-measured on the board. The picture is finished when the last column module is
+including the waiting. The picture is finished when the last column module is
 finished. A single picture column through the middle of the set takes up to
 0.73 million clock cycles (5.2 ms), so these picture columns decide the total
-time. Without the waiting, the picture would take about 4.2 ms (if the work
-was spread evenly over the column modules).
+time. The model gives 472\*2^11 clock cycles for the picture, the same as
+measured.
+
+The model gives a total waiting time of 28896\*2^11 clock cycles, i.e. 192
+clock cycles per pixel on average. The wait counter of a column module counts 2
+clock cycles more for each pixel: it counts from 3 clock cycles after the
+result is ready until the clock cycle before the acknowledge reaches the column
+module. With these 2 clock cycles for each of the 307200 pixels, the expected
+value on the LEDs is 29196 (0x720C), which agrees with the measured value
+within 0.1%. Without the waiting, the picture would take about 4.2 ms (if the
+work was spread evenly over the column modules).
+
+Similar values (472\*2^11 clock cycles for the picture, and 28642\*2^11 clock
+cycles of waiting) were measured earlier, with an iterator which did not detect
+all overflows and which calculated x+y and x-y in 18 bits (see
+[Overflow](#overflow)), and with a main clock of 150 MHz. The time for the
+picture did not change, because it is decided by the picture columns through
+the middle of the set, where most of the pixels reach the maximum count.
 
 This could be improved by accepting a result as soon as it is ready, e.g.
 with a priority encoder ([`src/priority_pipeline.vhd`](src/priority_pipeline.vhd)
