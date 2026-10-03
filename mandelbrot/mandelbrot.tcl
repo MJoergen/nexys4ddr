@@ -12,7 +12,7 @@ read_vhdl -vhdl2008 src/pix.vhd
 read_vhdl -vhdl2008 src/vga.vhd
 read_vhdl -vhdl2008 src/view.vhd
 read_vhdl -vhdl2008 src/main.vhd
-read_vhdl -vhdl2008 src/clk.vhd
+read_vhdl -vhdl2008 src/clk_rst.vhd
 read_vhdl -vhdl2008 src/mandelbrot.vhd
 read_xdc mandelbrot.xdc
 set_param messaging.defaultLimit 3000

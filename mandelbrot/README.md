@@ -50,7 +50,7 @@ for details.
 ## Files
 | File             | Description
 | ---------------- | -----------
-| [`src/mandelbrot.vhd`](src/mandelbrot.vhd) | Top level. The ports are mapped directly to pins on the FPGA. Instantiates the clock generation, the display memory, and the two modules below, and generates the resets.
+| [`src/mandelbrot.vhd`](src/mandelbrot.vhd) | Top level. The ports are mapped directly to pins on the FPGA. Instantiates the clock and reset generation, the display memory, and the two modules below.
 | [`src/main.vhd`](src/main.vhd) | Everything in the MAIN clock domain: view control from buttons and switches, the dispatcher, and the LEDs.
 | [`src/view.vhd`](src/view.vhd) | View control. Pans and zooms the view, and keeps it inside the range of the number format.
 | [`src/vga.vhd`](src/vga.vhd) | Everything in the VGA clock domain: pixel counters and VGA output.
@@ -62,7 +62,7 @@ for details.
 | [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture, in 128 blocks.
 | [`src/pix.vhd`](src/pix.vhd), [`src/disp.vhd`](src/disp.vhd) | VGA output. `pix` generates the pixel counters, and `disp` generates the sync signals and the pixel colour.
 | [`src/palette_pkg.vhd`](src/palette_pkg.vhd) | The four colour palettes, which convert the count of a pixel to its colour.
-| [`src/clk.vhd`](src/clk.vhd) | Clock generation: 174.55 MHz for the calculation and 25 MHz for VGA.
+| [`src/clk_rst.vhd`](src/clk_rst.vhd) | Clock and reset generation: 174.55 MHz for the calculation and 25 MHz for VGA, each with a synchronous reset.
 | [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a Python model of the iterator count (`iterator_model.py`), a vectorized model of the complete picture (`model.py`), the same bit-accurate model in VHDL (`iterator_model_pkg.vhd`, used by the testbenches), and a script (`cmp_rtl.py`) that compares the output of the testbench `main_tb` with this model.
 | [`mandelbrot.xdc`](mandelbrot.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make vivado`.
 | [`mandelbrot.xlsx`](mandelbrot.xlsx) | Spreadsheet used during the design. It iterates the example point -1+0.5i from [the iterator section](ALGORITHM.md#iterator) using real numbers.
@@ -131,5 +131,5 @@ See [Iterator](ALGORITHM.md#iterator) for details.
 The simulation does not need any Xilinx libraries. The DSPs in the iterators
 are inferred by Vivado from plain VHDL, see [Multiplier](ALGORITHM.md#multiplier).
 
-The clock module (`src/clk.vhd`) and the top level (`src/mandelbrot.vhd`) use
+The clock and reset module (`src/clk_rst.vhd`) and the top level (`src/mandelbrot.vhd`) use
 Xilinx primitives, and are not simulated.

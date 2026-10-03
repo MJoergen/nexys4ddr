@@ -12,8 +12,8 @@ picture to be displayed.
 ## Instantiation hierarchy
 The modules are instantiated as follows:
 ```
-mandelbrot                      src/mandelbrot.vhd (top level, clocks and resets)
- +- clk                         src/clk.vhd (MMCM and clock buffers)
+mandelbrot                      src/mandelbrot.vhd (top level)
+ +- clk_rst                     src/clk_rst.vhd (MMCM, clock buffers and resets)
  +- main                        src/main.vhd (everything in the MAIN clock domain)
  |   +- view                    src/view.vhd (view control from the buttons)
  |   +- dispatcher              src/dispatcher.vhd
@@ -411,8 +411,8 @@ scheduler from the first process.
 
 ## The top level
 The top level ([`src/mandelbrot.vhd`](src/mandelbrot.vhd)) instantiates the
-clock generation and the display memory, generates the resets, and splits the
-rest of the design into one module for each clock domain:
+clock and reset generation ([`src/clk_rst.vhd`](src/clk_rst.vhd)) and the
+display memory, and splits the rest of the design into one module for each clock domain:
 * [`src/main.vhd`](src/main.vhd) runs in the MAIN clock domain (174.55 MHz).
   It handles the buttons and switches, controls the dispatcher, writes the
   results to the display memory, and drives the LEDs.
@@ -423,10 +423,11 @@ rest of the design into one module for each clock domain:
 The two clock domains communicate only through the display memory, which has
 a write port in the MAIN clock domain and a read port in the VGA clock domain.
 
-**Reset.** The design is held in reset while the reset button is pressed, and
-while the MMCM is not locked. This signal is synchronized to each clock domain
-(the main clock and the VGA clock), and the reset is then stretched to eight
-clock cycles after it is released. The VGA reset is connected to the `vga`
+**Reset.** The resets are generated in `clk_rst`, together with the clocks.
+The design is held in reset while the reset button is pressed, and while the
+MMCM is not locked. This signal is synchronized to each clock domain (the main
+clock and the VGA clock), and the reset is then stretched to eight clock cycles
+after it is released. The VGA reset is connected to the `vga`
 module and to the read port of the display memory, but neither of them uses it
 at present.
 
