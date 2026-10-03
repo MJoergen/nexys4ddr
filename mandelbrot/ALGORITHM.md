@@ -601,9 +601,9 @@ with the right segments during a refresh cycle, the blanked digits are never
 switched on, and at most one digit is on at a time. It also checks that a new
 picture time during a calculation is ignored.
 
-**Other inputs.** The switches 3 and 4 select the colour palette, see
+**Other inputs.** The switches 0 and 1 select the colour palette, see
 [Colours](#colours). They are used in the VGA clock domain (in `vga`), not in
-`main`. The switches 0, 1 and 5 to 7 are not used.
+`main`. The switches 3 to 7 are not used.
 
 ## Colours
 The display memory holds the count of each pixel (9 bits). The VGA output has
@@ -611,7 +611,7 @@ The display memory holds the count of each pixel (9 bits). The VGA output has
 blue). The points in the set (count 511) get the colour of the set. For the
 other counts, the lower 8 bits of the count (the value) are converted to the
 colour by one of four palettes in [`src/palette_pkg.vhd`](src/palette_pkg.vhd),
-selected by switches 3 and 4 (switch 4 is the high bit):
+selected by switches 0 and 1 (switch 1 is the high bit):
 * 0: The value itself is the colour. Most of the pixels outside the set have
   small counts (in the initial view, 72% of all pixels have a count below 16),
   so only the blue and green bits are set, and red needs a count of at least

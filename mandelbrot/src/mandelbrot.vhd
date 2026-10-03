@@ -16,7 +16,7 @@ use ieee.numeric_std_unsigned.all;
 -- generation, the display memory, and the two modules above.
 --
 -- The buttons, switches and the 7-segment display are handled by main.vhd,
--- see the description there, except switches 3 and 4, which select the colour
+-- see the description there, except switches 0 and 1, which select the colour
 -- palette in vga.vhd (see palette_pkg.vhd). The decimal point of the 7-segment
 -- display is not used, so it is switched off here.
 
@@ -119,7 +119,7 @@ begin
          rst_i     => vga_rst,
          rd_addr_o => rd_addr,
          rd_data_i => rd_data,
-         palette_i => sw_i(4 downto 3),
+         palette_i => sw_i(1 downto 0),
          vga_hs_o  => vga_hs_o,
          vga_vs_o  => vga_vs_o,
          vga_col_o => vga_col_o
