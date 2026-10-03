@@ -3,9 +3,9 @@
 # Vectorized (numpy) bit-accurate model of the picture calculated by the
 # design, and a reference calculated using real (floating point) numbers.
 #
-# hw_count() follows src/iterator.vhd (like iterator_model.py, but for many
+# hw_count() follows src/main/iterator.vhd (like iterator_model.py, but for many
 # points at once), and view() gives the values of c for each pixel, calculated
-# in the same way as src/main.vhd, src/dispatcher.vhd and src/column.vhd. This
+# in the same way as src/main/main.vhd, src/main/dispatcher.vhd and src/main/column.vhd. This
 # module is used by cmp_rtl.py to compare the simulated design with the model.
 #
 # Run as a script, it compares the model with the reference for the initial
@@ -55,7 +55,7 @@ def wrap(v: ArrayLike, bits: int) -> IntArray:
 
 def hw_count(cx: ArrayLike, cy: ArrayLike,
              max_count: int = MAX_COUNT) -> IntArray:
-    """Iteration count of src/iterator.vhd. cx and cy are 2.16 fixed point
+    """Iteration count of src/main/iterator.vhd. cx and cy are 2.16 fixed point
     numbers, i.e. 18-bit signed integers."""
     cx_i: IntArray = np.asarray(cx, np.int64)
     cy_i: IntArray = np.asarray(cy, np.int64)
@@ -136,7 +136,7 @@ def view(startx: Optional[int] = None, starty: Optional[int] = None,
 
 def hw_stop(cx: ArrayLike, cy: ArrayLike,
             max_count: int = MAX_COUNT) -> Tuple[IntArray, IntArray]:
-    """Follow src/iterator.vhd including the periodicity detection. Returns
+    """Follow src/main/iterator.vhd including the periodicity detection. Returns
     the count (which must be the same as from hw_count()), and the number of
     iterations done when the iterator stops, i.e. the value of cnt_r in the
     last ADD_ST. x and y are saved after iterations 1, 2, 4, 8, ..., and

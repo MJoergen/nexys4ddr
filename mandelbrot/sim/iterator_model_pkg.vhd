@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 -- This package contains a bit-accurate model of the iteration count calculated
--- by src/iterator.vhd. It is used by the testbenches, which compare the counts
+-- by src/main/iterator.vhd. It is used by the testbenches, which compare the counts
 -- from the design with this model. It is the same model as in model.py and
 -- iterator_model.py.
 --

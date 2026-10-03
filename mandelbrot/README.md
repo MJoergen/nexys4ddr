@@ -48,21 +48,24 @@ See [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details.
 
 ## Files
+The files used only in the MAIN clock domain are in [`src/main/`](src/main),
+and those used only in the VGA clock domain are in [`src/vga/`](src/vga). The
+files that are in both clock domains are in [`src/`](src).
+
 | File             | Description
 | ---------------- | -----------
 | [`src/mandelbrot.vhd`](src/mandelbrot.vhd) | Top level. The ports are mapped directly to pins on the FPGA. Instantiates the clock and reset generation, the display memory, and the two modules below.
-| [`src/main.vhd`](src/main.vhd) | Everything in the MAIN clock domain: view control from buttons and switches, the dispatcher, and the frame rate on the 7-segment display.
-| [`src/view.vhd`](src/view.vhd) | View control. Pans and zooms the view, and keeps it inside the range of the number format.
-| [`src/fps.vhd`](src/fps.vhd), [`src/seg.vhd`](src/seg.vhd) | Frame rate. `fps` divides the clock frequency by the time taken by a picture and converts the result to decimal, and `seg` multiplexes the digits on the 7-segment display.
-| [`src/vga.vhd`](src/vga.vhd) | Everything in the VGA clock domain: pixel counters and VGA output.
-| [`src/iterator.vhd`](src/iterator.vhd) | Iterates the Mandelbrot function for a single point, using one DSP.
-| [`src/column.vhd`](src/column.vhd) | A column module. Calculates one picture column (all its rows) at a time, using one iterator.
-| [`src/dispatcher.vhd`](src/dispatcher.vhd) | Controls the calculation of the entire picture: hands out the picture columns to the idle column modules, and collects the results. Instantiates the column modules.
-| [`src/scheduler.vhd`](src/scheduler.vhd) | Round-robin scheduler. Used by the dispatcher both to give jobs to idle column modules and to pick which column module's result to accept.
-| [`src/priority.vhd`](src/priority.vhd), [`src/priority_pipeline.vhd`](src/priority_pipeline.vhd) | Priority encoder, and a pipelined version built from it. Not used in the design yet, only in the `priority_pipeline` testbench.
+| [`src/main/main.vhd`](src/main/main.vhd) | Everything in the MAIN clock domain: view control from buttons and switches, the dispatcher, and the frame rate on the 7-segment display.
+| [`src/main/view.vhd`](src/main/view.vhd) | View control. Pans and zooms the view, and keeps it inside the range of the number format.
+| [`src/main/fps.vhd`](src/main/fps.vhd), [`src/main/seg.vhd`](src/main/seg.vhd) | Frame rate. `fps` divides the clock frequency by the time taken by a picture and converts the result to decimal, and `seg` multiplexes the digits on the 7-segment display.
+| [`src/vga/vga.vhd`](src/vga/vga.vhd) | Everything in the VGA clock domain: pixel counters and VGA output.
+| [`src/main/iterator.vhd`](src/main/iterator.vhd) | Iterates the Mandelbrot function for a single point, using one DSP.
+| [`src/main/column.vhd`](src/main/column.vhd) | A column module. Calculates one picture column (all its rows) at a time, using one iterator.
+| [`src/main/dispatcher.vhd`](src/main/dispatcher.vhd) | Controls the calculation of the entire picture: hands out the picture columns to the idle column modules, and collects the results. Instantiates the column modules.
+| [`src/main/scheduler.vhd`](src/main/scheduler.vhd) | Round-robin scheduler. Used by the dispatcher both to give jobs to idle column modules and to pick which column module's result to accept.
 | [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture, in 128 blocks.
-| [`src/pix.vhd`](src/pix.vhd), [`src/disp.vhd`](src/disp.vhd) | VGA output. `pix` generates the pixel counters, and `disp` generates the sync signals and the pixel colour.
-| [`src/palette_pkg.vhd`](src/palette_pkg.vhd) | The four colour palettes, which convert the count of a pixel to its colour.
+| [`src/vga/pix.vhd`](src/vga/pix.vhd), [`src/vga/disp.vhd`](src/vga/disp.vhd) | VGA output. `pix` generates the pixel counters, and `disp` generates the sync signals and the pixel colour.
+| [`src/vga/palette_pkg.vhd`](src/vga/palette_pkg.vhd) | The four colour palettes, which convert the count of a pixel to its colour.
 | [`src/clk_rst.vhd`](src/clk_rst.vhd) | Clock and reset generation: 188.24 MHz for the calculation and 25 MHz for VGA, each with a synchronous reset.
 | [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a Python model of the iterator count (`iterator_model.py`), a vectorized model of the complete picture (`model.py`), the same bit-accurate model in VHDL (`iterator_model_pkg.vhd`, used by the testbenches), and a script (`cmp_rtl.py`) that compares the output of the testbench `main_tb` with this model.
 | [`mandelbrot.xdc`](mandelbrot.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make vivado`. The script gets the list of source files from the Makefile (`SRC`), so it must be run through `make vivado`.
@@ -115,12 +118,9 @@ Type `make` to list the supported targets. The most important ones are:
 
 ## Simulation
 There are testbenches in [`sim/`](sim) for `dispatcher`, `column`, `iterator`,
-`scheduler`, `view`, `vga`, `disp_mem` and `priority_pipeline`. All of them are
-self-checking, and stop with an error if the result is wrong. Most of them stop
-by themselves when they are finished. The `priority_pipeline` testbench compares
-the module with the simple `priority` module for all 65536 input vectors, which
-takes 655 us of simulated time, and it is stopped by the maximum simulation time
-in the Makefile (`STOP_TIME`).
+`scheduler`, `view`, `vga`, `disp_mem` and `fps`. All of them are
+self-checking, and stop with an error if the result is wrong. They stop by
+themselves when they are finished.
 
 There is also a testbench for `main`, which is not part of `make sim`, because
 it is slow. It writes the calculated picture to a file, which is compared

@@ -14,27 +14,23 @@ The modules are instantiated as follows:
 ```
 mandelbrot                      src/mandelbrot.vhd (top level)
  +- clk_rst                     src/clk_rst.vhd (MMCM, clock buffers and resets)
- +- main                        src/main.vhd (everything in the MAIN clock domain)
- |   +- view                    src/view.vhd (view control from the buttons)
- |   +- dispatcher              src/dispatcher.vhd
- |       +- scheduler           (i_scheduler, selects the column module to receive a job)
- |       +- column  (x 240)     src/column.vhd (the column modules)
- |       |   +- iterator        src/iterator.vhd
- |       |       +- (DSP48E1)   (inferred in p_dsp, multiplier and adder)
- |       +- scheduler           (i_scheduler_res, selects the column module whose result is accepted)
+ +- main                        src/main/main.vhd (everything in the MAIN clock domain)
+ |   +- view                    src/main/view.vhd (view control from the buttons)
+ |   +- dispatcher              src/main/dispatcher.vhd
+ |   |   +- scheduler           (i_scheduler, selects the column module to receive a job)
+ |   |   +- column  (x 240)     src/main/column.vhd (the column modules)
+ |   |   |   +- iterator        src/main/iterator.vhd
+ |   |   |       +- (DSP48E1)   (inferred in p_dsp, multiplier and adder)
+ |   |   +- scheduler           (i_scheduler_res, selects the column module whose result is accepted)
+ |   +- fps                     src/main/fps.vhd (frame rate, calculated from the time for a picture)
+ |   +- seg                     src/main/seg.vhd (7-segment display)
  +- disp_mem                    src/disp_mem.vhd (display memory, between the two clock domains)
- +- vga                         src/vga.vhd (everything in the VGA clock domain)
-     +- pix                     src/pix.vhd (pixel counters)
-     +- disp                    src/disp.vhd (VGA output, uses the palettes in src/palette_pkg.vhd)
+ +- vga                         src/vga/vga.vhd (everything in the VGA clock domain)
+     +- pix                     src/vga/pix.vhd (pixel counters)
+     +- disp                    src/vga/disp.vhd (VGA output, uses the palettes in src/vga/palette_pkg.vhd)
 ```
 The number of column modules (and therefore iterators and DSPs) is set by the
 generic `G_NUM_ITERATORS`, which `main` sets to 240.
-
-The files `src/priority.vhd` and `src/priority_pipeline.vhd` are not part of
-this hierarchy. The module `priority_pipeline` instantiates two `priority`
-modules, but is itself only instantiated by its own testbench
-([`sim/priority_pipeline_tb.vhd`](sim/priority_pipeline_tb.vhd)). The
-scheduler does not use them.
 
 ## The Mandelbrot iteration
 For each point $c = c_x + i c_y$ in the picture, we iterate
@@ -100,7 +96,7 @@ to the product (see [Iterator](#iterator)), so the output of the DSP is the new
 value of x or half the new value of y.
 
 The DSP is not instantiated directly. It is inferred by Vivado from the process
-`p_dsp` and the addition after it in [`src/iterator.vhd`](src/iterator.vhd), so
+`p_dsp` and the addition after it in [`src/main/iterator.vhd`](src/main/iterator.vhd), so
 the simulation needs no model of the DSP. The inputs of the multiplier (a\_r
 and b\_r), the constant (c\_r), and the product are all registered, and Vivado
 moves these registers into the DSP (the registers A, B, C, and M). The sum is
@@ -116,7 +112,7 @@ longer close to being critical (see
 [Resources and timing closure](#resources-and-timing-closure)).
 
 ## Iterator
-This component ([`src/iterator.vhd`](src/iterator.vhd)) performs the main
+This component ([`src/main/iterator.vhd`](src/main/iterator.vhd)) performs the main
 calculation. It takes as input the complex number c (or rather the real and
 imaginary values cx and cy). It then iterates the Mandelbrot function a number
 of times and stops when either the maximum iteration count is reached, or an
@@ -298,9 +294,9 @@ other side of the boundary of the set (`sim/model.py`).
 The following terms are used in this document:
 * A *picture column* is a vertical slice of the picture. Calculating one picture
   column is one job.
-* A *column module* is an instance of [`src/column.vhd`](src/column.vhd). It
+* A *column module* is an instance of [`src/main/column.vhd`](src/main/column.vhd). It
   calculates one picture column at a time, row by row, using one iterator.
-* An *iterator* is the block in [`src/iterator.vhd`](src/iterator.vhd). It
+* An *iterator* is the block in [`src/main/iterator.vhd`](src/main/iterator.vhd). It
   calculates the count for a single point.
 
 There is one iterator, and therefore one DSP, in each column module, and there
@@ -350,7 +346,7 @@ count calculated by the bit-accurate model (see [Iterator](#iterator)). The
 third job is near the top of the set, where x+y or x-y is often out of range.
 
 ## Dispatcher
-This ([`src/dispatcher.vhd`](src/dispatcher.vhd)) is essentially the top level
+This ([`src/main/dispatcher.vhd`](src/main/dispatcher.vhd)) is essentially the top level
 entity controlling the calculation of the entire picture. This is perhaps the
 most complicated module. The input signals are:
 ```
@@ -389,7 +385,7 @@ parallel, and with 640 jobs and 240 column modules, each column module gets
 fewer than three jobs on average. So the delay adds only a few microseconds to
 the time for a picture, which is about 2.9 ms. This delay is negligible.
 
-The scheduler ([`src/scheduler.vhd`](src/scheduler.vhd)) has a counter that
+The scheduler ([`src/main/scheduler.vhd`](src/main/scheduler.vhd)) has a counter that
 goes round all the column modules, one per clock cycle, and selects a column
 module when the counter reaches it and it is idle. Selecting the busy flag of
 one of the 240 column modules in a single clock cycle is too slow, so it is
@@ -450,16 +446,20 @@ The top level ([`src/mandelbrot.vhd`](src/mandelbrot.vhd)) instantiates the
 clock and reset generation ([`src/clk_rst.vhd`](src/clk_rst.vhd)) and the
 display memory, and splits the rest of the design into one module for each
 clock domain:
-* [`src/main.vhd`](src/main.vhd) runs in the MAIN clock domain (188.24 MHz).
+* [`src/main/main.vhd`](src/main/main.vhd) runs in the MAIN clock domain (188.24 MHz).
   It handles the buttons and switches, controls the dispatcher, writes the
   results to the display memory, and shows the frame rate on the 7-segment
   display.
-* [`src/vga.vhd`](src/vga.vhd) runs in the VGA clock domain (25 MHz). It
+* [`src/vga/vga.vhd`](src/vga/vga.vhd) runs in the VGA clock domain (25 MHz). It
   generates the pixel counters, reads the display memory, and generates the VGA
   output.
 
 The two clock domains communicate only through the display memory, which has
 a write port in the MAIN clock domain and a read port in the VGA clock domain.
+The files used only in the MAIN clock domain are in [`src/main/`](src/main),
+and the files used only in the VGA clock domain are in [`src/vga/`](src/vga).
+The top level, the clock and reset generation, and the display memory, which
+are in both clock domains, are in [`src/`](src).
 
 **Reset.** The resets are generated in `clk_rst`, together with the clocks.
 The design is held in reset while the reset button is pressed, and while the
@@ -507,7 +507,7 @@ view has the real axis from -1.6667 to 1.0 and the imaginary axis from -1.0 to
 1.0, and the pixel size is the size of the view divided by the number of columns
 and rows (640 and 480).
 
-The view is controlled by the module [`src/view.vhd`](src/view.vhd). It is
+The view is controlled by the module [`src/main/view.vhd`](src/main/view.vhd). It is
 updated at a fixed rate, which is given by a counter of 23 bits in `main.vhd`.
 At 188.24 MHz this is once every 45 ms, i.e. about 22 times per second. At
 each update, the following happens, depending on the buttons that are held
@@ -569,7 +569,7 @@ elaborated: it must be inside the range too.
 number of pictures per second, rounded down to an integer, with the leading
 zeros blanked. A counter counts clock cycles while a picture is being
 calculated, and it is cleared when the next picture is started. At the end of
-a picture, the module [`src/fps.vhd`](src/fps.vhd) divides the clock frequency
+a picture, the module [`src/main/fps.vhd`](src/main/fps.vhd) divides the clock frequency
 (188,235,294 Hz) by the value of the counter, and converts the result to
 decimal. The picture is recalculated continuously, so the frame rate is
 updated after every picture (about 340 times per second for the initial view).
@@ -587,7 +587,7 @@ of 1680 clock cycles (see [Timing](#timing)), a picture would take about 3
 million clock cycles (16 ms).
 
 The digits of the display share the segment signals, so
-[`src/seg.vhd`](src/seg.vhd) shows them one at a time, each for 2^14 clock
+[`src/main/seg.vhd`](src/main/seg.vhd) shows them one at a time, each for 2^14 clock
 cycles, i.e. all 8 digits are refreshed every 0.67 ms (1.5 kHz). The
 segments and the digit enables (anodes) are active low. The decimal point is
 not used.
@@ -610,7 +610,7 @@ The display memory holds the count of each pixel (9 bits). The VGA output has
 8 bits of colour, in the format RRRGGGBB (3 bits red, 3 bits green, and 2 bits
 blue). The points in the set (count 511) get the colour of the set. For the
 other counts, the lower 8 bits of the count (the value) are converted to the
-colour by one of four palettes in [`src/palette_pkg.vhd`](src/palette_pkg.vhd),
+colour by one of four palettes in [`src/vga/palette_pkg.vhd`](src/vga/palette_pkg.vhd),
 selected by switches 3 and 4 (switch 4 is the high bit):
 * 0: The value itself is the colour. Most of the pixels outside the set have
   small counts (in the initial view, 72% of all pixels have a count below 16),
@@ -738,8 +738,7 @@ picture did not change, because it is decided by the picture columns through
 the middle of the set, where most of the pixels reach the maximum count.
 
 This could be improved by accepting a result as soon as it is ready, e.g.
-with a priority encoder ([`src/priority_pipeline.vhd`](src/priority_pipeline.vhd)
-is a pipelined version of one) instead of the round-robin scheduler, or by
+with a priority encoder instead of the round-robin scheduler, or by
 storing a few results in each column module, so the iterator can continue with
 the next row while it waits. Smaller jobs (e.g. a quarter of a picture
 column) would also spread the work more evenly over the column modules.

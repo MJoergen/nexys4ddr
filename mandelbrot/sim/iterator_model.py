@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Bit-accurate model of the iteration count calculated by src/iterator.vhd,
+"""Bit-accurate model of the iteration count calculated by src/main/iterator.vhd,
 compared with the iteration count calculated using real (floating point)
 numbers, as done in sim/iterator_tb.vhd.
 
@@ -63,7 +63,7 @@ def real_count(cx: float, cy: float, max_count: int = MAX_COUNT) -> int:
 
 
 def iterator_count(cx: float, cy: float, max_count: int = MAX_COUNT) -> int:
-    """Iteration count of src/iterator.vhd. The inputs are real numbers."""
+    """Iteration count of src/main/iterator.vhd. The inputs are real numbers."""
     cx_i = to_fixed(cx)            # 2.16
     cy_i = to_fixed(cy)            # 2.16
     cx_s = cx_i << 16              # 4.32 (sign extended)

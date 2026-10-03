@@ -5,35 +5,31 @@ NAME = mandelbrot
 
 # List of source files. This is the only list: it is also given to the Vivado
 # script (mandelbrot.tcl) by the target vivado.
-SRC  = src/iterator.vhd
-SRC += src/column.vhd
-SRC += src/priority.vhd
-SRC += src/priority_pipeline.vhd
-SRC += src/scheduler.vhd
-SRC += src/dispatcher.vhd
+SRC  = src/main/iterator.vhd
+SRC += src/main/column.vhd
+SRC += src/main/scheduler.vhd
+SRC += src/main/dispatcher.vhd
 SRC += src/disp_mem.vhd
-SRC += src/palette_pkg.vhd
-SRC += src/disp.vhd
-SRC += src/pix.vhd
-SRC += src/vga.vhd
-SRC += src/view.vhd
-SRC += src/fps.vhd
-SRC += src/seg.vhd
-SRC += src/main.vhd
+SRC += src/vga/palette_pkg.vhd
+SRC += src/vga/disp.vhd
+SRC += src/vga/pix.vhd
+SRC += src/vga/vga.vhd
+SRC += src/main/view.vhd
+SRC += src/main/fps.vhd
+SRC += src/main/seg.vhd
+SRC += src/main/main.vhd
 SRC += src/clk_rst.vhd
 SRC += src/mandelbrot.vhd
 
 # Testbenches, i.e. sim/<name>_tb.vhd
-TBS = dispatcher column iterator scheduler view vga disp_mem priority_pipeline fps
+TBS = dispatcher column iterator scheduler view vga disp_mem fps
 
 # Testbench simulated by the "run" and "check" targets. Must be specified on
 # the command line, e.g. "make run TB=iterator".
 TB =
 
-# Maximum simulation time. This must be longer than the slowest testbench. Most
+# Maximum simulation time. This must be longer than the slowest testbench. The
 # testbenches stop by themselves, the slowest of those is view (about 2.7 ms).
-# The testbench priority_pipeline does not stop by itself. It needs 655 us to
-# test all 65536 input vectors.
 STOP_TIME = 3ms
 
 TB_EXE = $(TB)_tb
