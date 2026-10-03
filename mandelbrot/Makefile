@@ -3,7 +3,8 @@ XILINX_DIR = /opt/Xilinx/2025.1/Vivado
 # Name of top level module
 NAME = mandelbrot
 
-# List of sources files
+# List of source files. This is the only list: it is also given to the Vivado
+# script (mandelbrot.tcl) by the target vivado.
 SRC  = src/iterator.vhd
 SRC += src/column.vhd
 SRC += src/priority.vhd
@@ -73,7 +74,7 @@ help:
 vivado: $(NAME).bit
 
 $(NAME).bit: $(NAME).tcl $(SRC) $(NAME).xdc
-	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $<"
+	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $< -tclargs $(SRC)"
 
 .PHONY: fpga
 fpga: $(NAME).bit
