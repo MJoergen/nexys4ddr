@@ -42,7 +42,11 @@ TB_SRC = $(filter-out src/clk_rst.vhd src/mandelbrot.vhd,$(SRC)) sim/iterator_mo
 WAVE = sim/$(TB).ghw
 SAVE = sim/$(TB).gtkw
 
-GHDL_OPTS = --std=08 --ieee=synopsys -frelaxed-rules
+# The standard VHDL-2008 libraries are used. The warnings from these libraries
+# (e.g. "metavalue detected") are disabled when the testbenches are run
+# (--ieee-asserts=disable), because they occur before the reset has cleared
+# the registers.
+GHDL_OPTS = --std=08 -frelaxed-rules
 
 
 #####################################
@@ -113,7 +117,7 @@ check: run
 run: $(TB_SRC)
 	ghdl -i $(GHDL_OPTS) --work=work $(TB_SRC)
 	ghdl -m $(GHDL_OPTS) $(TB_EXE)
-	ghdl -r $(GHDL_OPTS) $(TB_EXE) --assert-level=error --wave=$(WAVE) --stop-time=$(STOP_TIME)
+	ghdl -r $(GHDL_OPTS) $(TB_EXE) --assert-level=error --ieee-asserts=disable --wave=$(WAVE) --stop-time=$(STOP_TIME)
 
 endif
 
