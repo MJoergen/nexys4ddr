@@ -706,14 +706,14 @@ of the frame.
 A counter measures the time it takes to generate the picture, which is shown
 as a frame rate on the 7-segment display, see [The top level](#the-top-level).
 Earlier versions showed this time on the LEDs instead, in units of 2^11 clock
-cycles, and also (with switch 1) the total amount of time the column modules
-were waiting to write to the display memory, when the waiting-time statistic
+cycles, and also (selected with a switch) the total amount of time the column
+modules were waiting to write to the display memory, when the waiting-time statistic
 was enabled. The LEDs are no longer used, and the counters for the waiting
 time have been removed.
 
 The numbers measured on the board, with the main clock at 174.55 MHz, the
 waiting-time statistic built in, and the initial view, were:
-* The time for the picture (switch 1 on): 0x01D8 = 472, i.e. 472\*2^11 clock
+* The time for the picture: 0x01D8 = 472, i.e. 472\*2^11 clock
   cycles, which was 5.5 ms at 174.55 MHz. This value is steady. The same
   number of clock cycles was measured with the main clock at 140.625 MHz
   (6.9 ms), before the clock was raised (see
@@ -721,7 +721,7 @@ waiting-time statistic built in, and the initial view, were:
   before the periodicity detection (see [Iterator](#iterator)), and before
   the schedulers and the done flag were pipelined (see
   [Dispatcher](#dispatcher)).
-* The waiting time of all the column modules (switch 1 off): 0x720C = 29196,
+* The waiting time of all the column modules: 0x720C = 29196,
   i.e. 29196\*2^11 clock cycles in total, which is about a quarter of the
   time of each column module. Before the value was averaged over 64 pictures,
   the lowest bits changed from picture to picture (about 0x721F = 29215 was
