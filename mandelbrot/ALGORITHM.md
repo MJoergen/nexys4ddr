@@ -308,7 +308,8 @@ This is the number of clock cycles the column module has spent waiting for a
 result to be acknowledged, in units of 2^11 clock cycles. It is only cleared
 by reset. The counter is only there when the generic G\_WAIT\_STAT
 is true (the default is false). Otherwise wait\_cnt\_o is always zero, which
-saves a 27-bit counter in each of the 240 column modules.
+saves a 27-bit counter in each of the 240 column modules. The counter is not
+used at the moment, see [Timing](#timing).
 
 The testbench for the column module ([`sim/column_tb.vhd`](sim/column_tb.vhd))
 is self-checking. It runs three jobs of ten rows each, and checks that the
@@ -431,7 +432,8 @@ display memory, and splits the rest of the design into one module for each
 clock domain:
 * [`src/main.vhd`](src/main.vhd) runs in the MAIN clock domain (195.92 MHz).
   It handles the buttons and switches, controls the dispatcher, writes the
-  results to the display memory, and drives the LEDs.
+  results to the display memory, and shows the frame rate on the 7-segment
+  display.
 * [`src/vga.vhd`](src/vga.vhd) runs in the VGA clock domain (25 MHz). It
   generates the pixel counters, reads the display memory, and generates the VGA
   output.
@@ -543,48 +545,43 @@ upd\_i during an update (which takes 17 clock cycles) is ignored, but one just
 after the update is not. The initial view is checked when the design is
 elaborated: it must be inside the range too.
 
-**The LEDs.** The LEDs show one of two values, for the most recently finished
-picture, or averaged over the last 64 pictures. The second value (the waiting
-time) costs a lot of resources, so it is only there when C\_WAIT\_STAT is true,
-and the default is false. Then the LEDs always show the first value (the time
-for the picture), whatever switch 1 is. The values are latched at the
-end of a picture, because the picture is recalculated continuously (about
-every 4.9 ms), so the counters themselves change too fast to be read.
-* If switch 1 is on, the LEDs show the time taken by the picture. A counter
-  counts clock cycles while a picture is being calculated, and it is cleared
-  when the next picture is started. At the end of the picture, bits 26 to 11
-  of the counter are latched. A single step on the LEDs is therefore 2^11 clock
-  cycles, which is 10.45 us, and the value wraps around after 0.69 seconds.
-* If switch 1 is off, and the constant C\_WAIT\_STAT in `main.vhd` is true,
-  the LEDs show the total waiting time of all the column modules during a
-  picture, averaged over 64 pictures (about 0.32 seconds for
-  the initial view). The wait counter of a column module counts the
-  clock cycles that the module has to wait for its result to be accepted, in
-  the same unit of 2^11 clock cycles. The wait counters are only cleared by
-  reset, and the dispatcher adds them up (wait\_cnt\_tot\_o). So `main`
-  calculates the waiting time of a picture as the difference between the sum
-  at the end of this picture and the sum at the end of the previous picture.
-  The sum is 16 bits wide, and the difference is calculated modulo 2^16, so it
-  is correct even when the sum wraps around. The differences of 64 pictures
-  are added up, and the LEDs show the sum divided by 64 (the constant
-  C\_AVG\_LOG2 in `main.vhd` is 6). The LEDs are updated after every 64
-  pictures, which takes longer when each picture takes longer, e.g. when
-  zooming into the set.
+**The frame rate.** The 7-segment display shows the frame rate, i.e. the
+number of pictures per second, rounded down to an integer, with the leading
+zeros blanked. A counter counts clock cycles while a picture is being
+calculated, and it is cleared when the next picture is started. At the end of
+a picture, the module [`src/fps.vhd`](src/fps.vhd) divides the clock frequency
+(195,918,367 Hz) by the value of the counter, and converts the result to
+decimal. The picture is recalculated continuously, so the frame rate is
+updated after every picture (about 200 times per second for the initial view).
+A single-cycle division would be far too slow for the MAIN clock, so both
+steps are done one bit per clock cycle: a restoring division, with one
+subtraction for each of the 28 bits of the quotient, and then the double
+dabble algorithm to convert the quotient to 8 decimal digits (for each bit, 3
+is added to each digit which is 5 or more, and then everything is shifted left
+by one bit). This takes 58 clock cycles, much less than a picture, and the
+widest addition is 29 bits. A frame rate above 99999999 would show as
+99999999, but it can not happen: the counter wraps around after 2^27 clock
+cycles (0.69 s), but a picture takes at most 480\*1680 clock cycles (4.1 ms,
+see [Timing](#timing)), so the frame rate is always at least 243.
 
-  The averaging is needed because each wait counter is truncated to units of
-  2^11 clock cycles before the sum. So the waiting time of a column module
-  during a single picture may be one unit too high or too low, depending on
-  the part of the counter below 2^11 at the start and at the end of the
-  picture. The waiting time of a single picture can therefore differ by up to
-  about 240 (the number of column modules) from the exact value, and it
-  changes from picture to picture, even when the pictures are the same, so the
-  lower bits would blink. These errors cancel between consecutive pictures, so
-  the error of the sum over 64 pictures is also at most about 240, and the
-  error of the average is at most about 4.
+The digits of the display share the segment signals, so
+[`src/seg.vhd`](src/seg.vhd) shows them one at a time, each for 2^14 clock
+cycles, i.e. all 8 digits are refreshed every 0.67 ms (1.5 kHz). The
+segments and the digit enables (anodes) are active low. The decimal point is
+not used.
+
+The testbench [`sim/fps_tb.vhd`](sim/fps_tb.vhd) is self-checking. It gives
+the frame rate module a number of picture times (the extremes, the values
+around a change of the frame rate, e.g. 199 and 200, and random values), and
+checks the digits and the blanking against the integer division, and that the
+display shows the same number: every digit that is not blanked is switched on
+with the right segments during a refresh cycle, the blanked digits are never
+switched on, and at most one digit is on at a time. It also checks that a new
+picture time during a calculation is ignored.
 
 **Other inputs.** The switches 3 and 4 select the colour palette, see
 [Colours](#colours). They are used in the VGA clock domain (in `vga`), not in
-`main`. The switches 0 and 5 to 7 are not used.
+`main`. The switches 0, 1 and 5 to 7 are not used.
 
 ## Colours
 The display memory holds the count of each pixel (9 bits). The VGA output has
@@ -625,14 +622,18 @@ with a different value for each pixel, and a different palette in each quarter
 of the frame.
 
 ## Timing
-Counters measure the total time it takes to generate the picture as well as the
-total amount of time the iterators are waiting to write to display memory. The
-second one must be enabled with C\_WAIT\_STAT in `main.vhd`, see
-[The top level](#the-top-level). The
-values are shown on the LEDs, see [The top level](#the-top-level).
+A counter measures the time it takes to generate the picture, which is shown
+as a frame rate on the 7-segment display, see [The top level](#the-top-level).
+Earlier versions showed this time on the LEDs instead, in units of 2^11 clock
+cycles, and also (with switch 1) the total amount of time the column modules
+were waiting to write to the display memory, when the waiting-time statistic
+was enabled. The LEDs are no longer used, but the counters for the waiting
+time are still in the column modules and the dispatcher (the generic
+G\_WAIT\_STAT, false in `main.vhd`), so they can be connected to an output
+again.
 
 The numbers measured on the board, with the main clock at 174.55 MHz, the
-waiting-time statistic built in, and the initial view, are:
+waiting-time statistic built in, and the initial view, were:
 * The time for the picture (switch 1 on): 0x01D8 = 472, i.e. 472\*2^11 clock
   cycles, which was 5.5 ms at 174.55 MHz, and would be 4.9 ms (about 200
   pictures per second) at the current 195.92 MHz. This value is steady. The
