@@ -27,6 +27,9 @@ use work.palette_pkg.all;
 -- pixel of a frame is the value of that pixel in the selected palette, and
 -- black outside the visible area.
 --
+-- The frame rate overlay (overlay.vhd) is switched off here (all digits are
+-- blanked), it is tested by overlay_tb.vhd.
+--
 -- The testbench runs for a little more than two frames, and stops by itself.
 
 entity vga_tb is
@@ -311,6 +314,9 @@ begin
          rd_addr_o => rd_addr,
          rd_data_i => rd_data,
          palette_i => palette,
+         fps_digits_i => (others => '0'),
+         fps_blank_i  => (others => '1'),
+         fps_toggle_i => '0',
          vga_hs_o  => vga_hs,
          vga_vs_o  => vga_vs,
          vga_col_o => vga_col

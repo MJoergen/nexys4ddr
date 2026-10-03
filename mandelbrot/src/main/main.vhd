@@ -16,7 +16,9 @@ use ieee.numeric_std_unsigned.all;
 --
 -- The 7-segment display shows the frame rate, i.e. the number of pictures per
 -- second, calculated from the time taken by the most recently finished
--- picture.
+-- picture. The frame rate is also output (fps_*_o), and shown on the VGA output
+-- by vga.vhd. fps_toggle_o is changed (in the same clock cycle) each time
+-- fps_digits_o and fps_blank_o are changed.
 
 entity main is
    port (
@@ -27,6 +29,11 @@ entity main is
       sw_i      : in  std_logic_vector( 7 downto 0);
       seg_o     : out std_logic_vector( 6 downto 0);  -- "GFEDCBA"
       seg_an_o  : out std_logic_vector( 7 downto 0);
+
+      -- The frame rate, see fps.vhd
+      fps_digits_o : out std_logic_vector(31 downto 0);
+      fps_blank_o  : out std_logic_vector( 7 downto 0);
+      fps_toggle_o : out std_logic;
 
       -- Write port of the display memory
       wr_addr_o : out std_logic_vector(18 downto 0);
@@ -73,6 +80,8 @@ architecture structural of main is
    -- The frame rate, in decimal
    signal fps_digits     : std_logic_vector(31 downto 0);
    signal fps_blank      : std_logic_vector( 7 downto 0);
+   signal fps_valid      : std_logic;
+   signal fps_toggle     : std_logic := '0';
 
    -- 23 bits = 8 million cycles @ 188.235 MHz = 22 times per second.
    signal upd_cnt        : std_logic_vector(22 downto 0) := (others => '0');
@@ -194,8 +203,25 @@ begin
          time_i   => cnt,
          valid_i  => pic_done,
          digits_o => fps_digits,
-         blank_o  => fps_blank
+         blank_o  => fps_blank,
+         valid_o  => fps_valid
       ); -- i_fps
+
+   -- Tells the VGA clock domain that the frame rate has changed. The frame rate
+   -- is constant for much longer than the time it takes to move it to the VGA
+   -- clock domain, see overlay.vhd.
+   p_fps_toggle : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         if fps_valid = '1' then
+            fps_toggle <= not fps_toggle;
+         end if;
+      end if;
+   end process p_fps_toggle;
+
+   fps_digits_o <= fps_digits;
+   fps_blank_o  <= fps_blank;
+   fps_toggle_o <= fps_toggle;
 
    i_seg : entity work.seg
       port map (
