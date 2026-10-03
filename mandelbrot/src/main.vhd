@@ -9,11 +9,14 @@ use ieee.numeric_std_unsigned.all;
 -- The view is controlled by the buttons and switches on the board:
 --   btn_i(4)         : Zoom in. If sw_i(2) is set then zoom out instead.
 --   btn_i(3 downto 0): Move the view left, right, up and down.
---   sw_i(1)          : Select what the LEDs show (if C_WAIT_STAT is true).
 -- While a button is pressed, the view is updated about 22 times per second.
 -- The view is kept inside the range -2 to 2, see view.vhd.
 -- Switches 3 and 4 select the colour palette, but they are used in vga.vhd, not
 -- here. The other switches are not used.
+--
+-- The 7-segment display shows the frame rate, i.e. the number of pictures per
+-- second, calculated from the time taken by the most recently finished
+-- picture.
 
 entity main is
    port (
@@ -22,7 +25,8 @@ entity main is
 
       btn_i     : in  std_logic_vector( 4 downto 0);  -- "CLRUD"
       sw_i      : in  std_logic_vector( 7 downto 0);
-      led_o     : out std_logic_vector(15 downto 0);
+      seg_o     : out std_logic_vector( 6 downto 0);  -- "GFEDCBA"
+      seg_an_o  : out std_logic_vector( 7 downto 0);
 
       -- Write port of the display memory
       wr_addr_o : out std_logic_vector(18 downto 0);
@@ -43,15 +47,9 @@ architecture structural of main is
    constant C_SIZE_X        : real :=  2.6667;
    constant C_SIZE_Y        : real :=  2.0000;
 
-   -- Measure the waiting time of the column modules, and show it on the LEDs
-   -- when switch 1 is off. This costs a counter in each column module and a
-   -- chain of adders in the dispatcher, so it is off by default. When it is
-   -- off, the LEDs always show the time for the picture.
-   constant C_WAIT_STAT     : boolean := false;
-
-   -- The waiting time on the LEDs is averaged over 2^C_AVG_LOG2 pictures,
-   -- i.e. 64 pictures, which is about 0.19 seconds for the initial view.
-   constant C_AVG_LOG2      : integer := 6;
+   -- The frequency of the MAIN clock (1200 MHz / 6.375, see clk_rst.vhd),
+   -- used to calculate the frame rate.
+   constant C_CLK_FREQ      : natural := 188_235_294;
 
    signal startx         : std_logic_vector(17 downto 0);
    signal starty         : std_logic_vector(17 downto 0);
@@ -62,21 +60,17 @@ architecture structural of main is
    signal active         : std_logic;
    signal done           : std_logic;
    signal pic_done       : std_logic;
-   signal wait_cnt_tot   : std_logic_vector(15 downto 0);
 
    signal wr_addr_s      : std_logic_vector(18 downto 0);
    signal wr_data_s      : std_logic_vector( 8 downto 0);
    signal wr_en_s        : std_logic;
 
+   -- Time taken by the current picture, in clock cycles
    signal cnt            : std_logic_vector(26 downto 0);
 
-   -- Values shown on the LEDs, latched at the end of each picture (pic_time),
-   -- and at the end of every 2^C_AVG_LOG2 pictures (pic_wait).
-   signal pic_time       : std_logic_vector(15 downto 0);
-   signal pic_wait       : std_logic_vector(15 downto 0);
-   signal wait_cnt_prev  : std_logic_vector(15 downto 0);
-   signal wait_acc       : std_logic_vector(15+C_AVG_LOG2 downto 0);
-   signal avg_cnt        : std_logic_vector(C_AVG_LOG2-1 downto 0);
+   -- The frame rate, in decimal
+   signal fps_digits     : std_logic_vector(31 downto 0);
+   signal fps_blank      : std_logic_vector( 7 downto 0);
 
    -- 23 bits = 8 million cycles @ 188.235 MHz = 22 times per second.
    signal upd_cnt        : std_logic_vector(22 downto 0) := (others => '0');
@@ -175,52 +169,40 @@ begin
    end process p_cnt;
 
 
-   -- Latch the values shown on the LEDs at the end of each picture. The
-   -- picture is recalculated continuously, so the counters themselves change
-   -- too fast to be read on the LEDs.
-   -- * pic_time is the time taken by the picture.
-   -- * pic_wait is the total waiting time of all the column modules during a
-   --   picture, averaged over 2^C_AVG_LOG2 pictures. The sum of the wait
-   --   counters (wait_cnt_tot) is accumulated from reset, so the waiting time
-   --   during a picture is the difference from the value at the end of the
-   --   previous picture. The subtraction is modulo 2^16, so it is correct even
-   --   if wait_cnt_tot has wrapped around. The differences are added up in
-   --   wait_acc, which is wide enough for 2^C_AVG_LOG2 pictures, and the
-   --   average is the upper 16 bits of wait_acc.
-   --   Each wait counter is truncated to units of 2^11 clock cycles, so the
-   --   waiting time of a single picture can be wrong by up to one unit for each
-   --   column module, i.e. up to about 240. These errors cancel between
-   --   consecutive pictures, so the error of the sum over all the pictures is
-   --   also at most about 240, and the error of the average is at most about
-   --   240/2^C_AVG_LOG2, i.e. about 4.
-   p_leds : process (clk_i)
-      variable wait_sum_v : std_logic_vector(15+C_AVG_LOG2 downto 0);
-   begin
-      if rising_edge(clk_i) then
-         if pic_done = '1' then
-            pic_time      <= cnt(26 downto 11);
-            wait_cnt_prev <= wait_cnt_tot;
-            avg_cnt       <= avg_cnt + 1;
+   --------------------------------------------------
+   -- Calculate the frame rate, and show it on the
+   -- 7-segment display
+   --------------------------------------------------
 
-            wait_sum_v := wait_acc + (wait_cnt_tot - wait_cnt_prev);
-            if avg_cnt = 2**C_AVG_LOG2-1 then
-               -- The last picture of the average
-               pic_wait <= wait_sum_v(15+C_AVG_LOG2 downto C_AVG_LOG2);
-               wait_acc <= (others => '0');
-            else
-               wait_acc <= wait_sum_v;
-            end if;
-         end if;
+   -- At the end of a picture, cnt is the time taken by the picture. The
+   -- picture is recalculated continuously, so the frame rate is updated
+   -- after every picture.
+   -- cnt wraps around after 2^27 clock cycles (0.69 s), but a picture takes
+   -- at most 480*1680 clock cycles (4.1 ms, every pixel in the set, see
+   -- ALGORITHM.md), so the frame rate is never below 243.
+   i_fps : entity work.fps
+      generic map (
+         G_CLK_FREQ  => C_CLK_FREQ,
+         G_TIME_BITS => 27,
+         G_DIGITS    => 8
+      )
+      port map (
+         clk_i    => clk_i,
+         rst_i    => rst_i,
+         time_i   => cnt,
+         valid_i  => pic_done,
+         digits_o => fps_digits,
+         blank_o  => fps_blank
+      ); -- i_fps
 
-         if rst_i = '1' then
-            pic_time      <= (others => '0');
-            pic_wait      <= (others => '0');
-            wait_cnt_prev <= (others => '0');
-            wait_acc      <= (others => '0');
-            avg_cnt       <= (others => '0');
-         end if;
-      end if;
-   end process p_leds;
+   i_seg : entity work.seg
+      port map (
+         clk_i    => clk_i,
+         digits_i => fps_digits,
+         blank_i  => fps_blank,
+         seg_o    => seg_o,
+         seg_an_o => seg_an_o
+      ); -- i_seg
 
 
    --------------------------------------------------
@@ -232,8 +214,7 @@ begin
          G_MAX_COUNT     => C_MAX_COUNT,
          G_NUM_ROWS      => C_NUM_ROWS,
          G_NUM_COLS      => C_NUM_COLS,
-         G_NUM_ITERATORS => C_NUM_ITERATORS,
-         G_WAIT_STAT     => C_WAIT_STAT
+         G_NUM_ITERATORS => C_NUM_ITERATORS
       )
       port map (
          clk_i           => clk_i,
@@ -246,26 +227,13 @@ begin
          wr_addr_o       => wr_addr_s,
          wr_data_o       => wr_data_s,
          wr_en_o         => wr_en_s,
-         done_o          => done,
-         wait_cnt_tot_o  => wait_cnt_tot
+         done_o          => done
       ); -- i_dispatcher
 
 
    --------------------------
    -- Connect output signals
    --------------------------
-
-   -- The LEDs show one of two values, selected by sw_i(1) (only the first one
-   -- when C_WAIT_STAT is false):
-   -- * The time taken by the most recently finished picture. The counter cnt
-   --   increments at 188.235 MHz while a picture is being calculated, and only
-   --   bits 26 downto 11 are shown, so a single count on the LEDs is 10.88 us.
-   --   The value wraps around after 0.71 seconds.
-   -- * The total waiting time of all the column modules during a picture,
-   --   summed up, and averaged over the last 2^C_AVG_LOG2 pictures. This is
-   --   the time spent waiting for the result to be acknowledged, in the same
-   --   units (2^11 clock cycles).
-   led_o <= pic_time when sw_r(1) = '1' or not C_WAIT_STAT else pic_wait;
 
    -- The display memory holds the full 9-bit count, see palette_pkg.vhd.
    wr_addr_o <= wr_addr_s;

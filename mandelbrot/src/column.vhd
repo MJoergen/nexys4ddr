@@ -8,11 +8,7 @@ use ieee.numeric_std_unsigned.all;
 entity column is
    generic (
       G_MAX_COUNT : integer;
-      G_NUM_ROWS  : integer;
-      -- Count the clock cycles spent waiting for the result to be accepted
-      -- (wait_cnt_o). When false, wait_cnt_o is always zero, which saves a
-      -- 27-bit counter in each column module.
-      G_WAIT_STAT : boolean := false
+      G_NUM_ROWS  : integer
    );
    port (
       clk_i        : in  std_logic;
@@ -25,8 +21,7 @@ entity column is
       res_addr_o   : out std_logic_vector( 8 downto 0);
       res_ack_i    : in  std_logic;
       res_data_o   : out std_logic_vector( 8 downto 0);
-      res_valid_o  : out std_logic;
-      wait_cnt_o   : out std_logic_vector(15 downto 0)
+      res_valid_o  : out std_logic
    );
 end entity column;
 
@@ -51,8 +46,6 @@ architecture rtl of column is
    signal res_addr_d   : std_logic_vector( 8 downto 0);
    signal res_data_d   : std_logic_vector( 8 downto 0);
    signal res_valid_d  : std_logic;
-   signal res_valid_dd : std_logic;
-   signal wait_cnt     : std_logic_vector(26 downto 0);
 
 begin
 
@@ -147,34 +140,6 @@ begin
          res_valid_d <= res_valid_s and not res_start_r and job_busy_r and not res_ack_i;
       end if;
    end process p_out;
-
-
-   ----------------------------------------
-   -- Count cycles waiting for acknowledge
-   ----------------------------------------
-
-   gen_wait : if G_WAIT_STAT generate
-      p_wait : process (clk_i)
-      begin
-         if rising_edge(clk_i) then
-            res_valid_dd <= res_valid_d;
-
-            if res_valid_dd = '1' and res_valid_d = '1' and res_ack_i = '0' then
-               wait_cnt <= wait_cnt + 1;
-            end if;
-
-            if rst_r = '1' then
-               wait_cnt <= (others => '0');
-            end if;
-         end if;
-      end process p_wait;
-
-      wait_cnt_o <= wait_cnt(26 downto 11);
-   end generate gen_wait;
-
-   gen_wait_off : if not G_WAIT_STAT generate
-      wait_cnt_o <= (others => '0');
-   end generate gen_wait_off;
 
 
    --------------------------

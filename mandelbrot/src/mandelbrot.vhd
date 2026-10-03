@@ -15,9 +15,10 @@ use ieee.numeric_std_unsigned.all;
 -- through the display memory. This module instantiates the clock and reset
 -- generation, the display memory, and the two modules above.
 --
--- The buttons, switches and LEDs are handled by main.vhd, see the description
--- there, except switches 3 and 4, which select the colour palette in vga.vhd
--- (see palette_pkg.vhd).
+-- The buttons, switches and the 7-segment display are handled by main.vhd,
+-- see the description there, except switches 3 and 4, which select the colour
+-- palette in vga.vhd (see palette_pkg.vhd). The decimal point of the 7-segment
+-- display is not used, so it is switched off here.
 
 entity mandelbrot is
    port (
@@ -26,7 +27,9 @@ entity mandelbrot is
 
       btn_i     : in  std_logic_vector( 4 downto 0);  -- "CLRUD"
       sw_i      : in  std_logic_vector( 7 downto 0);
-      led_o     : out std_logic_vector(15 downto 0);
+      seg_o     : out std_logic_vector( 6 downto 0);  -- "GFEDCBA", active low
+      seg_dp_o  : out std_logic;                      -- Active low
+      seg_an_o  : out std_logic_vector( 7 downto 0);  -- Active low
 
       vga_hs_o  : out std_logic;
       vga_vs_o  : out std_logic;
@@ -76,7 +79,8 @@ begin
          rst_i     => main_rst,
          btn_i     => btn_i,
          sw_i      => sw_i,
-         led_o     => led_o,
+         seg_o     => seg_o,
+         seg_an_o  => seg_an_o,
          wr_addr_o => wr_addr,
          wr_data_o => wr_data,
          wr_en_o   => wr_en
@@ -100,6 +104,9 @@ begin
          rd_addr_i => rd_addr,
          rd_data_o => rd_data
       ); -- i_disp_mem
+
+
+   seg_dp_o <= '1';
 
 
    --------------------------------------------------

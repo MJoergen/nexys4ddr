@@ -34,27 +34,26 @@ the dispatcher, and the timing and resource usage.
 
 ## Implementation results
 The design is built with Vivado 2025.1 and meets timing at the 188.24 MHz main
-clock (setup slack +0.088 ns, hold slack +0.017 ns). The resources used are:
+clock (setup slack +0.045 ns, hold slack +0.020 ns). The resources used are:
 
 | Resource  | Used                  | Available
 | --------- | --------------------- | ---------
 | DSP48E1   | 240                   | 240
 | Block RAM | 128 RAMB36 + 1 RAMB18 | 135 RAMB36
-| Slices    | 14,676                | 15,850
-| LUTs      | 41,965                | 63,400
-| Registers | 45,348                | 126,800
+| Slices    | 14,764                | 15,850
+| LUTs      | 42,158                | 63,400
+| Registers | 46,314                | 126,800
 
-These numbers are with the default settings, i.e. without the waiting-time
-statistic (see [Controls](#controls)). See
-[Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
+See [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details.
 
 ## Files
 | File             | Description
 | ---------------- | -----------
 | [`src/mandelbrot.vhd`](src/mandelbrot.vhd) | Top level. The ports are mapped directly to pins on the FPGA. Instantiates the clock and reset generation, the display memory, and the two modules below.
-| [`src/main.vhd`](src/main.vhd) | Everything in the MAIN clock domain: view control from buttons and switches, the dispatcher, and the LEDs.
+| [`src/main.vhd`](src/main.vhd) | Everything in the MAIN clock domain: view control from buttons and switches, the dispatcher, and the frame rate on the 7-segment display.
 | [`src/view.vhd`](src/view.vhd) | View control. Pans and zooms the view, and keeps it inside the range of the number format.
+| [`src/fps.vhd`](src/fps.vhd), [`src/seg.vhd`](src/seg.vhd) | Frame rate. `fps` divides the clock frequency by the time taken by a picture and converts the result to decimal, and `seg` multiplexes the digits on the 7-segment display.
 | [`src/vga.vhd`](src/vga.vhd) | Everything in the VGA clock domain: pixel counters and VGA output.
 | [`src/iterator.vhd`](src/iterator.vhd) | Iterates the Mandelbrot function for a single point, using one DSP.
 | [`src/column.vhd`](src/column.vhd) | A column module. Calculates one picture column (all its rows) at a time, using one iterator.
@@ -80,9 +79,8 @@ the board. The switch numbers are the bit numbers of the switch input, i.e.
 | ------- | -----------
 | `BTNL`, `BTNR`, `BTNU`, `BTND` | Pan the picture left, right, up and down, by one pixel for each update. Panning stops at the edge of the number range (-2 to 2).
 | `BTNC` | Zoom in. With switch 2 on, zoom out instead. The centre of the picture stays fixed, except when zooming out would move an edge of the view beyond -2 or 2; then the view is moved instead. Zooming stops at the smallest pixel size (2^-16), and when the view can not get larger.
-| Switch 1 | Selects what the LEDs show, but only when the waiting-time statistic is enabled (`C_WAIT_STAT` in `src/main.vhd`, off by default; otherwise the LEDs always show the time for the picture). On: the time taken to calculate the most recently finished picture, in units of 10.9 us (2^11 clock cycles), updated at the end of each picture. Off: the total time that the column modules have spent waiting for their results to be accepted during a picture, summed up over all column modules, in the same unit, and averaged over 64 pictures (about 0.19 seconds), updated after every 64 pictures.
 | Switches 3 and 4 | Select the colour palette (switch 4 is the high bit). 0 (both off): the lower 8 bits of the count are the colour (RRRGGGBB), mostly blue and green, and the set is white. 1: rainbow, the hue goes around the colour circle every 16 counts. 2: fire, black, red, orange, yellow and white, with the square root of the count. 3: blue, white, orange and dark brown, with the logarithm of the count. In the palettes 1 to 3 the set is black.
-| Switches 0 and 5 to 7 | Not used.
+| Switches 0, 1 and 5 to 7 | Not used.
 | `CPU RESET` | Resets the design and returns to the initial view.
 
 While a button is held down, the view is updated about 22 times per second. Each
@@ -90,6 +88,11 @@ update pans by one pixel, or changes the size of a pixel by about 1.6%
 (roughly 40% per second). The initial view shows the real axis from -1.67 to 1
 and the imaginary axis from -1 to 1. See
 [The top level](ALGORITHM.md#the-top-level) for details.
+
+The 7-segment display shows the frame rate, i.e. the number of pictures
+calculated per second, rounded down to an integer. It is calculated from the
+time taken by the most recently finished picture, and updated after every
+picture.
 
 ## Running
 Type `make` to list the supported targets. The most important ones are:

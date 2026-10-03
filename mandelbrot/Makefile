@@ -17,12 +17,14 @@ SRC += src/disp.vhd
 SRC += src/pix.vhd
 SRC += src/vga.vhd
 SRC += src/view.vhd
+SRC += src/fps.vhd
+SRC += src/seg.vhd
 SRC += src/main.vhd
 SRC += src/clk_rst.vhd
 SRC += src/mandelbrot.vhd
 
 # Testbenches, i.e. sim/<name>_tb.vhd
-TBS = dispatcher column iterator scheduler view vga disp_mem priority_pipeline
+TBS = dispatcher column iterator scheduler view vga disp_mem priority_pipeline fps
 
 # Testbench simulated by the "run" and "check" targets. Must be specified on
 # the command line, e.g. "make run TB=iterator".

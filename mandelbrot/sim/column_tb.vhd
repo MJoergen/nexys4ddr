@@ -208,8 +208,7 @@ begin
          res_addr_o   => res_addr,
          res_ack_i    => res_ack,
          res_data_o   => res_data,
-         res_valid_o  => res_valid,
-         wait_cnt_o   => open
+         res_valid_o  => res_valid
       ); -- i_column
 
 end architecture simulation;

@@ -61,7 +61,8 @@ begin
          rst_i     => rst,
          btn_i     => "00000",
          sw_i      => X"00",
-         led_o     => open,
+         seg_o     => open,
+         seg_an_o  => open,
          wr_addr_o => wr_addr,
          wr_data_o => wr_data,
          wr_en_o   => wr_en

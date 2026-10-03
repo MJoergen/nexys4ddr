@@ -11,12 +11,7 @@ entity dispatcher is
       G_NUM_ROWS      : integer;
       G_NUM_COLS      : integer;
       G_NUM_ITERATORS : integer;
-      G_GROUP_SIZE    : integer := 16;
-      -- Count the clock cycles the column modules spend waiting for their
-      -- results to be accepted, and add them up (wait_cnt_tot_o). When false,
-      -- wait_cnt_tot_o is always zero, which saves a counter in each column
-      -- module and the chain of adders below.
-      G_WAIT_STAT     : boolean := false
+      G_GROUP_SIZE    : integer := 16
    );
    port (
       clk_i           : in  std_logic;
@@ -29,8 +24,7 @@ entity dispatcher is
       wr_addr_o       : out std_logic_vector(18 downto 0);
       wr_data_o       : out std_logic_vector( 8 downto 0);
       wr_en_o         : out std_logic;
-      done_o          : out std_logic;
-      wait_cnt_tot_o  : out std_logic_vector(15 downto 0)
+      done_o          : out std_logic
    );
 end entity dispatcher;
 
@@ -49,8 +43,6 @@ architecture rtl of dispatcher is
       std_logic_vector(8 downto 0);
    type res_data_vector is array (natural range <>) of
       std_logic_vector(8 downto 0);
-   type wait_cnt_vector is array (natural range <>) of
-      std_logic_vector(15 downto 0);
    type value_vector is array (natural range <>) of
       std_logic_vector(17 downto 0);
    type idx_vector is array (natural range <>) of
@@ -101,7 +93,6 @@ architecture rtl of dispatcher is
    signal res_valid_s       : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal res_ack_r         : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal res_busy_r        : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
-   signal wait_cnt_s        : wait_cnt_vector( G_NUM_ITERATORS-1 downto 0);
 
    signal wr_addr_r         : std_logic_vector(18 downto 0);
    signal wr_data_r         : std_logic_vector( 8 downto 0);
@@ -122,8 +113,6 @@ architecture rtl of dispatcher is
 
    signal idx_iterator_r    : integer range 0 to G_NUM_ITERATORS-1;
    signal idx_valid_r       : std_logic;
-
-   signal wait_cnt_tot_r    : wait_cnt_vector(G_NUM_ITERATORS-1 downto 0);
 
 begin
 
@@ -274,8 +263,7 @@ begin
       i_column : entity work.column
          generic map (
             G_MAX_COUNT => G_MAX_COUNT,
-            G_NUM_ROWS  => G_NUM_ROWS,
-            G_WAIT_STAT => G_WAIT_STAT
+            G_NUM_ROWS  => G_NUM_ROWS
          )
          port map (
             clk_i        => clk_i,
@@ -288,8 +276,7 @@ begin
             res_addr_o   => res_addr_s(i),
             res_data_o   => res_data_s(i),
             res_valid_o  => res_valid_s(i),
-            res_ack_i    => res_ack_r(i),
-            wait_cnt_o   => wait_cnt_s(i)
+            res_ack_i    => res_ack_r(i)
          ); -- i_column
       end generate gen_column;
 
@@ -424,33 +411,6 @@ begin
          end if;
       end if;
    end process p_done;
-
-
-   --------------------------------
-   -- Add together all wait counts
-   --------------------------------
-
-   gen_wait_stat : if G_WAIT_STAT generate
-      wait_cnt_tot_r(0) <= wait_cnt_s(0);
-      g_wait_cnt_tot : for i in 1 to G_NUM_ITERATORS-1 generate
-         p_g_wait_cnt_tot : process (clk_i)
-         begin
-            if rising_edge(clk_i) then
-               wait_cnt_tot_r(i) <= wait_cnt_tot_r(i-1) + wait_cnt_s(i);
-
-               if rst_i = '1' then
-                  wait_cnt_tot_r(i) <= (others => '0');
-               end if;
-            end if;
-         end process p_g_wait_cnt_tot;
-      end generate g_wait_cnt_tot;
-
-      wait_cnt_tot_o <= wait_cnt_tot_r(G_NUM_ITERATORS-1);
-   end generate gen_wait_stat;
-
-   gen_wait_stat_off : if not G_WAIT_STAT generate
-      wait_cnt_tot_o <= (others => '0');
-   end generate gen_wait_stat_off;
 
 
    --------------------------

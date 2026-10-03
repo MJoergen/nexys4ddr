@@ -341,16 +341,6 @@ count value for this pixel. The res\_ack\_i is needed, because there may be an
 arbitrarily long delay before the job dispatcher has time to acknowledge the
 result.
 
-Finally, there is a debug output:
-```
-wait_cnt_o   : out std_logic_vector(15 downto 0);
-```
-This is the number of clock cycles the column module has spent waiting for a
-result to be acknowledged, in units of 2^11 clock cycles. It is only cleared
-by reset. The counter is only there when the generic G\_WAIT\_STAT
-is true (the default is false). Otherwise wait\_cnt\_o is always zero, which
-saves a 27-bit counter in each of the 240 column modules.
-
 The testbench for the column module ([`sim/column_tb.vhd`](sim/column_tb.vhd))
 is self-checking. It runs three jobs of ten rows each, and checks that the
 column module is busy only during a job, that the results come in order, that a
@@ -384,17 +374,7 @@ wr_data_o : out std_logic_vector( 8 downto 0);
 wr_en_o   : out std_logic;
 ```
 The data is the 9-bit count, which is stored in the display memory, see
-[The top level](#the-top-level). Finally, there is a debug output:
-```
-wait_cnt_tot_o : out std_logic_vector(15 downto 0);
-```
-This is the sum of the wait\_cnt\_o outputs of all the column modules. Like
-in the column module, it is only calculated when the generic G\_WAIT\_STAT is
-true (the default is false), and the dispatcher passes G\_WAIT\_STAT on to the
-column modules. The sum is calculated by a chain of 239 registered 16-bit
-adders, so leaving it out saves both these and the counters in the column
-modules. In the design, G\_WAIT\_STAT is set by the constant C\_WAIT\_STAT in
-`main.vhd`.
+[The top level](#the-top-level).
 
 This module instantiates a configurable number of column modules (ideally 240
 instances, one for each DSP). It keeps track of which column modules are
@@ -472,7 +452,8 @@ display memory, and splits the rest of the design into one module for each
 clock domain:
 * [`src/main.vhd`](src/main.vhd) runs in the MAIN clock domain (188.24 MHz).
   It handles the buttons and switches, controls the dispatcher, writes the
-  results to the display memory, and drives the LEDs.
+  results to the display memory, and shows the frame rate on the 7-segment
+  display.
 * [`src/vga.vhd`](src/vga.vhd) runs in the VGA clock domain (25 MHz). It
   generates the pixel counters, reads the display memory, and generates the VGA
   output.
@@ -584,48 +565,45 @@ upd\_i during an update (which takes 17 clock cycles) is ignored, but one just
 after the update is not. The initial view is checked when the design is
 elaborated: it must be inside the range too.
 
-**The LEDs.** The LEDs show one of two values, for the most recently finished
-picture, or averaged over the last 64 pictures. The second value (the waiting
-time) costs a lot of resources, so it is only there when C\_WAIT\_STAT is true,
-and the default is false. Then the LEDs always show the first value (the time
-for the picture), whatever switch 1 is. The values are latched at the
-end of a picture, because the picture is recalculated continuously (about
-every 2.9 ms), so the counters themselves change too fast to be read.
-* If switch 1 is on, the LEDs show the time taken by the picture. A counter
-  counts clock cycles while a picture is being calculated, and it is cleared
-  when the next picture is started. At the end of the picture, bits 26 to 11
-  of the counter are latched. A single step on the LEDs is therefore 2^11 clock
-  cycles, which is 10.88 us, and the value wraps around after 0.71 seconds.
-* If switch 1 is off, and the constant C\_WAIT\_STAT in `main.vhd` is true,
-  the LEDs show the total waiting time of all the column modules during a
-  picture, averaged over 64 pictures (about 0.19 seconds for
-  the initial view). The wait counter of a column module counts the
-  clock cycles that the module has to wait for its result to be accepted, in
-  the same unit of 2^11 clock cycles. The wait counters are only cleared by
-  reset, and the dispatcher adds them up (wait\_cnt\_tot\_o). So `main`
-  calculates the waiting time of a picture as the difference between the sum
-  at the end of this picture and the sum at the end of the previous picture.
-  The sum is 16 bits wide, and the difference is calculated modulo 2^16, so it
-  is correct even when the sum wraps around. The differences of 64 pictures
-  are added up, and the LEDs show the sum divided by 64 (the constant
-  C\_AVG\_LOG2 in `main.vhd` is 6). The LEDs are updated after every 64
-  pictures, which takes longer when each picture takes longer, e.g. when
-  zooming into the set.
+**The frame rate.** The 7-segment display shows the frame rate, i.e. the
+number of pictures per second, rounded down to an integer, with the leading
+zeros blanked. A counter counts clock cycles while a picture is being
+calculated, and it is cleared when the next picture is started. At the end of
+a picture, the module [`src/fps.vhd`](src/fps.vhd) divides the clock frequency
+(188,235,294 Hz) by the value of the counter, and converts the result to
+decimal. The picture is recalculated continuously, so the frame rate is
+updated after every picture (about 340 times per second for the initial view).
+A single-cycle division would be far too slow for the MAIN clock, so both
+steps are done one bit per clock cycle: a restoring division, with one
+subtraction for each of the 28 bits of the quotient, and then the double
+dabble algorithm to convert the quotient to 8 decimal digits (for each bit, 3
+is added to each digit which is 5 or more, and then everything is shifted left
+by one bit). This takes 58 clock cycles, much less than a picture, and the
+widest addition is 29 bits. A frame rate above 99999999 would show as
+99999999, but that would need a picture of fewer than 2 clock cycles. The
+counter is 27 bits wide, so it wraps around after 2^27 clock cycles (0.71 s),
+but a picture takes far less than that: even if every pixel took the maximum
+of 1680 clock cycles (see [Timing](#timing)), a picture would take about 3
+million clock cycles (16 ms).
 
-  The averaging is needed because each wait counter is truncated to units of
-  2^11 clock cycles before the sum. So the waiting time of a column module
-  during a single picture may be one unit too high or too low, depending on
-  the part of the counter below 2^11 at the start and at the end of the
-  picture. The waiting time of a single picture can therefore differ by up to
-  about 240 (the number of column modules) from the exact value, and it
-  changes from picture to picture, even when the pictures are the same, so the
-  lower bits would blink. These errors cancel between consecutive pictures, so
-  the error of the sum over 64 pictures is also at most about 240, and the
-  error of the average is at most about 4.
+The digits of the display share the segment signals, so
+[`src/seg.vhd`](src/seg.vhd) shows them one at a time, each for 2^14 clock
+cycles, i.e. all 8 digits are refreshed every 0.67 ms (1.5 kHz). The
+segments and the digit enables (anodes) are active low. The decimal point is
+not used.
+
+The testbench [`sim/fps_tb.vhd`](sim/fps_tb.vhd) is self-checking. It gives
+the frame rate module a number of picture times (the extremes, the values
+around a change of the frame rate, e.g. 199 and 200, and random values), and
+checks the digits and the blanking against the integer division, and that the
+display shows the same number: every digit that is not blanked is switched on
+with the right segments during a refresh cycle, the blanked digits are never
+switched on, and at most one digit is on at a time. It also checks that a new
+picture time during a calculation is ignored.
 
 **Other inputs.** The switches 3 and 4 select the colour palette, see
 [Colours](#colours). They are used in the VGA clock domain (in `vga`), not in
-`main`. The switches 0 and 5 to 7 are not used.
+`main`. The switches 0, 1 and 5 to 7 are not used.
 
 ## Colours
 The display memory holds the count of each pixel (9 bits). The VGA output has
@@ -666,14 +644,16 @@ with a different value for each pixel, and a different palette in each quarter
 of the frame.
 
 ## Timing
-Counters measure the total time it takes to generate the picture as well as the
-total amount of time the iterators are waiting to write to display memory. The
-second one must be enabled with C\_WAIT\_STAT in `main.vhd`, see
-[The top level](#the-top-level). The
-values are shown on the LEDs, see [The top level](#the-top-level).
+A counter measures the time it takes to generate the picture, which is shown
+as a frame rate on the 7-segment display, see [The top level](#the-top-level).
+Earlier versions showed this time on the LEDs instead, in units of 2^11 clock
+cycles, and also (with switch 1) the total amount of time the column modules
+were waiting to write to the display memory, when the waiting-time statistic
+was enabled. The LEDs are no longer used, and the counters for the waiting
+time have been removed.
 
 The numbers measured on the board, with the main clock at 174.55 MHz, the
-waiting-time statistic built in, and the initial view, are:
+waiting-time statistic built in, and the initial view, were:
 * The time for the picture (switch 1 on): 0x01D8 = 472, i.e. 472\*2^11 clock
   cycles, which was 5.5 ms at 174.55 MHz. This value is steady. The same
   number of clock cycles was measured with the main clock at 140.625 MHz
@@ -686,8 +666,8 @@ waiting-time statistic built in, and the initial view, are:
   i.e. 29196\*2^11 clock cycles in total, which is about a quarter of the
   time of each column module. Before the value was averaged over 64 pictures,
   the lowest bits changed from picture to picture (about 0x721F = 29215 was
-  measured), because of the truncation of the wait counters (see
-  [The top level](#the-top-level)).
+  measured), because each wait counter was truncated to units of 2^11 clock
+  cycles before the sum.
 
 Both values agree with the model [`sim/model.py`](sim/model.py), which
 estimates the time for the picture from the number of iterations of each pixel,
@@ -717,16 +697,20 @@ With the periodicity detection, the iterator needs 132 clock cycles per pixel
 on average, and each pixel takes 316 clock cycles on average, including the
 waiting. Most of the pixels now take the minimum of 240 clock cycles, and the
 longest picture column takes 0.27 million clock cycles. The model gives
-551040 clock cycles (269\*2^11, so the LEDs should show about 0x010D) for the
-picture, i.e. 2.9 ms at 188.24 MHz, 1.75 times faster than without the
-detection. This has not been measured on the board yet.
+551040 clock cycles (269\*2^11) for the picture, i.e. 2.9 ms at 188.24 MHz,
+1.75 times faster than without the detection, so the 7-segment display should
+show about 341 pictures per second. This has not been measured on the board
+yet.
 
 Without the periodicity detection, the model gave a total waiting time of
-28896\*2^11 clock cycles, i.e. 192 clock cycles per pixel on average. The wait
-counter of a column module counts 2 clock cycles more for each pixel. With
-these 2 clock cycles for each of the 307200 pixels, the expected value on the
-LEDs was 29196 (0x720C), exactly the measured value. With the periodicity
-detection, the expected value is about 27981 (0x6D4D).
+59,179,719 clock cycles, i.e. 28896\*2^11 clock cycles, or about 193 clock
+cycles per pixel on average. The wait counter of a column module counted 2
+clock cycles more for each pixel. With these 2 clock cycles for each of the
+307200 pixels, the expected value on the LEDs was 29196 (0x720C), exactly the
+measured value. The wait counters have been removed from the design, so the
+model is now the way to get this value: `sim/model.py` prints both numbers
+(the total waiting time, and the value the wait counters would have shown).
+With the periodicity detection, the wait counters would show about 27981.
 
 The wait counter counts from 3 clock cycles after the result is ready until
 the clock cycle before the acknowledge reaches the column module. When the
@@ -762,18 +746,16 @@ column) would also spread the work more evenly over the column modules.
 
 ## Resources and timing closure
 The numbers below come from a successful run of `make vivado` (Vivado 2025.1,
-part xc7a100tcsg324-1, i.e. speed grade -1) with the default settings, i.e.
-without the waiting-time statistic (C\_WAIT\_STAT false, see
-[The top level](#the-top-level)), which meets timing with a 188.24 MHz main
-clock.
+part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
+188.24 MHz main clock.
 
 | Resource         | Used     | Available | Used (%)
 | ---------------- | -------- | --------- | --------
 | DSP48E1          | 240      | 240       | 100
 | Block RAM        | 128 RAMB36 + 1 RAMB18 | 135 RAMB36 | about 95
-| Slices           | 14,676   | 15,850    | 93
-| LUTs             | 41,965   | 63,400    | 66
-| Registers        | 45,348   | 126,800   | 36
+| Slices           | 14,764   | 15,850    | 93
+| LUTs             | 42,158   | 63,400    | 66
+| Registers        | 46,314   | 126,800   | 37
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
 The resource numbers are from `report_utilization` on the routed design
@@ -781,7 +763,7 @@ The resource numbers are from `report_utilization` on the routed design
 Most of the slices are used, even though only 66% of the LUTs are used.
 
 The "Report Cell Usage" table in `vivado.log` gives the cell counts after
-synthesis instead: 55,364 LUT cells (LUT1 to LUT6) and 43,477 registers (FDRE
+synthesis instead: 55,536 LUT cells (LUT1 to LUT6) and 43,656 registers (FDRE
 and FDSE cells). The number of LUT cells is larger than the number of LUTs
 used, because two small LUT cells can share one LUT (the placer does this, e.g.
 "LUT Combining" in `phys_opt_design`). There are more registers after
@@ -793,7 +775,7 @@ and 8,900 registers (36 registers for the saved values in each iterator), and
 increased the slices used from 81% to 93%. A first version, which cleared the
 saved values at the start of each point, used about 4,100 LUT cells more.
 
-With the waiting-time statistic (C\_WAIT\_STAT true), and with only the lower
+With the waiting-time statistic built in, and with only the lower
 8 bits of the count in the display memory, the design used 53,386 LUT cells and
 44,493 registers after synthesis, and 40,542 LUTs, 46,345 registers, and 14,789
 slices (93%) after routing, and the setup slack at 174.55 MHz was +0.094 ns. So
@@ -822,8 +804,8 @@ The timing after routing is:
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.088 ns (TNS 0)
-| Hold (WHS)  | +0.017 ns (THS 0)
+| Setup (WNS) | +0.045 ns (TNS 0)
+| Hold (WHS)  | +0.020 ns (THS 0)
 
 These are the values from `report_timing_summary` on the routed design
 (`mandelbrot.dcp`), after the post-route `phys_opt_design`.
@@ -839,11 +821,14 @@ paths between them.
 
 At this frequency, the critical paths are in the iterators, and in the column
 modules around them:
-* From x\_r and y\_r through the additions x+y and x-y and the selection of
-  the inputs of the multiplier to the input registers of the DSP, with 7
-  levels of logic and +0.088 ns of slack.
 * From the output of the DSP (which is not registered, see
-  [Multiplier](#multiplier)) to the overflow flags.
+  [Multiplier](#multiplier)) to the overflow flags, with +0.045 ns of slack.
+* From x\_r and y\_r through the additions x+y and x-y and the selection of
+  the inputs of the multiplier to the input registers of the DSP, with 6 or 7
+  levels of logic.
+* The acknowledge of the results (`res_ack_r`) to the row in the column
+  modules, and the routes from the registers in the groups to the column
+  modules.
 * The state machine of the iterator (from cnt\_r), and the periodicity
   detection (to match\_r and the saved values).
 * The next row in the column modules (to `res_cy_r`, whose clock enable
@@ -895,7 +880,7 @@ about 0.1 ns. Above 174.55 MHz the result depends on luck: 177.78 MHz (and
 optimization, but 181.13 MHz did not. So the main clock was raised to
 174.55 MHz, which is 24% faster than 140.625 MHz.
 
-These builds had the waiting-time statistic. Without it (the default), the
+These builds had the waiting-time statistic. Without it, the
 slack at 174.55 MHz was +0.229 ns instead of +0.094 ns, so the frequency was
 tried again:
 
@@ -939,7 +924,12 @@ the detection:
 So the main clock was lowered to 188.24 MHz, which has about the same slack as
 the earlier choices. This is 4% slower than 195.92 MHz, but the detection
 makes the picture 1.75 times faster. The main clock is 34% faster than
-140.625 MHz.
+140.625 MHz. The frame rate on the 7-segment display (see
+[The top level](#the-top-level)), which replaced the LEDs and the waiting-time
+statistic, uses about 170 LUT cells and 180 registers, and the build with it
+has +0.045 ns of setup slack at 188.24 MHz. The difference from +0.088 ns is
+the normal variation from one run to the next; the critical paths are the
+same.
 
 The complete run of `make vivado` takes about 6.5 minutes (synthesis about 2.5
 minutes, placement about 1.5 minutes, routing about 1 minute), on a machine
