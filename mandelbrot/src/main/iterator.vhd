@@ -133,6 +133,12 @@ architecture rtl of iterator is
 
 begin
 
+   -- The counter cnt_r is 9 bits wide, so with a larger G_MAX_COUNT it would
+   -- wrap around before it reaches G_MAX_COUNT-1.
+   assert G_MAX_COUNT <= 511
+      report "The iterator needs G_MAX_COUNT <= 511"
+      severity failure;
+
    -----------------
    -- State machine
    -----------------
