@@ -30,7 +30,8 @@ mandelbrot                      src/mandelbrot.vhd (top level)
      +- disp                    src/vga/disp.vhd (VGA output, uses the palettes in src/vga/palette_pkg.vhd)
 ```
 The number of column modules (and therefore iterators and DSPs) is set by the
-generic `G_NUM_ITERATORS`, which `main` sets to 240.
+generic `G_NUM_ITERATORS` of `main`, which the top level module sets to 240
+(450 for the MEGA65, see `src/mega65_r6.vhd`).
 
 ## The Mandelbrot iteration
 For each point $c = c_x + i c_y$ in the picture, we iterate

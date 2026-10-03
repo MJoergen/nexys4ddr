@@ -114,6 +114,8 @@ connector.
 | Reset button | Resets the design and returns to the initial view.
 
 The colour palette is always palette 0, and the frame rate is not shown.
+The XC7A200T is larger, so the design uses 450 column modules (DSPs) instead
+of 240, see [`src/mega65_r6.vhd`](src/mega65_r6.vhd).
 
 ## Running
 Type `make` to list the supported targets. The most important ones are:

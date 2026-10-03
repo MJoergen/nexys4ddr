@@ -47,6 +47,14 @@ end mega65_r6;
 
 architecture structural of mega65_r6 is
 
+   -- The number of column modules. The XC7A200T has 740 DSPs, but the number
+   -- of column modules is limited by the slices: 240 column modules use 92% of
+   -- the slices of the XC7A100T, and the XC7A200T has 2.1 times as many. The
+   -- model (sim/model.py) estimates 1.99 ms for the initial picture with 450
+   -- column modules, against 2.22 ms with 240. More column modules give little
+   -- more, because the dispatcher accepts at most one result per clock cycle.
+   constant C_NUM_ITERATORS : integer := 450;
+
    signal rstn           : std_logic;
    signal btn            : std_logic_vector( 4 downto 0);  -- "CLRUD"
    signal sw             : std_logic_vector( 7 downto 0);
@@ -100,6 +108,9 @@ begin
    --------------------------------------------------
 
    i_main : entity work.main
+      generic map (
+         G_NUM_ITERATORS => C_NUM_ITERATORS
+      )
       port map (
          clk_i     => main_clk,
          rst_i     => main_rst,

@@ -19,6 +19,11 @@ use ieee.numeric_std_unsigned.all;
 -- picture.
 
 entity main is
+   generic (
+      -- The number of column modules, i.e. iterators and DSPs. This depends on
+      -- the size of the FPGA, so it is set by the top level module.
+      G_NUM_ITERATORS : integer
+   );
    port (
       clk_i     : in  std_logic;                      -- 188.235 MHz
       rst_i     : in  std_logic;
@@ -42,7 +47,6 @@ architecture structural of main is
    constant C_NUM_COLS      : integer := 640;
    -- Rows in each job given to a column module, see dispatcher.vhd
    constant C_JOB_ROWS      : integer := 120;
-   constant C_NUM_ITERATORS : integer := 240;
 
    constant C_START_X       : real := -1.6667;
    constant C_START_Y       : real := -1.0000;
@@ -217,7 +221,7 @@ begin
          G_NUM_ROWS      => C_NUM_ROWS,
          G_NUM_COLS      => C_NUM_COLS,
          G_JOB_ROWS      => C_JOB_ROWS,
-         G_NUM_ITERATORS => C_NUM_ITERATORS
+         G_NUM_ITERATORS => G_NUM_ITERATORS
       )
       port map (
          clk_i           => clk_i,
