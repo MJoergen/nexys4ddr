@@ -40,6 +40,8 @@ architecture structural of main is
    constant C_MAX_COUNT     : integer := 511;
    constant C_NUM_ROWS      : integer := 480;
    constant C_NUM_COLS      : integer := 640;
+   -- Rows in each job given to a column module, see dispatcher.vhd
+   constant C_JOB_ROWS      : integer := 120;
    constant C_NUM_ITERATORS : integer := 240;
 
    constant C_START_X       : real := -1.6667;
@@ -214,6 +216,7 @@ begin
          G_MAX_COUNT     => C_MAX_COUNT,
          G_NUM_ROWS      => C_NUM_ROWS,
          G_NUM_COLS      => C_NUM_COLS,
+         G_JOB_ROWS      => C_JOB_ROWS,
          G_NUM_ITERATORS => C_NUM_ITERATORS
       )
       port map (

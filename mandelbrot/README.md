@@ -5,7 +5,7 @@ picture (640x480) is shown on the VGA output, and you can pan and zoom using the
 buttons on the board.
 
 All 240 DSPs of the FPGA are used in parallel for the calculation, and the
-picture is stored in block RAM. Generating a complete picture takes about 2.9 ms
+picture is stored in block RAM. Generating a complete picture takes about 2.2 ms
 (estimated by the model), with the main clock at 188.24 MHz.
 
 ## The algorithm
@@ -24,9 +24,9 @@ multiplications, using the identity $x^2 - y^2 = (x+y)(x-y)$. Each of the 240
 column modules contains an iterator with a single DSP multiplier, and the
 iterator calculates one iteration every three clock cycles. Most points in the
 set are found long before the maximum count, because the values of $z$ start
-to repeat exactly (periodicity detection). The picture is divided into picture
-columns, and the dispatcher gives the next picture column to a column module as
-soon as it is idle.
+to repeat exactly (periodicity detection). The picture is divided into jobs,
+each of 120 rows of a picture column, and the dispatcher gives the next job to
+a column module as soon as it is idle.
 
 [ALGORITHM.md](ALGORITHM.md) explains the design in detail: the number format,
 the multiplier, the iterator (including how overflow is detected), the columns,
@@ -34,15 +34,15 @@ the dispatcher, and the timing and resource usage.
 
 ## Implementation results
 The design is built with Vivado 2025.1 and meets timing at the 188.24 MHz main
-clock (setup slack +0.045 ns, hold slack +0.020 ns). The resources used are:
+clock (setup slack +0.103 ns, hold slack +0.014 ns). The resources used are:
 
 | Resource  | Used                  | Available
 | --------- | --------------------- | ---------
 | DSP48E1   | 240                   | 240
-| Block RAM | 128 RAMB36 + 1 RAMB18 | 135 RAMB36
-| Slices    | 14,764                | 15,850
-| LUTs      | 42,158                | 63,400
-| Registers | 46,314                | 126,800
+| Block RAM | 128 RAMB36 + 2 RAMB18 | 135 RAMB36
+| Slices    | 14,641                | 15,850
+| LUTs      | 41,284                | 63,400
+| Registers | 44,562                | 126,800
 
 See [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details.
@@ -60,8 +60,8 @@ files that are in both clock domains are in [`src/`](src).
 | [`src/main/fps.vhd`](src/main/fps.vhd), [`src/main/seg.vhd`](src/main/seg.vhd) | Frame rate. `fps` divides the clock frequency by the time taken by a picture and converts the result to decimal, and `seg` multiplexes the digits on the 7-segment display.
 | [`src/vga/vga.vhd`](src/vga/vga.vhd) | Everything in the VGA clock domain: pixel counters and VGA output.
 | [`src/main/iterator.vhd`](src/main/iterator.vhd) | Iterates the Mandelbrot function for a single point, using one DSP.
-| [`src/main/column.vhd`](src/main/column.vhd) | A column module. Calculates one picture column (all its rows) at a time, using one iterator.
-| [`src/main/dispatcher.vhd`](src/main/dispatcher.vhd) | Controls the calculation of the entire picture: hands out the picture columns to the idle column modules, and collects the results. Instantiates the column modules.
+| [`src/main/column.vhd`](src/main/column.vhd) | A column module. Calculates one job (120 rows of a picture column) at a time, using one iterator.
+| [`src/main/dispatcher.vhd`](src/main/dispatcher.vhd) | Controls the calculation of the entire picture: hands out the jobs to the idle column modules, and collects the results. Instantiates the column modules.
 | [`src/main/scheduler.vhd`](src/main/scheduler.vhd) | Round-robin scheduler. Used by the dispatcher both to give jobs to idle column modules and to pick which column module's result to accept.
 | [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture, in 128 blocks.
 | [`src/vga/pix.vhd`](src/vga/pix.vhd), [`src/vga/disp.vhd`](src/vga/disp.vhd) | VGA output. `pix` generates the pixel counters, and `disp` generates the sync signals and the pixel colour.

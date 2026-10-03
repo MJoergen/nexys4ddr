@@ -2,14 +2,23 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This module instantiates a number of column modules, dispatches jobs to them
--- (one picture column per job), and collects results from them.
+-- This module instantiates a number of column modules, dispatches jobs to them,
+-- and collects results from them.
+--
+-- The picture is divided into blocks of G_JOB_ROWS rows, and each job is one
+-- picture column of a block. The jobs are given out one block at a time:
+-- First all the picture columns of the top block, then all the picture columns
+-- of the next block, and so on. Smaller jobs make the work more evenly shared
+-- between the column modules at the end of the picture, when the expensive
+-- jobs would otherwise keep a few column modules busy long after the others
+-- have finished.
 
 entity dispatcher is
    generic (
       G_MAX_COUNT     : integer;
       G_NUM_ROWS      : integer;
       G_NUM_COLS      : integer;
+      G_JOB_ROWS      : integer;         -- Rows in each job
       G_NUM_ITERATORS : integer;
       G_GROUP_SIZE    : integer := 16
    );
@@ -37,6 +46,9 @@ architecture rtl of dispatcher is
    -- so the attribute keep prevents the synthesis tool from merging them.
    constant C_NUM_GROUPS : integer := (G_NUM_ITERATORS + G_GROUP_SIZE - 1) / G_GROUP_SIZE;
 
+   -- The number of blocks of rows
+   constant C_NUM_BLOCKS : integer := G_NUM_ROWS / G_JOB_ROWS;
+
    type job_addr_vector is array (natural range <>) of
       std_logic_vector(9 downto 0);
    type res_addr_vector is array (natural range <>) of
@@ -47,18 +59,32 @@ architecture rtl of dispatcher is
       std_logic_vector(17 downto 0);
    type idx_vector is array (natural range <>) of
       integer range 0 to G_NUM_ITERATORS-1;
+   type blk_vector is array (natural range <>) of
+      integer range 0 to C_NUM_BLOCKS-1;
 
    signal sched_active_r    : std_logic;
    --
+   -- The job: cx of the picture column, and cy of the first row of the block
    signal job_cx_r          : std_logic_vector(17 downto 0);
-   signal job_stepx_r       : std_logic_vector(17 downto 0);
    signal job_starty_r      : std_logic_vector(17 downto 0);
+   signal job_startx_r      : std_logic_vector(17 downto 0);
+   signal job_stepx_r       : std_logic_vector(17 downto 0);
    signal job_stepy_r       : std_logic_vector(17 downto 0);
+   -- The difference in cy between two blocks
+   signal job_blk_stepy_r   : std_logic_vector(17 downto 0);
    --
    signal job_start_r       : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal job_started_r     : std_logic;
+   -- High together with job_started_r, when the job is the last picture
+   -- column of a block
+   signal job_wrap_r        : std_logic;
+   -- The picture column and the block of the job of each column module
    signal job_addr_r        : job_addr_vector( G_NUM_ITERATORS-1 downto 0);
+   signal job_blk_r         : blk_vector(      G_NUM_ITERATORS-1 downto 0);
+   -- The picture column and the block of the next job. All the jobs have
+   -- been given out when cur_blk_r is C_NUM_BLOCKS.
    signal cur_addr_r        : std_logic_vector(9 downto 0) := (others => '0');
+   signal cur_blk_r         : integer range 0 to C_NUM_BLOCKS := 0;
    --
    -- The job, delayed by one clock cycle, in each group of column modules
    signal grp_cx_r          : value_vector(C_NUM_GROUPS-1 downto 0);
@@ -79,6 +105,11 @@ architecture rtl of dispatcher is
    signal grp_res_addr_r    : res_addr_vector(C_NUM_GROUPS-1 downto 0);
    signal grp_res_data_r    : res_data_vector(C_NUM_GROUPS-1 downto 0);
 
+   -- The multiplication by the constant G_JOB_ROWS uses LUTs, because all
+   -- the DSPs are used by the iterators.
+   attribute use_dsp : string;
+   attribute use_dsp of job_blk_stepy_r : signal is "no";
+
    attribute keep : string;
    attribute keep of grp_cx_r     : signal is "true";
    attribute keep of grp_starty_r : signal is "true";
@@ -98,9 +129,12 @@ architecture rtl of dispatcher is
    signal wr_data_r         : std_logic_vector( 8 downto 0);
    signal wr_en_r           : std_logic;
 
-   -- The accepted result, delayed by one and two clock cycles
+   -- The accepted result, delayed by one and two clock cycles, and the
+   -- first row of its block
    signal acc_job_addr_r    : std_logic_vector(9 downto 0);
    signal acc_job_addr_d    : std_logic_vector(9 downto 0);
+   signal acc_blk_r         : integer range 0 to C_NUM_BLOCKS-1;
+   signal acc_row_d         : std_logic_vector(8 downto 0);
    signal acc_grp_r         : integer range 0 to C_NUM_GROUPS-1;
    signal acc_grp_d         : integer range 0 to C_NUM_GROUPS-1;
    signal acc_valid_r       : std_logic;
@@ -127,6 +161,10 @@ begin
    -- first one would be lost), or a result accepted twice.
    assert G_NUM_ITERATORS >= 5
       report "The dispatcher needs at least five column modules"
+      severity failure;
+
+   assert G_NUM_ROWS mod G_JOB_ROWS = 0
+      report "The number of rows must be a multiple of the rows in a job"
       severity failure;
 
    p_sched_active : process (clk_i)
@@ -177,24 +215,34 @@ begin
          -- when any bit of job_start_r is high.
          job_start_r   <= (others => '0');
          job_started_r <= '0';
+         job_wrap_r    <= '0';
 
          if idx_start_valid_r = '1' and
-            cur_addr_r < G_NUM_COLS
+            cur_blk_r < C_NUM_BLOCKS
          then
             job_start_r(idx_start_r) <= '1';
             job_started_r            <= '1';
             job_addr_r(idx_start_r)  <= cur_addr_r;
+            job_blk_r(idx_start_r)   <= cur_blk_r;
             cur_addr_r               <= cur_addr_r + 1;
+            if cur_addr_r = G_NUM_COLS-1 then
+               job_wrap_r <= '1';
+               cur_addr_r <= (others => '0');
+               cur_blk_r  <= cur_blk_r + 1;
+            end if;
          end if;
 
          if start_i = '1' then
             cur_addr_r <= (others => '0');
+            cur_blk_r  <= 0;
          end if;
 
          if rst_i = '1' then
             job_start_r   <= (others => '0');
             job_started_r <= '0';
+            job_wrap_r    <= '0';
             cur_addr_r    <= (others => '0');
+            cur_blk_r     <= 0;
          end if;
       end if;
    end process p_job_start;
@@ -204,16 +252,31 @@ begin
    -- Prepare job for next column module
    ----------------------------------------
 
+   -- After the last picture column of a block, cx starts again from the left
+   -- edge, and cy moves to the next block. The column modules add stepy in 18
+   -- bits, so adding G_JOB_ROWS times stepy (also in 18 bits) gives exactly the
+   -- same values of cy as if all the rows were calculated in one job. The value
+   -- of job_blk_stepy_r is ready two clock cycles after a start (start_i), and
+   -- it is not used until the first job has been started, which is at least
+   -- five clock cycles after the start.
    p_job_cx : process (clk_i)
+      variable blk_stepy_v : std_logic_vector(35 downto 0);
    begin
       if rising_edge(clk_i) then
+         blk_stepy_v     := job_stepy_r * to_slv(G_JOB_ROWS, 18);
+         job_blk_stepy_r <= blk_stepy_v(17 downto 0);
 
          if job_started_r = '1' then
             job_cx_r <= job_cx_r + job_stepx_r;
+            if job_wrap_r = '1' then
+               job_cx_r     <= job_startx_r;
+               job_starty_r <= job_starty_r + job_blk_stepy_r;
+            end if;
          end if;
 
          if start_i = '1' then
             job_cx_r     <= startx_i;
+            job_startx_r <= startx_i;
             job_stepx_r  <= stepx_i;
             job_starty_r <= starty_i;
             job_stepy_r  <= stepy_i;
@@ -226,11 +289,11 @@ begin
    -- Delay the job by one clock cycle, in groups
    -----------------------------------------------
 
-   -- The column module takes the value of cx when it sees the start of the
-   -- job, so job_start_r is delayed too. The values of starty and stepy do not
-   -- change during a picture. After a start (start_i), the first job is
-   -- started (job_start_d) five clock cycles later, and by then the new values
-   -- have reached the column modules.
+   -- The column module takes the values of cx and starty when it sees the
+   -- start of the job, so job_start_r is delayed too. The value of stepy does
+   -- not change during a picture. After a start (start_i), the first job is
+   -- started (job_start_d) five clock cycles later, and by then the new value
+   -- has reached the column modules.
    p_grp : process (clk_i)
    begin
       if rising_edge(clk_i) then
@@ -263,7 +326,7 @@ begin
       i_column : entity work.column
          generic map (
             G_MAX_COUNT => G_MAX_COUNT,
-            G_NUM_ROWS  => G_NUM_ROWS
+            G_NUM_ROWS  => G_JOB_ROWS
          )
          port map (
             clk_i        => clk_i,
@@ -329,6 +392,7 @@ begin
          end loop;
 
          acc_job_addr_r <= job_addr_r(idx_iterator_r);
+         acc_blk_r      <= job_blk_r(idx_iterator_r);
          acc_grp_r      <= idx_iterator_r / G_GROUP_SIZE;
          acc_valid_r    <= idx_valid_r;
       end if;
@@ -366,10 +430,12 @@ begin
    begin
       if rising_edge(clk_i) then
          acc_job_addr_d <= acc_job_addr_r;
+         acc_row_d      <= to_slv(acc_blk_r * G_JOB_ROWS, 9);
          acc_grp_d      <= acc_grp_r;
          acc_valid_d    <= acc_valid_r;
 
-         wr_addr_r <= acc_job_addr_d & grp_res_addr_r(acc_grp_d);
+         -- The column module gives the row within the block
+         wr_addr_r <= acc_job_addr_d & (acc_row_d + grp_res_addr_r(acc_grp_d));
          wr_data_r <= grp_res_data_r(acc_grp_d);
          wr_en_r   <= acc_valid_d;
       end if;
@@ -403,7 +469,7 @@ begin
    begin
       if rising_edge(clk_i) then
          done_r <= '0';
-         if cur_addr_r = G_NUM_COLS and grp_job_busy_r = 0 and
+         if cur_blk_r = C_NUM_BLOCKS and grp_job_busy_r = 0 and
             job_started_r = '0' and job_started_d = '0' and
             job_started_dd = '0' and start_i = '0'
          then

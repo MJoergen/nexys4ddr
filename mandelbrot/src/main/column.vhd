@@ -2,8 +2,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This is a column module. It calculates (sequentially) all the rows of an
--- entire picture column, using one iterator.
+-- This is a column module. It calculates (sequentially) G_NUM_ROWS rows of a
+-- picture column, using one iterator. The row number given with each result
+-- (res_addr_o) is counted from the first row of the job.
 
 entity column is
    generic (
@@ -27,6 +28,18 @@ end entity column;
 
 architecture rtl of column is
 
+   -- The number of bits needed for the row number
+   function addr_bits (n : integer) return integer is
+      variable r : integer := 1;
+   begin
+      while 2**r < n loop
+         r := r + 1;
+      end loop;
+      return r;
+   end function addr_bits;
+
+   constant C_ADDR_BITS : integer := addr_bits(G_NUM_ROWS);
+
    -- The reset, registered locally, so the reset from the dispatcher only goes
    -- to this register.
    signal rst_r        : std_logic;
@@ -36,14 +49,14 @@ architecture rtl of column is
    signal res_cy_r     : std_logic_vector(17 downto 0);
    signal res_data_s   : std_logic_vector( 8 downto 0);
    signal res_valid_s  : std_logic;
-   signal res_addr_r   : std_logic_vector( 8 downto 0);
+   signal res_addr_r   : std_logic_vector(C_ADDR_BITS-1 downto 0);
    -- High when res_addr_r is the last row. It is a register, so the check
    -- for the last row is not in the paths to res_addr_r and res_cy_r.
    signal res_last_r   : std_logic;
 
    signal job_busy_r   : std_logic;
 
-   signal res_addr_d   : std_logic_vector( 8 downto 0);
+   signal res_addr_d   : std_logic_vector(C_ADDR_BITS-1 downto 0);
    signal res_data_d   : std_logic_vector( 8 downto 0);
    signal res_valid_d  : std_logic;
 
@@ -148,7 +161,7 @@ begin
 
    job_busy_o  <= job_busy_r;
 
-   res_addr_o  <= res_addr_d;
+   res_addr_o  <= (8 downto C_ADDR_BITS => '0') & res_addr_d;
    res_data_o  <= res_data_d;
    res_valid_o <= res_valid_d;
 

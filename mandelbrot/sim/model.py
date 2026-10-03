@@ -24,6 +24,7 @@
 #
 # Requires numpy.
 
+import heapq
 import sys
 from typing import List
 from typing import Optional
@@ -42,6 +43,7 @@ BoolArray = NDArray[np.bool_]
 MAX_COUNT = 511      # Must match C_MAX_COUNT in main.vhd
 NUM_COLS  = 640      # Must match C_NUM_COLS in main.vhd
 NUM_ROWS  = 480      # Must match C_NUM_ROWS in main.vhd
+JOB_ROWS  = 120      # Must match C_JOB_ROWS in main.vhd
 NUM_ITERATORS = 240  # Must match C_NUM_ITERATORS in main.vhd
 MAIN_CLOCK_KHZ = 1200e3 / 6.375  # The main clock, see clk_rst.vhd
 
@@ -206,18 +208,25 @@ def pixel_cycles(stop: ArrayLike,
     return -(-busy // num_iterators) * num_iterators      # Round up
 
 
-def picture_cycles(stop: ArrayLike, num_iterators: int = NUM_ITERATORS) -> int:
+def picture_cycles(stop: ArrayLike, num_iterators: int = NUM_ITERATORS,
+                   job_rows: int = JOB_ROWS) -> int:
     """Estimate the number of clock cycles used to calculate the picture. stop
     is the number of iterations done by the iterator for each pixel (see
-    hw_stop()), indexed by [row, column]. The picture columns are given in
-    order to the first column module that is idle. The time it takes the
-    dispatcher to give a job to a column module is not included."""
-    col_cycles: IntArray = pixel_cycles(stop, num_iterators).sum(axis=0)
+    hw_stop()), indexed by [row, column]. Each job is job_rows rows of a
+    picture column, and the jobs are given in the same order as by the
+    dispatcher (all the picture columns of the top block of rows, then all the
+    picture columns of the next block, and so on) to the first column module
+    that is idle. The time it takes the dispatcher to give a job to a column
+    module is not included."""
+    cycles: IntArray = pixel_cycles(stop, num_iterators)
+    rows, cols = cycles.shape
+    job_cycles: IntArray = cycles.reshape(rows // job_rows, job_rows,
+                                          cols).sum(axis=1).flatten()
     # The time when each column module becomes idle
     idle: List[int] = [0] * num_iterators
-    for c in col_cycles:
-        i = idle.index(min(idle))
-        idle[i] += int(c)
+    heapq.heapify(idle)
+    for c in job_cycles:
+        heapq.heappush(idle, heapq.heappop(idle) + int(c))
     return max(idle)
 
 

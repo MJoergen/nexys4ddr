@@ -292,20 +292,22 @@ other side of the boundary of the set (`sim/model.py`).
 
 ## Columns
 The following terms are used in this document:
-* A *picture column* is a vertical slice of the picture. Calculating one picture
-  column is one job.
+* A *picture column* is a vertical slice of the picture.
+* A *job* is 120 rows of a picture column, i.e. a quarter of it. The picture is
+  divided into four *blocks* of 120 rows, so there are 2560 jobs.
 * A *column module* is an instance of [`src/main/column.vhd`](src/main/column.vhd). It
-  calculates one picture column at a time, row by row, using one iterator.
+  calculates one job at a time, row by row, using one iterator.
 * An *iterator* is the block in [`src/main/iterator.vhd`](src/main/iterator.vhd). It
   calculates the count for a single point.
 
 There is one iterator, and therefore one DSP, in each column module, and there
 are `G_NUM_ITERATORS` column modules (240 in the design). The generics keep
 their names: `G_NUM_COLS` is the number of picture columns, and
-`G_NUM_ITERATORS` is the number of column modules.
+`G_NUM_ITERATORS` is the number of column modules. The number of rows in a job
+is the generic `G_JOB_ROWS` of the dispatcher (`C_JOB_ROWS` in `main.vhd`),
+which is the generic `G_NUM_ROWS` of the column module.
 
-The final picture is sliced into vertical picture columns, and each picture
-column is calculated in its entirety by a column module.
+Each job is calculated in its entirety by one column module.
 
 The inputs to a column module are:
 ```
@@ -319,8 +321,9 @@ and the output is:
 job_busy_o   : out std_logic;
 ```
 The signal job\_start\_i is pulsed high for one clock cycle to initiate the
-calculation of an entire picture column, and the output job\_busy\_o remains high
-until the entire calculation is finished.
+calculation of a job, and the output job\_busy\_o remains high until the entire
+calculation is finished. The value job\_starty\_i is cy of the first row of
+the job.
 
 The results of the calculation are presented on the following output ports:
 ```
@@ -332,8 +335,8 @@ with the additional input port
 ```
 res_ack_i    : in  std_logic;
 ```
-The res\_addr\_o is the current row number, and res\_data\_o is the calculated
-count value for this pixel. The res\_ack\_i is needed, because there may be an
+The res\_addr\_o is the current row number, counted from the first row of the
+job, and res\_data\_o is the calculated count value for this pixel. The res\_ack\_i is needed, because there may be an
 arbitrarily long delay before the job dispatcher has time to acknowledge the
 result.
 
@@ -374,16 +377,34 @@ The data is the 9-bit count, which is stored in the display memory, see
 
 This module instantiates a configurable number of column modules (ideally 240
 instances, one for each DSP). It keeps track of which column modules are
-currently calculating, and whenever a column module is idle, a new job (the next
-picture column) is sent to it.
+currently calculating, and whenever a column module is idle, the next job is
+sent to it.
+
+The jobs are given out one block at a time: first all 640 picture columns of
+the top 120 rows, then all the picture columns of the next 120 rows, and so
+on. After the last picture column of a block, cx starts again from the left
+edge, and starty moves to the next block, by adding 120 times stepy (in 18
+bits, like the column modules add stepy, so cy of each row is the same as if
+the picture column was calculated in one job). The multiplication by the
+constant 120 is done once for each picture, in LUTs, because all the DSPs are
+used by the iterators. The dispatcher keeps the picture column and the block
+of the job of each column module, and when a result is accepted it adds the
+first row of the block to the row from the column module, to get the address
+in the display memory.
+
+Smaller jobs make the work more evenly shared between the column modules at
+the end of the picture, see [Timing](#timing). The order of the jobs matters
+less: other orders were tried in the model (e.g. column by column, or starting
+from the middle of the picture), and the best order depends on the view.
 
 A separate scheduler module is used to send jobs to the different column
 modules. Currently, the scheduler operates in a round-robin fashion. This
 potentially may give a delay up to 240 clock cycles before an idle column module
 is given a job, i.e. 1.3 us at 188.24 MHz. The column modules wait in
-parallel, and with 640 jobs and 240 column modules, each column module gets
-fewer than three jobs on average. So the delay adds only a few microseconds to
-the time for a picture, which is about 2.9 ms. This delay is negligible.
+parallel, and with 2560 jobs and 240 column modules, each column module gets
+about 11 jobs on average. So the delay adds at most about 15 microseconds (and
+half of that on average) to the time for a picture, which is about 2.2 ms. This
+delay is small.
 
 The scheduler ([`src/main/scheduler.vhd`](src/main/scheduler.vhd)) has a counter that
 goes round all the column modules, one per clock cycle, and selects a column
@@ -423,7 +444,8 @@ reached the register of its group.
 The dispatcher has a self-checking testbench
 ([`sim/dispatcher_tb.vhd`](sim/dispatcher_tb.vhd)). It calculates two small
 pictures (64 by 16 pixels, with 16 column modules in groups of 5, so the last
-group is smaller), one right after the other,
+group is smaller, and four jobs of 4 rows in each picture column), one right
+after the other,
 and checks that each pixel is written exactly once, that everything has been
 written when done\_o goes high, that done\_o goes low when a new picture is
 started, and that the value of each pixel is exactly the count calculated by
@@ -431,7 +453,8 @@ the bit-accurate model (see [Iterator](#iterator)) for the value of c of that
 pixel. This also checks that each result is written to the right address. It
 then repeats this for two pictures with a single picture
 column, i.e. with fewer picture columns than column modules, which is a special
-case for done\_o. The simulation takes about 10 seconds.
+case for done\_o, and with jobs of a single row, so every job is the last
+picture column of its block. The simulation takes about 10 seconds.
 
 The scheduler has a small self-checking testbench
 ([`sim/scheduler_tb.vhd`](sim/scheduler_tb.vhd)), with 21 processes, i.e. two
@@ -696,11 +719,23 @@ cycles, so these picture columns decided the total time. The model gave
 With the periodicity detection, the iterator needs 132 clock cycles per pixel
 on average, and each pixel takes 316 clock cycles on average, including the
 waiting. Most of the pixels now take the minimum of 240 clock cycles, and the
-longest picture column takes 0.27 million clock cycles. The model gives
-551040 clock cycles (269\*2^11) for the picture, i.e. 2.9 ms at 188.24 MHz,
-1.75 times faster than without the detection, so the 7-segment display should
-show about 341 pictures per second. This has not been measured on the board
-yet.
+longest picture column takes 0.27 million clock cycles. When each job was a
+whole picture column, the model gave 551040 clock cycles (269\*2^11) for the
+picture, i.e. 2.9 ms at 188.24 MHz, 1.75 times faster than without the
+detection (about 341 pictures per second).
+
+With 640 jobs and 240 column modules, each column module got fewer than three
+jobs, so the work was not shared evenly at the end of the picture: if the
+work was spread evenly over the column modules, each of them would need
+404875 clock cycles. With jobs of 120 rows (2560 jobs), the longest job takes
+0.11 million clock cycles, and the model gives 418560 clock cycles
+(204\*2^11) for the picture, i.e. 2.22 ms at 188.24 MHz, 1.32 times faster.
+So the 7-segment display should show about 450 pictures per second. The
+model gives 465840 clock cycles for jobs of 240 rows, and 413040 clock cycles
+for jobs of 60 rows. Eight other views (zoomed in at different places) were
+1.07 to 1.31 times faster in the model with jobs of 120 rows than with whole
+picture columns. None of this
+has been measured on the board yet.
 
 Without the periodicity detection, the model gave a total waiting time of
 59,179,719 clock cycles, i.e. 28896\*2^11 clock cycles, or about 193 clock
@@ -740,8 +775,7 @@ the middle of the set, where most of the pixels reach the maximum count.
 This could be improved by accepting a result as soon as it is ready, e.g.
 with a priority encoder instead of the round-robin scheduler, or by
 storing a few results in each column module, so the iterator can continue with
-the next row while it waits. Smaller jobs (e.g. a quarter of a picture
-column) would also spread the work more evenly over the column modules.
+the next row while it waits.
 
 ## Resources and timing closure
 The numbers below come from a successful run of `make vivado` (Vivado 2025.1,
@@ -751,18 +785,18 @@ part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 | Resource         | Used     | Available | Used (%)
 | ---------------- | -------- | --------- | --------
 | DSP48E1          | 240      | 240       | 100
-| Block RAM        | 128 RAMB36 + 1 RAMB18 | 135 RAMB36 | about 95
-| Slices           | 14,764   | 15,850    | 93
-| LUTs             | 42,158   | 63,400    | 66
-| Registers        | 46,314   | 126,800   | 37
+| Block RAM        | 128 RAMB36 + 2 RAMB18 | 135 RAMB36 | about 96
+| Slices           | 14,641   | 15,850    | 92
+| LUTs             | 41,284   | 63,400    | 65
+| Registers        | 44,562   | 126,800   | 35
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
 The resource numbers are from `report_utilization` on the routed design
 (`mandelbrot.dcp`), and the available numbers are the totals for the XC7A100T.
-Most of the slices are used, even though only 66% of the LUTs are used.
+Most of the slices are used, even though only 65% of the LUTs are used.
 
 The "Report Cell Usage" table in `vivado.log` gives the cell counts after
-synthesis instead: 55,536 LUT cells (LUT1 to LUT6) and 43,656 registers (FDRE
+synthesis instead: 54,492 LUT cells (LUT1 to LUT6) and 42,708 registers (FDRE
 and FDSE cells). The number of LUT cells is larger than the number of LUTs
 used, because two small LUT cells can share one LUT (the placer does this, e.g.
 "LUT Combining" in `phys_opt_design`). There are more registers after
@@ -795,16 +829,23 @@ The registers that shorten the routes to the column modules and to the BRAMs
 
 The display memory has 2^19 entries of 9 bits (the count), i.e. 128 blocks of
 36 kbit BRAM, each used as 4096 entries of 9 bits (with the parity bits), as
-expected. The single RAMB18 is used by the dispatcher, for the table
-`job_addr_r` that holds the picture column of each column module (240 entries
-of 10 bits).
+expected. The two RAMB18s are used by the dispatcher, for the tables
+`job_addr_r` and `job_blk_r` that hold the picture column and the block of the
+job of each column module (240 entries of 10 bits, and of 2 bits).
+
+The jobs of 120 rows (see [Dispatcher](#dispatcher)) did not use more
+resources: before them, the design used 55,536 LUT cells and 43,656 registers
+after synthesis, and 42,158 LUTs, 46,314 registers, and 14,764 slices (93%)
+after routing, with a setup slack of +0.045 ns. The column modules need fewer
+bits for the row (7 instead of 9), which saves more than the dispatcher
+needs for the blocks.
 
 The timing after routing is:
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.045 ns (TNS 0)
-| Hold (WHS)  | +0.020 ns (THS 0)
+| Setup (WNS) | +0.103 ns (TNS 0)
+| Hold (WHS)  | +0.014 ns (THS 0)
 
 These are the values from `report_timing_summary` on the routed design
 (`mandelbrot.dcp`), after the post-route `phys_opt_design`.
@@ -821,15 +862,17 @@ paths between them.
 At this frequency, the critical paths are in the iterators, and in the column
 modules around them:
 * From the output of the DSP (which is not registered, see
-  [Multiplier](#multiplier)) to the overflow flags, with +0.045 ns of slack.
+  [Multiplier](#multiplier)) to the overflow flags.
 * From x\_r and y\_r through the additions x+y and x-y and the selection of
   the inputs of the multiplier to the input registers of the DSP, with 6 or 7
   levels of logic.
 * The acknowledge of the results (`res_ack_r`) to the row in the column
   modules, and the routes from the registers in the groups to the column
   modules.
-* The state machine of the iterator (from cnt\_r), and the periodicity
-  detection (to match\_r and the saved values).
+* The state machine of the iterator (from cnt\_r and state\_r), and the
+  periodicity detection (to match\_r and the saved values). In the latest
+  build, the worst path (+0.103 ns) is from state\_r to the clock enable of
+  the saved values.
 * The next row in the column modules (to `res_cy_r`, whose clock enable
   depends on the result of the iterator).
 To go faster, the iterator would have to be changed, e.g. by registering the
@@ -929,6 +972,8 @@ statistic, uses about 170 LUT cells and 180 registers, and the build with it
 has +0.045 ns of setup slack at 188.24 MHz. The difference from +0.088 ns is
 the normal variation from one run to the next; the critical paths are the
 same.
+The build with the jobs of 120 rows (see [Dispatcher](#dispatcher)), at the
+same frequency, has +0.103 ns of setup slack.
 
 The complete run of `make vivado` takes about 6.5 minutes (synthesis about 2.5
 minutes, placement about 1.5 minutes, routing about 1 minute), on a machine

@@ -6,9 +6,10 @@ use ieee.math_real.all;
 use work.iterator_model_pkg.all;
 
 -- This is a simple self-checking testbench for the dispatcher. It is not an
--- exhaustive test. It uses two instances of the dispatcher, a normal one and
--- one with a single picture column, i.e. with fewer picture columns than column
--- modules. It calculates two small pictures with each of them, one after the
+-- exhaustive test. It uses two instances of the dispatcher: A normal one, where
+-- each picture column is divided into four jobs, and one with a single picture
+-- column (i.e. with fewer picture columns than column modules) and one row in
+-- each job, so every job is the last picture column of its block. It calculates two small pictures with each of them, one after the
 -- other, and checks the following for each picture:
 -- * Nothing is written, and done is low, when idle. Done goes low after a
 --   start.
@@ -32,6 +33,10 @@ architecture simulation of dispatcher_tb is
    constant C_NUM_ROWS      : integer := 16;
    constant C_NUM_COLS      : integer := 64;
    constant C_NUM_ITERATORS : integer := 16;
+
+   -- Rows in each job, in the two instances
+   constant C_JOB_ROWS      : integer := 4;
+   constant C_SMALL_ROWS    : integer := 1;
 
    -- Size of the groups of column modules in the first instance (see
    -- dispatcher.vhd). This gives four groups, and the last one is smaller.
@@ -262,6 +267,7 @@ begin
          G_MAX_COUNT     => C_MAX_COUNT,
          G_NUM_ROWS      => C_NUM_ROWS,
          G_NUM_COLS      => C_NUM_COLS,
+         G_JOB_ROWS      => C_JOB_ROWS,
          G_NUM_ITERATORS => C_NUM_ITERATORS,
          G_GROUP_SIZE    => C_GROUP_SIZE
       )
@@ -284,6 +290,7 @@ begin
          G_MAX_COUNT     => C_MAX_COUNT,
          G_NUM_ROWS      => C_NUM_ROWS,
          G_NUM_COLS      => C_SMALL_COLS,
+         G_JOB_ROWS      => C_SMALL_ROWS,
          G_NUM_ITERATORS => C_NUM_ITERATORS
       )
       port map (
