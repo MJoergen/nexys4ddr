@@ -306,7 +306,9 @@ wait_cnt_o   : out std_logic_vector(15 downto 0);
 ```
 This is the number of clock cycles the column module has spent waiting for a
 result to be acknowledged, in units of 2^11 clock cycles. It is only cleared
-by reset.
+by reset. The counter is only there when the generic G\_WAIT\_STAT
+is true (the default is false). Otherwise wait\_cnt\_o is always zero, which
+saves a 27-bit counter in each of the 240 column modules.
 
 The testbench for the column module ([`sim/column_tb.vhd`](sim/column_tb.vhd))
 is self-checking. It runs three jobs of ten rows each, and checks that the
@@ -345,7 +347,13 @@ memory, see [The top level](#the-top-level). Finally, there is a debug output:
 ```
 wait_cnt_tot_o : out std_logic_vector(15 downto 0);
 ```
-This is the sum of the wait\_cnt\_o outputs of all the column modules.
+This is the sum of the wait\_cnt\_o outputs of all the column modules. Like
+in the column module, it is only calculated when the generic G\_WAIT\_STAT is
+true (the default is false), and the dispatcher passes G\_WAIT\_STAT on to the
+column modules. The sum is calculated by a chain of 239 registered 16-bit
+adders, so leaving it out saves both these and the counters in the column
+modules. In the design, G\_WAIT\_STAT is set by the constant C\_WAIT\_STAT in
+`main.vhd`.
 
 This module instantiates a configurable number of column modules (ideally 240
 instances, one for each DSP). It keeps track of which column modules are
@@ -517,7 +525,10 @@ after the update is not. The initial view is checked when the design is
 elaborated: it must be inside the range too.
 
 **The LEDs.** The LEDs show one of two values, for the most recently finished
-picture, or averaged over the last 64 pictures. The values are latched at the
+picture, or averaged over the last 64 pictures. The second value (the waiting
+time) costs a lot of resources, so it is only there when C\_WAIT\_STAT is true,
+and the default is false. Then the LEDs always show the first value (the time
+for the picture), whatever switch 1 is. The values are latched at the
 end of a picture, because the picture is recalculated continuously (about
 every 7 ms), so the counters themselves change too fast to be read.
 * If switch 1 is on, the LEDs show the time taken by the picture. A counter
@@ -525,8 +536,9 @@ every 7 ms), so the counters themselves change too fast to be read.
   when the next picture is started. At the end of the picture, bits 26 to 11
   of the counter are latched. A single step on the LEDs is therefore 2^11 clock
   cycles, which is 14.56 us, and the value wraps around after 0.95 seconds.
-* If switch 1 is off, the LEDs show the total waiting time of all the column
-  modules during a picture, averaged over 64 pictures (about 0.44 seconds for
+* If switch 1 is off, and the constant C\_WAIT\_STAT in `main.vhd` is true,
+  the LEDs show the total waiting time of all the column modules during a
+  picture, averaged over 64 pictures (about 0.44 seconds for
   the initial view). The wait counter of a column module counts the
   clock cycles that the module has to wait for its result to be accepted, in
   the same unit of 2^11 clock cycles. The wait counters are only cleared by
@@ -593,6 +605,8 @@ of the frame.
 ## Timing
 Counters measure the total time it takes to generate the picture as well as the
 total amount of time the iterators are waiting to write to display memory. The
+second one must be enabled with C\_WAIT\_STAT in `main.vhd`, see
+[The top level](#the-top-level). The
 values are shown on the LEDs, see [The top level](#the-top-level).
 
 The numbers measured on the board, with the current design and the initial
@@ -659,7 +673,10 @@ the next row while it waits. At this speed (about 145 pictures per second) it
 does not matter much, though.
 
 ## Resources and timing closure
-The numbers below come from a successful run of `make vivado` (Vivado 2025.1,
+The numbers below come from a build with the waiting-time statistic enabled
+(C\_WAIT\_STAT true, see [The top level](#the-top-level)), which is now off by
+default, so a build with the default settings uses fewer registers and LUTs.
+They come from a successful run of `make vivado` (Vivado 2025.1,
 part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 140.625 MHz main clock.
 
