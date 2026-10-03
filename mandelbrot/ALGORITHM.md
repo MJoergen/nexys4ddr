@@ -20,7 +20,7 @@ mandelbrot                      src/mandelbrot.vhd (top level, clocks and resets
  |       +- scheduler           (i_scheduler, selects the column module to receive a job)
  |       +- column  (x 240)     src/column.vhd (the column modules)
  |       |   +- iterator        src/iterator.vhd
- |       |       +- mult_macro  (Xilinx unimacro, uses one DSP)
+ |       |       +- (DSP48E1)   (inferred in p_dsp, multiplier and adder)
  |       +- scheduler           (i_scheduler_res, selects the column module whose result is accepted)
  +- disp_mem                    src/disp_mem.vhd (display memory, between the two clock domains)
  +- vga                         src/vga.vhd (everything in the VGA clock domain)
@@ -89,30 +89,31 @@ Some examples are:
 ```
 
 ## Multiplier
-The built-in DSP provides a 25x18-bit signed multiplier. The iterator uses it
-as a 19x18-bit multiplier, with the first input in 3.16 bit representation and
-the second input in 2.16 bit representation (see [Overflow](#overflow) for why
-the first input has 19 bits). This generates a 37-bit result in 5.32 bit
-representation. The products in the iterator are always between -4 and 4, so
-only the lower 36 bits (in 4.32 bit representation) are used. The actual
-multiplier is defined in a special Xilinx unimacro, and there is a testbench
-specifically for the multiplier
-([`sim/mult_macro_tb.vhd`](sim/mult_macro_tb.vhd)). The testbench uses the
-multiplier with 18x18 bits.
+The built-in DSP (DSP48E1) provides a 25x18-bit signed multiplier, followed by
+a 48-bit adder (the post-adder). The iterator uses it as a 19x18-bit
+multiplier, with the first input in 3.16 bit representation and the second
+input in 2.16 bit representation (see [Overflow](#overflow) for why the first
+input has 19 bits). This generates a 37-bit result in 5.32 bit representation.
+The products in the iterator are always between -4 and 4, so only the lower 36
+bits (in 4.32 bit representation) are used. The post-adder then adds cx or cy/2
+to the product (see [Iterator](#iterator)), so the output of the DSP is the new
+value of x or half the new value of y.
 
-The testbench is self-checking, but it is only a quick check, not an exhaustive
-one. It checks that the latency is exactly one clock cycle, that the product is
-correct for all four combinations of signs, for both small values and for large
-values (including the extremes -2^17 and 2^17-1), and that reset clears the
-product.
+The DSP is not instantiated directly. It is inferred by Vivado from the process
+`p_dsp` and the addition after it in [`src/iterator.vhd`](src/iterator.vhd), so
+the simulation needs no model of the DSP. The inputs of the multiplier (a\_r
+and b\_r), the constant (c\_r), and the product are all registered, and Vivado
+moves these registers into the DSP (the registers A, B, C, and M). The sum is
+not registered (the register P is not used), so the product is ready one clock
+cycle after the inputs, and the sum in the same clock cycle. The "DSP Final
+Report" in `vivado.log` shows how the DSP is used (`C'+(A'*B')'`).
 
-The multiplier can be instantiated with a configurable number of clock cycles
-of delay. A single clock cycle of delay is used for the time being. This may
-have to be incremented if the clock frequency is increased.
-
-Note that the simulation model of the multiplier ([`sim/mult_macro.vhd`](sim/mult_macro.vhd))
-only supports a delay of one clock cycle. If the delay is changed, the model
-must be extended too.
+An earlier version used the Xilinx macro `mult_macro` for the multiplier, and
+added cx and cy/2 in the FPGA fabric. Using the post-adder instead saves about
+9,400 LUTs and 14,100 registers (most of these are the registers a\_r, b\_r,
+and c\_r, which are now in the DSP), and the paths through the iterator are no
+longer close to being critical (see
+[Resources and timing closure](#resources-and-timing-closure)).
 
 ## Iterator
 This component ([`src/iterator.vhd`](src/iterator.vhd)) performs the main
@@ -166,10 +167,15 @@ controlled by a simple state machine:
   and y, and simultaneously, the values x+y and x-y are calculated (in 19
   bits).
 * In the second clock cycle (MULT\_ST), the multiplier is given the values of
-  (x+y) and (x-y), and the output from x\*y is stored in registers.
-* In the third clock cycle (UPDATE\_ST), the new values of x and y are
-  calculated. The above three steps are repeated until a maximum loop count or
-  until an overflow happens.
+  (x+y) and (x-y). The output of the DSP is x\*y + cy/2, which gives the new
+  value of y.
+* In the third clock cycle (UPDATE\_ST), the output of the DSP is
+  (x+y)\*(x-y) + cx, which gives the new value of x. The above three steps are
+  repeated until a maximum loop count or until an overflow happens.
+
+The DSP adds cx or cy/2 to the product in its adder (see [Multiplier](#multiplier)),
+so the constant is changed every clock cycle: cy/2 in MULT\_ST and cx in
+UPDATE\_ST.
 
 The inputs to this block are: start\_i, cx\_i, and cy\_i. Outputs are done\_o
 and cnt\_o. The values of cx\_i and cy\_i must be held constant for the entire
@@ -203,7 +209,8 @@ are the sums
 new_x   = (x+y)*(x-y) + cx
 new_y/2 = x*y + cy/2
 ```
-also in 4.32 format. The range is checked on these sums, and not on the
+also in 4.32 format. The sums are calculated by the adder in the DSP. The
+range is checked on these sums, and not on the
 products alone. A product can be between -4 and 4, i.e. outside the range of
 the final value, even when the sum with cx or cy/2 is inside the range, and the
 other way around. The sums are between -6 and 6, so they can not overflow
@@ -245,11 +252,6 @@ The remaining differences, compared with a calculation using real numbers, come
 from the limited precision of the 2.16 format. For the initial view about 1.5%
 of the pixels have a different count, and about 0.1% (292 pixels) are on the
 other side of the boundary of the set (`sim/model.py`).
-
-TODO: The DSP contains an adder (as well as the multiplier). Perhaps it is
-possible to use this built-in adder and thereby save logic resources. This may
-perhaps improve the timing slightly. However, overflow detection needs to be
-rewritten then.
 
 ## Columns
 The following terms are used in this document:
@@ -553,26 +555,26 @@ part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 | ---------------- | -------- | --------- | --------
 | DSP48E1          | 240      | 240       | 100
 | Block RAM        | 128 RAMB36 + 1 RAMB18 | 135 RAMB36 | about 95
-| Slices           | 15,402   | 15,850    | 97
-| LUTs             | 49,087   | 63,400    | 77
-| Registers        | 53,960   | 126,800   | 43
+| Slices           | 13,797   | 15,850    | 87
+| LUTs             | 39,767   | 63,400    | 63
+| Registers        | 39,840   | 126,800   | 31
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
 The resource numbers are from `report_utilization` on the routed design
 (`mandelbrot.dcp`), and the available numbers are the totals for the XC7A100T.
-Almost all the slices are used, so the design is nearly full, even though only
-77% of the LUTs are used.
+Most of the slices are used, even though only 63% of the LUTs are used.
 
 The "Report Cell Usage" table in `vivado.log` gives the cell counts after
-synthesis instead: 61,895 LUT cells (LUT1 to LUT6) and 53,885 registers (FDRE
+synthesis instead: 52,535 LUT cells (LUT1 to LUT6) and 39,761 registers (FDRE
 and FDSE cells). The number of LUT cells is larger than the number of LUTs
 used, because two small LUT cells can share one LUT (the placer does this, e.g.
-"LUT Combining" in `phys_opt_design`). Before the iterator was changed to give
-x+y or x-y to the multiplier with 19 bits (see [Overflow](#overflow)), and
-before the limits for pan and zoom were added to the view control (see
-[The top level](#the-top-level)), the design used about 52,000 LUT cells and
-53,300 registers. Most of the increase is probably in the iterators, because
-there are 240 of them.
+"LUT Combining" in `phys_opt_design`).
+
+Before the post-adder of the DSP was used (see [Multiplier](#multiplier)), the
+design used 61,895 LUT cells and 53,885 registers after synthesis, and 49,087
+LUTs, 53,960 registers, and 15,402 slices (97%) after routing. The timing
+slack was about the same (+0.116 ns), because the critical paths were not in
+the iterators.
 
 The display memory has 2^19 entries of 8 bits (the lowest 8 bits of the
 count), i.e. 128 blocks of 36 kbit BRAM (each with 32 kbit of data), as
@@ -584,8 +586,8 @@ The timing after routing is:
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.116 ns (TNS 0)
-| Hold (WHS)  | +0.026 ns (THS 0)
+| Setup (WNS) | +0.073 ns (TNS 0)
+| Hold (WHS)  | +0.022 ns (THS 0)
 
 These are the values from `report_timing_summary` on the routed design
 (`mandelbrot.dcp`), after the post-route `phys_opt_design`.
@@ -596,15 +598,21 @@ divided by 8), and the only constraint in `mandelbrot.xdc` is the 100 MHz input
 clock. The MMCM also generates the 25 MHz VGA clock (divided by 45).
 
 The slack is small, so the design is close to the limit of what this device and
-this flow can achieve. The critical paths are in the dispatcher, in the
-selection of the column module whose result is accepted: from `res_busy_r`
-(one bit for each of the 240 column modules) through the scheduler
-`i_scheduler_res`, which picks one of the 240 bits, to the clock enable of
-`job_idx_start_r`. This path has 6 levels of logic (3 LUT6, 2 MUXF7 and 1
-MUXF8), and more than 70% of the delay is routing. In earlier runs, the
-critical paths were also in the schedulers, and in the registers for the write
-address and data going to the display memory (`wr_addr_r` and `wr_data_r`).
-The directives used in `mandelbrot.tcl` matter:
+this flow can achieve. The critical paths are signals that go to all 240
+column modules, or to all 128 blocks of the display memory, so they are long
+whatever the utilization is:
+* From the registers in the dispatcher that hold the job (`job_stepy_r`,
+  `job_starty_r` and `job_cx_r`) to the registers in the column modules
+  (`res_cy_r` and `res_cx_r`). The worst path has 4 levels of logic (the
+  addition of stepy), and almost 80% of the delay is routing.
+* From the write address of the display memory to the BRAMs.
+
+In earlier runs, the critical paths were also in the selection of the column
+module in the schedulers (e.g. from `res_busy_r` through `i_scheduler_res`),
+in the registers for the write address and data going to the display memory
+(`wr_addr_r` and `wr_data_r`), and in the iterators (from the multiplier
+through the addition of cx to x\_r, before the post-adder of the DSP was
+used). The directives used in `mandelbrot.tcl` matter:
 * `synth_design` with `-directive AreaOptimized_medium`
 * `opt_design` with `-directive ExploreWithRemap`
 * `phys_opt_design` with `-directive AlternateFlowWithRetiming`, both after
@@ -621,8 +629,8 @@ the column modules into 15 groups of 16, which should allow a higher clock
 frequency.
 This has not been tried.
 
-The complete run of `make vivado` takes about 8.5 minutes (synthesis about 2.5
-minutes, placement about 2 minutes, routing about 2.5 minutes), on a machine
+The complete run of `make vivado` takes about 7.5 minutes (synthesis about 2.5
+minutes, placement about 2 minutes, routing about 2 minutes), on a machine
 with 8 threads.
 
 All 240 DSPs running at 140.625 MHz gives a peak of 34 billion multiplications per

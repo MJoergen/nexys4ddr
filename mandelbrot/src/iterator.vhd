@@ -13,14 +13,21 @@
 -- The count is the number of the first iteration where x or y is out of range
 -- (see below), or G_MAX_COUNT if this does not happen.
 --
--- This module works by using a single multiplier in a pipeline fashion.
+-- This module works by using a single DSP in a pipeline fashion. The DSP
+-- calculates a product and adds a constant (cx or cy/2) to it, using the
+-- adder in the DSP after the multiplier (the post-adder).
 -- Each iteration takes three clock cycles:
 -- Cycle 1 : Input to multiplier is x and y. The values x+y and x-y are
 --           calculated.
--- Cycle 2 : Input to multiplier is (x+y) and (x-y). The product x*y is saved.
--- Cycle 3 : The new values of x and y are calculated.
+-- Cycle 2 : Input to multiplier is (x+y) and (x-y). The output of the DSP is
+--           x*y + cy/2, which gives the new value of y.
+-- Cycle 3 : The output of the DSP is (x+y)*(x-y) + cx, which gives the new
+--           value of x.
 --
--- The multiplier is 19x18 bits (the DSP48E1 supports 25x18 bits).
+-- The multiplier is 19x18 bits (the DSP48E1 supports 25x18 bits). The product
+-- is registered (in the M register of the DSP), and the constant is registered
+-- too (in the C register), but the sum is not (the P register is not used).
+-- The DSP is inferred by the synthesis tool, see p_dsp.
 --
 -- The XC7A100T has 240 DSP slices, so up to 240 copies of this
 -- iterator can potentially be instantiated.
@@ -64,9 +71,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
-
-library unimacro;
-use unimacro.vcomponents.all;
+use ieee.numeric_std.all;
 
 entity iterator is
    generic (
@@ -89,15 +94,13 @@ architecture rtl of iterator is
    signal y_r          : std_logic_vector(17 downto 0);
    signal a_r          : std_logic_vector(18 downto 0);  -- 3.16
    signal b_r          : std_logic_vector(17 downto 0);  -- 2.16
+   signal c_r          : std_logic_vector(35 downto 0);  -- 4.32
    signal x_ext_s      : std_logic_vector(18 downto 0);  -- 3.16
    signal y_ext_s      : std_logic_vector(18 downto 0);  -- 3.16
    signal sum_s        : std_logic_vector(18 downto 0);  -- 3.16, x+y
    signal diff_s       : std_logic_vector(18 downto 0);  -- 3.16, x-y
-   signal mult_p_s     : std_logic_vector(36 downto 0);  -- 5.32
-   signal product_s    : std_logic_vector(35 downto 0);  -- 4.32
-   signal product_d_r  : std_logic_vector(35 downto 0);
-   signal new_x_s      : std_logic_vector(35 downto 0);  -- 4.32
-   signal new_y_half_s : std_logic_vector(35 downto 0);  -- 4.32 (y/2)
+   signal product_r    : std_logic_vector(36 downto 0);  -- 5.32
+   signal dsp_s        : std_logic_vector(35 downto 0);  -- 4.32
    signal cnt_r        : std_logic_vector( 8 downto 0);
    signal done_r       : std_logic := '0';
 
@@ -147,6 +150,9 @@ begin
                   b_r <= sum_s(17 downto 0);
                end if;
 
+               -- Added to x*y in the next clock cycle
+               c_r <= cy_div_2_s;
+
                -- Check for overflow
                if ovf_x_r = '1' or ovf_y_r = '1' then
                   done_r  <= '1';
@@ -163,18 +169,24 @@ begin
 
 
             when MULT_ST =>
+               -- The output of the DSP is x*y + cy/2, i.e. half the new value
+               -- of y. The old value of y is not needed any more.
+               y_r     <= dsp_s(32 downto 15);
+               ovf_y_r <= ovf_y_s;
+
+               -- Added to (x+y)*(x-y) in the next clock cycle
+               c_r <= cx_s;
+
                state_r <= UPDATE_ST;
 
             when UPDATE_ST =>
-               -- The new values of x and y are in 2.16 format. The new value of
-               -- y is twice the value of y/2.
-               x_r <= new_x_s(33 downto 16);
-               y_r <= new_y_half_s(32 downto 15);
-               a_r <= new_x_s(33) & new_x_s(33 downto 16);  -- Sign extended
-               b_r <= new_y_half_s(32 downto 15);
+               -- The output of the DSP is (x+y)*(x-y) + cx, i.e. the new
+               -- value of x.
+               x_r <= dsp_s(33 downto 16);
+               a_r <= dsp_s(33) & dsp_s(33 downto 16);  -- Sign extended
+               b_r <= y_r;
 
                ovf_x_r <= ovf_x_s;
-               ovf_y_r <= ovf_y_s;
 
                state_r <= ADD_ST;
 
@@ -189,73 +201,52 @@ begin
    end process p_state;
 
 
-   --------------------------
-   -- Instantiate multiplier
-   --------------------------
-
    x_ext_s <= x_r(17) & x_r;
    y_ext_s <= y_r(17) & y_r;
    sum_s   <= x_ext_s + y_ext_s;
    diff_s  <= x_ext_s - y_ext_s;
 
-   i_mult : mult_macro
-      generic map (
-         DEVICE  => "7SERIES",
-         LATENCY => 1,
-         WIDTH_A => 19,
-         WIDTH_B => 18
-      )
-      port map (
-         CLK => clk_i,
-         RST => rst_i,
-         CE  => '1',
-         P   => mult_p_s,  -- Output
-         A   => a_r,       -- Input
-         B   => b_r        -- Input
-      ); -- i_mult
-
-   -- Both products, x*y and (x+y)*(x-y) = x*x-y*y, are between -4 and 4, so
-   -- the top bit of the 5.32 result is not needed.
-   product_s <= mult_p_s(35 downto 0);
+   cx_s       <= (35 downto 34 => cx_i(17)) & cx_i & X"0000";
+   cy_div_2_s <= (35 downto 33 => cy_i(17)) & cy_i & (14 downto 0 => '0');
 
 
-   -----------------------------------
-   -- Register output from multiplier
-   -----------------------------------
+   --------------------------------------------
+   -- The DSP: Multiplier followed by an adder
+   --------------------------------------------
 
-   p_product_d : process (clk_i)
+   -- The product is registered, and a_r, b_r, and c_r are registered too. So
+   -- this is inferred as a DSP48E1 with the registers A, B, C, and M (but not
+   -- P). There is no reset, because the product is only used after a_r and b_r
+   -- have been set (they are cleared at the start of the iteration).
+   p_dsp : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         product_d_r <= product_s;
+         product_r <= std_logic_vector(signed(a_r) * signed(b_r));
       end if;
-   end process p_product_d;
+   end process p_dsp;
+
+   -- Both products, x*y and (x+y)*(x-y) = x*x-y*y, are between -4 and 4, so
+   -- the top bit of the 5.32 product is not needed. The sum with the constant
+   -- (cx or cy/2, which are between -2 and 2) is between -6 and 6, so the
+   -- addition can not overflow the 4.32 format.
+   dsp_s <= product_r(35 downto 0) + c_r;
 
 
-   ------------------------------
-   -- Calculate (x+y)*(x-y) + cx
-   ------------------------------
+   ----------------------
+   -- Overflow detection
+   ----------------------
 
-   -- The product is in 4.32 format and is between -4 and 4. The sum with cx is
-   -- therefore between -6 and 6, so the addition can not overflow. The new x is
-   -- in range if the sum is between -2 and 2, i.e. if the three top bits are
+   -- In UPDATE_ST: The new x is in range if the output of the DSP is between
+   -- -2 and 2, i.e. if the three top bits are equal.
+   ovf_x_s <= (dsp_s(35) xor dsp_s(34)) or
+              (dsp_s(34) xor dsp_s(33));
+
+   -- In MULT_ST: The new y is twice the output of the DSP. The new y is in
+   -- range if the output is between -1 and 1, i.e. if the four top bits are
    -- equal.
-   cx_s      <= (35 downto 34 => cx_i(17)) & cx_i & X"0000";
-   new_x_s   <= product_s + cx_s;
-   ovf_x_s   <= (new_x_s(35) xor new_x_s(34)) or
-                (new_x_s(34) xor new_x_s(33));
-
-
-   --------------------------
-   -- Calculate (x*y) + cy/2
-   --------------------------
-
-   -- The new y is twice this value. The new y is in range if this value is
-   -- between -1 and 1, i.e. if the four top bits are equal.
-   cy_div_2_s   <= (35 downto 33 => cy_i(17)) & cy_i & (14 downto 0 => '0');
-   new_y_half_s <= product_d_r + cy_div_2_s;
-   ovf_y_s      <= (new_y_half_s(35) xor new_y_half_s(34)) or
-                   (new_y_half_s(34) xor new_y_half_s(33)) or
-                   (new_y_half_s(33) xor new_y_half_s(32));
+   ovf_y_s <= (dsp_s(35) xor dsp_s(34)) or
+              (dsp_s(34) xor dsp_s(33)) or
+              (dsp_s(33) xor dsp_s(32));
 
 
    --------------------------
@@ -266,4 +257,3 @@ begin
    done_o <= done_r;
 
 end architecture rtl;
-

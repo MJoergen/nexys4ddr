@@ -20,7 +20,7 @@ SRC += src/clk.vhd
 SRC += src/mandelbrot.vhd
 
 # Testbenches, i.e. sim/<name>_tb.vhd
-TBS = dispatcher column iterator scheduler view vga mult_macro priority_pipeline
+TBS = dispatcher column iterator scheduler view vga priority_pipeline
 
 # Testbench simulated by the "run" and "check" targets. Must be specified on
 # the command line, e.g. "make run TB=iterator".
@@ -40,11 +40,7 @@ TB_SRC = $(filter-out src/clk.vhd src/mandelbrot.vhd,$(SRC)) sim/iterator_model_
 WAVE = sim/$(TB).ghw
 SAVE = sim/$(TB).gtkw
 
-# The simulation library "unimacro" is built into this directory. It only
-# contains the model of mult_macro in sim/mult_macro.vhd.
-LIB_DIR     = sim/lib
-UNIMACRO_CF = $(LIB_DIR)/unimacro/unimacro-obj08.cf
-GHDL_OPTS   = --std=08 --ieee=synopsys -frelaxed-rules -P$(LIB_DIR)/unimacro
+GHDL_OPTS = --std=08 --ieee=synopsys -frelaxed-rules
 
 
 #####################################
@@ -112,17 +108,12 @@ check: run
 	gtkwave $(WAVE) $(SAVE)
 
 .PHONY: run
-run: $(TB_SRC) $(UNIMACRO_CF)
+run: $(TB_SRC)
 	ghdl -i $(GHDL_OPTS) --work=work $(TB_SRC)
 	ghdl -m $(GHDL_OPTS) $(TB_EXE)
 	ghdl -r $(GHDL_OPTS) $(TB_EXE) --assert-level=error --wave=$(WAVE) --stop-time=$(STOP_TIME)
 
 endif
-
-# Build the simulation library
-$(UNIMACRO_CF): sim/mult_macro.vhd
-	mkdir -p $(LIB_DIR)/unimacro
-	ghdl -a --std=08 --ieee=synopsys -frelaxed-rules --work=unimacro --workdir=$(LIB_DIR)/unimacro $<
 
 .PHONY: clean
 clean:
@@ -137,7 +128,6 @@ clean:
 	rm -rf work-obj08.cf
 	rm -rf $(addsuffix _tb,$(TBS))
 	rm -rf */*.ghw
-	rm -rf $(LIB_DIR)
 	rm -rf *.o
 	rm -rf fsm_encoding.os
 	rm -rf sim/main_out.txt

@@ -31,17 +31,17 @@ the dispatcher, and the timing and resource usage.
 
 ## Implementation results
 The design is built with Vivado 2025.1 and meets timing at the 140.625 MHz main
-clock (setup slack +0.116 ns, hold slack +0.026 ns). The resources used are:
+clock (setup slack +0.073 ns, hold slack +0.022 ns). The resources used are:
 
 | Resource  | Used                  | Available
 | --------- | --------------------- | ---------
 | DSP48E1   | 240                   | 240
 | Block RAM | 128 RAMB36 + 1 RAMB18 | 135 RAMB36
-| Slices    | 15,402                | 15,850
-| LUTs      | 49,087                | 63,400
-| Registers | 53,960                | 126,800
+| Slices    | 13,797                | 15,850
+| LUTs      | 39,767                | 63,400
+| Registers | 39,840                | 126,800
 
-The slack is small, and the slices are almost all used, see
+The slack is small, see
 [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details.
 
@@ -60,7 +60,7 @@ for details.
 | [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture.
 | [`src/pix.vhd`](src/pix.vhd), [`src/disp.vhd`](src/disp.vhd) | VGA output. `pix` generates the pixel counters, and `disp` generates the sync signals and the pixel colour.
 | [`src/clk.vhd`](src/clk.vhd) | Clock generation: 140.625 MHz for the calculation and 25 MHz for VGA.
-| [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a simulation model of the Xilinx `mult_macro`, a Python model of the iterator count (`iterator_model.py`), a vectorized model of the complete picture (`model.py`), the same bit-accurate model in VHDL (`iterator_model_pkg.vhd`, used by the testbenches), and a script (`cmp_rtl.py`) that compares the output of the testbench `main_tb` with this model.
+| [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a Python model of the iterator count (`iterator_model.py`), a vectorized model of the complete picture (`model.py`), the same bit-accurate model in VHDL (`iterator_model_pkg.vhd`, used by the testbenches), and a script (`cmp_rtl.py`) that compares the output of the testbench `main_tb` with this model.
 | [`mandelbrot.xdc`](mandelbrot.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make vivado`.
 | [`mandelbrot.xlsx`](mandelbrot.xlsx) | Spreadsheet used during the design. It iterates the example point -1+0.5i from [the iterator section](ALGORITHM.md#iterator) using real numbers.
 | [`ALGORITHM.md`](ALGORITHM.md) | Detailed explanation of the algorithm and the design.
@@ -106,7 +106,7 @@ Type `make` to list the supported targets. The most important ones are:
 
 ## Simulation
 There are testbenches in [`sim/`](sim) for `dispatcher`, `column`, `iterator`,
-`scheduler`, `view`, `vga`, `mult_macro` and `priority_pipeline`. All of them are
+`scheduler`, `view`, `vga` and `priority_pipeline`. All of them are
 self-checking, and stop with an error if the result is wrong. Most of them stop
 by themselves when they are finished. The `priority_pipeline` testbench compares
 the module with the simple `priority` module for all 65536 input vectors, which
@@ -124,11 +124,8 @@ sim/cmp_rtl.py
 ```
 See [Iterator](ALGORITHM.md#iterator) for details.
 
-The simulation does not need any Xilinx libraries. Xilinx's source for the
-multiplier macro `mult_macro` does not compile in GHDL, so
-[`sim/mult_macro.vhd`](sim/mult_macro.vhd) is used instead. This is a simple
-model of the multiplier with a latency of one clock cycle. It is compiled into
-the library `unimacro` in `sim/lib/` the first time a testbench is run.
+The simulation does not need any Xilinx libraries. The DSPs in the iterators
+are inferred by Vivado from plain VHDL, see [Multiplier](ALGORITHM.md#multiplier).
 
 The clock module (`src/clk.vhd`) and the top level (`src/mandelbrot.vhd`) use
 Xilinx primitives, and are not simulated.
