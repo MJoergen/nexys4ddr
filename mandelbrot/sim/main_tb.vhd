@@ -57,6 +57,9 @@ begin
    -------------------
 
    i_main : entity work.main
+      generic map (
+         G_NUM_ITERATORS => 240
+      )
       port map (
          clk_i     => clk,
          rst_i     => rst,

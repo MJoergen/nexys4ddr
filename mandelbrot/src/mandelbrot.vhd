@@ -27,7 +27,7 @@ use ieee.numeric_std_unsigned.all;
 -- (in the same clock cycle). fps_toggle is synchronized, and the frame rate is
 -- copied when the change is seen. The frame rate is constant for much longer
 -- than the synchronizer takes, so it is never copied while it changes. The
--- constraints for this are in mandelbrot.xdc.
+-- constraints for this are in nexys4ddr.xdc.
 
 entity mandelbrot is
    port (
@@ -47,6 +47,10 @@ entity mandelbrot is
 end mandelbrot;
 
 architecture structural of mandelbrot is
+
+   -- The number of column modules. The XC7A100T has 240 DSPs, one for each
+   -- column module.
+   constant C_NUM_ITERATORS : integer := 240;
 
    signal main_clk       : std_logic;
    signal main_rst       : std_logic;
@@ -99,6 +103,9 @@ begin
    --------------------------------------------------
 
    i_main : entity work.main
+      generic map (
+         G_NUM_ITERATORS => C_NUM_ITERATORS
+      )
       port map (
          clk_i     => main_clk,
          rst_i     => main_rst,

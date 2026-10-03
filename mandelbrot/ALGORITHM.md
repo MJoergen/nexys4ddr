@@ -33,7 +33,8 @@ mandelbrot                      src/mandelbrot.vhd (top level)
      +- overlay                 src/vga/overlay.vhd (frame rate overlay, uses the font in src/vga/font_pkg.vhd)
 ```
 The number of column modules (and therefore iterators and DSPs) is set by the
-generic `G_NUM_ITERATORS`, which `main` sets to 240.
+generic `G_NUM_ITERATORS` of `main`, which the top level module sets to 240
+(450 for the MEGA65, see `src/mega65_r6.vhd`).
 
 ## The Mandelbrot iteration
 For each point $c = c_x + i c_y$ in the picture, we iterate
@@ -675,8 +676,8 @@ synchronized with two registers in the top level (`p_fps_cdc` in
 [`src/mandelbrot.vhd`](src/mandelbrot.vhd)), and when it changes, the frame
 rate is copied, so `overlay` only gets signals in the VGA clock domain. It is constant for much longer than that (a picture takes far
 more than 58 clock cycles), so it is never copied while it changes. The
-constraint in [`mandelbrot.xdc`](mandelbrot.xdc) (`set_max_delay
--datapath_only`) makes sure that it arrives before the toggle signal, and
+constraint in [`nexys4ddr.xdc`](nexys4ddr.xdc) and
+[`mega65-r6.xdc`](mega65-r6.xdc) (`set_max_delay -datapath_only`) makes sure that it arrives before the toggle signal, and
 excludes these paths from the normal timing between the two clocks. The new
 value is shown from the next frame on, so a frame never shows two values.
 The overlay is a pipeline of five stages after the pixel counters: the position
@@ -878,7 +879,7 @@ scheduler for the results it would have made the initial view only 4% faster
 deliver only one result every 240 clock cycles.
 
 ## Resources and timing closure
-The numbers below come from a successful run of `make vivado` (Vivado 2025.1,
+The numbers below come from a successful run of `make nexys4ddr` (Vivado 2025.1,
 part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 188.24 MHz main clock.
 
@@ -892,7 +893,7 @@ part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
 The resource numbers are from `report_utilization` on the routed design
-(`mandelbrot.dcp`), and the available numbers are the totals for the XC7A100T.
+(`nexys4ddr.dcp`), and the available numbers are the totals for the XC7A100T.
 Most of the slices are used, even though only 67% of the LUTs are used.
 
 The "Report Cell Usage" table in `vivado.log` gives the cell counts after
@@ -954,14 +955,14 @@ The timing after routing is:
 | Hold (WHS)  | +0.014 ns (THS 0)
 
 These are the values from `report_timing_summary` on the routed design
-(`mandelbrot.dcp`), after the post-route `phys_opt_design`.
+(`nexys4ddr.dcp`), after the post-route `phys_opt_design`.
 
 The timing is met for all clocks. The 188.24 MHz main clock (period 5.31 ns)
 is generated from the 100 MHz input clock by the MMCM: it is multiplied by 12,
 which gives 1200 MHz (the maximum for speed grade -1), and divided by 6.375.
 The main clock uses the output CLKOUT0 of the MMCM, because it is the only
 output with a fractional divider. The MMCM also generates the 25 MHz VGA clock
-(divided by 48). The constraints in `mandelbrot.xdc` are the 100 MHz input
+(divided by 48). The constraints in `nexys4ddr.xdc` are the 100 MHz input
 clock, and a maximum delay (`set_max_delay -datapath_only`) for the paths from
 the MAIN clock to the VGA clock, which only carry the frame rate and its toggle
 signal to the synchronizer in the top level (see [The top level](#the-top-level)). Apart from these,
@@ -1109,7 +1110,7 @@ change. The build with it has +0.092 ns of setup slack, and the 40 paths from
 the MAIN clock to the VGA clock have +8.39 ns of slack, and are all reported
 as safe by `report_cdc`.
 
-The complete run of `make vivado` takes about 6.5 minutes (synthesis about 2.5
+The complete run of `make nexys4ddr` takes about 6.5 minutes (synthesis about 2.5
 minutes, placement about 1.5 minutes, routing about 1 minute), on a machine
 with 8 threads.
 

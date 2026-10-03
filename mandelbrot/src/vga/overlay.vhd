@@ -12,7 +12,7 @@ use work.font_pkg.all;
 -- picture is shown there.
 --
 -- The frame rate is calculated in the MAIN clock domain (fps.vhd), and it is
--- moved to the VGA clock domain in mandelbrot.vhd, so fps_digits_i and
+-- moved to the VGA clock domain in the top level module, so fps_digits_i and
 -- fps_blank_i are in the VGA clock domain. They may change at any time: the
 -- value is copied before the first line of each frame, so a new value is shown
 -- from the next frame on, and a frame never shows two different values.

@@ -1,17 +1,19 @@
 # This is a tcl command script for the Vivado tool chain
-# The VHDL source files are given as arguments (-tclargs), so the list of
-# source files is only in the Makefile (SRC). Use "make vivado".
-if {[llength $argv] == 0} {
-   puts "ERROR: No source files given. Use \"make vivado\"."
+# The board name, the FPGA part, the top level module and the VHDL source
+# files are given as arguments (-tclargs), so this information is only in the
+# Makefile. Use "make nexys4ddr" or "make mega65-r6".
+if {[llength $argv] < 4} {
+   puts "ERROR: No board and source files given. Use \"make nexys4ddr\" or \"make mega65-r6\"."
    exit 1
 }
-foreach src $argv {
+lassign $argv board part top
+foreach src [lrange $argv 3 end] {
    read_vhdl -vhdl2008 $src
 }
-read_xdc mandelbrot.xdc
+read_xdc $board.xdc
 set_param messaging.defaultLimit 3000
 #synth_design -verbose -top mandelbrot -part xc7a100tcsg324-1 -flatten_hierarchy none -keep_equivalent_registers -resource_sharing off
-synth_design -verbose -top mandelbrot -part xc7a100tcsg324-1 -flatten_hierarchy none -directive AreaOptimized_medium
+synth_design -verbose -top $top -part $part -flatten_hierarchy none -directive AreaOptimized_medium
 #opt_design -verbose -remap -resynth_seq_area -muxf_remap
 opt_design -verbose -directive ExploreWithRemap
 #power_opt_design -verbose
@@ -19,6 +21,6 @@ place_design
 phys_opt_design -verbose -directive AlternateFlowWithRetiming
 route_design
 phys_opt_design -verbose -directive AlternateFlowWithRetiming
-write_checkpoint -force mandelbrot.dcp
-write_bitstream -force mandelbrot.bit
+write_checkpoint -force $board.dcp
+write_bitstream -force $board.bit
 exit
