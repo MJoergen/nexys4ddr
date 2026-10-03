@@ -363,10 +363,10 @@ picture column) is sent to it.
 A separate scheduler module is used to send jobs to the different column
 modules. Currently, the scheduler operates in a round-robin fashion. This
 potentially may give a delay up to 240 clock cycles before an idle column module
-is given a job, i.e. 1.4 us at 174.55 MHz. The column modules wait in
+is given a job, i.e. 1.4 us at 177.78 MHz. The column modules wait in
 parallel, and with 640 jobs and 240 column modules, each column module gets
 fewer than three jobs on average. So the delay adds only a few microseconds to
-the time for a picture, which is about 5.5 ms. This delay is negligible.
+the time for a picture, which is about 5.4 ms. This delay is negligible.
 
 The column modules are spread over the whole FPGA, so the signals that go from
 the dispatcher to all of them have long routes. To keep each route shorter,
@@ -413,7 +413,7 @@ scheduler from the first process.
 The top level ([`src/mandelbrot.vhd`](src/mandelbrot.vhd)) instantiates the
 clock generation and the display memory, generates the resets, and splits the
 rest of the design into one module for each clock domain:
-* [`src/main.vhd`](src/main.vhd) runs in the MAIN clock domain (174.55 MHz).
+* [`src/main.vhd`](src/main.vhd) runs in the MAIN clock domain (177.78 MHz).
   It handles the buttons and switches, controls the dispatcher, writes the
   results to the display memory, and drives the LEDs.
 * [`src/vga.vhd`](src/vga.vhd) runs in the VGA clock domain (25 MHz). It
@@ -470,7 +470,7 @@ and rows (640 and 480).
 
 The view is controlled by the module [`src/view.vhd`](src/view.vhd). It is
 updated at a fixed rate, which is given by a counter of 23 bits in `main.vhd`.
-At 174.55 MHz this is once every 48 ms, i.e. about 21 times per second. At
+At 177.78 MHz this is once every 47 ms, i.e. about 21 times per second. At
 each update, the following happens, depending on the buttons that are held
 down:
 * `BTNC`: Zoom. The values of stepx and stepy are both decreased by 1/64 of
@@ -532,12 +532,12 @@ time) costs a lot of resources, so it is only there when C\_WAIT\_STAT is true,
 and the default is false. Then the LEDs always show the first value (the time
 for the picture), whatever switch 1 is. The values are latched at the
 end of a picture, because the picture is recalculated continuously (about
-every 5.5 ms), so the counters themselves change too fast to be read.
+every 5.4 ms), so the counters themselves change too fast to be read.
 * If switch 1 is on, the LEDs show the time taken by the picture. A counter
   counts clock cycles while a picture is being calculated, and it is cleared
   when the next picture is started. At the end of the picture, bits 26 to 11
   of the counter are latched. A single step on the LEDs is therefore 2^11 clock
-  cycles, which is 11.73 us, and the value wraps around after 0.77 seconds.
+  cycles, which is 11.52 us, and the value wraps around after 0.75 seconds.
 * If switch 1 is off, and the constant C\_WAIT\_STAT in `main.vhd` is true,
   the LEDs show the total waiting time of all the column modules during a
   picture, averaged over 64 pictures (about 0.35 seconds for
@@ -617,8 +617,9 @@ values are shown on the LEDs, see [The top level](#the-top-level).
 The numbers measured on the board, with the main clock at 174.55 MHz, the
 waiting-time statistic built in, and the initial view, are:
 * The time for the picture (switch 1 on): 0x01D8 = 472, i.e. 472\*2^11 clock
-  cycles, which is 5.5 ms (about 180 pictures per second). This value is
-  steady. The same number of clock cycles was measured with the main clock at
+  cycles, which was 5.5 ms at 174.55 MHz, and is 5.4 ms (about 184 pictures
+  per second) at the current 177.78 MHz. This value is steady. The same
+  number of clock cycles was measured with the main clock at
   140.625 MHz (6.9 ms), before the clock was raised (see
   [Resources and timing closure](#resources-and-timing-closure)).
 * The waiting time of all the column modules (switch 1 off): 0x720C = 29196,
@@ -646,7 +647,7 @@ For the initial view the average count is 151, so the iterator needs 460 clock
 cycles per pixel on average, but each pixel takes 652 clock cycles on average,
 including the waiting. The picture is finished when the last column module is
 finished. A single picture column through the middle of the set takes up to
-0.73 million clock cycles (4.2 ms), so these picture columns decide the total
+0.73 million clock cycles (4.1 ms), so these picture columns decide the total
 time. The model gives 472\*2^11 clock cycles for the picture, the same as
 measured.
 
@@ -669,7 +670,7 @@ on the delay of the acknowledge. Neither does the time for the picture, because 
 one result of a column module to the next is still rounded up to the same
 multiple of 240 clock cycles.
 
-Without the waiting, the picture would take about 3.4 ms (if the work was
+Without the waiting, the picture would take about 3.3 ms (if the work was
 spread evenly over the column modules).
 
 Similar values (472\*2^11 clock cycles for the picture, and 28642\*2^11 clock
@@ -683,23 +684,23 @@ This could be improved by accepting a result as soon as it is ready, e.g.
 with a priority encoder ([`src/priority_pipeline.vhd`](src/priority_pipeline.vhd)
 is a pipelined version of one) instead of the round-robin scheduler, or by
 storing a few results in each column module, so the iterator can continue with
-the next row while it waits. At this speed (about 180 pictures per second) it
+the next row while it waits. At this speed (about 184 pictures per second) it
 does not matter much, though.
 
 ## Resources and timing closure
 The numbers below come from a successful run of `make vivado` (Vivado 2025.1,
 part xc7a100tcsg324-1, i.e. speed grade -1) with the default settings, i.e.
 without the waiting-time statistic (C\_WAIT\_STAT false, see
-[The top level](#the-top-level)), which meets timing with a 174.55 MHz main
+[The top level](#the-top-level)), which meets timing with a 177.78 MHz main
 clock.
 
 | Resource         | Used     | Available | Used (%)
 | ---------------- | -------- | --------- | --------
 | DSP48E1          | 240      | 240       | 100
 | Block RAM        | 128 RAMB36 + 1 RAMB18 | 135 RAMB36 | about 95
-| Slices           | 12,503   | 15,850    | 79
-| LUTs             | 36,248   | 63,400    | 57
-| Registers        | 34,689   | 126,800   | 27
+| Slices           | 12,602   | 15,850    | 80
+| LUTs             | 36,261   | 63,400    | 57
+| Registers        | 34,937   | 126,800   | 28
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
 The resource numbers are from `report_utilization` on the routed design
@@ -743,15 +744,15 @@ The timing after routing is:
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.229 ns (TNS 0)
-| Hold (WHS)  | +0.017 ns (THS 0)
+| Setup (WNS) | +0.081 ns (TNS 0)
+| Hold (WHS)  | +0.012 ns (THS 0)
 
 These are the values from `report_timing_summary` on the routed design
 (`mandelbrot.dcp`), after the post-route `phys_opt_design`.
 
-The timing is met for all clocks. The 174.55 MHz main clock (period 5.73 ns)
+The timing is met for all clocks. The 177.78 MHz main clock (period 5.63 ns)
 is generated from the 100 MHz input clock by the MMCM: it is multiplied by 12,
-which gives 1200 MHz (the maximum for speed grade -1), and divided by 6.875.
+which gives 1200 MHz (the maximum for speed grade -1), and divided by 6.75.
 The main clock uses the output CLKOUT0 of the MMCM, because it is the only
 output with a fractional divider. The only constraint in `mandelbrot.xdc` is
 the 100 MHz input clock. The MMCM also generates the 25 MHz VGA clock (divided
@@ -759,19 +760,18 @@ by 48). The two clocks only meet in the display memory, so there are no timing
 paths between them.
 
 At this frequency, the critical paths are mostly logic, not only routing:
-* The next row in the column modules (from `res_addr_r` through the check for
-  the last row to `res_cy_r`), with 8 levels of logic and +0.229 ns of slack.
-* The routes from the registers that hold the job in the dispatcher to the
-  registers in the groups, and from these to the column modules.
-* The state machine and the overflow detection around the DSP in the
-  iterators.
 * The done flag of the dispatcher (from the busy flags of all the 240 column
-  modules to `done_r`), with 21 levels of logic.
-* The selection of the column module in the schedulers (from the busy flags
-  through the 240-to-1 multiplexer to `job_idx_start_r`), with 5 levels of
-  logic.
-All of these have between 0.23 and 0.30 ns of slack. To go faster, they would
-have to be pipelined.
+  modules to `done_r`), with 22 levels of logic and +0.081 ns of slack.
+* The next row in the column modules (from `res_addr_r` through the check for
+  the last row to `res_cy_r`), with 8 levels of logic.
+* The selection of the column module in the schedulers (from the counter
+  `cnt_r` through the 240-to-1 multiplexer of the busy flags to
+  `job_idx_start_r`), with 5 or 6 levels of logic.
+* The reset from the top level to the view control and the schedulers, and the
+  routes from the registers in the groups to the column modules.
+All of these have less than 0.26 ns of slack. To go faster, the first three
+would have to be pipelined (at 192 MHz, the next row and the schedulers fail
+timing).
 
 At 140.625 MHz, the critical paths were first the routes from single registers
 to all 240 column modules (the job, the reset, and the index of the column
@@ -811,14 +811,28 @@ work harder when the timing is tighter, and the result of each run varies by
 about 0.1 ns. Above 174.55 MHz the result depends on luck: 177.78 MHz (and
 184.62 MHz) met timing by a few picoseconds, after the post-route physical
 optimization, but 181.13 MHz did not. So the main clock was raised to
-174.55 MHz, which is 24% faster than 140.625 MHz. These builds had the
-waiting-time statistic; without it (the default), the slack at 174.55 MHz is
-+0.229 ns instead of +0.094 ns.
+174.55 MHz, which is 24% faster than 140.625 MHz.
+
+These builds had the waiting-time statistic. Without it (the default), the
+slack at 174.55 MHz was +0.229 ns instead of +0.094 ns, so the frequency was
+tried again:
+
+| Main clock | Setup slack | Hold slack
+| ---------- | ----------- | ----------
+| 177.78 MHz | +0.081 ns   | +0.012 ns
+| 181.13 MHz | +0.040 ns   | +0.014 ns
+| 184.62 MHz | +0.020 ns   | +0.021 ns
+| 188.24 MHz | +0.003 ns   | +0.000 ns
+| 192.00 MHz | -0.061 ns   | +0.007 ns
+
+The main clock was raised to 177.78 MHz, which has about the same slack as
+174.55 MHz had with the waiting-time statistic. It is 26% faster than
+140.625 MHz.
 
 The complete run of `make vivado` takes about 6.5 minutes (synthesis about 2.5
 minutes, placement about 1.5 minutes, routing about 1 minute), on a machine
 with 8 threads.
 
-All 240 DSPs running at 174.55 MHz gives a peak of 42 billion multiplications per
+All 240 DSPs running at 177.78 MHz gives a peak of 43 billion multiplications per
 second. The iterator uses its multiplier in two out of three clock cycles, so
 the actual rate is about 28 billion multiplications per second.

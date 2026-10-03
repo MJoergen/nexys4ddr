@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This module runs entirely in the MAIN clock domain (174.545 MHz). It
+-- This module runs entirely in the MAIN clock domain (177.778 MHz). It
 -- controls the view (from the buttons and switches), runs the dispatcher that
 -- calculates the picture, and writes the result to the display memory.
 --
@@ -17,7 +17,7 @@ use ieee.numeric_std_unsigned.all;
 
 entity main is
    port (
-      clk_i     : in  std_logic;                      -- 174.545 MHz
+      clk_i     : in  std_logic;                      -- 177.778 MHz
       rst_i     : in  std_logic;
 
       btn_i     : in  std_logic_vector( 4 downto 0);  -- "CLRUD"
@@ -78,7 +78,7 @@ architecture structural of main is
    signal wait_acc       : std_logic_vector(15+C_AVG_LOG2 downto 0);
    signal avg_cnt        : std_logic_vector(C_AVG_LOG2-1 downto 0);
 
-   -- 23 bits = 8 million cycles @ 174.545 MHz = 21 times per second.
+   -- 23 bits = 8 million cycles @ 177.778 MHz = 21 times per second.
    signal upd_cnt        : std_logic_vector(22 downto 0) := (others => '0');
    signal upd            : std_logic;
    signal btn_r          : std_logic_vector(4 downto 0);
@@ -258,9 +258,9 @@ begin
    -- The LEDs show one of two values, selected by sw_i(1) (only the first one
    -- when C_WAIT_STAT is false):
    -- * The time taken by the most recently finished picture. The counter cnt
-   --   increments at 174.545 MHz while a picture is being calculated, and only
-   --   bits 26 downto 11 are shown, so a single count on the LEDs is 11.73 us.
-   --   The value wraps around after 0.77 seconds.
+   --   increments at 177.778 MHz while a picture is being calculated, and only
+   --   bits 26 downto 11 are shown, so a single count on the LEDs is 11.52 us.
+   --   The value wraps around after 0.75 seconds.
    -- * The total waiting time of all the column modules during a picture,
    --   summed up, and averaged over the last 2^C_AVG_LOG2 pictures. This is
    --   the time spent waiting for the result to be acknowledged, in the same

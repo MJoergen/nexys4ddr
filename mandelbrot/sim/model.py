@@ -39,7 +39,7 @@ MAX_COUNT = 511      # Must match C_MAX_COUNT in main.vhd
 NUM_COLS  = 640      # Must match C_NUM_COLS in main.vhd
 NUM_ROWS  = 480      # Must match C_NUM_ROWS in main.vhd
 NUM_ITERATORS = 240  # Must match C_NUM_ITERATORS in main.vhd
-MAIN_CLOCK_KHZ = 1200e3 / 6.875  # The main clock, see clk.vhd
+MAIN_CLOCK_KHZ = 1200e3 / 6.75  # The main clock, see clk.vhd
 
 
 def wrap(v: ArrayLike, bits: int) -> IntArray:

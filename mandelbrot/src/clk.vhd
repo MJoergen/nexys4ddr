@@ -59,7 +59,7 @@
 --
 --   Output clock   Output    Divider   Freq (MHz)
 --   vga_clk        CLKOUT1     48         25.000
---   main_clk       CLKOUT0      6.875    174.545
+--   main_clk       CLKOUT0      6.75     177.778
 --
 -- The main clock uses CLKOUT0, because it is the only output with a
 -- fractional divider.
@@ -141,7 +141,7 @@ clk_in1_clk_wiz_0 <= clk_in1;
     CLKFBOUT_MULT_F      => 12.000,
     CLKFBOUT_PHASE       => 0.000,
     CLKFBOUT_USE_FINE_PS => FALSE,
-    CLKOUT0_DIVIDE_F     => 6.875,  -- MAIN @ 174.545 MHz
+    CLKOUT0_DIVIDE_F     => 6.750,  -- MAIN @ 177.778 MHz
     CLKOUT0_PHASE        => 0.000,
     CLKOUT0_DUTY_CYCLE   => 0.500,
     CLKOUT0_USE_FINE_PS  => FALSE,
