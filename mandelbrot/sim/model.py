@@ -39,6 +39,7 @@ MAX_COUNT = 511      # Must match C_MAX_COUNT in main.vhd
 NUM_COLS  = 640      # Must match C_NUM_COLS in main.vhd
 NUM_ROWS  = 480      # Must match C_NUM_ROWS in main.vhd
 NUM_ITERATORS = 240  # Must match C_NUM_ITERATORS in main.vhd
+MAIN_CLOCK_KHZ = 1200e3 / 6.875  # The main clock, see clk.vhd
 
 
 def wrap(v: ArrayLike, bits: int) -> IntArray:
@@ -196,8 +197,8 @@ def main() -> None:
           f"per pixel for the iterator, and {per_pixel:.0f} clock cycles per "
           f"pixel including the time waiting for the result to be accepted")
     print(f"Estimated time for the picture: {cycles} clock cycles "
-          f"({cycles / 2**11:.0f} x 2^11), i.e. {cycles / 140.625e3:.2f} ms "
-          f"at 140.625 MHz")
+          f"({cycles / 2**11:.0f} x 2^11), i.e. {cycles / MAIN_CLOCK_KHZ:.2f} ms "
+          f"at {MAIN_CLOCK_KHZ / 1000:.3f} MHz")
 
     if args == ["--png"]:
         from PIL import Image
