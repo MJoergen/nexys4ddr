@@ -588,9 +588,9 @@ part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 | ---------------- | -------- | --------- | --------
 | DSP48E1          | 240      | 240       | 100
 | Block RAM        | 128 RAMB36 + 1 RAMB18 | 135 RAMB36 | about 95
-| Slices           | 13,797   | 15,850    | 87
-| LUTs             | 39,767   | 63,400    | 63
-| Registers        | 39,840   | 126,800   | 31
+| Slices           | 13,921   | 15,850    | 88
+| LUTs             | 39,953   | 63,400    | 63
+| Registers        | 39,978   | 126,800   | 32
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
 The resource numbers are from `report_utilization` on the routed design
@@ -598,7 +598,7 @@ The resource numbers are from `report_utilization` on the routed design
 Most of the slices are used, even though only 63% of the LUTs are used.
 
 The "Report Cell Usage" table in `vivado.log` gives the cell counts after
-synthesis instead: 52,535 LUT cells (LUT1 to LUT6) and 39,761 registers (FDRE
+synthesis instead: 52,745 LUT cells (LUT1 to LUT6) and 39,875 registers (FDRE
 and FDSE cells). The number of LUT cells is larger than the number of LUTs
 used, because two small LUT cells can share one LUT (the placer does this, e.g.
 "LUT Combining" in `phys_opt_design`).
@@ -619,7 +619,7 @@ The timing after routing is:
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.073 ns (TNS 0)
+| Setup (WNS) | +0.104 ns (TNS 0)
 | Hold (WHS)  | +0.022 ns (THS 0)
 
 These are the values from `report_timing_summary` on the routed design
@@ -636,8 +636,8 @@ column modules, or to all 128 blocks of the display memory, so they are long
 whatever the utilization is:
 * From the registers in the dispatcher that hold the job (`job_stepy_r`,
   `job_starty_r` and `job_cx_r`) to the registers in the column modules
-  (`res_cy_r` and `res_cx_r`). The worst path has 4 levels of logic (the
-  addition of stepy), and almost 80% of the delay is routing.
+  (`res_cy_r` and `res_cx_r`). The worst path has 2 levels of logic (part of
+  the addition of stepy), and almost 90% of the delay is routing.
 * From the write address of the display memory to the BRAMs.
 
 In earlier runs, the critical paths were also in the selection of the column
@@ -662,9 +662,8 @@ the column modules into 15 groups of 16, which should allow a higher clock
 frequency.
 This has not been tried.
 
-The complete run of `make vivado` takes about 7.5 minutes (synthesis about 2.5
-minutes, placement about 2 minutes, routing about 2 minutes), on a machine
-with 8 threads.
+The complete run of `make vivado` takes about 7 minutes (synthesis, placement
+and routing about 2 minutes each), on a machine with 8 threads.
 
 All 240 DSPs running at 140.625 MHz gives a peak of 34 billion multiplications per
 second. The iterator uses its multiplier in two out of three clock cycles, so
