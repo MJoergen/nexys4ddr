@@ -17,7 +17,7 @@ SRC += src/pix.vhd
 SRC += src/vga.vhd
 SRC += src/view.vhd
 SRC += src/main.vhd
-SRC += src/clk.vhd
+SRC += src/clk_rst.vhd
 SRC += src/mandelbrot.vhd
 
 # Testbenches, i.e. sim/<name>_tb.vhd
@@ -37,7 +37,7 @@ TB_EXE = $(TB)_tb
 # The clock module and the top level use Xilinx primitives, and are not
 # simulated. The bit-accurate model of the iterator (iterator_model_pkg.vhd) is
 # used by several testbenches.
-TB_SRC = $(filter-out src/clk.vhd src/mandelbrot.vhd,$(SRC)) sim/iterator_model_pkg.vhd sim/$(TB)_tb.vhd
+TB_SRC = $(filter-out src/clk_rst.vhd src/mandelbrot.vhd,$(SRC)) sim/iterator_model_pkg.vhd sim/$(TB)_tb.vhd
 WAVE = sim/$(TB).ghw
 SAVE = sim/$(TB).gtkw
 
