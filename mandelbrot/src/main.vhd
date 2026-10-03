@@ -214,8 +214,7 @@ begin
          G_MAX_COUNT     => C_MAX_COUNT,
          G_NUM_ROWS      => C_NUM_ROWS,
          G_NUM_COLS      => C_NUM_COLS,
-         G_NUM_ITERATORS => C_NUM_ITERATORS,
-         G_WAIT_STAT     => false
+         G_NUM_ITERATORS => C_NUM_ITERATORS
       )
       port map (
          clk_i           => clk_i,
@@ -228,8 +227,7 @@ begin
          wr_addr_o       => wr_addr_s,
          wr_data_o       => wr_data_s,
          wr_en_o         => wr_en_s,
-         done_o          => done,
-         wait_cnt_tot_o  => open
+         done_o          => done
       ); -- i_dispatcher
 
 

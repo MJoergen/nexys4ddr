@@ -42,9 +42,7 @@ clock (setup slack +0.132 ns, hold slack +0.014 ns). The resources used are:
 | LUTs      | 37,119                | 63,400
 | Registers | 38,053                | 126,800
 
-These numbers are with the default settings, i.e. without the waiting-time
-statistic (see [Timing](ALGORITHM.md#timing)), and before the 7-segment
-display replaced the LEDs. See
+These numbers are from before the 7-segment display replaced the LEDs. See
 [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details.
 

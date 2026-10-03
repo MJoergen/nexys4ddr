@@ -300,17 +300,6 @@ count value for this pixel. The res\_ack\_i is needed, because there may be an
 arbitrarily long delay before the job dispatcher has time to acknowledge the
 result.
 
-Finally, there is a debug output:
-```
-wait_cnt_o   : out std_logic_vector(15 downto 0);
-```
-This is the number of clock cycles the column module has spent waiting for a
-result to be acknowledged, in units of 2^11 clock cycles. It is only cleared
-by reset. The counter is only there when the generic G\_WAIT\_STAT
-is true (the default is false). Otherwise wait\_cnt\_o is always zero, which
-saves a 27-bit counter in each of the 240 column modules. The counter is not
-used at the moment, see [Timing](#timing).
-
 The testbench for the column module ([`sim/column_tb.vhd`](sim/column_tb.vhd))
 is self-checking. It runs three jobs of ten rows each, and checks that the
 column module is busy only during a job, that the results come in order, that a
@@ -344,17 +333,7 @@ wr_data_o : out std_logic_vector( 8 downto 0);
 wr_en_o   : out std_logic;
 ```
 The data is the 9-bit count, which is stored in the display memory, see
-[The top level](#the-top-level). Finally, there is a debug output:
-```
-wait_cnt_tot_o : out std_logic_vector(15 downto 0);
-```
-This is the sum of the wait\_cnt\_o outputs of all the column modules. Like
-in the column module, it is only calculated when the generic G\_WAIT\_STAT is
-true (the default is false), and the dispatcher passes G\_WAIT\_STAT on to the
-column modules. The sum is calculated by a chain of 239 registered 16-bit
-adders, so leaving it out saves both these and the counters in the column
-modules. In the design, G\_WAIT\_STAT is set by the constant C\_WAIT\_STAT in
-`main.vhd`.
+[The top level](#the-top-level).
 
 This module instantiates a configurable number of column modules (ideally 240
 instances, one for each DSP). It keeps track of which column modules are
@@ -627,10 +606,8 @@ as a frame rate on the 7-segment display, see [The top level](#the-top-level).
 Earlier versions showed this time on the LEDs instead, in units of 2^11 clock
 cycles, and also (with switch 1) the total amount of time the column modules
 were waiting to write to the display memory, when the waiting-time statistic
-was enabled. The LEDs are no longer used, but the counters for the waiting
-time are still in the column modules and the dispatcher (the generic
-G\_WAIT\_STAT, false in `main.vhd`), so they can be connected to an output
-again.
+was enabled. The LEDs are no longer used, and the counters for the waiting
+time have been removed.
 
 The numbers measured on the board, with the main clock at 174.55 MHz, the
 waiting-time statistic built in, and the initial view, were:
@@ -647,8 +624,8 @@ waiting-time statistic built in, and the initial view, were:
   i.e. 29196\*2^11 clock cycles in total, which is about a quarter of the
   time of each column module. Before the value was averaged over 64 pictures,
   the lowest bits changed from picture to picture (about 0x721F = 29215 was
-  measured), because of the truncation of the wait counters (see
-  [The top level](#the-top-level)).
+  measured), because each wait counter was truncated to units of 2^11 clock
+  cycles before the sum.
 
 Both values agree with the model [`sim/model.py`](sim/model.py), which
 estimates the time for the picture from the count of each pixel, as follows.
@@ -711,8 +688,8 @@ does not matter much, though.
 ## Resources and timing closure
 The numbers below come from a successful run of `make vivado` (Vivado 2025.1,
 part xc7a100tcsg324-1, i.e. speed grade -1) with the default settings, i.e.
-without the waiting-time statistic (C\_WAIT\_STAT false, see
-[The top level](#the-top-level)), which meets timing with a 195.92 MHz main
+without the waiting-time statistic (which has since been removed, see
+[Timing](#timing)), which meets timing with a 195.92 MHz main
 clock.
 
 | Resource         | Used     | Available | Used (%)
@@ -736,7 +713,7 @@ used, because two small LUT cells can share one LUT (the placer does this, e.g.
 routing than after synthesis, because the physical optimization replicates
 registers with a high fanout, and moves some of them (retiming).
 
-With the waiting-time statistic (C\_WAIT\_STAT true), and with only the lower
+With the waiting-time statistic built in, and with only the lower
 8 bits of the count in the display memory, the design used 53,386 LUT cells and
 44,493 registers after synthesis, and 40,542 LUTs, 46,345 registers, and 14,789
 slices (93%) after routing, and the setup slack at 174.55 MHz was +0.094 ns. So
@@ -837,7 +814,7 @@ about 0.1 ns. Above 174.55 MHz the result depends on luck: 177.78 MHz (and
 optimization, but 181.13 MHz did not. So the main clock was raised to
 174.55 MHz, which is 24% faster than 140.625 MHz.
 
-These builds had the waiting-time statistic. Without it (the default), the
+These builds had the waiting-time statistic. Without it, the
 slack at 174.55 MHz was +0.229 ns instead of +0.094 ns, so the frequency was
 tried again:
 

@@ -276,8 +276,7 @@ begin
          wr_addr_o      => dut1_out.wr_addr,
          wr_data_o      => dut1_out.wr_data,
          wr_en_o        => dut1_out.wr_en,
-         done_o         => dut1_out.done,
-         wait_cnt_tot_o => open
+         done_o         => dut1_out.done
       ); -- i_dispatcher
 
    i_dispatcher_small : entity work.dispatcher
@@ -298,8 +297,7 @@ begin
          wr_addr_o      => dut2_out.wr_addr,
          wr_data_o      => dut2_out.wr_data,
          wr_en_o        => dut2_out.wr_en,
-         done_o         => dut2_out.done,
-         wait_cnt_tot_o => open
+         done_o         => dut2_out.done
       ); -- i_dispatcher_small
 
 end architecture simulation;
