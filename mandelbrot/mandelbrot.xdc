@@ -53,7 +53,7 @@ set_property -dict { PACKAGE_PIN N17 IOSTANDARD LVCMOS33 } [get_ports { btn_i[4]
 create_clock -name sys_clk -period 10.00 [get_ports {clk_i}];                          # 100 MHz
 
 # The frame rate is moved from the MAIN clock domain to the VGA clock domain
-# with a toggle signal, which is synchronized, see overlay.vhd. These are the
+# with a toggle signal, which is synchronized, see mandelbrot.vhd. These are the
 # only paths from the MAIN clock to the VGA clock. Their delay only has to be
 # shorter than the synchronizer (two VGA clock cycles), so the relation between
 # the two clocks is ignored.
