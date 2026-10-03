@@ -52,6 +52,13 @@ architecture structural of mandelbrot is
    -- column module.
    constant C_NUM_ITERATORS : integer := 240;
 
+   -- The number of pixels in each write to the display memory. Writing more
+   -- than one pixel at a time makes the picture faster (see mega65_r6.vhd).
+   -- With four pixels the model estimates 1.11 ms for the initial picture,
+   -- against 1.84 ms, but the design then uses 97.5% of the slices of the
+   -- XC7A100T, and has only +0.012 ns of setup slack (see ALGORITHM.md).
+   constant C_PIXELS        : integer := 1;
+
    signal main_clk       : std_logic;
    signal main_rst       : std_logic;
 
@@ -59,7 +66,7 @@ architecture structural of mandelbrot is
    signal vga_rst        : std_logic;
 
    signal wr_addr        : std_logic_vector(18 downto 0);
-   signal wr_data        : std_logic_vector( 8 downto 0);
+   signal wr_data        : std_logic_vector(9*C_PIXELS-1 downto 0);
    signal wr_en          : std_logic;
 
    signal rd_addr        : std_logic_vector(18 downto 0);
@@ -104,7 +111,8 @@ begin
 
    i_main : entity work.main
       generic map (
-         G_NUM_ITERATORS => C_NUM_ITERATORS
+         G_NUM_ITERATORS => C_NUM_ITERATORS,
+         G_PIXELS        => C_PIXELS
       )
       port map (
          clk_i     => main_clk,
@@ -127,6 +135,9 @@ begin
    ------------------------------
 
    i_disp_mem : entity work.disp_mem
+      generic map (
+         G_PIXELS => C_PIXELS
+      )
       port map (
          wr_clk_i  => main_clk,
          wr_rst_i  => main_rst,

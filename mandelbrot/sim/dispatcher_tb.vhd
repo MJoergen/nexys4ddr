@@ -6,14 +6,17 @@ use ieee.math_real.all;
 use work.iterator_model_pkg.all;
 
 -- This is a simple self-checking testbench for the dispatcher. It is not an
--- exhaustive test. It uses two instances of the dispatcher: A normal one, where
--- each picture column is divided into four jobs, and one with a single picture
--- column (i.e. with fewer picture columns than column modules) and one row in
--- each job, so every job is the last picture column of its block. It calculates two small pictures with each of them, one after the
--- other, and checks the following for each picture:
+-- exhaustive test. It uses three instances of the dispatcher: A normal one,
+-- where each picture column is divided into four jobs; one with a single
+-- picture column (i.e. with fewer picture columns than column modules) and one
+-- row in each job, so every job is the last picture column of its block; and
+-- one with four pixels in each write, where each picture column is divided
+-- into two jobs, of two writes each. It calculates two small pictures with each
+-- of them, one after the other, and checks the following for each picture:
 -- * Nothing is written, and done is low, when idle. Done goes low after a
 --   start.
--- * Each pixel is written exactly once, and no other pixels are written.
+-- * Each pixel is written exactly once, and no other pixels are written. Each
+--   write starts at a row that is a multiple of the pixels in a write.
 -- * All pixels have been written when done goes high, and nothing is written
 --   after that.
 -- * The value of each pixel is exactly the count calculated by the
@@ -34,9 +37,13 @@ architecture simulation of dispatcher_tb is
    constant C_NUM_COLS      : integer := 64;
    constant C_NUM_ITERATORS : integer := 16;
 
-   -- Rows in each job, in the two instances
+   -- Rows in each job, in the three instances
    constant C_JOB_ROWS      : integer := 4;
    constant C_SMALL_ROWS    : integer := 1;
+   constant C_WIDE_ROWS     : integer := 8;
+
+   -- Pixels in each write in the third instance
+   constant C_WIDE_PIXELS   : integer := 4;
 
    -- Size of the groups of column modules in the first instance (see
    -- dispatcher.vhd). This gives four groups, and the last one is smaller.
@@ -62,7 +69,7 @@ architecture simulation of dispatcher_tb is
 
    type dut_out_t is record
       wr_addr : std_logic_vector(18 downto 0);
-      wr_data : std_logic_vector( 8 downto 0);
+      wr_data : std_logic_vector(9*C_WIDE_PIXELS-1 downto 0);
       wr_en   : std_logic;
       done    : std_logic;
    end record dut_out_t;
@@ -78,6 +85,8 @@ architecture simulation of dispatcher_tb is
    signal dut1_out : dut_out_t;
    signal dut2_in  : dut_in_t := C_IN_INIT;
    signal dut2_out : dut_out_t;
+   signal dut3_in  : dut_in_t := C_IN_INIT;
+   signal dut3_out : dut_out_t;
 
    -- Convert a real value to the 2.16 fixed point format, as an integer
    function to_fixed (r : real) return integer is
@@ -119,6 +128,7 @@ begin
          signal   dut_in   : out dut_in_t;
          signal   dut_out  : in  dut_out_t;
          num_cols : integer;
+         pixels   : integer;    -- Pixels in each write
          startx_r : real;
          starty_r : real;
          width_r  : real;       -- Size of the picture
@@ -172,13 +182,15 @@ begin
             if dut_out.wr_en = '1' then
                col := to_integer(unsigned(dut_out.wr_addr(18 downto 9)));
                row := to_integer(unsigned(dut_out.wr_addr(8 downto 0)));
-               if col < num_cols and row < C_NUM_ROWS then
-                  assert seen(col, row) = -1
-                     report name & ": Pixel (" & integer'image(col) & "," & integer'image(row) &
-                            ") written more than once"
-                     severity error;
-                  seen(col, row) := to_integer(unsigned(dut_out.wr_data));
-                  total := total + 1;
+               if col < num_cols and row <= C_NUM_ROWS - pixels and row mod pixels = 0 then
+                  for i in 0 to pixels-1 loop
+                     assert seen(col, row+i) = -1
+                        report name & ": Pixel (" & integer'image(col) & "," & integer'image(row+i) &
+                               ") written more than once"
+                        severity error;
+                     seen(col, row+i) := to_integer(unsigned(dut_out.wr_data(9*i+8 downto 9*i)));
+                     total := total + 1;
+                  end loop;
                else
                   report name & ": Pixel outside the picture: (" & integer'image(col) & "," &
                          integer'image(row) & ")"
@@ -239,19 +251,24 @@ begin
       for t in 1 to 20 loop
          wait until rising_edge(clk);
          assert dut1_out.done = '0' and dut1_out.wr_en = '0' and
-                dut2_out.done = '0' and dut2_out.wr_en = '0'
+                dut2_out.done = '0' and dut2_out.wr_en = '0' and
+                dut3_out.done = '0' and dut3_out.wr_en = '0'
             report "Not idle before the first picture"
             severity error;
       end loop;
 
       -- Normal dispatcher. The second picture is started right after the
       -- first, which also checks that the dispatcher can be restarted.
-      run_picture(dut1_in, dut1_out, C_NUM_COLS, -1.0, -0.3, 0.8, 0.6, "picture 1");
-      run_picture(dut1_in, dut1_out, C_NUM_COLS,  0.0,  0.3, 0.5, 0.5, "picture 2");
+      run_picture(dut1_in, dut1_out, C_NUM_COLS, 1, -1.0, -0.3, 0.8, 0.6, "picture 1");
+      run_picture(dut1_in, dut1_out, C_NUM_COLS, 1,  0.0,  0.3, 0.5, 0.5, "picture 2");
 
       -- Dispatcher with a single picture column, and two pictures.
-      run_picture(dut2_in, dut2_out, C_SMALL_COLS, -1.0, -0.3, 0.8, 0.6, "picture 3");
-      run_picture(dut2_in, dut2_out, C_SMALL_COLS,  0.0,  0.3, 0.5, 0.5, "picture 4");
+      run_picture(dut2_in, dut2_out, C_SMALL_COLS, 1, -1.0, -0.3, 0.8, 0.6, "picture 3");
+      run_picture(dut2_in, dut2_out, C_SMALL_COLS, 1,  0.0,  0.3, 0.5, 0.5, "picture 4");
+
+      -- Dispatcher with four pixels in each write, and two pictures.
+      run_picture(dut3_in, dut3_out, C_NUM_COLS, C_WIDE_PIXELS, -1.0, -0.3, 0.8, 0.6, "picture 5");
+      run_picture(dut3_in, dut3_out, C_NUM_COLS, C_WIDE_PIXELS,  0.0,  0.3, 0.5, 0.5, "picture 6");
 
       report "dispatcher_tb: finished";
       std.env.finish;
@@ -280,7 +297,7 @@ begin
          stepx_i        => dut1_in.stepx,
          stepy_i        => dut1_in.stepy,
          wr_addr_o      => dut1_out.wr_addr,
-         wr_data_o      => dut1_out.wr_data,
+         wr_data_o      => dut1_out.wr_data(8 downto 0),
          wr_en_o        => dut1_out.wr_en,
          done_o         => dut1_out.done
       ); -- i_dispatcher
@@ -302,9 +319,33 @@ begin
          stepx_i        => dut2_in.stepx,
          stepy_i        => dut2_in.stepy,
          wr_addr_o      => dut2_out.wr_addr,
-         wr_data_o      => dut2_out.wr_data,
+         wr_data_o      => dut2_out.wr_data(8 downto 0),
          wr_en_o        => dut2_out.wr_en,
          done_o         => dut2_out.done
       ); -- i_dispatcher_small
+
+   i_dispatcher_wide : entity work.dispatcher
+      generic map (
+         G_MAX_COUNT     => C_MAX_COUNT,
+         G_NUM_ROWS      => C_NUM_ROWS,
+         G_NUM_COLS      => C_NUM_COLS,
+         G_JOB_ROWS      => C_WIDE_ROWS,
+         G_NUM_ITERATORS => C_NUM_ITERATORS,
+         G_GROUP_SIZE    => C_GROUP_SIZE,
+         G_PIXELS        => C_WIDE_PIXELS
+      )
+      port map (
+         clk_i          => clk,
+         rst_i          => rst,
+         start_i        => dut3_in.start,
+         startx_i       => dut3_in.startx,
+         starty_i       => dut3_in.starty,
+         stepx_i        => dut3_in.stepx,
+         stepy_i        => dut3_in.stepy,
+         wr_addr_o      => dut3_out.wr_addr,
+         wr_data_o      => dut3_out.wr_data,
+         wr_en_o        => dut3_out.wr_en,
+         done_o         => dut3_out.done
+      ); -- i_dispatcher_wide
 
 end architecture simulation;

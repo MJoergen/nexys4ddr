@@ -24,7 +24,11 @@ entity main is
    generic (
       -- The number of column modules, i.e. iterators and DSPs. This depends on
       -- the size of the FPGA, so it is set by the top level module.
-      G_NUM_ITERATORS : integer
+      G_NUM_ITERATORS : integer;
+      -- The number of pixels in each write to the display memory, see
+      -- dispatcher.vhd and disp_mem.vhd. A power of two, and the rows in a
+      -- job (C_JOB_ROWS) must be a multiple of it.
+      G_PIXELS        : integer
    );
    port (
       clk_i     : in  std_logic;                      -- 188.235 MHz
@@ -42,7 +46,7 @@ entity main is
 
       -- Write port of the display memory
       wr_addr_o : out std_logic_vector(18 downto 0);
-      wr_data_o : out std_logic_vector( 8 downto 0);
+      wr_data_o : out std_logic_vector(9*G_PIXELS-1 downto 0);
       wr_en_o   : out std_logic
    );
 end main;
@@ -75,7 +79,7 @@ architecture structural of main is
    signal pic_done       : std_logic;
 
    signal wr_addr_s      : std_logic_vector(18 downto 0);
-   signal wr_data_s      : std_logic_vector( 8 downto 0);
+   signal wr_data_s      : std_logic_vector(9*G_PIXELS-1 downto 0);
    signal wr_en_s        : std_logic;
 
    -- Time taken by the current picture, in clock cycles
@@ -247,7 +251,8 @@ begin
          G_NUM_ROWS      => C_NUM_ROWS,
          G_NUM_COLS      => C_NUM_COLS,
          G_JOB_ROWS      => C_JOB_ROWS,
-         G_NUM_ITERATORS => G_NUM_ITERATORS
+         G_NUM_ITERATORS => G_NUM_ITERATORS,
+         G_PIXELS        => G_PIXELS
       )
       port map (
          clk_i           => clk_i,

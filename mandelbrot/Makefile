@@ -44,6 +44,10 @@ TBS = dispatcher column iterator scheduler res_scheduler view vga overlay disp_m
 # the command line, e.g. "make run TB=iterator".
 TB =
 
+# Generics of the testbench, as a list of <name>=<value>, e.g.
+# GENERICS="G_PIXELS=4". Only used by main_tb.
+GENERICS =
+
 # Maximum simulation time. This must be longer than the slowest testbench. The
 # testbenches stop by themselves, the slowest of those is view (about 2.7 ms).
 STOP_TIME = 3ms
@@ -131,7 +135,7 @@ check: run
 run: $(TB_SRC)
 	ghdl -i $(GHDL_OPTS) --work=work $(TB_SRC)
 	ghdl -m $(GHDL_OPTS) $(TB_EXE)
-	ghdl -r $(GHDL_OPTS) $(TB_EXE) --assert-level=error --wave=$(WAVE) --stop-time=$(STOP_TIME)
+	ghdl -r $(GHDL_OPTS) $(TB_EXE) --assert-level=error --wave=$(WAVE) --stop-time=$(STOP_TIME) $(addprefix -g,$(GENERICS))
 
 endif
 

@@ -50,12 +50,16 @@ architecture structural of mega65_r6 is
 
    -- The number of column modules. The XC7A200T has 740 DSPs, but the number
    -- of column modules is limited by the slices: 240 column modules use 92% of
-   -- the slices of the XC7A100T, and the XC7A200T has 2.1 times as many. The
-   -- model (sim/model.py) estimates 1.82 ms for the initial picture with 450
-   -- column modules, against 1.85 ms with 240. More column modules give little
-   -- more, because the dispatcher accepts at most one result per clock cycle,
-   -- i.e. the picture takes at least 640*480 clock cycles (1.63 ms).
+   -- the slices of the XC7A100T, and the XC7A200T has 2.1 times as many.
    constant C_NUM_ITERATORS : integer := 450;
+
+   -- The number of pixels in each write to the display memory. The dispatcher
+   -- accepts at most one result per clock cycle, so with one pixel in each
+   -- write the picture takes at least 640*480 clock cycles (1.63 ms), and
+   -- more column modules give little more. The model (sim/model.py) estimates
+   -- 0.86 ms for the initial picture with four pixels in each write, against
+   -- 1.80 ms with one.
+   constant C_PIXELS        : integer := 4;
 
    signal rstn           : std_logic;
    signal btn            : std_logic_vector( 4 downto 0);  -- "CLRUD"
@@ -68,7 +72,7 @@ architecture structural of mega65_r6 is
    signal vga_rst        : std_logic;
 
    signal wr_addr        : std_logic_vector(18 downto 0);
-   signal wr_data        : std_logic_vector( 8 downto 0);
+   signal wr_data        : std_logic_vector(9*C_PIXELS-1 downto 0);
    signal wr_en          : std_logic;
 
    signal rd_addr        : std_logic_vector(18 downto 0);
@@ -127,7 +131,8 @@ begin
 
    i_main : entity work.main
       generic map (
-         G_NUM_ITERATORS => C_NUM_ITERATORS
+         G_NUM_ITERATORS => C_NUM_ITERATORS,
+         G_PIXELS        => C_PIXELS
       )
       port map (
          clk_i     => main_clk,
@@ -150,6 +155,9 @@ begin
    ------------------------------
 
    i_disp_mem : entity work.disp_mem
+      generic map (
+         G_PIXELS => C_PIXELS
+      )
       port map (
          wr_clk_i  => main_clk,
          wr_rst_i  => main_rst,

@@ -12,6 +12,11 @@ use ieee.numeric_std_unsigned.all;
 -- between the column modules at the end of the picture, when the expensive
 -- jobs would otherwise keep a few column modules busy long after the others
 -- have finished.
+--
+-- Each write to the display memory is G_PIXELS pixels: consecutive rows of a
+-- picture column, starting at the row given by wr_addr_o, with the first row in
+-- the lowest 9 bits of wr_data_o (see column.vhd). Writing more than one pixel
+-- at a time lets the dispatcher write more than one pixel per clock cycle.
 
 entity dispatcher is
    generic (
@@ -20,7 +25,8 @@ entity dispatcher is
       G_NUM_COLS      : integer;
       G_JOB_ROWS      : integer;         -- Rows in each job
       G_NUM_ITERATORS : integer;
-      G_GROUP_SIZE    : integer := 16
+      G_GROUP_SIZE    : integer := 16;
+      G_PIXELS        : integer := 1     -- Pixels in each write
    );
    port (
       clk_i           : in  std_logic;
@@ -31,7 +37,7 @@ entity dispatcher is
       stepx_i         : in  std_logic_vector(17 downto 0);
       stepy_i         : in  std_logic_vector(17 downto 0);
       wr_addr_o       : out std_logic_vector(18 downto 0);
-      wr_data_o       : out std_logic_vector( 8 downto 0);
+      wr_data_o       : out std_logic_vector(9*G_PIXELS-1 downto 0);
       wr_en_o         : out std_logic;
       done_o          : out std_logic
    );
@@ -54,7 +60,7 @@ architecture rtl of dispatcher is
    type res_addr_vector is array (natural range <>) of
       std_logic_vector(8 downto 0);
    type res_data_vector is array (natural range <>) of
-      std_logic_vector(8 downto 0);
+      std_logic_vector(9*G_PIXELS-1 downto 0);
    type value_vector is array (natural range <>) of
       std_logic_vector(17 downto 0);
    type idx_vector is array (natural range <>) of
@@ -127,7 +133,7 @@ architecture rtl of dispatcher is
    signal res_ready_s       : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
 
    signal wr_addr_r         : std_logic_vector(18 downto 0);
-   signal wr_data_r         : std_logic_vector( 8 downto 0);
+   signal wr_data_r         : std_logic_vector(9*G_PIXELS-1 downto 0);
    signal wr_en_r           : std_logic;
 
    -- The accepted result, delayed by one and two clock cycles, and the
@@ -325,7 +331,8 @@ begin
       i_column : entity work.column
          generic map (
             G_MAX_COUNT => G_MAX_COUNT,
-            G_NUM_ROWS  => G_JOB_ROWS
+            G_NUM_ROWS  => G_JOB_ROWS,
+            G_PIXELS    => G_PIXELS
          )
          port map (
             clk_i        => clk_i,

@@ -8,7 +8,8 @@ XC7A200T FPGA, see [MEGA65](#mega65).
 
 All 240 DSPs of the FPGA are used in parallel for the calculation, and the
 picture is stored in block RAM. Generating a complete picture takes about 1.84 ms
-(estimated by the model), with the main clock at 188.24 MHz.
+(estimated by the model), with the main clock at 188.24 MHz. On the MEGA65 it
+takes about 0.86 ms.
 
 ## The algorithm
 For each pixel, which corresponds to a complex number $c$, we iterate
@@ -42,11 +43,11 @@ clock on both boards. The resources used are:
 | ----------- | ------------------------ | --------- | ---------------------- | ---------
 | DSP48E1     | 240                      | 240       | 450                    | 740
 | Block RAM   | 128 RAMB36 + 2 RAMB18    | 135 RAMB36 | 128 RAMB36 + 2 RAMB18 | 365 RAMB36
-| Slices      | 14,723                   | 15,850    | 26,233                 | 33,650
-| LUTs        | 42,252                   | 63,400    | 77,580                 | 134,600
-| Registers   | 45,018                   | 126,800   | 77,326                 | 269,200
-| Setup slack | +0.092 ns                |           | +0.178 ns              |
-| Hold slack  | +0.014 ns                |           | +0.023 ns              |
+| Slices      | 14,723                   | 15,850    | 30,114                 | 33,650
+| LUTs        | 42,252                   | 63,400    | 81,630                 | 134,600
+| Registers   | 45,018                   | 126,800   | 93,491                 | 269,200
+| Setup slack | +0.092 ns                |           | +0.136 ns              |
+| Hold slack  | +0.014 ns                |           | +0.053 ns              |
 
 See [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details.
@@ -122,10 +123,13 @@ connector.
 The colour palette is always palette 0, and the frame rate is only shown on the
 VGA output.
 The XC7A200T is larger, so the design uses 450 column modules (DSPs) instead
-of 240, see [`src/mega65_r6.vhd`](src/mega65_r6.vhd). This makes the picture
-only slightly faster (about 1.80 ms instead of 1.84 ms, estimated by the
-model), because the display memory can only take one result per clock cycle,
-see [Timing](ALGORITHM.md#timing).
+of 240, and writes four pixels (consecutive rows of a picture column) to the
+display memory at a time instead of one, see
+[`src/mega65_r6.vhd`](src/mega65_r6.vhd). The display memory takes one write
+per clock cycle, so with one pixel in each write more column modules would
+make the picture only slightly faster (about 1.80 ms instead of 1.84 ms). With
+four pixels in each write the picture takes about 0.86 ms (estimated by the
+model), see [MEGA65 R6](ALGORITHM.md#mega65-r6).
 
 ## Running
 Type `make` to list the supported targets. The most important ones are:
@@ -163,6 +167,9 @@ takes about 13 minutes:
 make run TB=main STOP_TIME=700us
 sim/cmp_rtl.py
 ```
+By default it simulates the design of the Nexys 4 DDR. The design of the
+MEGA65 is simulated with
+`make run TB=main STOP_TIME=700us GENERICS="G_NUM_ITERATORS=450 G_PIXELS=4"`.
 See [Iterator](ALGORITHM.md#iterator) for details.
 
 The simulation does not need any Xilinx libraries. The DSPs in the iterators
