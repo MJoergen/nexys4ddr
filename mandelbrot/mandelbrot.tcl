@@ -6,6 +6,7 @@ read_vhdl -vhdl2008 src/priority.vhd
 read_vhdl -vhdl2008 src/scheduler.vhd
 read_vhdl -vhdl2008 src/dispatcher.vhd
 read_vhdl -vhdl2008 src/disp_mem.vhd
+read_vhdl -vhdl2008 src/palette_pkg.vhd
 read_vhdl -vhdl2008 src/disp.vhd
 read_vhdl -vhdl2008 src/pix.vhd
 read_vhdl -vhdl2008 src/vga.vhd

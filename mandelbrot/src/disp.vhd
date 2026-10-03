@@ -2,10 +2,14 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
+use work.palette_pkg.all;
+
 -- This module generates the VGA output signals (640x480 @ 60 Hz) from the
--- pixel counters. The colour of the pixel at (vga_pix_x_i, vga_pix_y_i) must be
--- given on vga_col_d3_i three clock cycles later, which is the read latency of
--- the display memory. The colour is only output inside the visible area.
+-- pixel counters. The value of the pixel at (vga_pix_x_i, vga_pix_y_i), i.e.
+-- the lowest 8 bits of its iteration count, must be given on vga_col_d3_i three
+-- clock cycles later, which is the read latency of the display memory. It is
+-- converted to the colour by the palette selected by vga_palette_i (see
+-- palette_pkg.vhd). The colour is only output inside the visible area.
 
 entity disp is
    port (
@@ -14,6 +18,7 @@ entity disp is
       vga_pix_x_i  : in  std_logic_vector(9 downto 0);
       vga_pix_y_i  : in  std_logic_vector(9 downto 0);
       vga_col_d3_i : in  std_logic_vector(7 downto 0);
+      vga_palette_i: in  std_logic_vector(1 downto 0);
       vga_hs_o     : out std_logic;
       vga_vs_o     : out std_logic;
       vga_col_o    : out std_logic_vector(7 downto 0)
@@ -116,7 +121,7 @@ begin
 
          -- Only set colour output inside visible area
          if vga_pix_x_d3 < H_PIXELS and vga_pix_y_d3 < V_PIXELS then
-            vga_col_d4 <= vga_col_d3_i;
+            vga_col_d4 <= palette_colour(vga_palette_i, vga_col_d3_i);
          end if;
 
          vga_hs_d4 <= vga_hs_d3;

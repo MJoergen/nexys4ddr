@@ -13,8 +13,8 @@ For each pixel, which corresponds to a complex number $c$, we iterate
 $z \mapsto z^2 + c$ starting from $z = 0$, and count the number of iterations
 until the real or the imaginary part of $z$ leaves the range -2 to 2 (the range
 of the number format), up to a maximum of 511. The lower 8 bits of this count
-are used directly as the colour of the pixel (RRRGGGBB), so the points in the
-set are white.
+decide the colour of the pixel, using one of four colour palettes, selected
+with switches 3 and 4 (see [Controls](#controls)).
 
 The numbers are 18-bit
 [fixed point](https://en.wikipedia.org/wiki/Fixed-point_arithmetic) (2 integer
@@ -59,6 +59,7 @@ for details.
 | [`src/priority.vhd`](src/priority.vhd), [`src/priority_pipeline.vhd`](src/priority_pipeline.vhd) | Priority encoder, and a pipelined version built from it. Not used in the design yet, only in the `priority_pipeline` testbench.
 | [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture.
 | [`src/pix.vhd`](src/pix.vhd), [`src/disp.vhd`](src/disp.vhd) | VGA output. `pix` generates the pixel counters, and `disp` generates the sync signals and the pixel colour.
+| [`src/palette_pkg.vhd`](src/palette_pkg.vhd) | The four colour palettes, which convert the count of a pixel to its colour.
 | [`src/clk.vhd`](src/clk.vhd) | Clock generation: 140.625 MHz for the calculation and 25 MHz for VGA.
 | [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a Python model of the iterator count (`iterator_model.py`), a vectorized model of the complete picture (`model.py`), the same bit-accurate model in VHDL (`iterator_model_pkg.vhd`, used by the testbenches), and a script (`cmp_rtl.py`) that compares the output of the testbench `main_tb` with this model.
 | [`mandelbrot.xdc`](mandelbrot.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make vivado`.
@@ -76,7 +77,8 @@ the board. The switch numbers are the bit numbers of the switch input, i.e.
 | `BTNL`, `BTNR`, `BTNU`, `BTND` | Pan the picture left, right, up and down, by one pixel for each update. Panning stops at the edge of the number range (-2 to 2).
 | `BTNC` | Zoom in. With switch 2 on, zoom out instead. The centre of the picture stays fixed, except when zooming out would move an edge of the view beyond -2 or 2; then the view is moved instead. Zooming stops at the smallest pixel size (2^-16), and when the view can not get larger.
 | Switch 1 | Selects what the LEDs show. On: the time taken to calculate the most recently finished picture, in units of 14.6 us (2^11 clock cycles), updated at the end of each picture. Off: the total time that the column modules have spent waiting for their results to be accepted during a picture, summed up over all column modules, in the same unit, and averaged over 64 pictures (about 0.44 seconds), updated after every 64 pictures.
-| Switches 0 and 3 to 7 | Not used.
+| Switches 3 and 4 | Select the colour palette (switch 4 is the high bit). 0 (both off): the lower 8 bits of the count are the colour (RRRGGGBB), mostly blue and green, and the set is white. 1: rainbow, the hue goes around the colour circle every 16 counts. 2: fire, black, red, orange, yellow and white, with the square root of the count. 3: blue, white, orange and dark brown, with the logarithm of the count. In the palettes 1 to 3 the set is black.
+| Switches 0 and 5 to 7 | Not used.
 | `CPU RESET` | Resets the design and returns to the initial view.
 
 While a button is held down, the view is updated about 17 times per second. Each
