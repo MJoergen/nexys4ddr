@@ -778,7 +778,7 @@ storing a few results in each column module, so the iterator can continue with
 the next row while it waits.
 
 ## Resources and timing closure
-The numbers below come from a successful run of `make vivado` (Vivado 2025.1,
+The numbers below come from a successful run of `make nexys4ddr` (Vivado 2025.1,
 part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 188.24 MHz main clock.
 
@@ -854,7 +854,7 @@ The timing is met for all clocks. The 188.24 MHz main clock (period 5.31 ns)
 is generated from the 100 MHz input clock by the MMCM: it is multiplied by 12,
 which gives 1200 MHz (the maximum for speed grade -1), and divided by 6.375.
 The main clock uses the output CLKOUT0 of the MMCM, because it is the only
-output with a fractional divider. The only constraint in `mandelbrot.xdc` is
+output with a fractional divider. The only constraint in `nexys4ddr.xdc` is
 the 100 MHz input clock. The MMCM also generates the 25 MHz VGA clock (divided
 by 48). The two clocks only meet in the display memory, so there are no timing
 paths between them.
@@ -975,7 +975,7 @@ same.
 The build with the jobs of 120 rows (see [Dispatcher](#dispatcher)), at the
 same frequency, has +0.103 ns of setup slack.
 
-The complete run of `make vivado` takes about 6.5 minutes (synthesis about 2.5
+The complete run of `make nexys4ddr` takes about 6.5 minutes (synthesis about 2.5
 minutes, placement about 1.5 minutes, routing about 1 minute), on a machine
 with 8 threads.
 

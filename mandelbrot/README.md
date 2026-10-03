@@ -68,7 +68,7 @@ files that are in both clock domains are in [`src/`](src).
 | [`src/vga/palette_pkg.vhd`](src/vga/palette_pkg.vhd) | The four colour palettes, which convert the count of a pixel to its colour.
 | [`src/clk_rst.vhd`](src/clk_rst.vhd) | Clock and reset generation: 188.24 MHz for the calculation and 25 MHz for VGA, each with a synchronous reset.
 | [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a Python model of the iterator count (`iterator_model.py`), a vectorized model of the complete picture (`model.py`), the same bit-accurate model in VHDL (`iterator_model_pkg.vhd`, used by the testbenches), and a script (`cmp_rtl.py`) that compares the output of the testbench `main_tb` with this model.
-| [`mandelbrot.xdc`](mandelbrot.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make vivado`. The script gets the list of source files from the Makefile (`SRC`), so it must be run through `make vivado`.
+| [`nexys4ddr.xdc`](nexys4ddr.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make nexys4ddr`. The script gets the list of source files from the Makefile (`SRC`), so it must be run through `make nexys4ddr`.
 | [`mandelbrot.xlsx`](mandelbrot.xlsx) | Spreadsheet used during the design. It iterates the example point -1+0.5i from [the iterator section](ALGORITHM.md#iterator) using real numbers.
 | [`ALGORITHM.md`](ALGORITHM.md) | Detailed explanation of the algorithm and the design.
 
@@ -99,12 +99,12 @@ picture.
 
 ## Running
 Type `make` to list the supported targets. The most important ones are:
-* `make vivado` synthesizes and implements the design using
+* `make nexys4ddr` synthesizes and implements the design using
   [Vivado](https://www.amd.com/en/products/software/adaptive-socs-and-fpgas/vivado.html),
-  and generates `mandelbrot.bit`. It expects Vivado in
+  and generates `nexys4ddr.bit`. It expects Vivado in
   `/opt/Xilinx/2025.1/Vivado` (the variable `XILINX_DIR`). It takes about 10
   minutes, and writes the log to `vivado.log`.
-* `make fpga` programs the board with `mandelbrot.bit`, using `djtgcfg` from
+* `make fpga` programs the board with `nexys4ddr.bit`, using `djtgcfg` from
   Digilent Adept.
 * `make sim` runs all the testbenches one after another, without opening the
   waveform viewer, see [below](#simulation). This requires

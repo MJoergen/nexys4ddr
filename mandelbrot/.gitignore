@@ -2,7 +2,7 @@
 work-obj08.cf
 *_tb
 *.o
-mandelbrot.bit
+nexys4ddr.bit
 mandelbrot.dcp
 vivado*
 clockInfo.txt

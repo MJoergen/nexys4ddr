@@ -3,8 +3,11 @@ XILINX_DIR = /opt/Xilinx/2025.1/Vivado
 # Name of top level module
 NAME = mandelbrot
 
+# Name of target board. Used for the constraint file and the bit-file.
+BOARD = nexys4ddr
+
 # List of source files. This is the only list: it is also given to the Vivado
-# script (mandelbrot.tcl) by the target vivado.
+# script (mandelbrot.tcl) by the target nexys4ddr.
 SRC  = src/main/iterator.vhd
 SRC += src/main/column.vhd
 SRC += src/main/scheduler.vhd
@@ -53,8 +56,8 @@ help:
 	@echo ""
 	@echo "Targets:"
 	@echo "  help            Show this help text (default)"
-	@echo "  vivado          Synthesize and implement the design using Vivado ($(NAME).bit)"
-	@echo "  fpga            Program the Nexys4DDR board with $(NAME).bit"
+	@echo "  nexys4ddr       Synthesize and implement the design using Vivado ($(BOARD).bit)"
+	@echo "  fpga            Program the Nexys4DDR board with $(BOARD).bit"
 	@echo "  sim             Simulate all testbenches using ghdl"
 	@echo "  run             Simulate a single testbench (TB=<name>) using ghdl, without gtkwave"
 	@echo "  check           Simulate a single testbench (TB=<name>) using ghdl and show waveform in gtkwave"
@@ -68,14 +71,14 @@ help:
 # Generate bit-file and program FPGA
 #####################################
 
-.PHONY: vivado
-vivado: $(NAME).bit
+.PHONY: $(BOARD)
+$(BOARD): $(BOARD).bit
 
-$(NAME).bit: $(NAME).tcl $(SRC) $(NAME).xdc
+$(BOARD).bit: $(NAME).tcl $(SRC) $(BOARD).xdc
 	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $< -tclargs $(SRC)"
 
 .PHONY: fpga
-fpga: $(NAME).bit
+fpga: $(BOARD).bit
 	djtgcfg prog -d Nexys4DDR -i 0 --file $<
 
 
@@ -121,7 +124,7 @@ clean:
 	rm -rf vivado*
 	rm -rf clockInfo.txt
 	rm -rf tight_setup_hold_pins.txt
-	rm -rf $(NAME).bit
+	rm -rf $(BOARD).bit
 	rm -rf $(NAME).dcp
 	rm -rf .Xil
 	rm -rf .cache
