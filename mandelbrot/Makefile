@@ -20,7 +20,7 @@ SRC += src/clk.vhd
 SRC += src/mandelbrot.vhd
 
 # Testbenches, i.e. sim/<name>_tb.vhd
-TBS = dispatcher column iterator scheduler view vga priority_pipeline
+TBS = dispatcher column iterator scheduler view vga disp_mem priority_pipeline
 
 # Testbench simulated by the "run" and "check" targets. Must be specified on
 # the command line, e.g. "make run TB=iterator".

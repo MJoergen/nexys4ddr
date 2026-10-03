@@ -360,9 +360,31 @@ parallel, and with 640 jobs and 240 column modules, each column module gets
 fewer than three jobs on average. So the delay adds only a few microseconds to
 the time for a picture, which is about 7 ms. This delay is negligible.
 
+The column modules are spread over the whole FPGA, so the signals that go from
+the dispatcher to all of them have long routes. To keep each route shorter,
+these signals go through an extra register in each group of 16 column modules
+(the generic G\_GROUP\_SIZE, so there are 15 groups): the job (cx, starty, and
+stepy), the start of the job, the reset, and the index of the column module
+whose result is accepted. The registers of the groups are identical, so they
+have the attribute `keep`, which prevents the synthesis tool from merging them.
+Each column module registers the reset once more, so the reset register of a
+group drives only 16 registers.
+
+A result is accepted in three steps. First, the index of the column module
+selected by i\_scheduler\_res goes to the register in each group. Then each
+group acknowledges the selected column module, if it is in the group, and
+selects its result. Finally, the result is selected from the group of the
+column module and written to the display memory. The column module keeps its
+result until it has seen the acknowledge, so the result is still there when
+its group selects it. Because of the extra registers, the scheduler sees that
+a column module is busy (with a job, or with a result that has been accepted)
+four clock cycles after it has selected it, so the dispatcher needs at least
+four column modules.
+
 The dispatcher has a self-checking testbench
 ([`sim/dispatcher_tb.vhd`](sim/dispatcher_tb.vhd)). It calculates two small
-pictures (64 by 16 pixels, with 16 column modules), one right after the other,
+pictures (64 by 16 pixels, with 16 column modules in groups of 5, so the last
+group is smaller), one right after the other,
 and checks that each pixel is written exactly once, that everything has been
 written when done\_o goes high, that done\_o goes low when a new picture is
 started, and that the value of each pixel is exactly the count calculated by
@@ -407,6 +429,21 @@ dispatcher delivers a 9-bit count for each pixel, but `main` only writes the
 lower 8 bits. The `vga` module uses these 8 bits directly as the colour, in the
 format RRRGGGBB. So the colours repeat for counts from 256 to 511, and the
 points in the set (count 511) are white.
+
+The memory is divided into 128 blocks of 2^12 entries, one BRAM each, selected
+by the top 7 bits of the address. The write address and data go to the blocks
+through a tree of registers: first to a register in each of 16 groups of 8
+blocks, and then to a register for each block, which can be placed next to its
+BRAM. So no register drives more than 16 loads. A single register for the
+address of all 128 BRAMs, which are spread over the whole FPGA, made the
+routing too slow. The write port has three clock cycles of latency, and the
+read port also three. The display memory has a small self-checking testbench
+([`sim/disp_mem_tb.vhd`](sim/disp_mem_tb.vhd)). It writes to a few addresses
+in each block, back-to-back both in different blocks and in the same block,
+and reads them back on the read port. It checks that each value is written to
+the right block and address, that a second write overwrites the first, that
+nothing is written when the write enable is low, and that the read latency is
+exactly three clock cycles.
 
 The rest of this section describes `main`.
 
@@ -557,12 +594,18 @@ time. The model gives 472\*2^11 clock cycles for the picture, the same as
 measured.
 
 The model gives a total waiting time of 28896\*2^11 clock cycles, i.e. 192
-clock cycles per pixel on average. The wait counter of a column module counts 2
-clock cycles more for each pixel: it counts from 3 clock cycles after the
-result is ready until the clock cycle before the acknowledge reaches the column
-module. With these 2 clock cycles for each of the 307200 pixels, the expected
-value on the LEDs is 29196 (0x720C), which agrees with the measured value
-within 0.1%. Without the waiting, the picture would take about 4.2 ms (if the
+clock cycles per pixel on average. In the design that was measured, the wait
+counter of a column module counted 2 clock cycles more for each pixel: it
+counts from 3 clock cycles after the result is ready until the clock cycle
+before the acknowledge reaches the column module. With these 2 clock cycles for
+each of the 307200 pixels, the expected value on the LEDs was 29196 (0x720C),
+which agrees with the measured value within 0.1%. Since then, the acknowledge
+has been delayed by one more clock cycle (see [Dispatcher](#dispatcher)), so
+the wait counter counts 3 clock cycles more for each pixel, and the expected
+value is 29346 (0x72A2). This extra clock cycle does not change the time for
+the picture in the model, because the time from one result of a column module
+to the next is still rounded up to the same multiple of 240 clock cycles. This
+has not been measured on the board yet. Without the waiting, the picture would take about 4.2 ms (if the
 work was spread evenly over the column modules).
 
 Similar values (472\*2^11 clock cycles for the picture, and 28642\*2^11 clock
@@ -588,17 +631,17 @@ part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 | ---------------- | -------- | --------- | --------
 | DSP48E1          | 240      | 240       | 100
 | Block RAM        | 128 RAMB36 + 1 RAMB18 | 135 RAMB36 | about 95
-| Slices           | 13,921   | 15,850    | 88
-| LUTs             | 39,953   | 63,400    | 63
-| Registers        | 39,978   | 126,800   | 32
+| Slices           | 14,656   | 15,850    | 92
+| LUTs             | 40,287   | 63,400    | 64
+| Registers        | 44,550   | 126,800   | 35
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
 The resource numbers are from `report_utilization` on the routed design
 (`mandelbrot.dcp`), and the available numbers are the totals for the XC7A100T.
-Most of the slices are used, even though only 63% of the LUTs are used.
+Most of the slices are used, even though only 64% of the LUTs are used.
 
 The "Report Cell Usage" table in `vivado.log` gives the cell counts after
-synthesis instead: 52,745 LUT cells (LUT1 to LUT6) and 39,875 registers (FDRE
+synthesis instead: 53,266 LUT cells (LUT1 to LUT6) and 44,489 registers (FDRE
 and FDSE cells). The number of LUT cells is larger than the number of LUTs
 used, because two small LUT cells can share one LUT (the placer does this, e.g.
 "LUT Combining" in `phys_opt_design`).
@@ -609,9 +652,14 @@ LUTs, 53,960 registers, and 15,402 slices (97%) after routing. The timing
 slack was about the same (+0.116 ns), because the critical paths were not in
 the iterators.
 
+The registers that shorten the routes to the column modules and to the BRAMs
+(see [Dispatcher](#dispatcher) and [The top level](#the-top-level)) use about
+4,600 registers and 500 LUT cells. Before they were added, the setup slack was
++0.104 ns.
+
 The display memory has 2^19 entries of 8 bits (the lowest 8 bits of the
-count), i.e. 128 blocks of 36 kbit BRAM (each with 32 kbit of data), as
-expected. The single RAMB18 is used by the dispatcher, for the table
+count), i.e. 128 blocks of 36 kbit BRAM (each used as 4096 entries of 8 bits),
+as expected. The single RAMB18 is used by the dispatcher, for the table
 `job_addr_r` that holds the picture column of each column module (240 entries
 of 10 bits).
 
@@ -619,8 +667,8 @@ The timing after routing is:
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.104 ns (TNS 0)
-| Hold (WHS)  | +0.022 ns (THS 0)
+| Setup (WNS) | +0.347 ns (TNS 0)
+| Hold (WHS)  | +0.015 ns (THS 0)
 
 These are the values from `report_timing_summary` on the routed design
 (`mandelbrot.dcp`), after the post-route `phys_opt_design`.
@@ -630,22 +678,25 @@ is generated from the 100 MHz input clock by the MMCM (multiplied by 11.25 and
 divided by 8), and the only constraint in `mandelbrot.xdc` is the 100 MHz input
 clock. The MMCM also generates the 25 MHz VGA clock (divided by 45).
 
-The slack is small, so the design is close to the limit of what this device and
-this flow can achieve. The critical paths are signals that go to all 240
-column modules, or to all 128 blocks of the display memory, so they are long
-whatever the utilization is:
-* From the registers in the dispatcher that hold the job (`job_stepy_r`,
-  `job_starty_r` and `job_cx_r`) to the registers in the column modules
-  (`res_cy_r` and `res_cx_r`). The worst path has 2 levels of logic (part of
-  the addition of stepy), and almost 90% of the delay is routing.
-* From the write address of the display memory to the BRAMs.
+The critical paths are now spread over many parts of the design, and no path
+has less than 0.3 ns of slack. The worst ones are the routes that remain long:
+* From the registers in the dispatcher that hold the job (`job_cx_r`,
+  `job_starty_r` and `job_stepy_r`) to the registers in the groups
+  (`grp_cx_r` etc.), and from these to the column modules. The worst path has
+  no logic at all, and 93% of the delay is routing.
+* The reset of the wait counter sum in the dispatcher, the acknowledge of the
+  results (from `grp_idx_r` to `res_ack_r`), and the tree of registers for the
+  write address and data of the display memory, all with about 0.45 ns of
+  slack.
 
-In earlier runs, the critical paths were also in the selection of the column
+In earlier runs, the critical paths were the routes from single registers to
+all 240 column modules (the job, the reset, and the index of the column module
+whose result is accepted) or to all 128 BRAMs (the write address), before the
+registers in the groups and the blocks were added, the selection of the column
 module in the schedulers (e.g. from `res_busy_r` through `i_scheduler_res`),
-in the registers for the write address and data going to the display memory
-(`wr_addr_r` and `wr_data_r`), and in the iterators (from the multiplier
-through the addition of cx to x\_r, before the post-adder of the DSP was
-used). The directives used in `mandelbrot.tcl` matter:
+and the iterators (from the multiplier through the addition of cx to x\_r,
+before the post-adder of the DSP was used). The directives used in
+`mandelbrot.tcl` matter:
 * `synth_design` with `-directive AreaOptimized_medium`
 * `opt_design` with `-directive ExploreWithRemap`
 * `phys_opt_design` with `-directive AlternateFlowWithRetiming`, both after
@@ -656,14 +707,13 @@ the iterator met timing at that frequency (setup slack +0.047 ns). After the
 overflow detection in the iterator was improved (see [Overflow](#overflow)),
 which uses more logic (about 1,400 more LUTs), the design no longer met timing
 at 150 MHz (setup slack -0.055 ns, with the critical paths in the dispatcher),
-and the main clock was lowered to 140.625 MHz. A possible improvement is to
-pipeline the selection of the column module in the scheduler, e.g. by dividing
-the column modules into 15 groups of 16, which should allow a higher clock
-frequency.
-This has not been tried.
+and the main clock was lowered to 140.625 MHz. With the registers in the
+groups and the blocks, the slack (+0.347 ns) may now be enough for a slightly
+higher clock frequency. This has not been tried yet.
 
-The complete run of `make vivado` takes about 7 minutes (synthesis, placement
-and routing about 2 minutes each), on a machine with 8 threads.
+The complete run of `make vivado` takes about 6.5 minutes (synthesis about 2.5
+minutes, placement about 1.5 minutes, routing about 1 minute), on a machine
+with 8 threads.
 
 All 240 DSPs running at 140.625 MHz gives a peak of 34 billion multiplications per
 second. The iterator uses its multiplier in two out of three clock cycles, so

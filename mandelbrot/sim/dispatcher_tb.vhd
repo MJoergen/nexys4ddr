@@ -33,6 +33,10 @@ architecture simulation of dispatcher_tb is
    constant C_NUM_COLS      : integer := 64;
    constant C_NUM_ITERATORS : integer := 16;
 
+   -- Size of the groups of column modules in the first instance (see
+   -- dispatcher.vhd). This gives four groups, and the last one is smaller.
+   constant C_GROUP_SIZE    : integer := 5;
+
    -- Number of picture columns in the second instance. This is less than the
    -- number of column modules.
    constant C_SMALL_COLS    : integer := 1;
@@ -258,7 +262,8 @@ begin
          G_MAX_COUNT     => C_MAX_COUNT,
          G_NUM_ROWS      => C_NUM_ROWS,
          G_NUM_COLS      => C_NUM_COLS,
-         G_NUM_ITERATORS => C_NUM_ITERATORS
+         G_NUM_ITERATORS => C_NUM_ITERATORS,
+         G_GROUP_SIZE    => C_GROUP_SIZE
       )
       port map (
          clk_i          => clk,

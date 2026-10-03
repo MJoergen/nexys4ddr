@@ -28,6 +28,10 @@ end entity column;
 
 architecture rtl of column is
 
+   -- The reset, registered locally, so the reset from the dispatcher only goes
+   -- to this register.
+   signal rst_r        : std_logic;
+
    signal res_start_r  : std_logic;
    signal res_cx_r     : std_logic_vector(17 downto 0);
    signal res_cy_r     : std_logic_vector(17 downto 0);
@@ -44,6 +48,14 @@ architecture rtl of column is
    signal wait_cnt     : std_logic_vector(26 downto 0);
 
 begin
+
+   p_rst : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         rst_r <= rst_i;
+      end if;
+   end process p_rst;
+
 
    -----------------------------
    -- Simple state machine to
@@ -87,7 +99,7 @@ begin
             job_busy_r  <= '1';
          end if;
 
-         if rst_i = '1' then
+         if rst_r = '1' then
             job_busy_r  <= '0';
          end if;
       end if;
@@ -100,7 +112,7 @@ begin
       )
       port map (
          clk_i   => clk_i,
-         rst_i   => rst_i,
+         rst_i   => rst_r,
          start_i => res_start_r,
          cx_i    => res_cx_r,
          cy_i    => res_cy_r,
@@ -136,7 +148,7 @@ begin
             wait_cnt <= wait_cnt + 1;
          end if;
 
-         if rst_i = '1' then
+         if rst_r = '1' then
             wait_cnt <= (others => '0');
          end if;
       end if;

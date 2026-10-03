@@ -31,18 +31,17 @@ the dispatcher, and the timing and resource usage.
 
 ## Implementation results
 The design is built with Vivado 2025.1 and meets timing at the 140.625 MHz main
-clock (setup slack +0.104 ns, hold slack +0.022 ns). The resources used are:
+clock (setup slack +0.347 ns, hold slack +0.015 ns). The resources used are:
 
 | Resource  | Used                  | Available
 | --------- | --------------------- | ---------
 | DSP48E1   | 240                   | 240
 | Block RAM | 128 RAMB36 + 1 RAMB18 | 135 RAMB36
-| Slices    | 13,921                | 15,850
-| LUTs      | 39,953                | 63,400
-| Registers | 39,978                | 126,800
+| Slices    | 14,656                | 15,850
+| LUTs      | 40,287                | 63,400
+| Registers | 44,550                | 126,800
 
-The slack is small, see
-[Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
+See [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details.
 
 ## Files
@@ -57,7 +56,7 @@ for details.
 | [`src/dispatcher.vhd`](src/dispatcher.vhd) | Controls the calculation of the entire picture: hands out the picture columns to the idle column modules, and collects the results. Instantiates the column modules.
 | [`src/scheduler.vhd`](src/scheduler.vhd) | Round-robin scheduler. Used by the dispatcher both to give jobs to idle column modules and to pick which column module's result to accept.
 | [`src/priority.vhd`](src/priority.vhd), [`src/priority_pipeline.vhd`](src/priority_pipeline.vhd) | Priority encoder, and a pipelined version built from it. Not used in the design yet, only in the `priority_pipeline` testbench.
-| [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture.
+| [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture, in 128 blocks.
 | [`src/pix.vhd`](src/pix.vhd), [`src/disp.vhd`](src/disp.vhd) | VGA output. `pix` generates the pixel counters, and `disp` generates the sync signals and the pixel colour.
 | [`src/clk.vhd`](src/clk.vhd) | Clock generation: 140.625 MHz for the calculation and 25 MHz for VGA.
 | [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a Python model of the iterator count (`iterator_model.py`), a vectorized model of the complete picture (`model.py`), the same bit-accurate model in VHDL (`iterator_model_pkg.vhd`, used by the testbenches), and a script (`cmp_rtl.py`) that compares the output of the testbench `main_tb` with this model.
@@ -106,7 +105,7 @@ Type `make` to list the supported targets. The most important ones are:
 
 ## Simulation
 There are testbenches in [`sim/`](sim) for `dispatcher`, `column`, `iterator`,
-`scheduler`, `view`, `vga` and `priority_pipeline`. All of them are
+`scheduler`, `view`, `vga`, `disp_mem` and `priority_pipeline`. All of them are
 self-checking, and stop with an error if the result is wrong. Most of them stop
 by themselves when they are finished. The `priority_pipeline` testbench compares
 the module with the simple `priority` module for all 65536 input vectors, which
