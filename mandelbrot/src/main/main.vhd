@@ -11,7 +11,7 @@ use ieee.numeric_std_unsigned.all;
 --   btn_i(3 downto 0): Move the view left, right, up and down.
 -- While a button is pressed, the view is updated about 22 times per second.
 -- The view is kept inside the range -2 to 2, see view.vhd.
--- Switches 3 and 4 select the colour palette, but they are used in vga.vhd, not
+-- Switches 0 and 1 select the colour palette, but they are used in vga.vhd, not
 -- here. The other switches are not used.
 --
 -- The 7-segment display shows the frame rate, i.e. the number of pictures per

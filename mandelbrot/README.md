@@ -13,7 +13,7 @@ For each pixel, which corresponds to a complex number $c$, we iterate
 $z \mapsto z^2 + c$ starting from $z = 0$, and count the number of iterations
 until the real or the imaginary part of $z$ leaves the range -2 to 2 (the range
 of the number format), up to a maximum of 511. This count decides the colour
-of the pixel, using one of four colour palettes, selected with switches 3 and 4
+of the pixel, using one of four colour palettes, selected with switches 0 and 1
 (see [Controls](#controls)). The points in the set (count 511) have their own
 colour, and the other counts use the lower 8 bits of the count.
 
@@ -83,8 +83,8 @@ the board. The switch numbers are the bit numbers of the switch input, i.e.
 | ------- | -----------
 | `BTNL`, `BTNR`, `BTNU`, `BTND` | Pan the picture left, right, up and down, by one pixel for each update. Panning stops at the edge of the number range (-2 to 2).
 | `BTNC` | Zoom in. With switch 2 on, zoom out instead. The centre of the picture stays fixed, except when zooming out would move an edge of the view beyond -2 or 2; then the view is moved instead. Zooming stops at the smallest pixel size (2^-16), and when the view can not get larger.
-| Switches 3 and 4 | Select the colour palette (switch 4 is the high bit). 0 (both off): the lower 8 bits of the count are the colour (RRRGGGBB), mostly blue and green, and the set is white. 1: rainbow, the hue goes around the colour circle every 16 counts. 2: fire, black, red, orange, yellow and white, with the square root of the count. 3: blue, white, orange and dark brown, with the logarithm of the count. In the palettes 1 to 3 the set is black.
-| Switches 0, 1 and 5 to 7 | Not used.
+| Switches 0 and 1 | Select the colour palette (switch 1 is the high bit). 0 (both off): the lower 8 bits of the count are the colour (RRRGGGBB), mostly blue and green, and the set is white. 1: rainbow, the hue goes around the colour circle every 16 counts. 2: fire, black, red, orange, yellow and white, with the square root of the count. 3: blue, white, orange and dark brown, with the logarithm of the count. In the palettes 1 to 3 the set is black.
+| Switches 3 to 7 | Not used.
 | `CPU RESET` | Resets the design and returns to the initial view.
 
 While a button is held down, the view is updated about 22 times per second. Each
