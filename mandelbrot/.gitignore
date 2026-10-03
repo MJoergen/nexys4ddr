@@ -13,3 +13,6 @@ usage_statistics_webtalk.*
 .cache/
 *.swp
 __pycache__/
+sim/main_out.txt
+model.png
+ref.png

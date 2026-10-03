@@ -14,26 +14,29 @@ SRC += src/disp_mem.vhd
 SRC += src/disp.vhd
 SRC += src/pix.vhd
 SRC += src/vga.vhd
+SRC += src/view.vhd
 SRC += src/main.vhd
 SRC += src/clk.vhd
 SRC += src/mandelbrot.vhd
 
 # Testbenches, i.e. sim/<name>_tb.vhd
-TBS = dispatcher column iterator scheduler mult_macro priority_pipeline
+TBS = dispatcher column iterator scheduler view vga mult_macro priority_pipeline
 
 # Testbench simulated by the "run" and "check" targets. Must be specified on
 # the command line, e.g. "make run TB=iterator".
 TB =
 
 # Maximum simulation time. This must be longer than the slowest testbench. Most
-# testbenches stop by themselves, the slowest of those is dispatcher (about
-# 140 us). The testbench priority_pipeline does not stop by itself. It needs 655
-# us to test all 65536 input vectors.
-STOP_TIME = 1ms
+# testbenches stop by themselves, the slowest of those is view (about 2.7 ms).
+# The testbench priority_pipeline does not stop by itself. It needs 655 us to
+# test all 65536 input vectors.
+STOP_TIME = 3ms
 
 TB_EXE = $(TB)_tb
-# The clock module and the top level use Xilinx primitives, and are not simulated
-TB_SRC = $(filter-out src/clk.vhd src/mandelbrot.vhd,$(SRC)) sim/$(TB)_tb.vhd
+# The clock module and the top level use Xilinx primitives, and are not
+# simulated. The bit-accurate model of the iterator (iterator_model_pkg.vhd) is
+# used by several testbenches.
+TB_SRC = $(filter-out src/clk.vhd src/mandelbrot.vhd,$(SRC)) sim/iterator_model_pkg.vhd sim/$(TB)_tb.vhd
 WAVE = sim/$(TB).ghw
 SAVE = sim/$(TB).gtkw
 
@@ -137,4 +140,5 @@ clean:
 	rm -rf $(LIB_DIR)
 	rm -rf *.o
 	rm -rf fsm_encoding.os
+	rm -rf sim/main_out.txt
 

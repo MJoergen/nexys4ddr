@@ -4,10 +4,12 @@
 compared with the iteration count calculated using real (floating point)
 numbers, as done in sim/iterator_tb.vhd.
 
-The model follows the VHDL literally, including the 18-bit wrap around of
-x+y and x-y, which is not detected by the iterator. This explains why the
-count from the iterator may differ from the count calculated using real
-numbers.
+The model follows the VHDL literally. The count from the iterator may differ
+slightly from the count calculated using real numbers, because of the limited
+precision of the 2.16 fixed point numbers.
+
+See also model.py, which is a vectorized (numpy) version of the same model,
+used for comparing complete pictures.
 
 Usage:
   ./iterator_model.py          Compare the points used in iterator_tb.vhd.
@@ -34,6 +36,8 @@ TB_POINTS: List[Tuple[float, float]] = [
     ( 0.3,   0.0),
     (-0.75,  0.1),
     (-0.1,   0.65),
+    (-0.17,  1.09),
+    ( 0.02, -1.01),
 ]
 
 
@@ -77,9 +81,12 @@ def iterator_count(cx: float, cy: float, max_count: int = MAX_COUNT) -> int:
         if cnt - 1 == max_count - 1:
             return cnt
 
-        # Operands to the multiplier. These wrap around to 18 bits.
-        a = signed(x + y, 18)
-        b = signed(x - y, 18)
+        # Operands to the multiplier. The one of x+y and x-y that may be out of
+        # range goes to the 19-bit input, the other one to the 18-bit input.
+        if (x < 0) == (y < 0):
+            a, b = signed(x + y, 19), signed(x - y, 18)
+        else:
+            a, b = signed(x - y, 19), signed(x + y, 18)
 
         # MULT_ST / UPDATE_ST. The products are 4.32 (36 bits).
         product    = a * b         # (x+y)*(x-y)

@@ -15,6 +15,7 @@ The modules are instantiated as follows:
 mandelbrot                      src/mandelbrot.vhd (top level, clocks and resets)
  +- clk                         src/clk.vhd (MMCM and clock buffers)
  +- main                        src/main.vhd (everything in the MAIN clock domain)
+ |   +- view                    src/view.vhd (view control from the buttons)
  |   +- dispatcher              src/dispatcher.vhd
  |       +- scheduler           (i_scheduler, selects the column module to receive a job)
  |       +- column  (x 240)     src/column.vhd (the column modules)
@@ -38,9 +39,17 @@ scheduler does not use them.
 ## The Mandelbrot iteration
 For each point $c = c_x + i c_y$ in the picture, we iterate
 $z_{n+1} = z_n^2 + c$, starting from $z_0 = 0$. The number of iterations needed
-before the real or the imaginary part of $z$ is outside the range -2 to 2 (or
-a maximum iteration count is reached) is used to colour the pixel. This is
-not quite the usual test, which is $|z| > 2$, see [Overflow](#overflow).
+before the real or the imaginary part of $z$ is outside the range -2 to 2 (or a
+maximum iteration count is reached) is used to colour the pixel, see
+[Overflow](#overflow).
+
+The usual test is whether $|z|$ is larger than 2. If the real or the imaginary
+part is outside the range -2 to 2, then $|z|$ is at least 2, so the test used
+here detects the points outside the Mandelbrot set too, only sometimes a few
+iterations later (the count differs by at most 2 for the initial view). The
+points that are shown as inside the set are the same with both tests, except
+for points where $|z|$ becomes exactly 2, such as $c = -2$ (see
+[Overflow](#overflow)).
 
 Writing $z = x + iy$, the iteration is
 ```
@@ -80,10 +89,16 @@ Some examples are:
 ```
 
 ## Multiplier
-The built-in DSP provides an 18-bit signed multiplier. This generates a 36-bit
-result in 4.32 bit representation. The actual multiplier is defined in a
-special Xilinx unimacro, and there is a testbench specifically for the
-multiplier ([`sim/mult_macro_tb.vhd`](sim/mult_macro_tb.vhd)).
+The built-in DSP provides a 25x18-bit signed multiplier. The iterator uses it
+as a 19x18-bit multiplier, with the first input in 3.16 bit representation and
+the second input in 2.16 bit representation (see [Overflow](#overflow) for why
+the first input has 19 bits). This generates a 37-bit result in 5.32 bit
+representation. The products in the iterator are always between -4 and 4, so
+only the lower 36 bits (in 4.32 bit representation) are used. The actual
+multiplier is defined in a special Xilinx unimacro, and there is a testbench
+specifically for the multiplier
+([`sim/mult_macro_tb.vhd`](sim/mult_macro_tb.vhd)). The testbench uses the
+multiplier with 18x18 bits.
 
 The testbench is self-checking, but it is only a quick check, not an exhaustive
 one. It checks that the latency is exactly one clock cycle, that the product is
@@ -116,11 +131,40 @@ of the iterator, which follows the VHDL literally. It gives the same counts as
 the testbench for the same points, and can be used to compare the iterator with
 the real-number count for many more points (`./iterator_model.py --grid`).
 
+The testbench includes two points where x+y or x-y is outside the range -2 to 2
+during the iteration (see [Overflow](#overflow)). An earlier version of the
+iterator, where these values wrapped around, gave a wrong count for both.
+
+The same bit-accurate model is also written in VHDL, in the package
+[`sim/iterator_model_pkg.vhd`](sim/iterator_model_pkg.vhd). The testbenches for
+the column module and the dispatcher compare every count with this model, and
+require them to be equal. The iterator testbench still compares with real
+numbers, so that it also checks that the model (i.e. the design) calculates the
+Mandelbrot iteration.
+
+The complete picture can be checked bit-accurately too. The script
+[`sim/model.py`](sim/model.py) is a vectorized (numpy) version of the same
+model, which calculates the count for every pixel of the initial view, using
+the same values of c as the design. Run as a script, it compares the model with
+a calculation using real numbers. The testbench
+[`sim/main_tb.vhd`](sim/main_tb.vhd) runs `main.vhd` with the initial view, and
+writes every write to the display memory to the file `sim/main_out.txt`. The
+script [`sim/cmp_rtl.py`](sim/cmp_rtl.py) then compares these values with the
+model. A complete picture takes several hours to simulate, but a partial picture
+can be compared too:
+```
+make run TB=main STOP_TIME=700us
+sim/cmp_rtl.py
+```
+The 700 us of simulated time (about 13 minutes) gives more than 50000 pixels,
+from all 240 column modules. This testbench is not part of `make sim`.
+
 The iterator has been heavily optimized to use only a single multiplier, and to
 pipeline the calculations. Each iteration takes three clock cycles, and is
 controlled by a simple state machine:
 * In the first clock cycle (ADD\_ST), the multiplier is given the values of x
-  and y, and simultaneously, the values x+y and x-y are calculated.
+  and y, and simultaneously, the values x+y and x-y are calculated (in 19
+  bits).
 * In the second clock cycle (MULT\_ST), the multiplier is given the values of
   (x+y) and (x-y), and the output from x\*y is stored in registers.
 * In the third clock cycle (UPDATE\_ST), the new values of x and y are
@@ -171,10 +215,36 @@ the first sum and bits 32 to 15 of the second sum, respectively.
 The count returned in cnt\_o is the number of the first iteration where the
 value is out of range, or the maximum count if this does not happen.
 
-The values x+y and x-y are still calculated in 18 bits, so they wrap around if
-they are outside the range -2 to 2. This is not detected, and can give a
-different count, compared with an exact calculation, for points where this
-happens before the value of x or y is out of range.
+The value 2 itself is outside the range. So the point $c = -2$, which is in
+the Mandelbrot set ($z$ is -2, 2, 2, 2, ...), gets the count 2, as if it was
+outside the set. Points very close to -2 are not affected (e.g. for
+$c = -2 + 2^{-16}$, $z_2$ is $2 - 3 \cdot 2^{-16}$, which is in range). This is
+only a single point, so it does not matter for the picture.
+
+The values x+y and x-y, which are the inputs to the multiplier in the second
+clock cycle, are between -4 and 4, so they need 19 bits (3.16 format). The
+second input of the multiplier (the B port of the DSP) has only 18 bits.
+However, at most one of x+y and x-y is outside the range -2 to 2:
+* If x and y have the same sign bit, then x-y is in the range -2 to 2.
+* Otherwise, x+y is in the range -2 to 2.
+
+So the one of them that may be out of range is given to the first input of the
+multiplier, which has 19 bits, and the other one to the second input, which has
+18 bits. The choice only depends on the sign bits of x and y, so it does not
+have to wait for the additions.
+
+An earlier version of the iterator calculated x+y and x-y in 18 bits, so they
+wrapped around when they were outside the range -2 to 2. For the initial view
+this gave a different count for about 13% of the pixels, compared with the
+same calculation without the wrap around. It was much worse when zooming in
+near the points -2 and +-i, where the orbits often have x+y or x-y close to
+-2 or 2. Here the picture had straight edges and broken filaments, and some
+points were even wrongly shown as inside or outside the set.
+
+The remaining differences, compared with a calculation using real numbers, come
+from the limited precision of the 2.16 format. For the initial view about 1.5%
+of the pixels have a different count, and about 0.1% (292 pixels) are on the
+other side of the boundary of the set (`sim/model.py`).
 
 TODO: The DSP contains an adder (as well as the multiplier). Perhaps it is
 possible to use this built-in adder and thereby save logic resources. This may
@@ -237,11 +307,12 @@ result to be acknowledged, in units of 2^11 clock cycles. It is only cleared
 by reset.
 
 The testbench for the column module ([`sim/column_tb.vhd`](sim/column_tb.vhd))
-is self-checking. It runs two jobs of ten rows each, and checks that the column
-module is busy only during a job, that the results come in order, that a result stays
-unchanged until it is acknowledged (the acknowledge is delayed by a varying
-number of clock cycles), and that the count for each row is close to the count
-calculated using real numbers.
+is self-checking. It runs three jobs of ten rows each, and checks that the
+column module is busy only during a job, that the results come in order, that a
+result stays unchanged until it is acknowledged (the acknowledge is delayed by a
+varying number of clock cycles), and that the count for each row is exactly the
+count calculated by the bit-accurate model (see [Iterator](#iterator)). The
+third job is near the top of the set, where x+y or x-y is often out of range.
 
 ## Dispatcher
 This ([`src/dispatcher.vhd`](src/dispatcher.vhd)) is essentially the top level
@@ -292,8 +363,10 @@ The dispatcher has a self-checking testbench
 pictures (64 by 16 pixels, with 16 column modules), one right after the other,
 and checks that each pixel is written exactly once, that everything has been
 written when done\_o goes high, that done\_o goes low when a new picture is
-started, and that the value of each pixel is close to the count calculated
-using real numbers. It then repeats this for two pictures with a single picture
+started, and that the value of each pixel is exactly the count calculated by
+the bit-accurate model (see [Iterator](#iterator)) for the value of c of that
+pixel. This also checks that each result is written to the right address. It
+then repeats this for two pictures with a single picture
 column, i.e. with fewer picture columns than column modules, which is a special
 case for done\_o. The simulation takes about 10 seconds.
 
@@ -347,18 +420,56 @@ view has the real axis from -1.6667 to 1.0 and the imaginary axis from -1.0 to
 1.0, and the pixel size is the size of the view divided by the number of columns
 and rows (640 and 480).
 
-The view is updated at a fixed rate, which is given by a counter of 23 bits. At
-140.625 MHz this is once every 60 ms, i.e. about 17 times per second. At each
-update, the following happens, depending on the buttons that are held down:
-* `BTNL`, `BTNR`: startx is decreased or increased by stepx.
-* `BTNU`, `BTND`: starty is decreased or increased by stepy.
+The view is controlled by the module [`src/view.vhd`](src/view.vhd). It is
+updated at a fixed rate, which is given by a counter of 23 bits in `main.vhd`.
+At 140.625 MHz this is once every 60 ms, i.e. about 17 times per second. At
+each update, the following happens, depending on the buttons that are held
+down:
 * `BTNC`: Zoom. The values of stepx and stepy are both decreased by 1/64 of
   their value plus one least significant bit (zoom in), or increased by the same
   (zoom out, if switch 2 is on). This is about 1.6% per update. The values of
   startx and starty are not changed, so the zoom keeps the top left corner of
-  the view fixed.
+  the view fixed (except at the edge of the range, see below).
+* `BTNL`, `BTNR`: startx is decreased or increased by stepx (`BTNR` has
+  priority if both are held down).
+* `BTNU`, `BTND`: starty is decreased or increased by stepy (`BTND` has
+  priority if both are held down).
 
-The new view is used when the next picture is started.
+The view is always kept inside the range of the 2.16 number format, i.e. -2 to
+2 (not including 2). Otherwise the values of cx and cy, which the dispatcher and
+the column modules calculate by adding stepx and stepy, would wrap around, and
+the picture would show parts of the range twice (e.g. a second copy of the set
+at the right edge). Similarly, the size of a pixel must not become zero or
+negative. So:
+* Panning stops when the first column (row) is at -2, or when the last column
+  (row) is at 2 minus one LSB.
+* Zooming in stops when the size of a pixel is one LSB (2^-16), i.e. the
+  picture is 0.0098 wide. In practice the picture is limited by the precision
+  of the calculation before this.
+* When zooming out would move the last column (row) beyond the range, the view
+  is moved left (up) instead, so the last column (row) stays at the end of the
+  range. Zooming out stops when the view can not get any larger, i.e. when it
+  covers almost the whole range from -2 to 2 in x.
+
+The check that the zoomed view fits is a comparison of the new size of a pixel
+with a constant, the largest size for which the view fits. The position of the
+right (bottom) edge needs the size of a pixel multiplied by the number of
+columns (rows) minus one. This is done serially with shifts and subtractions,
+one bit of the constant per clock cycle, so no DSP is used. Doing all of the
+update in a single clock cycle would be far too slow for the MAIN clock, so
+the update is done in small steps over 15 clock cycles, with at most one
+addition or comparison per step. The outputs are all changed at the end of the
+update. The new view is used when the next picture is started.
+
+The view control has a self-checking testbench
+([`sim/view_tb.vhd`](sim/view_tb.vhd)). It holds the buttons down for many
+updates, and checks after every update that the view is inside the range, that
+the size of a pixel is at least one LSB, that the view is the one expected
+from a simple model, and that the outputs all change in the same clock cycle.
+It also checks that panning and zooming reach the ends of the range and stop
+there, and that a pulse on upd\_i during an update (which takes 15 clock
+cycles) is ignored, but one just after the update is not. The initial view is
+checked when the design is elaborated: it must be inside the range too.
 
 **The LEDs.** The LEDs show one of two values for the most recently finished
 picture. The values are latched at the end of each picture, because the
@@ -389,26 +500,49 @@ total amount of time the iterators are waiting to write to display memory. The
 values for the most recent picture are shown on the LEDs, see
 [The top level](#the-top-level).
 
-Note: The numbers in this section were measured on the board with an earlier
-version of the iterator, which did not detect all overflows (see
-[Overflow](#overflow)), and with a main clock of 150 MHz. The number of clock
-cycles has not been measured again since then, and may be lower now, because
-some points are now detected as overflowing earlier. The times below have been
-recalculated for the current main clock of 140.625 MHz.
+The numbers measured on the board were:
+* The total time for the picture: 472\*2^11 clock cycles, which at 140.625 MHz
+  is 6.9 ms.
+* The waiting time of all the column modules: 28642\*2^11 clock cycles in
+  total, i.e. 1.7 ms for each column module. So about a quarter of the time is
+  spent waiting.
 
-The total time taken is 472\*2^11 clock cycles, which at a frequency of 140.625
-MHz becomes 6.9 milliseconds.
+These were measured with an earlier version of the iterator, which did not
+detect all overflows, and which calculated x+y and x-y in 18 bits (see
+[Overflow](#overflow)), and with a main clock of 150 MHz (the times above have
+been recalculated for 140.625 MHz). They have not been measured on the board
+again since then.
 
-The average waiting time for each iterator is 28642/240 \* 2^11 clock cycles,
-which is 1.7 milliseconds. So a quarter of the time is spent waiting. However,
-at this processing speed it really doesn't matter.
+The time for the current design can be estimated with the model
+[`sim/model.py`](sim/model.py), which gives the same number of clock cycles,
+472\*2^11, for the picture. The reason is the following. A column module uses
+3 clock cycles per iteration, plus 7 clock cycles to start the iterator and to
+deliver the result (4 for the points that reach the maximum count). Then the
+result must be accepted by the dispatcher. The round-robin scheduler for the
+results (i\_scheduler\_res) checks each column module once every 240 clock
+cycles, so the time from one result of a column module to the next is always a
+multiple of 240 clock cycles. This has been checked in simulation. So:
+* A pixel with a count up to 77 takes 240 clock cycles, i.e. the iterator is
+  idle for most of the time, waiting for the result to be accepted.
+* A pixel in the set (count 511) takes 3\*511+4 = 1537 clock cycles, which is
+  rounded up to 1680 clock cycles.
 
-Another way of looking at this is that each iterator is using 472\*2^11 clock
-cycles, so a total of 232 million clock cycles. The average amount per pixel is
-then obtained by dividing by 640 and by 480, which gives 755 clock cycles per
-pixel. This includes the time spent waiting (about a quarter, see above), so
-the iterators spend about 570 clock cycles per pixel on the calculation, i.e.
-about 190 iterations per pixel.
+For the initial view the average count is 151, so the iterator needs 460 clock
+cycles per pixel on average, but each pixel takes 652 clock cycles on average,
+including the waiting. The total waiting time of all the column modules is then
+28896\*2^11 clock cycles, which agrees with the 28642\*2^11 clock cycles
+measured on the board. The picture is finished when the last column module is
+finished. A single picture column through the middle of the set takes up to
+0.73 million clock cycles (5.2 ms), so these picture columns decide the total
+time. Without the waiting, the picture would take about 4.2 ms (if the work
+was spread evenly over the column modules).
+
+This could be improved by accepting a result as soon as it is ready, e.g.
+with a priority encoder ([`src/priority_pipeline.vhd`](src/priority_pipeline.vhd)
+is a pipelined version of one) instead of the round-robin scheduler, or by
+storing a few results in each column module, so the iterator can continue with
+the next row while it waits. At this speed (about 145 pictures per second) it
+does not matter much, though.
 
 ## Resources and timing closure
 The numbers below come from a successful run of `make vivado` (Vivado 2025.1,
@@ -419,13 +553,27 @@ part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 | ---------------- | -------- | --------- | --------
 | DSP48E1          | 240      | 240       | 100
 | Block RAM        | 128 RAMB36 + 1 RAMB18 | 135 RAMB36 | about 95
-| LUTs             | about 52,000 | 63,400 | about 82
-| Registers        | about 53,400 | 126,800 | about 42
+| LUTs             | about 61,900 (cells) | 63,400 | about 98
+| Registers        | about 53,800 | 126,800 | about 42
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
-The resource numbers are the cell counts after synthesis, taken from
-`vivado.log`, and the available numbers are the totals for the XC7A100T. The
-display memory has 2^19 entries of 8 bits, i.e. 128 blocks of 36 kbit BRAM, as
+The resource numbers are the cell counts after synthesis (the "Report Cell
+Usage" table in `vivado.log`), and the available numbers are the totals for
+the XC7A100T. The LUTs are the sum of the LUT1 to LUT6 cells (61,875). This is
+the number of LUT cells, not the number of LUTs in the device that are used,
+which can be smaller, because two small LUT cells can share one LUT (which the
+placer does, e.g. "LUT Combining" in `phys_opt_design`). The exact numbers are
+given by `report_utilization` on the routed design. The registers are the FDRE
+and FDSE cells (53,832).
+
+Before the iterator was changed to give x+y or x-y to the multiplier with 19
+bits (see [Overflow](#overflow)), and before the limits for pan and zoom were
+added to the view control (see [The top level](#the-top-level)), the design
+used about 52,000 LUT cells and 53,300 registers. Most of the increase is
+probably in the iterators, because there are 240 of them.
+
+The display memory has 2^19 entries of 8 bits (the lowest 8 bits of the
+count), i.e. 128 blocks of 36 kbit BRAM (each with 32 kbit of data), as
 expected. The single RAMB18 is used by the dispatcher, for the table
 `job_addr_r` that holds the picture column of each column module (240 entries
 of 10 bits).
@@ -434,11 +582,11 @@ The timing after routing is:
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.023 ns (TNS 0)
-| Hold (WHS)  | +0.026 ns (THS 0)
+| Setup (WNS) | +0.008 ns (TNS 0)
+| Hold (WHS)  | +0.029 ns (THS 0)
 
-These are the values from `report_timing_summary` on the final routed design
-(`mandelbrot.dcp`), after the post-route physical optimization.
+These are the values from `vivado.log`: the hold slack from the end of
+`route_design`, and the setup slack from the post-route `phys_opt_design`.
 
 The timing is met for all clocks. The 140.625 MHz main clock (period 7.11 ns)
 is generated from the 100 MHz input clock by the MMCM (multiplied by 11.25 and
@@ -446,7 +594,8 @@ divided by 8), and the only constraint in `mandelbrot.xdc` is the 100 MHz input
 clock. The MMCM also generates the 25 MHz VGA clock (divided by 45).
 
 The slack is small, so the design is close to the limit of what this device and
-this flow can achieve. The critical paths are in the dispatcher: the selection
+this flow can achieve. In an earlier run (before the latest changes), the
+critical paths were in the dispatcher: the selection
 of the column module in the schedulers (`job_idx_valid` and the `job_busy_o`
 signals from the column modules), and the registers for the write address and
 data going to the display memory (`wr_addr_r` and `wr_data_r`). The directives used in
@@ -467,8 +616,9 @@ the column modules into 15 groups of 16, which should allow a higher clock
 frequency.
 This has not been tried.
 
-The complete run of `make vivado` takes about 10 minutes (synthesis about 2
-minutes, routing about 3 minutes), on a machine with 8 threads.
+The complete run of `make vivado` takes about 11 minutes (synthesis about 3.5
+minutes, placement about 3 minutes, routing about 3 minutes), on a machine with
+8 threads.
 
 All 240 DSPs running at 140.625 MHz gives a peak of 34 billion multiplications per
 second. The iterator uses its multiplier in two out of three clock cycles, so

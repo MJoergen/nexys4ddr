@@ -31,23 +31,25 @@ the dispatcher, and the timing and resource usage.
 
 ## Implementation results
 The design is built with Vivado 2025.1 and meets timing at the 140.625 MHz main
-clock (setup slack +0.023 ns, hold slack +0.026 ns). The resources used are:
+clock (setup slack +0.008 ns, hold slack +0.029 ns). The resources used are:
 
 | Resource  | Used                  | Available
 | --------- | --------------------- | ---------
 | DSP48E1   | 240                   | 240
 | Block RAM | 128 RAMB36 + 1 RAMB18 | 135 RAMB36
-| LUTs      | about 52,000          | 63,400
-| Registers | about 53,400          | 126,800
+| LUTs      | about 61,900 (cells)  | 63,400
+| Registers | about 53,800          | 126,800
 
-The slack is small, see [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
-for details, including the critical paths.
+The slack is small, and the LUTs are almost all used, see
+[Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
+for details.
 
 ## Files
 | File             | Description
 | ---------------- | -----------
 | [`src/mandelbrot.vhd`](src/mandelbrot.vhd) | Top level. The ports are mapped directly to pins on the FPGA. Instantiates the clock generation, the display memory, and the two modules below, and generates the resets.
 | [`src/main.vhd`](src/main.vhd) | Everything in the MAIN clock domain: view control from buttons and switches, the dispatcher, and the LEDs.
+| [`src/view.vhd`](src/view.vhd) | View control. Pans and zooms the view, and keeps it inside the range of the number format.
 | [`src/vga.vhd`](src/vga.vhd) | Everything in the VGA clock domain: pixel counters and VGA output.
 | [`src/iterator.vhd`](src/iterator.vhd) | Iterates the Mandelbrot function for a single point, using one DSP.
 | [`src/column.vhd`](src/column.vhd) | A column module. Calculates one picture column (all its rows) at a time, using one iterator.
@@ -57,7 +59,7 @@ for details, including the critical paths.
 | [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture.
 | [`src/pix.vhd`](src/pix.vhd), [`src/disp.vhd`](src/disp.vhd) | VGA output. `pix` generates the pixel counters, and `disp` generates the sync signals and the pixel colour.
 | [`src/clk.vhd`](src/clk.vhd) | Clock generation: 140.625 MHz for the calculation and 25 MHz for VGA.
-| [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a simulation model of the Xilinx `mult_macro`, and a Python model of the iterator count (`iterator_model.py`).
+| [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a simulation model of the Xilinx `mult_macro`, a Python model of the iterator count (`iterator_model.py`), a vectorized model of the complete picture (`model.py`), the same bit-accurate model in VHDL (`iterator_model_pkg.vhd`, used by the testbenches), and a script (`cmp_rtl.py`) that compares the output of the testbench `main_tb` with this model.
 | [`mandelbrot.xdc`](mandelbrot.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make vivado`.
 | [`mandelbrot.xlsx`](mandelbrot.xlsx) | Spreadsheet used during the design. It iterates the example point -1+0.5i from [the iterator section](ALGORITHM.md#iterator) using real numbers.
 | [`ALGORITHM.md`](ALGORITHM.md) | Detailed explanation of the algorithm and the design.
@@ -70,8 +72,8 @@ the board. The switch numbers are the bit numbers of the switch input, i.e.
 
 | Control | Description
 | ------- | -----------
-| `BTNL`, `BTNR`, `BTNU`, `BTND` | Pan the picture left, right, up and down, by one pixel for each update.
-| `BTNC` | Zoom in. With switch 2 on, zoom out instead. The top left corner of the view stays fixed.
+| `BTNL`, `BTNR`, `BTNU`, `BTND` | Pan the picture left, right, up and down, by one pixel for each update. Panning stops at the edge of the number range (-2 to 2).
+| `BTNC` | Zoom in. With switch 2 on, zoom out instead. The top left corner of the view stays fixed, except when zooming out would move the right or bottom edge beyond 2; then the view is moved left or up instead. Zooming stops at the smallest pixel size (2^-16), and when the view can not get larger.
 | Switch 1 | Selects what the LEDs show, for the most recently finished picture. On: the time taken to calculate the picture, in units of 14.6 us (2^11 clock cycles). Off: the total time that the column modules have spent waiting for their results to be accepted during the picture, summed up over all column modules, in the same unit. The LEDs are updated at the end of each picture.
 | Switches 0 and 3 to 7 | Not used.
 | `CPU RESET` | Resets the design and returns to the initial view.
@@ -93,7 +95,7 @@ Type `make` to list the supported targets. The most important ones are:
   Digilent Adept.
 * `make sim` runs all the testbenches one after another, without opening the
   waveform viewer, see [below](#simulation). This requires
-  [GHDL](https://github.com/ghdl/ghdl). It takes about 15 seconds.
+  [GHDL](https://github.com/ghdl/ghdl). It takes about 40 seconds.
 * `make run TB=iterator` runs a single testbench and writes the waveform to
   `sim/iterator.ghw`. Without `TB` it lists the available testbenches. It has
   the same requirements as `make sim`.
@@ -103,12 +105,23 @@ Type `make` to list the supported targets. The most important ones are:
 
 ## Simulation
 There are testbenches in [`sim/`](sim) for `dispatcher`, `column`, `iterator`,
-`scheduler`, `mult_macro` and `priority_pipeline`. All of them are
+`scheduler`, `view`, `vga`, `mult_macro` and `priority_pipeline`. All of them are
 self-checking, and stop with an error if the result is wrong. Most of them stop
 by themselves when they are finished. The `priority_pipeline` testbench compares
 the module with the simple `priority` module for all 65536 input vectors, which
 takes 655 us of simulated time, and it is stopped by the maximum simulation time
 in the Makefile (`STOP_TIME`).
+
+There is also a testbench for `main`, which is not part of `make sim`, because
+it is slow. It writes the calculated picture to a file, which is compared
+bit-accurately with a Python model of the design by the script `cmp_rtl.py`.
+This requires Python with numpy. A partial picture (more than 50000 pixels)
+takes about 13 minutes:
+```
+make run TB=main STOP_TIME=700us
+sim/cmp_rtl.py
+```
+See [Iterator](ALGORITHM.md#iterator) for details.
 
 The simulation does not need any Xilinx libraries. Xilinx's source for the
 multiplier macro `mult_macro` does not compile in GHDL, so
