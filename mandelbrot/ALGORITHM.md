@@ -175,9 +175,13 @@ model, which calculates the count for every pixel of the initial view, using
 the same values of c as the design. Run as a script, it compares the model with
 a calculation using real numbers. The testbench
 [`sim/main_tb.vhd`](sim/main_tb.vhd) runs `main.vhd` with the initial view, and
-writes every write to the display memory to the file `sim/main_out.txt`. The
-script [`sim/cmp_rtl.py`](sim/cmp_rtl.py) then compares these values with the
-model. A complete picture takes about 1.5 hours to simulate (with
+writes every pixel written to the display memory to the file
+`sim/main_out.txt`. The script [`sim/cmp_rtl.py`](sim/cmp_rtl.py) then compares
+these values with the model. By default it simulates the design of the Nexys 4
+DDR (240 column modules, one pixel in each write); the generics of the
+testbench select the design of the MEGA65 (450 column modules, four pixels in
+each write) with
+`GENERICS="G_NUM_ITERATORS=450 G_PIXELS=4"`, see the Makefile. A complete picture takes about 1.5 hours to simulate (with
 `STOP_TIME=4ms`, and the waveform file is about 5 GB), but a partial picture
 can be compared too:
 ```
@@ -333,25 +337,44 @@ the job.
 The results of the calculation are presented on the following output ports:
 ```
 res_addr_o   : out std_logic_vector( 8 downto 0);
-res_data_o   : out std_logic_vector( 8 downto 0);
+res_data_o   : out std_logic_vector(9*G_PIXELS-1 downto 0);
 res_valid_o  : out std_logic
 ```
 with the additional input port
 ```
 res_ack_i    : in  std_logic;
 ```
-The res\_addr\_o is the current row number, counted from the first row of the
-job, and res\_data\_o is the calculated count value for this pixel. The res\_ack\_i is needed, because there may be an
+Each result is the counts of `G_PIXELS` consecutive rows (1 on the Nexys 4
+DDR, and 4 on the MEGA65, see [MEGA65 R6](#mega65-r6)), which the dispatcher
+writes to the display memory as one word. The res\_addr\_o is the row number of
+the first of these rows, counted from the first row of the job, and
+res\_data\_o is the calculated counts, with the count of the first row in the
+lowest 9 bits. The res\_ack\_i is needed, because there may be an
 arbitrarily long delay before the job dispatcher has time to acknowledge the
-result.
+result. The number of rows in a job must be a multiple of `G_PIXELS`, which
+must be a power of two.
+
+When `G_PIXELS` is more than 1, the column module keeps the counts of the
+first `G_PIXELS`-1 rows of a result in a register, and starts the next row at
+once, in the clock cycle after the iterator is done. So it only waits for the
+acknowledge after the last row of a result. Before the next row, the count of
+the row is put at the top of the register, which shifts the earlier counts
+down, so the count of the first row ends up at the bottom. The register does
+not change from the last row of a result until the next row has been
+calculated, i.e. until after the acknowledge, so it is output directly, and
+only the count of the last row goes through the output register of the column
+module. With an output register for all 36 bits, the MEGA65 build used 12,000
+more registers.
 
 The testbench for the column module ([`sim/column_tb.vhd`](sim/column_tb.vhd))
-is self-checking. It runs three jobs of ten rows each, and checks that the
-column module is busy only during a job, that the results come in order, that a
-result stays unchanged until it is acknowledged (the acknowledge is delayed by a
-varying number of clock cycles), and that the count for each row is exactly the
-count calculated by the bit-accurate model (see [Iterator](#iterator)). The
-third job is near the top of the set, where x+y or x-y is often out of range.
+is self-checking. It runs three jobs of 12 rows each, and checks that the
+column module is busy only during a job, that the results come in order, with
+the right row numbers, that a result stays unchanged until it is acknowledged
+(the acknowledge is delayed by a varying number of clock cycles), and that the
+count for each row is exactly the count calculated by the bit-accurate model
+(see [Iterator](#iterator)). The third job is near the top of the set, where
+x+y or x-y is often out of range. It does this for 1, 2 and 4 rows in each
+result, with three instances of the column module.
 
 ## Dispatcher
 This ([`src/main/dispatcher.vhd`](src/main/dispatcher.vhd)) is essentially the top level
@@ -374,10 +397,12 @@ stays high until the next start\_i. Three additional output signals go to the
 display memory:
 ```
 wr_addr_o : out std_logic_vector(18 downto 0);
-wr_data_o : out std_logic_vector( 8 downto 0);
+wr_data_o : out std_logic_vector(9*G_PIXELS-1 downto 0);
 wr_en_o   : out std_logic;
 ```
-The data is the 9-bit count, which is stored in the display memory, see
+The data is the 9-bit counts of `G_PIXELS` consecutive rows of a picture
+column (a result of a column module, see [Columns](#columns)), and the address
+is that of the first of them. The counts are stored in the display memory, see
 [The top level](#the-top-level).
 
 This module instantiates a configurable number of column modules (ideally 240
@@ -440,7 +465,8 @@ jobs sees that a column module is busy five clock cycles after it has sampled
 its busy flag and selected it, so the dispatcher needs at least five column
 modules.
 
-The display memory can take one result in each clock cycle, and the scheduler
+The display memory can take one result (one word of `G_PIXELS` pixels) in each
+clock cycle, and the scheduler
 for the results ([`src/main/res_scheduler.vhd`](src/main/res_scheduler.vhd),
 i\_res\_scheduler) tries to use as many of these clock cycles as possible.
 Each group of 16 column modules (the same groups as above) registers the
@@ -486,7 +512,10 @@ pixel. This also checks that each result is written to the right address. It
 then repeats this for two pictures with a single picture
 column, i.e. with fewer picture columns than column modules, which is a special
 case for done\_o, and with jobs of a single row, so every job is the last
-picture column of its block. The simulation takes about 10 seconds.
+picture column of its block. Finally it repeats this for two pictures with
+four pixels in each write (and two jobs of 8 rows in each picture column), and
+checks that each write starts at a row that is a multiple of 4. The simulation
+takes about 10 seconds.
 
 The scheduler has a small self-checking testbench
 ([`sim/scheduler_tb.vhd`](sim/scheduler_tb.vhd)), with 21 processes, i.e. two
@@ -540,28 +569,37 @@ module and to the read port of the display memory, but neither of them uses it
 at present.
 
 **The display memory.** The display memory
-([`src/disp_mem.vhd`](src/disp_mem.vhd)) has 2^19 entries of 9 bits. The
-address is the picture column (10 bits) followed by the row (9 bits). The
-dispatcher delivers a 9-bit count for each pixel, and `main` writes all 9 bits.
-The `vga` module converts the count to the colour, in the format RRRGGGBB, see
-[Colours](#colours) below.
+([`src/disp_mem.vhd`](src/disp_mem.vhd)) has 2^19 pixels of 9 bits. The
+address of a pixel is the picture column (10 bits) followed by the row (9
+bits). The dispatcher delivers a 9-bit count for each pixel, and `main` writes
+all 9 bits. The `vga` module converts the count to the colour, in the format
+RRRGGGBB, see [Colours](#colours) below.
 
-The memory is divided into 128 blocks of 2^12 entries, one BRAM each, selected
-by the top 7 bits of the address. A 36 kbit BRAM holds 4096 entries of 9 bits
-(the ninth bit is the parity bit of each byte), so the ninth bit needs no extra
-BRAMs. The write address and data go to the blocks
+Each entry of the memory (a word) holds `G_PIXELS` pixels, i.e. consecutive
+rows of a picture column, with the first row in the lowest 9 bits. The write
+port writes a whole word, at the address of its first pixel (whose lowest bits
+must be zero), and the read port reads a single pixel: it reads the word, and
+selects the pixel in its last register. So the VGA side is the same for any
+`G_PIXELS`. The memory is divided into 128 blocks of 2^12 pixels, one BRAM
+each, selected by the top 7 bits of the address. A 36 kbit BRAM holds 4096
+entries of 9 bits, or 1024 entries of 36 bits (the ninth bit of each byte is
+the parity bit), so the ninth bit needs no extra BRAMs, and the number of BRAMs
+is the same for 1 and 4 pixels in each word. The write address and data go to the blocks
 through a tree of registers: first to a register in each of 16 groups of 8
 blocks, and then to a register for each block, which can be placed next to its
 BRAM. So no register drives more than 16 loads. A single register for the
 address of all 128 BRAMs, which are spread over the whole FPGA, made the
 routing too slow. The write port has three clock cycles of latency, and the
 read port also three. The display memory has a small self-checking testbench
-([`sim/disp_mem_tb.vhd`](sim/disp_mem_tb.vhd)). It writes to a few addresses
+([`sim/disp_mem_tb.vhd`](sim/disp_mem_tb.vhd)). It writes to a few words
 in each block, back-to-back both in different blocks and in the same block,
-and reads them back on the read port. It checks that each value is written to
-the right block and address, that a second write overwrites the first, that
-nothing is written when the write enable is low, and that the read latency is
-exactly three clock cycles.
+and reads all their pixels back on the read port. It checks that each value is
+written to the right block and address, and is in the right position in the
+word, that a second write overwrites the first, that nothing is written when
+the write enable is low, and that the read latency is exactly three clock
+cycles. It does this for 1 and 4 pixels in each word. On reset, the whole
+memory is filled with the value 0x055, which takes 2^19/`G_PIXELS` clock
+cycles.
 
 The rest of this section describes `main`.
 
@@ -878,6 +916,50 @@ scheduler for the results it would have made the initial view only 4% faster
 (and two results no better than one), because each column module could still
 deliver only one result every 240 clock cycles.
 
+**Several pixels in each write.** With the scheduler for the results above,
+the time for the picture is mostly decided by the write port of the display
+memory, which takes one result per clock cycle. The BRAMs can be written in
+words of 36 bits instead of 9, i.e. four pixels, with the same number of BRAMs
+(see [The top level](#the-top-level)). So each result can be four consecutive
+rows of a picture column (the generic `G_PIXELS`), which the column module
+calculates one after the other, keeping the counts of the first three (see
+[Columns](#columns)). A result then takes the sum of the times of its four
+rows (less 4 clock cycles for each row after the first, because the iterator
+starts the next row itself), and the dispatcher writes up to four pixels per
+clock cycle. The model gives these times for the initial view (in clock
+cycles, and frames per second in brackets):
+
+| Column modules | 1 pixel in each write | 2 pixels | 4 pixels
+| -------------- | --------------------- | -------- | --------
+| 240            | 347123 (542)          | 241674 (779) | 209248 (900)
+| 450            | 339741 (554)          | 203477 (925) | 161909 (1163)
+
+A dispatcher where any
+result can be written, with up to four writes per clock cycle, would take
+about 152000 clock cycles with 450 column modules (estimated with a simpler
+model), so four pixels in each write
+gets most of what more writes per clock cycle can give. The rest is mostly
+the end of the picture, when the last jobs finish one after the other, and
+the iterators alone would need 89954 clock cycles (0.48 ms) for the initial
+view with 450 column modules, if the work was spread evenly. Several
+independent dispatchers, each with its own BRAMs (e.g. for the even and the
+odd picture columns), would give about the same, but with all the control
+logic duplicated. For views where the iterators need more time per pixel, the
+gain is smaller: a view of Seahorse Valley (0.08 wide, centred near
+-0.75+0.15i) takes 618735 clock cycles with one pixel and 517626 with four
+pixels in each write (with 450 column modules), 1.20 times faster.
+
+Four pixels in each write are used on the MEGA65 (see [MEGA65 R6](#mega65-r6)).
+The Nexys 4 DDR uses one pixel in each write. A run of `make nexys4ddr` with
+four pixels in each write fits and meets timing, but only just: it uses 15,459
+slices (97.5%), 44,737 LUTs and 55,538 registers, and has +0.012 ns of setup
+slack and +0.005 ns of hold slack (in an iterator). The model gives 209248
+clock cycles for it (1.11 ms, about 900 pictures per second). A simulation
+of a complete picture with `main_tb` and the design of the MEGA65 took 161878
+clock cycles from the start to the last write to the display memory, 0.02%
+less than the model, with all the pixels the same as in the model. The
+simulation took about an hour.
+
 ## Resources and timing closure
 The numbers below come from a successful run of `make nexys4ddr` (Vivado 2025.1,
 part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
@@ -1116,36 +1198,47 @@ with 8 threads.
 
 ### MEGA65 R6
 The MEGA65 R6 has an XC7A200T with speed grade -2 (part xc7a200tfbg484-2), and
-the design uses 450 column modules (see
-[`src/mega65_r6.vhd`](src/mega65_r6.vhd)), with the same 188.24 MHz main
-clock. A run of `make mega65-r6` gives:
+the design uses 450 column modules and four pixels in each write to the
+display memory (see [`src/mega65_r6.vhd`](src/mega65_r6.vhd)), with the same
+188.24 MHz main clock. A run of `make mega65-r6` gives:
 
 | Resource         | Used     | Available | Used (%)
 | ---------------- | -------- | --------- | --------
 | DSP48E1          | 450      | 740       | 61
 | Block RAM        | 128 RAMB36 + 2 RAMB18 | 365 RAMB36 | 35
-| Slices           | 26,233   | 33,650    | 78
-| LUTs             | 77,580   | 134,600   | 58
-| Registers        | 77,326   | 269,200   | 29
+| Slices           | 30,114   | 33,650    | 89
+| LUTs             | 81,630   | 134,600   | 61
+| Registers        | 93,491   | 269,200   | 35
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.178 ns (TNS 0)
-| Hold (WHS)  | +0.023 ns (THS 0)
+| Setup (WNS) | +0.136 ns (TNS 0)
+| Hold (WHS)  | +0.053 ns (THS 0)
 
-After synthesis there are 102,755 LUT cells and 77,220 registers. The worst
+After synthesis there are 107,883 LUT cells and 93,344 registers. The worst
 setup path is in the scheduler for the jobs (from the counter `cnt_r` to
-`grp_busy_r`, 2 levels of logic, 85% of the delay is routing). The 40 paths
-from the MAIN clock to the VGA clock are reported as safe by `report_cdc`. The
-run takes about 11.5 minutes (with the Nexys 4 DDR build running at the same
-time).
+`grp_busy_r`), as before the four pixels in each write. The worst hold path
+is from the data register of a block of the display memory to its BRAM. The
+40 paths from the MAIN clock to the VGA clock are reported as safe by
+`report_cdc`. The run takes about 17 minutes (synthesis 4 minutes, placement
+4 minutes, routing 8 minutes). A run of `make nexys4ddr` with the same version
+(one pixel in each write) gave +0.075 ns of setup slack and +0.012 ns of hold
+slack, and the same resources within 1% as the build in
+[Resources and timing closure](#resources-and-timing-closure).
 
-With 450 column modules the model gives 339741 clock cycles for the initial
-view, i.e. 1.80 ms at 188.24 MHz (about 554 pictures per second), only 2%
-faster than with 240 column modules. The display memory is then written in 90%
-of the clock cycles, so the time for the picture is decided by the write port
-of the display memory (at least 307200 clock cycles, see [Timing](#timing)),
-not by the number of column modules.
+With one pixel in each write, the model gave 339741 clock cycles for the
+initial view with 450 column modules, i.e. 1.80 ms at 188.24 MHz (about 554
+pictures per second), only 2% faster than with 240 column modules. The display
+memory was then written in 90% of the clock cycles, so the time for the
+picture was decided by the write port of the display memory (at least 307200
+clock cycles, see [Timing](#timing)), not by the number of column modules.
+With four pixels in each write, the model gives 161909 clock cycles, i.e.
+0.86 ms (about 1163 pictures per second), 2.1 times faster. This costs
+16,165 registers (27 bits in each column module for the counts of the first
+three rows, and the wider data in the dispatcher and in the tree of registers
+of the display memory), 4,050 LUTs, and 3,881 slices, against the build with
+one pixel in each write above. The setup slack was +0.178 ns and the hold
+slack +0.023 ns with one pixel in each write.
 
 All 240 DSPs running at 188.24 MHz gives a peak of 45 billion multiplications per
 second. The iterator uses its multiplier in two out of three clock cycles, so

@@ -45,7 +45,11 @@ NUM_COLS  = 640      # Must match C_NUM_COLS in main.vhd
 NUM_ROWS  = 480      # Must match C_NUM_ROWS in main.vhd
 JOB_ROWS  = 120      # Must match C_JOB_ROWS in main.vhd
 NUM_ITERATORS = 240  # Must match C_NUM_ITERATORS in mandelbrot.vhd
+PIXELS = 1           # Must match C_PIXELS in mandelbrot.vhd
 GROUP_SIZE = 16      # Must match G_GROUP_SIZE in dispatcher.vhd
+# The same for the MEGA65 R6, see mega65_r6.vhd
+MEGA65_NUM_ITERATORS = 450
+MEGA65_PIXELS = 4
 MAIN_CLOCK_KHZ = 1200e3 / 6.375  # The main clock, see clk_rst.vhd
 
 
@@ -194,7 +198,8 @@ def iterating_cycles(stop: ArrayLike) -> IntArray:
 
 def picture_cycles(stop: ArrayLike, num_iterators: int = NUM_ITERATORS,
                    job_rows: int = JOB_ROWS,
-                   group_size: int = GROUP_SIZE) -> Tuple[int, int]:
+                   group_size: int = GROUP_SIZE,
+                   pixels: int = PIXELS) -> Tuple[int, int]:
     """Estimate the number of clock cycles used to calculate the picture, by
     simulating the dispatcher one clock cycle at a time. stop is the number of
     iterations done by the iterator for each pixel (see hw_stop()), indexed by
@@ -215,9 +220,21 @@ def picture_cycles(stop: ArrayLike, num_iterators: int = NUM_ITERATORS,
     iterating_cycles() - 1 clock cycles after the clock cycle in which the
     previous result was accepted. The first result of a job is ready
     iterating_cycles() clock cycles after the job is given. The waiting time
-    of a result is counted until the clock cycle before it is accepted."""
-    iter_cycles: IntArray = iterating_cycles(stop)
-    rows, cols = iter_cycles.shape
+    of a result is counted until the clock cycle before it is accepted.
+
+    Each result is pixels consecutive rows. The column module keeps the
+    counts of the first pixels-1 rows of a result, and starts the next row
+    four clock cycles before the iterator would be done with it after an
+    acknowledge (the done flag of the iterator starts it directly), so a result
+    takes the sum of iterating_cycles() of its rows, less 4 for each row
+    after the first."""
+    row_cycles: IntArray = iterating_cycles(stop)
+    rows, cols = row_cycles.shape
+    iter_cycles: IntArray = (
+        row_cycles.reshape(rows // pixels, pixels, cols).sum(axis=1)
+        - 4*(pixels - 1))
+    rows //= pixels
+    job_rows //= pixels
     jobs: List[List[int]] = [
         iter_cycles[b*job_rows:(b+1)*job_rows, c].tolist()
         for b in range(rows // job_rows) for c in range(cols)]
@@ -333,6 +350,12 @@ def main() -> None:
           f"result to be accepted")
     print(f"Estimated time for the picture: {cycles} clock cycles, i.e. "
           f"{cycles / MAIN_CLOCK_KHZ:.2f} ms at {MAIN_CLOCK_KHZ / 1000:.3f} MHz "
+          f"({MAIN_CLOCK_KHZ * 1000 / cycles:.0f} pictures per second)")
+    cycles, waiting = picture_cycles(stop, MEGA65_NUM_ITERATORS,
+                                     pixels=MEGA65_PIXELS)
+    print(f"On the MEGA65 R6 ({MEGA65_NUM_ITERATORS} column modules, "
+          f"{MEGA65_PIXELS} pixels in each write): {cycles} clock cycles, i.e. "
+          f"{cycles / MAIN_CLOCK_KHZ:.2f} ms "
           f"({MAIN_CLOCK_KHZ * 1000 / cycles:.0f} pictures per second)")
 
     if args == ["--png"]:
