@@ -66,7 +66,7 @@ architecture rtl of dispatcher is
    signal job_start_r       : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal job_started_r     : std_logic;
    signal job_addr_r        : job_addr_vector( G_NUM_ITERATORS-1 downto 0);
-   signal cur_addr_r        : std_logic_vector(9 downto 0);
+   signal cur_addr_r        : std_logic_vector(9 downto 0) := (others => '0');
    --
    -- The job, delayed by one clock cycle, in each group of column modules
    signal grp_cx_r          : value_vector(C_NUM_GROUPS-1 downto 0);

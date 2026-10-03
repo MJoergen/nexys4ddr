@@ -77,7 +77,7 @@ architecture rtl of disp_mem is
    attribute keep of blk_data_r : signal is "true";
 
    signal rd_blk_r   : data_vector(C_NUM_BLOCKS-1 downto 0);
-   signal rd_sel_r   : std_logic_vector(18 downto C_BLOCK_BITS);
+   signal rd_sel_r   : std_logic_vector(18 downto C_BLOCK_BITS) := (others => '0');
    signal rd_data_d  : std_logic_vector(8 downto 0);
    signal rd_data_dd : std_logic_vector(8 downto 0);
 

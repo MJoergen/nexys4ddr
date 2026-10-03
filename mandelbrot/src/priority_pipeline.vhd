@@ -42,7 +42,7 @@ architecture rtl of priority_pipeline is
    constant C_FIRST : integer := sqrt_int(G_SIZE);
 
    -- Expand input vector
-   signal vector_s : std_logic_vector(C_FIRST*C_FIRST-1 downto 0);
+   signal vector_s : std_logic_vector(C_FIRST*C_FIRST-1 downto 0) := (others => '0');
 
    -- Result from first level
    signal first_vector_s : std_logic_vector(C_FIRST-1 downto 0);

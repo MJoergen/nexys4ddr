@@ -22,7 +22,7 @@ architecture sim of priority_pipeline_tb is
    signal clk    : std_logic;
    signal rst    : std_logic;
 
-   signal vector_pipeline  : std_logic_vector(C_SIZE-1 downto 0);
+   signal vector_pipeline  : std_logic_vector(C_SIZE-1 downto 0) := (others => '0');
    signal index_pipeline   : integer range 0 to C_SIZE-1;
    signal active_pipeline  : std_logic;
 
