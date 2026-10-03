@@ -55,8 +55,9 @@
 -- reset generation has been added.
 --
 -- The MMCM multiplies the 100 MHz input clock by 12, giving a VCO frequency
--- of 1200 MHz (the maximum for speed grade -1), and generates the following
--- output clocks:
+-- of 1200 MHz (the maximum for speed grade -1, as on the Nexys 4 DDR; the
+-- MEGA65 has speed grade -2, which allows 1440 MHz), and generates the
+-- following output clocks:
 --
 --   Output clock   Output    Divider   Freq (MHz)
 --   vga_clk        CLKOUT1     48         25.000

@@ -20,8 +20,8 @@ entity vga is
       -- the switches), and it is synchronized here.
       palette_i : in  std_logic_vector( 1 downto 0);
 
-      -- The frame rate, moved from the MAIN clock domain in mandelbrot.vhd,
-      -- see overlay.vhd
+      -- The frame rate, moved from the MAIN clock domain in the top level
+      -- (mandelbrot.vhd or mega65_r6.vhd), see overlay.vhd
       fps_digits_i : in  std_logic_vector(31 downto 0);
       fps_blank_i  : in  std_logic_vector( 7 downto 0);
 

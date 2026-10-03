@@ -7,7 +7,9 @@ The design is implemented on the Nexys 4 DDR board, which uses a Xilinx FPGA
 XC7A100T. This FPGA has a total of 240 DSPs, which are all used for the actual
 calculations. Additionally, the FPGA contains 135 BRAMs (of 36 kbit each),
 which are used for storing the results of the calculation, i.e. the actual
-picture to be displayed.
+picture to be displayed. The same design also runs on the MEGA65 R6, with a
+larger FPGA (XC7A200T), see [MEGA65 R6](#mega65-r6). The numbers in this
+document are for the Nexys 4 DDR, unless stated otherwise.
 
 ## Instantiation hierarchy
 The modules are instantiated as follows:
@@ -222,11 +224,11 @@ values of x and y are saved (sx\_r and sy\_r) after the iterations 1, 2, 4,
 iteration 2 (in ADD\_ST) the current values are compared with the saved
 values. The saved registers are not cleared at the start of a point, because
 the clear would need an extra LUT for each bit; they are only loaded, using
-the clock enable. The saved values are from an earlier iteration, and the gap between the saved
-iteration and the current one keeps growing, so a cycle is found once the
-saved values are in the cycle and the gap is at least the length of the
-cycle. Both x and y must be equal: in rare cases only one of them repeats,
-for points that escape later.
+the clock enable. The saved values are from an earlier iteration, and the
+gap between the saved iteration and the current one keeps growing, so a cycle
+is found once the saved values are in the cycle and the gap is at least the
+length of the cycle. Both x and y must be equal: in rare cases only one of
+them repeats, for points that escape later.
 
 The result of the comparison is registered (match\_r), and used in the next
 ADD\_ST, so the comparison is not in the paths of the iteration itself. The
@@ -341,9 +343,9 @@ with the additional input port
 res_ack_i    : in  std_logic;
 ```
 The res\_addr\_o is the current row number, counted from the first row of the
-job, and res\_data\_o is the calculated count value for this pixel. The res\_ack\_i is needed, because there may be an
-arbitrarily long delay before the job dispatcher has time to acknowledge the
-result.
+job, and res\_data\_o is the calculated count value for this pixel. The
+res\_ack\_i is needed, because there may be an arbitrarily long delay before
+the job dispatcher has time to acknowledge the result.
 
 The testbench for the column module ([`sim/column_tb.vhd`](sim/column_tb.vhd))
 is self-checking. It runs three jobs of ten rows each, and checks that the
@@ -380,10 +382,10 @@ wr_en_o   : out std_logic;
 The data is the 9-bit count, which is stored in the display memory, see
 [The top level](#the-top-level).
 
-This module instantiates a configurable number of column modules (ideally 240
-instances, one for each DSP). It keeps track of which column modules are
-currently calculating, and whenever a column module is idle, the next job is
-sent to it.
+This module instantiates a configurable number of column modules (240 on the
+Nexys 4 DDR, one for each DSP, and 450 on the MEGA65). It keeps track of
+which column modules are currently calculating, and whenever a column module
+is idle, the next job is sent to it.
 
 The jobs are given out one block at a time: first all 640 picture columns of
 the top 120 rows, then all the picture columns of the next 120 rows, and so
@@ -422,10 +424,11 @@ cycle the flag of the group of the counter is used.
 The column modules are spread over the whole FPGA, so the signals that go from
 the dispatcher to all of them have long routes. To keep each route shorter,
 these signals go through an extra register in each group of 16 column modules
-(the generic G\_GROUP\_SIZE, so there are 15 groups): the job (cx, starty, and
-stepy), the start of the job, the reset, and the index of the column module
-whose result is accepted. The registers of the groups are identical, so they
-have the attribute `keep`, which prevents the synthesis tool from merging them.
+(the generic G\_GROUP\_SIZE, so there are 15 groups, or 29 on the MEGA65): the
+job (cx, starty, and stepy), the start of the job, the reset, and the index of
+the column module whose result is accepted. The registers of the groups are
+identical, so they have the attribute `keep`, which prevents the synthesis
+tool from merging them.
 Each column module registers the reset once more, so the reset register of a
 group drives only 16 registers.
 
@@ -525,7 +528,7 @@ The two clock domains communicate through the display memory, which has a
 write port in the MAIN clock domain and a read port in the VGA clock domain.
 The only other signals between them are the frame rate and a toggle signal,
 which tells the VGA clock domain that the frame rate has changed, see
-[The top level](#the-top-level).
+"The frame rate" below.
 The files used only in the MAIN clock domain are in [`src/main/`](src/main),
 and the files used only in the VGA clock domain are in [`src/vga/`](src/vga).
 The top level, the clock and reset generation, and the display memory, which
@@ -642,7 +645,7 @@ calculated, and it is cleared when the next picture is started. At the end of
 a picture, the module [`src/main/fps.vhd`](src/main/fps.vhd) divides the clock frequency
 (188,235,294 Hz) by the value of the counter, and converts the result to
 decimal. The picture is recalculated continuously, so the frame rate is
-updated after every picture (about 340 times per second for the initial view).
+updated after every picture (about 542 times per second for the initial view).
 A single-cycle division would be far too slow for the MAIN clock, so both
 steps are done one bit per clock cycle: a restoring division, with one
 subtraction for each of the 28 bits of the quotient, and then the double
@@ -652,13 +655,13 @@ by one bit). This takes 58 clock cycles, much less than a picture, and the
 widest addition is 29 bits. A frame rate above 99999999 would show as
 99999999, but that would need a picture of fewer than 2 clock cycles. The
 counter is 27 bits wide, so it wraps around after 2^27 clock cycles (0.71 s),
-but a picture takes far less than that: even if every pixel took the maximum
-of 1680 clock cycles (see [Timing](#timing)), a picture would take about 3
-million clock cycles (16 ms).
+but a picture takes far less than that: even if every pixel needed the
+maximum count, the model (see [Timing](#timing)) gives about 2.0 million clock
+cycles (10.8 ms) for the picture.
 
 The digits of the display share the segment signals, so
 [`src/main/seg.vhd`](src/main/seg.vhd) shows them one at a time, each for 2^14 clock
-cycles, i.e. all 8 digits are refreshed every 0.67 ms (1.5 kHz). The
+cycles, i.e. all 8 digits are refreshed every 0.70 ms (1.4 kHz). The
 segments and the digit enables (anodes) are active low. The decimal point is
 not used.
 
@@ -674,11 +677,13 @@ calculated in the MAIN clock domain, so it is moved to the VGA clock domain:
 `main` changes a toggle signal each time the frame rate changes. This is
 synchronized with two registers in the top level (`p_fps_cdc` in
 [`src/mandelbrot.vhd`](src/mandelbrot.vhd)), and when it changes, the frame
-rate is copied, so `overlay` only gets signals in the VGA clock domain. It is constant for much longer than that (a picture takes far
-more than 58 clock cycles), so it is never copied while it changes. The
-constraint in [`nexys4ddr.xdc`](nexys4ddr.xdc) and
-[`mega65-r6.xdc`](mega65-r6.xdc) (`set_max_delay -datapath_only`) makes sure that it arrives before the toggle signal, and
-excludes these paths from the normal timing between the two clocks. The new
+rate is copied, so `overlay` only gets signals in the VGA clock domain. The
+frame rate changes only at the end of a picture, so it is constant for much
+longer than the synchronizer takes (a few VGA clock cycles), and it is never
+copied while it changes. The constraint in [`nexys4ddr.xdc`](nexys4ddr.xdc)
+and [`mega65-r6.xdc`](mega65-r6.xdc) (`set_max_delay -datapath_only`) makes
+sure that it arrives before the toggle signal, and excludes these paths from
+the normal timing between the two clocks. The new
 value is shown from the next frame on, so a frame never shows two values.
 The overlay is a pipeline of five stages after the pixel counters: the position
 in the overlay, the digit, the row of the font, the pixel of the row, and then
@@ -744,7 +749,8 @@ of the frame.
 
 ## Timing
 A counter measures the time it takes to generate the picture, which is shown
-as a frame rate on the 7-segment display, see [The top level](#the-top-level).
+as a frame rate on the 7-segment display and on the VGA output, see
+[The top level](#the-top-level).
 Earlier versions showed this time on the LEDs instead, in units of 2^11 clock
 cycles, and also (selected with a switch) the total amount of time the column
 modules were waiting to write to the display memory, when the waiting-time statistic
@@ -1140,12 +1146,12 @@ from the MAIN clock to the VGA clock are reported as safe by `report_cdc`. The
 run takes about 11.5 minutes (with the Nexys 4 DDR build running at the same
 time).
 
-With 450 column modules the model gives 339741 clock cycles for the initial
-view, i.e. 1.80 ms at 188.24 MHz (about 554 pictures per second), only 2%
-faster than with 240 column modules. The display memory is then written in 90%
-of the clock cycles, so the time for the picture is decided by the write port
-of the display memory (at least 307200 clock cycles, see [Timing](#timing)),
-not by the number of column modules.
+With 450 column modules the model (`sim/model.py --iterators 450`) gives
+339741 clock cycles for the initial view, i.e. 1.80 ms at 188.24 MHz (about
+554 pictures per second), only 2% faster than with 240 column modules. The
+display memory is then written in 90% of the clock cycles, so the time for the
+picture is decided by the write port of the display memory (at least 307200
+clock cycles, see [Timing](#timing)), not by the number of column modules.
 
 All 240 DSPs running at 188.24 MHz gives a peak of 45 billion multiplications per
 second. The iterator uses its multiplier in two out of three clock cycles, so

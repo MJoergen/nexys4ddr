@@ -21,6 +21,10 @@
 #   ./model.py --png     Same, and write the pictures to model.png and ref.png
 #                        (requires Pillow), using the same colours as the VGA
 #                        output.
+#   ./model.py --iterators N
+#                        Estimate the time for the picture with N column
+#                        modules instead of 240, e.g. 450 for the MEGA65 (see
+#                        src/mega65_r6.vhd). Can be combined with --png.
 #
 # Requires numpy.
 
@@ -44,7 +48,7 @@ MAX_COUNT = 511      # Must match C_MAX_COUNT in main.vhd
 NUM_COLS  = 640      # Must match C_NUM_COLS in main.vhd
 NUM_ROWS  = 480      # Must match C_NUM_ROWS in main.vhd
 JOB_ROWS  = 120      # Must match C_JOB_ROWS in main.vhd
-NUM_ITERATORS = 240  # Must match C_NUM_ITERATORS in mandelbrot.vhd
+NUM_ITERATORS = 240  # Must match C_NUM_ITERATORS in mandelbrot.vhd (default)
 GROUP_SIZE = 16      # Must match G_GROUP_SIZE in dispatcher.vhd
 MAIN_CLOCK_KHZ = 1200e3 / 6.375  # The main clock, see clk_rst.vhd
 
@@ -299,9 +303,18 @@ def rgb(cnt: ArrayLike) -> NDArray[np.uint8]:
 
 def main() -> None:
     args: List[str] = sys.argv[1:]
-    if args not in ([], ["--png"]):
-        print("Usage: model.py [--png]")
-        sys.exit(2)
+    png: bool = False
+    num_iterators: int = NUM_ITERATORS
+    while args:
+        if args[0] == "--png":
+            png = True
+            args = args[1:]
+        elif args[0] == "--iterators" and len(args) > 1 and args[1].isdigit():
+            num_iterators = int(args[1])
+            args = args[2:]
+        else:
+            print("Usage: model.py [--png] [--iterators N]")
+            sys.exit(2)
 
     cx, cy = view()
     hw = hw_count(cx, cy)
@@ -325,17 +338,18 @@ def main() -> None:
           f"pixels in the set early, after {stop[in_set].mean():.0f} "
           f"iterations on average")
 
-    cycles, waiting = picture_cycles(stop)
+    cycles, waiting = picture_cycles(stop, num_iterators)
     iterating = iterating_cycles(stop).mean()
     print(f"Average count {hw.mean():.1f}. The iterator needs {iterating:.0f} "
           f"clock cycles per pixel, and the column modules wait "
           f"{waiting / hw.size:.0f} clock cycles per pixel on average for the "
           f"result to be accepted")
-    print(f"Estimated time for the picture: {cycles} clock cycles, i.e. "
+    print(f"Estimated time for the picture with {num_iterators} column "
+          f"modules: {cycles} clock cycles, i.e. "
           f"{cycles / MAIN_CLOCK_KHZ:.2f} ms at {MAIN_CLOCK_KHZ / 1000:.3f} MHz "
           f"({MAIN_CLOCK_KHZ * 1000 / cycles:.0f} pictures per second)")
 
-    if args == ["--png"]:
+    if png:
         from PIL import Image
         Image.fromarray(rgb(hw)).save("model.png")
         Image.fromarray(rgb(ref)).save("ref.png")

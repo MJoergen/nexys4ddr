@@ -49,9 +49,9 @@ TB =
 STOP_TIME = 3ms
 
 TB_EXE = $(TB)_tb
-# The clock module and the top level use Xilinx primitives, and are not
-# simulated. The bit-accurate model of the iterator (iterator_model_pkg.vhd) is
-# used by several testbenches.
+# The clock module uses Xilinx primitives, and is not simulated. The top
+# levels (<board>_SRC) are not simulated either. The bit-accurate model of the
+# iterator (iterator_model_pkg.vhd) is used by several testbenches.
 TB_SRC = $(filter-out src/clk_rst.vhd,$(SRC)) sim/iterator_model_pkg.vhd sim/$(TB)_tb.vhd
 WAVE = sim/$(TB).ghw
 SAVE = sim/$(TB).gtkw
@@ -122,10 +122,11 @@ run check:
 
 else
 
-# Simulate a single testbench (TB=<name>) and show the waveform
+# Simulate a single testbench (TB=<name>) and show the waveform. Not all
+# testbenches have a GTKWave save file (sim/<name>.gtkw).
 .PHONY: check
 check: run
-	gtkwave $(WAVE) $(SAVE)
+	gtkwave $(WAVE) $(wildcard $(SAVE))
 
 .PHONY: run
 run: $(TB_SRC)

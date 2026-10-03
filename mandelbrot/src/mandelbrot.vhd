@@ -11,9 +11,10 @@ use ieee.numeric_std_unsigned.all;
 -- next picture is started, so the picture is recalculated continuously.
 --
 -- The design is split into two modules, one for each clock domain: main.vhd
--- (MAIN clock) and vga.vhd (VGA clock). The two domains communicate only
--- through the display memory. This module instantiates the clock and reset
--- generation, the display memory, and the two modules above.
+-- (MAIN clock) and vga.vhd (VGA clock). The two domains communicate through
+-- the display memory, and the frame rate (see below). This module
+-- instantiates the clock and reset generation, the display memory, and the
+-- two modules above.
 --
 -- The buttons, switches and the 7-segment display are handled by main.vhd,
 -- see the description there, except switches 0 and 1, which select the colour

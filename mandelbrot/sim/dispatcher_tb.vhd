@@ -9,8 +9,9 @@ use work.iterator_model_pkg.all;
 -- exhaustive test. It uses two instances of the dispatcher: A normal one, where
 -- each picture column is divided into four jobs, and one with a single picture
 -- column (i.e. with fewer picture columns than column modules) and one row in
--- each job, so every job is the last picture column of its block. It calculates two small pictures with each of them, one after the
--- other, and checks the following for each picture:
+-- each job, so every job is the last picture column of its block. It
+-- calculates two small pictures with each of them, one after the other, and
+-- checks the following for each picture:
 -- * Nothing is written, and done is low, when idle. Done goes low after a
 --   start.
 -- * Each pixel is written exactly once, and no other pixels are written.
