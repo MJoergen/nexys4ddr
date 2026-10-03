@@ -5,7 +5,7 @@ picture (640x480) is shown on the VGA output, and you can pan and zoom using the
 buttons on the board.
 
 All 240 DSPs of the FPGA are used in parallel for the calculation, and the
-picture is stored in block RAM. Generating a complete picture takes about 1.85 ms
+picture is stored in block RAM. Generating a complete picture takes about 1.84 ms
 (estimated by the model), with the main clock at 188.24 MHz.
 
 ## The algorithm
@@ -34,15 +34,15 @@ the dispatcher, and the timing and resource usage.
 
 ## Implementation results
 The design is built with Vivado 2025.1 and meets timing at the 188.24 MHz main
-clock (setup slack +0.006 ns, hold slack +0.015 ns). The resources used are:
+clock (setup slack +0.064 ns, hold slack +0.015 ns). The resources used are:
 
 | Resource  | Used                  | Available
 | --------- | --------------------- | ---------
 | DSP48E1   | 240                   | 240
 | Block RAM | 128 RAMB36 + 2 RAMB18 | 135 RAMB36
-| Slices    | 14,749                | 15,850
-| LUTs      | 42,265                | 63,400
-| Registers | 44,776                | 126,800
+| Slices    | 14,707                | 15,850
+| LUTs      | 42,259                | 63,400
+| Registers | 45,074                | 126,800
 
 See [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details.

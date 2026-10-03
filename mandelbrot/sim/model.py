@@ -208,19 +208,21 @@ def picture_cycles(stop: ArrayLike, num_iterators: int = NUM_ITERATORS,
     once every num_iterators clock cycles, and gives it the next job if it is
     idle. The scheduler for the results (i_res_scheduler) visits one group of
     group_size column modules in each clock cycle, and accepts the result of
-    one of the column modules of the group that have a result ready, in
-    round-robin order within the group. The next row starts when the result
-    has been accepted, and its result is ready iterating_cycles() clock cycles
-    after the clock cycle in which the scheduler sampled the previous result.
-    The first result of a job is ready iterating_cycles() clock cycles after
-    the job is given."""
+    one of the column modules of the group that had a result ready two clock
+    cycles before (the ready flags and the candidate of the group are
+    registered), in round-robin order within the group. The next row starts
+    when the result has been accepted, and its result is ready
+    iterating_cycles() - 1 clock cycles after the clock cycle in which the
+    previous result was accepted. The first result of a job is ready
+    iterating_cycles() clock cycles after the job is given. The waiting time
+    of a result is counted until the clock cycle before it is accepted."""
     iter_cycles: IntArray = iterating_cycles(stop)
     rows, cols = iter_cycles.shape
     jobs: List[List[int]] = [
         iter_cycles[b*job_rows:(b+1)*job_rows, c].tolist()
         for b in range(rows // job_rows) for c in range(cols)]
     num_groups = -(-num_iterators // group_size)
-    period = max(num_groups, 4)
+    period = max(num_groups, 5)
     job_latency = 5      # From the visit of i_scheduler to the start of the job
 
     next_job = 0
@@ -254,7 +256,7 @@ def picture_cycles(stop: ArrayLike, num_iterators: int = NUM_ITERATORS,
             return last, waiting
 
         # The result accepted in clock cycle k, from the ready flags sampled
-        # in clock cycle k-1
+        # in clock cycle k-2
         g = k % period
         if g < num_groups:
             first: Optional[int] = None
@@ -262,7 +264,7 @@ def picture_cycles(stop: ArrayLike, num_iterators: int = NUM_ITERATORS,
             since = [0] * group_size
             for j in range(min(group_size, num_iterators - g*group_size)):
                 r = ready[g*group_size + j]
-                if r is not None and r <= k-1:
+                if r is not None and r <= k-2:
                     since[j] = r
                     if first is None:
                         first = j
