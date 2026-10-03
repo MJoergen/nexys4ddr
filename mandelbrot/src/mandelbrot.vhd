@@ -55,11 +55,11 @@ architecture structural of mandelbrot is
    attribute ASYNC_REG of vga_rstn_sync  : signal is "TRUE";
 
    signal wr_addr        : std_logic_vector(18 downto 0);
-   signal wr_data        : std_logic_vector( 7 downto 0);
+   signal wr_data        : std_logic_vector( 8 downto 0);
    signal wr_en          : std_logic;
 
    signal rd_addr        : std_logic_vector(18 downto 0);
-   signal rd_data        : std_logic_vector( 7 downto 0);
+   signal rd_data        : std_logic_vector( 8 downto 0);
 
 begin
 

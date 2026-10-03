@@ -26,7 +26,7 @@ entity main is
 
       -- Write port of the display memory
       wr_addr_o : out std_logic_vector(18 downto 0);
-      wr_data_o : out std_logic_vector( 7 downto 0);
+      wr_data_o : out std_logic_vector( 8 downto 0);
       wr_en_o   : out std_logic
    );
 end main;
@@ -267,10 +267,9 @@ begin
    --   units (2^11 clock cycles).
    led_o <= pic_time when sw_r(1) = '1' or not C_WAIT_STAT else pic_wait;
 
-   -- The display memory is only 8 bits wide, so only the lower 8 bits of the
-   -- count are written. They are used directly as the colour (RRRGGGBB).
+   -- The display memory holds the full 9-bit count, see palette_pkg.vhd.
    wr_addr_o <= wr_addr_s;
-   wr_data_o <= wr_data_s(7 downto 0);
+   wr_data_o <= wr_data_s;
    wr_en_o   <= wr_en_s;
 
 end architecture structural;

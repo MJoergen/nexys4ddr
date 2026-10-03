@@ -12,9 +12,10 @@ with the main clock at 140.625 MHz.
 For each pixel, which corresponds to a complex number $c$, we iterate
 $z \mapsto z^2 + c$ starting from $z = 0$, and count the number of iterations
 until the real or the imaginary part of $z$ leaves the range -2 to 2 (the range
-of the number format), up to a maximum of 511. The lower 8 bits of this count
-decide the colour of the pixel, using one of four colour palettes, selected
-with switches 3 and 4 (see [Controls](#controls)).
+of the number format), up to a maximum of 511. This count decides the colour
+of the pixel, using one of four colour palettes, selected with switches 3 and 4
+(see [Controls](#controls)). The points in the set (count 511) have their own
+colour, and the other counts use the lower 8 bits of the count.
 
 The numbers are 18-bit
 [fixed point](https://en.wikipedia.org/wiki/Fixed-point_arithmetic) (2 integer

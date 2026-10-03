@@ -4,9 +4,10 @@ use ieee.numeric_std.all;
 use ieee.math_real.all;
 
 -- This package contains the colour palettes for the VGA output. The display
--- memory holds the lowest 8 bits of the iteration count of each pixel, and the
--- palette converts this value to the colour shown (RRRGGGBB). Points in the
--- set have the count 511, so the value 255.
+-- memory holds the iteration count of each pixel (9 bits), and the palette
+-- converts it to the colour shown (RRRGGGBB). Points in the set have the count
+-- 511 (C_SET), and they get the colour of the set. The other counts are
+-- converted using only their lowest 8 bits.
 --
 -- There are four palettes, selected by switches 3 and 4 (the value of sel):
 --   0 : The count itself is the colour. Mostly blue and green, because most
@@ -14,11 +15,12 @@ use ieee.math_real.all;
 --   1 : Rainbow. The hue goes once around the colour circle for every 16
 --       counts.
 --   2 : Fire. Black, red, orange, yellow, and white, with the square root of
---       the count, i.e. once for the counts 0 to 63, and again for 64 to 255.
---   3 : Blue, white, orange, and dark brown, with the logarithm of the count,
---       i.e. once for the counts 0 to 6, again for 7 to 62, and again for 63
---       to 254.
--- In the palettes 1 to 3 the set (the value 255) is black.
+--       the lowest 8 bits of the count, i.e. once for the values 0 to 63, and
+--       again for 64 to 255.
+--   3 : Blue, white, orange, and dark brown, with the logarithm of the lowest
+--       8 bits of the count, i.e. once for the values 0 to 6, again for 7 to
+--       62, and again for 63 to 255.
+-- In the palettes 1 to 3 the set is black. In palette 0 it is white.
 --
 -- The palettes are calculated from these formulas when the design is
 -- elaborated, so they are easy to change. They are tables of 256 entries, so
@@ -31,9 +33,16 @@ package palette_pkg is
 
    constant C_PALETTES : palettes_t;
 
-   -- The colour of the value idx in the palette sel
+   -- The count of the points in the set
+   constant C_SET : integer := 511;
+
+   -- The colour of the set in each palette
+   type colours_t is array (0 to 3) of std_logic_vector(7 downto 0);
+   constant C_SET_COLOURS : colours_t := (X"FF", X"00", X"00", X"00");
+
+   -- The colour of the count cnt in the palette sel
    function palette_colour (sel : std_logic_vector(1 downto 0);
-                            idx : std_logic_vector(7 downto 0))
+                            cnt : std_logic_vector(8 downto 0))
       return std_logic_vector;
 
 end package palette_pkg;
@@ -98,7 +107,6 @@ package body palette_pkg is
             when others => res(i) := to_332(1.0,     0.0,     1.0 - f);
          end case;
       end loop;
-      res(255) := (others => '0');
       return res;
    end function make_rainbow;
 
@@ -111,7 +119,6 @@ package body palette_pkg is
          t := frac(sqrt(real(i)) / 8.0);
          res(i) := to_332(clamp(3.0*t), clamp(3.0*t - 1.0), clamp(3.0*t - 2.0));
       end loop;
-      res(255) := (others => '0');
       return res;
    end function make_fire;
 
@@ -139,7 +146,6 @@ package body palette_pkg is
             end if;
          end loop;
       end loop;
-      res(255) := (others => '0');
       return res;
    end function make_blue_orange;
 
@@ -147,10 +153,13 @@ package body palette_pkg is
       (make_count, make_rainbow, make_fire, make_blue_orange);
 
    function palette_colour (sel : std_logic_vector(1 downto 0);
-                            idx : std_logic_vector(7 downto 0))
+                            cnt : std_logic_vector(8 downto 0))
       return std_logic_vector is
    begin
-      return C_PALETTES(to_integer(unsigned(sel)))(to_integer(unsigned(idx)));
+      if to_integer(unsigned(cnt)) = C_SET then
+         return C_SET_COLOURS(to_integer(unsigned(sel)));
+      end if;
+      return C_PALETTES(to_integer(unsigned(sel)))(to_integer(unsigned(cnt(7 downto 0))));
    end function palette_colour;
 
 end package body palette_pkg;

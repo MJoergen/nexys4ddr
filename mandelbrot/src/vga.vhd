@@ -13,7 +13,7 @@ entity vga is
 
       -- Read port of the display memory
       rd_addr_o : out std_logic_vector(18 downto 0);
-      rd_data_i : in  std_logic_vector( 7 downto 0);
+      rd_data_i : in  std_logic_vector( 8 downto 0);
 
       -- Selects the palette, see palette_pkg.vhd. This is asynchronous (from
       -- the switches), and it is synchronized here.

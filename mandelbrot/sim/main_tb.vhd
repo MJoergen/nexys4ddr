@@ -26,7 +26,7 @@ architecture simulation of main_tb is
    signal rst     : std_logic := '1';
 
    signal wr_addr : std_logic_vector(18 downto 0);
-   signal wr_data : std_logic_vector( 7 downto 0);
+   signal wr_data : std_logic_vector( 8 downto 0);
    signal wr_en   : std_logic;
 
 begin

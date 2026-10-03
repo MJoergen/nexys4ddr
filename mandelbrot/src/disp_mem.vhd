@@ -2,21 +2,22 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This is the display memory, holding the picture. It has 2^19 entries of 8
--- bits, and is implemented in block RAM. It has a write port and a read port,
--- with separate clocks, so it is also the connection between the two clock
--- domains.
+-- This is the display memory, holding the picture. It has 2^19 entries of 9
+-- bits (the iteration count of each pixel), and is implemented in block RAM.
+-- It has a write port and a read port, with separate clocks, so it is also the
+-- connection between the two clock domains.
 --
--- The memory is divided into 128 blocks of 2^12 entries (one BRAM each). The
--- write address and data go to the blocks through a tree of registers: first
--- to a register in each of 16 groups of 8 blocks, and then to a register for
--- each block. So each register drives at most 16 registers or one BRAM, and
--- the register of a block can be placed next to its BRAM. A single register
+-- The memory is divided into 128 blocks of 2^12 entries (one BRAM each, used
+-- as 4096 entries of 9 bits, i.e. with the parity bits). The write address
+-- and data go to the blocks through a tree of registers: first to a register
+-- in each of 16 groups of 8 blocks, and then to a register for each block.
+-- So each register drives at most 16 registers or one BRAM, and the register
+-- of a block can be placed next to its BRAM. A single register
 -- for the address of all 128 BRAMs, which are spread over the whole FPGA, made
 -- the routing too slow.
 --
 -- The write port has three clock cycles of latency. On reset (wr_rst_i), the
--- entire memory is filled with the value 0x55, which takes 2^19 clock cycles.
+-- entire memory is filled with the value 0x055, which takes 2^19 clock cycles.
 -- Writes on the write port are ignored while this is in progress.
 --
 -- The read port has three clock cycles of latency. The read reset (rd_rst_i)
@@ -27,13 +28,13 @@ entity disp_mem is
       wr_clk_i    : in  std_logic;
       wr_rst_i    : in  std_logic;
       wr_addr_i   : in  std_logic_vector(18 downto 0);
-      wr_data_i   : in  std_logic_vector( 7 downto 0);
+      wr_data_i   : in  std_logic_vector( 8 downto 0);
       wr_en_i     : in  std_logic;
       --
       rd_clk_i    : in  std_logic;
       rd_rst_i    : in  std_logic;
       rd_addr_i   : in  std_logic_vector(18 downto 0);
-      rd_data_o   : out std_logic_vector( 7 downto 0)
+      rd_data_o   : out std_logic_vector( 8 downto 0)
    );
 end entity disp_mem;
 
@@ -45,16 +46,16 @@ architecture rtl of disp_mem is
    constant C_BLOCK_BITS  : integer := 12;  -- Address bits in a block
    constant C_GROUP_BITS  : integer := 15;  -- Address bits in a group
 
-   type mem_t is array (0 to 2**C_BLOCK_BITS-1) of std_logic_vector(7 downto 0);
+   type mem_t is array (0 to 2**C_BLOCK_BITS-1) of std_logic_vector(8 downto 0);
    type grp_addr_vector is array (natural range <>) of
       std_logic_vector(C_GROUP_BITS-1 downto 0);
    type blk_addr_vector is array (natural range <>) of
       std_logic_vector(C_BLOCK_BITS-1 downto 0);
    type data_vector is array (natural range <>) of
-      std_logic_vector(7 downto 0);
+      std_logic_vector(8 downto 0);
 
    signal wr_addr      : std_logic_vector(18 downto 0);
-   signal wr_data      : std_logic_vector( 7 downto 0);
+   signal wr_data      : std_logic_vector( 8 downto 0);
    signal wr_en        : std_logic;
    signal wr_addr_rst  : std_logic_vector(18 downto 0);
    signal wr_rst       : std_logic := '0';
@@ -77,8 +78,8 @@ architecture rtl of disp_mem is
 
    signal rd_blk_r   : data_vector(C_NUM_BLOCKS-1 downto 0);
    signal rd_sel_r   : std_logic_vector(18 downto C_BLOCK_BITS);
-   signal rd_data_d  : std_logic_vector(7 downto 0);
-   signal rd_data_dd : std_logic_vector(7 downto 0);
+   signal rd_data_d  : std_logic_vector(8 downto 0);
+   signal rd_data_dd : std_logic_vector(8 downto 0);
 
 begin
 
@@ -96,7 +97,7 @@ begin
 
          if wr_rst = '1' then
             wr_addr <= wr_addr_rst;
-            wr_data <= "01010101";
+            wr_data <= "001010101";
             wr_en   <= '1';
 
             wr_addr_rst <= wr_addr_rst + 1;

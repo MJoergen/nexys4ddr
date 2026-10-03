@@ -342,8 +342,8 @@ wr_addr_o : out std_logic_vector(18 downto 0);
 wr_data_o : out std_logic_vector( 8 downto 0);
 wr_en_o   : out std_logic;
 ```
-The data is the 9-bit count. Only the lower 8 bits are stored in the display
-memory, see [The top level](#the-top-level). Finally, there is a debug output:
+The data is the 9-bit count, which is stored in the display memory, see
+[The top level](#the-top-level). Finally, there is a debug output:
 ```
 wait_cnt_tot_o : out std_logic_vector(15 downto 0);
 ```
@@ -431,14 +431,16 @@ module and to the read port of the display memory, but neither of them uses it
 at present.
 
 **The display memory.** The display memory
-([`src/disp_mem.vhd`](src/disp_mem.vhd)) has 2^19 entries of 8 bits. The
+([`src/disp_mem.vhd`](src/disp_mem.vhd)) has 2^19 entries of 9 bits. The
 address is the picture column (10 bits) followed by the row (9 bits). The
-dispatcher delivers a 9-bit count for each pixel, but `main` only writes the
-lower 8 bits. The `vga` module converts these 8 bits to the colour, in the
-format RRRGGGBB, see [Colours](#colours) below.
+dispatcher delivers a 9-bit count for each pixel, and `main` writes all 9 bits.
+The `vga` module converts the count to the colour, in the format RRRGGGBB, see
+[Colours](#colours) below.
 
 The memory is divided into 128 blocks of 2^12 entries, one BRAM each, selected
-by the top 7 bits of the address. The write address and data go to the blocks
+by the top 7 bits of the address. A 36 kbit BRAM holds 4096 entries of 9 bits
+(the ninth bit is the parity bit of each byte), so the ninth bit needs no extra
+BRAMs. The write address and data go to the blocks
 through a tree of registers: first to a register in each of 16 groups of 8
 blocks, and then to a register for each block, which can be placed next to its
 BRAM. So no register drives more than 16 loads. A single register for the
@@ -568,25 +570,28 @@ every 7 ms), so the counters themselves change too fast to be read.
 `main`. The switches 0 and 5 to 7 are not used.
 
 ## Colours
-The display memory holds the lower 8 bits of the count of each pixel. The VGA
-output has 8 bits of colour, in the format RRRGGGBB (3 bits red, 3 bits green,
-and 2 bits blue). The value from the display memory is converted to the colour
-by one of four palettes in [`src/palette_pkg.vhd`](src/palette_pkg.vhd),
+The display memory holds the count of each pixel (9 bits). The VGA output has
+8 bits of colour, in the format RRRGGGBB (3 bits red, 3 bits green, and 2 bits
+blue). The points in the set (count 511) get the colour of the set. For the
+other counts, the lower 8 bits of the count (the value) are converted to the
+colour by one of four palettes in [`src/palette_pkg.vhd`](src/palette_pkg.vhd),
 selected by switches 3 and 4 (switch 4 is the high bit):
 * 0: The value itself is the colour. Most of the pixels outside the set have
   small counts (in the initial view, 72% of all pixels have a count below 16),
   so only the blue and green bits are set, and red needs a count of at least
-  32. The set (count 511, i.e. the value 255) is white.
+  32. The set is white (the same colour as the value 255).
 * 1: Rainbow. The hue goes once around the colour circle (red, yellow, green,
   cyan, blue, magenta) for every 16 counts.
 * 2: Fire. Black, red, orange, yellow, and white, with the square root of the
-  count, once for the counts 0 to 63, and again for 64 to 254.
-* 3: Blue, white, orange, and dark brown, with the logarithm of the count, once
-  for the counts 0 to 6, again for 7 to 62, and again for 63 to 254.
+  value, once for the values 0 to 63, and again for 64 to 255.
+* 3: Blue, white, orange, and dark brown, with the logarithm of the value, once
+  for the values 0 to 6, again for 7 to 62, and again for 63 to 255.
 
-In the palettes 1 to 3 the set is black. The value 255 is also the value of
-the (few) points with the count 255, so these are shown in the colour of the
-set.
+In the palettes 1 to 3 the set is black. An earlier version stored only the
+lower 8 bits of the count in the display memory, so the (few) points with the
+count 255 had the same value as the set, and were shown in the colour of the
+set. Storing all 9 bits costs no extra BRAMs (see
+[The top level](#the-top-level)).
 
 The palettes are tables of 256 entries, which are calculated from the formulas
 above (with `ieee.math_real`) when the design is elaborated, so they are easy
@@ -710,9 +715,11 @@ The registers that shorten the routes to the column modules and to the BRAMs
 4,600 registers and 500 LUT cells. Before they were added, the setup slack was
 +0.104 ns.
 
-The display memory has 2^19 entries of 8 bits (the lowest 8 bits of the
-count), i.e. 128 blocks of 36 kbit BRAM (each used as 4096 entries of 8 bits),
-as expected. The single RAMB18 is used by the dispatcher, for the table
+These numbers are from the version where the display memory held only the
+lowest 8 bits of the count: 2^19 entries of 8 bits, i.e. 128 blocks of 36 kbit
+BRAM (each used as 4096 entries of 8 bits), as expected. It now holds all 9
+bits, which should use the same 128 BRAMs (4096 entries of 9 bits each), but
+this has not been checked with Vivado yet. The single RAMB18 is used by the dispatcher, for the table
 `job_addr_r` that holds the picture column of each column module (240 entries
 of 10 bits).
 

@@ -29,11 +29,11 @@ architecture sim of disp_mem_tb is
 
    signal wr_clk     : std_logic;
    signal wr_addr    : std_logic_vector(18 downto 0) := (others => '0');
-   signal wr_data    : std_logic_vector( 7 downto 0) := (others => '0');
+   signal wr_data    : std_logic_vector( 8 downto 0) := (others => '0');
    signal wr_en      : std_logic := '0';
    signal rd_clk     : std_logic;
    signal rd_addr    : std_logic_vector(18 downto 0) := (others => '0');
-   signal rd_data    : std_logic_vector( 7 downto 0);
+   signal rd_data    : std_logic_vector( 8 downto 0);
    signal write_done : boolean := false;
 
    -- The address used in the test number i. In the first order, consecutive
@@ -53,7 +53,7 @@ architecture sim of disp_mem_tb is
    -- at the same offset.
    function value (addr : integer) return std_logic_vector is
    begin
-      return std_logic_vector(to_unsigned((addr*37 + (addr/2**12)*101 + 11) mod 256, 8));
+      return std_logic_vector(to_unsigned((addr*37 + (addr/2**12)*101 + 11) mod 512, 9));
    end function value;
 
 begin
@@ -83,7 +83,7 @@ begin
 
       procedure write (
          addr : integer;
-         data : std_logic_vector(7 downto 0);
+         data : std_logic_vector(8 downto 0);
          en   : std_logic
       ) is
       begin

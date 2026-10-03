@@ -5,7 +5,7 @@
 #
 # The testbench main_tb.vhd writes one line "address data" to sim/main_out.txt
 # for each write to the display memory. The address is the column (10 bits)
-# followed by the row (9 bits), and the data is the lowest 8 bits of the count.
+# followed by the row (9 bits), and the data is the count.
 # A complete picture takes several hours to simulate, so a partial picture is
 # fine: All the pixels written so far are compared, and the last line is
 # ignored if it is incomplete.
@@ -56,10 +56,10 @@ def main() -> None:
     cx, cy = model.view()
     expected: IntArray = model.hw_count(cx, cy)[row % model.NUM_ROWS,
                                                 col % model.NUM_COLS]
-    wrong: IntArray = np.flatnonzero((expected & 0xFF) != data)
+    wrong: IntArray = np.flatnonzero(expected != data)
     for i in wrong[:10]:
         print(f"Pixel (column {col[i]}, row {row[i]}): got {data[i]}, "
-              f"expected {expected[i] & 0xFF} (count {expected[i]})")
+              f"expected {expected[i]}")
     errors += len(wrong)
 
     print(f"{len(writes)} pixels written ({len(set(col.tolist()))} columns, "

@@ -20,7 +20,8 @@ use work.palette_pkg.all;
 --
 -- In the second phase, the display memory is replaced by a model with the read
 -- latency of disp_mem.vhd (three clock cycles), which holds a different value
--- for each pixel, (x + 3*y) mod 256, so all 256 values occur on each line. The
+-- for each pixel, (x + 3*y) mod 512, so all 512 values (including the set,
+-- 511) occur on each line. The
 -- palette is changed every 120 lines (it is selected by the asynchronous input
 -- palette_i), so all four palettes are used. It checks that the colour of each
 -- pixel of a frame is the value of that pixel in the selected palette, and
@@ -47,6 +48,10 @@ architecture simulation of vga_tb is
 
    constant C_COLOUR    : std_logic_vector(7 downto 0) := X"A5";
 
+   -- The value in the display memory in the first phase. Palette 0 shows the
+   -- lowest 8 bits of the count as the colour.
+   constant C_VALUE     : std_logic_vector(8 downto 0) := "0" & C_COLOUR;
+
    signal clk     : std_logic;
    signal rst     : std_logic := '1';
    signal rd_addr : std_logic_vector(18 downto 0);
@@ -57,15 +62,15 @@ architecture simulation of vga_tb is
    -- The second phase
    signal pattern : boolean := false;
    signal palette : std_logic_vector(1 downto 0) := "00";
-   signal rd_data : std_logic_vector(7 downto 0);
-   signal mem_d1  : std_logic_vector(7 downto 0);
-   signal mem_d2  : std_logic_vector(7 downto 0);
-   signal mem_d3  : std_logic_vector(7 downto 0);
+   signal rd_data : std_logic_vector(8 downto 0);
+   signal mem_d1  : std_logic_vector(8 downto 0);
+   signal mem_d2  : std_logic_vector(8 downto 0);
+   signal mem_d3  : std_logic_vector(8 downto 0);
 
    -- The value of the pixel (x, y) in the display memory in the second phase
    function pixel_value (x : integer; y : integer) return std_logic_vector is
    begin
-      return std_logic_vector(to_unsigned((x + 3*y) mod 256, 8));
+      return std_logic_vector(to_unsigned((x + 3*y) mod 512, 9));
    end function pixel_value;
 
 begin
@@ -106,7 +111,7 @@ begin
       end if;
    end process p_mem;
 
-   rd_data <= mem_d3 when pattern else C_COLOUR;
+   rd_data <= mem_d3 when pattern else C_VALUE;
 
 
    ----------------------------
@@ -160,7 +165,7 @@ begin
 
          exp := (others => '0');
          if x < C_H_VISIBLE and y < C_V_VISIBLE then
-            exp := C_PALETTES(y / 120)(to_integer(unsigned(pixel_value(x, y))));
+            exp := palette_colour(std_logic_vector(to_unsigned(y / 120, 2)), pixel_value(x, y));
          end if;
          if vga_col /= exp then
             if errors < 10 then
