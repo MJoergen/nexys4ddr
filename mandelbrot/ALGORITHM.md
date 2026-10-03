@@ -23,11 +23,13 @@ mandelbrot                      src/mandelbrot.vhd (top level)
  |   |   |       +- (DSP48E1)   (inferred in p_dsp, multiplier and adder)
  |   |   +- scheduler           (i_scheduler_res, selects the column module whose result is accepted)
  |   +- fps                     src/main/fps.vhd (frame rate, calculated from the time for a picture)
+ |   +- (p_fps_toggle)          (tells the VGA clock domain that the frame rate has changed)
  |   +- seg                     src/main/seg.vhd (7-segment display)
  +- disp_mem                    src/disp_mem.vhd (display memory, between the two clock domains)
  +- vga                         src/vga/vga.vhd (everything in the VGA clock domain)
      +- pix                     src/vga/pix.vhd (pixel counters)
      +- disp                    src/vga/disp.vhd (VGA output, uses the palettes in src/vga/palette_pkg.vhd)
+     +- overlay                 src/vga/overlay.vhd (frame rate overlay, uses the font in src/vga/font_pkg.vhd)
 ```
 The number of column modules (and therefore iterators and DSPs) is set by the
 generic `G_NUM_ITERATORS`, which `main` sets to 240.
@@ -475,10 +477,13 @@ clock domain:
   display.
 * [`src/vga/vga.vhd`](src/vga/vga.vhd) runs in the VGA clock domain (25 MHz). It
   generates the pixel counters, reads the display memory, and generates the VGA
-  output.
+  output, with the frame rate in the top right corner.
 
-The two clock domains communicate only through the display memory, which has
-a write port in the MAIN clock domain and a read port in the VGA clock domain.
+The two clock domains communicate through the display memory, which has a
+write port in the MAIN clock domain and a read port in the VGA clock domain.
+The only other signals between them are the frame rate and a toggle signal,
+which tells the VGA clock domain that the frame rate has changed, see
+[The top level](#the-top-level).
 The files used only in the MAIN clock domain are in [`src/main/`](src/main),
 and the files used only in the VGA clock domain are in [`src/vga/`](src/vga).
 The top level, the clock and reset generation, and the display memory, which
@@ -615,6 +620,28 @@ cycles, i.e. all 8 digits are refreshed every 0.67 ms (1.5 kHz). The
 segments and the digit enables (anodes) are active low. The decimal point is
 not used.
 
+The same frame rate is shown in the top right corner of the VGA output, by
+[`src/vga/overlay.vhd`](src/vga/overlay.vhd), in white on black, with the
+leading zeros not shown (the picture is shown there instead). The digits are
+16x32 pixels, from the [Spleen](https://github.com/fcambus/spleen) font
+(BSD 2-Clause license, see [`font/LICENSE.spleen`](font/LICENSE.spleen)). The
+script [`font/gen_font_pkg.py`](font/gen_font_pkg.py) converts the font to the
+table in [`src/vga/font_pkg.vhd`](src/vga/font_pkg.vhd), 32 rows of 16 bits
+for each digit. The frame rate (32 bits of digits and 8 bits of blanking) is
+calculated in the MAIN clock domain, so it is moved to the VGA clock domain:
+`main` changes a toggle signal each time the frame rate changes. This is
+synchronized with two registers in `overlay`, and when it changes, the frame
+rate is copied. It is constant for much longer than that (a picture takes far
+more than 58 clock cycles), so it is never copied while it changes. The
+constraint in [`mandelbrot.xdc`](mandelbrot.xdc) (`set_max_delay
+-datapath_only`) makes sure that it arrives before the toggle signal, and
+excludes these paths from the normal timing between the two clocks. The new
+value is shown from the next frame on, so a frame never shows two values.
+The overlay is a pipeline of five stages after the pixel counters: the position
+in the overlay, the digit, the row of the font, the pixel of the row, and then
+the colour, which replaces the output of `disp`. This adds one clock cycle of
+latency to all the VGA outputs.
+
 The testbench [`sim/fps_tb.vhd`](sim/fps_tb.vhd) is self-checking. It gives
 the frame rate module a number of picture times (the extremes, the values
 around a change of the frame rate, e.g. 199 and 200, and random values), and
@@ -623,6 +650,12 @@ display shows the same number: every digit that is not blanked is switched on
 with the right segments during a refresh cycle, the blanked digits are never
 switched on, and at most one digit is on at a time. It also checks that a new
 picture time during a calculation is ignored.
+
+The testbench [`sim/overlay_tb.vhd`](sim/overlay_tb.vhd) checks the colour of
+every pixel of three frames of the VGA output (with a different value for each
+pixel), with no frame rate (the initial value), 4 digits and 8 digits. The
+frame rate is changed in the middle of the overlay, and the new value must
+only be shown in the next frame. It prints the overlay of the last frame.
 
 **Other inputs.** The switches 3 and 4 select the colour palette, see
 [Colours](#colours). They are used in the VGA clock domain (in `vga`), not in
