@@ -1,6 +1,7 @@
 # Mandelbrot
 This draws the [Mandelbrot set](https://en.wikipedia.org/wiki/Mandelbrot_set)
-in VHDL on the Nexys 4 DDR board, which has a Xilinx Artix-7 XC7A100T FPGA. The
+in VHDL on the [Nexys 4 DDR](https://digilent.com/reference/programmable-logic/nexys-4-ddr/start)
+board, which has a Xilinx Artix-7 XC7A100T FPGA. The
 picture (640x480) is shown on the VGA output, and you can pan and zoom using the
 buttons on the board. The same design also runs on the
 [MEGA65](https://mega65.org/) (board revision R6), which has a Xilinx Artix-7
