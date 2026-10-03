@@ -21,7 +21,7 @@ mandelbrot                      src/mandelbrot.vhd (top level)
  |   |   +- column  (x 240)     src/main/column.vhd (the column modules)
  |   |   |   +- iterator        src/main/iterator.vhd
  |   |   |       +- (DSP48E1)   (inferred in p_dsp, multiplier and adder)
- |   |   +- scheduler           (i_scheduler_res, selects the column module whose result is accepted)
+ |   |   +- res_scheduler       src/main/res_scheduler.vhd (selects the column module whose result is accepted)
  |   +- fps                     src/main/fps.vhd (frame rate, calculated from the time for a picture)
  |   +- seg                     src/main/seg.vhd (7-segment display)
  +- disp_mem                    src/disp_mem.vhd (display memory, between the two clock domains)
@@ -173,7 +173,8 @@ a calculation using real numbers. The testbench
 [`sim/main_tb.vhd`](sim/main_tb.vhd) runs `main.vhd` with the initial view, and
 writes every write to the display memory to the file `sim/main_out.txt`. The
 script [`sim/cmp_rtl.py`](sim/cmp_rtl.py) then compares these values with the
-model. A complete picture takes several hours to simulate, but a partial picture
+model. A complete picture takes about 1.5 hours to simulate (with
+`STOP_TIME=4ms`, and the waveform file is about 5 GB), but a partial picture
 can be compared too:
 ```
 make run TB=main STOP_TIME=700us
@@ -403,8 +404,8 @@ potentially may give a delay up to 240 clock cycles before an idle column module
 is given a job, i.e. 1.3 us at 188.24 MHz. The column modules wait in
 parallel, and with 2560 jobs and 240 column modules, each column module gets
 about 11 jobs on average. So the delay adds at most about 15 microseconds (and
-half of that on average) to the time for a picture, which is about 2.2 ms. This
-delay is small.
+half of that on average) to the time for a picture, which is about 1.85 ms.
+This delay is small.
 
 The scheduler ([`src/main/scheduler.vhd`](src/main/scheduler.vhd)) has a counter that
 goes round all the column modules, one per clock cycle, and selects a column
@@ -425,15 +426,38 @@ Each column module registers the reset once more, so the reset register of a
 group drives only 16 registers.
 
 A result is accepted in three steps. First, the index of the column module
-selected by i\_scheduler\_res goes to the register in each group. Then each
+selected by i\_res\_scheduler goes to the register in each group. Then each
 group acknowledges the selected column module, if it is in the group, and
 selects its result. Finally, the result is selected from the group of the
 column module and written to the display memory. The column module keeps its
 result until it has seen the acknowledge, so the result is still there when
-its group selects it. Because of the extra registers, the scheduler sees that
-a column module is busy (with a job, or with a result that has been accepted)
-five clock cycles after it has sampled its busy flag and selected it, so the
-dispatcher needs at least five column modules.
+its group selects it. Because of the extra registers, the scheduler for the
+jobs sees that a column module is busy five clock cycles after it has sampled
+its busy flag and selected it, so the dispatcher needs at least five column
+modules.
+
+The display memory can take one result in each clock cycle, and the scheduler
+for the results ([`src/main/res_scheduler.vhd`](src/main/res_scheduler.vhd),
+i\_res\_scheduler) tries to use as many of these clock cycles as possible.
+Each group of 16 column modules (the same groups as above) registers a
+candidate in every clock cycle: one of its column modules that has a result
+ready, picked in round-robin order within the group, i.e. the first one after
+the column module that was accepted last time. A counter goes round the 15
+groups, one per clock cycle, and the candidate of the group of the counter is
+accepted, if the group has one. So a column module with a result waits until
+its group is visited, i.e. at most 15 clock cycles, plus 15 clock cycles for
+each column module of its group that is before it in the round-robin order.
+Earlier, the round-robin scheduler for the jobs was used for the results too,
+and a column module waited up to 240 clock cycles for each result, also when
+no other column module had a result ready (see [Timing](#timing)).
+
+A column module has a result ready when its result is valid and has not been
+acknowledged. The candidate of a group is registered, so the ready flag of a
+column module that has just been accepted is still sampled for two more clock
+cycles, until the acknowledge reaches it. The counter therefore visits each
+group at most once every four clock cycles (when there are fewer than four
+groups, the counter has empty positions), so a column module can not be
+accepted twice for the same result.
 
 The done flag (done\_o) needs to know that all 240 column modules are idle. The
 busy flags are first combined in each group of 16 column modules, in a
@@ -463,6 +487,18 @@ when the scheduler is not active or when everything is busy, that each idle
 process is started once per round and busy processes never, that the
 processes are started in round-robin order, and that reset restarts the
 scheduler from the first process.
+
+The scheduler for the results has a self-checking testbench too
+([`sim/res_scheduler_tb.vhd`](sim/res_scheduler_tb.vhd)). Each process
+behaves like a column module: when it has a result, it is ready until the
+result has been accepted, and its ready flag goes low as late as allowed. It
+then gets a new result after a random delay. The testbench checks that
+nothing is selected when the scheduler is not active or nothing is ready,
+that only a process that is ready is selected and each result only once, that
+every ready process is selected within the expected time (also when all the
+processes are ready all the time), and that all the results are selected. It
+does this for 21 processes in groups of 5 (so the last group is smaller), and
+for 6 processes in a single group (so the counter has empty positions).
 
 ## The top level
 The top level ([`src/mandelbrot.vhd`](src/mandelbrot.vhd)) instantiates the
@@ -692,21 +728,22 @@ waiting-time statistic built in, and the initial view, were:
   measured), because each wait counter was truncated to units of 2^11 clock
   cycles before the sum.
 
-Both values agree with the model [`sim/model.py`](sim/model.py), which
-estimates the time for the picture from the number of iterations of each pixel,
-as follows. A column module uses 3 clock cycles per iteration, plus 7 clock
-cycles to start the iterator and to deliver the result, i.e. 3n+7 clock
+Both values agreed with the model [`sim/model.py`](sim/model.py) at the time,
+which estimated the time for the picture from the number of iterations of each
+pixel, as follows. A column module uses 3 clock cycles per iteration, plus 7
+clock cycles to start the iterator and to deliver the result, i.e. 3n+7 clock
 cycles, where n is the number of iterations done when the iterator stops: the
 count for a pixel that escapes, 510 for a pixel that reaches the maximum
 count, and the iteration after the match for a pixel where a cycle is found.
-Then the result must be accepted by the dispatcher. The round-robin scheduler for the results (i\_scheduler\_res)
-checks each column module once every 240 clock cycles, so the time from one
-result of a column module to the next is always a multiple of 240 clock
-cycles. This has been checked in simulation. So:
-* A pixel with a count up to 77 takes 240 clock cycles, i.e. the iterator is
+Then the result must be accepted by the dispatcher. The scheduler for the
+results was then the same round-robin scheduler as for the jobs, which checked
+each column module once every 240 clock cycles, so the time from one result of
+a column module to the next was always a multiple of 240 clock cycles. This was
+checked in simulation. So:
+* A pixel with a count up to 77 took 240 clock cycles, i.e. the iterator was
   idle for most of the time, waiting for the result to be accepted.
-* A pixel in the set that does not reach a cycle takes 3\*510+7 = 1537 clock
-  cycles, which is rounded up to 1680 clock cycles. Before the periodicity
+* A pixel in the set that does not reach a cycle took 3\*510+7 = 1537 clock
+  cycles, which was rounded up to 1680 clock cycles. Before the periodicity
   detection, this was the case for all the pixels in the set.
 
 Without the periodicity detection, the iterator needed 460 clock cycles per
@@ -717,9 +754,9 @@ cycles, so these picture columns decided the total time. The model gave
 472\*2^11 clock cycles for the picture, the same as measured.
 
 With the periodicity detection, the iterator needs 132 clock cycles per pixel
-on average, and each pixel takes 316 clock cycles on average, including the
-waiting. Most of the pixels now take the minimum of 240 clock cycles, and the
-longest picture column takes 0.27 million clock cycles. When each job was a
+on average, and each pixel took 316 clock cycles on average, including the
+waiting. Most of the pixels took the minimum of 240 clock cycles, and the
+longest picture column took 0.27 million clock cycles. When each job was a
 whole picture column, the model gave 551040 clock cycles (269\*2^11) for the
 picture, i.e. 2.9 ms at 188.24 MHz, 1.75 times faster than without the
 detection (about 341 pictures per second).
@@ -727,15 +764,13 @@ detection (about 341 pictures per second).
 With 640 jobs and 240 column modules, each column module got fewer than three
 jobs, so the work was not shared evenly at the end of the picture: if the
 work was spread evenly over the column modules, each of them would need
-404875 clock cycles. With jobs of 120 rows (2560 jobs), the longest job takes
-0.11 million clock cycles, and the model gives 418560 clock cycles
-(204\*2^11) for the picture, i.e. 2.22 ms at 188.24 MHz, 1.32 times faster.
-So the 7-segment display should show about 450 pictures per second. The
-model gives 465840 clock cycles for jobs of 240 rows, and 413040 clock cycles
-for jobs of 60 rows. Eight other views (zoomed in at different places) were
-1.07 to 1.31 times faster in the model with jobs of 120 rows than with whole
-picture columns. None of this
-has been measured on the board yet.
+404875 clock cycles. With jobs of 120 rows (2560 jobs), the longest job took
+0.11 million clock cycles, and the model gave 418560 clock cycles
+(204\*2^11) for the picture, i.e. 2.22 ms at 188.24 MHz, 1.32 times faster
+(about 450 pictures per second). The model gave 465840 clock cycles for jobs
+of 240 rows, and 413040 clock cycles for jobs of 60 rows. Eight other views
+(zoomed in at different places) were 1.07 to 1.31 times faster in the model
+with jobs of 120 rows than with whole picture columns.
 
 Without the periodicity detection, the model gave a total waiting time of
 59,179,719 clock cycles, i.e. 28896\*2^11 clock cycles, or about 193 clock
@@ -743,9 +778,9 @@ cycles per pixel on average. The wait counter of a column module counted 2
 clock cycles more for each pixel. With these 2 clock cycles for each of the
 307200 pixels, the expected value on the LEDs was 29196 (0x720C), exactly the
 measured value. The wait counters have been removed from the design, so the
-model is now the way to get this value: `sim/model.py` prints both numbers
-(the total waiting time, and the value the wait counters would have shown).
-With the periodicity detection, the wait counters would show about 27981.
+model was then the way to get this value. With the periodicity detection
+(and the round-robin scheduler for the results), the wait counters would have
+shown about 27981.
 
 The wait counter counts from 3 clock cycles after the result is ready until
 the clock cycle before the acknowledge reaches the column module. When the
@@ -756,13 +791,13 @@ result is ready one clock cycle later, and waits one clock cycle less for the
 scheduler. The waiting time counted for a pixel is the time from one accepted
 result of the column module to the next, minus the time the iterator needs
 for the pixel, minus a fixed number of clock cycles, and this does not depend
-on the delay of the acknowledge. Neither does the time for the picture, because the time from
-one result of a column module to the next is still rounded up to the same
+on the delay of the acknowledge. Neither did the time for the picture, because the time from
+one result of a column module to the next was still rounded up to the same
 multiple of 240 clock cycles.
 
 Without the waiting, the picture would take about 0.9 ms (if the work was
-spread evenly over the column modules). So the time for the picture is now
-mostly decided by the round-robin scheduler for the results, which accepts a
+spread evenly over the column modules). So the time for the picture was
+mostly decided by the round-robin scheduler for the results, which accepted a
 result from each column module only once every 240 clock cycles.
 
 Similar values (472\*2^11 clock cycles for the picture, and 28642\*2^11 clock
@@ -772,10 +807,34 @@ all overflows and which calculated x+y and x-y in 18 bits (see
 picture did not change, because it is decided by the picture columns through
 the middle of the set, where most of the pixels reach the maximum count.
 
-This could be improved by accepting a result as soon as it is ready, e.g.
-with a priority encoder instead of the round-robin scheduler, or by
-storing a few results in each column module, so the iterator can continue with
-the next row while it waits.
+The display memory can take one result per clock cycle, so a picture takes
+at least 307200 clock cycles (1.63 ms). The round-robin scheduler gave each
+column module an equal share of this, one result every 240 clock cycles, also
+when the other column modules had no result ready. The scheduler for the
+results now accepts a result from any column module of a group that has one
+ready, visiting one group in each clock cycle (see [Dispatcher](#dispatcher)).
+The waiting time of a pixel then depends on the other column modules, so the
+model now simulates the dispatcher one clock cycle at a time
+(`picture_cycles()` in `sim/model.py`). It uses the time 3n+7 above for each
+pixel, from the clock cycle in which the previous result was sampled by the
+scheduler, and it includes the round-robin scheduler for the jobs. For the
+initial view it gives 347682 clock cycles for the picture, i.e. 1.85 ms at
+188.24 MHz, so the 7-segment display should show about 541 pictures per
+second. The same simulation with the round-robin scheduler for the results
+gives 2.24 ms (0.02 ms more than above, because it includes the time to give
+out the jobs), so the new scheduler is 1.21 times faster. The display memory
+is now written in 88% of the clock cycles, and the column modules wait 127
+clock cycles per pixel on average. Eight other views were 1.11 to 1.21 times
+faster with the new scheduler. A simulation of a complete picture with
+`main_tb` took 347110 clock cycles from the start to the last write to the
+display memory, 0.2% less than the model, and all the pixels were the same as
+in the model. None of this has been measured on the board yet.
+
+Storing a result in each column module, so the iterator could continue with
+the next row while it waits, was considered too. With the round-robin
+scheduler for the results it would have made the initial view only 4% faster
+(and two results no better than one), because each column module could still
+deliver only one result every 240 clock cycles.
 
 ## Resources and timing closure
 The numbers below come from a successful run of `make vivado` (Vivado 2025.1,
@@ -786,17 +845,17 @@ part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 | ---------------- | -------- | --------- | --------
 | DSP48E1          | 240      | 240       | 100
 | Block RAM        | 128 RAMB36 + 2 RAMB18 | 135 RAMB36 | about 96
-| Slices           | 14,641   | 15,850    | 92
-| LUTs             | 41,284   | 63,400    | 65
-| Registers        | 44,562   | 126,800   | 35
+| Slices           | 14,763   | 15,850    | 93
+| LUTs             | 42,232   | 63,400    | 67
+| Registers        | 44,707   | 126,800   | 35
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
 The resource numbers are from `report_utilization` on the routed design
 (`mandelbrot.dcp`), and the available numbers are the totals for the XC7A100T.
-Most of the slices are used, even though only 65% of the LUTs are used.
+Most of the slices are used, even though only 67% of the LUTs are used.
 
 The "Report Cell Usage" table in `vivado.log` gives the cell counts after
-synthesis instead: 54,492 LUT cells (LUT1 to LUT6) and 42,708 registers (FDRE
+synthesis instead: 55,525 LUT cells (LUT1 to LUT6) and 42,816 registers (FDRE
 and FDSE cells). The number of LUT cells is larger than the number of LUTs
 used, because two small LUT cells can share one LUT (the placer does this, e.g.
 "LUT Combining" in `phys_opt_design`). There are more registers after
@@ -840,12 +899,18 @@ after routing, with a setup slack of +0.045 ns. The column modules need fewer
 bits for the row (7 instead of 9), which saves more than the dispatcher
 needs for the blocks.
 
+The scheduler for the results (see [Dispatcher](#dispatcher)) uses about
+1,000 LUT cells more than the round-robin scheduler did. Before it, the design
+used 54,492 LUT cells and 42,708 registers after synthesis, and 41,284 LUTs,
+44,562 registers, and 14,641 slices (92%) after routing, with a setup slack of
++0.103 ns.
+
 The timing after routing is:
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.103 ns (TNS 0)
-| Hold (WHS)  | +0.014 ns (THS 0)
+| Setup (WNS) | +0.037 ns (TNS 0)
+| Hold (WHS)  | +0.021 ns (THS 0)
 
 These are the values from `report_timing_summary` on the routed design
 (`mandelbrot.dcp`), after the post-route `phys_opt_design`.
@@ -870,9 +935,13 @@ modules around them:
   modules, and the routes from the registers in the groups to the column
   modules.
 * The state machine of the iterator (from cnt\_r and state\_r), and the
-  periodicity detection (to match\_r and the saved values). In the latest
-  build, the worst path (+0.103 ns) is from state\_r to the clock enable of
-  the saved values.
+  periodicity detection (to match\_r and the saved values).
+* The scheduler for the results: from the acknowledge (`res_ack_r`) through
+  the round-robin selection in a group to the candidate of the group
+  (`cand_r`), with 6 levels of logic. This is the worst path in the latest
+  build (+0.037 ns). It could be shortened by registering the ready flags in
+  each group, which would add a clock cycle to the selection (and the counter
+  would then have to visit each group at most once every five clock cycles).
 * The next row in the column modules (to `res_cy_r`, whose clock enable
   depends on the result of the iterator).
 To go faster, the iterator would have to be changed, e.g. by registering the
@@ -973,7 +1042,8 @@ has +0.045 ns of setup slack at 188.24 MHz. The difference from +0.088 ns is
 the normal variation from one run to the next; the critical paths are the
 same.
 The build with the jobs of 120 rows (see [Dispatcher](#dispatcher)), at the
-same frequency, has +0.103 ns of setup slack.
+same frequency, had +0.103 ns of setup slack, and the build with the scheduler
+for the results has +0.037 ns.
 
 The complete run of `make vivado` takes about 6.5 minutes (synthesis about 2.5
 minutes, placement about 1.5 minutes, routing about 1 minute), on a machine

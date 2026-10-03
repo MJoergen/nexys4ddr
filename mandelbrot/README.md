@@ -5,7 +5,7 @@ picture (640x480) is shown on the VGA output, and you can pan and zoom using the
 buttons on the board.
 
 All 240 DSPs of the FPGA are used in parallel for the calculation, and the
-picture is stored in block RAM. Generating a complete picture takes about 2.2 ms
+picture is stored in block RAM. Generating a complete picture takes about 1.85 ms
 (estimated by the model), with the main clock at 188.24 MHz.
 
 ## The algorithm
@@ -34,15 +34,15 @@ the dispatcher, and the timing and resource usage.
 
 ## Implementation results
 The design is built with Vivado 2025.1 and meets timing at the 188.24 MHz main
-clock (setup slack +0.103 ns, hold slack +0.014 ns). The resources used are:
+clock (setup slack +0.037 ns, hold slack +0.021 ns). The resources used are:
 
 | Resource  | Used                  | Available
 | --------- | --------------------- | ---------
 | DSP48E1   | 240                   | 240
 | Block RAM | 128 RAMB36 + 2 RAMB18 | 135 RAMB36
-| Slices    | 14,641                | 15,850
-| LUTs      | 41,284                | 63,400
-| Registers | 44,562                | 126,800
+| Slices    | 14,763                | 15,850
+| LUTs      | 42,232                | 63,400
+| Registers | 44,707                | 126,800
 
 See [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details.
@@ -62,7 +62,8 @@ files that are in both clock domains are in [`src/`](src).
 | [`src/main/iterator.vhd`](src/main/iterator.vhd) | Iterates the Mandelbrot function for a single point, using one DSP.
 | [`src/main/column.vhd`](src/main/column.vhd) | A column module. Calculates one job (120 rows of a picture column) at a time, using one iterator.
 | [`src/main/dispatcher.vhd`](src/main/dispatcher.vhd) | Controls the calculation of the entire picture: hands out the jobs to the idle column modules, and collects the results. Instantiates the column modules.
-| [`src/main/scheduler.vhd`](src/main/scheduler.vhd) | Round-robin scheduler. Used by the dispatcher both to give jobs to idle column modules and to pick which column module's result to accept.
+| [`src/main/scheduler.vhd`](src/main/scheduler.vhd) | Round-robin scheduler. Used by the dispatcher to give jobs to idle column modules.
+| [`src/main/res_scheduler.vhd`](src/main/res_scheduler.vhd) | Scheduler for the results. Used by the dispatcher to pick which column module's result to accept, from the column modules that have a result ready.
 | [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture, in 128 blocks.
 | [`src/vga/pix.vhd`](src/vga/pix.vhd), [`src/vga/disp.vhd`](src/vga/disp.vhd) | VGA output. `pix` generates the pixel counters, and `disp` generates the sync signals and the pixel colour.
 | [`src/vga/palette_pkg.vhd`](src/vga/palette_pkg.vhd) | The four colour palettes, which convert the count of a pixel to its colour.
@@ -118,7 +119,7 @@ Type `make` to list the supported targets. The most important ones are:
 
 ## Simulation
 There are testbenches in [`sim/`](sim) for `dispatcher`, `column`, `iterator`,
-`scheduler`, `view`, `vga`, `disp_mem` and `fps`. All of them are
+`scheduler`, `res_scheduler`, `view`, `vga`, `disp_mem` and `fps`. All of them are
 self-checking, and stop with an error if the result is wrong. They stop by
 themselves when they are finished.
 

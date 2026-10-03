@@ -8,6 +8,7 @@ NAME = mandelbrot
 SRC  = src/main/iterator.vhd
 SRC += src/main/column.vhd
 SRC += src/main/scheduler.vhd
+SRC += src/main/res_scheduler.vhd
 SRC += src/main/dispatcher.vhd
 SRC += src/disp_mem.vhd
 SRC += src/vga/palette_pkg.vhd
@@ -22,7 +23,7 @@ SRC += src/clk_rst.vhd
 SRC += src/mandelbrot.vhd
 
 # Testbenches, i.e. sim/<name>_tb.vhd
-TBS = dispatcher column iterator scheduler view vga disp_mem fps
+TBS = dispatcher column iterator scheduler res_scheduler view vga disp_mem fps
 
 # Testbench simulated by the "run" and "check" targets. Must be specified on
 # the command line, e.g. "make run TB=iterator".
