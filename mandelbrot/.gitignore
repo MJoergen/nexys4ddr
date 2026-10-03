@@ -2,8 +2,8 @@
 work-obj08.cf
 *_tb
 *.o
-nexys4ddr.bit
-mandelbrot.dcp
+*.bit
+*.dcp
 vivado*
 clockInfo.txt
 tight_setup_hold_pins.txt

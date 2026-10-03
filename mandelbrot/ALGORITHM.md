@@ -792,7 +792,7 @@ part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
 The resource numbers are from `report_utilization` on the routed design
-(`mandelbrot.dcp`), and the available numbers are the totals for the XC7A100T.
+(`nexys4ddr.dcp`), and the available numbers are the totals for the XC7A100T.
 Most of the slices are used, even though only 65% of the LUTs are used.
 
 The "Report Cell Usage" table in `vivado.log` gives the cell counts after
@@ -848,7 +848,7 @@ The timing after routing is:
 | Hold (WHS)  | +0.014 ns (THS 0)
 
 These are the values from `report_timing_summary` on the routed design
-(`mandelbrot.dcp`), after the post-route `phys_opt_design`.
+(`nexys4ddr.dcp`), after the post-route `phys_opt_design`.
 
 The timing is met for all clocks. The 188.24 MHz main clock (period 5.31 ns)
 is generated from the 100 MHz input clock by the MMCM: it is multiplied by 12,

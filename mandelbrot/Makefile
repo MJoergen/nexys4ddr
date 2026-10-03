@@ -1,13 +1,24 @@
 XILINX_DIR = /opt/Xilinx/2025.1/Vivado
 
-# Name of top level module
+# Name of the design. Used for the Vivado script.
 NAME = mandelbrot
 
-# Name of target board. Used for the constraint file and the bit-file.
-BOARD = nexys4ddr
+# Target boards. Each board has its own FPGA part, top level module and
+# constraint file (<board>.xdc). The make target <board> generates the
+# bit-file <board>.bit.
+BOARDS = nexys4ddr mega65-r6
 
-# List of source files. This is the only list: it is also given to the Vivado
-# script (mandelbrot.tcl) by the target nexys4ddr.
+nexys4ddr_PART = xc7a100tcsg324-1
+nexys4ddr_TOP  = mandelbrot
+nexys4ddr_SRC  = src/mandelbrot.vhd
+
+mega65-r6_PART = xc7a200tfbg484-2
+mega65-r6_TOP  = mega65_r6
+mega65-r6_SRC  = src/mega65_r6.vhd
+
+# List of source files common to all boards. This is the only list: it is
+# also given to the Vivado script (mandelbrot.tcl), followed by the top level
+# module of the board.
 SRC  = src/main/iterator.vhd
 SRC += src/main/column.vhd
 SRC += src/main/scheduler.vhd
@@ -22,7 +33,6 @@ SRC += src/main/fps.vhd
 SRC += src/main/seg.vhd
 SRC += src/main/main.vhd
 SRC += src/clk_rst.vhd
-SRC += src/mandelbrot.vhd
 
 # Testbenches, i.e. sim/<name>_tb.vhd
 TBS = dispatcher column iterator scheduler view vga disp_mem fps
@@ -39,7 +49,7 @@ TB_EXE = $(TB)_tb
 # The clock module and the top level use Xilinx primitives, and are not
 # simulated. The bit-accurate model of the iterator (iterator_model_pkg.vhd) is
 # used by several testbenches.
-TB_SRC = $(filter-out src/clk_rst.vhd src/mandelbrot.vhd,$(SRC)) sim/iterator_model_pkg.vhd sim/$(TB)_tb.vhd
+TB_SRC = $(filter-out src/clk_rst.vhd,$(SRC)) sim/iterator_model_pkg.vhd sim/$(TB)_tb.vhd
 WAVE = sim/$(TB).ghw
 SAVE = sim/$(TB).gtkw
 
@@ -56,8 +66,9 @@ help:
 	@echo ""
 	@echo "Targets:"
 	@echo "  help            Show this help text (default)"
-	@echo "  nexys4ddr       Synthesize and implement the design using Vivado ($(BOARD).bit)"
-	@echo "  fpga            Program the Nexys4DDR board with $(BOARD).bit"
+	@echo "  nexys4ddr       Synthesize and implement the design for the Nexys 4 DDR using Vivado (nexys4ddr.bit)"
+	@echo "  mega65-r6       Synthesize and implement the design for the MEGA65 R6 using Vivado (mega65-r6.bit)"
+	@echo "  fpga            Program the Nexys 4 DDR board with nexys4ddr.bit"
 	@echo "  sim             Simulate all testbenches using ghdl"
 	@echo "  run             Simulate a single testbench (TB=<name>) using ghdl, without gtkwave"
 	@echo "  check           Simulate a single testbench (TB=<name>) using ghdl and show waveform in gtkwave"
@@ -71,14 +82,17 @@ help:
 # Generate bit-file and program FPGA
 #####################################
 
-.PHONY: $(BOARD)
-$(BOARD): $(BOARD).bit
+.PHONY: $(BOARDS)
+$(BOARDS): %: %.bit
 
-$(BOARD).bit: $(NAME).tcl $(SRC) $(BOARD).xdc
-	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $< -tclargs $(SRC)"
+# The arguments of the Vivado script are the board name, the FPGA part, the
+# top level module, and the source files.
+.SECONDEXPANSION:
+%.bit: $(NAME).tcl %.xdc $(SRC) $$($$*_SRC)
+	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $< -tclargs $* $($*_PART) $($*_TOP) $(SRC) $($*_SRC)"
 
 .PHONY: fpga
-fpga: $(BOARD).bit
+fpga: nexys4ddr.bit
 	djtgcfg prog -d Nexys4DDR -i 0 --file $<
 
 
@@ -124,8 +138,8 @@ clean:
 	rm -rf vivado*
 	rm -rf clockInfo.txt
 	rm -rf tight_setup_hold_pins.txt
-	rm -rf $(BOARD).bit
-	rm -rf $(NAME).dcp
+	rm -rf $(addsuffix .bit,$(BOARDS))
+	rm -rf $(addsuffix .dcp,$(BOARDS))
 	rm -rf .Xil
 	rm -rf .cache
 	rm -rf work-obj08.cf

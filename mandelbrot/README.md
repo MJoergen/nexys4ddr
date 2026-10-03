@@ -2,7 +2,9 @@
 This draws the [Mandelbrot set](https://en.wikipedia.org/wiki/Mandelbrot_set)
 in VHDL on the Nexys 4 DDR board, which has a Xilinx Artix-7 XC7A100T FPGA. The
 picture (640x480) is shown on the VGA output, and you can pan and zoom using the
-buttons on the board.
+buttons on the board. The same design also runs on the
+[MEGA65](https://mega65.org/) (board revision R6), which has a Xilinx Artix-7
+XC7A200T FPGA, see [MEGA65](#mega65).
 
 All 240 DSPs of the FPGA are used in parallel for the calculation, and the
 picture is stored in block RAM. Generating a complete picture takes about 2.2 ms
@@ -55,6 +57,7 @@ files that are in both clock domains are in [`src/`](src).
 | File             | Description
 | ---------------- | -----------
 | [`src/mandelbrot.vhd`](src/mandelbrot.vhd) | Top level. The ports are mapped directly to pins on the FPGA. Instantiates the clock and reset generation, the display memory, and the two modules below.
+| [`src/mega65_r6.vhd`](src/mega65_r6.vhd) | Top level for the MEGA65 R6. The same as `mandelbrot.vhd`, but with the ports of the MEGA65.
 | [`src/main/main.vhd`](src/main/main.vhd) | Everything in the MAIN clock domain: view control from buttons and switches, the dispatcher, and the frame rate on the 7-segment display.
 | [`src/main/view.vhd`](src/main/view.vhd) | View control. Pans and zooms the view, and keeps it inside the range of the number format.
 | [`src/main/fps.vhd`](src/main/fps.vhd), [`src/main/seg.vhd`](src/main/seg.vhd) | Frame rate. `fps` divides the clock frequency by the time taken by a picture and converts the result to decimal, and `seg` multiplexes the digits on the 7-segment display.
@@ -68,7 +71,7 @@ files that are in both clock domains are in [`src/`](src).
 | [`src/vga/palette_pkg.vhd`](src/vga/palette_pkg.vhd) | The four colour palettes, which convert the count of a pixel to its colour.
 | [`src/clk_rst.vhd`](src/clk_rst.vhd) | Clock and reset generation: 188.24 MHz for the calculation and 25 MHz for VGA, each with a synchronous reset.
 | [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a Python model of the iterator count (`iterator_model.py`), a vectorized model of the complete picture (`model.py`), the same bit-accurate model in VHDL (`iterator_model_pkg.vhd`, used by the testbenches), and a script (`cmp_rtl.py`) that compares the output of the testbench `main_tb` with this model.
-| [`nexys4ddr.xdc`](nexys4ddr.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make nexys4ddr`. The script gets the list of source files from the Makefile (`SRC`), so it must be run through `make nexys4ddr`.
+| [`nexys4ddr.xdc`](nexys4ddr.xdc), [`mega65-r6.xdc`](mega65-r6.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints for each board, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make nexys4ddr`. The script gets the FPGA part, the top level and the list of source files from the Makefile, so it must be run through `make nexys4ddr` or `make mega65-r6`.
 | [`mandelbrot.xlsx`](mandelbrot.xlsx) | Spreadsheet used during the design. It iterates the example point -1+0.5i from [the iterator section](ALGORITHM.md#iterator) using real numbers.
 | [`ALGORITHM.md`](ALGORITHM.md) | Detailed explanation of the algorithm and the design.
 
@@ -97,6 +100,21 @@ calculated per second, rounded down to an integer. It is calculated from the
 time taken by the most recently finished picture, and updated after every
 picture.
 
+### MEGA65
+The MEGA65 has no buttons, switches or 7-segment display, so the view is
+controlled with a joystick in each port, see
+[`src/mega65_r6.vhd`](src/mega65_r6.vhd). The VGA output is on the VGA
+connector.
+
+| Control | Description
+| ------- | -----------
+| Joystick port 1: left, right, up, down | Pan the picture, like `BTNL`, `BTNR`, `BTNU` and `BTND`.
+| Joystick port 1: fire | Zoom in, like `BTNC`.
+| Joystick port 2: fire | Zoom out, like `BTNC` with switch 2 on.
+| Reset button | Resets the design and returns to the initial view.
+
+The colour palette is always palette 0, and the frame rate is not shown.
+
 ## Running
 Type `make` to list the supported targets. The most important ones are:
 * `make nexys4ddr` synthesizes and implements the design using
@@ -104,7 +122,9 @@ Type `make` to list the supported targets. The most important ones are:
   and generates `nexys4ddr.bit`. It expects Vivado in
   `/opt/Xilinx/2025.1/Vivado` (the variable `XILINX_DIR`). It takes about 10
   minutes, and writes the log to `vivado.log`.
-* `make fpga` programs the board with `nexys4ddr.bit`, using `djtgcfg` from
+* `make mega65-r6` does the same for the MEGA65 R6, and generates
+  `mega65-r6.bit`.
+* `make fpga` programs the Nexys 4 DDR board with `nexys4ddr.bit`, using `djtgcfg` from
   Digilent Adept.
 * `make sim` runs all the testbenches one after another, without opening the
   waveform viewer, see [below](#simulation). This requires
