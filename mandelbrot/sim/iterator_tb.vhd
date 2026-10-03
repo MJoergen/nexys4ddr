@@ -5,10 +5,11 @@ use ieee.math_real.all;
 
 use work.iterator_model_pkg.all;
 
--- This is a simple self-checking testbench for the iterator. It is not
--- bit-accurate. Instead the expected iteration count is estimated using real
--- (floating point) values, and the count from the iterator must be close to
--- this. Only a few points are tested, in order to keep the simulation short.
+-- This is a simple self-checking testbench for the iterator. First, the
+-- expected iteration count of a few points is estimated using real (floating
+-- point) values, and the count from the iterator must be close to this. Only
+-- a few points are tested, in order to keep the simulation short. The exact
+-- comparison with the bit-accurate model follows at the end, see below.
 --
 -- The iterator stops when either the maximum count is reached, or when a new
 -- value of x or y is outside the range that can be represented, i.e. outside

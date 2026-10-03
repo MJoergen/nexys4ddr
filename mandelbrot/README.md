@@ -168,5 +168,8 @@ See [Iterator](ALGORITHM.md#iterator) for details.
 The simulation does not need any Xilinx libraries. The DSPs in the iterators
 are inferred by Vivado from plain VHDL, see [Multiplier](ALGORITHM.md#multiplier).
 
-The clock and reset module (`src/clk_rst.vhd`) and the top level (`src/mandelbrot.vhd`) use
-Xilinx primitives, and are not simulated.
+The clock and reset module (`src/clk_rst.vhd`) uses Xilinx primitives (the
+MMCM and the clock buffers), and so does the MEGA65 top level
+(`src/mega65_r6.vhd`, the clock of the video DAC). They are not simulated, and
+neither is the Nexys 4 DDR top level (`src/mandelbrot.vhd`), which instantiates
+`clk_rst`.

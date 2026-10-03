@@ -11,8 +11,9 @@ use unisim.vcomponents.all;
 -- It is the same design as mandelbrot.vhd (the top level module for the
 -- Nexys 4 DDR board), only the ports are different:
 -- * There are no buttons and switches. Instead, the view is controlled by the
---   joysticks: The directions of joystick port A pan the view, and the fire
---   button of port A zooms in. The fire button of port B zooms out.
+--   joysticks: The directions of joystick port 1 (fa_*) pan the view, and the
+--   fire button of port 1 zooms in. The fire button of port 2 (fb_*) zooms
+--   out.
 -- * The palette can not be selected, so palette 0 is always used.
 -- * There is no 7-segment display, so the frame rate is only shown on the VGA
 --   output.
