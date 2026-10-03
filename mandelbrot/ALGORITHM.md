@@ -667,9 +667,9 @@ part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 | ---------------- | -------- | --------- | --------
 | DSP48E1          | 240      | 240       | 100
 | Block RAM        | 128 RAMB36 + 1 RAMB18 | 135 RAMB36 | about 95
-| Slices           | 14,656   | 15,850    | 92
-| LUTs             | 40,287   | 63,400    | 64
-| Registers        | 44,550   | 126,800   | 35
+| Slices           | 14,655   | 15,850    | 92
+| LUTs             | 40,392   | 63,400    | 64
+| Registers        | 44,519   | 126,800   | 35
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
 The resource numbers are from `report_utilization` on the routed design
@@ -677,7 +677,7 @@ The resource numbers are from `report_utilization` on the routed design
 Most of the slices are used, even though only 64% of the LUTs are used.
 
 The "Report Cell Usage" table in `vivado.log` gives the cell counts after
-synthesis instead: 53,266 LUT cells (LUT1 to LUT6) and 44,489 registers (FDRE
+synthesis instead: 53,386 LUT cells (LUT1 to LUT6) and 44,493 registers (FDRE
 and FDSE cells). The number of LUT cells is larger than the number of LUTs
 used, because two small LUT cells can share one LUT (the placer does this, e.g.
 "LUT Combining" in `phys_opt_design`).
@@ -703,7 +703,7 @@ The timing after routing is:
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.347 ns (TNS 0)
+| Setup (WNS) | +0.342 ns (TNS 0)
 | Hold (WHS)  | +0.015 ns (THS 0)
 
 These are the values from `report_timing_summary` on the routed design
@@ -718,12 +718,13 @@ The critical paths are now spread over many parts of the design, and no path
 has less than 0.3 ns of slack. The worst ones are the routes that remain long:
 * From the registers in the dispatcher that hold the job (`job_cx_r`,
   `job_starty_r` and `job_stepy_r`) to the registers in the groups
-  (`grp_cx_r` etc.), and from these to the column modules. The worst path has
-  no logic at all, and 93% of the delay is routing.
-* The reset of the wait counter sum in the dispatcher, the acknowledge of the
-  results (from `grp_idx_r` to `res_ack_r`), and the tree of registers for the
-  write address and data of the display memory, all with about 0.45 ns of
-  slack.
+  (`grp_cx_r` etc.), and from these to the column modules. The worst path,
+  from `grp_cx_r` to `res_cx_r` in a column module, has no logic at all, and
+  93% of the delay is routing.
+* The done flag of the dispatcher (from the busy flags of all the column
+  modules to `done_r`), the row in the column modules (from `res_addr_r` to
+  `res_cy_r`), and the tree of registers for the write address and data of the
+  display memory, with 0.36 to 0.46 ns of slack.
 
 In earlier runs, the critical paths were the routes from single registers to
 all 240 column modules (the job, the reset, and the index of the column module
@@ -744,10 +745,10 @@ overflow detection in the iterator was improved (see [Overflow](#overflow)),
 which uses more logic (about 1,400 more LUTs), the design no longer met timing
 at 150 MHz (setup slack -0.055 ns, with the critical paths in the dispatcher),
 and the main clock was lowered to 140.625 MHz. With the registers in the
-groups and the blocks, the slack (+0.347 ns) may now be enough for a slightly
+groups and the blocks, the slack (+0.342 ns) may now be enough for a slightly
 higher clock frequency. This has not been tried yet.
 
-The complete run of `make vivado` takes about 6.5 minutes (synthesis about 2.5
+The complete run of `make vivado` takes about 6 minutes (synthesis about 2.5
 minutes, placement about 1.5 minutes, routing about 1 minute), on a machine
 with 8 threads.
 
