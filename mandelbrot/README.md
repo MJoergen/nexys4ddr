@@ -136,7 +136,7 @@ Type `make` to list the supported targets. The most important ones are:
 * `make nexys4ddr` synthesizes and implements the design using
   [Vivado](https://www.amd.com/en/products/software/adaptive-socs-and-fpgas/vivado.html),
   and generates `nexys4ddr.bit`. It expects Vivado in
-  `/opt/Xilinx/2025.1/Vivado` (the variable `XILINX_DIR`). It takes about 10
+  `/opt/Xilinx/2025.1/Vivado` (the variable `XILINX_DIR`). It takes about 6.5
   minutes, and writes the log to `vivado.log`.
 * `make mega65-r6` does the same for the MEGA65 R6, and generates
   `mega65-r6.bit`.
@@ -175,5 +175,8 @@ See [Iterator](ALGORITHM.md#iterator) for details.
 The simulation does not need any Xilinx libraries. The DSPs in the iterators
 are inferred by Vivado from plain VHDL, see [Multiplier](ALGORITHM.md#multiplier).
 
-The clock and reset module (`src/clk_rst.vhd`) and the top level (`src/mandelbrot.vhd`) use
-Xilinx primitives, and are not simulated.
+The clock and reset module (`src/clk_rst.vhd`) uses Xilinx primitives (the
+MMCM and the clock buffers), and so does the MEGA65 top level
+(`src/mega65_r6.vhd`, the clock of the video DAC). They are not simulated, and
+neither is the Nexys 4 DDR top level (`src/mandelbrot.vhd`), which instantiates
+`clk_rst`.

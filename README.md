@@ -11,3 +11,7 @@ MIT 6.004
 
 ## [queens](queens)
 Solves the 8-queens problem.
+
+## [mandelbrot](mandelbrot)
+Draws the Mandelbrot set on the VGA output, using all 240 DSPs of the FPGA in
+parallel, with pan and zoom from the buttons. It also runs on the MEGA65.

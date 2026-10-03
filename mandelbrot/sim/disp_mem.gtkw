@@ -6,28 +6,29 @@
 [pos] -1 -1
 [treeopen] top.
 [treeopen] top.disp_mem_tb.
-[treeopen] top.disp_mem_tb.i_disp_mem.
+[treeopen] top.disp_mem_tb.gen_dut[1].
+[treeopen] top.disp_mem_tb.gen_dut[1].i_disp_mem.
 [sst_width] 250
 [signals_width] 300
 [sst_expanded] 1
 [sst_vpaned_height] 300
 @28
-top.disp_mem_tb.i_disp_mem.wr_clk_i
+top.disp_mem_tb.gen_dut[1].i_disp_mem.wr_clk_i
 @22
-top.disp_mem_tb.i_disp_mem.wr_addr_i[18:0]
+top.disp_mem_tb.gen_dut[1].i_disp_mem.wr_addr_i[18:0]
 @22
-top.disp_mem_tb.i_disp_mem.wr_data_i[7:0]
+top.disp_mem_tb.gen_dut[1].i_disp_mem.wr_data_i[35:0]
 @28
-top.disp_mem_tb.i_disp_mem.wr_en_i
+top.disp_mem_tb.gen_dut[1].i_disp_mem.wr_en_i
 @22
-top.disp_mem_tb.i_disp_mem.grp_en_r[15:0]
+top.disp_mem_tb.gen_dut[1].i_disp_mem.grp_en_r[15:0]
 @28
-top.disp_mem_tb.i_disp_mem.rd_clk_i
+top.disp_mem_tb.gen_dut[1].i_disp_mem.rd_clk_i
 @22
-top.disp_mem_tb.i_disp_mem.rd_addr_i[18:0]
+top.disp_mem_tb.gen_dut[1].i_disp_mem.rd_addr_i[18:0]
 @22
-top.disp_mem_tb.i_disp_mem.rd_sel_r[18:12]
+top.disp_mem_tb.gen_dut[1].i_disp_mem.rd_sel_r[16:10]
 @22
-top.disp_mem_tb.i_disp_mem.rd_data_o[7:0]
+top.disp_mem_tb.gen_dut[1].i_disp_mem.rd_data_o[8:0]
 [pattern_trace] 1
 [pattern_trace] 0

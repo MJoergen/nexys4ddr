@@ -12,11 +12,8 @@ foreach src [lrange $argv 3 end] {
 }
 read_xdc $board.xdc
 set_param messaging.defaultLimit 3000
-#synth_design -verbose -top mandelbrot -part xc7a100tcsg324-1 -flatten_hierarchy none -keep_equivalent_registers -resource_sharing off
 synth_design -verbose -top $top -part $part -flatten_hierarchy none -directive AreaOptimized_medium
-#opt_design -verbose -remap -resynth_seq_area -muxf_remap
 opt_design -verbose -directive ExploreWithRemap
-#power_opt_design -verbose
 place_design
 phys_opt_design -verbose -directive AlternateFlowWithRetiming
 route_design

@@ -40,8 +40,9 @@
 -- too (in the C register), but the sum is not (the P register is not used).
 -- The DSP is inferred by the synthesis tool, see p_dsp.
 --
--- The XC7A100T has 240 DSP slices, so up to 240 copies of this
--- iterator can potentially be instantiated.
+-- Each copy of this iterator uses one DSP slice. The XC7A100T (Nexys 4 DDR)
+-- has 240 DSP slices, and the design uses all of them. The XC7A200T (MEGA65)
+-- has 740, and the design uses 450 (see mega65_r6.vhd).
 --
 -- Real numbers are represented in 2.16 fixed point two's complement
 -- form, in the range -2 to 2 (not including 2). Examples

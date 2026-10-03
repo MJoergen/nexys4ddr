@@ -18,7 +18,7 @@ top.scheduler_tb.i_scheduler.rst_i
 @28
 top.scheduler_tb.i_scheduler.sched_active_i
 @22
-#{top.scheduler_tb.i_scheduler.job_busy_i[5:0]} top.scheduler_tb.i_scheduler.job_busy_i[5] top.scheduler_tb.i_scheduler.job_busy_i[4] top.scheduler_tb.i_scheduler.job_busy_i[3] top.scheduler_tb.i_scheduler.job_busy_i[2] top.scheduler_tb.i_scheduler.job_busy_i[1] top.scheduler_tb.i_scheduler.job_busy_i[0]
+#{top.scheduler_tb.i_scheduler.job_busy_i[20:0]} top.scheduler_tb.i_scheduler.job_busy_i[20] top.scheduler_tb.i_scheduler.job_busy_i[19] top.scheduler_tb.i_scheduler.job_busy_i[18] top.scheduler_tb.i_scheduler.job_busy_i[17] top.scheduler_tb.i_scheduler.job_busy_i[16] top.scheduler_tb.i_scheduler.job_busy_i[15] top.scheduler_tb.i_scheduler.job_busy_i[14] top.scheduler_tb.i_scheduler.job_busy_i[13] top.scheduler_tb.i_scheduler.job_busy_i[12] top.scheduler_tb.i_scheduler.job_busy_i[11] top.scheduler_tb.i_scheduler.job_busy_i[10] top.scheduler_tb.i_scheduler.job_busy_i[9] top.scheduler_tb.i_scheduler.job_busy_i[8] top.scheduler_tb.i_scheduler.job_busy_i[7] top.scheduler_tb.i_scheduler.job_busy_i[6] top.scheduler_tb.i_scheduler.job_busy_i[5] top.scheduler_tb.i_scheduler.job_busy_i[4] top.scheduler_tb.i_scheduler.job_busy_i[3] top.scheduler_tb.i_scheduler.job_busy_i[2] top.scheduler_tb.i_scheduler.job_busy_i[1] top.scheduler_tb.i_scheduler.job_busy_i[0]
 @24
 top.scheduler_tb.i_scheduler.cnt_r
 @28

@@ -196,9 +196,10 @@ begin
    -- At the end of a picture, cnt is the time taken by the picture. The
    -- picture is recalculated continuously, so the frame rate is updated
    -- after every picture.
-   -- cnt wraps around after 2^27 clock cycles (0.69 s), but a picture takes
-   -- at most 480*1680 clock cycles (4.1 ms, every pixel in the set, see
-   -- ALGORITHM.md), so the frame rate is never below 243.
+   -- cnt wraps around after 2^27 clock cycles (0.71 s), but a picture takes
+   -- far less: even if every pixel needed the maximum count, the model
+   -- (sim/model.py) gives about 2.0 million clock cycles (10.8 ms), i.e. a
+   -- frame rate of about 92.
    i_fps : entity work.fps
       generic map (
          G_CLK_FREQ  => C_CLK_FREQ,
