@@ -8,7 +8,11 @@ use ieee.numeric_std_unsigned.all;
 entity column is
    generic (
       G_MAX_COUNT : integer;
-      G_NUM_ROWS  : integer
+      G_NUM_ROWS  : integer;
+      -- Count the clock cycles spent waiting for the result to be accepted
+      -- (wait_cnt_o). When false, wait_cnt_o is always zero, which saves a
+      -- 27-bit counter in each column module.
+      G_WAIT_STAT : boolean := false
    );
    port (
       clk_i        : in  std_logic;
@@ -139,20 +143,28 @@ begin
    -- Count cycles waiting for acknowledge
    ----------------------------------------
 
-   p_wait : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         res_valid_dd <= res_valid_d;
+   gen_wait : if G_WAIT_STAT generate
+      p_wait : process (clk_i)
+      begin
+         if rising_edge(clk_i) then
+            res_valid_dd <= res_valid_d;
 
-         if res_valid_dd = '1' and res_valid_d = '1' and res_ack_i = '0' then
-            wait_cnt <= wait_cnt + 1;
-         end if;
+            if res_valid_dd = '1' and res_valid_d = '1' and res_ack_i = '0' then
+               wait_cnt <= wait_cnt + 1;
+            end if;
 
-         if rst_r = '1' then
-            wait_cnt <= (others => '0');
+            if rst_r = '1' then
+               wait_cnt <= (others => '0');
+            end if;
          end if;
-      end if;
-   end process p_wait;
+      end process p_wait;
+
+      wait_cnt_o <= wait_cnt(26 downto 11);
+   end generate gen_wait;
+
+   gen_wait_off : if not G_WAIT_STAT generate
+      wait_cnt_o <= (others => '0');
+   end generate gen_wait_off;
 
 
    --------------------------
@@ -164,8 +176,6 @@ begin
    res_addr_o  <= res_addr_d;
    res_data_o  <= res_data_d;
    res_valid_o <= res_valid_d;
-
-   wait_cnt_o  <= wait_cnt(26 downto 11);
 
 end architecture rtl;
 

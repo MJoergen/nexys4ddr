@@ -6,7 +6,7 @@ use work.palette_pkg.all;
 
 -- This module generates the VGA output signals (640x480 @ 60 Hz) from the
 -- pixel counters. The value of the pixel at (vga_pix_x_i, vga_pix_y_i), i.e.
--- the lowest 8 bits of its iteration count, must be given on vga_col_d3_i three
+-- its iteration count (9 bits), must be given on vga_col_d3_i three
 -- clock cycles later, which is the read latency of the display memory. It is
 -- converted to the colour by the palette selected by vga_palette_i (see
 -- palette_pkg.vhd). The colour is only output inside the visible area.
@@ -17,7 +17,7 @@ entity disp is
       vga_rst_i    : in  std_logic;
       vga_pix_x_i  : in  std_logic_vector(9 downto 0);
       vga_pix_y_i  : in  std_logic_vector(9 downto 0);
-      vga_col_d3_i : in  std_logic_vector(7 downto 0);
+      vga_col_d3_i : in  std_logic_vector(8 downto 0);
       vga_palette_i: in  std_logic_vector(1 downto 0);
       vga_hs_o     : out std_logic;
       vga_vs_o     : out std_logic;

@@ -11,7 +11,12 @@ entity dispatcher is
       G_NUM_ROWS      : integer;
       G_NUM_COLS      : integer;
       G_NUM_ITERATORS : integer;
-      G_GROUP_SIZE    : integer := 16
+      G_GROUP_SIZE    : integer := 16;
+      -- Count the clock cycles the column modules spend waiting for their
+      -- results to be accepted, and add them up (wait_cnt_tot_o). When false,
+      -- wait_cnt_tot_o is always zero, which saves a counter in each column
+      -- module and the chain of adders below.
+      G_WAIT_STAT     : boolean := false
    );
    port (
       clk_i           : in  std_logic;
@@ -264,7 +269,8 @@ begin
       i_column : entity work.column
          generic map (
             G_MAX_COUNT => G_MAX_COUNT,
-            G_NUM_ROWS  => G_NUM_ROWS
+            G_NUM_ROWS  => G_NUM_ROWS,
+            G_WAIT_STAT => G_WAIT_STAT
          )
          port map (
             clk_i        => clk_i,
@@ -400,19 +406,27 @@ begin
    -- Add together all wait counts
    --------------------------------
 
-   wait_cnt_tot_r(0) <= wait_cnt_s(0);
-   g_wait_cnt_tot : for i in 1 to G_NUM_ITERATORS-1 generate
-      p_g_wait_cnt_tot : process (clk_i)
-      begin
-         if rising_edge(clk_i) then
-            wait_cnt_tot_r(i) <= wait_cnt_tot_r(i-1) + wait_cnt_s(i);
+   gen_wait_stat : if G_WAIT_STAT generate
+      wait_cnt_tot_r(0) <= wait_cnt_s(0);
+      g_wait_cnt_tot : for i in 1 to G_NUM_ITERATORS-1 generate
+         p_g_wait_cnt_tot : process (clk_i)
+         begin
+            if rising_edge(clk_i) then
+               wait_cnt_tot_r(i) <= wait_cnt_tot_r(i-1) + wait_cnt_s(i);
 
-            if rst_i = '1' then
-               wait_cnt_tot_r(i) <= (others => '0');
+               if rst_i = '1' then
+                  wait_cnt_tot_r(i) <= (others => '0');
+               end if;
             end if;
-         end if;
-      end process p_g_wait_cnt_tot;
-   end generate g_wait_cnt_tot;
+         end process p_g_wait_cnt_tot;
+      end generate g_wait_cnt_tot;
+
+      wait_cnt_tot_o <= wait_cnt_tot_r(G_NUM_ITERATORS-1);
+   end generate gen_wait_stat;
+
+   gen_wait_stat_off : if not G_WAIT_STAT generate
+      wait_cnt_tot_o <= (others => '0');
+   end generate gen_wait_stat_off;
 
 
    --------------------------
@@ -424,7 +438,6 @@ begin
    wr_en_o        <= wr_en_r;
 
    done_o         <= done_r;
-   wait_cnt_tot_o <= wait_cnt_tot_r(G_NUM_ITERATORS-1);
 
 end architecture rtl;
 

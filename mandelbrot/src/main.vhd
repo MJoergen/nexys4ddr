@@ -9,7 +9,7 @@ use ieee.numeric_std_unsigned.all;
 -- The view is controlled by the buttons and switches on the board:
 --   btn_i(4)         : Zoom in. If sw_i(2) is set then zoom out instead.
 --   btn_i(3 downto 0): Move the view left, right, up and down.
---   sw_i(1)          : Select what the LEDs show.
+--   sw_i(1)          : Select what the LEDs show (if C_WAIT_STAT is true).
 -- While a button is pressed, the view is updated about 21 times per second.
 -- The view is kept inside the range -2 to 2, see view.vhd.
 -- Switches 3 and 4 select the colour palette, but they are used in vga.vhd, not
@@ -26,7 +26,7 @@ entity main is
 
       -- Write port of the display memory
       wr_addr_o : out std_logic_vector(18 downto 0);
-      wr_data_o : out std_logic_vector( 7 downto 0);
+      wr_data_o : out std_logic_vector( 8 downto 0);
       wr_en_o   : out std_logic
    );
 end main;
@@ -42,6 +42,12 @@ architecture structural of main is
    constant C_START_Y       : real := -1.0000;
    constant C_SIZE_X        : real :=  2.6667;
    constant C_SIZE_Y        : real :=  2.0000;
+
+   -- Measure the waiting time of the column modules, and show it on the LEDs
+   -- when switch 1 is off. This costs a counter in each column module and a
+   -- chain of adders in the dispatcher, so it is off by default. When it is
+   -- off, the LEDs always show the time for the picture.
+   constant C_WAIT_STAT     : boolean := false;
 
    -- The waiting time on the LEDs is averaged over 2^C_AVG_LOG2 pictures,
    -- i.e. 64 pictures, which is about 0.35 seconds for the initial view.
@@ -226,7 +232,8 @@ begin
          G_MAX_COUNT     => C_MAX_COUNT,
          G_NUM_ROWS      => C_NUM_ROWS,
          G_NUM_COLS      => C_NUM_COLS,
-         G_NUM_ITERATORS => C_NUM_ITERATORS
+         G_NUM_ITERATORS => C_NUM_ITERATORS,
+         G_WAIT_STAT     => C_WAIT_STAT
       )
       port map (
          clk_i           => clk_i,
@@ -248,7 +255,8 @@ begin
    -- Connect output signals
    --------------------------
 
-   -- The LEDs show one of two values, selected by sw_i(1):
+   -- The LEDs show one of two values, selected by sw_i(1) (only the first one
+   -- when C_WAIT_STAT is false):
    -- * The time taken by the most recently finished picture. The counter cnt
    --   increments at 174.545 MHz while a picture is being calculated, and only
    --   bits 26 downto 11 are shown, so a single count on the LEDs is 11.73 us.
@@ -257,12 +265,11 @@ begin
    --   summed up, and averaged over the last 2^C_AVG_LOG2 pictures. This is
    --   the time spent waiting for the result to be acknowledged, in the same
    --   units (2^11 clock cycles).
-   led_o <= pic_time when sw_r(1) = '1' else pic_wait;
+   led_o <= pic_time when sw_r(1) = '1' or not C_WAIT_STAT else pic_wait;
 
-   -- The display memory is only 8 bits wide, so only the lower 8 bits of the
-   -- count are written. They are used directly as the colour (RRRGGGBB).
+   -- The display memory holds the full 9-bit count, see palette_pkg.vhd.
    wr_addr_o <= wr_addr_s;
-   wr_data_o <= wr_data_s(7 downto 0);
+   wr_data_o <= wr_data_s;
    wr_en_o   <= wr_en_s;
 
 end architecture structural;

@@ -12,9 +12,10 @@ with the main clock at 174.55 MHz.
 For each pixel, which corresponds to a complex number $c$, we iterate
 $z \mapsto z^2 + c$ starting from $z = 0$, and count the number of iterations
 until the real or the imaginary part of $z$ leaves the range -2 to 2 (the range
-of the number format), up to a maximum of 511. The lower 8 bits of this count
-decide the colour of the pixel, using one of four colour palettes, selected
-with switches 3 and 4 (see [Controls](#controls)).
+of the number format), up to a maximum of 511. This count decides the colour
+of the pixel, using one of four colour palettes, selected with switches 3 and 4
+(see [Controls](#controls)). The points in the set (count 511) have their own
+colour, and the other counts use the lower 8 bits of the count.
 
 The numbers are 18-bit
 [fixed point](https://en.wikipedia.org/wiki/Fixed-point_arithmetic) (2 integer
@@ -41,7 +42,9 @@ clock (setup slack +0.094 ns, hold slack +0.014 ns). The resources used are:
 | LUTs      | 40,542                | 63,400
 | Registers | 46,345                | 126,800
 
-See [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
+These numbers are from a build with the waiting-time statistic enabled (see
+[Controls](#controls)), which is now off by default. See
+[Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details.
 
 ## Files
@@ -75,7 +78,7 @@ the board. The switch numbers are the bit numbers of the switch input, i.e.
 | ------- | -----------
 | `BTNL`, `BTNR`, `BTNU`, `BTND` | Pan the picture left, right, up and down, by one pixel for each update. Panning stops at the edge of the number range (-2 to 2).
 | `BTNC` | Zoom in. With switch 2 on, zoom out instead. The centre of the picture stays fixed, except when zooming out would move an edge of the view beyond -2 or 2; then the view is moved instead. Zooming stops at the smallest pixel size (2^-16), and when the view can not get larger.
-| Switch 1 | Selects what the LEDs show. On: the time taken to calculate the most recently finished picture, in units of 11.7 us (2^11 clock cycles), updated at the end of each picture. Off: the total time that the column modules have spent waiting for their results to be accepted during a picture, summed up over all column modules, in the same unit, and averaged over 64 pictures (about 0.35 seconds), updated after every 64 pictures.
+| Switch 1 | Selects what the LEDs show, but only when the waiting-time statistic is enabled (`C_WAIT_STAT` in `src/main.vhd`, off by default; otherwise the LEDs always show the time for the picture). On: the time taken to calculate the most recently finished picture, in units of 11.7 us (2^11 clock cycles), updated at the end of each picture. Off: the total time that the column modules have spent waiting for their results to be accepted during a picture, summed up over all column modules, in the same unit, and averaged over 64 pictures (about 0.35 seconds), updated after every 64 pictures.
 | Switches 3 and 4 | Select the colour palette (switch 4 is the high bit). 0 (both off): the lower 8 bits of the count are the colour (RRRGGGBB), mostly blue and green, and the set is white. 1: rainbow, the hue goes around the colour circle every 16 counts. 2: fire, black, red, orange, yellow and white, with the square root of the count. 3: blue, white, orange and dark brown, with the logarithm of the count. In the palettes 1 to 3 the set is black.
 | Switches 0 and 5 to 7 | Not used.
 | `CPU RESET` | Resets the design and returns to the initial view.
