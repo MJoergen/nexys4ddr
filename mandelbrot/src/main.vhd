@@ -12,7 +12,8 @@ use ieee.numeric_std_unsigned.all;
 --   sw_i(1)          : Select what the LEDs show.
 -- While a button is pressed, the view is updated about 17 times per second.
 -- The view is kept inside the range -2 to 2, see view.vhd.
--- The other switches are not used.
+-- Switches 3 and 4 select the colour palette, but they are used in vga.vhd, not
+-- here. The other switches are not used.
 
 entity main is
    port (

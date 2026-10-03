@@ -1,18 +1,32 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
--- This is a self-checking testbench for the VGA output (vga.vhd, i.e. pix.vhd
--- and disp.vhd). The display memory is replaced by a constant non-zero colour,
--- so the colour output is non-zero exactly in the visible area. It checks the
--- timing of 640x480 @ 60 Hz from the VESA standard, in clock cycles (pixels)
--- and lines:
+use work.palette_pkg.all;
+
+-- This is a self-checking testbench for the VGA output (vga.vhd, i.e. pix.vhd,
+-- disp.vhd and the palettes in palette_pkg.vhd). It has two phases.
+--
+-- In the first phase, the display memory is replaced by a constant value, and
+-- the first palette is used (the colour is the value), so the colour output is
+-- non-zero exactly in the visible area. It checks the timing of 640x480 @ 60 Hz
+-- from the VESA standard, in clock cycles (pixels) and lines:
 -- * The sync pulses are active low (negative polarity): Both sync signals are
 --   high in the visible area, and the sync pulses are low.
 -- * Horizontal: 640 visible pixels, front porch 16, sync pulse 96, back porch
 --   48, i.e. 800 in total.
 -- * Vertical: 480 visible lines, front porch 10, sync pulse 2, back porch 33,
 --   i.e. 525 in total.
--- The testbench runs for a little more than one frame, and stops by itself.
+--
+-- In the second phase, the display memory is replaced by a model with the read
+-- latency of disp_mem.vhd (three clock cycles), which holds a different value
+-- for each pixel, (x + 3*y) mod 256, so all 256 values occur on each line. The
+-- palette is changed every 120 lines (it is selected by the asynchronous input
+-- palette_i), so all four palettes are used. It checks that the colour of each
+-- pixel of a frame is the value of that pixel in the selected palette, and
+-- black outside the visible area.
+--
+-- The testbench runs for a little more than two frames, and stops by itself.
 
 entity vga_tb is
 end entity vga_tb;
@@ -40,6 +54,20 @@ architecture simulation of vga_tb is
    signal vga_vs  : std_logic;
    signal vga_col : std_logic_vector(7 downto 0);
 
+   -- The second phase
+   signal pattern : boolean := false;
+   signal palette : std_logic_vector(1 downto 0) := "00";
+   signal rd_data : std_logic_vector(7 downto 0);
+   signal mem_d1  : std_logic_vector(7 downto 0);
+   signal mem_d2  : std_logic_vector(7 downto 0);
+   signal mem_d3  : std_logic_vector(7 downto 0);
+
+   -- The value of the pixel (x, y) in the display memory in the second phase
+   function pixel_value (x : integer; y : integer) return std_logic_vector is
+   begin
+      return std_logic_vector(to_unsigned((x + 3*y) mod 256, 8));
+   end function pixel_value;
+
 begin
 
    ----------------------------
@@ -62,6 +90,23 @@ begin
       rst <= '0';
       wait;
    end process p_rst;
+
+
+   ----------------------------
+   -- Model of the display memory
+   ----------------------------
+
+   p_mem : process (clk)
+   begin
+      if rising_edge(clk) then
+         mem_d1 <= pixel_value(to_integer(unsigned(rd_addr(18 downto 9))),
+                               to_integer(unsigned(rd_addr(8 downto 0))));
+         mem_d2 <= mem_d1;
+         mem_d3 <= mem_d2;
+      end if;
+   end process p_mem;
+
+   rd_data <= mem_d3 when pattern else C_COLOUR;
 
 
    ----------------------------
@@ -88,6 +133,14 @@ begin
       variable lines      : integer := 0;    -- Visible lines in this frame
       variable frames     : integer := 0;    -- Frames checked
       variable visible    : boolean;
+
+      -- The second phase
+      variable t0         : integer;         -- Time of the falling edge of vs
+      variable n          : integer;         -- Pixel number from (0, 0)
+      variable x          : integer;
+      variable y          : integer;
+      variable exp        : std_logic_vector(7 downto 0);
+      variable errors     : integer := 0;
    begin
       if rising_edge(clk) and rst = '0' and not started then
          -- The first values, so that no edges are detected in the first clock
@@ -96,6 +149,45 @@ begin
          hs_d      := vga_hs;
          vs_d      := vga_vs;
          visible_d := vga_col /= X"00";
+
+      elsif rising_edge(clk) and rst = '0' and pattern then
+         -- The second phase. The output at the falling edge of vs is the pixel
+         -- (0, 490), see the first phase.
+         t := t + 1;
+         n := t - t0 + 490*C_H_TOTAL;
+         x := n mod C_H_TOTAL;
+         y := (n / C_H_TOTAL) mod C_V_TOTAL;
+
+         exp := (others => '0');
+         if x < C_H_VISIBLE and y < C_V_VISIBLE then
+            exp := C_PALETTES(y / 120)(to_integer(unsigned(pixel_value(x, y))));
+         end if;
+         if vga_col /= exp then
+            if errors < 10 then
+               report "Wrong colour at (" & integer'image(x) & ", " &
+                      integer'image(y) & "): got " &
+                      integer'image(to_integer(unsigned(vga_col))) &
+                      ", expected " & integer'image(to_integer(unsigned(exp)))
+                  severity error;
+            end if;
+            errors := errors + 1;
+         end if;
+
+         -- Change the palette between the lines 119 and 120, 239 and 240, and
+         -- 359 and 360 (after the visible part of the line), and back to the
+         -- first palette after the line 479
+         if x = 700 and y < C_V_VISIBLE and y mod 120 = 119 then
+            palette <= std_logic_vector(to_unsigned((y / 120 + 1) mod 4, 2));
+         end if;
+
+         -- Stop after the last visible line of the next frame
+         if n = (C_V_TOTAL + C_V_VISIBLE)*C_H_TOTAL then
+            assert errors = 0
+               report integer'image(errors) & " pixels with the wrong colour"
+               severity error;
+            report "vga_tb: finished";
+            std.env.finish;
+         end if;
 
       elsif rising_edge(clk) and rst = '0' then
          t := t + 1;
@@ -193,8 +285,11 @@ begin
          if frames = 1 then
             assert vs_rise > 0 and hs_rise > 0
                report "Sync pulses not seen" severity error;
-            report "vga_tb: finished";
-            std.env.finish;
+
+            -- Start the second phase, at the falling edge of vs
+            pattern <= true;
+            palette <= "00";
+            t0      := t;
          end if;
       end if;
    end process p_check;
@@ -209,7 +304,8 @@ begin
          clk_i     => clk,
          rst_i     => rst,
          rd_addr_o => rd_addr,
-         rd_data_i => C_COLOUR,
+         rd_data_i => rd_data,
+         palette_i => palette,
          vga_hs_o  => vga_hs,
          vga_vs_o  => vga_vs,
          vga_col_o => vga_col

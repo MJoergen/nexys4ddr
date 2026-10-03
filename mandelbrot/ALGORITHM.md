@@ -25,7 +25,7 @@ mandelbrot                      src/mandelbrot.vhd (top level, clocks and resets
  +- disp_mem                    src/disp_mem.vhd (display memory, between the two clock domains)
  +- vga                         src/vga.vhd (everything in the VGA clock domain)
      +- pix                     src/pix.vhd (pixel counters)
-     +- disp                    src/disp.vhd (VGA output)
+     +- disp                    src/disp.vhd (VGA output, uses the palettes in src/palette_pkg.vhd)
 ```
 The number of column modules (and therefore iterators and DSPs) is set by the
 generic `G_NUM_ITERATORS`, which `main` sets to 240.
@@ -426,9 +426,8 @@ at present.
 ([`src/disp_mem.vhd`](src/disp_mem.vhd)) has 2^19 entries of 8 bits. The
 address is the picture column (10 bits) followed by the row (9 bits). The
 dispatcher delivers a 9-bit count for each pixel, but `main` only writes the
-lower 8 bits. The `vga` module uses these 8 bits directly as the colour, in the
-format RRRGGGBB. So the colours repeat for counts from 256 to 511, and the
-points in the set (count 511) are white.
+lower 8 bits. The `vga` module converts these 8 bits to the colour, in the
+format RRRGGGBB, see [Colours](#colours) below.
 
 The memory is divided into 128 blocks of 2^12 entries, one BRAM each, selected
 by the top 7 bits of the address. The write address and data go to the blocks
@@ -552,7 +551,44 @@ every 7 ms), so the counters themselves change too fast to be read.
   the error of the sum over 64 pictures is also at most about 240, and the
   error of the average is at most about 4.
 
-**Other inputs.** The switches 0 and 3 to 7 are not used.
+**Other inputs.** The switches 3 and 4 select the colour palette, see
+[Colours](#colours). They are used in the VGA clock domain (in `vga`), not in
+`main`. The switches 0 and 5 to 7 are not used.
+
+## Colours
+The display memory holds the lower 8 bits of the count of each pixel. The VGA
+output has 8 bits of colour, in the format RRRGGGBB (3 bits red, 3 bits green,
+and 2 bits blue). The value from the display memory is converted to the colour
+by one of four palettes in [`src/palette_pkg.vhd`](src/palette_pkg.vhd),
+selected by switches 3 and 4 (switch 4 is the high bit):
+* 0: The value itself is the colour. Most of the pixels outside the set have
+  small counts (in the initial view, 72% of all pixels have a count below 16),
+  so only the blue and green bits are set, and red needs a count of at least
+  32. The set (count 511, i.e. the value 255) is white.
+* 1: Rainbow. The hue goes once around the colour circle (red, yellow, green,
+  cyan, blue, magenta) for every 16 counts.
+* 2: Fire. Black, red, orange, yellow, and white, with the square root of the
+  count, once for the counts 0 to 63, and again for 64 to 254.
+* 3: Blue, white, orange, and dark brown, with the logarithm of the count, once
+  for the counts 0 to 6, again for 7 to 62, and again for 63 to 254.
+
+In the palettes 1 to 3 the set is black. The value 255 is also the value of
+the (few) points with the count 255, so these are shown in the colour of the
+set.
+
+The palettes are tables of 256 entries, which are calculated from the formulas
+above (with `ieee.math_real`) when the design is elaborated, so they are easy
+to change. The colour of each entry is rounded to the nearest of the 8 (or 4)
+levels of each colour component. The tables are implemented in LUTs, and the
+lookup is done in the output register of `disp`, so it adds no delay.
+
+The switches are asynchronous to the VGA clock, so they are synchronized with
+two registers in `vga`.
+
+The testbench for the VGA output ([`sim/vga_tb.vhd`](sim/vga_tb.vhd)) checks
+the timing of the sync signals, and then the colour of every pixel of a frame,
+with a different value for each pixel, and a different palette in each quarter
+of the frame.
 
 ## Timing
 Counters measure the total time it takes to generate the picture as well as the
