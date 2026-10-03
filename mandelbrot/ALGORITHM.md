@@ -886,9 +886,9 @@ part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 | ---------------- | -------- | --------- | --------
 | DSP48E1          | 240      | 240       | 100
 | Block RAM        | 128 RAMB36 + 2 RAMB18 | 135 RAMB36 | about 96
-| Slices           | 14,707   | 15,850    | 93
-| LUTs             | 42,259   | 63,400    | 67
-| Registers        | 45,074   | 126,800   | 36
+| Slices           | 14,723   | 15,850    | 93
+| LUTs             | 42,252   | 63,400    | 67
+| Registers        | 45,018   | 126,800   | 36
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
 The resource numbers are from `report_utilization` on the routed design
@@ -950,8 +950,8 @@ The timing after routing is:
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.064 ns (TNS 0)
-| Hold (WHS)  | +0.015 ns (THS 0)
+| Setup (WNS) | +0.092 ns (TNS 0)
+| Hold (WHS)  | +0.014 ns (THS 0)
 
 These are the values from `report_timing_summary` on the routed design
 (`mandelbrot.dcp`), after the post-route `phys_opt_design`.
@@ -983,7 +983,7 @@ modules around them:
 * The scheduler for the results: the round-robin selection in a group, from
   the registered ready flags (`req_r`) to the candidate of the group
   (`cand_r`), with 5 levels of logic. This is the worst path in the latest
-  build (+0.064 ns). Before the ready flags were registered, the path started
+  build (+0.092 ns). Before the ready flags were registered, the path started
   at the acknowledge (`res_ack_r`) in the dispatcher, with 6 levels of logic,
   and had +0.037 ns of slack.
 * The next row in the column modules (to `res_cy_r`, whose clock enable
@@ -1101,7 +1101,13 @@ and `report_cdc` reports all of them as safe.
 Registering the ready flags in the scheduler for the results (see
 [Dispatcher](#dispatcher)) uses about 240 registers more (one for each column
 module), and raised the setup slack to +0.064 ns. The paths from the MAIN
-clock to the VGA clock now have +8.41 ns of slack.
+clock to the VGA clock then had +8.41 ns of slack.
+
+The synchronizer for the frame rate was then moved from `overlay` to the top
+level. This is the same logic, and the cell counts after synthesis did not
+change. The build with it has +0.092 ns of setup slack, and the 40 paths from
+the MAIN clock to the VGA clock have +8.39 ns of slack, and are all reported
+as safe by `report_cdc`.
 
 The complete run of `make vivado` takes about 6.5 minutes (synthesis about 2.5
 minutes, placement about 1.5 minutes, routing about 1 minute), on a machine

@@ -34,15 +34,15 @@ the dispatcher, and the timing and resource usage.
 
 ## Implementation results
 The design is built with Vivado 2025.1 and meets timing at the 188.24 MHz main
-clock (setup slack +0.064 ns, hold slack +0.015 ns). The resources used are:
+clock (setup slack +0.092 ns, hold slack +0.014 ns). The resources used are:
 
 | Resource  | Used                  | Available
 | --------- | --------------------- | ---------
 | DSP48E1   | 240                   | 240
 | Block RAM | 128 RAMB36 + 2 RAMB18 | 135 RAMB36
-| Slices    | 14,707                | 15,850
-| LUTs      | 42,259                | 63,400
-| Registers | 45,074                | 126,800
+| Slices    | 14,723                | 15,850
+| LUTs      | 42,252                | 63,400
+| Registers | 45,018                | 126,800
 
 See [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details.
