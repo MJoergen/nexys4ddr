@@ -489,8 +489,12 @@ themselves change too fast to be read.
   sum at the end of the previous picture. The sum is 16 bits wide, and the
   difference is calculated modulo 2^16, so it is correct even when the sum
   wraps around. Each wait counter is truncated to units of 2^11 clock cycles
-  before the sum, so the value may be up to one unit too low for each column
-  module.
+  before the sum, so the difference for a column module may be one unit too
+  high or too low, depending on the part of the counter below 2^11 at the
+  start and at the end of the picture. So the value can differ by up to about
+  240 (the number of column modules) from the exact value, and it changes from
+  picture to picture, even when the pictures are the same. Only the upper bits
+  are steady (see [Timing](#timing)).
 
 **Other inputs.** The switches 0 and 3 to 7 are not used.
 
@@ -500,28 +504,26 @@ total amount of time the iterators are waiting to write to display memory. The
 values for the most recent picture are shown on the LEDs, see
 [The top level](#the-top-level).
 
-The numbers measured on the board were:
-* The total time for the picture: 472\*2^11 clock cycles, which at 140.625 MHz
-  is 6.9 ms.
-* The waiting time of all the column modules: 28642\*2^11 clock cycles in
-  total, i.e. 1.7 ms for each column module. So about a quarter of the time is
-  spent waiting.
+The numbers measured on the board, with the current design and the initial
+view, are:
+* The time for the picture (switch 1 on): 0x01D8 = 472, i.e. 472\*2^11 clock
+  cycles, which at 140.625 MHz is 6.9 ms (about 145 pictures per second). This
+  value is steady.
+* The waiting time of all the column modules (switch 1 off): about
+  0x721F = 29215, i.e. 29215\*2^11 clock cycles in total, which is 1.8 ms for
+  each column module, or about a quarter of the time. The lowest bits of this
+  value change from picture to picture, because of the truncation of the wait
+  counters (see [The top level](#the-top-level)).
 
-These were measured with an earlier version of the iterator, which did not
-detect all overflows, and which calculated x+y and x-y in 18 bits (see
-[Overflow](#overflow)), and with a main clock of 150 MHz (the times above have
-been recalculated for 140.625 MHz). They have not been measured on the board
-again since then.
-
-The time for the current design can be estimated with the model
-[`sim/model.py`](sim/model.py), which gives the same number of clock cycles,
-472\*2^11, for the picture. The reason is the following. A column module uses
-3 clock cycles per iteration, plus 7 clock cycles to start the iterator and to
-deliver the result (4 for the points that reach the maximum count). Then the
-result must be accepted by the dispatcher. The round-robin scheduler for the
-results (i\_scheduler\_res) checks each column module once every 240 clock
-cycles, so the time from one result of a column module to the next is always a
-multiple of 240 clock cycles. This has been checked in simulation. So:
+Both values agree with the model [`sim/model.py`](sim/model.py), which
+estimates the time for the picture from the count of each pixel, as follows.
+A column module uses 3 clock cycles per iteration, plus 7
+clock cycles to start the iterator and to deliver the result (4 for the points
+that reach the maximum count). Then the result must be accepted by the
+dispatcher. The round-robin scheduler for the results (i\_scheduler\_res)
+checks each column module once every 240 clock cycles, so the time from one
+result of a column module to the next is always a multiple of 240 clock
+cycles. This has been checked in simulation. So:
 * A pixel with a count up to 77 takes 240 clock cycles, i.e. the iterator is
   idle for most of the time, waiting for the result to be accepted.
 * A pixel in the set (count 511) takes 3\*511+4 = 1537 clock cycles, which is
@@ -529,13 +531,27 @@ multiple of 240 clock cycles. This has been checked in simulation. So:
 
 For the initial view the average count is 151, so the iterator needs 460 clock
 cycles per pixel on average, but each pixel takes 652 clock cycles on average,
-including the waiting. The total waiting time of all the column modules is then
-28896\*2^11 clock cycles, which agrees with the 28642\*2^11 clock cycles
-measured on the board. The picture is finished when the last column module is
+including the waiting. The picture is finished when the last column module is
 finished. A single picture column through the middle of the set takes up to
 0.73 million clock cycles (5.2 ms), so these picture columns decide the total
-time. Without the waiting, the picture would take about 4.2 ms (if the work
-was spread evenly over the column modules).
+time. The model gives 472\*2^11 clock cycles for the picture, the same as
+measured.
+
+The model gives a total waiting time of 28896\*2^11 clock cycles, i.e. 192
+clock cycles per pixel on average. The wait counter of a column module counts 2
+clock cycles more for each pixel: it counts from 3 clock cycles after the
+result is ready until the clock cycle before the acknowledge reaches the column
+module. With these 2 clock cycles for each of the 307200 pixels, the expected
+value on the LEDs is 29196 (0x720C), which agrees with the measured value
+within 0.1%. Without the waiting, the picture would take about 4.2 ms (if the
+work was spread evenly over the column modules).
+
+Similar values (472\*2^11 clock cycles for the picture, and 28642\*2^11 clock
+cycles of waiting) were measured earlier, with an iterator which did not detect
+all overflows and which calculated x+y and x-y in 18 bits (see
+[Overflow](#overflow)), and with a main clock of 150 MHz. The time for the
+picture did not change, because it is decided by the picture columns through
+the middle of the set, where most of the pixels reach the maximum count.
 
 This could be improved by accepting a result as soon as it is ready, e.g.
 with a priority encoder ([`src/priority_pipeline.vhd`](src/priority_pipeline.vhd)
