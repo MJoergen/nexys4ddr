@@ -609,40 +609,47 @@ view, are:
 
 Both values agree with the model [`sim/model.py`](sim/model.py), which
 estimates the time for the picture from the count of each pixel, as follows.
-A column module uses 3 clock cycles per iteration, plus 7
-clock cycles to start the iterator and to deliver the result (4 for the points
-that reach the maximum count). Then the result must be accepted by the
-dispatcher. The round-robin scheduler for the results (i\_scheduler\_res)
-checks each column module once every 240 clock cycles, so the time from one
-result of a column module to the next is always a multiple of 240 clock
-cycles. This has been checked in simulation. So:
+A column module uses 3 clock cycles per iteration, plus 8 clock cycles for the
+acknowledge of the previous result, the start of the iterator, and the result
+going back to the dispatcher (5 for the points that reach the maximum count,
+because the iterator stops one iteration earlier). Then the result must be
+accepted by the dispatcher. The round-robin scheduler for the results
+(i\_scheduler\_res) checks each column module once every 240 clock cycles, so
+the time from one result of a column module to the next is always a multiple
+of 240 clock cycles. This has been checked in simulation. So:
 * A pixel with a count up to 77 takes 240 clock cycles, i.e. the iterator is
   idle for most of the time, waiting for the result to be accepted.
-* A pixel in the set (count 511) takes 3\*511+4 = 1537 clock cycles, which is
+* A pixel in the set (count 511) takes 3\*511+5 = 1538 clock cycles, which is
   rounded up to 1680 clock cycles.
 
-For the initial view the average count is 151, so the iterator needs 460 clock
-cycles per pixel on average, but each pixel takes 652 clock cycles on average,
-including the waiting. The picture is finished when the last column module is
-finished. A single picture column through the middle of the set takes up to
-0.73 million clock cycles (5.2 ms), so these picture columns decide the total
-time. The model gives 472\*2^11 clock cycles for the picture, the same as
-measured.
+For the initial view the average count is 151, so the column module is busy
+for 461 clock cycles per pixel on average, but each pixel takes 652 clock
+cycles on average, including the waiting. The picture is finished when the
+last column module is finished. A single picture column through the middle of
+the set takes up to 0.73 million clock cycles (5.2 ms), so these picture
+columns decide the total time. The model gives 472\*2^11 clock cycles for the
+picture, the same as measured.
 
-The model gives a total waiting time of 28896\*2^11 clock cycles, i.e. 192
-clock cycles per pixel on average. In the design that was measured, the wait
-counter of a column module counted 2 clock cycles more for each pixel: it
-counts from 3 clock cycles after the result is ready until the clock cycle
-before the acknowledge reaches the column module. With these 2 clock cycles for
-each of the 307200 pixels, the expected value on the LEDs was 29196 (0x720C),
-which agrees with the measured value within 0.1%. Since then, the acknowledge
-has been delayed by one more clock cycle (see [Dispatcher](#dispatcher)), so
-the wait counter counts 3 clock cycles more for each pixel, and the expected
-value is 29346 (0x72A2). This extra clock cycle does not change the time for
-the picture in the model, because the time from one result of a column module
-to the next is still rounded up to the same multiple of 240 clock cycles. This
-has not been measured on the board yet. Without the waiting, the picture would take about 4.2 ms (if the
-work was spread evenly over the column modules).
+The model gives a total waiting time of 28746\*2^11 clock cycles, i.e. 192
+clock cycles per pixel on average (the time from one result to the next,
+minus the 3n+8 clock cycles above). The wait counter of a column module counts
+3 clock cycles more for each pixel: it counts from 3 clock cycles after the
+result is ready until the clock cycle before the acknowledge reaches the column
+module, i.e. the time from one result to the next minus 3n+5 clock cycles.
+With these 3 clock cycles for each of the 307200 pixels, the expected value on
+the LEDs is 29196 (0x720C), which agrees with the measured value within 0.1%.
+Without the waiting, the picture would take about 4.2 ms (if the work was
+spread evenly over the column modules).
+
+The values above were measured before the acknowledge was delayed by one clock
+cycle (see [Dispatcher](#dispatcher)). This does not change them: The
+iterator starts one clock cycle later, but the time from one result of a
+column module to the next is still rounded up to the same multiple of 240 clock
+cycles, so the picture takes the same time. And both the start and the end of
+the waiting move by one clock cycle, so the wait counter counts the same. This
+was checked in simulation with 240 column modules and a small picture, with the
+dispatcher before and after the change: the total waiting time was the same,
+and the picture took one clock cycle longer.
 
 Similar values (472\*2^11 clock cycles for the picture, and 28642\*2^11 clock
 cycles of waiting) were measured earlier, with an iterator which did not detect

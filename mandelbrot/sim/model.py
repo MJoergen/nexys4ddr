@@ -129,19 +129,29 @@ def view(startx: Optional[int] = None, starty: Optional[int] = None,
     return cx_grid, cy_grid
 
 
+def busy_cycles(cnt: ArrayLike) -> IntArray:
+    """The number of clock cycles from the selection of the previous result of a
+    column module (by i_scheduler_res) until the result of this pixel can be
+    selected. The iterator uses 3 clock cycles per iteration, and the rest is
+    the acknowledge of the previous result, the start of the iterator, and the
+    result going back to the scheduler: 8 clock cycles, or 5 for the points that
+    reach the maximum count (the iterator stops one iteration earlier)."""
+    cnt_i: IntArray = np.asarray(cnt, np.int64)
+    return np.where(cnt_i == MAX_COUNT, 3*cnt_i + 5, 3*cnt_i + 8)
+
+
 def pixel_cycles(cnt: ArrayLike,
                  num_iterators: int = NUM_ITERATORS) -> IntArray:
     """The number of clock cycles a column module uses for each pixel.
 
-    The iterator uses 3 clock cycles per iteration, and a few more to start and
-    finish. Then the result has to be accepted by the dispatcher. The scheduler
-    for the results (i_scheduler_res) checks each column module once every
-    num_iterators clock cycles, so the time from one result to the next is
-    always a multiple of num_iterators clock cycles. This has been checked in
+    The column module is busy for busy_cycles(cnt). Then the result has to be
+    accepted by the dispatcher. The scheduler for the results (i_scheduler_res)
+    checks each column module once every num_iterators clock cycles, so the
+    time from one result to the next is always a multiple of num_iterators
+    clock cycles. This has been checked in
     simulation (main_tb) for the first 11744 pixels, and the estimated time
     for the picture is the same as the time measured on the board."""
-    cnt_i: IntArray = np.asarray(cnt, np.int64)
-    busy: IntArray = np.where(cnt_i == MAX_COUNT, 3*cnt_i + 4, 3*cnt_i + 7)
+    busy: IntArray = busy_cycles(cnt)
     return -(-busy // num_iterators) * num_iterators      # Round up
 
 
@@ -191,10 +201,11 @@ def main() -> None:
 
     cycles = picture_cycles(hw)
     per_pixel = pixel_cycles(hw).mean()
-    iterating = np.where(hw == MAX_COUNT, 3*hw + 4, 3*hw + 7).mean()
-    print(f"Average count {hw.mean():.1f}, i.e. {iterating:.0f} clock cycles "
-          f"per pixel for the iterator, and {per_pixel:.0f} clock cycles per "
-          f"pixel including the time waiting for the result to be accepted")
+    iterating = busy_cycles(hw).mean()
+    print(f"Average count {hw.mean():.1f}, i.e. the column module is busy for "
+          f"{iterating:.0f} clock cycles per pixel, and {per_pixel:.0f} clock "
+          f"cycles per pixel including the time waiting for the result to be "
+          f"accepted")
     print(f"Estimated time for the picture: {cycles} clock cycles "
           f"({cycles / 2**11:.0f} x 2^11), i.e. {cycles / 140.625e3:.2f} ms "
           f"at 140.625 MHz")
