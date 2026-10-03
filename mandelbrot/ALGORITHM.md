@@ -553,24 +553,26 @@ part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 | ---------------- | -------- | --------- | --------
 | DSP48E1          | 240      | 240       | 100
 | Block RAM        | 128 RAMB36 + 1 RAMB18 | 135 RAMB36 | about 95
-| LUTs             | about 61,900 (cells) | 63,400 | about 98
-| Registers        | about 53,800 | 126,800 | about 42
+| Slices           | 15,402   | 15,850    | 97
+| LUTs             | 49,087   | 63,400    | 77
+| Registers        | 53,960   | 126,800   | 43
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
-The resource numbers are the cell counts after synthesis (the "Report Cell
-Usage" table in `vivado.log`), and the available numbers are the totals for
-the XC7A100T. The LUTs are the sum of the LUT1 to LUT6 cells (61,875). This is
-the number of LUT cells, not the number of LUTs in the device that are used,
-which can be smaller, because two small LUT cells can share one LUT (which the
-placer does, e.g. "LUT Combining" in `phys_opt_design`). The exact numbers are
-given by `report_utilization` on the routed design. The registers are the FDRE
-and FDSE cells (53,832).
+The resource numbers are from `report_utilization` on the routed design
+(`mandelbrot.dcp`), and the available numbers are the totals for the XC7A100T.
+Almost all the slices are used, so the design is nearly full, even though only
+77% of the LUTs are used.
 
-Before the iterator was changed to give x+y or x-y to the multiplier with 19
-bits (see [Overflow](#overflow)), and before the limits for pan and zoom were
-added to the view control (see [The top level](#the-top-level)), the design
-used about 52,000 LUT cells and 53,300 registers. Most of the increase is
-probably in the iterators, because there are 240 of them.
+The "Report Cell Usage" table in `vivado.log` gives the cell counts after
+synthesis instead: 61,895 LUT cells (LUT1 to LUT6) and 53,885 registers (FDRE
+and FDSE cells). The number of LUT cells is larger than the number of LUTs
+used, because two small LUT cells can share one LUT (the placer does this, e.g.
+"LUT Combining" in `phys_opt_design`). Before the iterator was changed to give
+x+y or x-y to the multiplier with 19 bits (see [Overflow](#overflow)), and
+before the limits for pan and zoom were added to the view control (see
+[The top level](#the-top-level)), the design used about 52,000 LUT cells and
+53,300 registers. Most of the increase is probably in the iterators, because
+there are 240 of them.
 
 The display memory has 2^19 entries of 8 bits (the lowest 8 bits of the
 count), i.e. 128 blocks of 36 kbit BRAM (each with 32 kbit of data), as
@@ -582,11 +584,11 @@ The timing after routing is:
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.008 ns (TNS 0)
-| Hold (WHS)  | +0.029 ns (THS 0)
+| Setup (WNS) | +0.116 ns (TNS 0)
+| Hold (WHS)  | +0.026 ns (THS 0)
 
-These are the values from `vivado.log`: the hold slack from the end of
-`route_design`, and the setup slack from the post-route `phys_opt_design`.
+These are the values from `report_timing_summary` on the routed design
+(`mandelbrot.dcp`), after the post-route `phys_opt_design`.
 
 The timing is met for all clocks. The 140.625 MHz main clock (period 7.11 ns)
 is generated from the 100 MHz input clock by the MMCM (multiplied by 11.25 and
@@ -594,12 +596,15 @@ divided by 8), and the only constraint in `mandelbrot.xdc` is the 100 MHz input
 clock. The MMCM also generates the 25 MHz VGA clock (divided by 45).
 
 The slack is small, so the design is close to the limit of what this device and
-this flow can achieve. In an earlier run (before the latest changes), the
-critical paths were in the dispatcher: the selection
-of the column module in the schedulers (`job_idx_valid` and the `job_busy_o`
-signals from the column modules), and the registers for the write address and
-data going to the display memory (`wr_addr_r` and `wr_data_r`). The directives used in
-`mandelbrot.tcl` matter:
+this flow can achieve. The critical paths are in the dispatcher, in the
+selection of the column module whose result is accepted: from `res_busy_r`
+(one bit for each of the 240 column modules) through the scheduler
+`i_scheduler_res`, which picks one of the 240 bits, to the clock enable of
+`job_idx_start_r`. This path has 6 levels of logic (3 LUT6, 2 MUXF7 and 1
+MUXF8), and more than 70% of the delay is routing. In earlier runs, the
+critical paths were also in the schedulers, and in the registers for the write
+address and data going to the display memory (`wr_addr_r` and `wr_data_r`).
+The directives used in `mandelbrot.tcl` matter:
 * `synth_design` with `-directive AreaOptimized_medium`
 * `opt_design` with `-directive ExploreWithRemap`
 * `phys_opt_design` with `-directive AlternateFlowWithRetiming`, both after
@@ -616,9 +621,9 @@ the column modules into 15 groups of 16, which should allow a higher clock
 frequency.
 This has not been tried.
 
-The complete run of `make vivado` takes about 11 minutes (synthesis about 3.5
-minutes, placement about 3 minutes, routing about 3 minutes), on a machine with
-8 threads.
+The complete run of `make vivado` takes about 8.5 minutes (synthesis about 2.5
+minutes, placement about 2 minutes, routing about 2.5 minutes), on a machine
+with 8 threads.
 
 All 240 DSPs running at 140.625 MHz gives a peak of 34 billion multiplications per
 second. The iterator uses its multiplier in two out of three clock cycles, so
