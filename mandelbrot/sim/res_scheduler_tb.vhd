@@ -71,12 +71,13 @@ begin
       constant C_SIZE       : integer := C_CONFIGS(n).size;
       constant C_GROUP_SIZE : integer := C_CONFIGS(n).group_size;
       constant C_NUM_GROUPS : integer := (C_SIZE + C_GROUP_SIZE - 1) / C_GROUP_SIZE;
-      constant C_PERIOD     : integer := maximum(C_NUM_GROUPS, 4);
+      constant C_PERIOD     : integer := maximum(C_NUM_GROUPS, 5);
       -- A ready process is selected within this number of clock cycles: its
       -- group is visited once every C_PERIOD clock cycles, and each other
       -- process of the group is selected at most once before it. The ready
-      -- flag is registered in the group, and the selection is registered.
-      constant C_MAX_WAIT   : integer := minimum(C_GROUP_SIZE, C_SIZE)*C_PERIOD + 2;
+      -- flag and the candidate are registered in the group, and the selection
+      -- is registered.
+      constant C_MAX_WAIT   : integer := minimum(C_GROUP_SIZE, C_SIZE)*C_PERIOD + 3;
 
       signal active : std_logic := '0';
       signal ready  : std_logic_vector(C_SIZE-1 downto 0) := (others => '0');

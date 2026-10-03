@@ -26,6 +26,7 @@ mandelbrot                      src/mandelbrot.vhd (top level)
  |   +- (p_fps_toggle)          (tells the VGA clock domain that the frame rate has changed)
  |   +- seg                     src/main/seg.vhd (7-segment display)
  +- disp_mem                    src/disp_mem.vhd (display memory, between the two clock domains)
+ +- (p_fps_cdc)                 (moves the frame rate to the VGA clock domain)
  +- vga                         src/vga/vga.vhd (everything in the VGA clock domain)
      +- pix                     src/vga/pix.vhd (pixel counters)
      +- disp                    src/vga/disp.vhd (VGA output, uses the palettes in src/vga/palette_pkg.vhd)
@@ -407,7 +408,7 @@ potentially may give a delay up to 240 clock cycles before an idle column module
 is given a job, i.e. 1.3 us at 188.24 MHz. The column modules wait in
 parallel, and with 2560 jobs and 240 column modules, each column module gets
 about 11 jobs on average. So the delay adds at most about 15 microseconds (and
-half of that on average) to the time for a picture, which is about 1.85 ms.
+half of that on average) to the time for a picture, which is about 1.84 ms.
 This delay is small.
 
 The scheduler ([`src/main/scheduler.vhd`](src/main/scheduler.vhd)) has a counter that
@@ -442,10 +443,13 @@ modules.
 The display memory can take one result in each clock cycle, and the scheduler
 for the results ([`src/main/res_scheduler.vhd`](src/main/res_scheduler.vhd),
 i\_res\_scheduler) tries to use as many of these clock cycles as possible.
-Each group of 16 column modules (the same groups as above) registers a
-candidate in every clock cycle: one of its column modules that has a result
-ready, picked in round-robin order within the group, i.e. the first one after
-the column module that was accepted last time. A counter goes round the 15
+Each group of 16 column modules (the same groups as above) registers the
+ready flags of its column modules, and then, in the next clock cycle, a
+candidate: one of its column modules that has a result ready, picked in
+round-robin order within the group, i.e. the first one after the column module
+that was accepted last time. The ready flags are registered first, so that the
+routes from the column modules and the round-robin selection are in separate
+clock cycles. A counter goes round the 15
 groups, one per clock cycle, and the candidate of the group of the counter is
 accepted, if the group has one. So a column module with a result waits until
 its group is visited, i.e. at most 15 clock cycles, plus 15 clock cycles for
@@ -455,10 +459,11 @@ and a column module waited up to 240 clock cycles for each result, also when
 no other column module had a result ready (see [Timing](#timing)).
 
 A column module has a result ready when its result is valid and has not been
-acknowledged. The candidate of a group is registered, so the ready flag of a
-column module that has just been accepted is still sampled for two more clock
-cycles, until the acknowledge reaches it. The counter therefore visits each
-group at most once every four clock cycles (when there are fewer than four
+acknowledged. The ready flags and the candidate of a group are registered, so
+a column module that has just been accepted can still be the candidate of its
+group for three more clock cycles, until the acknowledge has reached it and
+the ready flags have been registered again. The counter therefore visits each
+group at most once every five clock cycles (when there are fewer than five
 groups, the counter has empty positions), so a column module can not be
 accepted twice for the same result.
 
@@ -667,8 +672,9 @@ table in [`src/vga/font_pkg.vhd`](src/vga/font_pkg.vhd), 32 rows of 16 bits
 for each digit. The frame rate (32 bits of digits and 8 bits of blanking) is
 calculated in the MAIN clock domain, so it is moved to the VGA clock domain:
 `main` changes a toggle signal each time the frame rate changes. This is
-synchronized with two registers in `overlay`, and when it changes, the frame
-rate is copied. It is constant for much longer than that (a picture takes far
+synchronized with two registers in the top level (`p_fps_cdc` in
+[`src/mandelbrot.vhd`](src/mandelbrot.vhd)), and when it changes, the frame
+rate is copied, so `overlay` only gets signals in the VGA clock domain. It is constant for much longer than that (a picture takes far
 more than 58 clock cycles), so it is never copied while it changes. The
 constraint in [`nexys4ddr.xdc`](nexys4ddr.xdc) and
 [`mega65-r6.xdc`](mega65-r6.xdc) (`set_max_delay -datapath_only`) makes sure that it arrives before the toggle signal, and
@@ -850,19 +856,21 @@ ready, visiting one group in each clock cycle (see [Dispatcher](#dispatcher)).
 The waiting time of a pixel then depends on the other column modules, so the
 model now simulates the dispatcher one clock cycle at a time
 (`picture_cycles()` in `sim/model.py`). It uses the time 3n+7 above for each
-pixel, from the clock cycle in which the previous result was sampled by the
-scheduler, and it includes the round-robin scheduler for the jobs. For the
-initial view it gives 347682 clock cycles for the picture, i.e. 1.85 ms at
-188.24 MHz, so the 7-segment display should show about 541 pictures per
-second. The same simulation with the round-robin scheduler for the results
-gives 2.24 ms (0.02 ms more than above, because it includes the time to give
-out the jobs), so the new scheduler is 1.21 times faster. The display memory
-is now written in 88% of the clock cycles, and the column modules wait 127
-clock cycles per pixel on average. Eight other views were 1.11 to 1.21 times
-faster with the new scheduler. A simulation of a complete picture with
+pixel, from the clock cycle before the previous result was accepted, and it
+includes the round-robin scheduler for the jobs. For the initial view it gives
+347123 clock cycles for the picture, i.e. 1.84 ms at 188.24 MHz, so the
+7-segment display should show about 542 pictures per second. The same
+simulation with the round-robin scheduler for the results gives 2.24 ms
+(0.02 ms more than above, because it includes the time to give out the jobs),
+so the new scheduler is 1.21 times faster. The display memory is now written
+in 88% of the clock cycles, and the column modules wait 127 clock cycles per
+pixel on average. Eight other views were 1.11 to 1.21 times faster with the
+new scheduler. Registering the ready flags in the groups (see
+[Dispatcher](#dispatcher)) makes no measurable difference: before, the model
+gave 347682 clock cycles, and a simulation of a complete picture with
 `main_tb` took 347110 clock cycles from the start to the last write to the
-display memory, 0.2% less than the model, and all the pixels were the same as
-in the model. None of this has been measured on the board yet.
+display memory, 0.2% less than the model, with all the pixels the same as in
+the model. None of this has been measured on the board yet.
 
 Storing a result in each column module, so the iterator could continue with
 the next row while it waits, was considered too. With the round-robin
@@ -879,9 +887,9 @@ part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 | ---------------- | -------- | --------- | --------
 | DSP48E1          | 240      | 240       | 100
 | Block RAM        | 128 RAMB36 + 2 RAMB18 | 135 RAMB36 | about 96
-| Slices           | 14,749   | 15,850    | 93
-| LUTs             | 42,265   | 63,400    | 67
-| Registers        | 44,776   | 126,800   | 35
+| Slices           | 14,723   | 15,850    | 93
+| LUTs             | 42,252   | 63,400    | 67
+| Registers        | 45,018   | 126,800   | 36
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
 The resource numbers are from `report_utilization` on the routed design
@@ -889,7 +897,7 @@ The resource numbers are from `report_utilization` on the routed design
 Most of the slices are used, even though only 67% of the LUTs are used.
 
 The "Report Cell Usage" table in `vivado.log` gives the cell counts after
-synthesis instead: 55,629 LUT cells (LUT1 to LUT6) and 42,947 registers (FDRE
+synthesis instead: 55,629 LUT cells (LUT1 to LUT6) and 43,187 registers (FDRE
 and FDSE cells). The number of LUT cells is larger than the number of LUTs
 used, because two small LUT cells can share one LUT (the placer does this, e.g.
 "LUT Combining" in `phys_opt_design`). There are more registers after
@@ -943,8 +951,8 @@ The timing after routing is:
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.006 ns (TNS 0)
-| Hold (WHS)  | +0.015 ns (THS 0)
+| Setup (WNS) | +0.092 ns (TNS 0)
+| Hold (WHS)  | +0.014 ns (THS 0)
 
 These are the values from `report_timing_summary` on the routed design
 (`nexys4ddr.dcp`), after the post-route `phys_opt_design`.
@@ -957,7 +965,7 @@ output with a fractional divider. The MMCM also generates the 25 MHz VGA clock
 (divided by 48). The constraints in `nexys4ddr.xdc` are the 100 MHz input
 clock, and a maximum delay (`set_max_delay -datapath_only`) for the paths from
 the MAIN clock to the VGA clock, which only carry the frame rate and its toggle
-signal to the overlay (see [The top level](#the-top-level)). Apart from these,
+signal to the synchronizer in the top level (see [The top level](#the-top-level)). Apart from these,
 the two clocks only meet in the display memory, which has a separate clock for
 each port.
 
@@ -973,12 +981,12 @@ modules around them:
   modules.
 * The state machine of the iterator (from cnt\_r and state\_r), and the
   periodicity detection (to match\_r and the saved values).
-* The scheduler for the results: from the acknowledge (`res_ack_r`) through
-  the round-robin selection in a group to the candidate of the group
-  (`cand_r`), with 6 levels of logic. This was the worst path in the build
-  with the new scheduler (+0.037 ns). It could be shortened by registering the ready flags in
-  each group, which would add a clock cycle to the selection (and the counter
-  would then have to visit each group at most once every five clock cycles).
+* The scheduler for the results: the round-robin selection in a group, from
+  the registered ready flags (`req_r`) to the candidate of the group
+  (`cand_r`), with 5 levels of logic. This is the worst path in the latest
+  build (+0.092 ns). Before the ready flags were registered, the path started
+  at the acknowledge (`res_ack_r`) in the dispatcher, with 6 levels of logic,
+  and had +0.037 ns of slack.
 * The next row in the column modules (to `res_cy_r`, whose clock enable
   depends on the result of the iterator).
 To go faster, the iterator would have to be changed, e.g. by registering the
@@ -1088,8 +1096,19 @@ uses about 100 LUT cells and 130 registers after synthesis, and no block RAM
 The worst path is in `view` (from `zoomx` to the clock enable of `dy`), which
 the overlay does not change, so this is the variation from one run to the
 next. The 40 paths from the MAIN clock to the VGA clock (the frame rate and
-its toggle signal) have +8.19 ns of slack against the maximum delay of 10 ns,
+its toggle signal) had +8.19 ns of slack against the maximum delay of 10 ns,
 and `report_cdc` reports all of them as safe.
+
+Registering the ready flags in the scheduler for the results (see
+[Dispatcher](#dispatcher)) uses about 240 registers more (one for each column
+module), and raised the setup slack to +0.064 ns. The paths from the MAIN
+clock to the VGA clock then had +8.41 ns of slack.
+
+The synchronizer for the frame rate was then moved from `overlay` to the top
+level. This is the same logic, and the cell counts after synthesis did not
+change. The build with it has +0.092 ns of setup slack, and the 40 paths from
+the MAIN clock to the VGA clock have +8.39 ns of slack, and are all reported
+as safe by `report_cdc`.
 
 The complete run of `make nexys4ddr` takes about 6.5 minutes (synthesis about 2.5
 minutes, placement about 1.5 minutes, routing about 1 minute), on a machine

@@ -7,7 +7,7 @@ buttons on the board. The same design also runs on the
 XC7A200T FPGA, see [MEGA65](#mega65).
 
 All 240 DSPs of the FPGA are used in parallel for the calculation, and the
-picture is stored in block RAM. Generating a complete picture takes about 1.85 ms
+picture is stored in block RAM. Generating a complete picture takes about 1.84 ms
 (estimated by the model), with the main clock at 188.24 MHz.
 
 ## The algorithm
@@ -36,15 +36,15 @@ the dispatcher, and the timing and resource usage.
 
 ## Implementation results
 The design is built with Vivado 2025.1 and meets timing at the 188.24 MHz main
-clock (setup slack +0.006 ns, hold slack +0.015 ns). The resources used are:
+clock (setup slack +0.092 ns, hold slack +0.014 ns). The resources used are:
 
 | Resource  | Used                  | Available
 | --------- | --------------------- | ---------
 | DSP48E1   | 240                   | 240
 | Block RAM | 128 RAMB36 + 2 RAMB18 | 135 RAMB36
-| Slices    | 14,749                | 15,850
-| LUTs      | 42,265                | 63,400
-| Registers | 44,776                | 126,800
+| Slices    | 14,723                | 15,850
+| LUTs      | 42,252                | 63,400
+| Registers | 45,018                | 126,800
 
 See [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details.
@@ -56,7 +56,7 @@ files that are in both clock domains are in [`src/`](src).
 
 | File             | Description
 | ---------------- | -----------
-| [`src/mandelbrot.vhd`](src/mandelbrot.vhd) | Top level. The ports are mapped directly to pins on the FPGA. Instantiates the clock and reset generation, the display memory, and the two modules below.
+| [`src/mandelbrot.vhd`](src/mandelbrot.vhd) | Top level. The ports are mapped directly to pins on the FPGA. Instantiates the clock and reset generation, the display memory, and the two modules below, and moves the frame rate from the MAIN clock domain to the VGA clock domain.
 | [`src/mega65_r6.vhd`](src/mega65_r6.vhd) | Top level for the MEGA65 R6. The same as `mandelbrot.vhd`, but with the ports of the MEGA65.
 | [`src/main/main.vhd`](src/main/main.vhd) | Everything in the MAIN clock domain: view control from buttons and switches, the dispatcher, and the frame rate (shown on the 7-segment display and on the VGA output).
 | [`src/main/view.vhd`](src/main/view.vhd) | View control. Pans and zooms the view, and keeps it inside the range of the number format.
@@ -70,7 +70,7 @@ files that are in both clock domains are in [`src/`](src).
 | [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture, in 128 blocks.
 | [`src/vga/pix.vhd`](src/vga/pix.vhd), [`src/vga/disp.vhd`](src/vga/disp.vhd) | VGA output. `pix` generates the pixel counters, and `disp` generates the sync signals and the pixel colour.
 | [`src/vga/palette_pkg.vhd`](src/vga/palette_pkg.vhd) | The four colour palettes, which convert the count of a pixel to its colour.
-| [`src/vga/overlay.vhd`](src/vga/overlay.vhd), [`src/vga/font_pkg.vhd`](src/vga/font_pkg.vhd) | Frame rate overlay. `overlay` moves the frame rate to the VGA clock domain and shows it in the top right corner of the picture, with the digits of the font in `font_pkg`.
+| [`src/vga/overlay.vhd`](src/vga/overlay.vhd), [`src/vga/font_pkg.vhd`](src/vga/font_pkg.vhd) | Frame rate overlay. `overlay` shows the frame rate in the top right corner of the picture, with the digits of the font in `font_pkg`.
 | [`font/`](font) | The script that generates `font_pkg.vhd` from the [Spleen](https://github.com/fcambus/spleen) 16x32 font, and the license of the font (BSD 2-Clause, see [`font/LICENSE.spleen`](font/LICENSE.spleen)).
 | [`src/clk_rst.vhd`](src/clk_rst.vhd) | Clock and reset generation: 188.24 MHz for the calculation and 25 MHz for VGA, each with a synchronous reset.
 | [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a Python model of the iterator count (`iterator_model.py`), a vectorized model of the complete picture (`model.py`), the same bit-accurate model in VHDL (`iterator_model_pkg.vhd`, used by the testbenches), and a script (`cmp_rtl.py`) that compares the output of the testbench `main_tb` with this model.

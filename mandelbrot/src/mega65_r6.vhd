@@ -78,6 +78,18 @@ architecture structural of mega65_r6 is
    signal fps_blank      : std_logic_vector( 7 downto 0);
    signal fps_toggle     : std_logic;
 
+   -- The frame rate in the VGA clock domain. Nothing is shown (all digits are
+   -- blanked) until the first frame rate is received.
+   signal vga_fps_meta   : std_logic := '0';
+   signal vga_fps_sync   : std_logic := '0';
+   signal vga_fps_sync_d : std_logic := '0';
+   signal vga_fps_digits : std_logic_vector(31 downto 0) := (others => '0');
+   signal vga_fps_blank  : std_logic_vector( 7 downto 0) := (others => '1');
+
+   attribute async_reg : string;
+   attribute async_reg of vga_fps_meta : signal is "true";
+   attribute async_reg of vga_fps_sync : signal is "true";
+
    signal vga_col        : std_logic_vector( 7 downto 0);  -- RRRGGGBB
 
 begin
@@ -153,6 +165,26 @@ begin
 
 
    --------------------------------------------------
+   -- Move the frame rate to the VGA clock domain
+   --------------------------------------------------
+
+   -- The same as in mandelbrot.vhd, see there.
+   p_fps_cdc : process (vga_clk)
+   begin
+      if rising_edge(vga_clk) then
+         vga_fps_meta   <= fps_toggle;
+         vga_fps_sync   <= vga_fps_meta;
+         vga_fps_sync_d <= vga_fps_sync;
+
+         if vga_fps_sync /= vga_fps_sync_d then
+            vga_fps_digits <= fps_digits;
+            vga_fps_blank  <= fps_blank;
+         end if;
+      end if;
+   end process p_fps_cdc;
+
+
+   --------------------------------------------------
    -- Instantiate VGA clock domain
    --------------------------------------------------
 
@@ -163,9 +195,8 @@ begin
          rd_addr_o => rd_addr,
          rd_data_i => rd_data,
          palette_i => sw(1 downto 0),
-         fps_digits_i => fps_digits,
-         fps_blank_i  => fps_blank,
-         fps_toggle_i => fps_toggle,
+         fps_digits_i => vga_fps_digits,
+         fps_blank_i  => vga_fps_blank,
          vga_hs_o  => vga_hs_o,
          vga_vs_o  => vga_vs_o,
          vga_col_o => vga_col

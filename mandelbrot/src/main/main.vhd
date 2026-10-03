@@ -213,7 +213,7 @@ begin
 
    -- Tells the VGA clock domain that the frame rate has changed. The frame rate
    -- is constant for much longer than the time it takes to move it to the VGA
-   -- clock domain, see overlay.vhd.
+   -- clock domain, see mandelbrot.vhd.
    p_fps_toggle : process (clk_i)
    begin
       if rising_edge(clk_i) then

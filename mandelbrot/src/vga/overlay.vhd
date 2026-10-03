@@ -12,13 +12,10 @@ use work.font_pkg.all;
 -- picture is shown there.
 --
 -- The frame rate is calculated in the MAIN clock domain (fps.vhd), and it is
--- moved to the VGA clock domain here. fps_digits_i and fps_blank_i must be
--- constant while fps_toggle_i is unchanged, and fps_toggle_i must be changed
--- at the same time as (or after) they are changed. fps_toggle_i is
--- synchronized, and the new value is copied when the change is seen. It is
--- shown from the next frame on, so a frame never shows two different values.
--- The constraints for this are in the xdc files (nexys4ddr.xdc and
--- mega65-r6.xdc).
+-- moved to the VGA clock domain in the top level module, so fps_digits_i and
+-- fps_blank_i are in the VGA clock domain. They may change at any time: the
+-- value is copied before the first line of each frame, so a new value is shown
+-- from the next frame on, and a frame never shows two different values.
 --
 -- The overlay is added to the output of disp.vhd, which is delayed by one
 -- clock cycle (all of vga_hs_o, vga_vs_o and vga_col_o). The pixel counters
@@ -34,10 +31,9 @@ entity overlay is
    port (
       vga_clk_i     : in  std_logic;
 
-      -- The frame rate, from the MAIN clock domain, see fps.vhd
+      -- The frame rate (in the VGA clock domain), see fps.vhd
       fps_digits_i  : in  std_logic_vector(4*G_DIGITS-1 downto 0);
       fps_blank_i   : in  std_logic_vector(G_DIGITS-1 downto 0);
-      fps_toggle_i  : in  std_logic;
 
       vga_pix_x_i   : in  std_logic_vector(9 downto 0);
       vga_pix_y_i   : in  std_logic_vector(9 downto 0);
@@ -58,20 +54,7 @@ architecture rtl of overlay is
    constant C_FG      : std_logic_vector(7 downto 0) := X"FF";  -- White
    constant C_BG      : std_logic_vector(7 downto 0) := X"00";  -- Black
 
-   -- Synchronize the toggle signal from the MAIN clock domain
-   signal toggle_meta : std_logic := '0';
-   signal toggle_sync : std_logic := '0';
-   signal toggle_d    : std_logic := '0';
-
-   attribute async_reg : string;
-   attribute async_reg of toggle_meta : signal is "true";
-   attribute async_reg of toggle_sync : signal is "true";
-
-   -- The new value, which is shown from the next frame on, and the value
-   -- shown in the current frame. Nothing is shown (all digits are blanked)
-   -- until the first frame rate is received.
-   signal new_digits  : std_logic_vector(4*G_DIGITS-1 downto 0) := (others => '0');
-   signal new_blank   : std_logic_vector(G_DIGITS-1 downto 0) := (others => '1');
+   -- The value shown in the current frame
    signal digits      : std_logic_vector(4*G_DIGITS-1 downto 0) := (others => '0');
    signal blank       : std_logic_vector(G_DIGITS-1 downto 0) := (others => '1');
 
@@ -104,28 +87,18 @@ architecture rtl of overlay is
 begin
 
    --------------------------------------------------
-   -- Move the frame rate to the VGA clock domain
+   -- Change the value shown before the first line of a frame
    --------------------------------------------------
 
-   p_cdc : process (vga_clk_i)
+   p_value : process (vga_clk_i)
    begin
       if rising_edge(vga_clk_i) then
-         toggle_meta <= fps_toggle_i;
-         toggle_sync <= toggle_meta;
-         toggle_d    <= toggle_sync;
-
-         if toggle_sync /= toggle_d then
-            new_digits <= fps_digits_i;
-            new_blank  <= fps_blank_i;
-         end if;
-
-         -- Change the value shown before the first line of a frame
          if vga_pix_x_i = 0 and vga_pix_y_i = 0 then
-            digits <= new_digits;
-            blank  <= new_blank;
+            digits <= fps_digits_i;
+            blank  <= fps_blank_i;
          end if;
       end if;
-   end process p_cdc;
+   end process p_value;
 
 
    --------------------------------------------------

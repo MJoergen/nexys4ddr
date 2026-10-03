@@ -66,9 +66,8 @@ architecture simulation of overlay_tb is
    signal vga_vs     : std_logic;
    signal vga_col    : std_logic_vector(7 downto 0);
 
-   signal fps_digits : std_logic_vector(4*C_DIGITS-1 downto 0) := X"00000000";
-   signal fps_blank  : std_logic_vector(C_DIGITS-1 downto 0) := "11111110";
-   signal fps_toggle : std_logic := '0';
+   signal fps_digits : std_logic_vector(4*C_DIGITS-1 downto 0) := C_VALUES(0).digits;
+   signal fps_blank  : std_logic_vector(C_DIGITS-1 downto 0) := C_VALUES(0).blank;
 
    -- The value of the pixel (x, y) in the display memory
    function pixel_value (x : integer; y : integer) return std_logic_vector is
@@ -216,14 +215,13 @@ begin
 
    -- Change the frame rate in the middle of the overlay, in the frame before
    -- the one where it is expected. The frame rate is changed twice in frame 0,
-   -- and only the last change must be shown in frame 1. The inputs are changed as by
-   -- main.vhd: the toggle signal at the same time as the value.
+   -- and only the last change must be shown in frame 1. The inputs are in the
+   -- VGA clock domain, as from the synchronizer in mandelbrot.vhd.
    p_fps : process
       procedure set_value (v : value_t) is
       begin
          fps_digits <= v.digits;
          fps_blank  <= v.blank;
-         fps_toggle <= not fps_toggle;
       end procedure set_value;
 
       procedure wait_line (y : integer) is
@@ -263,7 +261,6 @@ begin
          palette_i    => "00",
          fps_digits_i => fps_digits,
          fps_blank_i  => fps_blank,
-         fps_toggle_i => fps_toggle,
          vga_hs_o     => vga_hs,
          vga_vs_o     => vga_vs,
          vga_col_o    => vga_col

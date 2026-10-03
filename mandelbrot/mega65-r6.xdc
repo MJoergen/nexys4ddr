@@ -50,7 +50,7 @@ set_property -dict {PACKAGE_PIN V14  IOSTANDARD LVCMOS33} [get_ports {vga_vs_o}]
 create_clock -name sys_clk -period 10.00 [get_ports {clk_i}];                          # 100 MHz
 
 # The frame rate is moved from the MAIN clock domain to the VGA clock domain
-# with a toggle signal, which is synchronized, see overlay.vhd. These are the
+# with a toggle signal, which is synchronized, see mega65_r6.vhd. These are the
 # only paths from the MAIN clock to the VGA clock. Their delay only has to be
 # shorter than the synchronizer (two VGA clock cycles), so the relation between
 # the two clocks is ignored.
