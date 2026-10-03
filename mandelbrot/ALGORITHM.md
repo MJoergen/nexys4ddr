@@ -878,9 +878,9 @@ part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 | ---------------- | -------- | --------- | --------
 | DSP48E1          | 240      | 240       | 100
 | Block RAM        | 128 RAMB36 + 2 RAMB18 | 135 RAMB36 | about 96
-| Slices           | 14,763   | 15,850    | 93
-| LUTs             | 42,232   | 63,400    | 67
-| Registers        | 44,707   | 126,800   | 35
+| Slices           | 14,749   | 15,850    | 93
+| LUTs             | 42,265   | 63,400    | 67
+| Registers        | 44,776   | 126,800   | 35
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
 The resource numbers are from `report_utilization` on the routed design
@@ -888,7 +888,7 @@ The resource numbers are from `report_utilization` on the routed design
 Most of the slices are used, even though only 67% of the LUTs are used.
 
 The "Report Cell Usage" table in `vivado.log` gives the cell counts after
-synthesis instead: 55,525 LUT cells (LUT1 to LUT6) and 42,816 registers (FDRE
+synthesis instead: 55,629 LUT cells (LUT1 to LUT6) and 42,947 registers (FDRE
 and FDSE cells). The number of LUT cells is larger than the number of LUTs
 used, because two small LUT cells can share one LUT (the placer does this, e.g.
 "LUT Combining" in `phys_opt_design`). There are more registers after
@@ -942,8 +942,8 @@ The timing after routing is:
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.037 ns (TNS 0)
-| Hold (WHS)  | +0.021 ns (THS 0)
+| Setup (WNS) | +0.006 ns (TNS 0)
+| Hold (WHS)  | +0.015 ns (THS 0)
 
 These are the values from `report_timing_summary` on the routed design
 (`mandelbrot.dcp`), after the post-route `phys_opt_design`.
@@ -974,8 +974,8 @@ modules around them:
   periodicity detection (to match\_r and the saved values).
 * The scheduler for the results: from the acknowledge (`res_ack_r`) through
   the round-robin selection in a group to the candidate of the group
-  (`cand_r`), with 6 levels of logic. This is the worst path in the latest
-  build (+0.037 ns). It could be shortened by registering the ready flags in
+  (`cand_r`), with 6 levels of logic. This was the worst path in the build
+  with the new scheduler (+0.037 ns). It could be shortened by registering the ready flags in
   each group, which would add a clock cycle to the selection (and the counter
   would then have to visit each group at most once every five clock cycles).
 * The next row in the column modules (to `res_cy_r`, whose clock enable
@@ -1079,7 +1079,16 @@ the normal variation from one run to the next; the critical paths are the
 same.
 The build with the jobs of 120 rows (see [Dispatcher](#dispatcher)), at the
 same frequency, had +0.103 ns of setup slack, and the build with the scheduler
-for the results has +0.037 ns.
+for the results had +0.037 ns.
+
+The frame rate overlay on the VGA output (see [The top level](#the-top-level))
+uses about 100 LUT cells and 130 registers after synthesis, and no block RAM
+(the font table is in LUTs). The build with it has +0.006 ns of setup slack.
+The worst path is in `view` (from `zoomx` to the clock enable of `dy`), which
+the overlay does not change, so this is the variation from one run to the
+next. The 40 paths from the MAIN clock to the VGA clock (the frame rate and
+its toggle signal) have +8.19 ns of slack against the maximum delay of 10 ns,
+and `report_cdc` reports all of them as safe.
 
 The complete run of `make vivado` takes about 6.5 minutes (synthesis about 2.5
 minutes, placement about 1.5 minutes, routing about 1 minute), on a machine
