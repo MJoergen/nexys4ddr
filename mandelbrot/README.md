@@ -50,6 +50,7 @@ results are:
 | Resolution      | 640x480                  |           | 800x600                |
 | Clock frequency | 188.24 MHz               |           | 188.24 MHz             |
 | Initial FPS     | 542 (estimated)          |           | 756 (estimated)        |
+| Worst-case FPS  | 92 (estimated)           |           | 113 (estimated)        |
 | Setup slack     | +0.092 ns                |           | +0.186 ns              |
 | Hold slack      | +0.014 ns                |           | +0.013 ns              |
 
