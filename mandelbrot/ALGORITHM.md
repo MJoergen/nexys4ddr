@@ -12,6 +12,22 @@ larger FPGA (XC7A200T) and a resolution of 800x600 instead of 640x480, see
 [MEGA65 R6](#mega65-r6). The numbers in this document are for the Nexys 4 DDR,
 unless stated otherwise.
 
+## Contents
+* [Instantiation hierarchy](#instantiation-hierarchy)
+* [The Mandelbrot iteration](#the-mandelbrot-iteration)
+* [Fixed point arithmetic](#fixed-point-arithmetic)
+* [Multiplier](#multiplier)
+* [Iterator](#iterator)
+  * [Periodicity detection](#periodicity-detection)
+  * [Overflow](#overflow)
+* [Columns](#columns)
+* [Dispatcher](#dispatcher)
+* [The top level](#the-top-level)
+* [Colours](#colours)
+* [Timing](#timing)
+* [Resources and timing closure](#resources-and-timing-closure)
+  * [MEGA65 R6](#mega65-r6)
+
 ## Instantiation hierarchy
 The modules are instantiated as follows:
 ```
