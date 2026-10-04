@@ -37,18 +37,20 @@ the multiplier, the iterator (including how overflow is detected), the columns,
 the dispatcher, and the timing and resource usage.
 
 ## Implementation results
-The design is built with Vivado 2025.1, and meets timing at the 188.24 MHz main
-clock on both boards. The resources used are:
+The design is built with Vivado 2025.1, and meets timing on both boards. The
+results are:
 
-| Resource    | Nexys 4 DDR (XC7A100T-1) | Available | MEGA65 R6 (XC7A200T-2) | Available
-| ----------- | ------------------------ | --------- | ---------------------- | ---------
-| DSP48E1     | 240                      | 240       | 450                    | 740
-| Block RAM   | 128 RAMB36 + 2 RAMB18    | 135 RAMB36 | 128 RAMB36 + 2 RAMB18 | 365 RAMB36
-| Slices      | 14,723                   | 15,850    | 29,964                 | 33,650
-| LUTs        | 42,252                   | 63,400    | 81,646                 | 134,600
-| Registers   | 45,018                   | 126,800   | 93,443                 | 269,200
-| Setup slack | +0.092 ns                |           | +0.186 ns              |
-| Hold slack  | +0.014 ns                |           | +0.013 ns              |
+| Resource        | Nexys 4 DDR (XC7A100T-1) | Available | MEGA65 R6 (XC7A200T-2) | Available
+| --------------- | ------------------------ | --------- | ---------------------- | ---------
+| DSP48E1         | 240                      | 240       | 450                    | 740
+| Block RAM       | 128 RAMB36 + 2 RAMB18    | 135 RAMB36 | 128 RAMB36 + 2 RAMB18 | 365 RAMB36
+| Slices          | 14,723                   | 15,850    | 29,964                 | 33,650
+| LUTs            | 42,252                   | 63,400    | 81,646                 | 134,600
+| Registers       | 45,018                   | 126,800   | 93,443                 | 269,200
+| Resolution      | 640x480                  |           | 800x600                |
+| Clock frequency | 188.24 MHz               |           | 188.24 MHz             |
+| Setup slack     | +0.092 ns                |           | +0.186 ns              |
+| Hold slack      | +0.014 ns                |           | +0.013 ns              |
 
 See [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details.
