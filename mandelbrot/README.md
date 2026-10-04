@@ -154,8 +154,9 @@ Type `make` to list the supported targets. The most important ones are:
 * `make clean` removes the generated files.
 
 ## Simulation
-There are testbenches in [`sim/`](sim) for `dispatcher`, `column`, `iterator`,
-`scheduler`, `res_scheduler`, `view`, `vga`, `overlay`, `disp_mem` and `fps`.
+There are testbenches in [`sim/`](sim) for `dispatcher`, `job`, `iterator`,
+`job_scheduler`, `res_scheduler`, `view`, `vga`, `overlay`, `disp_mem` and
+`fps`.
 All of them are self-checking, and stop with an error if the result is wrong.
 They stop by themselves when they are finished.
 
@@ -202,7 +203,7 @@ files that are in both clock domains are in [`src/`](src).
 | [`src/main/dispatcher.vhd`](src/main/dispatcher.vhd) | Controls the calculation of the entire picture: hands out the jobs to the idle job modules, and collects the results. Instantiates the job modules.
 | [`src/main/job_scheduler.vhd`](src/main/job_scheduler.vhd) | Round-robin scheduler. Used by the dispatcher to give jobs to idle job modules.
 | [`src/main/res_scheduler.vhd`](src/main/res_scheduler.vhd) | Scheduler for the results. Used by the dispatcher to pick which job module's result to accept, from the job modules that have a result ready.
-| [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture, in 128 blocks.
+| [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture, in blocks of 4096 pixels (one BRAM each): 128 on the Nexys 4 DDR, and 320 on the MEGA65.
 | [`src/vga/pix.vhd`](src/vga/pix.vhd), [`src/vga/disp.vhd`](src/vga/disp.vhd) | VGA output. `pix` generates the pixel counters, and `disp` generates the sync signals and the pixel colour.
 | [`src/vga/video_pkg.vhd`](src/vga/video_pkg.vhd) | The video modes, i.e. the resolution and the timing of the VGA output: 640x480 (Nexys 4 DDR) and 1280x1024 (MEGA65), both at 60 Hz.
 | [`src/vga/palette_pkg.vhd`](src/vga/palette_pkg.vhd) | The four colour palettes, which convert the count of a pixel to its colour.
