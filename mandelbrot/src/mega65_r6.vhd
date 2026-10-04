@@ -56,17 +56,17 @@ end mega65_r6;
 
 architecture structural of mega65_r6 is
 
-   -- The number of column modules. The XC7A200T has 740 DSPs, but the number
-   -- of column modules is limited by the routing: With 800x600, 450 column
-   -- modules fit, but with 1280x1024 the display memory uses 320 of the 365
-   -- BRAMs, and with 450 column modules the routing did not finish. 256
-   -- column modules use 58% of the slices.
+   -- The number of job modules. The XC7A200T has 740 DSPs, but the number of
+   -- job modules is limited by the routing: With 800x600, 450 job modules
+   -- fit, but with 1280x1024 the display memory uses 320 of the 365 BRAMs,
+   -- and with 450 job modules the routing did not finish. 256 job modules
+   -- use 58% of the slices.
    constant C_NUM_ITERATORS : integer := 256;
 
    -- The number of pixels in each write to the display memory. The dispatcher
    -- accepts at most one result per clock cycle, so with one pixel in each
    -- write the picture takes at least 1280*1024 clock cycles (8.80 ms), and
-   -- more column modules give little more. The model (sim/model.py) estimates
+   -- more job modules give little more. The model (sim/model.py) estimates
    -- 4.91 ms for the initial picture with four pixels in each write, against
    -- 9.76 ms with one.
    constant C_PIXELS        : integer := 4;
@@ -85,16 +85,16 @@ architecture structural of mega65_r6 is
    -- 1080 MHz / 7.25 = 148.97 MHz. The model (sim/model.py) estimates 7.9
    -- million clock cycles for the worst case picture (every pixel needs the
    -- maximum count), i.e. 18 pictures per second, against 203 for the initial
-   -- picture. 1080 MHz / 5.75 = 187.83 MHz failed timing with 450 column
+   -- picture. 1080 MHz / 5.75 = 187.83 MHz failed timing with 450 job
    -- modules.
    constant C_MAIN_DIVIDE   : real    := 7.25;
    constant C_MAIN_FREQ     : natural :=
       natural(100.0E6 / real(C_VCO_DIVIDE) * C_VCO_MULT / C_MAIN_DIVIDE);
 
-   -- Rows in each job given to a column module, see dispatcher.vhd. The
+   -- Rows in each job given to a job module, see dispatcher.vhd. The
    -- number of rows (1024) must be a multiple of it, and of C_PIXELS. The
    -- model gives 199 to 203 pictures per second for 32 to 128 rows.
-   constant C_JOB_ROWS      : integer := 64;
+   constant C_ROWS_IN_JOB   : integer := 64;
 
    -- The address distance between two picture columns in the display memory,
    -- see dispatcher.vhd. 1024 rows per column means the address is the column
@@ -105,7 +105,7 @@ architecture structural of mega65_r6 is
    -- (BRAMs) of 4096 pixels, with 21 bits of address. The XC7A200T has 365
    -- BRAMs. Without a register for the write port of each block, the register
    -- of each group of 8 blocks drives their BRAMs directly. This saves about
-   -- 15,000 registers, which made the slices too full for the column modules
+   -- 15,000 registers, which made the slices too full for the job modules
    -- (92% used, and the MAIN clock failed timing).
    constant C_ADDR_BITS     : integer := 21;
    constant C_MEM_BLOCKS    : integer := 320;
@@ -217,7 +217,7 @@ begin
          G_CLK_FREQ      => C_MAIN_FREQ,
          G_NUM_ITERATORS => C_NUM_ITERATORS,
          G_PIXELS        => C_PIXELS,
-         G_JOB_ROWS      => C_JOB_ROWS,
+         G_ROWS_IN_JOB   => C_ROWS_IN_JOB,
          G_NUM_COLS      => C_VIDEO.h_visible,
          G_NUM_ROWS      => C_VIDEO.v_visible,
          G_COL_STRIDE    => C_COL_STRIDE,

@@ -1,17 +1,17 @@
--- This module instantiates a number of column modules, dispatches jobs to them,
+-- This module instantiates a number of job modules, dispatches jobs to them,
 -- and collects results from them.
 --
--- The picture is divided into blocks of G_JOB_ROWS rows, and each job is one
+-- The picture is divided into blocks of G_ROWS_IN_JOB rows, and each job is one
 -- picture column of a block. The jobs are given out one block at a time:
 -- First all the picture columns of the top block, then all the picture columns
 -- of the next block, and so on. Smaller jobs make the work more evenly shared
--- between the column modules at the end of the picture, when the expensive
--- jobs would otherwise keep a few column modules busy long after the others
+-- between the job modules at the end of the picture, when the expensive
+-- jobs would otherwise keep a few job modules busy long after the others
 -- have finished.
 --
 -- Each write to the display memory is G_PIXELS pixels: consecutive rows of a
 -- picture column, starting at the row given by wr_addr_o, with the first row in
--- the lowest 9 bits of wr_data_o (see column.vhd). Writing more than one pixel
+-- the lowest 9 bits of wr_data_o (see job.vhd). Writing more than one pixel
 -- at a time lets the dispatcher write more than one pixel per clock cycle.
 --
 -- The address of the pixel in column x and row y of the picture is
@@ -31,7 +31,7 @@ entity dispatcher is
       G_NUM_COLS      : integer;
       G_COL_STRIDE    : integer;         -- Address distance between columns
       G_ADDR_BITS     : integer := 19;   -- Bits of the address
-      G_JOB_ROWS      : integer;         -- Rows in each job
+      G_ROWS_IN_JOB   : integer;         -- Rows in each job
       G_NUM_ITERATORS : integer;
       G_GROUP_SIZE    : integer := 16;
       G_PIXELS        : integer := 1     -- Pixels in each write
@@ -68,15 +68,15 @@ architecture rtl of dispatcher is
    constant C_COL_BITS   : integer := maximum(1, log2(G_NUM_COLS));
    constant C_ROW_BITS   : integer := log2(G_NUM_ROWS);
 
-   -- The job (cx, starty, and stepy), the reset, and the index of the column
-   -- module whose result is accepted all go to all the column modules. To make
+   -- The job (cx, starty, and stepy), the reset, and the index of the job
+   -- module whose result is accepted all go to all the job modules. To make
    -- the routing shorter, they go through an extra register in each group of
-   -- G_GROUP_SIZE column modules. The registers in each group are identical,
+   -- G_GROUP_SIZE job modules. The registers in each group are identical,
    -- so the attribute keep prevents the synthesis tool from merging them.
    constant C_NUM_GROUPS : integer := (G_NUM_ITERATORS + G_GROUP_SIZE - 1) / G_GROUP_SIZE;
 
    -- The number of blocks of rows
-   constant C_NUM_BLOCKS : integer := G_NUM_ROWS / G_JOB_ROWS;
+   constant C_NUM_BLOCKS : integer := G_NUM_ROWS / G_ROWS_IN_JOB;
 
    type job_addr_vector is array (natural range <>) of
       std_logic_vector(C_COL_BITS-1 downto 0);
@@ -107,7 +107,7 @@ architecture rtl of dispatcher is
    -- High together with job_started_r, when the job is the last picture
    -- column of a block
    signal job_wrap_r        : std_logic;
-   -- The picture column and the block of the job of each column module
+   -- The picture column and the block of the job of each job module
    signal job_addr_r        : job_addr_vector( G_NUM_ITERATORS-1 downto 0);
    signal job_blk_r         : blk_vector(      G_NUM_ITERATORS-1 downto 0);
    -- The picture column and the block of the next job. All the jobs have
@@ -115,26 +115,26 @@ architecture rtl of dispatcher is
    signal cur_addr_r        : std_logic_vector(C_COL_BITS-1 downto 0) := (others => '0');
    signal cur_blk_r         : integer range 0 to C_NUM_BLOCKS := 0;
    --
-   -- The job, delayed by one clock cycle, in each group of column modules
+   -- The job, delayed by one clock cycle, in each group of job modules
    signal grp_cx_r          : value_vector(C_NUM_GROUPS-1 downto 0);
    signal grp_starty_r      : value_vector(C_NUM_GROUPS-1 downto 0);
    signal grp_stepy_r       : value_vector(C_NUM_GROUPS-1 downto 0);
    signal job_start_d       : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal job_started_d     : std_logic;
    signal job_started_dd    : std_logic;
-   -- High when any column module in the group is busy with a job
+   -- High when any job module in the group is busy with a job
    signal grp_job_busy_r    : std_logic_vector(C_NUM_GROUPS-1 downto 0);
    signal grp_rst_r         : std_logic_vector(C_NUM_GROUPS-1 downto 0);
 
-   -- The index of the column module whose result is accepted, delayed by one
-   -- clock cycle, in each group of column modules, and the result of the
-   -- selected column module in each group.
+   -- The index of the job module whose result is accepted, delayed by one
+   -- clock cycle, in each group of job modules, and the result of the
+   -- selected job module in each group.
    signal grp_idx_r         : idx_vector(C_NUM_GROUPS-1 downto 0);
    signal grp_valid_r       : std_logic_vector(C_NUM_GROUPS-1 downto 0);
    signal grp_res_addr_r    : res_addr_vector(C_NUM_GROUPS-1 downto 0);
    signal grp_res_data_r    : res_data_vector(C_NUM_GROUPS-1 downto 0);
 
-   -- The multiplication by the constant G_JOB_ROWS uses LUTs, because all
+   -- The multiplication by the constant G_ROWS_IN_JOB uses LUTs, because all
    -- the DSPs are used by the iterators.
    attribute use_dsp : string;
    attribute use_dsp of job_blk_stepy_r : signal is "no";
@@ -176,7 +176,7 @@ architecture rtl of dispatcher is
    signal acc_valid_dd      : std_logic;
 
    -- The multiplication by the constant G_COL_STRIDE uses LUTs, like the one
-   -- by G_JOB_ROWS.
+   -- by G_ROWS_IN_JOB.
    attribute use_dsp of acc_col_dd : signal is "no";
 
    signal done_r            : std_logic;
@@ -189,18 +189,18 @@ architecture rtl of dispatcher is
 
 begin
 
-   -- When the scheduler samples the busy flag of a column module and selects
-   -- it, the new busy flag of that column module (job_busy_s) is sampled by
+   -- When the scheduler samples the busy flag of a job module and selects
+   -- it, the new busy flag of that job module (job_busy_s) is sampled by
    -- the scheduler five clock cycles later at the earliest (the selection goes
    -- through the scheduler, job_start_r and job_start_d). The scheduler
-   -- samples the busy flag of the same column module again G_NUM_ITERATORS
-   -- clock cycles later. With fewer than five column modules a job could
+   -- samples the busy flag of the same job module again G_NUM_ITERATORS
+   -- clock cycles later. With fewer than five job modules a job could
    -- therefore be started twice (and the first one would be lost).
    assert G_NUM_ITERATORS >= 5
-      report "The dispatcher needs at least five column modules"
+      report "The dispatcher needs at least five job modules"
       severity failure;
 
-   assert G_NUM_ROWS mod G_JOB_ROWS = 0
+   assert G_NUM_ROWS mod G_ROWS_IN_JOB = 0
       report "The number of rows must be a multiple of the rows in a job"
       severity failure;
 
@@ -248,7 +248,7 @@ begin
 
 
    ----------------------------------
-   -- Start any idle column module
+   -- Start any idle job module
    ----------------------------------
 
    p_job_start : process (clk_i)
@@ -293,21 +293,21 @@ begin
 
 
    ----------------------------------------
-   -- Prepare job for next column module
+   -- Prepare job for next job module
    ----------------------------------------
 
    -- After the last picture column of a block, cx starts again from the left
-   -- edge, and cy moves to the next block. The column modules add stepy in 18
-   -- bits, so adding G_JOB_ROWS times stepy (also in 18 bits) gives exactly the
-   -- same values of cy as if all the rows were calculated in one job. The value
-   -- of job_blk_stepy_r is ready two clock cycles after a start (start_i), and
-   -- it is not used until the first job has been started, which is at least
-   -- five clock cycles after the start.
+   -- edge, and cy moves to the next block. The job modules add stepy in 18
+   -- bits, so adding G_ROWS_IN_JOB times stepy (also in 18 bits) gives exactly
+   -- the same values of cy as if all the rows were calculated in one job. The
+   -- value of job_blk_stepy_r is ready two clock cycles after a start
+   -- (start_i), and it is not used until the first job has been started, which
+   -- is at least five clock cycles after the start.
    p_job_cx : process (clk_i)
       variable blk_stepy_v : std_logic_vector(35 downto 0);
    begin
       if rising_edge(clk_i) then
-         blk_stepy_v     := job_stepy_r * to_slv(G_JOB_ROWS, 18);
+         blk_stepy_v     := job_stepy_r * to_slv(G_ROWS_IN_JOB, 18);
          job_blk_stepy_r <= blk_stepy_v(17 downto 0);
 
          if job_started_r = '1' then
@@ -333,11 +333,11 @@ begin
    -- Delay the job by one clock cycle, in groups
    -----------------------------------------------
 
-   -- The column module takes the values of cx and starty when it sees the
+   -- The job module takes the values of cx and starty when it sees the
    -- start of the job, so job_start_r is delayed too. The value of stepy does
    -- not change during a picture. After a start (start_i), the first job is
    -- started (job_start_d) five clock cycles later, and by then the new value
-   -- has reached the column modules.
+   -- has reached the job modules.
    p_grp : process (clk_i)
    begin
       if rising_edge(clk_i) then
@@ -353,7 +353,7 @@ begin
          job_started_d  <= job_started_r;
          job_started_dd <= job_started_d;
 
-         -- The column modules are reset two clock cycles after the rest of the
+         -- The job modules are reset two clock cycles after the rest of the
          -- dispatcher (they register the reset again).
          for g in 0 to C_NUM_GROUPS-1 loop
             grp_rst_r(g) <= rst_i;
@@ -363,14 +363,14 @@ begin
 
 
    ------------------------------
-   -- Instantiate column modules
+   -- Instantiate job modules
    ------------------------------
 
-   gen_column : for i in 0 to G_NUM_ITERATORS-1 generate
-      i_column : entity work.column
+   gen_job : for i in 0 to G_NUM_ITERATORS-1 generate
+      i_job : entity work.job
          generic map (
             G_MAX_COUNT => G_MAX_COUNT,
-            G_NUM_ROWS  => G_JOB_ROWS,
+            G_NUM_ROWS  => G_ROWS_IN_JOB,
             G_PIXELS    => G_PIXELS
          )
          port map (
@@ -385,12 +385,12 @@ begin
             res_data_o   => res_data_s(i),
             res_valid_o  => res_valid_s(i),
             res_ack_i    => res_ack_r(i)
-         ); -- i_column
-      end generate gen_column;
+         ); -- i_job
+      end generate gen_job;
 
 
    -----------------------------------------
-   -- Find one column module to acknowledge
+   -- Find one job module to acknowledge
    -----------------------------------------
 
    p_res_busy : process (clk_i)
@@ -401,8 +401,8 @@ begin
    end process p_res_busy;
 
 
-   -- A column module has a result ready when it is valid and has not been
-   -- acknowledged. When i_res_scheduler selects a column module in clock cycle
+   -- A job module has a result ready when it is valid and has not been
+   -- acknowledged. When i_res_scheduler selects a job module in clock cycle
    -- c, the acknowledge (res_ack_r) is high in clock cycle c+2, and
    -- res_busy_r is high from clock cycle c+3, until the next result. So the
    -- ready flag is low from clock cycle c+2, as i_res_scheduler requires.
@@ -427,15 +427,15 @@ begin
    -- Generate output data
    ------------------------
 
-   -- The result of the column module selected by i_res_scheduler is
+   -- The result of the job module selected by i_res_scheduler is
    -- acknowledged and written in four steps:
-   -- 1. The index of the column module goes to each group (grp_idx_r).
-   -- 2. Each group acknowledges the selected column module, if it is in the
+   -- 1. The index of the job module goes to each group (grp_idx_r).
+   -- 2. Each group acknowledges the selected job module, if it is in the
    --    group, and selects its result (grp_res_addr_r and grp_res_data_r).
-   -- 3. The result is selected from the group of the column module, and its
+   -- 3. The result is selected from the group of the job module, and its
    --    row in the picture and the address of its column are calculated.
    -- 4. The address is calculated from the column and the row.
-   -- The column module keeps its result unchanged until it has seen the
+   -- The job module keeps its result unchanged until it has seen the
    -- acknowledge, so the result is still there in step 2.
 
    p_res_grp : process (clk_i)
@@ -487,11 +487,11 @@ begin
       if rising_edge(clk_i) then
          -- Step 2
          acc_job_addr_d <= acc_job_addr_r;
-         acc_row_d      <= to_slv(acc_blk_r * G_JOB_ROWS, C_ROW_BITS);
+         acc_row_d      <= to_slv(acc_blk_r * G_ROWS_IN_JOB, C_ROW_BITS);
          acc_grp_d      <= acc_grp_r;
          acc_valid_d    <= acc_valid_r;
 
-         -- Step 3. The column module gives the row within the block. The
+         -- Step 3. The job module gives the row within the block. The
          -- multiplication is not in step 2, because acc_job_addr_r is read
          -- from a table, which may be a BRAM (job_addr_r). When G_COL_STRIDE
          -- is a power of two, the multiplication is only wires.
@@ -510,7 +510,7 @@ begin
    end process p_wr;
 
 
-   -- The busy flags of all the column modules are combined in two steps, to
+   -- The busy flags of all the job modules are combined in two steps, to
    -- keep the paths short: first in each group (grp_job_busy_r), and then in
    -- p_done.
    gen_grp_job_busy : for g in 0 to C_NUM_GROUPS-1 generate
@@ -531,7 +531,7 @@ begin
    -- start, because otherwise the old value of done_r would stop the scheduler
    -- (see p_sched_active) just after the start. It is not set while a job has
    -- just been started (job_started_r, job_started_d or job_started_dd),
-   -- because then the busy flag of the column module has not reached
+   -- because then the busy flag of the job module has not reached
    -- grp_job_busy_r yet.
    p_done : process (clk_i)
    begin

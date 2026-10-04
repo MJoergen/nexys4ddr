@@ -20,7 +20,7 @@ mega65-r6_SRC  = src/mega65_r6.vhd
 # also given to the Vivado script (mandelbrot.tcl), followed by the top level
 # module of the board.
 SRC  = src/main/iterator.vhd
-SRC += src/main/column.vhd
+SRC += src/main/job.vhd
 SRC += src/main/job_scheduler.vhd
 SRC += src/main/res_scheduler.vhd
 SRC += src/main/dispatcher.vhd
@@ -39,7 +39,7 @@ SRC += src/main/main.vhd
 SRC += src/clk_rst.vhd
 
 # Testbenches, i.e. sim/<name>_tb.vhd
-TBS = dispatcher column iterator job_scheduler res_scheduler view vga overlay disp_mem fps
+TBS = dispatcher job iterator job_scheduler res_scheduler view vga overlay disp_mem fps
 
 # Testbench simulated by the "run" and "check" targets. Must be specified on
 # the command line, e.g. "make run TB=iterator".

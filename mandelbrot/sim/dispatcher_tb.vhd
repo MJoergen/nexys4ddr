@@ -1,7 +1,7 @@
 -- This is a simple self-checking testbench for the dispatcher. It is not an
 -- exhaustive test. It uses three instances of the dispatcher: A normal one,
 -- where each picture column is divided into four jobs; one with a single
--- picture column (i.e. with fewer picture columns than column modules) and one
+-- picture column (i.e. with fewer picture columns than job modules) and one
 -- row in each job, so every job is the last picture column of its block; and
 -- one with four pixels in each write, where each picture column is divided
 -- into two jobs, of two writes each. In the first two, the address is the
@@ -19,7 +19,7 @@
 --   pixel. This also checks that each pixel is calculated with the right value
 --   of c, i.e. that the results are written to the right address.
 --
--- A small picture, a small number of column modules, and a low maximum count
+-- A small picture, a small number of job modules, and a low maximum count
 -- are used to keep the simulation short.
 
 library ieee;
@@ -40,7 +40,7 @@ architecture simulation of dispatcher_tb is
    constant C_NUM_ITERATORS : integer := 16;
 
    -- Rows in each job, in the three instances
-   constant C_JOB_ROWS      : integer := 4;
+   constant C_ROWS_IN_JOB   : integer := 4;
    constant C_SMALL_ROWS    : integer := 1;
    constant C_WIDE_ROWS     : integer := 8;
 
@@ -52,12 +52,12 @@ architecture simulation of dispatcher_tb is
    constant C_SMALL_STRIDE  : integer := C_NUM_ROWS;
    constant C_WIDE_STRIDE   : integer := 20;
 
-   -- Size of the groups of column modules in the first instance (see
+   -- Size of the groups of job modules in the first instance (see
    -- dispatcher.vhd). This gives four groups, and the last one is smaller.
    constant C_GROUP_SIZE    : integer := 5;
 
    -- Number of picture columns in the second instance. This is less than the
-   -- number of column modules.
+   -- number of job modules.
    constant C_SMALL_COLS    : integer := 1;
 
    -- Maximum number of clock cycles to wait for a picture
@@ -233,7 +233,7 @@ begin
          for c in 0 to num_cols-1 loop
             for r in 0 to C_NUM_ROWS-1 loop
                if seen(c, r) /= -1 then
-                  -- The dispatcher and the column modules add the steps in 18
+                  -- The dispatcher and the job modules add the steps in 18
                   -- bits
                   cx_i := wrap18(startx_i + c * stepx_i);
                   cy_i := wrap18(starty_i + r * stepy_i);
@@ -294,7 +294,7 @@ begin
          G_NUM_ROWS      => C_NUM_ROWS,
          G_NUM_COLS      => C_NUM_COLS,
          G_COL_STRIDE    => C_STRIDE,
-         G_JOB_ROWS      => C_JOB_ROWS,
+         G_ROWS_IN_JOB   => C_ROWS_IN_JOB,
          G_NUM_ITERATORS => C_NUM_ITERATORS,
          G_GROUP_SIZE    => C_GROUP_SIZE
       )
@@ -318,7 +318,7 @@ begin
          G_NUM_ROWS      => C_NUM_ROWS,
          G_NUM_COLS      => C_SMALL_COLS,
          G_COL_STRIDE    => C_SMALL_STRIDE,
-         G_JOB_ROWS      => C_SMALL_ROWS,
+         G_ROWS_IN_JOB   => C_SMALL_ROWS,
          G_NUM_ITERATORS => C_NUM_ITERATORS
       )
       port map (
@@ -341,7 +341,7 @@ begin
          G_NUM_ROWS      => C_NUM_ROWS,
          G_NUM_COLS      => C_NUM_COLS,
          G_COL_STRIDE    => C_WIDE_STRIDE,
-         G_JOB_ROWS      => C_WIDE_ROWS,
+         G_ROWS_IN_JOB   => C_WIDE_ROWS,
          G_NUM_ITERATORS => C_NUM_ITERATORS,
          G_GROUP_SIZE    => C_GROUP_SIZE,
          G_PIXELS        => C_WIDE_PIXELS

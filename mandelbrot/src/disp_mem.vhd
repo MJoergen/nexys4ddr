@@ -24,7 +24,7 @@
 -- Without the registers of the blocks, each register of a group drives the 8
 -- BRAMs of the group directly. This saves 47 registers for each block (with
 -- four pixels in each word), about 15,000 for 320 blocks, which the MEGA65
--- needs for the column modules. Writes to addresses outside the memory are
+-- needs for the job modules. Writes to addresses outside the memory are
 -- ignored.
 --
 -- The write port has three clock cycles of latency, or two without the

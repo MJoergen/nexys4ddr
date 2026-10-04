@@ -12,6 +12,16 @@ larger FPGA (XC7A200T) and a resolution of 1280x1024 instead of 640x480, see
 [MEGA65 R6](#mega65-r6). The numbers in this document are for the Nexys 4 DDR,
 unless stated otherwise.
 
+## Terms
+The following terms are used in this document:
+* A *picture column* is a vertical slice of the picture.
+* A *job* is 120 rows of a picture column, i.e. a quarter of it. The picture is
+  divided into four *blocks* of 120 rows, so there are 2560 jobs.
+* A *job module* is an instance of [`src/main/job.vhd`](src/main/job.vhd). It
+  calculates one job at a time, row by row, using one iterator.
+* An *iterator* is the block in [`src/main/iterator.vhd`](src/main/iterator.vhd). It
+  calculates the count for a single point.
+
 ## Instantiation hierarchy
 The modules are instantiated as follows:
 ```
@@ -20,11 +30,11 @@ nexys4ddr                       src/nexys4ddr.vhd (top level)
  +- main                        src/main/main.vhd (everything in the MAIN clock domain)
  |   +- view                    src/main/view.vhd (view control from the buttons)
  |   +- dispatcher              src/main/dispatcher.vhd
- |   |   +- job_scheduler       src/main/job_scheduler.vhd (selects the column module to receive a job)
- |   |   +- column  (x 240)     src/main/column.vhd (the column modules)
+ |   |   +- job_scheduler       src/main/job_scheduler.vhd (selects the job module to receive a job)
+ |   |   +- job     (x 240)     src/main/job.vhd (the job modules)
  |   |   |   +- iterator        src/main/iterator.vhd
  |   |   |       +- (DSP48E1)   (inferred in p_dsp, multiplier and adder)
- |   |   +- res_scheduler       src/main/res_scheduler.vhd (selects the column module whose result is accepted)
+ |   |   +- res_scheduler       src/main/res_scheduler.vhd (selects the job module whose result is accepted)
  |   +- fps                     src/main/fps.vhd (frame rate, calculated from the time for a picture)
  |   +- (p_fps_toggle)          (tells the VGA clock domain that the frame rate has changed)
  |   +- seg                     src/main/seg.vhd (7-segment display)
@@ -35,7 +45,7 @@ nexys4ddr                       src/nexys4ddr.vhd (top level)
      +- disp                    src/vga/disp.vhd (VGA output, uses the palettes in src/vga/palette_pkg.vhd)
      +- overlay                 src/vga/overlay.vhd (frame rate overlay, uses the font in src/vga/font_pkg.vhd)
 ```
-The number of column modules (and therefore iterators and DSPs) is set by the
+The number of job modules (and therefore iterators and DSPs) is set by the
 generic `G_NUM_ITERATORS` of `main`, which the top level module sets to 240
 (256 for the MEGA65, see `src/mega65_r6.vhd`).
 
@@ -167,7 +177,7 @@ iterator, where these values wrapped around, gave a wrong count for both.
 
 The same bit-accurate model is also written in VHDL, in the package
 [`sim/iterator_model_pkg.vhd`](sim/iterator_model_pkg.vhd). The testbenches for
-the column module and the dispatcher compare every count with this model, and
+the job module and the dispatcher compare every count with this model, and
 require them to be equal. The iterator testbench still compares with real
 numbers, so that it also checks that the model (i.e. the design) calculates the
 Mandelbrot iteration.
@@ -183,11 +193,11 @@ writes every pixel written to the display memory to the file
 these values with the model. The first line of the file is the size of the
 picture and the address distance between two picture columns, so the script
 knows the view and how to decode the addresses. By default it simulates the
-design of the Nexys 4 DDR (240 column modules, one pixel in each write,
+design of the Nexys 4 DDR (240 job modules, one pixel in each write,
 640x480); the generics of the testbench select the design of the MEGA65 (256
-column modules, four pixels in each write, jobs of 64 rows, 1280x1024 with
+job modules, four pixels in each write, jobs of 64 rows, 1280x1024 with
 21 bits of address) with
-`GENERICS="G_NUM_ITERATORS=256 G_PIXELS=4 G_JOB_ROWS=64 G_NUM_COLS=1280 G_NUM_ROWS=1024 G_COL_STRIDE=1024 G_ADDR_BITS=21"`,
+`GENERICS="G_NUM_ITERATORS=256 G_PIXELS=4 G_ROWS_IN_JOB=64 G_NUM_COLS=1280 G_NUM_ROWS=1024 G_COL_STRIDE=1024 G_ADDR_BITS=21"`,
 see the Makefile. A complete picture takes about 1.5 hours to simulate (with
 `STOP_TIME=4ms`, and the waveform file is about 5 GB), but a partial picture
 can be compared too:
@@ -196,7 +206,7 @@ make run TB=main STOP_TIME=700us
 sim/cmp_rtl.py
 ```
 The 700 us of simulated time (about 13 minutes) gives more than 50000 pixels,
-from all 240 column modules. This testbench is not part of `make sim`.
+from all 240 job modules. This testbench is not part of `make sim`.
 
 The iterator has been heavily optimized to use only a single multiplier, and to
 pipeline the calculations. Each iteration takes three clock cycles, and is
@@ -306,27 +316,17 @@ from the limited precision of the 2.16 format. For the initial view about 1.5%
 of the pixels have a different count, and about 0.1% (292 pixels) are on the
 other side of the boundary of the set (`sim/model.py`).
 
-## Columns
-The following terms are used in this document:
-* A *picture column* is a vertical slice of the picture.
-* A *job* is 120 rows of a picture column, i.e. a quarter of it. The picture is
-  divided into four *blocks* of 120 rows, so there are 2560 jobs.
-* A *column module* is an instance of [`src/main/column.vhd`](src/main/column.vhd). It
-  calculates one job at a time, row by row, using one iterator.
-* An *iterator* is the block in [`src/main/iterator.vhd`](src/main/iterator.vhd). It
-  calculates the count for a single point.
-
-There is one iterator, and therefore one DSP, in each column module, and there
-are `G_NUM_ITERATORS` column modules (240 in the design). The generics keep
-their names: `G_NUM_COLS` is the number of picture columns, and
-`G_NUM_ITERATORS` is the number of column modules. The number of rows in a job
-is the generic `G_JOB_ROWS` of the dispatcher (`C_JOB_ROWS` in the top
+## Jobs
+There is one iterator, and therefore one DSP, in each job module, and there
+are `G_NUM_ITERATORS` job modules (240 in the design). `G_NUM_COLS` is the
+number of picture columns, not of job modules. The number of rows in a job
+is the generic `G_ROWS_IN_JOB` of the dispatcher (`C_ROWS_IN_JOB` in the top
 level: 120 on the Nexys 4 DDR, and 64 on the MEGA65, because 1024 is not a
-multiple of 120), which is the generic `G_NUM_ROWS` of the column module.
+multiple of 120), which is the generic `G_NUM_ROWS` of the job module.
 
-Each job is calculated in its entirety by one column module.
+Each job is calculated in its entirety by one job module.
 
-The inputs to a column module are:
+The inputs to a job module are:
 ```
 job_start_i  : in  std_logic;
 job_cx_i     : in  std_logic_vector(17 downto 0);
@@ -362,7 +362,7 @@ arbitrarily long delay before the job dispatcher has time to acknowledge the
 result. The number of rows in a job must be a multiple of `G_PIXELS`, which
 must be a power of two.
 
-When `G_PIXELS` is more than 1, the column module keeps the counts of the
+When `G_PIXELS` is more than 1, the job module keeps the counts of the
 first `G_PIXELS`-1 rows of a result in a register, and starts the next row at
 once, in the clock cycle after the iterator is done. So it only waits for the
 acknowledge after the last row of a result. Before the next row, the count of
@@ -370,19 +370,19 @@ the row is put at the top of the register, which shifts the earlier counts
 down, so the count of the first row ends up at the bottom. The register does
 not change from the last row of a result until the next row has been
 calculated, i.e. until after the acknowledge, so it is output directly, and
-only the count of the last row goes through the output register of the column
+only the count of the last row goes through the output register of the job
 module. With an output register for all 36 bits, the MEGA65 build used 12,000
 more registers.
 
-The testbench for the column module ([`sim/column_tb.vhd`](sim/column_tb.vhd))
+The testbench for the job module ([`sim/job_tb.vhd`](sim/job_tb.vhd))
 is self-checking. It runs three jobs of 12 rows each, and checks that the
-column module is busy only during a job, that the results come in order, with
+job module is busy only during a job, that the results come in order, with
 the right row numbers, that a result stays unchanged until it is acknowledged
 (the acknowledge is delayed by a varying number of clock cycles), and that the
 count for each row is exactly the count calculated by the bit-accurate model
 (see [Iterator](#iterator)). The third job is near the top of the set, where
 x+y or x-y is often out of range. It does this for 1, 2 and 4 rows in each
-result, with three instances of the column module.
+result, with three instances of the job module.
 
 ## Dispatcher
 This ([`src/main/dispatcher.vhd`](src/main/dispatcher.vhd)) is essentially the top level
@@ -409,25 +409,25 @@ wr_data_o : out std_logic_vector(9*G_PIXELS-1 downto 0);
 wr_en_o   : out std_logic;
 ```
 The data is the 9-bit counts of `G_PIXELS` consecutive rows of a picture
-column (a result of a column module, see [Columns](#columns)), and the address
+column (a result of a job module, see [Jobs](#jobs)), and the address
 is that of the first of them. The counts are stored in the display memory, see
 [The top level](#the-top-level).
 
-This module instantiates a configurable number of column modules (240 on the
+This module instantiates a configurable number of job modules (240 on the
 Nexys 4 DDR, one for each DSP, and 256 on the MEGA65). It keeps track of
-which column modules are currently calculating, and whenever a column module
+which job modules are currently calculating, and whenever a job module
 is idle, the next job is sent to it.
 
 The jobs are given out one block at a time: first all the picture columns
 (640 on the Nexys 4 DDR) of the top 120 rows, then all the picture columns of
 the next 120 rows, and so on. After the last picture column of a block, cx starts again from the left
 edge, and starty moves to the next block, by adding 120 times stepy (in 18
-bits, like the column modules add stepy, so cy of each row is the same as if
+bits, like the job modules add stepy, so cy of each row is the same as if
 the picture column was calculated in one job). The multiplication by the
 constant 120 is done once for each picture, in LUTs, because all the DSPs are
 used by the iterators. The dispatcher keeps the picture column and the block
-of the job of each column module, and when a result is accepted it adds the
-first row of the block to the row from the column module, to get the row in
+of the job of each job module, and when a result is accepted it adds the
+first row of the block to the row from the job module, to get the row in
 the picture.
 
 The address in the display memory is the picture column times the generic
@@ -439,93 +439,93 @@ is 1024, so the address is the picture column (11 bits) followed by the row
 `G_COL_STRIDE` (e.g. 600, when the MEGA65 showed 800x600 in the 2^19 pixels of
 the old display memory) the address is calculated in two pipeline stages: the
 multiplication by the constant (in LUTs, like the multiplication by
-`G_JOB_ROWS`), and then the addition of the row. The extra stage is there for
+`G_ROWS_IN_JOB`), and then the addition of the row. The extra stage is there for
 a power of two too, as registers, so the write has one more clock cycle of
 latency than it would need.
 
-Smaller jobs make the work more evenly shared between the column modules at
+Smaller jobs make the work more evenly shared between the job modules at
 the end of the picture, see [Timing](#timing). The order of the jobs matters
 less: other orders were tried in the model (e.g. column by column, or starting
 from the middle of the picture), and the best order depends on the view.
 
-A separate scheduler module is used to send jobs to the different column
+A separate scheduler module is used to send jobs to the different job
 modules. Currently, the scheduler for the jobs operates in a round-robin
-fashion over all the column modules, one per clock cycle. This potentially
-may give a delay up to 240 clock cycles before an idle column module is
-given a job, i.e. 1.6 us at 150 MHz. The column modules wait in
-parallel, and with 2560 jobs and 240 column modules, each column module gets
+fashion over all the job modules, one per clock cycle. This potentially
+may give a delay up to 240 clock cycles before an idle job module is
+given a job, i.e. 1.6 us at 150 MHz. The job modules wait in
+parallel, and with 2560 jobs and 240 job modules, each job module gets
 about 11 jobs on average. So the delay adds at most about 18 microseconds (and
 half of that on average) to the time for a picture, which is about 2.31 ms.
 This delay is small.
 
 The scheduler ([`src/main/job_scheduler.vhd`](src/main/job_scheduler.vhd)) has a counter that
-goes round all the column modules, one per clock cycle, and selects a column
+goes round all the job modules, one per clock cycle, and selects a job
 module when the counter reaches it and it is idle. Selecting the busy flag of
-one of the 240 column modules in a single clock cycle is too slow, so it is
-done in two steps: first, in each group of 16 column modules, the busy flag at
+one of the 240 job modules in a single clock cycle is too slow, so it is
+done in two steps: first, in each group of 16 job modules, the busy flag at
 the position of the counter in the group is registered, and in the next clock
 cycle the flag of the group of the counter is used.
 
-The column modules are spread over the whole FPGA, so the signals that go from
+The job modules are spread over the whole FPGA, so the signals that go from
 the dispatcher to all of them have long routes. To keep each route shorter,
-these signals go through an extra register in each group of 16 column modules
+these signals go through an extra register in each group of 16 job modules
 (the generic G\_GROUP\_SIZE, so there are 15 groups, or 29 on the MEGA65): the
 job (cx, starty, and stepy), the start of the job, the reset, and the index of
-the column module whose result is accepted. The registers of the groups are
+the job module whose result is accepted. The registers of the groups are
 identical, so they have the attribute `keep`, which prevents the synthesis
 tool from merging them.
-Each column module registers the reset once more, so the reset register of a
+Each job module registers the reset once more, so the reset register of a
 group drives only 16 registers.
 
-A result is accepted in three steps. First, the index of the column module
+A result is accepted in three steps. First, the index of the job module
 selected by i\_res\_scheduler goes to the register in each group. Then each
-group acknowledges the selected column module, if it is in the group, and
+group acknowledges the selected job module, if it is in the group, and
 selects its result. Finally, the result is selected from the group of the
-column module and written to the display memory. The column module keeps its
+job module and written to the display memory. The job module keeps its
 result until it has seen the acknowledge, so the result is still there when
 its group selects it. Because of the extra registers, the scheduler for the
-jobs sees that a column module is busy five clock cycles after it has sampled
-its busy flag and selected it, so the dispatcher needs at least five column
+jobs sees that a job module is busy five clock cycles after it has sampled
+its busy flag and selected it, so the dispatcher needs at least five job
 modules.
 
 The display memory can take one result (one word of `G_PIXELS` pixels) in each
 clock cycle, and the scheduler
 for the results ([`src/main/res_scheduler.vhd`](src/main/res_scheduler.vhd),
 i\_res\_scheduler) tries to use as many of these clock cycles as possible.
-Each group of 16 column modules (the same groups as above) registers the
-ready flags of its column modules, and then, in the next clock cycle, a
-candidate: one of its column modules that has a result ready, picked in
-round-robin order within the group, i.e. the first one after the column module
+Each group of 16 job modules (the same groups as above) registers the
+ready flags of its job modules, and then, in the next clock cycle, a
+candidate: one of its job modules that has a result ready, picked in
+round-robin order within the group, i.e. the first one after the job module
 that was accepted last time. The ready flags are registered first, so that the
-routes from the column modules and the round-robin selection are in separate
+routes from the job modules and the round-robin selection are in separate
 clock cycles. A counter goes round the 15
 groups, one per clock cycle, and the candidate of the group of the counter is
-accepted, if the group has one. So, unlike an idle column module waiting for
-a job, a column module with a result waits until
+accepted, if the group has one. So, unlike an idle job module waiting for
+a job, a job module with a result waits until
 its group is visited, i.e. at most 15 clock cycles, plus 15 clock cycles for
-each column module of its group that is before it in the round-robin order.
+each job module of its group that is before it in the round-robin order.
 Earlier, the round-robin scheduler for the jobs was used for the results too,
-and a column module waited up to 240 clock cycles for each result, also when
-no other column module had a result ready (see [Timing](#timing)).
+and a job module waited up to 240 clock cycles for each result, also when
+no other job module had a result ready (see [Timing](#timing)).
 
-A column module has a result ready when its result is valid and has not been
+A job module has a result ready when its result is valid and has not been
 acknowledged. The ready flags and the candidate of a group are registered, so
-a column module that has just been accepted can still be the candidate of its
+a job module that has just been accepted can still be the candidate of its
 group for three more clock cycles, until the acknowledge has reached it and
 the ready flags have been registered again. The counter therefore visits each
 group at most once every five clock cycles (when there are fewer than five
-groups, the counter has empty positions), so a column module can not be
+groups, the counter has empty positions), so a job module can not be
 accepted twice for the same result.
 
-The done flag (done\_o) needs to know that all 240 column modules are idle. The
-busy flags are first combined in each group of 16 column modules, in a
+The done flag (done\_o) needs to know that all 240 job modules are idle. The
+busy flags are first combined in each group of 16 job modules, in a
 register, and then the 15 groups are combined. The done flag is not set while
-a job has just been started, until the busy flag of the column module has
+a job has just been started, until the busy flag of the job module has
 reached the register of its group.
 
 The dispatcher has a self-checking testbench
 ([`sim/dispatcher_tb.vhd`](sim/dispatcher_tb.vhd)). It calculates two small
-pictures (64 by 16 pixels, with 16 column modules in groups of 5, so the last
+pictures (64 by 16 pixels, with 16 job modules in groups of 5, so the last
 group is smaller, and four jobs of 4 rows in each picture column), one right
 after the other,
 and checks that each pixel is written exactly once, that everything has been
@@ -534,7 +534,7 @@ started, and that the value of each pixel is exactly the count calculated by
 the bit-accurate model (see [Iterator](#iterator)) for the value of c of that
 pixel. This also checks that each result is written to the right address. It
 then repeats this for two pictures with a single picture
-column, i.e. with fewer picture columns than column modules, which is a special
+column, i.e. with fewer picture columns than job modules, which is a special
 case for done\_o, and with jobs of a single row, so every job is the last
 picture column of its block. Finally it repeats this for two pictures with
 four pixels in each write (and two jobs of 8 rows in each picture column), and
@@ -554,7 +554,7 @@ scheduler from the first process.
 
 The scheduler for the results has a self-checking testbench too
 ([`sim/res_scheduler_tb.vhd`](sim/res_scheduler_tb.vhd)). Each process
-behaves like a column module: when it has a result, it is ready until the
+behaves like a job module: when it has a result, it is ready until the
 result has been accepted, and its ready flag goes low as late as allowed. It
 then gets a new result after a random delay. The testbench checks that
 nothing is selected when the scheduler is not active or nothing is ready,
@@ -624,7 +624,7 @@ BRAM. A single register for the address of all 128 BRAMs, which are spread
 over the whole FPGA, made the routing too slow. On the MEGA65 the registers of
 the blocks are left out (the generic `G_BLOCK_REGS`), so the register of each
 group drives the 8 BRAMs of the group directly. This saves about 15,000
-registers, which the column modules need. Writes to addresses beyond the last
+registers, which the job modules need. Writes to addresses beyond the last
 block are ignored. The write port has three clock cycles of latency (two on
 the MEGA65), and the read port four: the read address goes to a register in
 each group, which drives the 8 BRAMs of the group, then the BRAMs are read,
@@ -687,7 +687,7 @@ down:
 
 The view is always kept inside the range of the 2.16 number format, i.e. -2 to
 2 (not including 2). Otherwise the values of cx and cy, which the dispatcher and
-the column modules calculate by adding stepx and stepy, would wrap around, and
+the job modules calculate by adding stepx and stepy, would wrap around, and
 the picture would show parts of the range twice (e.g. a second copy of the set
 at the right edge). Similarly, the size of a pixel must not become zero or
 negative. So:
@@ -859,7 +859,7 @@ A counter measures the time it takes to generate the picture, which is shown
 as a frame rate on the 7-segment display and on the VGA output, see
 [The top level](#the-top-level).
 Earlier versions showed this time on the LEDs instead, in units of 2^11 clock
-cycles, and also (selected with a switch) the total amount of time the column
+cycles, and also (selected with a switch) the total amount of time the job
 modules were waiting to write to the display memory, when the waiting-time statistic
 was enabled. The LEDs are no longer used, and the counters for the waiting
 time have been removed.
@@ -874,24 +874,24 @@ waiting-time statistic built in, and the initial view, were:
   before the periodicity detection (see [Iterator](#iterator)), and before
   the schedulers and the done flag were pipelined (see
   [Dispatcher](#dispatcher)).
-* The waiting time of all the column modules: 0x720C = 29196,
+* The waiting time of all the job modules: 0x720C = 29196,
   i.e. 29196\*2^11 clock cycles in total, which is about a quarter of the
-  time of each column module. Before the value was averaged over 64 pictures,
+  time of each job module. Before the value was averaged over 64 pictures,
   the lowest bits changed from picture to picture (about 0x721F = 29215 was
   measured), because each wait counter was truncated to units of 2^11 clock
   cycles before the sum.
 
 Both values agreed with the model [`sim/model.py`](sim/model.py) at the time,
 which estimated the time for the picture from the number of iterations of each
-pixel, as follows. A column module uses 3 clock cycles per iteration, plus 7
+pixel, as follows. A job module uses 3 clock cycles per iteration, plus 7
 clock cycles to start the iterator and to deliver the result, i.e. 3n+7 clock
 cycles, where n is the number of iterations done when the iterator stops: the
 count for a pixel that escapes, 510 for a pixel that reaches the maximum
 count, and the iteration after the match for a pixel where a cycle is found.
 Then the result must be accepted by the dispatcher. The scheduler for the
 results was then the same round-robin scheduler as for the jobs, which checked
-each column module once every 240 clock cycles, so the time from one result of
-a column module to the next was always a multiple of 240 clock cycles. This was
+each job module once every 240 clock cycles, so the time from one result of
+a job module to the next was always a multiple of 240 clock cycles. This was
 checked in simulation. So:
 * A pixel with a count up to 77 took 240 clock cycles, i.e. the iterator was
   idle for most of the time, waiting for the result to be accepted.
@@ -914,9 +914,9 @@ whole picture column, the model gave 551040 clock cycles (269\*2^11) for the
 picture, i.e. 2.9 ms at 188.24 MHz, 1.75 times faster than without the
 detection (about 341 pictures per second).
 
-With 640 jobs and 240 column modules, each column module got fewer than three
+With 640 jobs and 240 job modules, each job module got fewer than three
 jobs, so the work was not shared evenly at the end of the picture: if the
-work was spread evenly over the column modules, each of them would need
+work was spread evenly over the job modules, each of them would need
 404875 clock cycles. With jobs of 120 rows (2560 jobs), the longest job took
 0.11 million clock cycles, and the model gave 418560 clock cycles
 (204\*2^11) for the picture, i.e. 2.22 ms at 188.24 MHz, 1.32 times faster
@@ -927,7 +927,7 @@ with jobs of 120 rows than with whole picture columns.
 
 Without the periodicity detection, the model gave a total waiting time of
 59,179,719 clock cycles, i.e. 28896\*2^11 clock cycles, or about 193 clock
-cycles per pixel on average. The wait counter of a column module counted 2
+cycles per pixel on average. The wait counter of a job module counted 2
 clock cycles more for each pixel. With these 2 clock cycles for each of the
 307200 pixels, the expected value on the LEDs was 29196 (0x720C), exactly the
 measured value. The wait counters have been removed from the design, so the
@@ -936,22 +936,22 @@ model was then the way to get this value. With the periodicity detection
 shown about 27981.
 
 The wait counter counts from 3 clock cycles after the result is ready until
-the clock cycle before the acknowledge reaches the column module. When the
+the clock cycle before the acknowledge reaches the job module. When the
 acknowledge was delayed by one more clock cycle (by the registers in the
 groups, see [Dispatcher](#dispatcher)), the value on the LEDs did not change:
-the column module then starts the next row one clock cycle later, so its next
+the job module then starts the next row one clock cycle later, so its next
 result is ready one clock cycle later, and waits one clock cycle less for the
 scheduler. The waiting time counted for a pixel is the time from one accepted
-result of the column module to the next, minus the time the iterator needs
+result of the job module to the next, minus the time the iterator needs
 for the pixel, minus a fixed number of clock cycles, and this does not depend
 on the delay of the acknowledge. Neither did the time for the picture, because the time from
-one result of a column module to the next was still rounded up to the same
+one result of a job module to the next was still rounded up to the same
 multiple of 240 clock cycles.
 
 Without the waiting, the picture would take about 0.9 ms (if the work was
-spread evenly over the column modules). So the time for the picture was
+spread evenly over the job modules). So the time for the picture was
 mostly decided by the round-robin scheduler for the results, which accepted a
-result from each column module only once every 240 clock cycles.
+result from each job module only once every 240 clock cycles.
 
 Similar values (472\*2^11 clock cycles for the picture, and 28642\*2^11 clock
 cycles of waiting) were measured earlier, with an iterator which did not detect
@@ -962,11 +962,11 @@ the middle of the set, where most of the pixels reach the maximum count.
 
 The display memory can take one result per clock cycle, so a picture takes
 at least 307200 clock cycles (1.63 ms). The round-robin scheduler gave each
-column module an equal share of this, one result every 240 clock cycles, also
-when the other column modules had no result ready. The scheduler for the
-results now accepts a result from any column module of a group that has one
+job module an equal share of this, one result every 240 clock cycles, also
+when the other job modules had no result ready. The scheduler for the
+results now accepts a result from any job module of a group that has one
 ready, visiting one group in each clock cycle (see [Dispatcher](#dispatcher)).
-The waiting time of a pixel then depends on the other column modules, so the
+The waiting time of a pixel then depends on the other job modules, so the
 model now simulates the dispatcher one clock cycle at a time
 (`picture_cycles()` in `sim/model.py`). It uses the time 3n+7 above for each
 pixel, from the clock cycle before the previous result was accepted, and it
@@ -978,7 +978,7 @@ about 432 pictures per second. The same
 simulation with the round-robin scheduler for the results gives 2.24 ms
 (0.02 ms more than above, because it includes the time to give out the jobs),
 so the new scheduler is 1.21 times faster. The display memory is now written
-in 88% of the clock cycles, and the column modules wait 127 clock cycles per
+in 88% of the clock cycles, and the job modules wait 127 clock cycles per
 pixel on average. Eight other views were 1.11 to 1.21 times faster with the
 new scheduler. Registering the ready flags in the groups (see
 [Dispatcher](#dispatcher)) makes no measurable difference: before, the model
@@ -987,10 +987,10 @@ gave 347682 clock cycles, and a simulation of a complete picture with
 display memory, 0.2% less than the model, with all the pixels the same as in
 the model. None of this has been measured on the board yet.
 
-Storing a result in each column module, so the iterator could continue with
+Storing a result in each job module, so the iterator could continue with
 the next row while it waits, was considered too. With the round-robin
 scheduler for the results it would have made the initial view only 4% faster
-(and two results no better than one), because each column module could still
+(and two results no better than one), because each job module could still
 deliver only one result every 240 clock cycles.
 
 **Several pixels in each write.** With the scheduler for the results above,
@@ -998,33 +998,33 @@ the time for the picture is mostly decided by the write port of the display
 memory, which takes one result per clock cycle. The BRAMs can be written in
 words of 36 bits instead of 9, i.e. four pixels, with the same number of BRAMs
 (see [The top level](#the-top-level)). So each result can be four consecutive
-rows of a picture column (the generic `G_PIXELS`), which the column module
+rows of a picture column (the generic `G_PIXELS`), which the job module
 calculates one after the other, keeping the counts of the first three (see
-[Columns](#columns)). A result then takes the sum of the times of its four
+[Jobs](#jobs)). A result then takes the sum of the times of its four
 rows (less 4 clock cycles for each row after the first, because the iterator
 starts the next row itself), and the dispatcher writes up to four pixels per
 clock cycle. The model gives these times for the initial view at 640x480 (in
 clock cycles, and frames per second at 188.24 MHz in brackets):
 
-| Column modules | 1 pixel in each write | 2 pixels | 4 pixels
+| Job modules | 1 pixel in each write | 2 pixels | 4 pixels
 | -------------- | --------------------- | -------- | --------
 | 240            | 347123 (542)          | 241674 (779) | 209248 (900)
 | 450            | 339741 (554)          | 203477 (925) | 161909 (1163)
 
 A dispatcher where any
 result can be written, with up to four writes per clock cycle, would take
-about 152000 clock cycles with 450 column modules (estimated with a simpler
+about 152000 clock cycles with 450 job modules (estimated with a simpler
 model), so four pixels in each write
 gets most of what more writes per clock cycle can give. The rest is mostly
 the end of the picture, when the last jobs finish one after the other, and
 the iterators alone would need 89954 clock cycles (0.48 ms) for the initial
-view with 450 column modules, if the work was spread evenly. Several
+view with 450 job modules, if the work was spread evenly. Several
 independent dispatchers, each with its own BRAMs (e.g. for the even and the
 odd picture columns), would give about the same, but with all the control
 logic duplicated. For views where the iterators need more time per pixel, the
 gain is smaller: a view of Seahorse Valley (0.08 wide, centred near
 -0.75+0.15i) takes 618735 clock cycles with one pixel and 517626 with four
-pixels in each write (with 450 column modules), 1.20 times faster.
+pixels in each write (with 450 job modules), 1.20 times faster.
 
 Four pixels in each write are used on the MEGA65 (see [MEGA65 R6](#mega65-r6)).
 The Nexys 4 DDR uses one pixel in each write. A run of `make nexys4ddr` with
@@ -1077,7 +1077,7 @@ With the waiting-time statistic built in, and with only the lower
 44,493 registers after synthesis, and 40,542 LUTs, 46,345 registers, and 14,789
 slices (93%) after routing, and the setup slack at 174.55 MHz was +0.094 ns. So
 the statistic costs about 4,200 LUT cells and 10,200 registers, mostly for the
-27-bit wait counter in each column module and the chain of adders in the
+27-bit wait counter in each job module and the chain of adders in the
 dispatcher.
 
 Before the post-adder of the DSP was used (see [Multiplier](#multiplier)), the
@@ -1086,7 +1086,7 @@ LUTs, 53,960 registers, and 15,402 slices (97%) after routing. The timing
 slack was about the same (+0.116 ns), because the critical paths were not in
 the iterators.
 
-The registers that shorten the routes to the column modules and to the BRAMs
+The registers that shorten the routes to the job modules and to the BRAMs
 (see [Dispatcher](#dispatcher) and [The top level](#the-top-level)) use about
 4,600 registers and 500 LUT cells. Before they were added, the setup slack was
 +0.104 ns.
@@ -1098,12 +1098,12 @@ expected. The registers of the read address in each group of 8 blocks (see
 before them (14,508 slices, 42,035 LUTs and 43,217 registers, with +0.355 ns
 of setup slack). The two RAMB18s are used by the dispatcher, for the tables
 `job_addr_r` and `job_blk_r` that hold the picture column and the block of the
-job of each column module (240 entries of 10 bits, and of 2 bits).
+job of each job module (240 entries of 10 bits, and of 2 bits).
 
 The jobs of 120 rows (see [Dispatcher](#dispatcher)) did not use more
 resources: before them, the design used 55,536 LUT cells and 43,656 registers
 after synthesis, and 42,158 LUTs, 46,314 registers, and 14,764 slices (93%)
-after routing, with a setup slack of +0.045 ns. The column modules need fewer
+after routing, with a setup slack of +0.045 ns. The job modules need fewer
 bits for the row (7 instead of 9), which saves more than the dispatcher
 needs for the blocks.
 
@@ -1137,17 +1137,17 @@ the two clocks only meet in the display memory, which has a separate clock for
 each port.
 
 At 150 MHz, the worst path is a route from the registers of a group in the
-dispatcher (`grp_cx_r`) to a column module (`res_cx_r`), with no logic, and
+dispatcher (`grp_cx_r`) to a job module (`res_cx_r`), with no logic, and
 92% of its delay in the routing. At 188.24 MHz (the main clock of the Nexys 4
 DDR until it was lowered to 150 MHz, see below), the critical paths are in the
-iterators, and in the column modules around them:
+iterators, and in the job modules around them:
 * From the output of the DSP (which is not registered, see
   [Multiplier](#multiplier)) to the overflow flags.
 * From x\_r and y\_r through the additions x+y and x-y and the selection of
   the inputs of the multiplier to the input registers of the DSP, with 6 or 7
   levels of logic.
-* The acknowledge of the results (`res_ack_r`) to the row in the column
-  modules, and the routes from the registers in the groups to the column
+* The acknowledge of the results (`res_ack_r`) to the row in the job
+  modules, and the routes from the registers in the groups to the job
   modules.
 * The state machine of the iterator (from cnt\_r and state\_r), and the
   periodicity detection (to match\_r and the saved values).
@@ -1157,20 +1157,20 @@ iterators, and in the column modules around them:
   build at 188.24 MHz (+0.092 ns). Before the ready flags were registered, the path started
   at the acknowledge (`res_ack_r`) in the dispatcher, with 6 levels of logic,
   and had +0.037 ns of slack.
-* The next row in the column modules (to `res_cy_r`, whose clock enable
+* The next row in the job modules (to `res_cy_r`, whose clock enable
   depends on the result of the iterator).
 To go faster, the iterator would have to be changed, e.g. by registering the
 output of the DSP, which would change the three clock cycles of an iteration.
 
-At 177.78 MHz, before the next row in the column modules, the schedulers and
+At 177.78 MHz, before the next row in the job modules, the schedulers and
 the done flag were pipelined (see [Dispatcher](#dispatcher)), these were the
 critical paths, with up to 22 levels of logic (the done flag).
 
 At 140.625 MHz, the critical paths were first the routes from single registers
-to all 240 column modules (the job, the reset, and the index of the column
+to all 240 job modules (the job, the reset, and the index of the job
 module whose result is accepted) or to all 128 BRAMs (the write address),
 before the registers in the groups and the blocks were added, and before that
-the selection of the column module in the schedulers, and the iterators (from
+the selection of the job module in the schedulers, and the iterators (from
 the multiplier through the addition of cx to x\_r, before the post-adder of
 the DSP was used). The directives used in
 `mandelbrot.tcl` matter:
@@ -1221,7 +1221,7 @@ tried again:
 The main clock was raised to 177.78 MHz, which has about the same slack as
 174.55 MHz had with the waiting-time statistic.
 
-Then the next row in the column modules, the schedulers and the done flag were
+Then the next row in the job modules, the schedulers and the done flag were
 pipelined, and the frequency was tried again:
 
 | Main clock | Setup slack | Hold slack
@@ -1270,7 +1270,7 @@ its toggle signal) had +8.19 ns of slack against the maximum delay of 10 ns,
 and `report_cdc` reports all of them as safe.
 
 Registering the ready flags in the scheduler for the results (see
-[Dispatcher](#dispatcher)) uses about 240 registers more (one for each column
+[Dispatcher](#dispatcher)) uses about 240 registers more (one for each job
 module), and raised the setup slack to +0.064 ns. The paths from the MAIN
 clock to the VGA clock then had +8.41 ns of slack.
 
@@ -1304,7 +1304,7 @@ with 8 threads.
 ### MEGA65 R6
 The MEGA65 R6 has an XC7A200T with speed grade -2 (part xc7a200tfbg484-2). The
 VGA output is 1280x1024 at 60 Hz, with a 108 MHz pixel clock, and the design
-uses 256 column modules and four pixels in each write to the display memory,
+uses 256 job modules and four pixels in each write to the display memory,
 with a 148.97 MHz main clock (see [`src/mega65_r6.vhd`](src/mega65_r6.vhd)
 and *Video modes* in [Colours](#colours)). The MMCM multiplies the 100 MHz
 input clock by 54/5, which gives a VCO of 1080 MHz, the only VCO frequency
@@ -1330,7 +1330,7 @@ rows, because 1024 is not a multiple of 120. A run of the same steps as
 
 After synthesis there are 78,846 LUT cells and 52,172 registers. The worst
 setup path of the main clock is a route from the registers of a group in the
-dispatcher (`grp_cx_r`) to a column module (`res_cx_r`), with no logic, and
+dispatcher (`grp_cx_r`) to a job module (`res_cx_r`), with no logic, and
 95% of its delay in the routing. The VGA clock has +0.141 ns of setup slack:
 its worst path is from the read address register of the display memory to
 the copy of the pixel position in a group, also only routing (8.5 ns). The
@@ -1343,27 +1343,27 @@ The routing is close to its limit. The router first leaves about 10,000 to
 several iterations to resolve them. An earlier run of the same design took 10
 minutes for the routing and had +0.252 ns of setup slack; the run above took
 61 minutes, and only met timing after the post-route `phys_opt_design`. With
-450 column modules the router left 29,614 overlaps, and did not finish
+450 job modules the router left 29,614 overlaps, and did not finish
 within an hour. The cause is the display memory: its 320 BRAMs (88%) are
 spread over the whole FPGA, and so are the routes of the write data and of
 the read address, while the 800x600 design below only used 128 BRAMs (35%).
-With 64 column modules the routing took 1.5 minutes. The frame rate goes down
-with fewer column modules: the model gives 203 pictures per second for the
-initial view with 256 column modules (4.91 ms), against 57 with 64. If every
+With 64 job modules the routing took 1.5 minutes. The frame rate goes down
+with fewer job modules: the model gives 203 pictures per second for the
+initial view with 256 job modules (4.91 ms), against 57 with 64. If every
 pixel needed the maximum count, the picture would take 7885023 clock cycles
 (53 ms, 18 pictures per second).
 
 The main clock was 187.83 MHz (1080 MHz divided by 5.75) at first, but with
-450 column modules it failed timing by about 0.15 ns after the placement, and
+450 job modules it failed timing by about 0.15 ns after the placement, and
 the slices were 92% used. Leaving out the registers of the write port of each
 block (about 15,000 registers) and lowering the main clock to 180 MHz still
 left one path failing by 0.247 ns, so the main clock was lowered to 148.97
-MHz, and then the number of column modules. The registers of the read
+MHz, and then the number of job modules. The registers of the read
 address in each group were added when the VGA clock had only +0.207 ns of
-setup slack with 64 column modules: the route from the pixel counters to all
+setup slack with 64 job modules: the route from the pixel counters to all
 320 BRAMs took 8.2 ns of the 9.26 ns. With them the slack was +0.620 ns.
 
-The 800x600 design used 450 column modules with a 188.24 MHz main clock
+The 800x600 design used 450 job modules with a 188.24 MHz main clock
 (1200 MHz divided by 6.375), and a display memory of 2^19 pixels (128 BRAMs),
 where each picture column had 600 addresses. A run of `make mega65-r6` gave
 29,964 slices (89%), 81,646 LUTs, 93,443 registers, +0.186 ns of setup slack
@@ -1389,14 +1389,14 @@ fault in Vivado (in the routing and in the `phys_opt_design` after it), which
 also happened once before with `make mega65-r6`; running it again helped.
 
 With 640x480 and one pixel in each write, the model gave 339741 clock cycles
-for the initial view with 450 column modules, i.e. 1.80 ms at 188.24 MHz
-(about 554 pictures per second), only 2% faster than with 240 column modules.
+for the initial view with 450 job modules, i.e. 1.80 ms at 188.24 MHz
+(about 554 pictures per second), only 2% faster than with 240 job modules.
 The display memory was then written in 90% of the clock cycles, so the time
 for the picture was decided by the write port of the display memory (at least
-307200 clock cycles, see [Timing](#timing)), not by the number of column
+307200 clock cycles, see [Timing](#timing)), not by the number of job
 modules. With four pixels in each write, the model gave 161909 clock cycles,
 i.e. 0.86 ms (about 1163 pictures per second), 2.1 times faster. This cost
-16,165 registers (27 bits in each column module for the counts of the first
+16,165 registers (27 bits in each job module for the counts of the first
 three rows, and the wider data in the dispatcher and in the tree of registers
 of the display memory), 4,050 LUTs, and 3,881 slices, against the build with
 one pixel in each write. The setup slack was +0.178 ns and the hold slack
@@ -1412,11 +1412,11 @@ last write to the display memory, 0.02% less than the model, with all the
 pixels the same as in the model. The simulation took about 1.5 hours.
 
 With 1280x1024 (1,310,720 pixels, 4.3 times as many as 640x480) and 256
-column modules, the model gives 732009 clock cycles for the initial view,
+job modules, the model gives 732009 clock cycles for the initial view,
 i.e. 4.91 ms at 148.97 MHz (about 203 pictures per second). With one pixel
 in each write it would be 1454290 clock cycles (9.76 ms). Jobs of 32 to 128
 rows give 199 to 203 pictures per second. A simulation of a partial
-1280x1024 picture with `main_tb` (then with 450 column modules: all 1280
+1280x1024 picture with `main_tb` (then with 450 job modules: all 1280
 columns, rows 0 to 151, 155,832 pixels) gave the same pixels as the model.
 
 All 240 DSPs running at 150 MHz gives a peak of 36 billion multiplications per

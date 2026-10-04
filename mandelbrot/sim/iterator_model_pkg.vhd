@@ -14,7 +14,7 @@ use ieee.numeric_std.all;
 package iterator_model_pkg is
 
    -- Interpret the lowest 18 bits of v as a two's complement number. This
-   -- models the 18-bit additions of the step in the dispatcher and the column
+   -- models the 18-bit additions of the step in the dispatcher and the job
    -- modules, which wrap around.
    function wrap18 (v : integer) return integer;
 

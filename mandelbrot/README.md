@@ -26,15 +26,15 @@ The numbers are 18-bit
 [fixed point](https://en.wikipedia.org/wiki/Fixed-point_arithmetic) (2 integer
 bits and 16 fractional bits), and each iteration needs only two real
 multiplications, using the identity $x^2 - y^2 = (x+y)(x-y)$. Each of the 240
-column modules contains an iterator with a single DSP multiplier, and the
+job modules contains an iterator with a single DSP multiplier, and the
 iterator calculates one iteration every three clock cycles. Most points in the
 set are found long before the maximum count, because the values of $z$ start
 to repeat exactly (periodicity detection). The picture is divided into jobs,
 each of 120 rows of a picture column, and the dispatcher gives the next job to
-a column module as soon as it is idle.
+a job module as soon as it is idle.
 
 [ALGORITHM.md](ALGORITHM.md) explains the design in detail: the number format,
-the multiplier, the iterator (including how overflow is detected), the columns,
+the multiplier, the iterator (including how overflow is detected), the jobs,
 the dispatcher, and the timing and resource usage.
 
 ## Implementation results
@@ -66,16 +66,16 @@ files that are in both clock domains are in [`src/`](src).
 | File             | Description
 | ---------------- | -----------
 | [`src/nexys4ddr.vhd`](src/nexys4ddr.vhd) | Top level. The ports are mapped directly to pins on the FPGA. Instantiates the clock and reset generation, the display memory, and the two modules below, and moves the frame rate from the MAIN clock domain to the VGA clock domain.
-| [`src/mega65_r6.vhd`](src/mega65_r6.vhd) | Top level for the MEGA65 R6. The same as `nexys4ddr.vhd`, but with the ports of the MEGA65, more column modules, a larger display memory, and a resolution of 1280x1024.
+| [`src/mega65_r6.vhd`](src/mega65_r6.vhd) | Top level for the MEGA65 R6. The same as `nexys4ddr.vhd`, but with the ports of the MEGA65, more job modules, a larger display memory, and a resolution of 1280x1024.
 | [`src/main/main.vhd`](src/main/main.vhd) | Everything in the MAIN clock domain: view control from buttons and switches, the dispatcher, and the frame rate (shown on the 7-segment display and on the VGA output).
 | [`src/main/view.vhd`](src/main/view.vhd) | View control. Pans and zooms the view, and keeps it inside the range of the number format.
 | [`src/main/fps.vhd`](src/main/fps.vhd), [`src/main/seg.vhd`](src/main/seg.vhd) | Frame rate. `fps` divides the clock frequency by the time taken by a picture and converts the result to decimal, and `seg` multiplexes the digits on the 7-segment display.
 | [`src/vga/vga.vhd`](src/vga/vga.vhd) | Everything in the VGA clock domain: pixel counters, VGA output, and the frame rate overlay.
 | [`src/main/iterator.vhd`](src/main/iterator.vhd) | Iterates the Mandelbrot function for a single point, using one DSP.
-| [`src/main/column.vhd`](src/main/column.vhd) | A column module. Calculates one job (120 rows of a picture column) at a time, using one iterator.
-| [`src/main/dispatcher.vhd`](src/main/dispatcher.vhd) | Controls the calculation of the entire picture: hands out the jobs to the idle column modules, and collects the results. Instantiates the column modules.
-| [`src/main/job_scheduler.vhd`](src/main/job_scheduler.vhd) | Round-robin scheduler. Used by the dispatcher to give jobs to idle column modules.
-| [`src/main/res_scheduler.vhd`](src/main/res_scheduler.vhd) | Scheduler for the results. Used by the dispatcher to pick which column module's result to accept, from the column modules that have a result ready.
+| [`src/main/job.vhd`](src/main/job.vhd) | A job module. Calculates one job (120 rows of a picture column) at a time, using one iterator.
+| [`src/main/dispatcher.vhd`](src/main/dispatcher.vhd) | Controls the calculation of the entire picture: hands out the jobs to the idle job modules, and collects the results. Instantiates the job modules.
+| [`src/main/job_scheduler.vhd`](src/main/job_scheduler.vhd) | Round-robin scheduler. Used by the dispatcher to give jobs to idle job modules.
+| [`src/main/res_scheduler.vhd`](src/main/res_scheduler.vhd) | Scheduler for the results. Used by the dispatcher to pick which job module's result to accept, from the job modules that have a result ready.
 | [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture, in 128 blocks.
 | [`src/vga/pix.vhd`](src/vga/pix.vhd), [`src/vga/disp.vhd`](src/vga/disp.vhd) | VGA output. `pix` generates the pixel counters, and `disp` generates the sync signals and the pixel colour.
 | [`src/vga/video_pkg.vhd`](src/vga/video_pkg.vhd) | The video modes, i.e. the resolution and the timing of the VGA output: 640x480 (Nexys 4 DDR) and 1280x1024 (MEGA65), both at 60 Hz.
@@ -138,14 +138,14 @@ BRAMs (of the 365 in the XC7A200T), with 21 bits of address (the column and
 the row). Most monitors accept 1280x1024; a widescreen monitor shows it with
 black bars or stretched.
 
-The XC7A200T is larger, so the design uses 256 column modules (DSPs) instead
-of 240, and writes four pixels (consecutive rows of a picture column) to the
+The XC7A200T is larger, so the design uses 256 job modules (DSPs) instead of
+240, and writes four pixels (consecutive rows of a picture column) to the
 display memory at a time instead of one, see
-[`src/mega65_r6.vhd`](src/mega65_r6.vhd). With 800x600 it used 450 column
+[`src/mega65_r6.vhd`](src/mega65_r6.vhd). With 800x600 it used 450 job
 modules, but with the large display memory of 1280x1024 the routing did not
 finish with that many. The main clock is 148.97 MHz. The display memory takes
 one write per clock cycle, so with one pixel in each write the picture would
-take at least 1280x1024 clock cycles (8.80 ms), whatever the number of column
+take at least 1280x1024 clock cycles (8.80 ms), whatever the number of job
 modules, and the model gives 9.76 ms. With four pixels in each write the
 picture takes about 4.91 ms (estimated by the model), i.e. 203 pictures per
 second. If every pixel needed the maximum count, it would take 53 ms (18
@@ -192,7 +192,7 @@ sim/cmp_rtl.py
 By default it simulates the design of the Nexys 4 DDR. The design of the
 MEGA65 is simulated with
 ```
-make run TB=main STOP_TIME=700us GENERICS="G_NUM_ITERATORS=256 G_PIXELS=4 G_JOB_ROWS=64 G_NUM_COLS=1280 G_NUM_ROWS=1024 G_COL_STRIDE=1024 G_ADDR_BITS=21"
+make run TB=main STOP_TIME=700us GENERICS="G_NUM_ITERATORS=256 G_PIXELS=4 G_ROWS_IN_JOB=64 G_NUM_COLS=1280 G_NUM_ROWS=1024 G_COL_STRIDE=1024 G_ADDR_BITS=21"
 ```
 See [Iterator](ALGORITHM.md#iterator) for details.
 
