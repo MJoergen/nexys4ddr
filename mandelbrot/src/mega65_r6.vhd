@@ -23,7 +23,9 @@ use work.video_pkg.all;
 --   output.
 -- * The VGA output goes through a video DAC with 8 bits per colour. The DAC
 --   needs a clock, which is the VGA clock inverted, so the DAC samples the
---   pixel colour in the middle of each pixel.
+--   pixel colour in the middle of each pixel. The colour and the sync signals
+--   are registered in the IOBs, so they all change at the same time, half a
+--   clock cycle before the DAC samples them.
 
 entity mega65_r6 is
    port (
@@ -133,7 +135,31 @@ architecture structural of mega65_r6 is
    attribute async_reg of vga_fps_meta : signal is "true";
    attribute async_reg of vga_fps_sync : signal is "true";
 
+   signal vga_hs         : std_logic;
+   signal vga_vs         : std_logic;
    signal vga_col        : std_logic_vector( 7 downto 0);  -- RRRGGGBB
+
+   -- The registers of the outputs to the DAC and the VGA connector. Several of
+   -- the colour registers are identical, so the attribute keep prevents the
+   -- synthesis tool from merging them, and the attribute IOB places them in
+   -- the IOBs.
+   signal vdac_red_r     : std_logic_vector( 7 downto 0);
+   signal vdac_green_r   : std_logic_vector( 7 downto 0);
+   signal vdac_blue_r    : std_logic_vector( 7 downto 0);
+   signal vdac_hs_r      : std_logic;
+   signal vdac_vs_r      : std_logic;
+
+   attribute keep : string;
+   attribute keep of vdac_red_r   : signal is "true";
+   attribute keep of vdac_green_r : signal is "true";
+   attribute keep of vdac_blue_r  : signal is "true";
+
+   attribute iob : string;
+   attribute iob of vdac_red_r   : signal is "true";
+   attribute iob of vdac_green_r : signal is "true";
+   attribute iob of vdac_blue_r  : signal is "true";
+   attribute iob of vdac_hs_r    : signal is "true";
+   attribute iob of vdac_vs_r    : signal is "true";
 
 begin
 
@@ -264,8 +290,8 @@ begin
          palette_i => sw(1 downto 0),
          fps_digits_i => vga_fps_digits,
          fps_blank_i  => vga_fps_blank,
-         vga_hs_o  => vga_hs_o,
-         vga_vs_o  => vga_vs_o,
+         vga_hs_o  => vga_hs,
+         vga_vs_o  => vga_vs,
          vga_col_o => vga_col
       ); -- i_vga
 
@@ -275,10 +301,25 @@ begin
    --------------------------------------------------
 
    -- Expand each colour to 8 bits by repeating the bits, so that the full
-   -- range is used (e.g. "111" becomes "11111111").
-   vga_red_o   <= vga_col(7 downto 5) & vga_col(7 downto 5) & vga_col(7 downto 6);
-   vga_green_o <= vga_col(4 downto 2) & vga_col(4 downto 2) & vga_col(4 downto 3);
-   vga_blue_o  <= vga_col(1 downto 0) & vga_col(1 downto 0) & vga_col(1 downto 0) & vga_col(1 downto 0);
+   -- range is used (e.g. "111" becomes "11111111"). The outputs are
+   -- registered, with one register in the IOB of each output, so that they
+   -- all change at the same time.
+   p_vdac : process (vga_clk)
+   begin
+      if rising_edge(vga_clk) then
+         vdac_red_r   <= vga_col(7 downto 5) & vga_col(7 downto 5) & vga_col(7 downto 6);
+         vdac_green_r <= vga_col(4 downto 2) & vga_col(4 downto 2) & vga_col(4 downto 3);
+         vdac_blue_r  <= vga_col(1 downto 0) & vga_col(1 downto 0) & vga_col(1 downto 0) & vga_col(1 downto 0);
+         vdac_hs_r    <= vga_hs;
+         vdac_vs_r    <= vga_vs;
+      end if;
+   end process p_vdac;
+
+   vga_red_o   <= vdac_red_r;
+   vga_green_o <= vdac_green_r;
+   vga_blue_o  <= vdac_blue_r;
+   vga_hs_o    <= vdac_hs_r;
+   vga_vs_o    <= vdac_vs_r;
 
    -- The DAC samples the colour on the rising edge of its clock. The clock is
    -- low in the first half of the VGA clock cycle and high in the second half,
