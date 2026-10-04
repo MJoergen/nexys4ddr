@@ -18,7 +18,8 @@ use ieee.numeric_std_unsigned.all;
 -- In general, all lines are of the form 128*rms = a*x + b*y, where
 -- the constants a and b satisfy (approximately) a^2+b^2 = 128^2.
 --
--- The output is stored in 10.5 fixed point.
+-- The output is stored in fixed point with G_RESOLUTION fractional bits.
+-- Since the constants a and b are scaled by 128, G_RESOLUTION must be 7.
 
 entity rms is
    generic (
@@ -39,8 +40,8 @@ architecture structural of rms is
 
    constant C_NUM_LINES : integer := 6;
 
-   -- In the structure below, the values for b where chosen as 128-i^2.
-   -- And the values for a where chosen as sqrt(128^2-b^2).
+   -- In the structure below, the values for b were chosen as 128-i^2.
+   -- And the values for a were chosen as sqrt(128^2-b^2).
    -- For this reason, the index starts at i=1.
    type t_integer_vector is array(natural range <>) of integer;
    constant a : t_integer_vector(1 to C_NUM_LINES) := ( 16,  32,  47,  62,  76, 89);
@@ -76,10 +77,10 @@ begin
    end generate gen_lines;
 
    -- Find the maximum value and output it.
-   p_rms : process (lines_s)
+   p_rms : process (max_s, lines_s)
       variable rms_v : std_logic_vector(G_SIZE+G_RESOLUTION-1 downto 0);
    begin
-      rms_v := max_s & "0000000";
+      rms_v := max_s & (G_RESOLUTION-1 downto 0 => '0'); -- line0
       for i in 1 to C_NUM_LINES loop -- Skip index 0.
          if rms_v < lines_s(i) then
             rms_v := lines_s(i);

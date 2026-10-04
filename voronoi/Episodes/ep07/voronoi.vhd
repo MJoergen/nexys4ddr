@@ -89,8 +89,8 @@ architecture structural of voronoi is
       res_v.startx := to_stdlogicvector(10 + ((i*23)    mod (H_PIXELS-20)), 10);
       res_v.starty := to_stdlogicvector(10 + ((i*i*37)  mod (V_PIXELS-20)), 10);
       -- Make sure the initial velocity is not zero.
-      res_v.velx   := to_stdlogicvector( 1 + ((i*i*7)   mod 15),             4);
-      res_v.vely   := to_stdlogicvector( 1 + ((i*i*i*4) mod 15),             4);
+      res_v.velx   := to_stdlogicvector( 1 + ((i*i*2)   mod 15),             4);
+      res_v.vely   := to_stdlogicvector( 1 + ((i*i*i*3) mod 15),             4);
 
       return res_v;
    end function init;
