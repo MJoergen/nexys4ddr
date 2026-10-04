@@ -29,3 +29,6 @@ image quality is greatly enhanced.
 
 [**Episode 6**](Episodes/ep06) : Removing strange visual rastering effect.
 
+[**Episode 7**](Episodes/ep07) : Making the circles more round.
+
+[**Episode 8**](Episodes/ep08) : Increasing the resolution.
