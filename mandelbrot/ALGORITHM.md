@@ -15,7 +15,10 @@
 * [Colours](#colours)
 * [Timing](#timing)
 * [Resources and timing closure](#resources-and-timing-closure)
+  * [Nexys 4 DDR](#nexys-4-ddr)
   * [MEGA65 R6](#mega65-r6)
+  * [History of the Nexys 4 DDR build](#history-of-the-nexys-4-ddr-build)
+  * [History of the MEGA65 R6 build](#history-of-the-mega65-r6-build)
 
 ## Introduction
 This describes in some detail how the Mandelbrot design works, and the main
@@ -35,7 +38,14 @@ unless stated otherwise.
 The following terms are used in this document:
 * A *picture column* is a vertical slice of the picture.
 * A *job* is 120 rows of a picture column, i.e. a quarter of it. The picture is
-  divided into four *blocks* of 120 rows, so there are 2560 jobs.
+  divided into four *blocks* of 120 rows, so there are 2560 jobs. On the MEGA65
+  a job is 64 rows, and there are 16 blocks and 20480 jobs.
+* The display memory is divided into blocks too, of one BRAM each (see
+  [The top level](#the-top-level)). Which kind of block is meant is clear from
+  the context: the display memory, or the jobs.
+* A *group* is a group of 16 job modules in the dispatcher, or of 8 blocks in
+  the display memory, which share a register for the signals that go to all
+  of them, so that each route is shorter.
 * A *job module* is an instance of [`src/main/job.vhd`](src/main/job.vhd). It
   calculates one job at a time, row by row, using one iterator.
 * An *iterator* is the block in [`src/main/iterator.vhd`](src/main/iterator.vhd). It
@@ -417,7 +427,7 @@ calculation. The signal done\_o goes high when the calculation is finished, and
 stays high until the next start\_i. Three additional output signals go to the
 display memory:
 ```
-wr_addr_o : out std_logic_vector(18 downto 0);
+wr_addr_o : out std_logic_vector(G_ADDR_BITS-1 downto 0);
 wr_data_o : out std_logic_vector(9*G_PIXELS-1 downto 0);
 wr_en_o   : out std_logic;
 ```
@@ -433,10 +443,10 @@ is idle, the next job is sent to it.
 
 The jobs are given out one block at a time: first all the picture columns
 (640 on the Nexys 4 DDR) of the top 120 rows, then all the picture columns of
-the next 120 rows, and so on. After the last picture column of a block, cx starts again from the left
-edge, and starty moves to the next block, by adding 120 times stepy (in 18
-bits, like the job modules add stepy, so cy of each row is the same as if
-the picture column was calculated in one job). The multiplication by the
+the next 120 rows, and so on. After the last picture column of a block, cx
+starts again from the left edge, and starty moves to the next block, by adding
+120 times stepy (in 18 bits, like the job modules add stepy, so cy of each row
+is the same as if the picture column was calculated in one job). The multiplication by the
 constant 120 is done once for each picture, in LUTs, because all the DSPs are
 used by the iterators. The dispatcher keeps the picture column and the block
 of the job of each job module, and when a result is accepted it adds the
@@ -482,7 +492,7 @@ cycle the flag of the group of the counter is used.
 The job modules are spread over the whole FPGA, so the signals that go from
 the dispatcher to all of them have long routes. To keep each route shorter,
 these signals go through an extra register in each group of 16 job modules
-(the generic G\_GROUP\_SIZE, so there are 15 groups, or 29 on the MEGA65): the
+(the generic G\_GROUP\_SIZE, so there are 15 groups, or 16 on the MEGA65): the
 job (cx, starty, and stepy), the start of the job, the reset, and the index of
 the job module whose result is accepted. The registers of the groups are
 identical, so they have the attribute `keep`, which prevents the synthesis
@@ -554,8 +564,8 @@ four pixels in each write (and two jobs of 8 rows in each picture column), and
 checks that each write starts at a row that is a multiple of 4. The first two
 instances have 512 and 16 addresses for each picture column, so the address
 is the picture column followed by the row, and the third has 20, which is not
-a power of two (like 600 when the MEGA65 showed 800x600). The simulation takes about 10
-seconds.
+a power of two (like 600 when the MEGA65 showed 800x600). The simulation takes
+about 10 seconds.
 
 The scheduler has a small self-checking testbench
 ([`sim/job_scheduler_tb.vhd`](sim/job_scheduler_tb.vhd)), with 21 processes, i.e. two
@@ -582,8 +592,8 @@ The top level ([`src/nexys4ddr.vhd`](src/nexys4ddr.vhd)) instantiates the
 clock and reset generation ([`src/clk_rst.vhd`](src/clk_rst.vhd)) and the
 display memory, and splits the rest of the design into one module for each
 clock domain:
-* [`src/main/main.vhd`](src/main/main.vhd) runs in the MAIN clock domain (150 MHz, or 148.97 MHz on the MEGA65).
-  It handles the buttons and switches, controls the dispatcher, writes the
+* [`src/main/main.vhd`](src/main/main.vhd) runs in the MAIN clock domain
+  (150 MHz, or 148.97 MHz on the MEGA65). It handles the buttons and switches, controls the dispatcher, writes the
   results to the display memory, and shows the frame rate on the 7-segment
   display.
 * [`src/vga/vga.vhd`](src/vga/vga.vhd) runs in the VGA clock domain (the pixel
@@ -603,7 +613,9 @@ are in both clock domains, are in [`src/`](src).
 
 **Reset.** The resets are generated in `clk_rst`, together with the clocks.
 The design is held in reset while the reset button is pressed, and while the
-MMCM is not locked. This signal is synchronized to each clock domain (the main
+MMCM is not locked (the MEGA65 does not use its reset button for now, see
+[`src/mega65_r6.vhd`](src/mega65_r6.vhd), so it is only reset after
+power-on). This signal is synchronized to each clock domain (the main
 clock and the VGA clock), and the reset is then stretched to eight clock cycles
 after it is released. The VGA reset is connected to the `vga`
 module and to the read port of the display memory, but neither of them uses it
@@ -616,8 +628,8 @@ address of a pixel is the picture column times `G_COL_STRIDE` plus the row
 (see [Dispatcher](#dispatcher)), i.e. the picture column (10 bits) followed by
 the row (9 bits) on the Nexys 4 DDR, and the picture column (11 bits) followed
 by the row (10 bits) on the MEGA65. The 640x480 picture of the Nexys 4 DDR
-only uses the first 327,680 pixels (80 of the 128 blocks). The dispatcher delivers a 9-bit count for each pixel, and `main` writes
-all 9 bits. The `vga` module converts the count to the colour, in the format
+only uses the first 327,680 pixels (80 of the 128 blocks). The dispatcher
+delivers a 9-bit count for each pixel, and `main` writes all 9 bits. The `vga` module converts the count to the colour, in the format
 RRRGGGBB, see [Colours](#colours) below.
 
 Each entry of the memory (a word) holds `G_PIXELS` pixels, i.e. consecutive
@@ -692,7 +704,8 @@ down:
   times 320 (half the number of columns), and starty by the change of stepy
   times 240, so the pixel in column 320 and row 240 (just right of and below
   the centre of the screen) shows the same point before and after the zoom
-  (except at the edge of the range, see below).
+  (except at the edge of the range, see below). On the MEGA65 these are 640
+  and 512.
 * `BTNL`, `BTNR`: startx is decreased or increased by stepx (`BTNR` has
   priority if both are held down).
 * `BTNU`, `BTND`: starty is decreased or increased by stepy (`BTND` has
@@ -723,7 +736,8 @@ size multiplied by 320 (240). These multiplications are done serially with
 shifts and additions or subtractions, one bit of the constant per clock cycle,
 so no DSP is used. Doing all of the update in a single clock cycle would be far
 too slow for the MAIN clock, so the update is done in small steps over 17 clock
-cycles, with at most one addition or comparison per step. The outputs are all
+cycles (18 on the MEGA65, where 1279 has 11 bits), with at most one addition or
+comparison per step. The outputs are all
 changed at the end of the update. The new view is used when the next picture is
 started.
 
@@ -744,7 +758,7 @@ zeros blanked. A counter counts clock cycles while a picture is being
 calculated, and it is cleared when the next picture is started. At the end of
 a picture, the module [`src/main/fps.vhd`](src/main/fps.vhd) divides the clock frequency
 (the generic `G_CLK_FREQ` of `main`, set by the top level: 150,000,000 Hz, or
-188,235,294 Hz on the MEGA65) by the value of the counter, and converts the
+148,965,517 Hz on the MEGA65) by the value of the counter, and converts the
 result to decimal. The picture is recalculated continuously, so the frame rate
 is updated after every picture (about 432 times per second for the initial
 view).
@@ -763,7 +777,7 @@ clock cycles (13.6 ms, i.e. 73 pictures per second) for the picture.
 
 The digits of the display share the segment signals, so
 [`src/main/seg.vhd`](src/main/seg.vhd) shows them one at a time, each for 2^14 clock
-cycles, i.e. all 8 digits are refreshed every 0.70 ms (1.4 kHz). The
+cycles, i.e. all 8 digits are refreshed every 0.87 ms (1.1 kHz) at 150 MHz. The
 segments and the digit enables (anodes) are active low. The decimal point is
 not used.
 
@@ -862,8 +876,8 @@ There are two: 640x480 at 60 Hz (pixel clock 25.175 MHz, which works fine with
 60 Hz (pixel clock 108 MHz, 1688 pixels in each line, 1066 lines, and positive
 sync pulses), used on the MEGA65. The top level gives the video mode to `vga`
 and the size of the picture to `main`, and sets the VCO and the divider of the
-VGA clock in `clk_rst` (1200 MHz divided by 48, or 1080 MHz divided by 10). The pixel counters have 11 bits, for
-up to 2048 pixels in a line. `vga` calculates the address of the pixel from
+VGA clock in `clk_rst` (1200 MHz divided by 48, or 1080 MHz divided by 10).
+The pixel counters have 11 bits, for up to 2048 pixels in a line. `vga` calculates the address of the pixel from
 the pixel counters (the column times `G_COL_STRIDE` plus the row, in LUTs),
 which is only wires on the Nexys 4 DDR.
 
@@ -876,7 +890,7 @@ The time for the picture measured on the board, with the main clock at
 174.55 MHz and the initial view, was 472\*2^11 clock cycles, i.e. 5.5 ms at
 174.55 MHz. This value is steady. The same number of clock cycles was measured
 with the main clock at 140.625 MHz (6.9 ms), before the clock was raised (see
-[Resources and timing closure](#resources-and-timing-closure)). This was
+[History of the Nexys 4 DDR build](#history-of-the-nexys-4-ddr-build)). This was
 before the periodicity detection (see [Iterator](#iterator)), and before the
 schedulers and the done flag were pipelined (see [Dispatcher](#dispatcher)).
 
@@ -942,7 +956,7 @@ picture did not change, because it is decided by the picture columns through
 the middle of the set, where most of the pixels reach the maximum count.
 
 The display memory can take one result per clock cycle, so a picture takes
-at least 307200 clock cycles (1.63 ms). The round-robin scheduler gave each
+at least 307200 clock cycles (2.05 ms at 150 MHz). The round-robin scheduler gave each
 job module an equal share of this, one result every 240 clock cycles, also
 when the other job modules had no result ready. The scheduler for the
 results now accepts a result from any job module of a group that has one
@@ -953,7 +967,8 @@ now simulates the dispatcher one clock cycle at a time (`picture_cycles()` in
 cycle before the previous result was accepted, and it includes the round-robin
 scheduler for the jobs. For the initial view it gives
 347123 clock cycles for the picture, i.e. 1.84 ms at 188.24 MHz, the main
-clock at the time (see [Resources and timing closure](#resources-and-timing-closure)).
+clock at the time (see
+[History of the Nexys 4 DDR build](#history-of-the-nexys-4-ddr-build)).
 At the 150 MHz used now it is 2.31 ms, so the 7-segment display should show
 about 432 pictures per second. The same
 simulation with the round-robin scheduler for the results gives 2.24 ms
@@ -1021,9 +1036,29 @@ less than the model, with all the pixels the same as in the model. The
 simulation took about an hour.
 
 ## Resources and timing closure
-The numbers below come from a successful run of `make nexys4ddr` (Vivado 2025.1,
-part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
-150 MHz main clock.
+Both boards are built with Vivado 2025.1, with the same script
+(`mandelbrot.tcl`). The directives used in it matter for meeting timing:
+* `synth_design` with `-directive AreaOptimized_medium`
+* `opt_design` with `-directive ExploreWithRemap`
+* `phys_opt_design` with `-directive AlternateFlowWithRetiming`, both after
+  placement and after routing
+
+The resource numbers below are from `report_utilization` on the routed design
+(`nexys4ddr.dcp` or `mega65-r6.dcp`), and the slack is from
+`report_timing_summary` on the same design, i.e. after the post-route
+`phys_opt_design`. The first two subsections give the current results for
+each board, and the last two describe how the design and the main clock got
+there.
+
+All 240 DSPs running at 150 MHz gives a peak of 36 billion multiplications per
+second. The iterator uses its multiplier in two out of three clock cycles, so
+the actual rate is about 24 billion multiplications per second. On the MEGA65
+(256 DSPs at 148.97 MHz) it is about 25 billion.
+
+### Nexys 4 DDR
+The numbers below come from a run of `make nexys4ddr` (part
+xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a 150 MHz
+main clock.
 
 | Resource         | Used     | Available | Used (%)
 | ---------------- | -------- | --------- | --------
@@ -1034,57 +1069,24 @@ part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 | Registers        | 43,610   | 126,800   | 34
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
-The resource numbers are from `report_utilization` on the routed design
-(`nexys4ddr.dcp`), and the available numbers are the totals for the XC7A100T.
-Most of the slices are used, even though only 66% of the LUTs are used.
+The available numbers are the totals for the XC7A100T. Most of the slices are
+used, even though only 66% of the LUTs are used.
 
 The "Report Cell Usage" table in `vivado.log` gives the cell counts after
 synthesis instead: 55,903 LUT cells (LUT1 to LUT6) and 43,628 registers (FDRE
 and FDSE cells). The number of LUT cells is larger than the number of LUTs
 used, because two small LUT cells can share one LUT (the placer does this,
-"LUT Combining"). The number of registers is about the same after routing, because
-timing is met before `phys_opt_design`, so it does nothing. At 188.24 MHz
-there were 45,018 registers after routing (and 43,187 after synthesis),
-because the physical optimization replicated registers with a high fanout,
-and moved some of them (retiming).
-
-The periodicity detection (see [Iterator](#iterator)) uses about 5,500 LUT cells
-and 8,900 registers (36 registers for the saved values in each iterator), and
-increased the slices used from 81% to 93%. A first version, which cleared the
-saved values at the start of each point, used about 4,100 LUT cells more.
-
-Before the post-adder of the DSP was used (see [Multiplier](#multiplier)), the
-design used 61,895 LUT cells and 53,885 registers after synthesis, and 49,087
-LUTs, 53,960 registers, and 15,402 slices (97%) after routing. The timing
-slack was about the same (+0.116 ns), because the critical paths were not in
-the iterators.
-
-The registers that shorten the routes to the job modules and to the BRAMs
-(see [Dispatcher](#dispatcher) and [The top level](#the-top-level)) use about
-4,600 registers and 500 LUT cells. Before they were added, the setup slack was
-+0.104 ns.
+"LUT Combining"). The number of registers is about the same after routing,
+because timing is met before `phys_opt_design`, so it does nothing. At
+188.24 MHz there were 45,018 registers after routing (and 43,187 after
+synthesis), because the physical optimization replicated registers with a
+high fanout, and moved some of them (retiming).
 
 The display memory has 2^19 entries of 9 bits (the count), i.e. 128 blocks of
 36 kbit BRAM, each used as 4096 entries of 9 bits (with the parity bits), as
-expected. The registers of the read address in each group of 8 blocks (see
-[The top level](#the-top-level)) use about 400 registers, against the build
-before them (14,508 slices, 42,035 LUTs and 43,217 registers, with +0.355 ns
-of setup slack). The two RAMB18s are used by the dispatcher, for the tables
+expected. The two RAMB18s are used by the dispatcher, for the tables
 `job_addr_r` and `job_blk_r` that hold the picture column and the block of the
 job of each job module (240 entries of 10 bits, and of 2 bits).
-
-The jobs of 120 rows (see [Dispatcher](#dispatcher)) did not use more
-resources: before them, the design used 55,536 LUT cells and 43,656 registers
-after synthesis, and 42,158 LUTs, 46,314 registers, and 14,764 slices (93%)
-after routing, with a setup slack of +0.045 ns. The job modules need fewer
-bits for the row (7 instead of 9), which saves more than the dispatcher
-needs for the blocks.
-
-The scheduler for the results (see [Dispatcher](#dispatcher)) uses about
-1,000 LUT cells more than the round-robin scheduler did. Before it, the design
-used 54,492 LUT cells and 42,708 registers after synthesis, and 41,284 LUTs,
-44,562 registers, and 14,641 slices (92%) after routing, with a setup slack of
-+0.103 ns.
 
 The timing after routing is:
 
@@ -1093,74 +1095,155 @@ The timing after routing is:
 | Setup (WNS) | +0.345 ns (TNS 0)
 | Hold (WHS)  | +0.017 ns (THS 0)
 
-These are the values from `report_timing_summary` on the routed design
-(`nexys4ddr.dcp`), after the post-route `phys_opt_design`.
+The timing is met for all clocks. The worst setup path is a route from the
+registers of a group in the dispatcher (`grp_cx_r`) to a job module
+(`res_cx_r`), with no logic, and 92% of its delay in the routing. The worst
+hold path is from the data register of a block of the display memory to its
+BRAM. The 40 paths from the MAIN clock to the VGA clock (the frame rate and
+its toggle signal) have +8.45 ns of slack against the maximum delay of 10 ns,
+and `report_cdc` reports all of them as safe.
 
-The timing is met for all clocks. The 150 MHz main clock (period 6.67 ns) is
-generated from the 100 MHz input clock by the MMCM: it is multiplied by 12,
-which gives 1200 MHz (the maximum for speed grade -1), and divided by 8. The
-main clock uses the output CLKOUT0 of the MMCM, because it is the only output
-with a fractional divider. The MMCM also generates the 25 MHz VGA clock
-(divided by 48). On the MEGA65 the VCO is 1080 MHz instead, see
-[MEGA65 R6](#mega65-r6). The constraints in `nexys4ddr.xdc` are the 100 MHz input
-clock, and a maximum delay (`set_max_delay -datapath_only`) for the paths from
-the MAIN clock to the VGA clock, which only carry the frame rate and its toggle
-signal to the synchronizer in the top level (see [The top level](#the-top-level)). Apart from these,
-the two clocks only meet in the display memory, which has a separate clock for
-each port.
+The 150 MHz main clock (period 6.67 ns) is generated from the 100 MHz input
+clock by the MMCM: it is multiplied by 12, which gives 1200 MHz (the maximum
+for speed grade -1), and divided by 8. The main clock uses the output CLKOUT0
+of the MMCM, because it is the only output with a fractional divider. The
+MMCM also generates the 25 MHz VGA clock (divided by 48). On the MEGA65 the
+VCO is 1080 MHz instead, see [MEGA65 R6](#mega65-r6). The constraints in
+`nexys4ddr.xdc` are the 100 MHz input clock, and a maximum delay
+(`set_max_delay -datapath_only`) for the paths from the MAIN clock to the VGA
+clock, which only carry the frame rate and its toggle signal to the
+synchronizer in the top level (see [The top level](#the-top-level)). Apart
+from these, the two clocks only meet in the display memory, which has a
+separate clock for each port.
 
-At 150 MHz, the worst path is a route from the registers of a group in the
-dispatcher (`grp_cx_r`) to a job module (`res_cx_r`), with no logic, and
-92% of its delay in the routing. At 188.24 MHz (the main clock of the Nexys 4
-DDR until it was lowered to 150 MHz, see below), the critical paths are in the
-iterators, and in the job modules around them:
-* From the output of the DSP (which is not registered, see
-  [Multiplier](#multiplier)) to the overflow flags.
-* From x\_r and y\_r through the additions x+y and x-y and the selection of
-  the inputs of the multiplier to the input registers of the DSP, with 6 or 7
-  levels of logic.
-* The acknowledge of the results (`res_ack_r`) to the row in the job
-  modules, and the routes from the registers in the groups to the job
-  modules.
-* The state machine of the iterator (from cnt\_r and state\_r), and the
-  periodicity detection (to match\_r and the saved values).
-* The scheduler for the results: the round-robin selection in a group, from
-  the registered ready flags (`req_r`) to the candidate of the group
-  (`cand_r`), with 5 levels of logic. This was the worst path in the last
-  build at 188.24 MHz (+0.092 ns). Before the ready flags were registered, the path started
-  at the acknowledge (`res_ack_r`) in the dispatcher, with 6 levels of logic,
-  and had +0.037 ns of slack.
-* The next row in the job modules (to `res_cy_r`, whose clock enable
-  depends on the result of the iterator).
-To go faster, the iterator would have to be changed, e.g. by registering the
-output of the DSP, which would change the three clock cycles of an iteration.
+The complete run of `make nexys4ddr` takes about 6.5 minutes (synthesis about
+2.5 minutes, placement about 1.75 minutes, routing about 1 minute), on a
+machine with 8 threads.
 
-At 177.78 MHz, before the next row in the job modules, the schedulers and
-the done flag were pipelined (see [Dispatcher](#dispatcher)), these were the
-critical paths, with up to 22 levels of logic (the done flag).
+### MEGA65 R6
+The MEGA65 R6 has an XC7A200T with speed grade -2 (part xc7a200tfbg484-2). The
+VGA output is 1280x1024 at 60 Hz, with a 108 MHz pixel clock, and the design
+uses 256 job modules and four pixels in each write to the display memory,
+with a 148.97 MHz main clock (see [`src/mega65_r6.vhd`](src/mega65_r6.vhd)
+and *Video modes* in [Colours](#colours)). The MMCM multiplies the 100 MHz
+input clock by 54/5, which gives a VCO of 1080 MHz, the only VCO frequency
+that gives 108 MHz exactly (divided by 10); the main clock is the VCO divided
+by 7.25. The display memory has 1280x1024 pixels in 320 BRAMs, with 21 bits
+of address (the column followed by the row), and no registers for the write
+port of each block (see [The top level](#the-top-level)). The jobs are 64
+rows, because 1024 is not a multiple of 120. A run of `make mega65-r6`
+gives:
 
-At 140.625 MHz, the critical paths were first the routes from single registers
-to all 240 job modules (the job, the reset, and the index of the job
-module whose result is accepted) or to all 128 BRAMs (the write address),
-before the registers in the groups and the blocks were added, and before that
-the selection of the job module in the schedulers, and the iterators (from
-the multiplier through the addition of cx to x\_r, before the post-adder of
-the DSP was used). The directives used in
-`mandelbrot.tcl` matter:
-* `synth_design` with `-directive AreaOptimized_medium`
-* `opt_design` with `-directive ExploreWithRemap`
-* `phys_opt_design` with `-directive AlternateFlowWithRetiming`, both after
-  placement and after routing
+| Resource         | Used     | Available | Used (%)
+| ---------------- | -------- | --------- | --------
+| DSP48E1          | 256      | 740       | 35
+| Block RAM        | 320 RAMB36 + 2 RAMB18 | 365 RAMB36 | 88
+| Slices           | 19,316   | 33,650    | 57
+| LUTs             | 49,253   | 134,600   | 37
+| Registers        | 52,144   | 269,200   | 19
 
-The main clock was originally 150 MHz. The design with the earlier version of
-the iterator met timing at that frequency (setup slack +0.047 ns). After the
-overflow detection in the iterator was improved (see [Overflow](#overflow)),
-which uses more logic (about 1,400 more LUTs), the design no longer met timing
-at 150 MHz (setup slack -0.055 ns, with the critical paths in the dispatcher),
-and the main clock was lowered to 140.625 MHz. After the post-adder of the DSP
-was used and the registers in the groups and the blocks were added, the design
-met timing at 140.625 MHz with +0.342 ns of slack. The same design was then
-built for higher frequencies, by changing only the MMCM:
+| Check | Slack
+| ----- | -----
+| Setup (WNS) | +0.301 ns (TNS 0)
+| Hold (WHS)  | +0.045 ns (THS 0)
+
+After synthesis there are 78,846 LUT cells and 52,172 registers. The worst
+setup path of the main clock is a route in the display memory, from the data
+register of a group (`grp_data_r`) to one of its BRAMs, with no logic, and
+94% of its delay in the routing. The worst hold path (+0.045 ns) is of the
+same kind. The VGA clock has +0.437 ns of setup slack: its worst path is from
+the pixel counter (`pix_y` in `vga`) to the copy of the read address in a
+group of the display memory (`rd_grp_addr`), also only routing (8.4 ns of
+the 9.26 ns). The 40 paths from the MAIN clock to the VGA clock have +8.86 ns
+of slack, and are reported as safe by `report_cdc`. The colour and sync
+outputs to the video DAC are registered in the IOBs.
+
+The routing is close to its limit. The router first leaves about 10,000 to
+14,000 nodes with overlaps (more nets than routing resources), and then needs
+several iterations to resolve them (11,383 nodes in the run above). The run
+time of the routing varies a lot: the run above took 13 minutes for the
+routing, and met timing after it, so the post-route `phys_opt_design` did
+nothing. The complete run of `make mega65-r6` took about 20 minutes
+(synthesis 3 minutes, placement 2 minutes). Earlier runs of the same design
+took 10 minutes for the routing, with +0.252 ns of setup slack, and 61
+minutes, which only met timing (+0.002 ns) after the post-route
+`phys_opt_design`.
+
+The number of job modules is limited by the routing. With 450 job modules
+the router left 29,614 overlaps, and did not finish within an hour. The cause
+is the display memory: its 320 BRAMs (88%) are spread over the whole FPGA,
+and so are the routes of the write data and of the read address, while the
+earlier 800x600 design only used 128 BRAMs (35%), see
+[History of the MEGA65 R6 build](#history-of-the-mega65-r6-build). With 64
+job modules the routing took 1.5 minutes, but the frame rate goes down with
+fewer job modules: the model gives 203 pictures per second for the initial
+view with 256 job modules (4.91 ms), against 57 with 64.
+
+With 1280x1024 (1,310,720 pixels, 4.3 times as many as 640x480) and 256
+job modules, the model gives 732009 clock cycles for the initial view,
+i.e. 4.91 ms at 148.97 MHz (about 203 pictures per second). With one pixel
+in each write it would be 1454290 clock cycles (9.76 ms). Jobs of 32 to 128
+rows give 199 to 203 pictures per second. If every pixel needed the maximum
+count, the picture would take 7885023 clock cycles (53 ms, 18 pictures per
+second). A simulation of a partial 1280x1024 picture with `main_tb` (then
+with 450 job modules: all 1280 columns, rows 0 to 151, 155,832 pixels) gave
+the same pixels as the model.
+
+### History of the Nexys 4 DDR build
+**What the parts of the design cost.** Most parts of the design were added
+one at a time, and each was measured against the build before it:
+* The periodicity detection (see [Iterator](#iterator)) uses about 5,500 LUT
+  cells and 8,900 registers (36 registers for the saved values in each
+  iterator), and increased the slices used from 81% to 93%. A first version,
+  which cleared the saved values at the start of each point, used about
+  4,100 LUT cells more.
+* Before the post-adder of the DSP was used (see [Multiplier](#multiplier)),
+  the design used 61,895 LUT cells and 53,885 registers after synthesis, and
+  49,087 LUTs, 53,960 registers, and 15,402 slices (97%) after routing. The
+  timing slack was about the same (+0.116 ns), because the critical paths were
+  not in the iterators.
+* The registers that shorten the routes to the job modules and to the BRAMs
+  (see [Dispatcher](#dispatcher) and [The top level](#the-top-level)) use
+  about 4,600 registers and 500 LUT cells. Before they were added, the setup
+  slack was +0.104 ns.
+* Pipelining the next row in the job modules, the schedulers and the done
+  flag (see [Dispatcher](#dispatcher)) costs about 700 LUT cells and 300
+  registers.
+* The frame rate on the 7-segment display (see
+  [The top level](#the-top-level)) uses about 170 LUT cells and 180
+  registers.
+* The scheduler for the results (see [Dispatcher](#dispatcher)) uses about
+  1,000 LUT cells more than the round-robin scheduler did. Before it, the
+  design used 54,492 LUT cells and 42,708 registers after synthesis, and
+  41,284 LUTs, 44,562 registers, and 14,641 slices (92%) after routing, with
+  a setup slack of +0.103 ns.
+* The jobs of 120 rows (see [Dispatcher](#dispatcher)) did not use more
+  resources: before them, the design used 55,536 LUT cells and 43,656
+  registers after synthesis, and 42,158 LUTs, 46,314 registers, and 14,764
+  slices (93%) after routing, with a setup slack of +0.045 ns. The job modules
+  need fewer bits for the row (7 instead of 9), which saves more than the
+  dispatcher needs for the blocks.
+* The frame rate overlay on the VGA output (see
+  [The top level](#the-top-level)) uses about 100 LUT cells and 130 registers
+  after synthesis, and no block RAM (the font table is in LUTs).
+* Registering the ready flags in the scheduler for the results (see
+  [Dispatcher](#dispatcher)) uses about 240 registers more (one for each job
+  module).
+* The registers of the read address in each group of 8 blocks of the display
+  memory (see [The top level](#the-top-level)) use about 400 registers,
+  against the build before them (14,508 slices, 42,035 LUTs and 43,217
+  registers, with +0.355 ns of setup slack).
+
+**The main clock.** The main clock was originally 150 MHz. The design with
+the earlier version of the iterator met timing at that frequency (setup slack
++0.047 ns). After the overflow detection in the iterator was improved (see
+[Overflow](#overflow)), which uses more logic (about 1,400 more LUTs), the
+design no longer met timing at 150 MHz (setup slack -0.055 ns, with the
+critical paths in the dispatcher), and the main clock was lowered to
+140.625 MHz. After the post-adder of the DSP was used and the registers in
+the groups and the blocks were added, the design met timing at 140.625 MHz
+with +0.342 ns of slack. The same design was then built for higher
+frequencies, by changing only the MMCM:
 
 | Main clock | Setup slack | Main clock | Setup slack
 | ---------- | ----------- | ---------- | -----------
@@ -1206,12 +1289,10 @@ pipelined, and the frequency was tried again:
 | 208.70 MHz | -0.075 ns   | +0.014 ns
 
 The main clock was raised to 195.92 MHz, which has more slack than the
-frequencies just below and above it. The pipelining costs about 700 LUT cells
-and 300 registers.
+frequencies just below and above it.
 
-The periodicity detection (see [Iterator](#iterator)) increased the slices
-used from 81% to 93%, and the slack at 195.92 MHz dropped to +0.004 ns. With
-the detection:
+The periodicity detection then dropped the slack at 195.92 MHz to
++0.004 ns. With the detection:
 
 | Main clock | Setup slack | Hold slack
 | ---------- | ----------- | ----------
@@ -1222,139 +1303,108 @@ the detection:
 So the main clock was lowered to 188.24 MHz, which has about the same slack as
 the earlier choices. This is 4% slower than 195.92 MHz, but the detection
 makes the picture 1.75 times faster. The main clock is 34% faster than
-140.625 MHz. The frame rate on the 7-segment display (see
-[The top level](#the-top-level)) uses about 170 LUT cells and 180 registers,
-and the build with it has +0.045 ns of setup slack at 188.24 MHz. The difference from +0.088 ns is
-the normal variation from one run to the next; the critical paths are the
-same.
-The build with the jobs of 120 rows (see [Dispatcher](#dispatcher)), at the
-same frequency, had +0.103 ns of setup slack, and the build with the scheduler
-for the results had +0.037 ns.
+140.625 MHz.
 
-The frame rate overlay on the VGA output (see [The top level](#the-top-level))
-uses about 100 LUT cells and 130 registers after synthesis, and no block RAM
-(the font table is in LUTs). The build with it has +0.006 ns of setup slack.
-The worst path is in `view` (from `zoomx` to the clock enable of `dy`), which
-the overlay does not change, so this is the variation from one run to the
-next. The 40 paths from the MAIN clock to the VGA clock (the frame rate and
-its toggle signal) had +8.19 ns of slack against the maximum delay of 10 ns,
-and `report_cdc` reports all of them as safe.
-
-Registering the ready flags in the scheduler for the results (see
-[Dispatcher](#dispatcher)) uses about 240 registers more (one for each job
-module), and raised the setup slack to +0.064 ns. The paths from the MAIN
-clock to the VGA clock then had +8.41 ns of slack.
-
-The synchronizer for the frame rate was then moved from `overlay` to the top
-level. This is the same logic, and the cell counts after synthesis did not
-change. The build with it has +0.092 ns of setup slack, and the 40 paths from
-the MAIN clock to the VGA clock have +8.39 ns of slack, and are all reported
-as safe by `report_cdc`.
+The next builds at 188.24 MHz had these setup slacks:
+* With the frame rate on the 7-segment display: +0.045 ns. The difference
+  from +0.088 ns is the normal variation from one run to the next; the
+  critical paths are the same.
+* With the jobs of 120 rows: +0.103 ns.
+* With the scheduler for the results: +0.037 ns.
+* With the frame rate overlay on the VGA output: +0.006 ns. The worst path is
+  in `view` (from `zoomx` to the clock enable of `dy`), which the overlay does
+  not change, so this is the variation from one run to the next. The 40 paths
+  from the MAIN clock to the VGA clock had +8.19 ns of slack against the
+  maximum delay of 10 ns, and `report_cdc` reports all of them as safe.
+* With the ready flags registered in the scheduler for the results:
+  +0.064 ns. The paths from the MAIN clock to the VGA clock then had
+  +8.41 ns of slack.
+* With the synchronizer for the frame rate moved from `overlay` to the top
+  level: +0.092 ns. This is the same logic, and the cell counts after
+  synthesis did not change. The 40 paths from the MAIN clock to the VGA clock
+  had +8.39 ns of slack, and were all reported as safe by `report_cdc`.
 
 The main clock of the Nexys 4 DDR was then lowered from 188.24 MHz to 150 MHz
-(1200 MHz divided by 8 instead of 6.375), and the MEGA65 keeps 188.24 MHz.
-Even if every pixel needed the maximum count, the model gives 2040977 clock
-cycles for the picture, i.e. 73 pictures per second at 150 MHz, still well
-above the 60 Hz of the VGA output. The setup slack rose from +0.092 ns to
-+0.355 ns, which leaves room for more logic. The aim was a faster build, but
-the build took the same time as before: the run time is decided by the
-directives in `mandelbrot.tcl`, not by the slack. Only the two runs of
-`phys_opt_design` do nothing now, because timing is already met, and they
-took only about 10 seconds before.
+(1200 MHz divided by 8 instead of 6.375), and the MEGA65 kept 188.24 MHz
+(until it got 1280x1024 and 148.97 MHz, see
+[History of the MEGA65 R6 build](#history-of-the-mega65-r6-build)). Even if
+every pixel needed the maximum count, the model gives 2040977 clock cycles for
+the picture, i.e. 73 pictures per second at 150 MHz, still well above the
+60 Hz of the VGA output. The setup slack rose from +0.092 ns to +0.355 ns,
+which leaves room for more logic. The aim was a faster build, but the build
+took the same time as before: the run time is decided by the directives in
+`mandelbrot.tcl`, not by the slack. Only the two runs of `phys_opt_design` do
+nothing now, because timing is already met, and they took only about 10
+seconds before.
 
 The display memory then got a register of the read address in each group of
-8 blocks (for the MEGA65 at 1280x1024, see [MEGA65 R6](#mega65-r6)), which
-makes the read latency four clock cycles. The build with them has +0.343 ns
-of setup slack, with the worst path of the same kind, and the 40 paths from
-the MAIN clock to the VGA clock are all reported as safe by `report_cdc`.
-The tables above are from a later run, with the same cell counts after
-synthesis: +0.345 ns of setup slack (the same kind of path) and +0.017 ns of
-hold slack (from the data register of a block of the display memory to its
-BRAM), and the 40 paths from the MAIN clock to the VGA clock have +8.45 ns of
-slack and are all reported as safe.
+8 blocks (for the MEGA65 at 1280x1024), which makes the read latency four
+clock cycles. The build with them had +0.343 ns of setup slack, with the
+worst path of the same kind, and the 40 paths from the MAIN clock to the VGA
+clock were all reported as safe by `report_cdc`. A later run with the same
+cell counts after synthesis gave the current results above (+0.345 ns).
 
-The complete run of `make nexys4ddr` takes about 6.5 minutes (synthesis about 2.5
-minutes, placement about 1.75 minutes, routing about 1 minute), on a machine
-with 8 threads.
+**Critical paths at higher frequencies.** At 188.24 MHz, the critical paths
+were in the iterators, and in the job modules around them:
+* From the output of the DSP (which is not registered, see
+  [Multiplier](#multiplier)) to the overflow flags.
+* From x\_r and y\_r through the additions x+y and x-y and the selection of
+  the inputs of the multiplier to the input registers of the DSP, with 6 or 7
+  levels of logic.
+* The acknowledge of the results (`res_ack_r`) to the row in the job
+  modules, and the routes from the registers in the groups to the job
+  modules.
+* The state machine of the iterator (from cnt\_r and state\_r), and the
+  periodicity detection (to match\_r and the saved values).
+* The scheduler for the results: the round-robin selection in a group, from
+  the registered ready flags (`req_r`) to the candidate of the group
+  (`cand_r`), with 5 levels of logic. This was the worst path in the last
+  build at 188.24 MHz (+0.092 ns). Before the ready flags were registered, the
+  path started at the acknowledge (`res_ack_r`) in the dispatcher, with 6
+  levels of logic, and had +0.037 ns of slack.
+* The next row in the job modules (to `res_cy_r`, whose clock enable
+  depends on the result of the iterator).
 
-### MEGA65 R6
-The MEGA65 R6 has an XC7A200T with speed grade -2 (part xc7a200tfbg484-2). The
-VGA output is 1280x1024 at 60 Hz, with a 108 MHz pixel clock, and the design
-uses 256 job modules and four pixels in each write to the display memory,
-with a 148.97 MHz main clock (see [`src/mega65_r6.vhd`](src/mega65_r6.vhd)
-and *Video modes* in [Colours](#colours)). The MMCM multiplies the 100 MHz
-input clock by 54/5, which gives a VCO of 1080 MHz, the only VCO frequency
-that gives 108 MHz exactly (divided by 10); the main clock is the VCO divided
-by 7.25. The display memory has 1280x1024 pixels in 320 BRAMs, with 21 bits
-of address (the column followed by the row), and no registers for the write
-port of each block (see [The top level](#the-top-level)). The jobs are 64
-rows, because 1024 is not a multiple of 120. A run of the same steps as
-`make mega65-r6` gives:
+To go faster, the iterator would have to be changed, e.g. by registering the
+output of the DSP, which would change the three clock cycles of an iteration.
 
-| Resource         | Used     | Available | Used (%)
-| ---------------- | -------- | --------- | --------
-| DSP48E1          | 256      | 740       | 35
-| Block RAM        | 320 RAMB36 + 2 RAMB18 | 365 RAMB36 | 88
-| Slices           | 19,316   | 33,650    | 57
-| LUTs             | 49,253   | 134,600   | 37
-| Registers        | 52,144   | 269,200   | 19
+At 177.78 MHz, before the next row in the job modules, the schedulers and
+the done flag were pipelined (see [Dispatcher](#dispatcher)), these were the
+critical paths, with up to 22 levels of logic (the done flag).
 
-| Check | Slack
-| ----- | -----
-| Setup (WNS) | +0.301 ns (TNS 0)
-| Hold (WHS)  | +0.045 ns (THS 0)
+At 140.625 MHz, the critical paths were first the routes from single registers
+to all 240 job modules (the job, the reset, and the index of the job
+module whose result is accepted) or to all 128 BRAMs (the write address),
+before the registers in the groups and the blocks were added, and before that
+the selection of the job module in the schedulers, and the iterators (from
+the multiplier through the addition of cx to x\_r, before the post-adder of
+the DSP was used).
 
-After synthesis there are 78,846 LUT cells and 52,172 registers. The worst
-setup path of the main clock is a route in the display memory, from the data
-register of a group (`grp_data_r`) to one of its BRAMs, with no logic, and
-94% of its delay in the routing. The worst hold path (+0.045 ns) is of the
-same kind. The VGA clock has +0.437 ns of setup slack: its worst path is from
-the pixel counter (`pix_y` in `vga`) to the copy of the read address in a
-group of the display memory (`rd_grp_addr`), also only routing (8.4 ns of
-the 9.26 ns). The 40 paths from the MAIN clock to the VGA clock have +8.86 ns
-of slack, and are reported as safe by `report_cdc`. The colour and sync
-outputs to the video DAC are registered in the IOBs.
+### History of the MEGA65 R6 build
+The MEGA65 first showed 800x600, and then 1280x1024.
 
-The routing is close to its limit. The router first leaves about 10,000 to
-14,000 nodes with overlaps (more nets than routing resources), and then needs
-several iterations to resolve them (11,383 nodes in the run above). The run
-time of the routing varies a lot: the run above took 13 minutes for the
-routing, and met timing after it, so the post-route `phys_opt_design` did
-nothing. The complete run of `make mega65-r6` took about 20 minutes
-(synthesis 3 minutes, placement 2 minutes). Earlier runs of the same design
-took 10 minutes for the routing, with +0.252 ns of setup slack, and 61
-minutes, which only met timing (+0.002 ns) after the post-route
-`phys_opt_design`. With 450 job modules the router left 29,614 overlaps, and
-did not finish within an hour. The cause is the display memory: its 320 BRAMs (88%) are
-spread over the whole FPGA, and so are the routes of the write data and of
-the read address, while the 800x600 design below only used 128 BRAMs (35%).
-With 64 job modules the routing took 1.5 minutes. The frame rate goes down
-with fewer job modules: the model gives 203 pictures per second for the
-initial view with 256 job modules (4.91 ms), against 57 with 64. If every
-pixel needed the maximum count, the picture would take 7885023 clock cycles
-(53 ms, 18 pictures per second).
+**1280x1024.** The main clock was 187.83 MHz (1080 MHz divided by 5.75) at
+first, but with 450 job modules it failed timing by about 0.15 ns after the
+placement, and the slices were 92% used. Leaving out the registers of the
+write port of each block (about 15,000 registers) and lowering the main clock
+to 180 MHz still left one path failing by 0.247 ns, so the main clock was
+lowered to 148.97 MHz, and then the number of job modules (see
+[MEGA65 R6](#mega65-r6)). The registers of the read address in each group
+were added when the VGA clock had only +0.207 ns of setup slack with 64 job
+modules: the route from the pixel counters to all 320 BRAMs took 8.2 ns of
+the 9.26 ns. With them the slack was +0.620 ns.
 
-The main clock was 187.83 MHz (1080 MHz divided by 5.75) at first, but with
-450 job modules it failed timing by about 0.15 ns after the placement, and
-the slices were 92% used. Leaving out the registers of the write port of each
-block (about 15,000 registers) and lowering the main clock to 180 MHz still
-left one path failing by 0.247 ns, so the main clock was lowered to 148.97
-MHz, and then the number of job modules. The registers of the read
-address in each group were added when the VGA clock had only +0.207 ns of
-setup slack with 64 job modules: the route from the pixel counters to all
-320 BRAMs took 8.2 ns of the 9.26 ns. With them the slack was +0.620 ns.
-
-The 800x600 design used 450 job modules with a 188.24 MHz main clock
-(1200 MHz divided by 6.375), and a display memory of 2^19 pixels (128 BRAMs),
-where each picture column had 600 addresses. A run of `make mega65-r6` gave
-29,964 slices (89%), 81,646 LUTs, 93,443 registers, +0.186 ns of setup slack
-and +0.013 ns of hold slack. After synthesis there were 107,980 LUT cells and
-93,411 registers. The worst setup path was in the tree of registers of the
-display memory (from the data register to the register of a group), and the
-worst hold path was from the data register of a block of the display memory
-to its BRAM. The VGA clock had +6.7 ns of setup slack (of 25 ns). The run
-took about 14 minutes (synthesis 4.5 minutes, placement 4.5 minutes, routing
-3 minutes).
+**800x600.** The 800x600 design used 450 job modules with a 188.24 MHz main
+clock (1200 MHz divided by 6.375), and a display memory of 2^19 pixels (128
+BRAMs), where each picture column had 600 addresses. A run of
+`make mega65-r6` gave 29,964 slices (89%), 81,646 LUTs, 93,443 registers,
++0.186 ns of setup slack and +0.013 ns of hold slack. After synthesis there
+were 107,980 LUT cells and 93,411 registers. The worst setup path was in the
+tree of registers of the display memory (from the data register to the
+register of a group), and the worst hold path was from the data register of a
+block of the display memory to its BRAM. The VGA clock had +6.7 ns of setup
+slack (of 25 ns). The run took about 14 minutes (synthesis 4.5 minutes,
+placement 4.5 minutes, routing 3 minutes).
 
 The first build with 800x600 failed timing by 0.226 ns, from the table
 `job_addr_r` (a BRAM) through the multiplication by 600 in the dispatcher,
@@ -1369,38 +1419,27 @@ LUTs and 46,431 registers. Two earlier runs of it stopped with a segmentation
 fault in Vivado (in the routing and in the `phys_opt_design` after it), which
 also happened once before with `make mega65-r6`; running it again helped.
 
-With 640x480 and one pixel in each write, the model gave 339741 clock cycles
-for the initial view with 450 job modules, i.e. 1.80 ms at 188.24 MHz
-(about 554 pictures per second), only 2% faster than with 240 job modules.
-The display memory was then written in 90% of the clock cycles, so the time
-for the picture was decided by the write port of the display memory (at least
-307200 clock cycles, see [Timing](#timing)), not by the number of job
-modules. With four pixels in each write, the model gave 161909 clock cycles,
-i.e. 0.86 ms (about 1163 pictures per second), 2.1 times faster. This cost
-16,165 registers (27 bits in each job module for the counts of the first
-three rows, and the wider data in the dispatcher and in the tree of registers
-of the display memory), 4,050 LUTs, and 3,881 slices, against the build with
+With 800x600 (480,000 pixels, 56% more than 640x480), the model gave 248969
+clock cycles for the initial view, i.e. 1.32 ms (about 756 pictures per
+second). With one pixel in each write it would be 512370 clock cycles
+(2.72 ms), and with two 299485 (1.59 ms). Even if every pixel needed the
+maximum count, the picture would take 1663271 clock cycles (8.8 ms). A
+simulation of a complete 800x600 picture with `main_tb` took about 248920
+clock cycles from the start to the last write to the display memory, 0.02%
+less than the model, with all the pixels the same as in the model. The
+simulation took about 1.5 hours.
+
+**640x480.** Before 800x600, the MEGA65 showed 640x480 like the Nexys 4 DDR.
+With one pixel in each write, the model gave 339741 clock cycles for the
+initial view with 450 job modules, i.e. 1.80 ms at 188.24 MHz (about 554
+pictures per second), only 2% faster than with 240 job modules. The display
+memory was then written in 90% of the clock cycles, so the time for the
+picture was decided by the write port of the display memory (at least 307200
+clock cycles, see [Timing](#timing)), not by the number of job modules. With
+four pixels in each write, the model gave 161909 clock cycles, i.e. 0.86 ms
+(about 1163 pictures per second), 2.1 times faster. This cost 16,165
+registers (27 bits in each job module for the counts of the first three
+rows, and the wider data in the dispatcher and in the tree of registers of
+the display memory), 4,050 LUTs, and 3,881 slices, against the build with
 one pixel in each write. The setup slack was +0.178 ns and the hold slack
 +0.023 ns with one pixel in each write.
-
-With 800x600 (480,000 pixels, 56% more), the model gave 248969 clock cycles
-for the initial view, i.e. 1.32 ms (about 756 pictures per second). With one
-pixel in each write it would be 512370 clock cycles (2.72 ms), and with two
-299485 (1.59 ms). Even if every pixel needed the maximum count, the picture
-would take 1663271 clock cycles (8.8 ms). A simulation of a complete 800x600
-picture with `main_tb` took about 248920 clock cycles from the start to the
-last write to the display memory, 0.02% less than the model, with all the
-pixels the same as in the model. The simulation took about 1.5 hours.
-
-With 1280x1024 (1,310,720 pixels, 4.3 times as many as 640x480) and 256
-job modules, the model gives 732009 clock cycles for the initial view,
-i.e. 4.91 ms at 148.97 MHz (about 203 pictures per second). With one pixel
-in each write it would be 1454290 clock cycles (9.76 ms). Jobs of 32 to 128
-rows give 199 to 203 pictures per second. A simulation of a partial
-1280x1024 picture with `main_tb` (then with 450 job modules: all 1280
-columns, rows 0 to 151, 155,832 pixels) gave the same pixels as the model.
-
-All 240 DSPs running at 150 MHz gives a peak of 36 billion multiplications per
-second. The iterator uses its multiplier in two out of three clock cycles, so
-the actual rate is about 24 billion multiplications per second. On the MEGA65
-(256 DSPs at 148.97 MHz) it is about 25 billion.

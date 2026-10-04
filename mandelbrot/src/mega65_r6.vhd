@@ -60,7 +60,7 @@ architecture structural of mega65_r6 is
    -- job modules is limited by the routing: With 800x600, 450 job modules
    -- fit, but with 1280x1024 the display memory uses 320 of the 365 BRAMs,
    -- and with 450 job modules the routing did not finish. 256 job modules
-   -- use 58% of the slices.
+   -- use 57% of the slices.
    constant C_NUM_ITERATORS : integer := 256;
 
    -- The number of pixels in each write to the display memory. The dispatcher

@@ -25,9 +25,9 @@
 -- plus 2, which is in the range 0 to 4. This is the 2.16 value with the sign
 -- bit inverted, interpreted as an unsigned number.
 --
--- The update is calculated over several clock cycles (17), one small
--- step at a time, because all of it in a single clock cycle is far too slow
--- for the MAIN clock. The outputs are all changed at the same time, at the
+-- The update is calculated over several clock cycles (17, or 18 for 1280
+-- columns), one small step at a time, because all of it in a single clock
+-- cycle is far too slow for the MAIN clock. The outputs are all changed at the same time, at the
 -- end of the update. Pulses on upd_i during an update are ignored.
 
 library ieee;

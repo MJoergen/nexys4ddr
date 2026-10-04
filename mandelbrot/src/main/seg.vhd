@@ -2,7 +2,8 @@
 -- The digits share the segment signals, so they are shown one at a time
 -- (multiplexed). Each digit is shown for 2^(G_REFRESH_BITS-3) clock cycles, so
 -- all 8 digits are refreshed once every 2^G_REFRESH_BITS clock cycles. With
--- the default value of 17 and the MAIN clock this is 0.70 ms, i.e. 1.4 kHz.
+-- the default value of 17 and the MAIN clock (150 MHz) this is 0.87 ms, i.e.
+-- 1.1 kHz.
 --
 -- digits_i holds one BCD digit for each 4 bits, the rightmost digit (AN0) in
 -- bits 3 downto 0. A digit is switched off when its bit in blank_i is set.

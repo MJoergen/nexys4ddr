@@ -25,7 +25,7 @@ end entity fps_tb;
 
 architecture simulation of fps_tb is
 
-   constant C_CLK_FREQ     : natural := 188_235_294;  -- As on the MEGA65
+   constant C_CLK_FREQ     : natural := 188_235_294;  -- The earlier MAIN clock
    constant C_TIME_BITS    : natural := 27;
    constant C_REFRESH_BITS : natural := 6;
    constant C_MAX          : natural := 99_999_999;
