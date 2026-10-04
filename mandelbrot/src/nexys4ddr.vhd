@@ -2,13 +2,15 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
+use work.video_pkg.all;
+
 -- This is the top level module. The ports on this entity are mapped directly
 -- to pins on the FPGA.
 --
 -- The design calculates the Mandelbrot set, and shows it on the VGA output
--- (640x480). The picture is calculated by the dispatcher and stored in the
--- display memory. As soon as one picture is finished, the calculation of the
--- next picture is started, so the picture is recalculated continuously.
+-- (640x480 @ 60 Hz). The picture is calculated by the dispatcher and stored in
+-- the display memory. As soon as one picture is finished, the calculation of
+-- the next picture is started, so the picture is recalculated continuously.
 --
 -- The design is split into two modules, one for each clock domain: main.vhd
 -- (MAIN clock) and vga.vhd (VGA clock). The two domains communicate through
@@ -60,6 +62,16 @@ architecture structural of nexys4ddr is
    -- XC7A100T, and has only +0.012 ns of setup slack (see ALGORITHM.md).
    constant C_PIXELS        : integer := 1;
 
+   -- The video mode (see video_pkg.vhd), and the divider of the VGA clock,
+   -- which gives the pixel clock (1200 MHz / 48 = 25 MHz, see clk_rst.vhd).
+   constant C_VIDEO         : video_mode_t := C_VIDEO_640X480;
+   constant C_VGA_DIVIDE    : integer := 48;
+
+   -- The address distance between two picture columns in the display memory,
+   -- see dispatcher.vhd. 512 rows per column means the address is the column
+   -- followed by the row.
+   constant C_COL_STRIDE    : integer := 512;
+
    signal main_clk       : std_logic;
    signal main_rst       : std_logic;
 
@@ -96,6 +108,9 @@ begin
    --------------------------------------------------
 
    i_clk_rst : entity work.clk_rst
+      generic map (
+         G_VGA_DIVIDE => C_VGA_DIVIDE
+      )
       port map (
          clk_i      => clk_i,
          rstn_i     => rstn_i,
@@ -113,7 +128,10 @@ begin
    i_main : entity work.main
       generic map (
          G_NUM_ITERATORS => C_NUM_ITERATORS,
-         G_PIXELS        => C_PIXELS
+         G_PIXELS        => C_PIXELS,
+         G_NUM_COLS      => C_VIDEO.h_visible,
+         G_NUM_ROWS      => C_VIDEO.v_visible,
+         G_COL_STRIDE    => C_COL_STRIDE
       )
       port map (
          clk_i     => main_clk,
@@ -180,6 +198,10 @@ begin
    --------------------------------------------------
 
    i_vga : entity work.vga
+      generic map (
+         G_MODE       => C_VIDEO,
+         G_COL_STRIDE => C_COL_STRIDE
+      )
       port map (
          clk_i     => vga_clk,
          rst_i     => vga_rst,

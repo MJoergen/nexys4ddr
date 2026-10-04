@@ -5,8 +5,8 @@ use ieee.numeric_std_unsigned.all;
 -- This is the display memory, holding the picture. It has 2^19 pixels of 9
 -- bits (the iteration count of each pixel), and is implemented in block RAM.
 -- It has a write port and a read port, with separate clocks, so it is also the
--- connection between the two clock domains. The address of a pixel is the
--- picture column (10 bits) followed by the row (9 bits).
+-- connection between the two clock domains. The address of a pixel is given by
+-- its picture column and row, see dispatcher.vhd.
 --
 -- Each entry of the memory (a word) holds G_PIXELS pixels: consecutive rows of
 -- a picture column, with the first row in the lowest 9 bits. So the write port

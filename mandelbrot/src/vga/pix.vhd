@@ -2,36 +2,39 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This module generates the pixel coordinates
--- for a 640x480 @ 60 Hz screen resolution.
--- This module expects an input clock frequency
--- of 25.175 MHz, but will work fine with 25.0 MHz.
+use work.video_pkg.all;
+
+-- This module generates the pixel coordinates for the video mode G_MODE (see
+-- video_pkg.vhd). The pixel (0, 0) is the top left pixel of the visible area.
 
 entity pix is
+   generic (
+      G_MODE  : video_mode_t
+   );
    port (
       clk_i   : in  std_logic;
 
       -- Pixel counters
-      pix_x_o : out std_logic_vector(9 downto 0);
-      pix_y_o : out std_logic_vector(9 downto 0)
+      pix_x_o : out std_logic_vector(10 downto 0);
+      pix_y_o : out std_logic_vector(10 downto 0)
    );
 end pix;
 
 architecture structural of pix is
 
-   -- Define constants used for 640x480 @ 60 Hz.
-   -- Requires a clock of 25.175 MHz.
-   -- See page 17 in "VESA MONITOR TIMING STANDARD"
-   -- http://caxapa.ru/thumbs/361638/DMTv1r11.pdf
-   constant H_TOTAL : integer := 800;
-   constant V_TOTAL : integer := 525;
+   constant H_TOTAL : integer := h_total(G_MODE);
+   constant V_TOTAL : integer := v_total(G_MODE);
 
    -- Pixel counters
-   signal pix_x : std_logic_vector(9 downto 0) := (others => '0');
-   signal pix_y : std_logic_vector(9 downto 0) := (others => '0');
+   signal pix_x : std_logic_vector(10 downto 0) := (others => '0');
+   signal pix_y : std_logic_vector(10 downto 0) := (others => '0');
 
 begin
-   
+
+   assert H_TOTAL <= 2**11 and V_TOTAL <= 2**11
+      report "The pixel counters only support up to 2048 pixels and lines"
+      severity failure;
+
    --------------------------------------------------
    -- Generate horizontal and vertical pixel counters
    --------------------------------------------------
@@ -69,4 +72,3 @@ begin
    pix_y_o <= pix_y;
 
 end architecture structural;
-

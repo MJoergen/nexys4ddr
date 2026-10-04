@@ -9,7 +9,7 @@
 # module is used by cmp_rtl.py to compare the simulated design with the model.
 #
 # Run as a script, it compares the model with the reference for the initial
-# view (640x480), and prints how many pixels differ. It also estimates the time
+# view (640x480, as on the Nexys 4 DDR), and prints how many pixels differ. It also estimates the time
 # it takes the design to calculate the picture, and the time the column modules
 # wait for their results to be accepted, see picture_cycles(). For
 # this, hw_stop() follows the periodicity detection of the iterator, which stops
@@ -41,13 +41,15 @@ RealArray = NDArray[np.float64]
 BoolArray = NDArray[np.bool_]
 
 MAX_COUNT = 511      # Must match C_MAX_COUNT in main.vhd
-NUM_COLS  = 640      # Must match C_NUM_COLS in main.vhd
-NUM_ROWS  = 480      # Must match C_NUM_ROWS in main.vhd
+NUM_COLS  = 640      # Must match C_VIDEO in nexys4ddr.vhd
+NUM_ROWS  = 480      # Must match C_VIDEO in nexys4ddr.vhd
 JOB_ROWS  = 120      # Must match C_JOB_ROWS in main.vhd
 NUM_ITERATORS = 240  # Must match C_NUM_ITERATORS in nexys4ddr.vhd
 PIXELS = 1           # Must match C_PIXELS in nexys4ddr.vhd
 GROUP_SIZE = 16      # Must match G_GROUP_SIZE in dispatcher.vhd
 # The same for the MEGA65 R6, see mega65_r6.vhd
+MEGA65_NUM_COLS = 800
+MEGA65_NUM_ROWS = 600
 MEGA65_NUM_ITERATORS = 450
 MEGA65_PIXELS = 4
 MAIN_CLOCK_KHZ = 1200e3 / 6.375  # The main clock, see clk_rst.vhd
@@ -351,10 +353,13 @@ def main() -> None:
     print(f"Estimated time for the picture: {cycles} clock cycles, i.e. "
           f"{cycles / MAIN_CLOCK_KHZ:.2f} ms at {MAIN_CLOCK_KHZ / 1000:.3f} MHz "
           f"({MAIN_CLOCK_KHZ * 1000 / cycles:.0f} pictures per second)")
+    cx, cy = view(cols=MEGA65_NUM_COLS, rows=MEGA65_NUM_ROWS)
+    _, stop = hw_stop(cx, cy)
     cycles, waiting = picture_cycles(stop, MEGA65_NUM_ITERATORS,
                                      pixels=MEGA65_PIXELS)
-    print(f"On the MEGA65 R6 ({MEGA65_NUM_ITERATORS} column modules, "
-          f"{MEGA65_PIXELS} pixels in each write): {cycles} clock cycles, i.e. "
+    print(f"On the MEGA65 R6 ({MEGA65_NUM_COLS}x{MEGA65_NUM_ROWS}, "
+          f"{MEGA65_NUM_ITERATORS} column modules, {MEGA65_PIXELS} pixels in "
+          f"each write): {cycles} clock cycles, i.e. "
           f"{cycles / MAIN_CLOCK_KHZ:.2f} ms "
           f"({MAIN_CLOCK_KHZ * 1000 / cycles:.0f} pictures per second)")
 
