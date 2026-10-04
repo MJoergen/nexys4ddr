@@ -12,6 +12,16 @@ larger FPGA (XC7A200T) and a resolution of 800x600 instead of 640x480, see
 [MEGA65 R6](#mega65-r6). The numbers in this document are for the Nexys 4 DDR,
 unless stated otherwise.
 
+## Terms
+The following terms are used in this document:
+* A *picture column* is a vertical slice of the picture.
+* A *job* is 120 rows of a picture column, i.e. a quarter of it. The picture is
+  divided into four *blocks* of 120 rows, so there are 2560 jobs.
+* A *job module* is an instance of [`src/main/job.vhd`](src/main/job.vhd). It
+  calculates one job at a time, row by row, using one iterator.
+* An *iterator* is the block in [`src/main/iterator.vhd`](src/main/iterator.vhd). It
+  calculates the count for a single point.
+
 ## Instantiation hierarchy
 The modules are instantiated as follows:
 ```
@@ -21,7 +31,7 @@ nexys4ddr                       src/nexys4ddr.vhd (top level)
  |   +- view                    src/main/view.vhd (view control from the buttons)
  |   +- dispatcher              src/main/dispatcher.vhd
  |   |   +- scheduler           (i_scheduler, selects the job module to receive a job)
- |   |   +- column  (x 240)     src/main/job.vhd (the job modules)
+ |   |   +- job     (x 240)     src/main/job.vhd (the job modules)
  |   |   |   +- iterator        src/main/iterator.vhd
  |   |   |       +- (DSP48E1)   (inferred in p_dsp, multiplier and adder)
  |   |   +- res_scheduler       src/main/res_scheduler.vhd (selects the job module whose result is accepted)
@@ -306,15 +316,6 @@ of the pixels have a different count, and about 0.1% (292 pixels) are on the
 other side of the boundary of the set (`sim/model.py`).
 
 ## Jobs
-The following terms are used in this document:
-* A *picture column* is a vertical slice of the picture.
-* A *job* is 120 rows of a picture column, i.e. a quarter of it. The picture is
-  divided into four *blocks* of 120 rows, so there are 2560 jobs.
-* A *job module* is an instance of [`src/main/job.vhd`](src/main/job.vhd). It
-  calculates one job at a time, row by row, using one iterator.
-* An *iterator* is the block in [`src/main/iterator.vhd`](src/main/iterator.vhd). It
-  calculates the count for a single point.
-
 There is one iterator, and therefore one DSP, in each job module, and there
 are `G_NUM_ITERATORS` job modules (240 in the design). `G_NUM_COLS` is the
 number of picture columns, not of job modules. The number of rows in a job
