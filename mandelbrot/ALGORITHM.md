@@ -237,8 +237,9 @@ ever, without an overflow, so the count is the maximum count. So the iterator
 can stop as soon as it sees a repeated value, and the count is exactly the
 same as without stopping early.
 
-This is detected in the same way as in Brent's cycle detection algorithm. The
-values of x and y are saved (sx\_r and sy\_r) after the iterations 1, 2, 4,
+This is detected in the same way as in
+[Brent's cycle detection algorithm](https://en.wikipedia.org/wiki/Cycle_detection#Brent's_algorithm).
+The values of x and y are saved (sx\_r and sy\_r) after the iterations 1, 2, 4,
 8, 16, and so on, i.e. after each power of two. In each iteration from
 iteration 2 (in ADD\_ST) the current values are compared with the saved
 values. The saved registers are not cleared at the start of a point, because
