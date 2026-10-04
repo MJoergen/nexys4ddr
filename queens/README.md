@@ -7,8 +7,8 @@ queens share a row, a column, or a diagonal. There are 92 solutions.
 
 The design searches through the board positions one step at a time, slowly
 enough that you can watch it. The current board is shown on the VGA output
-(640x480), and the 7-segment display shows either the number of solutions
-found so far or the number of positions visited so far.
+(640x480), and the eight digits of the 7-segment display show either the
+number of solutions found so far or the number of positions visited so far.
 
 ## The algorithm
 The board always has exactly one queen in each row, so it is stored as a
@@ -36,7 +36,9 @@ The search for the 8x8 board visits 13,756 positions, and finds all 92
 solutions.
 
 ## Controls
-* Switch 0: Reset. Set it to restart the search, and clear it to run.
+* CPU RESET button: Restarts the search. It resets the PLL, and the design
+  is held in reset until the PLL has locked again.
+* Switch 0: Not used.
 * Switch 1: Selects what the 7-segment display shows, in decimal. When it is
   set, the display shows the number of solutions found. When it is clear, the
   display shows the number of positions visited (this keeps counting after
@@ -59,7 +61,8 @@ The sources are in the [src](src) directory:
 * [counter.vhd](src/counter.vhd): Generates a pulse for every step of the
   search, at a rate set by switches 2-7.
 * [clk.vhd](src/clk.vhd): A PLL that makes the 25 MHz clock used by the VGA
-  output and the search from the 100 MHz board clock.
+  output and the search from the 100 MHz board clock. It also makes the
+  reset, which is held until the PLL has locked.
 * [vga.vhd](src/vga.vhd), [vga_ctrl.vhd](src/vga_ctrl.vhd),
   [vga_disp_queens.vhd](src/vga_disp_queens.vhd) and
   [vga_bitmap_pkg.vhd](src/vga_bitmap_pkg.vhd): The VGA output. `vga_ctrl`
@@ -68,7 +71,7 @@ The sources are in the [src](src) directory:
 * [display.vhd](src/display.vhd),
   [display_int2seg.vhd](src/display_int2seg.vhd),
   [display_digit.vhd](src/display_digit.vhd) and
-  [display_seg.vhd](src/display_seg.vhd): Converts a number to four decimal
+  [display_seg.vhd](src/display_seg.vhd): Converts a number to eight decimal
   digits and drives the 7-segment display.
 * [queens_top.xdc](src/queens_top.xdc): Pin locations and the clock
   constraint.

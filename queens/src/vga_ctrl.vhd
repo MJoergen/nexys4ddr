@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 entity vga_ctrl is
    port (
@@ -41,12 +41,12 @@ architecture synthesis of vga_ctrl is
    signal active_dly  : std_logic;
 
    -- Horizontal and Vertical counters
-   signal h_cntr_reg : std_logic_vector(11 downto 0) := (others =>'0');
-   signal v_cntr_reg : std_logic_vector(11 downto 0) := (others =>'0');
+   signal h_cntr_reg : unsigned(11 downto 0) := (others =>'0');
+   signal v_cntr_reg : unsigned(11 downto 0) := (others =>'0');
 
    -- Pipe Horizontal and Vertical Counters
-   signal h_cntr_reg_dly   : std_logic_vector(11 downto 0) := (others => '0');
-   signal v_cntr_reg_dly   : std_logic_vector(11 downto 0) := (others => '0');
+   signal h_cntr_reg_dly   : unsigned(11 downto 0) := (others => '0');
+   signal v_cntr_reg_dly   : unsigned(11 downto 0) := (others => '0');
 
    -- Horizontal and Vertical Sync
    signal h_sync_reg : std_logic := not(H_POL);
@@ -131,8 +131,8 @@ begin
    -- Assign outputs
    hs_o     <= h_sync_reg_dly;
    vs_o     <= v_sync_reg_dly;
-   hcount_o <= h_cntr_reg_dly;
-   vcount_o <= v_cntr_reg_dly;
+   hcount_o <= std_logic_vector(h_cntr_reg_dly);
+   vcount_o <= std_logic_vector(v_cntr_reg_dly);
    blank_o  <= not active_dly;
 
 end architecture synthesis;

@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 entity counter is
    generic (
@@ -16,15 +16,16 @@ end entity counter;
 
 architecture synthesis of counter is
 
-   signal count : integer range 0 to G_COUNTER;
+   -- The counter can go up to 63 past G_COUNTER before it wraps.
+   signal count : integer range 0 to G_COUNTER + 63;
 
 begin
 
-   p_count : process (rst_i, clk_i)
+   p_count : process (clk_i)
    begin
       if rising_edge(clk_i) then
          if count < G_COUNTER then
-            count  <= count + conv_integer(inc_i);
+            count  <= count + to_integer(unsigned(inc_i));
             wrap_o <= '0';
          else
             count  <= 0;
@@ -39,4 +40,3 @@ begin
    end process p_count;
 
 end architecture synthesis;
-

@@ -4,6 +4,7 @@
 
 ## Clock signal
 set_property LOC E3 [get_ports clk_i]
+set_property LOC C12 [get_ports rstn_i]
 
 ## Switches
 set_property LOC J15 [get_ports sw_i[0] ]
@@ -38,6 +39,10 @@ set_property LOC J17 [get_ports seg_an_o[0] ]
 set_property LOC J18 [get_ports seg_an_o[1] ]
 set_property LOC T9  [get_ports seg_an_o[2] ]
 set_property LOC J14 [get_ports seg_an_o[3] ]
+set_property LOC P14 [get_ports seg_an_o[4] ]
+set_property LOC T14 [get_ports seg_an_o[5] ]
+set_property LOC K2  [get_ports seg_an_o[6] ]
+set_property LOC U13 [get_ports seg_an_o[7] ]
 
 #VGA Connector
 set_property LOC A3  [get_ports vga_red_o[0] ]
@@ -62,6 +67,7 @@ set_property LOC B12 [get_ports vga_vs_o ]
 
 # Clock signal
 set_property IOSTANDARD LVCMOS33 [get_ports clk_i ]
+set_property IOSTANDARD LVCMOS33 [get_ports rstn_i ]
 
 ## Switches
 set_property IOSTANDARD LVCMOS33 [get_ports sw_i[0] ]
@@ -96,6 +102,10 @@ set_property IOSTANDARD LVCMOS33 [get_ports seg_an_o[0] ]
 set_property IOSTANDARD LVCMOS33 [get_ports seg_an_o[1] ]
 set_property IOSTANDARD LVCMOS33 [get_ports seg_an_o[2] ]
 set_property IOSTANDARD LVCMOS33 [get_ports seg_an_o[3] ]
+set_property IOSTANDARD LVCMOS33 [get_ports seg_an_o[4] ]
+set_property IOSTANDARD LVCMOS33 [get_ports seg_an_o[5] ]
+set_property IOSTANDARD LVCMOS33 [get_ports seg_an_o[6] ]
+set_property IOSTANDARD LVCMOS33 [get_ports seg_an_o[7] ]
 
 #VGA Connecto
 set_property IOSTANDARD LVCMOS33 [get_ports vga_red_o[0] ]

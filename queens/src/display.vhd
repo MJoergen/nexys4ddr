@@ -3,7 +3,9 @@ use ieee.std_logic_1164.all;
 
 entity display is
    generic (
-      G_FREQ : integer
+      G_FREQ   : integer;
+      G_DIGITS : integer := 8;
+      G_BITS   : integer
    );
    port (
       -- Clock and reset
@@ -11,52 +13,47 @@ entity display is
       rst_i    : in  std_logic;
 
       -- Input value
-      value_i  : in  std_logic_vector(13 downto 0);
+      value_i  : in  std_logic_vector(G_BITS-1 downto 0);
 
       -- Output segment display
       seg_ca_o : out std_logic_vector(6 downto 0);
       seg_dp_o : out std_logic;
-      seg_an_o : out std_logic_vector(3 downto 0)
+      seg_an_o : out std_logic_vector(G_DIGITS-1 downto 0)
    );
 end entity display;
 
 architecture synthesis of display is
 
-   signal seg3 : std_logic_vector(6 downto 0);  -- First segment
-   signal seg2 : std_logic_vector(6 downto 0);  -- Second segment
-   signal seg1 : std_logic_vector(6 downto 0);  -- Third segment
-   signal seg0 : std_logic_vector(6 downto 0);  -- Fourth segment
-   signal dp   : std_logic_vector(4 downto 1);
+   signal segs : std_logic_vector(7*G_DIGITS-1 downto 0);
+   signal dp   : std_logic_vector(G_DIGITS-1 downto 0);
 
 begin
 
    i_display_int2seg : entity work.display_int2seg
+      generic map (
+         G_DIGITS => G_DIGITS,
+         G_BITS   => G_BITS
+      )
       port map (
          int_i  => value_i,
-         seg3_o => seg3,
-         seg2_o => seg2,
-         seg1_o => seg1,
-         seg0_o => seg0,
+         segs_o => segs,
          dp_o   => dp
-      ); -- i_int2seg
+      ); -- i_display_int2seg
 
 
    i_display_seg : entity work.display_seg
       generic map (
-         G_FREQ => G_FREQ
+         G_FREQ   => G_FREQ,
+         G_DIGITS => G_DIGITS
       )
       port map (
          clk_i    => clk_i,
          rst_i    => rst_i,
-         seg3_i   => seg3,
-         seg2_i   => seg2,
-         seg1_i   => seg1,
-         seg0_i   => seg0,
+         segs_i   => segs,
          dp_i     => dp,
          seg_ca_o => seg_ca_o,
          seg_dp_o => seg_dp_o,
          seg_an_o => seg_an_o
-      ); -- i_seg
+      ); -- i_display_seg
 
 end architecture synthesis;
-
