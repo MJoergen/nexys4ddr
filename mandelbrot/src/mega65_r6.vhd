@@ -176,7 +176,10 @@ begin
    -- Map the joysticks to the buttons and switches
    --------------------------------------------------
 
-   rstn <= not reset_button_i;
+   -- For now, the reset button is not used, because it is active low on the
+   -- MEGA65 R3 (and active high on the R6), so the design is only reset while
+   -- the MMCM is not locked, i.e. after power-on.
+   rstn <= '1';
 
    -- Both fire buttons zoom, switch 2 selects zoom out.
    btn <= not (fa_fire_n_i and fb_fire_n_i) & not fa_left_n_i & not fa_right_n_i &

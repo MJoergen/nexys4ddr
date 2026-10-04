@@ -125,7 +125,7 @@ connector.
 | Joystick port 1: left, right, up, down | Pan the picture, like `BTNL`, `BTNR`, `BTNU` and `BTND`.
 | Joystick port 1: fire | Zoom in, like `BTNC`.
 | Joystick port 2: fire | Zoom out, like `BTNC` with switch 2 on.
-| Reset button | Resets the design and returns to the initial view.
+| Reset button | Not used for now, because it is active low on the MEGA65 R3 and active high on the R6. The design is reset after power-on.
 
 The colour palette is always palette 0, and the frame rate is only shown on the
 VGA output.
