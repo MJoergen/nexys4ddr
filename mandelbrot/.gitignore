@@ -1,5 +1,6 @@
 *.ghw
 work-obj08.cf
+build/
 *_tb
 *.o
 *.bit
