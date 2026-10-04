@@ -35,12 +35,12 @@ entire frame has been written to memory. Then "ok" is sampled.
 
 If the CRC is valid, the frame must be forwarded, and this module starts
 reading from the memory and updates the corresponding read pointer. However, if
-the CRC is invalid, the frame must be discarded. This is done by resettting the
+the CRC is invalid, the frame must be discarded. This is done by resetting the
 write pointer to the beginning of the frame, thereby effectively overwriting
 the errored frame.
 
 Therefore this module needs, besides a write pointer and a read pointer, also a
-start pointer indicating the start of the currect frame, i.e. whereto the write
+start pointer indicating the start of the current frame, i.e. whereto the write
 pointer should possibly be reset, and an end pointer to control when to stop
 reading more data.
 
@@ -55,31 +55,31 @@ purpose of this FIFO is really just to determine where one frame ends and a new
 frame begins.  Therefore, an alternative could be to store the control signal
 "last" along the "data" signal in the ring buffer. However, you would still
 need some way to signal that the ring buffer contains a complete and valid
-frame. because only then may reading from the buffer commence.
+frame, because only then may reading from the buffer commence.
 
 ### Buffer overflow
 
 A note about bandwidth.  Whenever a buffer is used, one should always consider
-the possibility of overflow. Can we reach a situation, where the ring buffer is
+the possibility of overflow. Can we reach a situation where the ring buffer is
 full?  Should we check for it? How should we react in such a situation?
 
 Well, if a maximum sized frame is received, the buffer will fill up to 1518
 bytes, and then reading will commence. However, reading from the buffer is done
 one byte every clock cycle, i.e. at a rate of 400 Mbit/s, whereas writing
-happens only at a rate of 100 MBit/s. Since reading is faster than writing, the
+happens only at a rate of 100 Mbit/s. Since reading is faster than writing, the
 buffer can never overflow, unless we receive an illegally large frame (2K bytes
 or larger). However, to simplify the design I've decided to ignore this
 possibility completely.
 
 Note furthermore, that we have chosen here to require the client to always
-accept data.  In other words, it is the clients responsibility to always be
+accept data.  In other words, it is the client's responsibility to always be
 ready to receive data.
 
 We could alternatively allow the client to signal back to strip\_crc an
 indication of "don't send more data just now", a.k.a. "back-pressure". However,
 then suddenly the possibility of buffer overflow becomes very real, and this
 would therefore add complexity to this module. So to follow the principle of
-small and simple modules, I've chosen to exlude the complexity of
+small and simple modules, I've chosen to exclude the complexity of
 "back-pressure" from this module, and instead deny the client the possibility
 of applying back-pressure.
 
@@ -88,7 +88,7 @@ of applying back-pressure.
 The testbench is changed to now instantiate the Ethernet module. We use the
 modules wide2byte and eth\_tx to generate the data stream received from the
 Ethernet PHY. Since we still don't have any transmit path implemented, I've
-chosen to sample the received frame header and present them on the debug output
+chosen to sample the received frame header and present it on the debug output
 signal.
 
 The simulation injects two short frames into the Ethernet module from the PHY
@@ -96,7 +96,7 @@ and inspects the debug output.
 
 ## Validation in hardware
 
-Our design can still not send any frames, and can still not do anything meaningfull
+Our design can still not send any frames, and can still not do anything meaningful
 with the received data. However, using the above blocks it is now possible
 to display on the VGA output a snapshot of the last received frame.
 

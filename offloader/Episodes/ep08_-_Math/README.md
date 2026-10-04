@@ -17,33 +17,33 @@ It seems that the math functions should be able to run at a faster clock rate
 than 50 MHz, so I've added a new Math clock (currently at 100 MHz) to the Clock
 and Reset module.  Furthermore, I've added Clock Domain Crossings in the top
 module between the Ethernet clock and the Math clock. This Clock Domain
-Crossing is implemented as a fifo in the file wide\_fifo.vhd and takes the wide
+Crossing is implemented as a FIFO in the file wide\_fifo.vhd and takes the wide
 data bus as both input and output.
 
 ## Math module
 In the top module, the inverter module is replaced by a math module, and a new
-diretory math is added.
+directory math is added.
 So far, this math module just instantiates the square root function.
 
 ## Sqrt module
 The integer square root is calculated using the description in
-[wikipedia](https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Binary_numeral_system_(base_2)).
+[Wikipedia](https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Binary_numeral_system_(base_2)).
 Actually, the module calculates both the integer square root M = floor(sqrt(N))
 and the remainder R = N-M\*M.  This implementation takes a fixed number of
 clock cycles regardless of the input value.
 
 The control signals are fairly simple: On the input side the value N is
 presented on the input bus val\_i, and the input signal start\_i is pulsed
-once. Some time later the result will be present on the output busses res\_o
+once. Some time later the result will be present on the output buses res\_o
 and diff\_o, and the output signal valid\_o will be held high. val\_i is only
-read when start\_i is asserted. However res\_o and diff\_o will remain valid
+read when start\_i is asserted. However, res\_o and diff\_o will remain valid
 until the next time start\_i is asserted.
 
 There is an extra signal busy\_o which is asserted when a calculation is in
 progress. It is not possible to interrupt a calculation, and asserting start\_i
 will be ignored as long as busy\_o is asserted. 
 
-## Testing in simulaion
+## Testing in simulation
 Since there is a lot of processing involved in simulating the Ethernet
 interface, it is much faster to have a separate test bench for the Math module.
 So in the math directory just type make, and the math test bench in
