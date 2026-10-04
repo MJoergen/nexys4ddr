@@ -6,7 +6,7 @@ use ieee.numeric_std_unsigned.all;
 -- The generics control the initial position and the velocity.
 --
 -- To achieve smooth motion, the module operates internally
--- with fixed-point 10.3 arithmetic, i.e. 10 integer bits
+-- with fixed-point 11.3 arithmetic, i.e. 11 integer bits
 -- and 3 fractional bits.
 -- The velocity is given in 1.3 fixed point two's complement arithmetic.
 -- This means in particular the following example values:
@@ -28,14 +28,14 @@ entity move is
       velx_i   : in  std_logic_vector(3 downto 0);
       vely_i   : in  std_logic_vector(3 downto 0);
       move_i   : in  std_logic;
-      x_o      : out std_logic_vector(9 downto 0);
-      y_o      : out std_logic_vector(9 downto 0)
+      x_o      : out std_logic_vector(G_SIZE-1 downto 0);
+      y_o      : out std_logic_vector(G_SIZE-1 downto 0)
    );
 end move;
 
 architecture structural of move is
 
-   -- This function performs a sign extension from 1.3 to 10.3 fixed point
+   -- This function performs a sign extension from 1.3 to 11.3 fixed point
    -- two's complement values.
    function sign_extend(arg : std_logic_vector(3 downto 0)) return std_logic_vector is
       variable res : std_logic_vector(G_SIZE+2 downto 0);
@@ -45,8 +45,8 @@ architecture structural of move is
       return res;
    end function sign_extend;
 
-   constant C_HPIXELS : integer := 640;
-   constant C_VPIXELS : integer := 480;
+   constant C_HPIXELS : integer := 1280;
+   constant C_VPIXELS : integer := 1024;
 
    -- Position and movement of first Voronoi point
    signal x_r      : std_logic_vector(G_SIZE+2 downto 0);

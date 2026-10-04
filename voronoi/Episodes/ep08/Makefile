@@ -1,12 +1,18 @@
 XILINX_DIR = /opt/Xilinx/Vivado/2019.1
 
-voronoi.bit: voronoi.tcl voronoi.vhd voronoi.xdc vga.vhd dist.vhd minmax.vhd rms.vhd move.vhd
+voronoi.bit: voronoi.tcl voronoi.vhd voronoi.xdc clk.vhd vga.vhd dist.vhd minmax.vhd rms.vhd move.vhd
 	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $<"
 
 fpga: voronoi.bit
 	djtgcfg prog -d Nexys4DDR -i 0 --file $<
 
+# Simulate the rms module, and report the error of the approximation.
+sim: rms_tb.vhd rms.vhd minmax.vhd
+	ghdl -a --std=08 minmax.vhd rms.vhd rms_tb.vhd
+	ghdl --elab-run --std=08 rms_tb
+
 clean:
+	rm -rf work-obj08.cf
 	rm -rf usage_statistics_webtalk.*
 	rm -rf vivado*
 	rm -rf voronoi.bit
