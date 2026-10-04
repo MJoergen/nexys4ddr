@@ -94,6 +94,8 @@ bit-file. The Xilinx `unisim` library (for the PLL) is read from a Vivado
 installation, given by `XILINX_DIR` (default `/opt/Xilinx/Vivado/2019.2`).
 The simulation waveform files (`.ghw`) are written to the `sim` directory.
 
+Running `make` with no target lists the targets:
+
 * `make sim`: Simulates `queens_tb` and shows the waveform in GTKWave.
 * `make sim_top`: Simulates `queens_top_tb` and shows the waveform in GTKWave.
 * `make synth`: Makes the bit-file `queens.bit`. This needs the variable
