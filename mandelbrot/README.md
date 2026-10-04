@@ -37,57 +37,6 @@ a job module as soon as it is idle.
 the multiplier, the iterator (including how overflow is detected), the jobs,
 the dispatcher, and the timing and resource usage.
 
-## Implementation results
-The design is built with Vivado 2025.1, and meets timing on both boards. The
-results are:
-
-| Resource           | Nexys 4 DDR (XC7A100T-1) | Available | MEGA65 R6 (XC7A200T-2) | Available
-| ------------------ | ------------------------ | --------- | ---------------------- | ---------
-| DSP48E1            | 240 (100%)               | 240       | 256 (35%)              | 740
-| Block RAM (RAMB36) | 129 (96%)                | 135       | 321 (88%)              | 365
-| Slices             | 14,505 (92%)             | 15,850    | 19,305 (57%)           | 33,650
-| LUTs               | 42,049 (66%)             | 63,400    | 49,250 (37%)           | 134,600
-| Registers          | 43,610 (34%)             | 126,800   | 52,144 (19%)           | 269,200
-| Resolution         | 640x480                  |           | 1280x1024              |
-| Clock frequency    | 150.00 MHz               |           | 148.97 MHz             |
-| Initial FPS        | 432 (estimated)          |           | 203 (estimated)        |
-| Worst-case FPS     | 73 (estimated)           |           | 18 (estimated)         |
-| Setup slack        | +0.343 ns                |           | +0.002 ns              |
-| Hold slack         | +0.014 ns                |           | +0.041 ns              |
-
-See [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
-for details.
-
-## Files
-The files used only in the MAIN clock domain are in [`src/main/`](src/main),
-and those used only in the VGA clock domain are in [`src/vga/`](src/vga). The
-files that are in both clock domains are in [`src/`](src).
-
-| File             | Description
-| ---------------- | -----------
-| [`src/nexys4ddr.vhd`](src/nexys4ddr.vhd) | Top level. The ports are mapped directly to pins on the FPGA. Instantiates the clock and reset generation, the display memory, and the two modules below, and moves the frame rate from the MAIN clock domain to the VGA clock domain.
-| [`src/mega65_r6.vhd`](src/mega65_r6.vhd) | Top level for the MEGA65 R6. The same as `nexys4ddr.vhd`, but with the ports of the MEGA65, more job modules, a larger display memory, and a resolution of 1280x1024.
-| [`src/main/main.vhd`](src/main/main.vhd) | Everything in the MAIN clock domain: view control from buttons and switches, the dispatcher, and the frame rate (shown on the 7-segment display and on the VGA output).
-| [`src/main/view.vhd`](src/main/view.vhd) | View control. Pans and zooms the view, and keeps it inside the range of the number format.
-| [`src/main/fps.vhd`](src/main/fps.vhd), [`src/main/seg.vhd`](src/main/seg.vhd) | Frame rate. `fps` divides the clock frequency by the time taken by a picture and converts the result to decimal, and `seg` multiplexes the digits on the 7-segment display.
-| [`src/vga/vga.vhd`](src/vga/vga.vhd) | Everything in the VGA clock domain: pixel counters, VGA output, and the frame rate overlay.
-| [`src/main/iterator.vhd`](src/main/iterator.vhd) | Iterates the Mandelbrot function for a single point, using one DSP.
-| [`src/main/job.vhd`](src/main/job.vhd) | A job module. Calculates one job (120 rows of a picture column) at a time, using one iterator.
-| [`src/main/dispatcher.vhd`](src/main/dispatcher.vhd) | Controls the calculation of the entire picture: hands out the jobs to the idle job modules, and collects the results. Instantiates the job modules.
-| [`src/main/job_scheduler.vhd`](src/main/job_scheduler.vhd) | Round-robin scheduler. Used by the dispatcher to give jobs to idle job modules.
-| [`src/main/res_scheduler.vhd`](src/main/res_scheduler.vhd) | Scheduler for the results. Used by the dispatcher to pick which job module's result to accept, from the job modules that have a result ready.
-| [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture, in 128 blocks.
-| [`src/vga/pix.vhd`](src/vga/pix.vhd), [`src/vga/disp.vhd`](src/vga/disp.vhd) | VGA output. `pix` generates the pixel counters, and `disp` generates the sync signals and the pixel colour.
-| [`src/vga/video_pkg.vhd`](src/vga/video_pkg.vhd) | The video modes, i.e. the resolution and the timing of the VGA output: 640x480 (Nexys 4 DDR) and 1280x1024 (MEGA65), both at 60 Hz.
-| [`src/vga/palette_pkg.vhd`](src/vga/palette_pkg.vhd) | The four colour palettes, which convert the count of a pixel to its colour.
-| [`src/vga/overlay.vhd`](src/vga/overlay.vhd), [`src/vga/font_pkg.vhd`](src/vga/font_pkg.vhd) | Frame rate overlay. `overlay` shows the frame rate in the top right corner of the picture, with the digits of the font in `font_pkg`.
-| [`font/`](font) | The script that generates `font_pkg.vhd` from the [Spleen](https://github.com/fcambus/spleen) 16x32 font, and the license of the font (BSD 2-Clause, see [`font/LICENSE.spleen`](font/LICENSE.spleen)).
-| [`src/clk_rst.vhd`](src/clk_rst.vhd) | Clock and reset generation: the main clock for the calculation (150 MHz, or 148.97 MHz on the MEGA65) and the pixel clock for VGA (25 MHz for 640x480, 108 MHz for 1280x1024), each with a synchronous reset.
-| [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a Python model of the iterator count (`iterator_model.py`), a vectorized model of the complete picture (`model.py`), the same bit-accurate model in VHDL (`iterator_model_pkg.vhd`, used by the testbenches), and a script (`cmp_rtl.py`) that compares the output of the testbench `main_tb` with this model.
-| [`nexys4ddr.xdc`](nexys4ddr.xdc), [`mega65-r6.xdc`](mega65-r6.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints for each board, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make nexys4ddr`. The script gets the FPGA part, the top level and the list of source files from the Makefile, so it must be run through `make nexys4ddr` or `make mega65-r6`.
-| [`mandelbrot.xlsx`](mandelbrot.xlsx) | Spreadsheet used during the design. It iterates the example point -1+0.5i from [the iterator section](ALGORITHM.md#iterator) using real numbers.
-| [`ALGORITHM.md`](ALGORITHM.md) | Detailed explanation of the algorithm and the design.
-
 ## Controls
 The picture is recalculated continuously: as soon as one picture is finished,
 the next one is started. The view is controlled with the buttons and switches on
@@ -153,6 +102,33 @@ pictures per second), below the 60 Hz of the VGA output, but the pictures
 that are worth looking at are much faster, see
 [MEGA65 R6](ALGORITHM.md#mega65-r6).
 
+## Implementation results
+The design is built with Vivado 2025.1, and meets timing on both boards.
+
+The resource usage is:
+
+| Resource           | Nexys 4 DDR (XC7A100T-1) | Available | MEGA65 R6 (XC7A200T-2) | Available
+| ------------------ | ------------------------ | --------- | ---------------------- | ---------
+| DSP48E1            | 240 (100%)               | 240       | 256 (35%)              | 740
+| Block RAM (RAMB36) | 129 (96%)                | 135       | 321 (88%)              | 365
+| Slices             | 14,505 (92%)             | 15,850    | 19,305 (57%)           | 33,650
+| LUTs               | 42,049 (66%)             | 63,400    | 49,250 (37%)           | 134,600
+| Registers          | 43,610 (34%)             | 126,800   | 52,144 (19%)           | 269,200
+
+The performance and timing are:
+
+|                    | Nexys 4 DDR     | MEGA65 R6
+| ------------------ | --------------- | ---------------
+| Resolution         | 640x480         | 1280x1024
+| Clock frequency    | 150.00 MHz      | 148.97 MHz
+| Initial FPS        | 432 (estimated) | 203 (estimated)
+| Worst-case FPS     | 73 (estimated)  | 18 (estimated)
+| Setup slack        | +0.343 ns       | +0.002 ns
+| Hold slack         | +0.014 ns       | +0.041 ns
+
+See [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
+for details.
+
 ## Running
 Type `make` to list the supported targets. The most important ones are:
 * `make nexys4ddr` synthesizes and implements the design using
@@ -204,3 +180,33 @@ MMCM and the clock buffers), and so does the MEGA65 top level
 (`src/mega65_r6.vhd`, the clock of the video DAC). They are not simulated, and
 neither is the Nexys 4 DDR top level (`src/nexys4ddr.vhd`), which instantiates
 `clk_rst`.
+
+## Files
+The files used only in the MAIN clock domain are in [`src/main/`](src/main),
+and those used only in the VGA clock domain are in [`src/vga/`](src/vga). The
+files that are in both clock domains are in [`src/`](src).
+
+| File             | Description
+| ---------------- | -----------
+| [`src/nexys4ddr.vhd`](src/nexys4ddr.vhd) | Top level. The ports are mapped directly to pins on the FPGA. Instantiates the clock and reset generation, the display memory, and the two modules below, and moves the frame rate from the MAIN clock domain to the VGA clock domain.
+| [`src/mega65_r6.vhd`](src/mega65_r6.vhd) | Top level for the MEGA65 R6. The same as `nexys4ddr.vhd`, but with the ports of the MEGA65, more job modules, a larger display memory, and a resolution of 1280x1024.
+| [`src/main/main.vhd`](src/main/main.vhd) | Everything in the MAIN clock domain: view control from buttons and switches, the dispatcher, and the frame rate (shown on the 7-segment display and on the VGA output).
+| [`src/main/view.vhd`](src/main/view.vhd) | View control. Pans and zooms the view, and keeps it inside the range of the number format.
+| [`src/main/fps.vhd`](src/main/fps.vhd), [`src/main/seg.vhd`](src/main/seg.vhd) | Frame rate. `fps` divides the clock frequency by the time taken by a picture and converts the result to decimal, and `seg` multiplexes the digits on the 7-segment display.
+| [`src/vga/vga.vhd`](src/vga/vga.vhd) | Everything in the VGA clock domain: pixel counters, VGA output, and the frame rate overlay.
+| [`src/main/iterator.vhd`](src/main/iterator.vhd) | Iterates the Mandelbrot function for a single point, using one DSP.
+| [`src/main/job.vhd`](src/main/job.vhd) | A job module. Calculates one job (120 rows of a picture column) at a time, using one iterator.
+| [`src/main/dispatcher.vhd`](src/main/dispatcher.vhd) | Controls the calculation of the entire picture: hands out the jobs to the idle job modules, and collects the results. Instantiates the job modules.
+| [`src/main/job_scheduler.vhd`](src/main/job_scheduler.vhd) | Round-robin scheduler. Used by the dispatcher to give jobs to idle job modules.
+| [`src/main/res_scheduler.vhd`](src/main/res_scheduler.vhd) | Scheduler for the results. Used by the dispatcher to pick which job module's result to accept, from the job modules that have a result ready.
+| [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture, in 128 blocks.
+| [`src/vga/pix.vhd`](src/vga/pix.vhd), [`src/vga/disp.vhd`](src/vga/disp.vhd) | VGA output. `pix` generates the pixel counters, and `disp` generates the sync signals and the pixel colour.
+| [`src/vga/video_pkg.vhd`](src/vga/video_pkg.vhd) | The video modes, i.e. the resolution and the timing of the VGA output: 640x480 (Nexys 4 DDR) and 1280x1024 (MEGA65), both at 60 Hz.
+| [`src/vga/palette_pkg.vhd`](src/vga/palette_pkg.vhd) | The four colour palettes, which convert the count of a pixel to its colour.
+| [`src/vga/overlay.vhd`](src/vga/overlay.vhd), [`src/vga/font_pkg.vhd`](src/vga/font_pkg.vhd) | Frame rate overlay. `overlay` shows the frame rate in the top right corner of the picture, with the digits of the font in `font_pkg`.
+| [`font/`](font) | The script that generates `font_pkg.vhd` from the [Spleen](https://github.com/fcambus/spleen) 16x32 font, and the license of the font (BSD 2-Clause, see [`font/LICENSE.spleen`](font/LICENSE.spleen)).
+| [`src/clk_rst.vhd`](src/clk_rst.vhd) | Clock and reset generation: the main clock for the calculation (150 MHz, or 148.97 MHz on the MEGA65) and the pixel clock for VGA (25 MHz for 640x480, 108 MHz for 1280x1024), each with a synchronous reset.
+| [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a Python model of the iterator count (`iterator_model.py`), a vectorized model of the complete picture (`model.py`), the same bit-accurate model in VHDL (`iterator_model_pkg.vhd`, used by the testbenches), and a script (`cmp_rtl.py`) that compares the output of the testbench `main_tb` with this model.
+| [`nexys4ddr.xdc`](nexys4ddr.xdc), [`mega65-r6.xdc`](mega65-r6.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints for each board, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make nexys4ddr`. The script gets the FPGA part, the top level and the list of source files from the Makefile, so it must be run through `make nexys4ddr` or `make mega65-r6`.
+| [`mandelbrot.xlsx`](mandelbrot.xlsx) | Spreadsheet used during the design. It iterates the example point -1+0.5i from [the iterator section](ALGORITHM.md#iterator) using real numbers.
+| [`ALGORITHM.md`](ALGORITHM.md) | Detailed explanation of the algorithm and the design.

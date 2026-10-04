@@ -1,4 +1,23 @@
 # The algorithm and its implementation
+## Contents
+* [Introduction](#introduction)
+* [Terms](#terms)
+* [Instantiation hierarchy](#instantiation-hierarchy)
+* [The Mandelbrot iteration](#the-mandelbrot-iteration)
+* [Fixed point arithmetic](#fixed-point-arithmetic)
+* [Multiplier](#multiplier)
+* [Iterator](#iterator)
+  * [Periodicity detection](#periodicity-detection)
+  * [Overflow](#overflow)
+* [Jobs](#jobs)
+* [Dispatcher](#dispatcher)
+* [The top level](#the-top-level)
+* [Colours](#colours)
+* [Timing](#timing)
+* [Resources and timing closure](#resources-and-timing-closure)
+  * [MEGA65 R6](#mega65-r6)
+
+## Introduction
 This describes in some detail how the Mandelbrot design works, and the main
 parts it is built from. See [README.md](README.md) for an overview, a list of
 files, and how to build and run the design.
@@ -90,15 +109,15 @@ is '0' if the number is positive.
 
 Some examples are:
 ```
--2        : 10.0000000000000000
--1.5      : 10.1000000000000000
--1        : 11.0000000000000000
--0.000015 : 11.1111111111111111
- 0        : 00.0000000000000000
- 0.000015 : 00.0000000000000001
- 0.5      : 00.1000000000000000
- 1        : 01.0000000000000000
- 1.5      : 01.1000000000000000
+-2        : 10.0000000000000000 = 0x20000
+-1.5      : 10.1000000000000000 = 0x28000
+-1        : 11.0000000000000000 = 0x30000
+-0.000015 : 11.1111111111111111 = 0x3FFFF
+ 0        : 00.0000000000000000 = 0x00000
+ 0.000015 : 00.0000000000000001 = 0x00001
+ 0.5      : 00.1000000000000000 = 0x08000
+ 1        : 01.0000000000000000 = 0x10000
+ 1.5      : 01.1000000000000000 = 0x18000
 ```
 
 ## Multiplier
@@ -120,13 +139,6 @@ moves these registers into the DSP (the registers A, B, C, and M). The sum is
 not registered (the register P is not used), so the product is ready one clock
 cycle after the inputs, and the sum in the same clock cycle. The "DSP Final
 Report" in `vivado.log` shows how the DSP is used (`C'+(A'*B')'`).
-
-An earlier version used the Xilinx macro `mult_macro` for the multiplier, and
-added cx and cy/2 in the FPGA fabric. Using the post-adder instead saves about
-9,400 LUTs and 14,100 registers (most of these are the registers a\_r, b\_r,
-and c\_r, which are now in the DSP), and the paths through the iterator are no
-longer close to being critical (see
-[Resources and timing closure](#resources-and-timing-closure)).
 
 ## Iterator
 This component ([`src/main/iterator.vhd`](src/main/iterator.vhd)) performs the main
@@ -237,8 +249,9 @@ ever, without an overflow, so the count is the maximum count. So the iterator
 can stop as soon as it sees a repeated value, and the count is exactly the
 same as without stopping early.
 
-This is detected in the same way as in Brent's cycle detection algorithm. The
-values of x and y are saved (sx\_r and sy\_r) after the iterations 1, 2, 4,
+This is detected in the same way as in
+[Brent's cycle detection algorithm](https://en.wikipedia.org/wiki/Cycle_detection#Brent's_algorithm).
+The values of x and y are saved (sx\_r and sy\_r) after the iterations 1, 2, 4,
 8, 16, and so on, i.e. after each power of two. In each iteration from
 iteration 2 (in ADD\_ST) the current values are compared with the saved
 values. The saved registers are not cleared at the start of a point, because
@@ -858,30 +871,16 @@ which is only wires on the Nexys 4 DDR.
 A counter measures the time it takes to generate the picture, which is shown
 as a frame rate on the 7-segment display and on the VGA output, see
 [The top level](#the-top-level).
-Earlier versions showed this time on the LEDs instead, in units of 2^11 clock
-cycles, and also (selected with a switch) the total amount of time the job
-modules were waiting to write to the display memory, when the waiting-time statistic
-was enabled. The LEDs are no longer used, and the counters for the waiting
-time have been removed.
 
-The numbers measured on the board, with the main clock at 174.55 MHz, the
-waiting-time statistic built in, and the initial view, were:
-* The time for the picture: 0x01D8 = 472, i.e. 472\*2^11 clock
-  cycles, which was 5.5 ms at 174.55 MHz. This value is steady. The same
-  number of clock cycles was measured with the main clock at 140.625 MHz
-  (6.9 ms), before the clock was raised (see
-  [Resources and timing closure](#resources-and-timing-closure)). This was
-  before the periodicity detection (see [Iterator](#iterator)), and before
-  the schedulers and the done flag were pipelined (see
-  [Dispatcher](#dispatcher)).
-* The waiting time of all the job modules: 0x720C = 29196,
-  i.e. 29196\*2^11 clock cycles in total, which is about a quarter of the
-  time of each job module. Before the value was averaged over 64 pictures,
-  the lowest bits changed from picture to picture (about 0x721F = 29215 was
-  measured), because each wait counter was truncated to units of 2^11 clock
-  cycles before the sum.
+The time for the picture measured on the board, with the main clock at
+174.55 MHz and the initial view, was 472\*2^11 clock cycles, i.e. 5.5 ms at
+174.55 MHz. This value is steady. The same number of clock cycles was measured
+with the main clock at 140.625 MHz (6.9 ms), before the clock was raised (see
+[Resources and timing closure](#resources-and-timing-closure)). This was
+before the periodicity detection (see [Iterator](#iterator)), and before the
+schedulers and the done flag were pipelined (see [Dispatcher](#dispatcher)).
 
-Both values agreed with the model [`sim/model.py`](sim/model.py) at the time,
+This agreed with the model [`sim/model.py`](sim/model.py) at the time,
 which estimated the time for the picture from the number of iterations of each
 pixel, as follows. A job module uses 3 clock cycles per iteration, plus 7
 clock cycles to start the iterator and to deliver the result, i.e. 3n+7 clock
@@ -925,38 +924,20 @@ of 240 rows, and 413040 clock cycles for jobs of 60 rows. Eight other views
 (zoomed in at different places) were 1.07 to 1.31 times faster in the model
 with jobs of 120 rows than with whole picture columns.
 
-Without the periodicity detection, the model gave a total waiting time of
-59,179,719 clock cycles, i.e. 28896\*2^11 clock cycles, or about 193 clock
-cycles per pixel on average. The wait counter of a job module counted 2
-clock cycles more for each pixel. With these 2 clock cycles for each of the
-307200 pixels, the expected value on the LEDs was 29196 (0x720C), exactly the
-measured value. The wait counters have been removed from the design, so the
-model was then the way to get this value. With the periodicity detection
-(and the round-robin scheduler for the results), the wait counters would have
-shown about 27981.
-
-The wait counter counts from 3 clock cycles after the result is ready until
-the clock cycle before the acknowledge reaches the job module. When the
-acknowledge was delayed by one more clock cycle (by the registers in the
-groups, see [Dispatcher](#dispatcher)), the value on the LEDs did not change:
-the job module then starts the next row one clock cycle later, so its next
-result is ready one clock cycle later, and waits one clock cycle less for the
-scheduler. The waiting time counted for a pixel is the time from one accepted
-result of the job module to the next, minus the time the iterator needs
-for the pixel, minus a fixed number of clock cycles, and this does not depend
-on the delay of the acknowledge. Neither did the time for the picture, because the time from
-one result of a job module to the next was still rounded up to the same
-multiple of 240 clock cycles.
+When the acknowledge was delayed by one more clock cycle (by the registers in
+the groups, see [Dispatcher](#dispatcher)), the time for the picture did not
+change, because the time from one result of a job module to the next was
+still rounded up to the same multiple of 240 clock cycles.
 
 Without the waiting, the picture would take about 0.9 ms (if the work was
 spread evenly over the job modules). So the time for the picture was
 mostly decided by the round-robin scheduler for the results, which accepted a
 result from each job module only once every 240 clock cycles.
 
-Similar values (472\*2^11 clock cycles for the picture, and 28642\*2^11 clock
-cycles of waiting) were measured earlier, with an iterator which did not detect
-all overflows and which calculated x+y and x-y in 18 bits (see
-[Overflow](#overflow)), and with a main clock of 150 MHz. The time for the
+The same time for the picture (472\*2^11 clock cycles) was measured earlier,
+with an iterator which did not detect all overflows and which calculated x+y
+and x-y in 18 bits (see [Overflow](#overflow)), and with a main clock of
+150 MHz. The time for the
 picture did not change, because it is decided by the picture columns through
 the middle of the set, where most of the pixels reach the maximum count.
 
@@ -966,11 +947,11 @@ job module an equal share of this, one result every 240 clock cycles, also
 when the other job modules had no result ready. The scheduler for the
 results now accepts a result from any job module of a group that has one
 ready, visiting one group in each clock cycle (see [Dispatcher](#dispatcher)).
-The waiting time of a pixel then depends on the other job modules, so the
-model now simulates the dispatcher one clock cycle at a time
-(`picture_cycles()` in `sim/model.py`). It uses the time 3n+7 above for each
-pixel, from the clock cycle before the previous result was accepted, and it
-includes the round-robin scheduler for the jobs. For the initial view it gives
+The time for a pixel then depends on the other job modules, so the model
+now simulates the dispatcher one clock cycle at a time (`picture_cycles()` in
+`sim/model.py`). It uses the time 3n+7 above for each pixel, from the clock
+cycle before the previous result was accepted, and it includes the round-robin
+scheduler for the jobs. For the initial view it gives
 347123 clock cycles for the picture, i.e. 1.84 ms at 188.24 MHz, the main
 clock at the time (see [Resources and timing closure](#resources-and-timing-closure)).
 At the 150 MHz used now it is 2.31 ms, so the 7-segment display should show
@@ -1071,14 +1052,6 @@ The periodicity detection (see [Iterator](#iterator)) uses about 5,500 LUT cells
 and 8,900 registers (36 registers for the saved values in each iterator), and
 increased the slices used from 81% to 93%. A first version, which cleared the
 saved values at the start of each point, used about 4,100 LUT cells more.
-
-With the waiting-time statistic built in, and with only the lower
-8 bits of the count in the display memory, the design used 53,386 LUT cells and
-44,493 registers after synthesis, and 40,542 LUTs, 46,345 registers, and 14,789
-slices (93%) after routing, and the setup slack at 174.55 MHz was +0.094 ns. So
-the statistic costs about 4,200 LUT cells and 10,200 registers, mostly for the
-27-bit wait counter in each job module and the chain of adders in the
-dispatcher.
 
 Before the post-adder of the DSP was used (see [Multiplier](#multiplier)), the
 design used 61,895 LUT cells and 53,885 registers after synthesis, and 49,087
@@ -1206,9 +1179,8 @@ about 0.1 ns. Above 174.55 MHz the result depends on luck: 177.78 MHz (and
 optimization, but 181.13 MHz did not. So the main clock was raised to
 174.55 MHz, which is 24% faster than 140.625 MHz.
 
-These builds had the waiting-time statistic. Without it, the
-slack at 174.55 MHz was +0.229 ns instead of +0.094 ns, so the frequency was
-tried again:
+A later build had a setup slack of +0.229 ns at 174.55 MHz, instead of
++0.094 ns, so the frequency was tried again:
 
 | Main clock | Setup slack | Hold slack
 | ---------- | ----------- | ----------
@@ -1219,7 +1191,7 @@ tried again:
 | 192.00 MHz | -0.061 ns   | +0.007 ns
 
 The main clock was raised to 177.78 MHz, which has about the same slack as
-174.55 MHz had with the waiting-time statistic.
+174.55 MHz had before.
 
 Then the next row in the job modules, the schedulers and the done flag were
 pipelined, and the frequency was tried again:
@@ -1251,9 +1223,8 @@ So the main clock was lowered to 188.24 MHz, which has about the same slack as
 the earlier choices. This is 4% slower than 195.92 MHz, but the detection
 makes the picture 1.75 times faster. The main clock is 34% faster than
 140.625 MHz. The frame rate on the 7-segment display (see
-[The top level](#the-top-level)), which replaced the LEDs and the waiting-time
-statistic, uses about 170 LUT cells and 180 registers, and the build with it
-has +0.045 ns of setup slack at 188.24 MHz. The difference from +0.088 ns is
+[The top level](#the-top-level)) uses about 170 LUT cells and 180 registers,
+and the build with it has +0.045 ns of setup slack at 188.24 MHz. The difference from +0.088 ns is
 the normal variation from one run to the next; the critical paths are the
 same.
 The build with the jobs of 120 rows (see [Dispatcher](#dispatcher)), at the
