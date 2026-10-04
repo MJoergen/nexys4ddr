@@ -12,10 +12,10 @@ will distort this boundary.
 
 So I changed the interface to the RMS module, so the output is in 10.3 fixed
 point format. This gives three bits for the fractional part, and this is enough
-to avoid any rounding errors in the approximate calculation I'm doing.  To be
+to avoid any rounding errors in the approximate calculation I'm doing. To be
 clear, the approximation itself naturally introduces errors, but no further
 errors are added subsequently. This was the case in the previous
-implementation, where the distance was rounding to an integer.
+implementation, where the distance was rounded to an integer.
 
 So this change affects the files rms.vhd, dist.vhd, and voronoi.vhd.
 
@@ -29,7 +29,7 @@ This means changes to the move.vhd, voronoi.vhd, and voronoi.xdc files.
 
 ## Timing error
 Furthermore, I found a mistake in the constraint file voronoi.xdc, which meant
-that timing constraint was not applied correctly. When I fixed that, the timing
+that the timing constraint was not applied correctly. When I fixed that, the timing
 failed miserably. So I've had to add a register to the output of the dist.vhd
 module, as well as split the comparison process p\_mindist into two sets of
 comparisons.
@@ -41,7 +41,7 @@ Just for fun, I did some design analysis using Vivado and found the following re
 * Slack for the 100 MHz clock is around 8 ns (out of 10 ns).
 
 ## Future work
-* Implement a better approximation for the RMS module.  The current
+* Implement a better approximation for the RMS module. The current
   implementation uses a combination of two linear functions, but perhaps using
   three or four linear functions will give better results.
 * Increase the resolution to 1280\*1024, using 108 MHz clock frequency. This

@@ -11,7 +11,7 @@ Additionally, we need to calculate the minimum distance.  This is done in a
 simple process in lines 156-169.
 
 Note that we are doing everything combinatorially. This could potentially
-causing timing problems, but since the clock frequency is only 25 MHz, there is
+cause timing problems, but since the clock frequency is only 25 MHz, there is
 a lot of time in each clock period. If we do run into problems, we should add a
 register to the dist\_s signals.
 
