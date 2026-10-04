@@ -230,7 +230,7 @@ begin
    -- Instantiate scheduler
    -------------------------
 
-   i_scheduler : entity work.scheduler
+   i_job_scheduler : entity work.job_scheduler
       generic map (
          G_SIZE => G_NUM_ITERATORS
       )
@@ -241,7 +241,7 @@ begin
          job_idx_valid_o => idx_start_valid_r,
          job_idx_start_o => idx_start_r,
          job_busy_i      => job_busy_s
-      ); -- i_scheduler
+      ); -- i_job_scheduler
 
 
    ----------------------------------

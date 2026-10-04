@@ -20,7 +20,7 @@ nexys4ddr                       src/nexys4ddr.vhd (top level)
  +- main                        src/main/main.vhd (everything in the MAIN clock domain)
  |   +- view                    src/main/view.vhd (view control from the buttons)
  |   +- dispatcher              src/main/dispatcher.vhd
- |   |   +- scheduler           (i_scheduler, selects the column module to receive a job)
+ |   |   +- job_scheduler       src/main/job_scheduler.vhd (selects the column module to receive a job)
  |   |   +- column  (x 240)     src/main/column.vhd (the column modules)
  |   |   |   +- iterator        src/main/iterator.vhd
  |   |   |       +- (DSP48E1)   (inferred in p_dsp, multiplier and adder)
@@ -454,7 +454,7 @@ about 11 jobs on average. So the delay adds at most about 18 microseconds (and
 half of that on average) to the time for a picture, which is about 2.31 ms.
 This delay is small.
 
-The scheduler ([`src/main/scheduler.vhd`](src/main/scheduler.vhd)) has a counter that
+The scheduler ([`src/main/job_scheduler.vhd`](src/main/job_scheduler.vhd)) has a counter that
 goes round all the column modules, one per clock cycle, and selects a column
 module when the counter reaches it and it is idle. Selecting the busy flag of
 one of the 240 column modules in a single clock cycle is too slow, so it is
@@ -541,7 +541,7 @@ a power of two (like 600 on the MEGA65). The simulation takes about 10
 seconds.
 
 The scheduler has a small self-checking testbench
-([`sim/scheduler_tb.vhd`](sim/scheduler_tb.vhd)), with 21 processes, i.e. two
+([`sim/job_scheduler_tb.vhd`](sim/job_scheduler_tb.vhd)), with 21 processes, i.e. two
 groups, where the second one is smaller. It checks that nothing is started
 when the scheduler is not active or when everything is busy, that each idle
 process is started once per round and busy processes never, that the

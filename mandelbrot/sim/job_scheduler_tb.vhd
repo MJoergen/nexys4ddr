@@ -10,13 +10,13 @@ use ieee.std_logic_1164.all;
 -- * The processes are started in a round-robin order.
 -- * The scheduler is restarted from the first process by reset.
 
-entity scheduler_tb is
-end entity scheduler_tb;
+entity job_scheduler_tb is
+end entity job_scheduler_tb;
 
-architecture sim of scheduler_tb is
+architecture sim of job_scheduler_tb is
 
    -- Not a power of two, to test the wrap around of the counter, and more than
-   -- 16, so there are two groups of processes (see scheduler.vhd), and the
+   -- 16, so there are two groups of processes (see job_scheduler.vhd), and the
    -- second group is smaller.
    constant C_SIZE : integer := 21;
 
@@ -180,7 +180,7 @@ begin
          report "Second process after reset is not 1"
          severity error;
 
-      report "scheduler_tb: finished";
+      report "job_scheduler_tb: finished";
       std.env.finish;
    end process p_test;
 
@@ -189,7 +189,7 @@ begin
    -- Instantiate DUT
    -------------------
 
-   i_scheduler : entity work.scheduler
+   i_job_scheduler : entity work.job_scheduler
       generic map (
          G_SIZE => C_SIZE
       )
@@ -200,6 +200,6 @@ begin
          job_idx_valid_o => valid,
          job_idx_start_o => idx,
          job_busy_i      => busy
-      ); -- i_scheduler
+      ); -- i_job_scheduler
 
 end architecture sim;
