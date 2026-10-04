@@ -25,7 +25,7 @@ use work.font_pkg.all;
 entity overlay is
    generic (
       G_DIGITS : natural := 8;
-      G_X      : natural := 640 - 8 - 16*8;   -- Left edge of the overlay
+      G_X      : natural;                     -- Left edge of the overlay
       G_Y      : natural := 8                 -- Top edge of the overlay
    );
    port (
@@ -35,8 +35,8 @@ entity overlay is
       fps_digits_i  : in  std_logic_vector(4*G_DIGITS-1 downto 0);
       fps_blank_i   : in  std_logic_vector(G_DIGITS-1 downto 0);
 
-      vga_pix_x_i   : in  std_logic_vector(9 downto 0);
-      vga_pix_y_i   : in  std_logic_vector(9 downto 0);
+      vga_pix_x_i   : in  std_logic_vector(10 downto 0);
+      vga_pix_y_i   : in  std_logic_vector(10 downto 0);
       vga_hs_d4_i   : in  std_logic;
       vga_vs_d4_i   : in  std_logic;
       vga_col_d4_i  : in  std_logic_vector(7 downto 0);
@@ -106,8 +106,8 @@ begin
    --------------------------------------------------
 
    p_overlay : process (vga_clk_i)
-      variable x_v : std_logic_vector(9 downto 0);
-      variable y_v : std_logic_vector(9 downto 0);
+      variable x_v : std_logic_vector(10 downto 0);
+      variable y_v : std_logic_vector(10 downto 0);
    begin
       if rising_edge(vga_clk_i) then
          -- Stage 1
@@ -118,7 +118,7 @@ begin
             vga_pix_y_i >= G_Y and vga_pix_y_i < G_Y + C_HEIGHT then
             show_d1 <= '1';
          end if;
-         pos_d1 <= to_integer(x_v(9 downto 4)) mod G_DIGITS;
+         pos_d1 <= to_integer(x_v(10 downto 4)) mod G_DIGITS;
          col_d1 <= x_v(3 downto 0);
          row_d1 <= y_v(4 downto 0);
 

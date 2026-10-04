@@ -28,7 +28,13 @@ entity main is
       -- The number of pixels in each write to the display memory, see
       -- dispatcher.vhd and disp_mem.vhd. A power of two, and the rows in a
       -- job (C_JOB_ROWS) must be a multiple of it.
-      G_PIXELS        : integer
+      G_PIXELS        : integer;
+      -- The size of the picture, i.e. the resolution of the VGA output, and
+      -- the address distance between two picture columns in the display
+      -- memory, see dispatcher.vhd.
+      G_NUM_COLS      : integer;
+      G_NUM_ROWS      : integer;
+      G_COL_STRIDE    : integer
    );
    port (
       clk_i     : in  std_logic;                      -- 188.235 MHz
@@ -54,10 +60,12 @@ end main;
 architecture structural of main is
 
    constant C_MAX_COUNT     : integer := 511;
-   constant C_NUM_ROWS      : integer := 480;
-   constant C_NUM_COLS      : integer := 640;
-   -- Rows in each job given to a column module, see dispatcher.vhd
+   -- Rows in each job given to a column module, see dispatcher.vhd. The
+   -- number of rows of the picture must be a multiple of it.
    constant C_JOB_ROWS      : integer := 120;
+
+   -- The initial view. The size has the same aspect ratio (4:3) as the
+   -- picture.
 
    constant C_START_X       : real := -1.6667;
    constant C_START_Y       : real := -1.0000;
@@ -127,8 +135,8 @@ begin
 
    i_view : entity work.view
       generic map (
-         G_NUM_COLS => C_NUM_COLS,
-         G_NUM_ROWS => C_NUM_ROWS,
+         G_NUM_COLS => G_NUM_COLS,
+         G_NUM_ROWS => G_NUM_ROWS,
          G_START_X  => C_START_X,
          G_START_Y  => C_START_Y,
          G_SIZE_X   => C_SIZE_X,
@@ -198,8 +206,9 @@ begin
    -- after every picture.
    -- cnt wraps around after 2^27 clock cycles (0.71 s), but a picture takes
    -- far less: even if every pixel needed the maximum count, the model
-   -- (sim/model.py) gives about 2.0 million clock cycles (10.8 ms), i.e. a
-   -- frame rate of about 92.
+   -- (sim/model.py) gives about 2.0 million clock cycles (10.8 ms) on the
+   -- Nexys 4 DDR, i.e. a frame rate of about 92, and 1.7 million on the
+   -- MEGA65 R6.
    i_fps : entity work.fps
       generic map (
          G_CLK_FREQ  => C_CLK_FREQ,
@@ -249,8 +258,9 @@ begin
    i_dispatcher : entity work.dispatcher
       generic map (
          G_MAX_COUNT     => C_MAX_COUNT,
-         G_NUM_ROWS      => C_NUM_ROWS,
-         G_NUM_COLS      => C_NUM_COLS,
+         G_NUM_ROWS      => G_NUM_ROWS,
+         G_NUM_COLS      => G_NUM_COLS,
+         G_COL_STRIDE    => G_COL_STRIDE,
          G_JOB_ROWS      => C_JOB_ROWS,
          G_NUM_ITERATORS => G_NUM_ITERATORS,
          G_PIXELS        => G_PIXELS

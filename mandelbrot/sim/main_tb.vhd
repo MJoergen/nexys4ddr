@@ -4,15 +4,17 @@ use ieee.numeric_std_unsigned.all;
 use std.textio.all;
 
 -- This testbench runs the MAIN clock domain (main.vhd) with the initial view,
--- and no buttons pressed. Every pixel written to the display memory is written
--- to the file sim/main_out.txt, as one line "address data" (both as decimal
--- numbers). The testbench stops when a complete picture (640x480 pixels) has
--- been written.
+-- and no buttons pressed. The first line of the file sim/main_out.txt is the
+-- size of the picture and the address distance between two picture columns,
+-- "columns rows stride". Then every pixel written to the display memory is
+-- written to the file, as one line "address data" (all as decimal numbers).
+-- The testbench stops when a complete picture has been written.
 --
--- The generics are the number of column modules and the number of pixels in
--- each write, by default as on the Nexys 4 DDR (nexys4ddr.vhd). They can be
--- set with GENERICS, e.g. GENERICS="G_NUM_ITERATORS=450 G_PIXELS=4" as on the
--- MEGA65 R6 (mega65_r6.vhd).
+-- The generics are the number of column modules, the number of pixels in each
+-- write, the size of the picture, and the address distance between two
+-- picture columns, by default as on the Nexys 4 DDR (nexys4ddr.vhd). They can
+-- be set with GENERICS, e.g. as on the MEGA65 R6 (mega65_r6.vhd):
+--   GENERICS="G_NUM_ITERATORS=450 G_PIXELS=4 G_NUM_COLS=800 G_NUM_ROWS=600 G_COL_STRIDE=600"
 --
 -- The testbench is not self-checking. Instead the output is compared with the
 -- bit-accurate model using the script cmp_rtl.py. A complete picture takes
@@ -24,13 +26,16 @@ use std.textio.all;
 entity main_tb is
    generic (
       G_NUM_ITERATORS : integer := 240;
-      G_PIXELS        : integer := 1
+      G_PIXELS        : integer := 1;
+      G_NUM_COLS      : integer := 640;
+      G_NUM_ROWS      : integer := 480;
+      G_COL_STRIDE    : integer := 512
    );
 end entity main_tb;
 
 architecture simulation of main_tb is
 
-   constant C_NUM_PIXELS : integer := 640*480;
+   constant C_NUM_PIXELS : integer := G_NUM_COLS*G_NUM_ROWS;
 
    signal clk     : std_logic;
    signal rst     : std_logic := '1';
@@ -68,7 +73,10 @@ begin
    i_main : entity work.main
       generic map (
          G_NUM_ITERATORS => G_NUM_ITERATORS,
-         G_PIXELS        => G_PIXELS
+         G_PIXELS        => G_PIXELS,
+         G_NUM_COLS      => G_NUM_COLS,
+         G_NUM_ROWS      => G_NUM_ROWS,
+         G_COL_STRIDE    => G_COL_STRIDE
       )
       port map (
          clk_i     => clk,
@@ -91,7 +99,18 @@ begin
       file     f : text open write_mode is "sim/main_out.txt";
       variable l : line;
       variable n : integer := 0;
+      variable header : boolean := false;
    begin
+      if not header then
+         write(l, G_NUM_COLS);
+         write(l, string'(" "));
+         write(l, G_NUM_ROWS);
+         write(l, string'(" "));
+         write(l, G_COL_STRIDE);
+         writeline(f, l);
+         header := true;
+      end if;
+
       if rising_edge(clk) then
          if wr_en = '1' and rst = '0' then
             -- The pixels of a write are consecutive rows

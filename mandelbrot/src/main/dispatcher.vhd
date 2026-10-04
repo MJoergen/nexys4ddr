@@ -17,12 +17,19 @@ use ieee.numeric_std_unsigned.all;
 -- picture column, starting at the row given by wr_addr_o, with the first row in
 -- the lowest 9 bits of wr_data_o (see column.vhd). Writing more than one pixel
 -- at a time lets the dispatcher write more than one pixel per clock cycle.
+--
+-- The address of the pixel in column x and row y of the picture is
+-- x*G_COL_STRIDE + y. When G_COL_STRIDE is a power of two, this is the column
+-- followed by the row. Otherwise, e.g. for 800x600 pixels, where the column
+-- and the row together need 20 bits, G_COL_STRIDE can be the number of rows,
+-- so the picture fits in the 2^19 pixels of the display memory.
 
 entity dispatcher is
    generic (
       G_MAX_COUNT     : integer;
       G_NUM_ROWS      : integer;
       G_NUM_COLS      : integer;
+      G_COL_STRIDE    : integer;         -- Address distance between columns
       G_JOB_ROWS      : integer;         -- Rows in each job
       G_NUM_ITERATORS : integer;
       G_GROUP_SIZE    : integer := 16;
@@ -44,6 +51,19 @@ entity dispatcher is
 end entity dispatcher;
 
 architecture rtl of dispatcher is
+
+   -- The number of bits needed for the values 0 to n-1
+   function log2 (n : integer) return integer is
+      variable r : integer := 0;
+   begin
+      while 2**r < n loop
+         r := r + 1;
+      end loop;
+      return r;
+   end function log2;
+
+   -- The number of bits of the row in the picture
+   constant C_ROW_BITS   : integer := log2(G_NUM_ROWS);
 
    -- The job (cx, starty, and stepy), the reset, and the index of the column
    -- module whose result is accepted all go to all the column modules. To make
@@ -136,16 +156,25 @@ architecture rtl of dispatcher is
    signal wr_data_r         : std_logic_vector(9*G_PIXELS-1 downto 0);
    signal wr_en_r           : std_logic;
 
-   -- The accepted result, delayed by one and two clock cycles, and the
-   -- first row of its block
+   -- The accepted result, delayed by one, two and three clock cycles: The
+   -- picture column and the block of the job, the first row of the block, and
+   -- then the address of the column and the row of the result.
    signal acc_job_addr_r    : std_logic_vector(9 downto 0);
    signal acc_job_addr_d    : std_logic_vector(9 downto 0);
    signal acc_blk_r         : integer range 0 to C_NUM_BLOCKS-1;
-   signal acc_row_d         : std_logic_vector(8 downto 0);
+   signal acc_col_dd        : std_logic_vector(18 downto 0);
+   signal acc_row_d         : std_logic_vector(C_ROW_BITS-1 downto 0);
+   signal acc_row_dd        : std_logic_vector(C_ROW_BITS-1 downto 0);
+   signal acc_data_dd       : std_logic_vector(9*G_PIXELS-1 downto 0);
    signal acc_grp_r         : integer range 0 to C_NUM_GROUPS-1;
    signal acc_grp_d         : integer range 0 to C_NUM_GROUPS-1;
    signal acc_valid_r       : std_logic;
    signal acc_valid_d       : std_logic;
+   signal acc_valid_dd      : std_logic;
+
+   -- The multiplication by the constant G_COL_STRIDE uses LUTs, like the one
+   -- by G_JOB_ROWS.
+   attribute use_dsp of acc_col_dd : signal is "no";
 
    signal done_r            : std_logic;
 
@@ -170,6 +199,13 @@ begin
 
    assert G_NUM_ROWS mod G_JOB_ROWS = 0
       report "The number of rows must be a multiple of the rows in a job"
+      severity failure;
+
+   -- The write address must be a multiple of G_PIXELS, see disp_mem.vhd
+   assert G_NUM_COLS <= 2**10 and G_COL_STRIDE >= G_NUM_ROWS and
+          G_COL_STRIDE mod G_PIXELS = 0 and
+          (G_NUM_COLS-1)*G_COL_STRIDE + G_NUM_ROWS <= 2**19
+      report "The picture does not fit in the display memory"
       severity failure;
 
    p_sched_active : process (clk_i)
@@ -389,11 +425,13 @@ begin
    ------------------------
 
    -- The result of the column module selected by i_res_scheduler is
-   -- acknowledged and written in three steps:
+   -- acknowledged and written in four steps:
    -- 1. The index of the column module goes to each group (grp_idx_r).
    -- 2. Each group acknowledges the selected column module, if it is in the
    --    group, and selects its result (grp_res_addr_r and grp_res_data_r).
-   -- 3. The result is selected from the group of the column module.
+   -- 3. The result is selected from the group of the column module, and its
+   --    row in the picture and the address of its column are calculated.
+   -- 4. The address is calculated from the column and the row.
    -- The column module keeps its result unchanged until it has seen the
    -- acknowledge, so the result is still there in step 2.
 
@@ -441,17 +479,30 @@ begin
    end generate gen_grp_res;
 
    p_wr : process (clk_i)
+      variable col_v : std_logic_vector(28 downto 0);
    begin
       if rising_edge(clk_i) then
+         -- Step 2
          acc_job_addr_d <= acc_job_addr_r;
-         acc_row_d      <= to_slv(acc_blk_r * G_JOB_ROWS, 9);
+         acc_row_d      <= to_slv(acc_blk_r * G_JOB_ROWS, C_ROW_BITS);
          acc_grp_d      <= acc_grp_r;
          acc_valid_d    <= acc_valid_r;
 
-         -- The column module gives the row within the block
-         wr_addr_r <= acc_job_addr_d & (acc_row_d + grp_res_addr_r(acc_grp_d));
-         wr_data_r <= grp_res_data_r(acc_grp_d);
-         wr_en_r   <= acc_valid_d;
+         -- Step 3. The column module gives the row within the block. The
+         -- multiplication is not in step 2, because acc_job_addr_r is read
+         -- from a table, which may be a BRAM (job_addr_r). When G_COL_STRIDE
+         -- is a power of two, the multiplication is only wires.
+         col_v        := acc_job_addr_d * to_slv(G_COL_STRIDE, 19);
+         acc_col_dd   <= col_v(18 downto 0);
+         acc_row_dd   <= acc_row_d + resize(grp_res_addr_r(acc_grp_d), C_ROW_BITS);
+         acc_data_dd  <= grp_res_data_r(acc_grp_d);
+         acc_valid_dd <= acc_valid_d;
+
+         -- Step 4. When G_COL_STRIDE is 2**C_ROW_BITS, this is the column
+         -- followed by the row, i.e. only wires.
+         wr_addr_r <= acc_col_dd + acc_row_dd;
+         wr_data_r <= acc_data_dd;
+         wr_en_r   <= acc_valid_dd;
       end if;
    end process p_wr;
 

@@ -59,11 +59,13 @@
 -- MEGA65 has speed grade -2, which allows 1440 MHz), and generates the
 -- following output clocks:
 --
---   Output clock   Output    Divider   Freq (MHz)
---   vga_clk        CLKOUT1     48         25.000
---   main_clk       CLKOUT0      6.375    188.235
+--   Output clock   Output    Divider        Freq (MHz)
+--   vga_clk        CLKOUT1   G_VGA_DIVIDE   1200/G_VGA_DIVIDE
+--   main_clk       CLKOUT0      6.375       188.235
 --
--- The main clock uses CLKOUT0, because it is the only output with a
+-- The VGA clock is the pixel clock of the video mode, so the divider is set by
+-- the top level module: 48 gives 25 MHz (640x480), and 30 gives 40 MHz
+-- (800x600). The main clock uses CLKOUT0, because it is the only output with a
 -- fractional divider.
 --
 -- Input clock: clk_i, 100.000 MHz.
@@ -82,6 +84,9 @@ library unisim;
 use unisim.vcomponents.all;
 
 entity clk_rst is
+   generic (
+      G_VGA_DIVIDE : integer       -- The VGA clock is 1200 MHz / G_VGA_DIVIDE
+   );
    port (
       clk_i      : in  std_logic;  -- 100 MHz
       rstn_i     : in  std_logic;  -- Asynchronous, active low
@@ -89,7 +94,7 @@ entity clk_rst is
       main_clk_o : out std_logic;  -- 188.235 MHz
       main_rst_o : out std_logic;  -- Synchronous to main_clk_o
 
-      vga_clk_o  : out std_logic;  -- 25 MHz
+      vga_clk_o  : out std_logic;  -- 1200 MHz / G_VGA_DIVIDE
       vga_rst_o  : out std_logic   -- Synchronous to vga_clk_o
    );
 end clk_rst;
@@ -170,7 +175,7 @@ clk_in1_clk_wiz_0 <= clk_i;
     CLKOUT0_PHASE        => 0.000,
     CLKOUT0_DUTY_CYCLE   => 0.500,
     CLKOUT0_USE_FINE_PS  => FALSE,
-    CLKOUT1_DIVIDE       => 48,     -- VGA @ 25 MHz
+    CLKOUT1_DIVIDE       => G_VGA_DIVIDE,  -- VGA
     CLKOUT1_PHASE        => 0.000,
     CLKOUT1_DUTY_CYCLE   => 0.500,
     CLKOUT1_USE_FINE_PS  => FALSE,

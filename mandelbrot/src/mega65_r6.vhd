@@ -5,11 +5,15 @@ use ieee.numeric_std_unsigned.all;
 library unisim;
 use unisim.vcomponents.all;
 
+use work.video_pkg.all;
+
 -- This is the top level module for the MEGA65 (board revision R6). The ports
 -- on this entity are mapped directly to pins on the FPGA, see mega65-r6.xdc.
 --
 -- It is the same design as nexys4ddr.vhd (the top level module for the
--- Nexys 4 DDR board), only the ports are different:
+-- Nexys 4 DDR board), only the resolution and the ports are different:
+-- * The VGA output is 800x600 @ 60 Hz, with a pixel clock of 40 MHz, instead
+--   of 640x480.
 -- * There are no buttons and switches. Instead, the view is controlled by the
 --   joysticks: The directions of joystick port 1 (fa_*) pan the view, and the
 --   fire button of port 1 zooms in. The fire button of port 2 (fb_*) zooms
@@ -56,11 +60,22 @@ architecture structural of mega65_r6 is
 
    -- The number of pixels in each write to the display memory. The dispatcher
    -- accepts at most one result per clock cycle, so with one pixel in each
-   -- write the picture takes at least 640*480 clock cycles (1.63 ms), and
+   -- write the picture takes at least 800*600 clock cycles (2.55 ms), and
    -- more column modules give little more. The model (sim/model.py) estimates
-   -- 0.86 ms for the initial picture with four pixels in each write, against
-   -- 1.80 ms with one.
+   -- 1.32 ms for the initial picture with four pixels in each write, against
+   -- 2.72 ms with one.
    constant C_PIXELS        : integer := 4;
+
+   -- The video mode (see video_pkg.vhd), and the divider of the VGA clock,
+   -- which gives the pixel clock (1200 MHz / 30 = 40 MHz, see clk_rst.vhd).
+   constant C_VIDEO         : video_mode_t := C_VIDEO_800X600;
+   constant C_VGA_DIVIDE    : integer := 30;
+
+   -- The address distance between two picture columns in the display memory,
+   -- see dispatcher.vhd. With 1024 addresses per column (the column followed
+   -- by the row) the picture would not fit in the 2^19 pixels of the display
+   -- memory, so each column has 600 addresses, one for each row.
+   constant C_COL_STRIDE    : integer := 600;
 
    signal rstn           : std_logic;
    signal btn            : std_logic_vector( 4 downto 0);  -- "CLRUD"
@@ -116,6 +131,9 @@ begin
    --------------------------------------------------
 
    i_clk_rst : entity work.clk_rst
+      generic map (
+         G_VGA_DIVIDE => C_VGA_DIVIDE
+      )
       port map (
          clk_i      => clk_i,
          rstn_i     => rstn,
@@ -133,7 +151,10 @@ begin
    i_main : entity work.main
       generic map (
          G_NUM_ITERATORS => C_NUM_ITERATORS,
-         G_PIXELS        => C_PIXELS
+         G_PIXELS        => C_PIXELS,
+         G_NUM_COLS      => C_VIDEO.h_visible,
+         G_NUM_ROWS      => C_VIDEO.v_visible,
+         G_COL_STRIDE    => C_COL_STRIDE
       )
       port map (
          clk_i     => main_clk,
@@ -198,6 +219,10 @@ begin
    --------------------------------------------------
 
    i_vga : entity work.vga
+      generic map (
+         G_MODE       => C_VIDEO,
+         G_COL_STRIDE => C_COL_STRIDE
+      )
       port map (
          clk_i     => vga_clk,
          rst_i     => vga_rst,

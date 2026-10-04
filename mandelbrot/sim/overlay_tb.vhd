@@ -4,13 +4,15 @@ use ieee.numeric_std.all;
 
 use work.palette_pkg.all;
 use work.font_pkg.all;
+use work.video_pkg.all;
 
 -- This is a self-checking testbench for the frame rate overlay (overlay.vhd),
 -- as part of the VGA output (vga.vhd).
 --
--- The display memory is replaced by a model with the read latency of
--- disp_mem.vhd (three clock cycles), which holds a different value for each
--- pixel, (x + 3*y) mod 512, as in vga_tb.vhd. The first palette is used, so
+-- The video mode is 640x480, with the column followed by the row in the
+-- address (as on the Nexys 4 DDR). The display memory is replaced by a model
+-- with the read latency of disp_mem.vhd (three clock cycles), which holds a
+-- different value for each pixel, (x + 3*y) mod 512, as in vga_tb.vhd. The first palette is used, so
 -- the colour is the lowest 8 bits of the value. The testbench checks that the
 -- colour of each pixel of three frames is either the colour of the picture,
 -- or (inside the overlay) the colour of the digit shown there.
@@ -29,14 +31,15 @@ end entity overlay_tb;
 
 architecture simulation of overlay_tb is
 
-   constant C_H_VISIBLE : integer := 640;
-   constant C_H_TOTAL   : integer := 800;
-   constant C_V_VISIBLE : integer := 480;
-   constant C_V_TOTAL   : integer := 525;
+   constant C_MODE      : video_mode_t := C_VIDEO_640X480;
+   constant C_H_VISIBLE : integer := C_MODE.h_visible;
+   constant C_H_TOTAL   : integer := h_total(C_MODE);
+   constant C_V_VISIBLE : integer := C_MODE.v_visible;
+   constant C_V_TOTAL   : integer := v_total(C_MODE);
 
    -- Position and size of the overlay, see overlay.vhd
    constant C_DIGITS    : integer := 8;
-   constant C_X         : integer := 640 - 8 - 16*C_DIGITS;
+   constant C_X         : integer := C_H_VISIBLE - 8 - 16*C_DIGITS;
    constant C_Y         : integer := 8;
    constant C_WIDTH     : integer := 16;
    constant C_HEIGHT    : integer := 32;
@@ -253,6 +256,10 @@ begin
    -------------------
 
    i_vga : entity work.vga
+      generic map (
+         G_MODE       => C_MODE,
+         G_COL_STRIDE => 512
+      )
       port map (
          clk_i        => clk,
          rst_i        => rst,

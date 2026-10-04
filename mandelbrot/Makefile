@@ -25,6 +25,7 @@ SRC += src/main/scheduler.vhd
 SRC += src/main/res_scheduler.vhd
 SRC += src/main/dispatcher.vhd
 SRC += src/disp_mem.vhd
+SRC += src/vga/video_pkg.vhd
 SRC += src/vga/palette_pkg.vhd
 SRC += src/vga/disp.vhd
 SRC += src/vga/font_pkg.vhd

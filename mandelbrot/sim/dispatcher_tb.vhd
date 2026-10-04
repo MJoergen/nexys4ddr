@@ -11,7 +11,9 @@ use work.iterator_model_pkg.all;
 -- picture column (i.e. with fewer picture columns than column modules) and one
 -- row in each job, so every job is the last picture column of its block; and
 -- one with four pixels in each write, where each picture column is divided
--- into two jobs, of two writes each. It calculates two small pictures with each
+-- into two jobs, of two writes each. In the first two, the address is the
+-- column followed by the row, and in the third the address distance between
+-- two columns is not a power of two (see dispatcher.vhd). It calculates two small pictures with each
 -- of them, one after the other, and checks the following for each picture:
 -- * Nothing is written, and done is low, when idle. Done goes low after a
 --   start.
@@ -44,6 +46,11 @@ architecture simulation of dispatcher_tb is
 
    -- Pixels in each write in the third instance
    constant C_WIDE_PIXELS   : integer := 4;
+
+   -- Address distance between two picture columns, in the three instances
+   constant C_STRIDE        : integer := 512;
+   constant C_SMALL_STRIDE  : integer := C_NUM_ROWS;
+   constant C_WIDE_STRIDE   : integer := 20;
 
    -- Size of the groups of column modules in the first instance (see
    -- dispatcher.vhd). This gives four groups, and the last one is smaller.
@@ -128,6 +135,7 @@ begin
          signal   dut_in   : out dut_in_t;
          signal   dut_out  : in  dut_out_t;
          num_cols : integer;
+         stride   : integer;    -- Address distance between two columns
          pixels   : integer;    -- Pixels in each write
          startx_r : real;
          starty_r : real;
@@ -180,8 +188,8 @@ begin
             wait until rising_edge(clk);
 
             if dut_out.wr_en = '1' then
-               col := to_integer(unsigned(dut_out.wr_addr(18 downto 9)));
-               row := to_integer(unsigned(dut_out.wr_addr(8 downto 0)));
+               col := to_integer(unsigned(dut_out.wr_addr)) / stride;
+               row := to_integer(unsigned(dut_out.wr_addr)) mod stride;
                if col < num_cols and row <= C_NUM_ROWS - pixels and row mod pixels = 0 then
                   for i in 0 to pixels-1 loop
                      assert seen(col, row+i) = -1
@@ -259,16 +267,17 @@ begin
 
       -- Normal dispatcher. The second picture is started right after the
       -- first, which also checks that the dispatcher can be restarted.
-      run_picture(dut1_in, dut1_out, C_NUM_COLS, 1, -1.0, -0.3, 0.8, 0.6, "picture 1");
-      run_picture(dut1_in, dut1_out, C_NUM_COLS, 1,  0.0,  0.3, 0.5, 0.5, "picture 2");
+      run_picture(dut1_in, dut1_out, C_NUM_COLS, C_STRIDE, 1, -1.0, -0.3, 0.8, 0.6, "picture 1");
+      run_picture(dut1_in, dut1_out, C_NUM_COLS, C_STRIDE, 1,  0.0,  0.3, 0.5, 0.5, "picture 2");
 
       -- Dispatcher with a single picture column, and two pictures.
-      run_picture(dut2_in, dut2_out, C_SMALL_COLS, 1, -1.0, -0.3, 0.8, 0.6, "picture 3");
-      run_picture(dut2_in, dut2_out, C_SMALL_COLS, 1,  0.0,  0.3, 0.5, 0.5, "picture 4");
+      run_picture(dut2_in, dut2_out, C_SMALL_COLS, C_SMALL_STRIDE, 1, -1.0, -0.3, 0.8, 0.6, "picture 3");
+      run_picture(dut2_in, dut2_out, C_SMALL_COLS, C_SMALL_STRIDE, 1,  0.0,  0.3, 0.5, 0.5, "picture 4");
 
-      -- Dispatcher with four pixels in each write, and two pictures.
-      run_picture(dut3_in, dut3_out, C_NUM_COLS, C_WIDE_PIXELS, -1.0, -0.3, 0.8, 0.6, "picture 5");
-      run_picture(dut3_in, dut3_out, C_NUM_COLS, C_WIDE_PIXELS,  0.0,  0.3, 0.5, 0.5, "picture 6");
+      -- Dispatcher with four pixels in each write, an address distance between
+      -- two columns that is not a power of two, and two pictures.
+      run_picture(dut3_in, dut3_out, C_NUM_COLS, C_WIDE_STRIDE, C_WIDE_PIXELS, -1.0, -0.3, 0.8, 0.6, "picture 5");
+      run_picture(dut3_in, dut3_out, C_NUM_COLS, C_WIDE_STRIDE, C_WIDE_PIXELS,  0.0,  0.3, 0.5, 0.5, "picture 6");
 
       report "dispatcher_tb: finished";
       std.env.finish;
@@ -284,6 +293,7 @@ begin
          G_MAX_COUNT     => C_MAX_COUNT,
          G_NUM_ROWS      => C_NUM_ROWS,
          G_NUM_COLS      => C_NUM_COLS,
+         G_COL_STRIDE    => C_STRIDE,
          G_JOB_ROWS      => C_JOB_ROWS,
          G_NUM_ITERATORS => C_NUM_ITERATORS,
          G_GROUP_SIZE    => C_GROUP_SIZE
@@ -307,6 +317,7 @@ begin
          G_MAX_COUNT     => C_MAX_COUNT,
          G_NUM_ROWS      => C_NUM_ROWS,
          G_NUM_COLS      => C_SMALL_COLS,
+         G_COL_STRIDE    => C_SMALL_STRIDE,
          G_JOB_ROWS      => C_SMALL_ROWS,
          G_NUM_ITERATORS => C_NUM_ITERATORS
       )
@@ -329,6 +340,7 @@ begin
          G_MAX_COUNT     => C_MAX_COUNT,
          G_NUM_ROWS      => C_NUM_ROWS,
          G_NUM_COLS      => C_NUM_COLS,
+         G_COL_STRIDE    => C_WIDE_STRIDE,
          G_JOB_ROWS      => C_WIDE_ROWS,
          G_NUM_ITERATORS => C_NUM_ITERATORS,
          G_GROUP_SIZE    => C_GROUP_SIZE,
