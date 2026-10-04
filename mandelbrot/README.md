@@ -37,8 +37,9 @@ the multiplier, the iterator (including how overflow is detected), the columns,
 the dispatcher, and the timing and resource usage.
 
 ## Implementation results
-The design is built with Vivado 2025.1, and meets timing on both boards. The
-results are:
+The design is built with Vivado 2025.1, and meets timing on both boards.
+
+The resource usage is:
 
 | Resource           | Nexys 4 DDR (XC7A100T-1) | Available | MEGA65 R6 (XC7A200T-2) | Available
 | ------------------ | ------------------------ | --------- | ---------------------- | ---------
@@ -47,12 +48,17 @@ results are:
 | Slices             | 14,508 (92%)             | 15,850    | 29,964 (89%)           | 33,650
 | LUTs               | 42,035 (66%)             | 63,400    | 81,646 (61%)           | 134,600
 | Registers          | 43,217 (34%)             | 126,800   | 93,443 (35%)           | 269,200
-| Resolution         | 640x480                  |           | 800x600                |
-| Clock frequency    | 150.00 MHz               |           | 188.24 MHz             |
-| Initial FPS        | 432 (estimated)          |           | 756 (estimated)        |
-| Worst-case FPS     | 73 (estimated)           |           | 113 (estimated)        |
-| Setup slack        | +0.355 ns                |           | +0.186 ns              |
-| Hold slack         | +0.014 ns                |           | +0.013 ns              |
+
+The performance and timing are:
+
+|                    | Nexys 4 DDR     | MEGA65 R6
+| ------------------ | --------------- | ---------------
+| Resolution         | 640x480         | 800x600
+| Clock frequency    | 150.00 MHz      | 188.24 MHz
+| Initial FPS        | 432 (estimated) | 756 (estimated)
+| Worst-case FPS     | 73 (estimated)  | 113 (estimated)
+| Setup slack        | +0.355 ns       | +0.186 ns
+| Hold slack         | +0.014 ns       | +0.013 ns
 
 See [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details.
