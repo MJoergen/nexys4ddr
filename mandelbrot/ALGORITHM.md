@@ -445,9 +445,10 @@ less: other orders were tried in the model (e.g. column by column, or starting
 from the middle of the picture), and the best order depends on the view.
 
 A separate scheduler module is used to send jobs to the different column
-modules. Currently, the scheduler operates in a round-robin fashion. This
-potentially may give a delay up to 240 clock cycles before an idle column module
-is given a job, i.e. 1.6 us at 150 MHz. The column modules wait in
+modules. Currently, the scheduler for the jobs operates in a round-robin
+fashion over all the column modules, one per clock cycle. This potentially
+may give a delay up to 240 clock cycles before an idle column module is
+given a job, i.e. 1.6 us at 150 MHz. The column modules wait in
 parallel, and with 2560 jobs and 240 column modules, each column module gets
 about 11 jobs on average. So the delay adds at most about 18 microseconds (and
 half of that on average) to the time for a picture, which is about 2.31 ms.
@@ -495,7 +496,8 @@ that was accepted last time. The ready flags are registered first, so that the
 routes from the column modules and the round-robin selection are in separate
 clock cycles. A counter goes round the 15
 groups, one per clock cycle, and the candidate of the group of the counter is
-accepted, if the group has one. So a column module with a result waits until
+accepted, if the group has one. So, unlike an idle column module waiting for
+a job, a column module with a result waits until
 its group is visited, i.e. at most 15 clock cycles, plus 15 clock cycles for
 each column module of its group that is before it in the round-robin order.
 Earlier, the round-robin scheduler for the jobs was used for the results too,
