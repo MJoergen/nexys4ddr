@@ -2,15 +2,15 @@
 
 This project will be a tutorial on how to make beautiful Voronoi diagrams on an FPGA.
 
-The idea of this tutorial is to show the working progress, i.e. how do you
+The idea of this tutorial is to show the work in progress, i.e. how do you
 start on such a project, what steps do you take, etc.  The strategy is to - at
 every step, i.e. every episode - have a working project, albeit with limited
 functionality.
 
-So already in the very first episode do we have a project that synthesizes to a
-bitfil that runs on the FPGA and generates an output.
+So already in the very first episode we have a project that synthesizes to a
+bitfile that runs on the FPGA and generates an output.
 
-Once the very first working project is made, every subsequent episode consist
+Once the very first working project is made, every subsequent episode consists
 of small incremental steps, each almost imperceptible. The important thing is
 that each new episode brings *some* new functionality that is directly
 testable.

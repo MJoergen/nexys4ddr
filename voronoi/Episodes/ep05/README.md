@@ -25,9 +25,8 @@ We have the following examples:
 ## Bugfix.
 I noticed a bug where a thin vertical line was shown to the left of the screen.
 This was due to a mismatch in the timing of the synchronization signals and the
-colour signal.  I've therefore removed the register on the synchronization
+colour signal. I've therefore removed the register on the synchronization
 signals in the file vga.vhd, and added some registers in the file voronoi.vhd.
-
 
 ## Future work
 There are occasionally some strange visual artifacts, perhaps some rastering
