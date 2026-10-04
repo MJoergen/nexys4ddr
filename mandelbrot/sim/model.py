@@ -43,13 +43,14 @@ BoolArray = NDArray[np.bool_]
 MAX_COUNT = 511      # Must match C_MAX_COUNT in main.vhd
 NUM_COLS  = 640      # Must match C_VIDEO in nexys4ddr.vhd
 NUM_ROWS  = 480      # Must match C_VIDEO in nexys4ddr.vhd
-JOB_ROWS  = 120      # Must match C_JOB_ROWS in main.vhd
+JOB_ROWS  = 120      # Must match C_JOB_ROWS in nexys4ddr.vhd
 NUM_ITERATORS = 240  # Must match C_NUM_ITERATORS in nexys4ddr.vhd
 PIXELS = 1           # Must match C_PIXELS in nexys4ddr.vhd
 GROUP_SIZE = 16      # Must match G_GROUP_SIZE in dispatcher.vhd
 # The same for the MEGA65 R6, see mega65_r6.vhd
 MEGA65_NUM_COLS = 800
 MEGA65_NUM_ROWS = 600
+MEGA65_JOB_ROWS = 120
 MEGA65_NUM_ITERATORS = 450
 MEGA65_PIXELS = 4
 MEGA65_MAIN_CLOCK_KHZ = 1200e3 / 6.375
@@ -127,15 +128,17 @@ def view(startx: Optional[int] = None, starty: Optional[int] = None,
          cols: int = NUM_COLS,
          rows: int = NUM_ROWS) -> Tuple[IntArray, IntArray]:
     """The values of cx and cy (2.16 fixed point) for each pixel, as arrays
-    indexed by [row, column]. The default is the initial view in main.vhd."""
+    indexed by [row, column]. The default is the initial view in main.vhd,
+    where the imaginary axis is centred on 0, with square pixels."""
+    size_y = 2.0 * (4 * rows) / (3 * cols)
     if startx is None:
         startx = int(round((-1.6667 + 4.0) * 65536))
     if starty is None:
-        starty = int(round((-1.0 + 4.0) * 65536))
+        starty = int(round((-size_y / 2 + 4.0) * 65536))
     if stepx is None:
         stepx = int(round(2.6667 * 65536)) // cols
     if stepy is None:
-        stepy = int(round(2.0 * 65536)) // rows
+        stepy = int(round(size_y * 65536)) // rows
     # The dispatcher and the column modules add the step in 18 bits, so the
     # values wrap around.
     cx = wrap(startx + np.arange(cols) * stepx, 18)
@@ -357,6 +360,7 @@ def main() -> None:
     cx, cy = view(cols=MEGA65_NUM_COLS, rows=MEGA65_NUM_ROWS)
     _, stop = hw_stop(cx, cy)
     cycles, waiting = picture_cycles(stop, MEGA65_NUM_ITERATORS,
+                                     job_rows=MEGA65_JOB_ROWS,
                                      pixels=MEGA65_PIXELS)
     print(f"On the MEGA65 R6 ({MEGA65_NUM_COLS}x{MEGA65_NUM_ROWS}, "
           f"{MEGA65_NUM_ITERATORS} column modules, {MEGA65_PIXELS} pixels in "

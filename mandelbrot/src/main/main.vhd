@@ -31,8 +31,11 @@ entity main is
       G_NUM_ITERATORS : integer;
       -- The number of pixels in each write to the display memory, see
       -- dispatcher.vhd and disp_mem.vhd. A power of two, and the rows in a
-      -- job (C_JOB_ROWS) must be a multiple of it.
+      -- job (G_JOB_ROWS) must be a multiple of it.
       G_PIXELS        : integer;
+      -- Rows in each job given to a column module, see dispatcher.vhd. The
+      -- number of rows of the picture must be a multiple of it.
+      G_JOB_ROWS      : integer;
       -- The size of the picture, i.e. the resolution of the VGA output, the
       -- address distance between two picture columns in the display memory,
       -- and the number of bits of the address, see dispatcher.vhd.
@@ -65,17 +68,16 @@ end main;
 architecture structural of main is
 
    constant C_MAX_COUNT     : integer := 511;
-   -- Rows in each job given to a column module, see dispatcher.vhd. The
-   -- number of rows of the picture must be a multiple of it.
-   constant C_JOB_ROWS      : integer := 120;
 
-   -- The initial view. The size has the same aspect ratio (4:3) as the
-   -- picture.
-
+   -- The initial view. The real axis is from -1.6667 to 1.0, and the
+   -- imaginary axis is centred on 0. The size has the same aspect ratio as
+   -- the picture, so the pixels are square: The imaginary axis is from -1.0
+   -- to 1.0 for 4:3 (640x480), and from -1.0667 to 1.0667 for 5:4
+   -- (1280x1024).
    constant C_START_X       : real := -1.6667;
-   constant C_START_Y       : real := -1.0000;
    constant C_SIZE_X        : real :=  2.6667;
-   constant C_SIZE_Y        : real :=  2.0000;
+   constant C_SIZE_Y        : real :=  2.0 * real(4*G_NUM_ROWS) / real(3*G_NUM_COLS);
+   constant C_START_Y       : real := -C_SIZE_Y / 2.0;
 
    signal startx         : std_logic_vector(17 downto 0);
    signal starty         : std_logic_vector(17 downto 0);
@@ -264,7 +266,7 @@ begin
          G_NUM_COLS      => G_NUM_COLS,
          G_COL_STRIDE    => G_COL_STRIDE,
          G_ADDR_BITS     => G_ADDR_BITS,
-         G_JOB_ROWS      => C_JOB_ROWS,
+         G_JOB_ROWS      => G_JOB_ROWS,
          G_NUM_ITERATORS => G_NUM_ITERATORS,
          G_PIXELS        => G_PIXELS
       )

@@ -83,6 +83,10 @@ architecture structural of nexys4ddr is
    constant C_MAIN_FREQ     : natural :=
       natural(100.0E6 / real(C_VCO_DIVIDE) * C_VCO_MULT / C_MAIN_DIVIDE);
 
+   -- Rows in each job given to a column module, see dispatcher.vhd. The
+   -- number of rows (480) must be a multiple of it.
+   constant C_JOB_ROWS      : integer := 120;
+
    -- The address distance between two picture columns in the display memory,
    -- see dispatcher.vhd. 512 rows per column means the address is the column
    -- followed by the row.
@@ -157,6 +161,7 @@ begin
          G_CLK_FREQ      => C_MAIN_FREQ,
          G_NUM_ITERATORS => C_NUM_ITERATORS,
          G_PIXELS        => C_PIXELS,
+         G_JOB_ROWS      => C_JOB_ROWS,
          G_NUM_COLS      => C_VIDEO.h_visible,
          G_NUM_ROWS      => C_VIDEO.v_visible,
          G_COL_STRIDE    => C_COL_STRIDE,

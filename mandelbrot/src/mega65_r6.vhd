@@ -83,6 +83,10 @@ architecture structural of mega65_r6 is
    constant C_MAIN_FREQ     : natural :=
       natural(100.0E6 / real(C_VCO_DIVIDE) * C_VCO_MULT / C_MAIN_DIVIDE);
 
+   -- Rows in each job given to a column module, see dispatcher.vhd. The
+   -- number of rows (600) must be a multiple of it, and of C_PIXELS.
+   constant C_JOB_ROWS      : integer := 120;
+
    -- The address distance between two picture columns in the display memory,
    -- see dispatcher.vhd. With 1024 addresses per column (the column followed
    -- by the row) the picture would not fit in the 2^19 pixels of the display
@@ -175,6 +179,7 @@ begin
          G_CLK_FREQ      => C_MAIN_FREQ,
          G_NUM_ITERATORS => C_NUM_ITERATORS,
          G_PIXELS        => C_PIXELS,
+         G_JOB_ROWS      => C_JOB_ROWS,
          G_NUM_COLS      => C_VIDEO.h_visible,
          G_NUM_ROWS      => C_VIDEO.v_visible,
          G_COL_STRIDE    => C_COL_STRIDE,

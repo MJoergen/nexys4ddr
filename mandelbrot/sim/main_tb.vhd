@@ -11,10 +11,10 @@ use std.textio.all;
 -- The testbench stops when a complete picture has been written.
 --
 -- The generics are the number of column modules, the number of pixels in each
--- write, the size of the picture, the address distance between two picture
--- columns, and the bits of the address, by default as on the Nexys 4 DDR
--- (nexys4ddr.vhd). They can be set with GENERICS, e.g. as on the MEGA65 R6
--- (mega65_r6.vhd):
+-- write, the rows in a job, the size of the picture, the address distance
+-- between two picture columns, and the bits of the address, by default as on
+-- the Nexys 4 DDR (nexys4ddr.vhd). They can be set with GENERICS, e.g. as on
+-- the MEGA65 R6 (mega65_r6.vhd):
 --   GENERICS="G_NUM_ITERATORS=450 G_PIXELS=4 G_NUM_COLS=800 G_NUM_ROWS=600 G_COL_STRIDE=600"
 --
 -- The testbench is not self-checking. Instead the output is compared with the
@@ -28,6 +28,7 @@ entity main_tb is
    generic (
       G_NUM_ITERATORS : integer := 240;
       G_PIXELS        : integer := 1;
+      G_JOB_ROWS      : integer := 120;
       G_NUM_COLS      : integer := 640;
       G_NUM_ROWS      : integer := 480;
       G_COL_STRIDE    : integer := 512;
@@ -77,6 +78,7 @@ begin
          G_CLK_FREQ      => 100_000_000,   -- As p_clk
          G_NUM_ITERATORS => G_NUM_ITERATORS,
          G_PIXELS        => G_PIXELS,
+         G_JOB_ROWS      => G_JOB_ROWS,
          G_NUM_COLS      => G_NUM_COLS,
          G_NUM_ROWS      => G_NUM_ROWS,
          G_COL_STRIDE    => G_COL_STRIDE,
