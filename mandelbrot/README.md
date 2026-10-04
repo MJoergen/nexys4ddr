@@ -40,19 +40,19 @@ the dispatcher, and the timing and resource usage.
 The design is built with Vivado 2025.1, and meets timing on both boards. The
 results are:
 
-| Resource        | Nexys 4 DDR (XC7A100T-1) | Available | MEGA65 R6 (XC7A200T-2) | Available
-| --------------- | ------------------------ | --------- | ---------------------- | ---------
-| DSP48E1         | 240                      | 240       | 450                    | 740
-| Block RAM       | 128 RAMB36 + 2 RAMB18    | 135 RAMB36 | 128 RAMB36 + 2 RAMB18 | 365 RAMB36
-| Slices          | 14,508                   | 15,850    | 29,964                 | 33,650
-| LUTs            | 42,035                   | 63,400    | 81,646                 | 134,600
-| Registers       | 43,217                   | 126,800   | 93,443                 | 269,200
-| Resolution      | 640x480                  |           | 800x600                |
-| Clock frequency | 150.00 MHz               |           | 188.24 MHz             |
-| Initial FPS     | 432 (estimated)          |           | 756 (estimated)        |
-| Worst-case FPS  | 73 (estimated)           |           | 113 (estimated)        |
-| Setup slack     | +0.355 ns                |           | +0.186 ns              |
-| Hold slack      | +0.014 ns                |           | +0.013 ns              |
+| Resource           | Nexys 4 DDR (XC7A100T-1) | Available | MEGA65 R6 (XC7A200T-2) | Available
+| ------------------ | ------------------------ | --------- | ---------------------- | ---------
+| DSP48E1            | 240 (100%)               | 240       | 450 (61%)              | 740
+| Block RAM (RAMB36) | 129 (96%)                | 135       | 129 (35%)              | 365
+| Slices             | 14,508 (92%)             | 15,850    | 29,964 (89%)           | 33,650
+| LUTs               | 42,035 (66%)             | 63,400    | 81,646 (61%)           | 134,600
+| Registers          | 43,217 (34%)             | 126,800   | 93,443 (35%)           | 269,200
+| Resolution         | 640x480                  |           | 800x600                |
+| Clock frequency    | 150.00 MHz               |           | 188.24 MHz             |
+| Initial FPS        | 432 (estimated)          |           | 756 (estimated)        |
+| Worst-case FPS     | 73 (estimated)           |           | 113 (estimated)        |
+| Setup slack        | +0.355 ns                |           | +0.186 ns              |
+| Hold slack         | +0.014 ns                |           | +0.013 ns              |
 
 See [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details.
