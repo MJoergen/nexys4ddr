@@ -32,8 +32,8 @@ partial board is already invalid, all the positions below it are skipped.
 When the queen in the top row moves past the leftmost column, the search is
 done and the board stops changing.
 
-The search for the 8x8 board visits about 13,800 positions (this number comes
-from a software model of the algorithm, not from the hardware).
+The search for the 8x8 board visits 13,756 positions, and finds all 92
+solutions.
 
 ## Controls
 * Switch 0: Reset. Set it to restart the search, and clear it to run.
@@ -72,10 +72,16 @@ The sources are in the [src](src) directory:
   digits and drives the 7-segment display.
 * [queens_top.xdc](src/queens_top.xdc): Pin locations and the clock
   constraint.
-* [queens_tb.vhd](src/queens_tb.vhd): Testbench for the `queens` module on a
+
+The simulation files are in the [sim](sim) directory:
+
+* [queens_tb.vhd](sim/queens_tb.vhd): Testbench for the `queens` module on a
   4x4 board. It checks that every solution has one queen in each column, and
   that the search finds the 2 solutions of the 4x4 board.
-* [queens_top_tb.vhd](src/queens_top_tb.vhd): Testbench for the whole design.
+* [queens_top_tb.vhd](sim/queens_top_tb.vhd): Testbench for the whole design.
+* [queens_tb.gtkw](sim/queens_tb.gtkw) and
+  [queens_top_tb.gtkw](sim/queens_top_tb.gtkw): GTKWave save files with the
+  signals to show for each testbench.
 
 ## Building
 The [Makefile](Makefile) uses an open source tool flow:
@@ -86,6 +92,7 @@ The [Makefile](Makefile) uses an open source tool flow:
 route, and [Project X-Ray](https://github.com/f4pga/prjxray) to make the
 bit-file. The Xilinx `unisim` library (for the PLL) is read from a Vivado
 installation, given by `XILINX_DIR` (default `/opt/Xilinx/Vivado/2019.2`).
+The simulation waveform files (`.ghw`) are written to the `sim` directory.
 
 * `make sim`: Simulates `queens_tb` and shows the waveform in GTKWave.
 * `make sim_top`: Simulates `queens_top_tb` and shows the waveform in GTKWave.
