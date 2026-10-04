@@ -1,9 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std_unsigned.all;
-
-use work.video_pkg.all;
-
 -- This module runs entirely in the VGA clock domain. It generates the pixel
 -- position, reads the value of each pixel from the display memory, converts it
 -- to a colour with the palette selected by palette_i, and generates the VGA
@@ -12,6 +6,12 @@ use work.video_pkg.all;
 --
 -- The address of the pixel in column x and row y of the picture is
 -- x*G_COL_STRIDE + y, the same as in dispatcher.vhd.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std_unsigned.all;
+
+use work.video_pkg.all;
 
 entity vga is
    generic (

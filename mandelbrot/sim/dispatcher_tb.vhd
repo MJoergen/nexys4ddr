@@ -1,10 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-use ieee.math_real.all;
-
-use work.iterator_model_pkg.all;
-
 -- This is a simple self-checking testbench for the dispatcher. It is not an
 -- exhaustive test. It uses three instances of the dispatcher: A normal one,
 -- where each picture column is divided into four jobs; one with a single
@@ -28,6 +21,13 @@ use work.iterator_model_pkg.all;
 --
 -- A small picture, a small number of column modules, and a low maximum count
 -- are used to keep the simulation short.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use ieee.math_real.all;
+
+use work.iterator_model_pkg.all;
 
 entity dispatcher_tb is
 end entity dispatcher_tb;

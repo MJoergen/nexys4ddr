@@ -1,7 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std_unsigned.all;
-
 -- This module selects one of a number of processes that have a result ready,
 -- so the result can be accepted. It is used by the dispatcher to pick which
 -- column module's result to accept.
@@ -26,6 +22,10 @@ use ieee.numeric_std_unsigned.all;
 -- five clock cycles (there are empty positions when there are fewer than five
 -- groups), so the next candidate of the same group is from the ready flags
 -- sampled in clock cycle c+2 at the earliest.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std_unsigned.all;
 
 entity res_scheduler is
    generic (

@@ -1,9 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std_unsigned.all;
-
-use work.font_pkg.all;
-
 -- This module shows the frame rate (the same value as on the 7-segment
 -- display) as an overlay in the top right corner of the VGA output. The
 -- frame rate has G_DIGITS decimal digits, shown in white on a black
@@ -21,6 +15,12 @@ use work.font_pkg.all;
 -- clock cycle (all of vga_hs_o, vga_vs_o and vga_col_o). The pixel counters
 -- (vga_pix_x_i and vga_pix_y_i) are those of the pixel, which is at the input
 -- (vga_col_d4_i) four clock cycles later.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std_unsigned.all;
+
+use work.font_pkg.all;
 
 entity overlay is
    generic (

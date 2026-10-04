@@ -1,9 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std_unsigned.all;
-
-use work.video_pkg.all;
-
 -- This is the top level module. The ports on this entity are mapped directly
 -- to pins on the FPGA.
 --
@@ -31,6 +25,12 @@ use work.video_pkg.all;
 -- copied when the change is seen. The frame rate is constant for much longer
 -- than the synchronizer takes, so it is never copied while it changes. The
 -- constraints for this are in nexys4ddr.xdc.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std_unsigned.all;
+
+use work.video_pkg.all;
 
 entity nexys4ddr is
    port (

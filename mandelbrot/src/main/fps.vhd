@@ -1,7 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std_unsigned.all;
-
 -- This module converts the time taken by a picture (in clock cycles) to the
 -- frame rate in pictures per second, as a decimal number for the 7-segment
 -- display. The frame rate is G_CLK_FREQ / time_i, rounded down to an integer.
@@ -24,6 +20,10 @@ use ieee.numeric_std_unsigned.all;
 -- blank_o has one bit for each digit, and is set for the leading zeros (but
 -- never for the least significant digit). valid_o is high for one clock cycle,
 -- when the outputs are changed.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std_unsigned.all;
 
 entity fps is
    generic (

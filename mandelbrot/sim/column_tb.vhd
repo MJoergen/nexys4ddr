@@ -1,10 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-use ieee.math_real.all;
-
-use work.iterator_model_pkg.all;
-
 -- This is a simple self-checking testbench for the column. It runs three jobs,
 -- each of a few rows, and checks the following:
 -- * The column is not busy, and gives no results, when idle.
@@ -21,6 +14,13 @@ use work.iterator_model_pkg.all;
 --
 -- Only a few rows, and a low maximum count, are used to keep the simulation
 -- short.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use ieee.math_real.all;
+
+use work.iterator_model_pkg.all;
 
 entity column_tb is
 end entity column_tb;

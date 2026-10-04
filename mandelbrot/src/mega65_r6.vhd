@@ -1,12 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std_unsigned.all;
-
-library unisim;
-use unisim.vcomponents.all;
-
-use work.video_pkg.all;
-
 -- This is the top level module for the MEGA65 (board revision R6). The ports
 -- on this entity are mapped directly to pins on the FPGA, see mega65-r6.xdc.
 --
@@ -24,6 +15,15 @@ use work.video_pkg.all;
 -- * The VGA output goes through a video DAC with 8 bits per colour. The DAC
 --   needs a clock, which is the VGA clock inverted, so the DAC samples the
 --   pixel colour in the middle of each pixel.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std_unsigned.all;
+
+library unisim;
+use unisim.vcomponents.all;
+
+use work.video_pkg.all;
 
 entity mega65_r6 is
    port (

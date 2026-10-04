@@ -1,8 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-use ieee.math_real.all;
-
 -- This package contains the colour palettes for the VGA output. The display
 -- memory holds the iteration count of each pixel (9 bits), and the palette
 -- converts it to the colour shown (RRRGGGBB). Points in the set have the count
@@ -25,6 +20,11 @@ use ieee.math_real.all;
 -- The palettes are calculated from these formulas when the design is
 -- elaborated, so they are easy to change. They are tables of 256 entries, so
 -- they are implemented in LUTs.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use ieee.math_real.all;
 
 package palette_pkg is
 

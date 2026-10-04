@@ -1,10 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-
-use work.palette_pkg.all;
-use work.video_pkg.all;
-
 -- This is a self-checking testbench for the VGA output (vga.vhd, i.e. pix.vhd,
 -- disp.vhd and the palettes in palette_pkg.vhd). It is done for both video
 -- modes (see video_pkg.vhd), each with its own instance, and the address
@@ -38,6 +31,13 @@ use work.video_pkg.all;
 --
 -- Each instance runs for a little more than two frames, and the testbench
 -- stops by itself.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+use work.palette_pkg.all;
+use work.video_pkg.all;
 
 entity vga_tb is
 end entity vga_tb;

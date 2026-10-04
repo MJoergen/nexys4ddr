@@ -1,7 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-
 -- This is a self-checking testbench for the view control. It holds the buttons
 -- down for many updates, and checks after every update:
 -- * The view is inside the range -2 to 2 (not including 2): The first column
@@ -15,6 +11,10 @@ use ieee.numeric_std.all;
 -- the range and stop there (also when starting from the other end), and that a
 -- pulse on upd_i during an update is ignored, but one just after an update is
 -- not.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity view_tb is
 end entity view_tb;

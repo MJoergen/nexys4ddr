@@ -1,10 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-use ieee.math_real.all;
-
-use work.iterator_model_pkg.all;
-
 -- This is a simple self-checking testbench for the iterator. First, the
 -- expected iteration count of a few points is estimated using real (floating
 -- point) values, and the count from the iterator must be close to this. Only
@@ -30,6 +23,13 @@ use work.iterator_model_pkg.all;
 -- bit-accurate model in iterator_model_pkg.vhd. This checks that the
 -- periodicity detection never changes the count, e.g. by stopping when only
 -- some of the values repeat.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use ieee.math_real.all;
+
+use work.iterator_model_pkg.all;
 
 entity iterator_tb is
 end entity iterator_tb;

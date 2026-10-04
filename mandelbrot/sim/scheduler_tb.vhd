@@ -1,6 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-
 -- This is a small self-checking testbench for the scheduler. It checks:
 -- * Nothing is started when the scheduler is not active.
 -- * Nothing is started when all processes are busy.
@@ -9,6 +6,9 @@ use ieee.std_logic_1164.all;
 --   (all positions), and for two idle processes.
 -- * The processes are started in a round-robin order.
 -- * The scheduler is restarted from the first process by reset.
+
+library ieee;
+use ieee.std_logic_1164.all;
 
 entity scheduler_tb is
 end entity scheduler_tb;

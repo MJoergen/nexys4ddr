@@ -1,7 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std_unsigned.all;
-
 -- This is a column module. It calculates (sequentially) G_NUM_ROWS rows of a
 -- picture column, using one iterator.
 --
@@ -13,6 +9,10 @@ use ieee.numeric_std_unsigned.all;
 -- (res_addr_o) is that of the first row of the result, counted from the first
 -- row of the job. G_PIXELS must be a power of two, and G_NUM_ROWS a multiple of
 -- G_PIXELS.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std_unsigned.all;
 
 entity column is
    generic (

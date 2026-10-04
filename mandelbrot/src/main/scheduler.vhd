@@ -1,7 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std_unsigned.all;
-
 -- This module handles a number of parallel processes, and
 -- repeatedly starts any idle processes.
 --
@@ -12,6 +8,10 @@ use ieee.numeric_std_unsigned.all;
 -- counter in the group is registered (grp_busy_r), and then, in the next
 -- clock cycle, the flag of the group of the counter is used. So a process is
 -- started two clock cycles after its busy flag is sampled.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std_unsigned.all;
 
 entity scheduler is
    generic (

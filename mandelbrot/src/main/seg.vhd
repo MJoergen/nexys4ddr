@@ -1,7 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std_unsigned.all;
-
 -- This module drives the 8-digit 7-segment display on the Nexys 4 DDR board.
 -- The digits share the segment signals, so they are shown one at a time
 -- (multiplexed). Each digit is shown for 2^(G_REFRESH_BITS-3) clock cycles, so
@@ -15,6 +11,10 @@ use ieee.numeric_std_unsigned.all;
 -- The segments and the anodes are both active low. seg_o(0) is segment A (CA)
 -- and seg_o(6) is segment G (CG). seg_an_o(0) is the rightmost digit (AN0).
 -- The outputs are registered, and change together.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std_unsigned.all;
 
 entity seg is
    generic (
