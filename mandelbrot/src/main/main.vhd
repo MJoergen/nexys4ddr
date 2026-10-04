@@ -12,7 +12,7 @@
 -- here. The other switches are not used.
 --
 -- The 7-segment display shows the frame rate, i.e. the number of pictures per
--- second, averaged over the pictures of about the last half second, see
+-- second, calculated from the average time taken by the pictures, see
 -- fps.vhd. The frame rate is also output (fps_*_o), and shown on the VGA output
 -- by vga.vhd. fps_toggle_o is changed (in the same clock cycle) each time
 -- fps_digits_o and fps_blank_o are changed.
@@ -208,9 +208,10 @@ begin
    --------------------------------------------------
 
    -- At the end of a picture, cnt is the time taken by the picture. The
-   -- picture is recalculated continuously, and the frame rate is the average
-   -- of the pictures of about half a second, so it is updated about twice
-   -- per second.
+   -- picture is recalculated continuously, so the frame rate is updated
+   -- after every picture. The time is averaged over about 2^8 = 256
+   -- pictures (0.3 s for the initial view on the Nexys 4 DDR, 0.6 s on the
+   -- MEGA65 R6), so the number shown is stable.
    -- cnt wraps around after 2^27 clock cycles (1.12 s at 120 MHz), but a
    -- picture takes far less: even if every pixel needed the maximum count,
    -- the model (sim/model.py) gives about 1.4 million clock cycles (11.4 ms)
@@ -218,11 +219,10 @@ begin
    -- (13.0 ms, a frame rate of about 76) on the MEGA65 R6.
    i_fps : entity work.fps
       generic map (
-         G_CLK_FREQ   => G_CLK_FREQ,
-         G_TIME_BITS  => 27,
-         G_AVG_CYCLES => G_CLK_FREQ / 2,
-         G_FRAME_BITS => 10,
-         G_DIGITS     => 8
+         G_CLK_FREQ  => G_CLK_FREQ,
+         G_TIME_BITS => 27,
+         G_AVG_SHIFT => 8,
+         G_DIGITS    => 8
       )
       port map (
          clk_i    => clk_i,

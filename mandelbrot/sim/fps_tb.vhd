@@ -1,7 +1,7 @@
 -- This is a self-checking testbench for the frame rate (fps.vhd) and the
 -- 7-segment display (seg.vhd). It has two instances of fps.
 --
--- The first one does not average (G_AVG_CYCLES = 0), and drives the display.
+-- The first one does not average (G_AVG_SHIFT = 0), and drives the display.
 -- It gives it a number of picture times, and for each one it checks:
 -- * The digits and the blanking from fps are the expected frame rate, i.e.
 --   the clock frequency divided by the time, rounded down, with leading zeros
@@ -12,15 +12,13 @@
 --   time.
 -- The times include the extremes (0, 1, and the largest time), the values
 -- around a change of the frame rate, and random values over the whole range.
--- It also checks that a picture that ends during a calculation is shown after
--- it.
+-- It also checks that a pulse on valid_i during a calculation does not start
+-- a new calculation.
 --
--- The second one averages over at least C_AVG_CYCLES clock cycles and at most
--- 15 pictures. It gives it random picture times (some much shorter than
--- C_AVG_CYCLES, some longer, and some zero), and checks that the frame rate
--- is calculated at the end of each sum, and only then, and that it is the
--- number of pictures times the clock frequency divided by the sum of the
--- times, rounded down (or 99999999 if larger).
+-- The second one averages (G_AVG_SHIFT = 3). It gives it random picture
+-- times, and checks the frame rate after each one against a model of the
+-- average: the first time sets it, and each later time adds 1/8 of the
+-- difference.
 --
 -- The refresh of the display is made much faster than on the board, so a
 -- full refresh cycle is 64 clock cycles.
@@ -40,11 +38,10 @@ architecture simulation of fps_tb is
    constant C_REFRESH_BITS : natural := 6;
    constant C_MAX          : natural := 99_999_999;
 
-   -- Longer than a calculation (79 clock cycles from valid_i to valid_o)
-   constant C_CALC_CYCLES  : natural := 90;
+   -- Longer than a calculation (58 clock cycles)
+   constant C_CALC_CYCLES  : natural := 70;
 
-   constant C_AVG_CYCLES   : natural := 10_000;
-   constant C_FRAME_BITS   : natural := 4;
+   constant C_AVG_SHIFT    : natural := 3;
 
    type seg_table_t is array (0 to 9) of std_logic_vector(6 downto 0);
    constant C_SEG_TABLE : seg_table_t := (
@@ -57,11 +54,9 @@ architecture simulation of fps_tb is
    signal valid    : std_logic := '0';
    signal digits   : std_logic_vector(31 downto 0);
    signal blank    : std_logic_vector( 7 downto 0);
-   signal fps_vld  : std_logic;
    signal avg_time : std_logic_vector(C_TIME_BITS-1 downto 0) := (others => '0');
    signal avg_vld  : std_logic := '0';
    signal avg_dig  : std_logic_vector(31 downto 0);
-   signal avg_blk  : std_logic_vector( 7 downto 0);
    signal avg_out  : std_logic;
    signal test_done : boolean := false;
    signal seg_s    : std_logic_vector( 6 downto 0);
@@ -104,10 +99,10 @@ begin
 
    i_fps : entity work.fps
       generic map (
-         G_CLK_FREQ   => C_CLK_FREQ,
-         G_TIME_BITS  => C_TIME_BITS,
-         G_AVG_CYCLES => 0,
-         G_DIGITS     => 8
+         G_CLK_FREQ  => C_CLK_FREQ,
+         G_TIME_BITS => C_TIME_BITS,
+         G_AVG_SHIFT => 0,
+         G_DIGITS    => 8
       )
       port map (
          clk_i    => clk,
@@ -115,17 +110,15 @@ begin
          time_i   => time_s,
          valid_i  => valid,
          digits_o => digits,
-         blank_o  => blank,
-         valid_o  => fps_vld
+         blank_o  => blank
       ); -- i_fps
 
    i_avg : entity work.fps
       generic map (
-         G_CLK_FREQ   => C_CLK_FREQ,
-         G_TIME_BITS  => C_TIME_BITS,
-         G_AVG_CYCLES => C_AVG_CYCLES,
-         G_FRAME_BITS => C_FRAME_BITS,
-         G_DIGITS     => 8
+         G_CLK_FREQ  => C_CLK_FREQ,
+         G_TIME_BITS => C_TIME_BITS,
+         G_AVG_SHIFT => C_AVG_SHIFT,
+         G_DIGITS    => 8
       )
       port map (
          clk_i    => clk,
@@ -133,7 +126,7 @@ begin
          time_i   => avg_time,
          valid_i  => avg_vld,
          digits_o => avg_dig,
-         blank_o  => avg_blk,
+         blank_o  => open,
          valid_o  => avg_out
       ); -- i_avg
 
@@ -261,21 +254,16 @@ begin
          test(C_TIMES(i));
       end loop;
 
-      -- A picture that ends during a calculation is shown after it
+      -- A pulse on valid during a calculation does not start a calculation
       start(941_176);
       for i in 1 to 10 loop
          wait until rising_edge(clk);
       end loop;
       start(1_959_183);
-      wait until rising_edge(clk) and fps_vld = '1';
-      assert bcd_value(digits) = 200
-         report "Wrong value before the picture during a calculation"
-         severity error;
-      wait until rising_edge(clk) and fps_vld = '1';
-      for i in 1 to 5 loop
+      for i in 1 to C_CALC_CYCLES loop
          wait until rising_edge(clk);
       end loop;
-      check(96, 1_959_183);
+      check(200, 941_176);
 
       -- Random times, spread evenly over the number of bits
       for i in 1 to 300 loop
@@ -290,51 +278,38 @@ begin
 
    -- Test of the average
    p_avg : process
-      variable seed1    : positive := 3;
-      variable seed2    : positive := 4;
-      variable r        : real;
-      variable t        : natural;
-      variable cnt      : natural := 0;
-      variable sum      : natural := 0;
-      variable quot     : unsigned(63 downto 0);
-      variable exp_v    : natural;
-      variable done_v   : boolean;
-      variable seen_v   : boolean;
-      variable num_avg  : natural := 0;
+      constant C_ONE  : natural := 2**C_AVG_SHIFT;
+      variable seed1  : positive := 3;
+      variable seed2  : positive := 4;
+      variable r      : real;
+      variable t      : natural;
+      variable avg    : natural;  -- With C_AVG_SHIFT fractional bits
+      variable diff   : integer;
+      variable seen_v : boolean;
    begin
       wait until rst = '0';
       wait until rising_edge(clk);
 
-      for i in 1 to 1000 loop
-         -- Mostly much shorter than C_AVG_CYCLES, sometimes longer or zero
+      for i in 0 to 999 loop
+         -- Around 100000 clock cycles, with some jumps
          uniform(seed1, seed2, r);
-         if r < 0.05 then
-            t := 0;
-         elsif r < 0.15 then
-            t := C_AVG_CYCLES + integer(r * 1.0e6);
-         elsif r < 0.4 then
-            t := 1 + integer(r * 100.0);
+         if i mod 200 < 100 then
+            t := 100_000 + integer(r * 2000.0);
          else
-            t := 1 + integer(r * 3000.0);
+            t := 30_000 + integer(r * 500.0);
          end if;
 
-         -- The expected average
-         cnt := cnt + 1;
-         sum := sum + t;
-         done_v := sum >= C_AVG_CYCLES or cnt = 2**C_FRAME_BITS - 1;
-         if done_v then
-            if sum = 0 then
-               exp_v := C_MAX;
+         -- The model of the average. The difference is divided by C_ONE,
+         -- rounded down (also when it is negative).
+         if i = 0 then
+            avg := t * C_ONE;
+         else
+            diff := t * C_ONE - avg;
+            if diff >= 0 then
+               avg := avg + diff / C_ONE;
             else
-               quot := to_unsigned(cnt, 32) * to_unsigned(C_CLK_FREQ, 32) / to_unsigned(sum, 64);
-               if quot > C_MAX then
-                  exp_v := C_MAX;
-               else
-                  exp_v := to_integer(quot);
-               end if;
+               avg := avg - (-diff + C_ONE - 1) / C_ONE;
             end if;
-            cnt := 0;
-            sum := 0;
          end if;
 
          avg_time <= std_logic_vector(to_unsigned(t, C_TIME_BITS));
@@ -347,22 +322,19 @@ begin
          for c in 1 to C_CALC_CYCLES loop
             wait until rising_edge(clk);
             if avg_out = '1' then
-               assert not seen_v report "Two averages for one picture" severity error;
                seen_v := true;
-               assert done_v and bcd_value(avg_dig) = exp_v
-                  report "Wrong average " & integer'image(bcd_value(avg_dig)) &
-                         ", expected " & integer'image(exp_v)
+               assert bcd_value(avg_dig) = expected_fps(avg / C_ONE)
+                  report "Wrong average frame rate " &
+                         integer'image(bcd_value(avg_dig)) & " for time " &
+                         integer'image(t) & ", expected " &
+                         integer'image(expected_fps(avg / C_ONE))
                   severity error;
             end if;
          end loop;
-         assert seen_v = done_v
-            report "Average missing or too early" severity error;
-         if done_v then
-            num_avg := num_avg + 1;
-         end if;
+         assert seen_v report "No frame rate for an average" severity error;
       end loop;
 
-      report "Average test finished, " & integer'image(num_avg) & " averages checked";
+      report "Average test finished";
       if not test_done then
          wait until test_done;
       end if;
