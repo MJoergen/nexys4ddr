@@ -8,9 +8,9 @@ buttons on the board. The same design also runs on the
 XC7A200T FPGA, and shows the picture in 800x600, see [MEGA65](#mega65).
 
 All 240 DSPs of the FPGA are used in parallel for the calculation, and the
-picture is stored in block RAM. Generating a complete picture takes about 1.84 ms
-(estimated by the model), with the main clock at 188.24 MHz. On the MEGA65 it
-takes about 1.32 ms, with 56% more pixels.
+picture is stored in block RAM. Generating a complete picture takes about 2.31 ms
+(estimated by the model), with the main clock at 150 MHz. On the MEGA65, with
+the main clock at 188.24 MHz, it takes about 1.32 ms, with 56% more pixels.
 
 ## The algorithm
 For each pixel, which corresponds to a complex number $c$, we iterate
@@ -44,14 +44,14 @@ results are:
 | --------------- | ------------------------ | --------- | ---------------------- | ---------
 | DSP48E1         | 240                      | 240       | 450                    | 740
 | Block RAM       | 128 RAMB36 + 2 RAMB18    | 135 RAMB36 | 128 RAMB36 + 2 RAMB18 | 365 RAMB36
-| Slices          | 14,723                   | 15,850    | 29,964                 | 33,650
-| LUTs            | 42,252                   | 63,400    | 81,646                 | 134,600
-| Registers       | 45,018                   | 126,800   | 93,443                 | 269,200
+| Slices          | 14,508                   | 15,850    | 29,964                 | 33,650
+| LUTs            | 42,035                   | 63,400    | 81,646                 | 134,600
+| Registers       | 43,217                   | 126,800   | 93,443                 | 269,200
 | Resolution      | 640x480                  |           | 800x600                |
-| Clock frequency | 188.24 MHz               |           | 188.24 MHz             |
-| Initial FPS     | 542 (estimated)          |           | 756 (estimated)        |
-| Worst-case FPS  | 92 (estimated)           |           | 113 (estimated)        |
-| Setup slack     | +0.092 ns                |           | +0.186 ns              |
+| Clock frequency | 150.00 MHz               |           | 188.24 MHz             |
+| Initial FPS     | 432 (estimated)          |           | 756 (estimated)        |
+| Worst-case FPS  | 73 (estimated)           |           | 113 (estimated)        |
+| Setup slack     | +0.355 ns                |           | +0.186 ns              |
 | Hold slack      | +0.014 ns                |           | +0.013 ns              |
 
 See [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
@@ -81,7 +81,7 @@ files that are in both clock domains are in [`src/`](src).
 | [`src/vga/palette_pkg.vhd`](src/vga/palette_pkg.vhd) | The four colour palettes, which convert the count of a pixel to its colour.
 | [`src/vga/overlay.vhd`](src/vga/overlay.vhd), [`src/vga/font_pkg.vhd`](src/vga/font_pkg.vhd) | Frame rate overlay. `overlay` shows the frame rate in the top right corner of the picture, with the digits of the font in `font_pkg`.
 | [`font/`](font) | The script that generates `font_pkg.vhd` from the [Spleen](https://github.com/fcambus/spleen) 16x32 font, and the license of the font (BSD 2-Clause, see [`font/LICENSE.spleen`](font/LICENSE.spleen)).
-| [`src/clk_rst.vhd`](src/clk_rst.vhd) | Clock and reset generation: 188.24 MHz for the calculation and the pixel clock for VGA (25 MHz for 640x480, 40 MHz for 800x600), each with a synchronous reset.
+| [`src/clk_rst.vhd`](src/clk_rst.vhd) | Clock and reset generation: the main clock for the calculation (150 MHz, or 188.24 MHz on the MEGA65) and the pixel clock for VGA (25 MHz for 640x480, 40 MHz for 800x600), each with a synchronous reset.
 | [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a Python model of the iterator count (`iterator_model.py`), a vectorized model of the complete picture (`model.py`), the same bit-accurate model in VHDL (`iterator_model_pkg.vhd`, used by the testbenches), and a script (`cmp_rtl.py`) that compares the output of the testbench `main_tb` with this model.
 | [`nexys4ddr.xdc`](nexys4ddr.xdc), [`mega65-r6.xdc`](mega65-r6.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints for each board, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make nexys4ddr`. The script gets the FPGA part, the top level and the list of source files from the Makefile, so it must be run through `make nexys4ddr` or `make mega65-r6`.
 | [`mandelbrot.xlsx`](mandelbrot.xlsx) | Spreadsheet used during the design. It iterates the example point -1+0.5i from [the iterator section](ALGORITHM.md#iterator) using real numbers.
@@ -101,9 +101,9 @@ the board. The switch numbers are the bit numbers of the switch input, i.e.
 | Switches 3 to 7 | Not used.
 | `CPU RESET` | Resets the design and returns to the initial view.
 
-While a button is held down, the view is updated about 22 times per second. Each
-update pans by one pixel, or changes the size of a pixel by about 1.6%
-(roughly 40% per second). The initial view shows the real axis from -1.67 to 1
+While a button is held down, the view is updated about 18 times per second (22
+on the MEGA65). Each update pans by one pixel, or changes the size of a pixel
+by about 1.6% (roughly 33% per second, 40% on the MEGA65). The initial view shows the real axis from -1.67 to 1
 and the imaginary axis from -1 to 1. See
 [The top level](ALGORITHM.md#the-top-level) for details.
 

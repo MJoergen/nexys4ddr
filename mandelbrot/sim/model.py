@@ -52,7 +52,8 @@ MEGA65_NUM_COLS = 800
 MEGA65_NUM_ROWS = 600
 MEGA65_NUM_ITERATORS = 450
 MEGA65_PIXELS = 4
-MAIN_CLOCK_KHZ = 1200e3 / 6.375  # The main clock, see clk_rst.vhd
+MEGA65_MAIN_CLOCK_KHZ = 1200e3 / 6.375
+MAIN_CLOCK_KHZ = 1200e3 / 8.0    # Must match C_MAIN_DIVIDE in nexys4ddr.vhd
 
 
 def wrap(v: ArrayLike, bits: int) -> IntArray:
@@ -360,8 +361,9 @@ def main() -> None:
     print(f"On the MEGA65 R6 ({MEGA65_NUM_COLS}x{MEGA65_NUM_ROWS}, "
           f"{MEGA65_NUM_ITERATORS} column modules, {MEGA65_PIXELS} pixels in "
           f"each write): {cycles} clock cycles, i.e. "
-          f"{cycles / MAIN_CLOCK_KHZ:.2f} ms "
-          f"({MAIN_CLOCK_KHZ * 1000 / cycles:.0f} pictures per second)")
+          f"{cycles / MEGA65_MAIN_CLOCK_KHZ:.2f} ms at "
+          f"{MEGA65_MAIN_CLOCK_KHZ / 1000:.3f} MHz "
+          f"({MEGA65_MAIN_CLOCK_KHZ * 1000 / cycles:.0f} pictures per second)")
 
     if args == ["--png"]:
         from PIL import Image

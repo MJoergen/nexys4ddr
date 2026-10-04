@@ -57,15 +57,26 @@ architecture structural of nexys4ddr is
 
    -- The number of pixels in each write to the display memory. Writing more
    -- than one pixel at a time makes the picture faster (see mega65_r6.vhd).
-   -- With four pixels the model estimates 1.11 ms for the initial picture,
-   -- against 1.84 ms, but the design then uses 97.5% of the slices of the
-   -- XC7A100T, and has only +0.012 ns of setup slack (see ALGORITHM.md).
+   -- With four pixels the model estimates 1.39 ms for the initial picture,
+   -- against 2.31 ms, but the design then uses 97.5% of the slices of the
+   -- XC7A100T, and had only +0.012 ns of setup slack at 188.24 MHz (see
+   -- ALGORITHM.md).
    constant C_PIXELS        : integer := 1;
 
    -- The video mode (see video_pkg.vhd), and the divider of the VGA clock,
    -- which gives the pixel clock (1200 MHz / 48 = 25 MHz, see clk_rst.vhd).
    constant C_VIDEO         : video_mode_t := C_VIDEO_640X480;
    constant C_VGA_DIVIDE    : integer := 48;
+
+   -- The divider of the MAIN clock (see clk_rst.vhd), and its frequency in Hz.
+   -- 1200 MHz / 8 = 150 MHz. The model (sim/model.py) estimates 2.04 million
+   -- clock cycles for the worst case picture (every pixel needs the maximum
+   -- count), i.e. 73 pictures per second, still well above the 60 Hz of the
+   -- VGA output. The MEGA65 uses 188.235 MHz, but the lower clock frequency
+   -- gives more setup slack (+0.355 ns against +0.092 ns, see ALGORITHM.md),
+   -- and so room for more logic.
+   constant C_MAIN_DIVIDE   : real    := 8.0;
+   constant C_MAIN_FREQ     : natural := natural(1200.0E6 / C_MAIN_DIVIDE);
 
    -- The address distance between two picture columns in the display memory,
    -- see dispatcher.vhd. 512 rows per column means the address is the column
@@ -109,7 +120,8 @@ begin
 
    i_clk_rst : entity work.clk_rst
       generic map (
-         G_VGA_DIVIDE => C_VGA_DIVIDE
+         G_MAIN_DIVIDE => C_MAIN_DIVIDE,
+         G_VGA_DIVIDE  => C_VGA_DIVIDE
       )
       port map (
          clk_i      => clk_i,
@@ -127,6 +139,7 @@ begin
 
    i_main : entity work.main
       generic map (
+         G_CLK_FREQ      => C_MAIN_FREQ,
          G_NUM_ITERATORS => C_NUM_ITERATORS,
          G_PIXELS        => C_PIXELS,
          G_NUM_COLS      => C_VIDEO.h_visible,

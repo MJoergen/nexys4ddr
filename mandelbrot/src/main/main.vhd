@@ -2,14 +2,15 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This module runs entirely in the MAIN clock domain (188.235 MHz). It
+-- This module runs entirely in the MAIN clock domain (G_CLK_FREQ). It
 -- controls the view (from the buttons and switches), runs the dispatcher that
 -- calculates the picture, and writes the result to the display memory.
 --
 -- The view is controlled by the buttons and switches on the board:
 --   btn_i(4)         : Zoom in. If sw_i(2) is set then zoom out instead.
 --   btn_i(3 downto 0): Move the view left, right, up and down.
--- While a button is pressed, the view is updated about 22 times per second.
+-- While a button is pressed, the view is updated every 2^23 clock cycles, i.e.
+-- about 18 (150 MHz) or 22 (188.235 MHz) times per second.
 -- The view is kept inside the range -2 to 2, see view.vhd.
 -- Switches 0 and 1 select the colour palette, but they are used in vga.vhd, not
 -- here. The other switches are not used.
@@ -22,6 +23,9 @@ use ieee.numeric_std_unsigned.all;
 
 entity main is
    generic (
+      -- The frequency of the MAIN clock in Hz, used to calculate the frame
+      -- rate. This depends on the board, so it is set by the top level module.
+      G_CLK_FREQ      : natural;
       -- The number of column modules, i.e. iterators and DSPs. This depends on
       -- the size of the FPGA, so it is set by the top level module.
       G_NUM_ITERATORS : integer;
@@ -37,7 +41,7 @@ entity main is
       G_COL_STRIDE    : integer
    );
    port (
-      clk_i     : in  std_logic;                      -- 188.235 MHz
+      clk_i     : in  std_logic;                      -- G_CLK_FREQ
       rst_i     : in  std_logic;
 
       btn_i     : in  std_logic_vector( 4 downto 0);  -- "CLRUD"
@@ -72,10 +76,6 @@ architecture structural of main is
    constant C_SIZE_X        : real :=  2.6667;
    constant C_SIZE_Y        : real :=  2.0000;
 
-   -- The frequency of the MAIN clock (1200 MHz / 6.375, see clk_rst.vhd),
-   -- used to calculate the frame rate.
-   constant C_CLK_FREQ      : natural := 188_235_294;
-
    signal startx         : std_logic_vector(17 downto 0);
    signal starty         : std_logic_vector(17 downto 0);
    signal stepx          : std_logic_vector(17 downto 0);
@@ -99,7 +99,8 @@ architecture structural of main is
    signal fps_valid      : std_logic;
    signal fps_toggle     : std_logic := '0';
 
-   -- 23 bits = 8 million cycles @ 188.235 MHz = 22 times per second.
+   -- 23 bits = 8 million cycles, i.e. 18 (150 MHz) or 22 (188.235 MHz) times
+   -- per second.
    signal upd_cnt        : std_logic_vector(22 downto 0) := (others => '0');
    signal upd            : std_logic;
    signal btn_r          : std_logic_vector(4 downto 0);
@@ -211,7 +212,7 @@ begin
    -- MEGA65 R6.
    i_fps : entity work.fps
       generic map (
-         G_CLK_FREQ  => C_CLK_FREQ,
+         G_CLK_FREQ  => G_CLK_FREQ,
          G_TIME_BITS => 27,
          G_DIGITS    => 8
       )

@@ -72,6 +72,7 @@ begin
 
    i_main : entity work.main
       generic map (
+         G_CLK_FREQ      => 100_000_000,   -- As p_clk
          G_NUM_ITERATORS => G_NUM_ITERATORS,
          G_PIXELS        => G_PIXELS,
          G_NUM_COLS      => G_NUM_COLS,

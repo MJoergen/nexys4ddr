@@ -71,6 +71,13 @@ architecture structural of mega65_r6 is
    constant C_VIDEO         : video_mode_t := C_VIDEO_800X600;
    constant C_VGA_DIVIDE    : integer := 30;
 
+   -- The divider of the MAIN clock (see clk_rst.vhd), and its frequency in Hz.
+   -- 1200 MHz / 6.375 = 188.235 MHz. The model (sim/model.py) estimates 1.66
+   -- million clock cycles for the worst case picture (every pixel needs the
+   -- maximum count), i.e. 113 pictures per second.
+   constant C_MAIN_DIVIDE   : real    := 6.375;
+   constant C_MAIN_FREQ     : natural := natural(1200.0E6 / C_MAIN_DIVIDE);
+
    -- The address distance between two picture columns in the display memory,
    -- see dispatcher.vhd. With 1024 addresses per column (the column followed
    -- by the row) the picture would not fit in the 2^19 pixels of the display
@@ -132,7 +139,8 @@ begin
 
    i_clk_rst : entity work.clk_rst
       generic map (
-         G_VGA_DIVIDE => C_VGA_DIVIDE
+         G_MAIN_DIVIDE => C_MAIN_DIVIDE,
+         G_VGA_DIVIDE  => C_VGA_DIVIDE
       )
       port map (
          clk_i      => clk_i,
@@ -150,6 +158,7 @@ begin
 
    i_main : entity work.main
       generic map (
+         G_CLK_FREQ      => C_MAIN_FREQ,
          G_NUM_ITERATORS => C_NUM_ITERATORS,
          G_PIXELS        => C_PIXELS,
          G_NUM_COLS      => C_VIDEO.h_visible,
