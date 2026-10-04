@@ -35,8 +35,9 @@ angle=atan(a/b):
 | 6 | 89 |  92 | 44.1  |  7.7 |
 
 The worst case is halfway between two lines, where the error is
-1-cos(7.7/2 degrees), i.e. about 0.2%. A simulation over all (x,y) on the
-screen confirms a maximum error of 0.23%, compared to 3.0% in Episode 6.
+1-cos(7.7/2 degrees), i.e. about 0.2%. The testbench [rms\_tb.vhd](rms_tb.vhd)
+sweeps over all (x,y) on the screen, and confirms a maximum error of 0.23%,
+compared to 3.0% in Episode 6. Run it with `make sim` (requires GHDL).
 
 This change is in rms.vhd.
 

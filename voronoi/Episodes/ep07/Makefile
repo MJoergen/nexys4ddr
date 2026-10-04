@@ -6,7 +6,13 @@ voronoi.bit: voronoi.tcl voronoi.vhd voronoi.xdc vga.vhd dist.vhd minmax.vhd rms
 fpga: voronoi.bit
 	djtgcfg prog -d Nexys4DDR -i 0 --file $<
 
+# Simulate the rms module, and report the error of the approximation.
+sim: rms_tb.vhd rms.vhd minmax.vhd
+	ghdl -a --std=08 minmax.vhd rms.vhd rms_tb.vhd
+	ghdl --elab-run --std=08 rms_tb
+
 clean:
+	rm -rf work-obj08.cf
 	rm -rf usage_statistics_webtalk.*
 	rm -rf vivado*
 	rm -rf voronoi.bit
