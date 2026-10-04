@@ -129,13 +129,6 @@ not registered (the register P is not used), so the product is ready one clock
 cycle after the inputs, and the sum in the same clock cycle. The "DSP Final
 Report" in `vivado.log` shows how the DSP is used (`C'+(A'*B')'`).
 
-An earlier version used the Xilinx macro `mult_macro` for the multiplier, and
-added cx and cy/2 in the FPGA fabric. Using the post-adder instead saves about
-9,400 LUTs and 14,100 registers (most of these are the registers a\_r, b\_r,
-and c\_r, which are now in the DSP), and the paths through the iterator are no
-longer close to being critical (see
-[Resources and timing closure](#resources-and-timing-closure)).
-
 ## Iterator
 This component ([`src/main/iterator.vhd`](src/main/iterator.vhd)) performs the main
 calculation. It takes as input the complex number c (or rather the real and
