@@ -26,7 +26,7 @@ PHY. We'll leave the network protocols for the following episodes.
 In the following I'll summarize the main development in this episode:
 
 First of all, in the files top.vhd (lines 15-25) and top.xdc (lines 22-33)
-we've added the pins connecting to the Ethernet Phy. In top.vhd the Ethernet
+we've added the pins connecting to the Ethernet PHY. In top.vhd the Ethernet
 module is instantiated in lines 77-95.
 
 Since the Ethernet module needs a 50 MHz clock, we generate this in line 60 of
@@ -62,11 +62,11 @@ is up to the client to implement a buffering mechanism or to discard frames.
 ### eth\_tx
 It is different with the eth\_tx module. This client interface (lines 52-57) is
 a so-called "pulling" interface, where the client must make data available to
-the eth\_tx module, but can not control the rate of transfer. Again, this is to
+the eth\_tx module, but cannot control the rate of transfer. Again, this is to
 simplify the eth\_tx module.  When the client wants to send a frame of data,
 the client will pull "empty" low, and this causes the eth\_tx module to start
 transfer.  However, the Ethernet PHY requires a preamble to be sent first, and
-therefore the eth\_tx module can not being consuming (reading) data until the
+therefore the eth\_tx module cannot begin consuming (reading) data until the
 preamble is sent. And then one byte is consumed every four clock cycles only.
 Therefore, it is the eth\_tx module that needs to control when data is
 transferred.
@@ -84,7 +84,7 @@ simulation of just the Ethernet module.  This takes place in the testbench file
 tb\_eth.vhd. To run the simulation, just type "make" in the eth directory.
 
 The actual test consists of sending a number of frames first into the eth\_tx
-module and then connect directly to the eth\_rx module, thus effectively
+module and then connecting it directly to the eth\_rx module, thus effectively
 simulating a loopback in the Ethernet PHY.
 
 To save a lot of duplicate code, I've made use of a common procedure written in
@@ -111,7 +111,7 @@ contents of the wide data bus reads conveniently left-to-right.
 
 ### Wide data bus
 The wide data bus uses the same interface as the byte-oriented data bus, except
-that another signal "bytes" has been added. This contains the number of valid
+that another signal "bytes" has been added. This contains the number of
 bytes (starting from the MSB) that are valid in the current clock cycle.  A
 value of 0 means that all bytes in the "data" signal are valid.
 
@@ -135,23 +135,23 @@ the signal tx\_valid\_r is asserted.
 This module performs the opposite operation, i.e. converts a wide bus interface
 into a stream of bytes. However, this time the input stream is a pushing
 interface, but the output stream is a pulling interface. The reason for this
-asymmetry is because this module must provide data to the eth\_tx module,
+asymmetry is that this module must provide data to the eth\_tx module,
 which requires a pulling interface.
 
-This module is somewhat more complicated that byte2wide, because this module
+This module is somewhat more complicated than byte2wide, because this module
 receives a wide data bus and only outputs one byte at a time, and therefore the
 input stream needs to be buffered in a FIFO.
 
-So the module instantiates a fifo in lines 69-85, more on that later.
+So the module instantiates a FIFO in lines 69-85, more on that later.
 This FIFO stores all the input signals and the following state machine controls
 reading out from this FIFO.
 
-The state machine is controlled by the rd\_empty signal that indicates, whether
+The state machine is controlled by the rd\_empty signal that indicates whether
 or not data is present in the FIFO, and by the tx\_rden\_i signal that
 indicates the receiver has consumed a byte of data.
 
 The data to the output stream is taken from the MSB of the data\_r signal. In
-order to avoid have a large multiplexer reading from an arbitrary position of
+order to avoid having a large multiplexer reading from an arbitrary position of
 this wide data bus, I've instead chosen to use a simple shift register. This
 approach uses much less logic within the FPGA.
 
@@ -169,17 +169,17 @@ only has a data bus of 72 bits. The necessary number of FIFOs is calculated in
 line 33.
 
 Note the use of the "generate" statement in line 57 to instantiate all the
-FIFOs at once. Note futhermore that all the output signals, i.e. fifo\_out,
+FIFOs at once. Note furthermore that all the output signals, i.e. fifo\_out,
 rd\_empty, wrerr, and rderr, must all be std\_logic\_vectors, because otherwise
 all FIFO instantiations would drive the same signal and this would result in
-"Multiple Drivers" error.
+a "Multiple Drivers" error.
 
 ## Clock domains
 
 The Ethernet module provides a debug signal (currently just counting the number
 of correctly received frames), but this signal (line 42 in top.vhd) is
 synchronous to the Ethernet clock.  However, the VGA module requires a signal
-synchronuous to the VGA clcok, and therefore we need a Clock Domain Crossing,
+synchronous to the VGA clock, and therefore we need a Clock Domain Crossing.
 This is handled in lines 98-111 in top.vhd, where the cdc module is
 instantiated.
 
@@ -192,7 +192,7 @@ than one clock domain. All other modules consist of only a single clock domain
 each. Again, this minimizes the opportunity for clock domain errors.
 
 The Clock Domain Crossing module (cdc.vhd) is a wrapper for a Xilinx
-Parameterized Macro (XPM), and these XPM's have to be explicitly enabled. This
+Parameterized Macro (XPM), and these XPMs have to be explicitly enabled. This
 is done in line 14 of the Makefile.
 
 This approach for a CDC is a very general approach and uses a lot of FPGA
@@ -209,7 +209,7 @@ data is transferred yet. However, I've added in lines 50-67 of eth/eth.vhd a
 simple counter to count the number of valid Ethernet frames received.
 
 When running in hardware the VGA should display a counter that increments
-occassionally, corresponding to each frame received. For instance, ping'ing a
-non-existant IP address on the LAN will cause an ARP request to be broadcasted
+occasionally, corresponding to each frame received. For instance, pinging a
+non-existent IP address on the LAN will cause an ARP request to be broadcast
 once every second, and this should be reflected in the counter.
 

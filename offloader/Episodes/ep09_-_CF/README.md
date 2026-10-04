@@ -2,8 +2,8 @@
 # Episode 9 : "CF"
 
 Welcome to this ninth episode of "CPU offloader", where we implement the first
-part of the Continued Fraction algorithm. This is a general purpose factoring
-algorithm i.e. it can factor any number N.
+part of the Continued Fraction algorithm. This is a general-purpose factoring
+algorithm, i.e. it can factor any number N.
 
 ## Factoring algorithms
 
@@ -12,7 +12,7 @@ The idea of many factoring algorithms is to generate lots of pairs of numbers
 completely factored. By taking the product of several such relations it may be
 possible to write the product of the y's as a square. For instance, if we can
 find y\_1 and y\_2 such that the product y\_1 y\_2 only has even powers of each
-prime factor then this product is a square and we can find z such that y\_1
+prime factor, then this product is a square and we can find z such that y\_1
 y\_2 = z^2.
 
 From this it follows that (x\_1 x\_2)^2 = z^2 mod N, or written differently:
@@ -52,7 +52,7 @@ starting from the pair of recurrence relations:
 with the initial conditions (x\_0 = 1, x\_1 = M, d\_0 = 0, d\_1 = 1), where the
 positive integer a\_n is selected such that x\_(n+1) / d\_(n+1) is close to
 sqrt(N). Here M = floor(sqrt(N)). Inserting, solving for a\_n, and choosing to
-round down to nearest integer gives
+round down to the nearest integer gives
 
 3. a\_n = floor[ (sqrt(N) d\_(n-1) - x\_(n-1)) / (x\_n - sqrt(N) d\_n) ].
 
@@ -151,19 +151,19 @@ Then we have the following properties:
 * x\_n^2 = p\_n w\_n mod N
 * p\_n < 2M.
 
-One final note is that all values (expept for x) in this method have only half
+One final note is that all values (except for x) in this method have only half
 as many bits as N.
 
 ## DivMod
 This module calculates the division n/d and returns the quotient q and the
-remainder d.
+remainder r.
 
 The control signals follow the same pattern as before: The values of N and D
-are presented on the input busses val\_n\_i and val\_d\_i, and the input signal
+are presented on the input buses val\_n\_i and val\_d\_i, and the input signal
 start\_i is pulsed high for one clock cycle.  Some time later the output signal
 valid\_o is held high, and the result of the calculation will be presented on
-the output bussess res\_q\_o and res\_r\_o.  These values will remain valid
-until next time start\_i is asserted.
+the output buses res\_q\_o and res\_r\_o.  These values will remain valid
+until the next time start\_i is asserted.
 
 There is an additional output signal busy\_o which is asserted when a
 calculation is in progress. During a calculation the input signal start\_i is
@@ -197,9 +197,9 @@ expected should the CF module be tested.
 
 The CF module has its own test bench tb\_cf.vhd that sends three commands with
 the values N=2059, N=2623, and N=3922201. For each value the test bench
-verifies the first several responses generated.  I've added a spread sheet
+verifies the first several responses generated.  I've added a spreadsheet
 cf.xlsx which performs the calculations in the algorithm described. Using this
-spread sheet it is possible to calculate the expected responses.
+spreadsheet it is possible to calculate the expected responses.
 
 ## Testing in hardware
 Just run the program main.py, and it will use the number N=7\*(2^128+1). This design

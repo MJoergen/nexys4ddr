@@ -9,12 +9,12 @@ to respond to UDP packets.
 The design I've chosen is to have a generic UDP processing module in udp.vhd
 that processes incoming UDP frames and extracts the payload to a client.
 Similarly, the UDP module receives a payload from the client and encapsulates
-it into an UDP frame to be sent.
+it into a UDP frame to be sent.
 
 ## UDP client
 
 The interface from the UDP module to the UDP client is the same as before, i.e.
-a 60 byte wide bus interface.
+a 60-byte-wide bus interface.
 
 The current design has a very simple client (inverter.vhd) that bit-wise
 inverts the received payload and sends it back.
@@ -26,8 +26,8 @@ The UDP port number to use has been added in the file top.vhd and the test
 bench eth/tb\_eth.vhd.
 
 The UDP module (like the ARP and ICMP modules) is instantiated within the eth
-module.  However, the UDP client (here inverter.vhd) is instantiated from the
-top module and simultaneously from the test bench.
+module.  However, the UDP client (here inverter.vhd) is instantiated both from the
+top module and from the test bench.
 
 ## UDP module
 The UDP module contains a receive path (Ethernet to client) and a transmit path
@@ -38,12 +38,12 @@ send.  This design allows the client to send multiple replies to a single
 request.
 
 ## Testing in simulation
-The test bench has been updated to send a single small UDP frame and verifies
-it receives a small UDP frame as response.
+The test bench has been updated to send a single small UDP frame and verify
+that it receives a small UDP frame as response.
 
 ## Testing in hardware
 Since the design can now receive and send UDP frames, I've chosen to write a
-small python program main.py to verify this. It sends a small UDP frame to the
+small Python program main.py to verify this. It sends a small UDP frame to the
 FPGA and prints out whatever it receives as response.
 
 ## Future

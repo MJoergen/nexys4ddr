@@ -19,7 +19,7 @@ pretty fast, compared to using the USB port. And the reason for using UDP
 packets is that it is a compromise between what is easy to implement in the
 FPGA and what is easy to implement on the host PC. I could alternatively have
 used raw Ethernet packets, but that would probably require root access to the
-network interface on the PC, On the other hand, using TCP would require a lot of
+network interface on the PC. On the other hand, using TCP would require a lot of
 design work on the FPGA. Therefore, UDP was chosen as a compromise.  This
 choice does however require building a network stack on the FPGA, in particular
 responding to e.g. ARP packets. More on that later.
@@ -34,22 +34,22 @@ The design will be generic enough to accommodate many different applications.
 One of the first applications I intend to write is hardware acceleration of
 integer factorization. This is the problem of determining the integers p and q,
 given the value of N=p\*q, where N is a very large integer, say approx. 50
-digits.  On a regular CPU this is a very compute intensive calculation, see
+digits.  On a regular CPU this is a very compute-intensive calculation, see
 e.g.  [here](https://en.wikipedia.org/wiki/Integer_factorization_records).
 However, many of the calculations can be massively parallelized leading
 (hopefully) to large performance gains.
 
 Another possible application is to perform advanced search and evaluation
-function of board games, e.g. chess.
+functions for board games, e.g. chess.
 
 ## Overall FPGA design ##
 
 The main idea as mentioned is to utilize the Ethernet port on the Nexys4DDR
 board.  The actual computations will be performed directly in the FPGA, and I
 have chosen to write the network stack (including the network protocols MAC,
-ARP, IP, UDP, etc)  directly in VHDL. An alternative is to build a small SoC,
+ARP, IP, UDP, etc.) directly in VHDL. An alternative is to build a small SoC,
 i.e. have a CPU running on the FPGA that runs the network stack.  However,
-since computation speed is important (that is after-all why we are offloading in
+since computation speed is important (that is after all why we are offloading in
 the first place), it makes sense to reduce network latency.
 
 To help debugging, we will make use of the VGA output of the Nexys4DDR.
@@ -83,7 +83,7 @@ receive and send UDP packets.
 7.  [**"UDP"**](Episodes/ep07_-_UDP). Here we will respond to UDP requests.
 ### Math ###
 8.  [**"MATH"**](Episodes/ep08_-_Math). Here we start with the first simple
-    matematical algorithms, here the integer square root.
+    mathematical algorithms, here the integer square root.
 9.  [**"CF"**](Episodes/ep09_-_CF). Here we will implement the Continued
     Fraction method to generate a large number of pairs (x, y) needed for the
     factorisation.
@@ -105,7 +105,7 @@ To get started you need an FPGA board. I'll be using
 The Nexys 4 DDR board uses a Xilinx FPGA, and the toolchain is called
 [Vivado](https://www.xilinx.com/support/download.html).
 Use the Webpack edition, because it is free to use.
-I'm using version 2018.2, but anythig newer than that is fine too.
+I'm using version 2018.2, but anything newer than that is fine too.
 
 ## Recommended additional information ##
 
