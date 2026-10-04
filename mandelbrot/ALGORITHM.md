@@ -842,11 +842,6 @@ which is only wires on the Nexys 4 DDR.
 A counter measures the time it takes to generate the picture, which is shown
 as a frame rate on the 7-segment display and on the VGA output, see
 [The top level](#the-top-level).
-Earlier versions showed this time on the LEDs instead, in units of 2^11 clock
-cycles, and also (selected with a switch) the total amount of time the column
-modules were waiting to write to the display memory, when the waiting-time statistic
-was enabled. The LEDs are no longer used, and the counters for the waiting
-time have been removed.
 
 The numbers measured on the board, with the main clock at 174.55 MHz, the
 waiting-time statistic built in, and the initial view, were:
