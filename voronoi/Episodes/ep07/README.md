@@ -24,15 +24,15 @@ The values of b are chosen as 128-j^2, and then a=round(sqrt(128^2-b^2)). This
 gives almost equidistant angles, as shown in the table below, where
 angle=atan(a/b):
 
- j |  a |  b  | angle | diff
----+----+-----+-------+-----
- 0 |  0 | 128 |  0.0  |
- 1 | 16 | 127 |  7.2  |  7.2
- 2 | 32 | 124 | 14.5  |  7.3
- 3 | 47 | 119 | 21.6  |  7.1
- 4 | 62 | 112 | 29.0  |  7.4
- 5 | 76 | 103 | 36.4  |  7.4
- 6 | 89 |  92 | 44.1  |  7.7
+| j |  a |  b  | angle | diff |
+|--:|---:|----:|------:|-----:|
+| 0 |  0 | 128 |  0.0  |      |
+| 1 | 16 | 127 |  7.2  |  7.2 |
+| 2 | 32 | 124 | 14.5  |  7.3 |
+| 3 | 47 | 119 | 21.6  |  7.1 |
+| 4 | 62 | 112 | 29.0  |  7.4 |
+| 5 | 76 | 103 | 36.4  |  7.4 |
+| 6 | 89 |  92 | 44.1  |  7.7 |
 
 The worst case is halfway between two lines, where the error is
 1-cos(7.7/2 degrees), i.e. about 0.2%. A simulation over all (x,y) on the
