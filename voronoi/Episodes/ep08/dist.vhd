@@ -2,14 +2,16 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This is a small combinatorial block that computes the distance
--- between two points.
+-- This is a small pipelined block that computes the distance
+-- between two points. The latency is 4 clock cycles: one here,
+-- and three in the rms module.
 entity dist is
    generic (
       G_RESOLUTION : integer;
       G_SIZE       : integer
    );
    port (
+      clk_i  : in  std_logic;
       x1_i   : in  std_logic_vector(G_SIZE-1 downto 0);
       y1_i   : in  std_logic_vector(G_SIZE-1 downto 0);
       x2_i   : in  std_logic_vector(G_SIZE-1 downto 0);
@@ -28,6 +30,8 @@ architecture structural of dist is
    -- These contain the horizontal and vertical displacements.
    signal xdist_s : std_logic_vector(G_SIZE-1 downto 0);
    signal ydist_s : std_logic_vector(G_SIZE-1 downto 0);
+   signal xdist_r : std_logic_vector(G_SIZE-1 downto 0);
+   signal ydist_r : std_logic_vector(G_SIZE-1 downto 0);
 
 begin
 
@@ -59,6 +63,15 @@ begin
    xdist_s <= xmax_s - xmin_s;
    ydist_s <= ymax_s - ymin_s;
 
+   -- Add a register to improve timing.
+   p_dist : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         xdist_r <= xdist_s;
+         ydist_r <= ydist_s;
+      end if;
+   end process p_dist;
+
    -- Calculate the distance.
    i_rms : entity work.rms
       generic map (
@@ -66,8 +79,9 @@ begin
          G_SIZE       => G_SIZE
       )
       port map (
-         x_i   => xdist_s,
-         y_i   => ydist_s,
+         clk_i => clk_i,
+         x_i   => xdist_r,
+         y_i   => ydist_r,
          rms_o => dist_o
       ); -- i_rms
 

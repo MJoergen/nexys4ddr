@@ -1,6 +1,6 @@
 # This is a tcl command script for the Vivado tool chain
 read_vhdl -vhdl2008 { \
-   voronoi.vhd vga.vhd \
+   voronoi.vhd clk.vhd vga.vhd \
    dist.vhd minmax.vhd rms.vhd move.vhd
 }
 read_xdc voronoi.xdc

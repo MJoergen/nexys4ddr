@@ -59,8 +59,8 @@ set_property -dict { PACKAGE_PIN V11   IOSTANDARD LVCMOS33 } [get_ports { led_o[
 
 
 # Clock definition
+# The 108 MHz VGA clock is derived automatically by Vivado from the MMCM settings.
 create_clock -name sys_clk -period 10.00 [get_ports {clk_i}];                          # 100 MHz
-create_generated_clock -name vga_clk -source [get_ports {clk_i}] -divide_by 4 [get_pins {vga_cnt_r_reg[1]/Q}];   # 25 Mhz
 
 # Configuration Bank Voltage Select
 set_property CFGBVS VCCO [current_design]
