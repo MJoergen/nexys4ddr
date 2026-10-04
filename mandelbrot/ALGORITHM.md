@@ -1,18 +1,6 @@
 # The algorithm and its implementation
-This describes in some detail how the Mandelbrot design works, and the main
-parts it is built from. See [README.md](README.md) for an overview, a list of
-files, and how to build and run the design.
-
-The design is implemented on the Nexys 4 DDR board, which uses a Xilinx FPGA
-XC7A100T. This FPGA has a total of 240 DSPs, which are all used for the actual
-calculations. Additionally, the FPGA contains 135 BRAMs (of 36 kbit each),
-which are used for storing the results of the calculation, i.e. the actual
-picture to be displayed. The same design also runs on the MEGA65 R6, with a
-larger FPGA (XC7A200T) and a resolution of 800x600 instead of 640x480, see
-[MEGA65 R6](#mega65-r6). The numbers in this document are for the Nexys 4 DDR,
-unless stated otherwise.
-
 ## Contents
+* [Introduction](#introduction)
 * [Instantiation hierarchy](#instantiation-hierarchy)
 * [The Mandelbrot iteration](#the-mandelbrot-iteration)
 * [Fixed point arithmetic](#fixed-point-arithmetic)
@@ -27,6 +15,20 @@ unless stated otherwise.
 * [Timing](#timing)
 * [Resources and timing closure](#resources-and-timing-closure)
   * [MEGA65 R6](#mega65-r6)
+
+## Introduction
+This describes in some detail how the Mandelbrot design works, and the main
+parts it is built from. See [README.md](README.md) for an overview, a list of
+files, and how to build and run the design.
+
+The design is implemented on the Nexys 4 DDR board, which uses a Xilinx FPGA
+XC7A100T. This FPGA has a total of 240 DSPs, which are all used for the actual
+calculations. Additionally, the FPGA contains 135 BRAMs (of 36 kbit each),
+which are used for storing the results of the calculation, i.e. the actual
+picture to be displayed. The same design also runs on the MEGA65 R6, with a
+larger FPGA (XC7A200T) and a resolution of 800x600 instead of 640x480, see
+[MEGA65 R6](#mega65-r6). The numbers in this document are for the Nexys 4 DDR,
+unless stated otherwise.
 
 ## Instantiation hierarchy
 The modules are instantiated as follows:
