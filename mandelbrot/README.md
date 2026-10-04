@@ -111,8 +111,8 @@ The resource usage is:
 | ------------------ | ------------------------ | --------- | ---------------------- | ---------
 | DSP48E1            | 240 (100%)               | 240       | 256 (35%)              | 740
 | Block RAM (RAMB36) | 129 (96%)                | 135       | 321 (88%)              | 365
-| Slices             | 14,505 (92%)             | 15,850    | 19,305 (57%)           | 33,650
-| LUTs               | 42,049 (66%)             | 63,400    | 49,250 (37%)           | 134,600
+| Slices             | 14,407 (91%)             | 15,850    | 19,316 (57%)           | 33,650
+| LUTs               | 42,037 (66%)             | 63,400    | 49,253 (37%)           | 134,600
 | Registers          | 43,610 (34%)             | 126,800   | 52,144 (19%)           | 269,200
 
 The performance and timing are:
@@ -123,8 +123,8 @@ The performance and timing are:
 | Clock frequency    | 150.00 MHz      | 148.97 MHz
 | Initial FPS        | 432 (estimated) | 203 (estimated)
 | Worst-case FPS     | 73 (estimated)  | 18 (estimated)
-| Setup slack        | +0.343 ns       | +0.002 ns
-| Hold slack         | +0.014 ns       | +0.041 ns
+| Setup slack        | +0.345 ns       | +0.301 ns
+| Hold slack         | +0.017 ns       | +0.045 ns
 
 See [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details.

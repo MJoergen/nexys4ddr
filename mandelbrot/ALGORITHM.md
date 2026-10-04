@@ -1029,8 +1029,8 @@ part xc7a100tcsg324-1, i.e. speed grade -1), which meets timing with a
 | ---------------- | -------- | --------- | --------
 | DSP48E1          | 240      | 240       | 100
 | Block RAM        | 128 RAMB36 + 2 RAMB18 | 135 RAMB36 | about 96
-| Slices           | 14,505   | 15,850    | 92
-| LUTs             | 42,049   | 63,400    | 66
+| Slices           | 14,407   | 15,850    | 91
+| LUTs             | 42,037   | 63,400    | 66
 | Registers        | 43,610   | 126,800   | 34
 | Clock buffers    | 3 BUFG, 1 MMCM | |
 
@@ -1090,8 +1090,8 @@ The timing after routing is:
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.343 ns (TNS 0)
-| Hold (WHS)  | +0.014 ns (THS 0)
+| Setup (WNS) | +0.345 ns (TNS 0)
+| Hold (WHS)  | +0.017 ns (THS 0)
 
 These are the values from `report_timing_summary` on the routed design
 (`nexys4ddr.dcp`), after the post-route `phys_opt_design`.
@@ -1267,6 +1267,11 @@ The display memory then got a register of the read address in each group of
 makes the read latency four clock cycles. The build with them has +0.343 ns
 of setup slack, with the worst path of the same kind, and the 40 paths from
 the MAIN clock to the VGA clock are all reported as safe by `report_cdc`.
+The tables above are from a later run, with the same cell counts after
+synthesis: +0.345 ns of setup slack (the same kind of path) and +0.017 ns of
+hold slack (from the data register of a block of the display memory to its
+BRAM), and the 40 paths from the MAIN clock to the VGA clock have +8.45 ns of
+slack and are all reported as safe.
 
 The complete run of `make nexys4ddr` takes about 6.5 minutes (synthesis about 2.5
 minutes, placement about 1.75 minutes, routing about 1 minute), on a machine
@@ -1290,32 +1295,37 @@ rows, because 1024 is not a multiple of 120. A run of the same steps as
 | ---------------- | -------- | --------- | --------
 | DSP48E1          | 256      | 740       | 35
 | Block RAM        | 320 RAMB36 + 2 RAMB18 | 365 RAMB36 | 88
-| Slices           | 19,305   | 33,650    | 57
-| LUTs             | 49,250   | 134,600   | 37
+| Slices           | 19,316   | 33,650    | 57
+| LUTs             | 49,253   | 134,600   | 37
 | Registers        | 52,144   | 269,200   | 19
 
 | Check | Slack
 | ----- | -----
-| Setup (WNS) | +0.002 ns (TNS 0)
-| Hold (WHS)  | +0.041 ns (THS 0)
+| Setup (WNS) | +0.301 ns (TNS 0)
+| Hold (WHS)  | +0.045 ns (THS 0)
 
 After synthesis there are 78,846 LUT cells and 52,172 registers. The worst
-setup path of the main clock is a route from the registers of a group in the
-dispatcher (`grp_cx_r`) to a job module (`res_cx_r`), with no logic, and
-95% of its delay in the routing. The VGA clock has +0.141 ns of setup slack:
-its worst path is from the read address register of the display memory to
-the copy of the pixel position in a group, also only routing (8.5 ns). The
-40 paths from the MAIN clock to the VGA clock are reported as safe by
-`report_cdc`. The colour and sync outputs to the video DAC are registered in
-the IOBs.
+setup path of the main clock is a route in the display memory, from the data
+register of a group (`grp_data_r`) to one of its BRAMs, with no logic, and
+94% of its delay in the routing. The worst hold path (+0.045 ns) is of the
+same kind. The VGA clock has +0.437 ns of setup slack: its worst path is from
+the pixel counter (`pix_y` in `vga`) to the copy of the read address in a
+group of the display memory (`rd_grp_addr`), also only routing (8.4 ns of
+the 9.26 ns). The 40 paths from the MAIN clock to the VGA clock have +8.86 ns
+of slack, and are reported as safe by `report_cdc`. The colour and sync
+outputs to the video DAC are registered in the IOBs.
 
 The routing is close to its limit. The router first leaves about 10,000 to
 14,000 nodes with overlaps (more nets than routing resources), and then needs
-several iterations to resolve them. An earlier run of the same design took 10
-minutes for the routing and had +0.252 ns of setup slack; the run above took
-61 minutes, and only met timing after the post-route `phys_opt_design`. With
-450 job modules the router left 29,614 overlaps, and did not finish
-within an hour. The cause is the display memory: its 320 BRAMs (88%) are
+several iterations to resolve them (11,383 nodes in the run above). The run
+time of the routing varies a lot: the run above took 13 minutes for the
+routing, and met timing after it, so the post-route `phys_opt_design` did
+nothing. The complete run of `make mega65-r6` took about 20 minutes
+(synthesis 3 minutes, placement 2 minutes). Earlier runs of the same design
+took 10 minutes for the routing, with +0.252 ns of setup slack, and 61
+minutes, which only met timing (+0.002 ns) after the post-route
+`phys_opt_design`. With 450 job modules the router left 29,614 overlaps, and
+did not finish within an hour. The cause is the display memory: its 320 BRAMs (88%) are
 spread over the whole FPGA, and so are the routes of the write data and of
 the read address, while the 800x600 design below only used 128 BRAMs (35%).
 With 64 job modules the routing took 1.5 minutes. The frame rate goes down
