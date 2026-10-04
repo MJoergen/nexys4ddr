@@ -15,7 +15,7 @@ use std.textio.all;
 -- between two picture columns, and the bits of the address, by default as on
 -- the Nexys 4 DDR (nexys4ddr.vhd). They can be set with GENERICS, e.g. as on
 -- the MEGA65 R6 (mega65_r6.vhd):
---   GENERICS="G_NUM_ITERATORS=450 G_PIXELS=4 G_NUM_COLS=800 G_NUM_ROWS=600 G_COL_STRIDE=600"
+--   GENERICS="G_NUM_ITERATORS=256 G_PIXELS=4 G_JOB_ROWS=64 G_NUM_COLS=1280 G_NUM_ROWS=1024 G_COL_STRIDE=1024 G_ADDR_BITS=21"
 --
 -- The testbench is not self-checking. Instead the output is compared with the
 -- bit-accurate model using the script cmp_rtl.py. A complete picture takes

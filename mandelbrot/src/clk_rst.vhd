@@ -66,9 +66,10 @@
 -- * Nexys 4 DDR: The VCO is 100 MHz * 12 = 1200 MHz (the maximum for speed
 --   grade -1). The VGA clock is 1200/48 = 25 MHz (640x480), and the main clock
 --   is 1200/8 = 150 MHz.
--- * MEGA65: The VCO is 1200 MHz too (speed grade -2 allows up to 1440 MHz).
---   The VGA clock is 1200/30 = 40 MHz (800x600), and the main clock is
---   1200/6.375 = 188.235 MHz.
+-- * MEGA65: The VCO is 100 MHz / 5 * 54 = 1080 MHz (speed grade -2 allows up
+--   to 1440 MHz), the only VCO frequency which gives the 108 MHz pixel clock
+--   of 1280x1024 exactly. The VGA clock is 1080/10 = 108 MHz, and the main
+--   clock is 1080/7.25 = 148.97 MHz.
 -- The main clock uses CLKOUT0, because it is the only output with a
 -- fractional divider (in steps of 0.125).
 --

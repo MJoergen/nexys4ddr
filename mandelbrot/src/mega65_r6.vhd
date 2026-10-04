@@ -11,9 +11,10 @@ use work.video_pkg.all;
 -- on this entity are mapped directly to pins on the FPGA, see mega65-r6.xdc.
 --
 -- It is the same design as nexys4ddr.vhd (the top level module for the
--- Nexys 4 DDR board), only the resolution and the ports are different:
--- * The VGA output is 800x600 @ 60 Hz, with a pixel clock of 40 MHz, instead
---   of 640x480.
+-- Nexys 4 DDR board), only the size of the design, the resolution and the
+-- ports are different:
+-- * The VGA output is 1280x1024 @ 60 Hz, with a pixel clock of 108 MHz,
+--   instead of 640x480. The display memory is 2.5 times as large.
 -- * There are no buttons and switches. Instead, the view is controlled by the
 --   joysticks: The directions of joystick port 1 (fa_*) pan the view, and the
 --   fire button of port 1 zooms in. The fire button of port 2 (fb_*) zooms
@@ -25,7 +26,7 @@ use work.video_pkg.all;
 --   needs a clock, which is the VGA clock inverted, so the DAC samples the
 --   pixel colour in the middle of each pixel. The colour and the sync signals
 --   are registered in the IOBs, so they all change at the same time, half a
---   clock cycle before the DAC samples them.
+--   clock cycle (4.6 ns) before the DAC samples them.
 
 entity mega65_r6 is
    port (
@@ -56,51 +57,59 @@ end mega65_r6;
 architecture structural of mega65_r6 is
 
    -- The number of column modules. The XC7A200T has 740 DSPs, but the number
-   -- of column modules is limited by the slices: 240 column modules use 93% of
-   -- the slices of the XC7A100T, and the XC7A200T has 2.1 times as many.
-   constant C_NUM_ITERATORS : integer := 450;
+   -- of column modules is limited by the routing: With 800x600, 450 column
+   -- modules fit, but with 1280x1024 the display memory uses 320 of the 365
+   -- BRAMs, and with 450 column modules the routing did not finish. 256
+   -- column modules use 58% of the slices.
+   constant C_NUM_ITERATORS : integer := 256;
 
    -- The number of pixels in each write to the display memory. The dispatcher
    -- accepts at most one result per clock cycle, so with one pixel in each
-   -- write the picture takes at least 800*600 clock cycles (2.55 ms), and
+   -- write the picture takes at least 1280*1024 clock cycles (8.80 ms), and
    -- more column modules give little more. The model (sim/model.py) estimates
-   -- 1.32 ms for the initial picture with four pixels in each write, against
-   -- 2.72 ms with one.
+   -- 4.91 ms for the initial picture with four pixels in each write, against
+   -- 9.76 ms with one.
    constant C_PIXELS        : integer := 4;
 
-   -- The VCO of the MMCM (see clk_rst.vhd): 100 MHz / 1 * 12 = 1200 MHz.
-   constant C_VCO_DIVIDE    : integer := 1;
-   constant C_VCO_MULT      : real    := 12.0;
+   -- The VCO of the MMCM (see clk_rst.vhd): 100 MHz / 5 * 54 = 1080 MHz. This
+   -- is the only VCO frequency which gives the pixel clock of 108 MHz exactly.
+   constant C_VCO_DIVIDE    : integer := 5;
+   constant C_VCO_MULT      : real    := 54.0;
 
    -- The video mode (see video_pkg.vhd), and the divider of the VGA clock,
-   -- which gives the pixel clock (1200 MHz / 30 = 40 MHz, see clk_rst.vhd).
-   constant C_VIDEO         : video_mode_t := C_VIDEO_800X600;
-   constant C_VGA_DIVIDE    : integer := 30;
+   -- which gives the pixel clock (1080 MHz / 10 = 108 MHz, see clk_rst.vhd).
+   constant C_VIDEO         : video_mode_t := C_VIDEO_1280X1024;
+   constant C_VGA_DIVIDE    : integer := 10;
 
    -- The divider of the MAIN clock (see clk_rst.vhd), and its frequency in Hz.
-   -- 1200 MHz / 6.375 = 188.235 MHz. The model (sim/model.py) estimates 1.66
+   -- 1080 MHz / 7.25 = 148.97 MHz. The model (sim/model.py) estimates 7.9
    -- million clock cycles for the worst case picture (every pixel needs the
-   -- maximum count), i.e. 113 pictures per second.
-   constant C_MAIN_DIVIDE   : real    := 6.375;
+   -- maximum count), i.e. 18 pictures per second, against 203 for the initial
+   -- picture. 1080 MHz / 5.75 = 187.83 MHz failed timing with 450 column
+   -- modules.
+   constant C_MAIN_DIVIDE   : real    := 7.25;
    constant C_MAIN_FREQ     : natural :=
       natural(100.0E6 / real(C_VCO_DIVIDE) * C_VCO_MULT / C_MAIN_DIVIDE);
 
    -- Rows in each job given to a column module, see dispatcher.vhd. The
-   -- number of rows (600) must be a multiple of it, and of C_PIXELS.
-   constant C_JOB_ROWS      : integer := 120;
+   -- number of rows (1024) must be a multiple of it, and of C_PIXELS. The
+   -- model gives 199 to 203 pictures per second for 32 to 128 rows.
+   constant C_JOB_ROWS      : integer := 64;
 
    -- The address distance between two picture columns in the display memory,
-   -- see dispatcher.vhd. With 1024 addresses per column (the column followed
-   -- by the row) the picture would not fit in the 2^19 pixels of the display
-   -- memory, so each column has 600 addresses, one for each row.
-   constant C_COL_STRIDE    : integer := 600;
+   -- see dispatcher.vhd. 1024 rows per column means the address is the column
+   -- (11 bits) followed by the row (10 bits).
+   constant C_COL_STRIDE    : integer := 1024;
 
-   -- The display memory (see disp_mem.vhd): 2^19 pixels, i.e. 128 blocks
-   -- (BRAMs) of 4096 pixels, with 19 bits of address, and a register for the
-   -- write port of each block.
-   constant C_ADDR_BITS     : integer := 19;
-   constant C_MEM_BLOCKS    : integer := 128;
-   constant C_BLOCK_REGS    : boolean := true;
+   -- The display memory (see disp_mem.vhd): 1280*1024 pixels, i.e. 320 blocks
+   -- (BRAMs) of 4096 pixels, with 21 bits of address. The XC7A200T has 365
+   -- BRAMs. Without a register for the write port of each block, the register
+   -- of each group of 8 blocks drives their BRAMs directly. This saves about
+   -- 15,000 registers, which made the slices too full for the column modules
+   -- (92% used, and the MAIN clock failed timing).
+   constant C_ADDR_BITS     : integer := 21;
+   constant C_MEM_BLOCKS    : integer := 320;
+   constant C_BLOCK_REGS    : boolean := false;
 
    signal rstn           : std_logic;
    signal btn            : std_logic_vector( 4 downto 0);  -- "CLRUD"

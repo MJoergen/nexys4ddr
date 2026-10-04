@@ -5,12 +5,13 @@ board, which has a Xilinx Artix-7 XC7A100T FPGA. The
 picture (640x480) is shown on the VGA output, and you can pan and zoom using the
 buttons on the board. The same design also runs on the
 [MEGA65](https://mega65.org/) (board revision R6), which has a Xilinx Artix-7
-XC7A200T FPGA, and shows the picture in 800x600, see [MEGA65](#mega65).
+XC7A200T FPGA, and shows the picture in 1280x1024, see [MEGA65](#mega65).
 
 All 240 DSPs of the FPGA are used in parallel for the calculation, and the
 picture is stored in block RAM. Generating a complete picture takes about 2.31 ms
 (estimated by the model), with the main clock at 150 MHz. On the MEGA65, with
-the main clock at 188.24 MHz, it takes about 1.32 ms, with 56% more pixels.
+the main clock at 148.97 MHz, it takes about 4.91 ms, with 4.3 times as many
+pixels.
 
 ## The algorithm
 For each pixel, which corresponds to a complex number $c$, we iterate
@@ -42,17 +43,17 @@ results are:
 
 | Resource           | Nexys 4 DDR (XC7A100T-1) | Available | MEGA65 R6 (XC7A200T-2) | Available
 | ------------------ | ------------------------ | --------- | ---------------------- | ---------
-| DSP48E1            | 240 (100%)               | 240       | 450 (61%)              | 740
-| Block RAM (RAMB36) | 129 (96%)                | 135       | 129 (35%)              | 365
-| Slices             | 14,508 (92%)             | 15,850    | 29,964 (89%)           | 33,650
-| LUTs               | 42,035 (66%)             | 63,400    | 81,646 (61%)           | 134,600
-| Registers          | 43,217 (34%)             | 126,800   | 93,443 (35%)           | 269,200
-| Resolution         | 640x480                  |           | 800x600                |
-| Clock frequency    | 150.00 MHz               |           | 188.24 MHz             |
-| Initial FPS        | 432 (estimated)          |           | 756 (estimated)        |
-| Worst-case FPS     | 73 (estimated)           |           | 113 (estimated)        |
-| Setup slack        | +0.355 ns                |           | +0.186 ns              |
-| Hold slack         | +0.014 ns                |           | +0.013 ns              |
+| DSP48E1            | 240 (100%)               | 240       | 256 (35%)              | 740
+| Block RAM (RAMB36) | 129 (96%)                | 135       | 321 (88%)              | 365
+| Slices             | 14,505 (92%)             | 15,850    | 19,305 (57%)           | 33,650
+| LUTs               | 42,049 (66%)             | 63,400    | 49,250 (37%)           | 134,600
+| Registers          | 43,610 (34%)             | 126,800   | 52,144 (19%)           | 269,200
+| Resolution         | 640x480                  |           | 1280x1024              |
+| Clock frequency    | 150.00 MHz               |           | 148.97 MHz             |
+| Initial FPS        | 432 (estimated)          |           | 203 (estimated)        |
+| Worst-case FPS     | 73 (estimated)           |           | 18 (estimated)         |
+| Setup slack        | +0.343 ns                |           | +0.002 ns              |
+| Hold slack         | +0.014 ns                |           | +0.041 ns              |
 
 See [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details.
@@ -65,7 +66,7 @@ files that are in both clock domains are in [`src/`](src).
 | File             | Description
 | ---------------- | -----------
 | [`src/nexys4ddr.vhd`](src/nexys4ddr.vhd) | Top level. The ports are mapped directly to pins on the FPGA. Instantiates the clock and reset generation, the display memory, and the two modules below, and moves the frame rate from the MAIN clock domain to the VGA clock domain.
-| [`src/mega65_r6.vhd`](src/mega65_r6.vhd) | Top level for the MEGA65 R6. The same as `nexys4ddr.vhd`, but with the ports of the MEGA65, and a resolution of 800x600.
+| [`src/mega65_r6.vhd`](src/mega65_r6.vhd) | Top level for the MEGA65 R6. The same as `nexys4ddr.vhd`, but with the ports of the MEGA65, more column modules, a larger display memory, and a resolution of 1280x1024.
 | [`src/main/main.vhd`](src/main/main.vhd) | Everything in the MAIN clock domain: view control from buttons and switches, the dispatcher, and the frame rate (shown on the 7-segment display and on the VGA output).
 | [`src/main/view.vhd`](src/main/view.vhd) | View control. Pans and zooms the view, and keeps it inside the range of the number format.
 | [`src/main/fps.vhd`](src/main/fps.vhd), [`src/main/seg.vhd`](src/main/seg.vhd) | Frame rate. `fps` divides the clock frequency by the time taken by a picture and converts the result to decimal, and `seg` multiplexes the digits on the 7-segment display.
@@ -77,11 +78,11 @@ files that are in both clock domains are in [`src/`](src).
 | [`src/main/res_scheduler.vhd`](src/main/res_scheduler.vhd) | Scheduler for the results. Used by the dispatcher to pick which column module's result to accept, from the column modules that have a result ready.
 | [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture, in 128 blocks.
 | [`src/vga/pix.vhd`](src/vga/pix.vhd), [`src/vga/disp.vhd`](src/vga/disp.vhd) | VGA output. `pix` generates the pixel counters, and `disp` generates the sync signals and the pixel colour.
-| [`src/vga/video_pkg.vhd`](src/vga/video_pkg.vhd) | The video modes, i.e. the resolution and the timing of the VGA output: 640x480 (Nexys 4 DDR) and 800x600 (MEGA65), both at 60 Hz.
+| [`src/vga/video_pkg.vhd`](src/vga/video_pkg.vhd) | The video modes, i.e. the resolution and the timing of the VGA output: 640x480 (Nexys 4 DDR) and 1280x1024 (MEGA65), both at 60 Hz.
 | [`src/vga/palette_pkg.vhd`](src/vga/palette_pkg.vhd) | The four colour palettes, which convert the count of a pixel to its colour.
 | [`src/vga/overlay.vhd`](src/vga/overlay.vhd), [`src/vga/font_pkg.vhd`](src/vga/font_pkg.vhd) | Frame rate overlay. `overlay` shows the frame rate in the top right corner of the picture, with the digits of the font in `font_pkg`.
 | [`font/`](font) | The script that generates `font_pkg.vhd` from the [Spleen](https://github.com/fcambus/spleen) 16x32 font, and the license of the font (BSD 2-Clause, see [`font/LICENSE.spleen`](font/LICENSE.spleen)).
-| [`src/clk_rst.vhd`](src/clk_rst.vhd) | Clock and reset generation: the main clock for the calculation (150 MHz, or 188.24 MHz on the MEGA65) and the pixel clock for VGA (25 MHz for 640x480, 40 MHz for 800x600), each with a synchronous reset.
+| [`src/clk_rst.vhd`](src/clk_rst.vhd) | Clock and reset generation: the main clock for the calculation (150 MHz, or 148.97 MHz on the MEGA65) and the pixel clock for VGA (25 MHz for 640x480, 108 MHz for 1280x1024), each with a synchronous reset.
 | [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a Python model of the iterator count (`iterator_model.py`), a vectorized model of the complete picture (`model.py`), the same bit-accurate model in VHDL (`iterator_model_pkg.vhd`, used by the testbenches), and a script (`cmp_rtl.py`) that compares the output of the testbench `main_tb` with this model.
 | [`nexys4ddr.xdc`](nexys4ddr.xdc), [`mega65-r6.xdc`](mega65-r6.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints for each board, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make nexys4ddr`. The script gets the FPGA part, the top level and the list of source files from the Makefile, so it must be run through `make nexys4ddr` or `make mega65-r6`.
 | [`mandelbrot.xlsx`](mandelbrot.xlsx) | Spreadsheet used during the design. It iterates the example point -1+0.5i from [the iterator section](ALGORITHM.md#iterator) using real numbers.
@@ -101,10 +102,10 @@ the board. The switch numbers are the bit numbers of the switch input, i.e.
 | Switches 3 to 7 | Not used.
 | `CPU RESET` | Resets the design and returns to the initial view.
 
-While a button is held down, the view is updated about 18 times per second (22
-on the MEGA65). Each update pans by one pixel, or changes the size of a pixel
-by about 1.6% (roughly 33% per second, 40% on the MEGA65). The initial view shows the real axis from -1.67 to 1
-and the imaginary axis from -1 to 1. See
+While a button is held down, the view is updated about 18 times per second.
+Each update pans by one pixel, or changes the size of a pixel by about 1.6%
+(roughly 33% per second). The initial view shows the real axis from -1.67 to 1
+and the imaginary axis from -1 to 1 (-1.07 to 1.07 on the MEGA65). See
 [The top level](ALGORITHM.md#the-top-level) for details.
 
 The 7-segment display shows the frame rate, i.e. the number of pictures
@@ -129,19 +130,27 @@ connector.
 The colour palette is always palette 0, and the frame rate is only shown on the
 VGA output.
 
-The VGA output is 800x600 at 60 Hz (with a pixel clock of 40 MHz) instead of
-640x480. The initial view is the same, so the picture shows the same area
-with 56% more pixels. The display memory has room for 2^19 pixels, so each
-picture column of 600 rows uses 600 addresses instead of 512.
+The VGA output is 1280x1024 at 60 Hz (with a pixel clock of 108 MHz) instead
+of 640x480. The aspect ratio is 5:4 instead of 4:3, so the initial view shows
+the same real axis, and a little more of the imaginary axis (-1.07 to 1.07),
+with 4.3 times as many pixels. The display memory has 1280x1024 pixels in 320
+BRAMs (of the 365 in the XC7A200T), with 21 bits of address (the column and
+the row). Most monitors accept 1280x1024; a widescreen monitor shows it with
+black bars or stretched.
 
-The XC7A200T is larger, so the design uses 450 column modules (DSPs) instead
+The XC7A200T is larger, so the design uses 256 column modules (DSPs) instead
 of 240, and writes four pixels (consecutive rows of a picture column) to the
 display memory at a time instead of one, see
-[`src/mega65_r6.vhd`](src/mega65_r6.vhd). The display memory takes one write
-per clock cycle, so with one pixel in each write the picture would take at
-least 800x600 clock cycles (2.55 ms), whatever the number of column modules,
-and the model gives 2.72 ms. With four pixels in each write the picture takes
-about 1.32 ms (estimated by the model), see
+[`src/mega65_r6.vhd`](src/mega65_r6.vhd). With 800x600 it used 450 column
+modules, but with the large display memory of 1280x1024 the routing did not
+finish with that many. The main clock is 148.97 MHz. The display memory takes
+one write per clock cycle, so with one pixel in each write the picture would
+take at least 1280x1024 clock cycles (8.80 ms), whatever the number of column
+modules, and the model gives 9.76 ms. With four pixels in each write the
+picture takes about 4.91 ms (estimated by the model), i.e. 203 pictures per
+second. If every pixel needed the maximum count, it would take 53 ms (18
+pictures per second), below the 60 Hz of the VGA output, but the pictures
+that are worth looking at are much faster, see
 [MEGA65 R6](ALGORITHM.md#mega65-r6).
 
 ## Running
@@ -183,7 +192,7 @@ sim/cmp_rtl.py
 By default it simulates the design of the Nexys 4 DDR. The design of the
 MEGA65 is simulated with
 ```
-make run TB=main STOP_TIME=700us GENERICS="G_NUM_ITERATORS=450 G_PIXELS=4 G_NUM_COLS=800 G_NUM_ROWS=600 G_COL_STRIDE=600"
+make run TB=main STOP_TIME=700us GENERICS="G_NUM_ITERATORS=256 G_PIXELS=4 G_JOB_ROWS=64 G_NUM_COLS=1280 G_NUM_ROWS=1024 G_COL_STRIDE=1024 G_ADDR_BITS=21"
 ```
 See [Iterator](ALGORITHM.md#iterator) for details.
 

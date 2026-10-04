@@ -10,7 +10,7 @@ use ieee.numeric_std_unsigned.all;
 --   btn_i(4)         : Zoom in. If sw_i(2) is set then zoom out instead.
 --   btn_i(3 downto 0): Move the view left, right, up and down.
 -- While a button is pressed, the view is updated every 2^23 clock cycles, i.e.
--- about 18 (150 MHz) or 22 (188.235 MHz) times per second.
+-- about 18 times per second (with the MAIN clock at about 150 MHz).
 -- The view is kept inside the range -2 to 2, see view.vhd.
 -- Switches 0 and 1 select the colour palette, but they are used in vga.vhd, not
 -- here. The other switches are not used.
@@ -102,8 +102,7 @@ architecture structural of main is
    signal fps_valid      : std_logic;
    signal fps_toggle     : std_logic := '0';
 
-   -- 23 bits = 8 million cycles, i.e. 18 (150 MHz) or 22 (188.235 MHz) times
-   -- per second.
+   -- 23 bits = 8 million cycles, i.e. about 18 times per second at 150 MHz.
    signal upd_cnt        : std_logic_vector(22 downto 0) := (others => '0');
    signal upd            : std_logic;
    signal btn_r          : std_logic_vector(4 downto 0);
@@ -208,11 +207,11 @@ begin
    -- At the end of a picture, cnt is the time taken by the picture. The
    -- picture is recalculated continuously, so the frame rate is updated
    -- after every picture.
-   -- cnt wraps around after 2^27 clock cycles (0.71 s), but a picture takes
-   -- far less: even if every pixel needed the maximum count, the model
-   -- (sim/model.py) gives about 2.0 million clock cycles (10.8 ms) on the
-   -- Nexys 4 DDR, i.e. a frame rate of about 92, and 1.7 million on the
-   -- MEGA65 R6.
+   -- cnt wraps around after 2^27 clock cycles (0.89 s at 150 MHz), but a
+   -- picture takes far less: even if every pixel needed the maximum count,
+   -- the model (sim/model.py) gives about 2.0 million clock cycles (13.6 ms)
+   -- on the Nexys 4 DDR, i.e. a frame rate of about 73, and 7.9 million
+   -- (53 ms, a frame rate of about 18) on the MEGA65 R6.
    i_fps : entity work.fps
       generic map (
          G_CLK_FREQ  => G_CLK_FREQ,

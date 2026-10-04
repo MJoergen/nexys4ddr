@@ -9,8 +9,10 @@ use work.video_pkg.all;
 -- disp.vhd and the palettes in palette_pkg.vhd). It is done for both video
 -- modes (see video_pkg.vhd), each with its own instance, and the address
 -- layout of the board that uses it: 640x480 with the column followed by the
--- row (as on the Nexys 4 DDR), and 800x600 with 600 addresses per column (as
--- on the MEGA65 R6). Each instance has two phases.
+-- row in 19 bits (as on the Nexys 4 DDR), and 1280x1024 with the column
+-- followed by the row in 21 bits (as on the MEGA65 R6). A third instance
+-- checks 640x480 with 480 addresses per column, i.e. an address distance
+-- between columns which is not a power of two. Each instance has two phases.
 --
 -- In the first phase, the display memory is replaced by a constant value, and
 -- the first palette is used (the colour is the value), so the colour output is
@@ -18,7 +20,7 @@ use work.video_pkg.all;
 -- from the VESA standard, in clock cycles (pixels) and lines:
 -- * The polarity of the sync pulses: Both sync signals are inactive in the
 --   visible area, and active during the sync pulses (low for 640x480, high
---   for 800x600).
+--   for 1280x1024).
 -- * Horizontal: the visible pixels, front porch, sync pulse and back porch,
 --   e.g. 640, 16, 96 and 48, i.e. 800 in total for 640x480.
 -- * Vertical: the visible lines, front porch, sync pulse and back porch, e.g.
@@ -52,8 +54,9 @@ architecture simulation of vga_tb is
    type config_vector is array (natural range <>) of config_t;
 
    constant C_CONFIGS : config_vector := (
-      (mode => C_VIDEO_640X480, col_stride => 512, addr_bits => 19),
-      (mode => C_VIDEO_800X600, col_stride => 600, addr_bits => 19));
+      (mode => C_VIDEO_640X480,   col_stride =>  512, addr_bits => 19),
+      (mode => C_VIDEO_1280X1024, col_stride => 1024, addr_bits => 21),
+      (mode => C_VIDEO_640X480,   col_stride =>  480, addr_bits => 19));
 
    constant C_COLOUR    : std_logic_vector(7 downto 0) := X"A5";
 
@@ -77,7 +80,7 @@ begin
    -- Generate clock and reset
    ----------------------------
 
-   -- The clock is faster than the real one (25 MHz or 40 MHz), to keep the
+   -- The clock is faster than the real one (25 MHz or 108 MHz), to keep the
    -- simulation short. Only the number of clock cycles matters.
    p_clk : process
    begin
@@ -194,7 +197,7 @@ begin
          variable errors     : integer := 0;
       begin
          if finished(m) = '1' then
-            -- This instance is finished, and waits for the other one
+            -- This instance is finished, and waits for the others
             null;
 
          elsif rising_edge(clk) and rst = '0' and not started then

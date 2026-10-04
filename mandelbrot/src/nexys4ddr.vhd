@@ -76,9 +76,9 @@ architecture structural of nexys4ddr is
    -- 1200 MHz / 8 = 150 MHz. The model (sim/model.py) estimates 2.04 million
    -- clock cycles for the worst case picture (every pixel needs the maximum
    -- count), i.e. 73 pictures per second, still well above the 60 Hz of the
-   -- VGA output. The MEGA65 uses 188.235 MHz, but the lower clock frequency
-   -- gives more setup slack (+0.355 ns against +0.092 ns, see ALGORITHM.md),
-   -- and so room for more logic.
+   -- VGA output. The lower clock frequency (it was 188.24 MHz) gives more
+   -- setup slack (+0.355 ns against +0.092 ns, see ALGORITHM.md), and so room
+   -- for more logic.
    constant C_MAIN_DIVIDE   : real    := 8.0;
    constant C_MAIN_FREQ     : natural :=
       natural(100.0E6 / real(C_VCO_DIVIDE) * C_VCO_MULT / C_MAIN_DIVIDE);

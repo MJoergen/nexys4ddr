@@ -36,10 +36,10 @@ package video_pkg is
       v_visible => 480, v_front => 10, v_sync =>   2, v_back => 33,
       sync_active => '0');
 
-   -- 800x600 @ 60 Hz, pixel clock 40 MHz
-   constant C_VIDEO_800X600 : video_mode_t := (
-      h_visible => 800, h_front => 40, h_sync => 128, h_back => 88,
-      v_visible => 600, v_front =>  1, v_sync =>   4, v_back => 23,
+   -- 1280x1024 @ 60 Hz, pixel clock 108 MHz
+   constant C_VIDEO_1280X1024 : video_mode_t := (
+      h_visible => 1280, h_front => 48, h_sync => 112, h_back => 248,
+      v_visible => 1024, v_front =>  1, v_sync =>   3, v_back =>  38,
       sync_active => '1');
 
    -- The total number of pixels in a line, and of lines in a frame

@@ -50,8 +50,9 @@ TB =
 GENERICS =
 
 # Maximum simulation time. This must be longer than the slowest testbench. The
-# testbenches stop by themselves, the slowest of those is view (about 2.7 ms).
-STOP_TIME = 3ms
+# testbenches stop by themselves, the slowest of those is vga (about 5.3 ms,
+# for 1280x1024).
+STOP_TIME = 6ms
 
 TB_EXE = $(TB)_tb
 # The clock module uses Xilinx primitives, and is not simulated. The top
