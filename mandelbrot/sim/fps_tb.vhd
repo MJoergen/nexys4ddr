@@ -1,8 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-use ieee.math_real.all;
-
 -- This is a self-checking testbench for the frame rate (fps.vhd) and the
 -- 7-segment display (seg.vhd). It gives fps a number of picture times, and
 -- for each one it checks:
@@ -19,6 +14,11 @@ use ieee.math_real.all;
 --
 -- The refresh of the display is made much faster than on the board, so a
 -- full refresh cycle is 64 clock cycles.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use ieee.math_real.all;
 
 entity fps_tb is
 end entity fps_tb;

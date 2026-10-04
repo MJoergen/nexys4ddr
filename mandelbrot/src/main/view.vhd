@@ -1,7 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std_unsigned.all;
-
 -- This module controls the view, i.e. the position of the top left corner of
 -- the picture (startx, starty) and the size of a pixel (stepx, stepy), all in
 -- 2.16 fixed point format. The view is changed by the buttons, once for each
@@ -33,6 +29,10 @@ use ieee.numeric_std_unsigned.all;
 -- step at a time, because all of it in a single clock cycle is far too slow
 -- for the MAIN clock. The outputs are all changed at the same time, at the
 -- end of the update. Pulses on upd_i during an update are ignored.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std_unsigned.all;
 
 entity view is
    generic (

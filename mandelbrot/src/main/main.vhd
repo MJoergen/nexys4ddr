@@ -1,7 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std_unsigned.all;
-
 -- This module runs entirely in the MAIN clock domain (G_CLK_FREQ). It
 -- controls the view (from the buttons and switches), runs the dispatcher that
 -- calculates the picture, and writes the result to the display memory.
@@ -20,6 +16,10 @@ use ieee.numeric_std_unsigned.all;
 -- picture. The frame rate is also output (fps_*_o), and shown on the VGA output
 -- by vga.vhd. fps_toggle_o is changed (in the same clock cycle) each time
 -- fps_digits_o and fps_blank_o are changed.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std_unsigned.all;
 
 entity main is
    generic (

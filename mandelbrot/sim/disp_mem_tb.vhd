@@ -1,7 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-
 -- This is a small self-checking testbench for the display memory. It writes
 -- to a few words in each of the blocks (BRAMs) of 2^12 pixels, and reads all
 -- their pixels back on the read port, which has a different clock. It
@@ -26,6 +22,10 @@ use ieee.numeric_std.all;
 -- * 8 blocks with 21 bits of address, with four pixels in each word, no
 --   register for each block, and the reset. The reset takes G_NUM_BLOCKS*4096/G_PIXELS clock cycles, so it is
 --   only used with this small memory.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity disp_mem_tb is
 end entity disp_mem_tb;

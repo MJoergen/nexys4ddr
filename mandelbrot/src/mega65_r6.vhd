@@ -1,12 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std_unsigned.all;
-
-library unisim;
-use unisim.vcomponents.all;
-
-use work.video_pkg.all;
-
 -- This is the top level module for the MEGA65 (board revision R6). The ports
 -- on this entity are mapped directly to pins on the FPGA, see mega65-r6.xdc.
 --
@@ -27,6 +18,15 @@ use work.video_pkg.all;
 --   pixel colour in the middle of each pixel. The colour and the sync signals
 --   are registered in the IOBs, so they all change at the same time, half a
 --   clock cycle (4.6 ns) before the DAC samples them.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std_unsigned.all;
+
+library unisim;
+use unisim.vcomponents.all;
+
+use work.video_pkg.all;
 
 entity mega65_r6 is
    port (

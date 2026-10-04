@@ -1,11 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-
-use work.palette_pkg.all;
-use work.font_pkg.all;
-use work.video_pkg.all;
-
 -- This is a self-checking testbench for the frame rate overlay (overlay.vhd),
 -- as part of the VGA output (vga.vhd).
 --
@@ -25,6 +17,14 @@ use work.video_pkg.all;
 -- The overlay of the last frame is printed, for a visual check.
 --
 -- The testbench stops by itself.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+use work.palette_pkg.all;
+use work.font_pkg.all;
+use work.video_pkg.all;
 
 entity overlay_tb is
 end entity overlay_tb;

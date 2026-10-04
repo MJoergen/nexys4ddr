@@ -1,7 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.math_real.all;
-
 -- This is a self-checking testbench for the result scheduler. Each process
 -- behaves like a column module in the dispatcher: when it has a result, it is
 -- ready until the result has been selected, and its ready flag goes low as
@@ -18,6 +14,10 @@ use ieee.math_real.all;
 -- This is done for two instances: one with several groups, where the last one
 -- is smaller, and one with a single group, where the counter has empty
 -- positions.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.math_real.all;
 
 entity res_scheduler_tb is
 end entity res_scheduler_tb;

@@ -1,7 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std_unsigned.all;
-
 -- This is the display memory, holding the picture. It has G_NUM_BLOCKS*4096
 -- pixels of 9 bits (the iteration count of each pixel), with addresses of
 -- G_ADDR_BITS bits, and is implemented in block RAM.
@@ -45,6 +41,10 @@ use ieee.numeric_std_unsigned.all;
 -- FPGA: with 320 blocks this took 8.2 ns of the 9.26 ns at 108 MHz. Selecting
 -- the pixel from all the blocks in one clock cycle would be too slow too. The
 -- read reset (rd_rst_i) is not used.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std_unsigned.all;
 
 entity disp_mem is
    generic (

@@ -1,8 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std_unsigned.all;
-use std.textio.all;
-
 -- This testbench runs the MAIN clock domain (main.vhd) with the initial view,
 -- and no buttons pressed. The first line of the file sim/main_out.txt is the
 -- size of the picture and the address distance between two picture columns,
@@ -23,6 +18,11 @@ use std.textio.all;
 -- about 5 GB, but a partial picture can be compared too, e.g.
 --   make run TB=main STOP_TIME=700us
 --   sim/cmp_rtl.py
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std_unsigned.all;
+use std.textio.all;
 
 entity main_tb is
    generic (

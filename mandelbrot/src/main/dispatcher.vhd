@@ -1,7 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std_unsigned.all;
-
 -- This module instantiates a number of column modules, dispatches jobs to them,
 -- and collects results from them.
 --
@@ -23,6 +19,10 @@ use ieee.numeric_std_unsigned.all;
 -- two, this is the column followed by the row, e.g. 512 for 640x480 (19 bits)
 -- and 1024 for 1280x1024 (21 bits). Otherwise G_COL_STRIDE can be the number
 -- of rows, so that the picture takes fewer addresses.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std_unsigned.all;
 
 entity dispatcher is
    generic (

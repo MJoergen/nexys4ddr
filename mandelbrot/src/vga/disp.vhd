@@ -1,10 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std_unsigned.all;
-
-use work.palette_pkg.all;
-use work.video_pkg.all;
-
 -- This module generates the VGA output signals for the video mode G_MODE (see
 -- video_pkg.vhd) from the pixel counters. The value of the pixel at (vga_pix_x_i, vga_pix_y_i), i.e.
 -- its iteration count (9 bits), must be given on vga_col_d3_i three
@@ -13,6 +6,13 @@ use work.video_pkg.all;
 -- delayed by one clock cycle. It is
 -- converted to the colour by the palette selected by vga_palette_i (see
 -- palette_pkg.vhd). The colour is only output inside the visible area.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std_unsigned.all;
+
+use work.palette_pkg.all;
+use work.video_pkg.all;
 
 entity disp is
    generic (

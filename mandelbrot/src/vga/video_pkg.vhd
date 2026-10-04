@@ -1,6 +1,3 @@
-library ieee;
-use ieee.std_logic_1164.all;
-
 -- This package defines the VGA video modes, i.e. the screen resolution and the
 -- timing of the VGA output signals. Each board selects a video mode in its top
 -- level module (nexys4ddr.vhd and mega65_r6.vhd), together with the matching
@@ -12,6 +9,9 @@ use ieee.std_logic_1164.all;
 -- The times are in pixels (horizontal) and lines (vertical). Each line is
 -- the visible pixels, the front porch, the sync pulse, and the back porch, in
 -- that order, and the same for each frame.
+
+library ieee;
+use ieee.std_logic_1164.all;
 
 package video_pkg is
 
