@@ -54,20 +54,23 @@
 -- Ethernet clock has been removed, the frequencies have been changed, and the
 -- reset generation has been added.
 --
--- The MMCM multiplies the 100 MHz input clock by 12, giving a VCO frequency
--- of 1200 MHz (the maximum for speed grade -1, as on the Nexys 4 DDR; the
--- MEGA65 has speed grade -2, which allows 1440 MHz), and generates the
--- following output clocks:
+-- The MMCM divides the 100 MHz input clock by G_VCO_DIVIDE and multiplies it
+-- by G_VCO_MULT, which gives the VCO frequency, and generates the following
+-- output clocks from the VCO:
 --
 --   Output clock   Output    Divider         Freq (MHz)
---   vga_clk        CLKOUT1   G_VGA_DIVIDE    1200/G_VGA_DIVIDE
---   main_clk       CLKOUT0   G_MAIN_DIVIDE   1200/G_MAIN_DIVIDE
+--   vga_clk        CLKOUT1   G_VGA_DIVIDE    VCO/G_VGA_DIVIDE
+--   main_clk       CLKOUT0   G_MAIN_DIVIDE   VCO/G_MAIN_DIVIDE
 --
--- Both dividers are set by the top level module. The VGA clock is the pixel
--- clock of the video mode: 48 gives 25 MHz (640x480), and 30 gives 40 MHz
--- (800x600). The main clock uses CLKOUT0, because it is the only output with a
--- fractional divider (in steps of 0.125): 8.0 gives 150 MHz (Nexys 4 DDR),
--- and 6.375 gives 188.235 MHz (MEGA65).
+-- All of these are set by the top level module:
+-- * Nexys 4 DDR: The VCO is 100 MHz * 12 = 1200 MHz (the maximum for speed
+--   grade -1). The VGA clock is 1200/48 = 25 MHz (640x480), and the main clock
+--   is 1200/8 = 150 MHz.
+-- * MEGA65: The VCO is 1200 MHz too (speed grade -2 allows up to 1440 MHz).
+--   The VGA clock is 1200/30 = 40 MHz (800x600), and the main clock is
+--   1200/6.375 = 188.235 MHz.
+-- The main clock uses CLKOUT0, because it is the only output with a
+-- fractional divider (in steps of 0.125).
 --
 -- Input clock: clk_i, 100.000 MHz.
 --
@@ -86,17 +89,19 @@ use unisim.vcomponents.all;
 
 entity clk_rst is
    generic (
-      G_MAIN_DIVIDE : real;        -- The main clock is 1200 MHz / G_MAIN_DIVIDE
-      G_VGA_DIVIDE  : integer      -- The VGA clock is 1200 MHz / G_VGA_DIVIDE
+      G_VCO_DIVIDE  : integer;     -- The VCO is 100 MHz / G_VCO_DIVIDE * G_VCO_MULT
+      G_VCO_MULT    : real;
+      G_MAIN_DIVIDE : real;        -- The main clock is VCO / G_MAIN_DIVIDE
+      G_VGA_DIVIDE  : integer      -- The VGA clock is VCO / G_VGA_DIVIDE
    );
    port (
       clk_i      : in  std_logic;  -- 100 MHz
       rstn_i     : in  std_logic;  -- Asynchronous, active low
 
-      main_clk_o : out std_logic;  -- 1200 MHz / G_MAIN_DIVIDE
+      main_clk_o : out std_logic;  -- VCO / G_MAIN_DIVIDE
       main_rst_o : out std_logic;  -- Synchronous to main_clk_o
 
-      vga_clk_o  : out std_logic;  -- 1200 MHz / G_VGA_DIVIDE
+      vga_clk_o  : out std_logic;  -- VCO / G_VGA_DIVIDE
       vga_rst_o  : out std_logic   -- Synchronous to vga_clk_o
    );
 end clk_rst;
@@ -136,8 +141,8 @@ begin
          CLKOUT4_CASCADE      => FALSE,
          COMPENSATION         => "ZHOLD",
          STARTUP_WAIT         => FALSE,
-         DIVCLK_DIVIDE        => 1,
-         CLKFBOUT_MULT_F      => 12.000,
+         DIVCLK_DIVIDE        => G_VCO_DIVIDE,
+         CLKFBOUT_MULT_F      => G_VCO_MULT,
          CLKFBOUT_PHASE       => 0.000,
          CLKFBOUT_USE_FINE_PS => FALSE,
          CLKOUT0_DIVIDE_F     => G_MAIN_DIVIDE, -- MAIN

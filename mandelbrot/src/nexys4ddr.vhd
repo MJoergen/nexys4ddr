@@ -63,6 +63,10 @@ architecture structural of nexys4ddr is
    -- ALGORITHM.md).
    constant C_PIXELS        : integer := 1;
 
+   -- The VCO of the MMCM (see clk_rst.vhd): 100 MHz / 1 * 12 = 1200 MHz.
+   constant C_VCO_DIVIDE    : integer := 1;
+   constant C_VCO_MULT      : real    := 12.0;
+
    -- The video mode (see video_pkg.vhd), and the divider of the VGA clock,
    -- which gives the pixel clock (1200 MHz / 48 = 25 MHz, see clk_rst.vhd).
    constant C_VIDEO         : video_mode_t := C_VIDEO_640X480;
@@ -76,7 +80,8 @@ architecture structural of nexys4ddr is
    -- gives more setup slack (+0.355 ns against +0.092 ns, see ALGORITHM.md),
    -- and so room for more logic.
    constant C_MAIN_DIVIDE   : real    := 8.0;
-   constant C_MAIN_FREQ     : natural := natural(1200.0E6 / C_MAIN_DIVIDE);
+   constant C_MAIN_FREQ     : natural :=
+      natural(100.0E6 / real(C_VCO_DIVIDE) * C_VCO_MULT / C_MAIN_DIVIDE);
 
    -- The address distance between two picture columns in the display memory,
    -- see dispatcher.vhd. 512 rows per column means the address is the column
@@ -120,6 +125,8 @@ begin
 
    i_clk_rst : entity work.clk_rst
       generic map (
+         G_VCO_DIVIDE  => C_VCO_DIVIDE,
+         G_VCO_MULT    => C_VCO_MULT,
          G_MAIN_DIVIDE => C_MAIN_DIVIDE,
          G_VGA_DIVIDE  => C_VGA_DIVIDE
       )

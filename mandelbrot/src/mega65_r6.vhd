@@ -66,6 +66,10 @@ architecture structural of mega65_r6 is
    -- 2.72 ms with one.
    constant C_PIXELS        : integer := 4;
 
+   -- The VCO of the MMCM (see clk_rst.vhd): 100 MHz / 1 * 12 = 1200 MHz.
+   constant C_VCO_DIVIDE    : integer := 1;
+   constant C_VCO_MULT      : real    := 12.0;
+
    -- The video mode (see video_pkg.vhd), and the divider of the VGA clock,
    -- which gives the pixel clock (1200 MHz / 30 = 40 MHz, see clk_rst.vhd).
    constant C_VIDEO         : video_mode_t := C_VIDEO_800X600;
@@ -76,7 +80,8 @@ architecture structural of mega65_r6 is
    -- million clock cycles for the worst case picture (every pixel needs the
    -- maximum count), i.e. 113 pictures per second.
    constant C_MAIN_DIVIDE   : real    := 6.375;
-   constant C_MAIN_FREQ     : natural := natural(1200.0E6 / C_MAIN_DIVIDE);
+   constant C_MAIN_FREQ     : natural :=
+      natural(100.0E6 / real(C_VCO_DIVIDE) * C_VCO_MULT / C_MAIN_DIVIDE);
 
    -- The address distance between two picture columns in the display memory,
    -- see dispatcher.vhd. With 1024 addresses per column (the column followed
@@ -139,6 +144,8 @@ begin
 
    i_clk_rst : entity work.clk_rst
       generic map (
+         G_VCO_DIVIDE  => C_VCO_DIVIDE,
+         G_VCO_MULT    => C_VCO_MULT,
          G_MAIN_DIVIDE => C_MAIN_DIVIDE,
          G_VGA_DIVIDE  => C_VGA_DIVIDE
       )
