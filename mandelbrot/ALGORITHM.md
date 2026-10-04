@@ -799,22 +799,28 @@ elaborated: it must be inside the range too.
 **The frame rate.** The 7-segment display shows the frame rate, i.e. the
 number of pictures per second, rounded down to an integer, with the leading
 zeros blanked. A counter counts clock cycles while a picture is being
-calculated, and it is cleared when the next picture is started. At the end of
-a picture, the module [`src/main/fps.vhd`](src/main/fps.vhd) divides the clock frequency
-(the generic `G_CLK_FREQ` of `main`, set by the top level: 120,000,000 Hz, or
-144,000,000 Hz on the MEGA65) by the value of the counter, and converts the
-result to decimal. The picture is recalculated continuously, so the frame rate
-is updated after every picture (about 837 times per second for the initial
-view).
+calculated, and it is cleared when the next picture is started. The time of a
+single picture varies a little, so the frame rate of each picture would make
+the last digits change all the time. Instead, the module
+[`src/main/fps.vhd`](src/main/fps.vhd) averages over about half a second: at the end of each
+picture it adds the value of the counter to a sum, until the sum is at least
+half a second (`G_AVG_CYCLES`, which `main` sets to `G_CLK_FREQ/2`), or 1023
+pictures have been added up. Then it divides the number of pictures times the
+clock frequency (the generic `G_CLK_FREQ` of `main`, set by the top level:
+120,000,000 Hz, or 144,000,000 Hz on the MEGA65) by the sum, converts the
+result to decimal, and starts a new sum. So the frame rate is updated about
+twice per second, and the display shows 0 for the first half second after
+reset. The number of pictures times the clock frequency is also a sum, which
+is increased by `G_CLK_FREQ` for each picture, so no multiplication is needed.
 A single-cycle division would be far too slow for the MAIN clock, so both
 steps are done one bit per clock cycle: a restoring division, with one
-subtraction for each of the 27 bits of the quotient (28 on the MEGA65), and
+subtraction for each of the 37 bits of the quotient (38 on the MEGA65), and
 then the double dabble algorithm to convert the quotient to 8 decimal digits
 (for each bit, 3 is added to each digit which is 5 or more, and then
-everything is shifted left by one bit). This takes 56 clock cycles (58 on the
+everything is shifted left by one bit). This takes 77 clock cycles (79 on the
 MEGA65), much less than a picture, and the
-widest addition is 29 bits. A frame rate above 99999999 would show as
-99999999, but that would need a picture of fewer than 2 clock cycles. The
+widest addition is 37 bits (38 on the MEGA65). A frame rate above 99999999 would show as
+99999999, but that would need pictures of fewer than 2 clock cycles. The
 counter is 27 bits wide, so it wraps around after 2^27 clock cycles (1.12 s
 at 120 MHz), but a picture takes far less than that: even if every pixel
 needed the maximum count, the model (see [Timing](#timing)) gives 1364897
@@ -851,14 +857,21 @@ in the overlay, the digit, the row of the font, the pixel of the row, and then
 the colour, which replaces the output of `disp`. This adds one clock cycle of
 latency to all the VGA outputs.
 
-The testbench [`sim/fps_tb.vhd`](sim/fps_tb.vhd) is self-checking. It gives
-the frame rate module a number of picture times (the extremes, the values
-around a change of the frame rate, e.g. 199 and 200, and random values), and
+The testbench [`sim/fps_tb.vhd`](sim/fps_tb.vhd) is self-checking. It has
+two instances of the frame rate module. The first one does not average
+(`G_AVG_CYCLES` is 0), so it calculates the frame rate of every picture. It
+gets a number of picture times (the extremes, the values around a change of
+the frame rate, e.g. 199 and 200, and random values), and the testbench
 checks the digits and the blanking against the integer division, and that the
 display shows the same number: every digit that is not blanked is switched on
 with the right segments during a refresh cycle, the blanked digits are never
-switched on, and at most one digit is on at a time. It also checks that a new
-picture time during a calculation is ignored.
+switched on, and at most one digit is on at a time. It also checks that a
+picture that ends during a calculation is shown after it. The second one
+averages over at least 10000 clock cycles and at most 15 pictures, and gets
+1000 random picture times (most of them shorter than 10000 clock cycles, some
+longer, and some zero). The testbench checks that the frame rate is calculated
+at the end of each sum and only then, and that it is the number of pictures
+times the clock frequency divided by the sum, rounded down.
 
 The testbench [`sim/overlay_tb.vhd`](sim/overlay_tb.vhd) checks the colour of
 every pixel of three frames of the VGA output (with a different value for each
@@ -1133,7 +1146,8 @@ it leaves out the few hundred clock cycles at the start and the end of the
 picture. The frame rate changes slightly from picture to picture, because the
 counter of the scheduler for the jobs runs freely, so each picture starts at
 a different position of it, and the job modules get their first jobs in a
-different order.
+different order. (These numbers were measured before the frame rate was
+averaged over half a second, see "The frame rate" in [The top level](#the-top-level).)
 
 ## Resources and timing closure
 Both boards are built with Vivado 2025.1, with the same script

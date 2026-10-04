@@ -1,6 +1,8 @@
 -- This is a self-checking testbench for the frame rate (fps.vhd) and the
--- 7-segment display (seg.vhd). It gives fps a number of picture times, and
--- for each one it checks:
+-- 7-segment display (seg.vhd). It has two instances of fps.
+--
+-- The first one does not average (G_AVG_CYCLES = 0), and drives the display.
+-- It gives it a number of picture times, and for each one it checks:
 -- * The digits and the blanking from fps are the expected frame rate, i.e.
 --   the clock frequency divided by the time, rounded down, with leading zeros
 --   blanked. Values that do not fit in 8 digits show 99999999.
@@ -10,7 +12,15 @@
 --   time.
 -- The times include the extremes (0, 1, and the largest time), the values
 -- around a change of the frame rate, and random values over the whole range.
--- It also checks that a pulse on valid_i during a calculation is ignored.
+-- It also checks that a picture that ends during a calculation is shown after
+-- it.
+--
+-- The second one averages over at least C_AVG_CYCLES clock cycles and at most
+-- 15 pictures. It gives it random picture times (some much shorter than
+-- C_AVG_CYCLES, some longer, and some zero), and checks that the frame rate
+-- is calculated at the end of each sum, and only then, and that it is the
+-- number of pictures times the clock frequency divided by the sum of the
+-- times, rounded down (or 99999999 if larger).
 --
 -- The refresh of the display is made much faster than on the board, so a
 -- full refresh cycle is 64 clock cycles.
@@ -30,8 +40,11 @@ architecture simulation of fps_tb is
    constant C_REFRESH_BITS : natural := 6;
    constant C_MAX          : natural := 99_999_999;
 
-   -- Longer than a calculation (58 clock cycles)
-   constant C_CALC_CYCLES  : natural := 70;
+   -- Longer than a calculation (79 clock cycles from valid_i to valid_o)
+   constant C_CALC_CYCLES  : natural := 90;
+
+   constant C_AVG_CYCLES   : natural := 10_000;
+   constant C_FRAME_BITS   : natural := 4;
 
    type seg_table_t is array (0 to 9) of std_logic_vector(6 downto 0);
    constant C_SEG_TABLE : seg_table_t := (
@@ -44,6 +57,13 @@ architecture simulation of fps_tb is
    signal valid    : std_logic := '0';
    signal digits   : std_logic_vector(31 downto 0);
    signal blank    : std_logic_vector( 7 downto 0);
+   signal fps_vld  : std_logic;
+   signal avg_time : std_logic_vector(C_TIME_BITS-1 downto 0) := (others => '0');
+   signal avg_vld  : std_logic := '0';
+   signal avg_dig  : std_logic_vector(31 downto 0);
+   signal avg_blk  : std_logic_vector( 7 downto 0);
+   signal avg_out  : std_logic;
+   signal test_done : boolean := false;
    signal seg_s    : std_logic_vector( 6 downto 0);
    signal seg_an   : std_logic_vector( 7 downto 0);
 
@@ -54,6 +74,16 @@ architecture simulation of fps_tb is
       end if;
       return C_CLK_FREQ / t;
    end function expected_fps;
+
+   -- The value of BCD digits
+   function bcd_value(d : std_logic_vector(31 downto 0)) return natural is
+      variable r : natural := 0;
+   begin
+      for i in 7 downto 0 loop
+         r := 10*r + to_integer(unsigned(d(4*i+3 downto 4*i)));
+      end loop;
+      return r;
+   end function bcd_value;
 
 begin
 
@@ -74,9 +104,10 @@ begin
 
    i_fps : entity work.fps
       generic map (
-         G_CLK_FREQ  => C_CLK_FREQ,
-         G_TIME_BITS => C_TIME_BITS,
-         G_DIGITS    => 8
+         G_CLK_FREQ   => C_CLK_FREQ,
+         G_TIME_BITS  => C_TIME_BITS,
+         G_AVG_CYCLES => 0,
+         G_DIGITS     => 8
       )
       port map (
          clk_i    => clk,
@@ -84,8 +115,27 @@ begin
          time_i   => time_s,
          valid_i  => valid,
          digits_o => digits,
-         blank_o  => blank
+         blank_o  => blank,
+         valid_o  => fps_vld
       ); -- i_fps
+
+   i_avg : entity work.fps
+      generic map (
+         G_CLK_FREQ   => C_CLK_FREQ,
+         G_TIME_BITS  => C_TIME_BITS,
+         G_AVG_CYCLES => C_AVG_CYCLES,
+         G_FRAME_BITS => C_FRAME_BITS,
+         G_DIGITS     => 8
+      )
+      port map (
+         clk_i    => clk,
+         rst_i    => rst,
+         time_i   => avg_time,
+         valid_i  => avg_vld,
+         digits_o => avg_dig,
+         blank_o  => avg_blk,
+         valid_o  => avg_out
+      ); -- i_avg
 
    i_seg : entity work.seg
       generic map (
@@ -211,16 +261,21 @@ begin
          test(C_TIMES(i));
       end loop;
 
-      -- A pulse on valid during a calculation is ignored
+      -- A picture that ends during a calculation is shown after it
       start(941_176);
       for i in 1 to 10 loop
          wait until rising_edge(clk);
       end loop;
       start(1_959_183);
-      for i in 1 to C_CALC_CYCLES loop
+      wait until rising_edge(clk) and fps_vld = '1';
+      assert bcd_value(digits) = 200
+         report "Wrong value before the picture during a calculation"
+         severity error;
+      wait until rising_edge(clk) and fps_vld = '1';
+      for i in 1 to 5 loop
          wait until rising_edge(clk);
       end loop;
-      check(200, 941_176);
+      check(96, 1_959_183);
 
       -- Random times, spread evenly over the number of bits
       for i in 1 to 300 loop
@@ -229,7 +284,89 @@ begin
       end loop;
 
       report "Test finished, " & integer'image(num_test) & " values checked";
-      std.env.stop;
+      test_done <= true;
+      wait;
    end process p_test;
+
+   -- Test of the average
+   p_avg : process
+      variable seed1    : positive := 3;
+      variable seed2    : positive := 4;
+      variable r        : real;
+      variable t        : natural;
+      variable cnt      : natural := 0;
+      variable sum      : natural := 0;
+      variable quot     : unsigned(63 downto 0);
+      variable exp_v    : natural;
+      variable done_v   : boolean;
+      variable seen_v   : boolean;
+      variable num_avg  : natural := 0;
+   begin
+      wait until rst = '0';
+      wait until rising_edge(clk);
+
+      for i in 1 to 1000 loop
+         -- Mostly much shorter than C_AVG_CYCLES, sometimes longer or zero
+         uniform(seed1, seed2, r);
+         if r < 0.05 then
+            t := 0;
+         elsif r < 0.15 then
+            t := C_AVG_CYCLES + integer(r * 1.0e6);
+         elsif r < 0.4 then
+            t := 1 + integer(r * 100.0);
+         else
+            t := 1 + integer(r * 3000.0);
+         end if;
+
+         -- The expected average
+         cnt := cnt + 1;
+         sum := sum + t;
+         done_v := sum >= C_AVG_CYCLES or cnt = 2**C_FRAME_BITS - 1;
+         if done_v then
+            if sum = 0 then
+               exp_v := C_MAX;
+            else
+               quot := to_unsigned(cnt, 32) * to_unsigned(C_CLK_FREQ, 32) / to_unsigned(sum, 64);
+               if quot > C_MAX then
+                  exp_v := C_MAX;
+               else
+                  exp_v := to_integer(quot);
+               end if;
+            end if;
+            cnt := 0;
+            sum := 0;
+         end if;
+
+         avg_time <= std_logic_vector(to_unsigned(t, C_TIME_BITS));
+         avg_vld  <= '1';
+         wait until rising_edge(clk);
+         avg_vld  <= '0';
+         avg_time <= (others => 'X');
+
+         seen_v := false;
+         for c in 1 to C_CALC_CYCLES loop
+            wait until rising_edge(clk);
+            if avg_out = '1' then
+               assert not seen_v report "Two averages for one picture" severity error;
+               seen_v := true;
+               assert done_v and bcd_value(avg_dig) = exp_v
+                  report "Wrong average " & integer'image(bcd_value(avg_dig)) &
+                         ", expected " & integer'image(exp_v)
+                  severity error;
+            end if;
+         end loop;
+         assert seen_v = done_v
+            report "Average missing or too early" severity error;
+         if done_v then
+            num_avg := num_avg + 1;
+         end if;
+      end loop;
+
+      report "Average test finished, " & integer'image(num_avg) & " averages checked";
+      if not test_done then
+         wait until test_done;
+      end if;
+      std.env.stop;
+   end process p_avg;
 
 end architecture simulation;
