@@ -4,7 +4,7 @@ Welcome to this fourth episode of the tutorial. In this episode, we will
 improve the colour scheme.
 
 First of all, I noticed that the Nexys4DDR board I'm using supports 12-bit
-colours rather than just 8-bit colours I used so far. So this is fixed
+colours rather than just the 8-bit colours I used so far. So this is fixed
 by adding the missing pin locations to the voronoi.xdc constraint file and
 updating the top level port declaration in voronoi.vhd (line 17).
 

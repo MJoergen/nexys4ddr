@@ -19,7 +19,7 @@ In this way, the actual test in lines 201-243 of tb\_eth becomes fairly simple.
 It basically sends a hand-crafted ARP request into the Ethernet module, and
 looks for a corresponding ARP response.  The contents of these hand-crafted
 packets are based on the description of the ARP packet format found on
-[wikipedia](https://en.wikipedia.org/wiki/Address_Resolution_Protocol).
+[Wikipedia](https://en.wikipedia.org/wiki/Address_Resolution_Protocol).
 
 Note the use of named ranges, e.g. R\_MAC\_TLEN. These ranges are defined in a
 VHDL package in the file eth\_types.vhd. The reason for defining a separate
@@ -33,7 +33,7 @@ test bench.
 
 The interface to the ARP module (in lines 11-33 of arp.vhd) is chosen to make
 the design as simple as possible.  In particular, the data stream in to and out
-from the ARP module is the wide data stream, that connects easily to the
+from the ARP module is the wide data stream that connects easily to the
 byte2wide and wide2byte modules.
 
 The data width of 60 bytes is wide enough to contain the entire MAC header and
@@ -44,7 +44,7 @@ is constructed in lines 68-79.
 
 Note furthermore that the ARP module needs to know its own IP address and MAC
 address. These are passed as generics in lines 12-15. This implies that they
-must be known at compile time, and can not be changed dynamically. I did it
+must be known at compile time, and cannot be changed dynamically. I did it
 this way to keep the design simple.
 
 An alternative could be to use e.g. DHCP to let the design discover its own IP

@@ -22,7 +22,7 @@ of files:
 
 The file rom.vhd is a wrapper for a generic ROM. The point is that the Vivado
 tool allows for initializing the contents of the ROM directly from a text file.
-Furthermore, the entire ROM gets synthesized into one or more BRAM's, without
+Furthermore, the entire ROM gets synthesized into one or more BRAMs, without
 any further logic.  This greatly saves on FPGA resources.
 
 The file pix.vhd contains the pixel counters. The rest of the VGA logic is
@@ -56,7 +56,7 @@ All the above calculations take place in stage 1 and the result is stored in
 the register stage1.addr.
 
 Note the use of variables within the VHDL process. Since this process is
-synchronuous, the variables will be synthesized as separate regisers. However,
+synchronous, the variables will be synthesized as separate registers. However,
 Vivado recognizes that the contents of the variables are not used later on, and
 therefore the registers can be omitted. Instead, the variables get synthesized
 to combinatorial logic alone.
@@ -68,7 +68,7 @@ individually. Unfortunately, it won't work to just write "stage2 <= stage1",
 because this will lead to multiple drivers of the signal stage2.bitmap.
 
 The third (and last) stage selects the specific pixel from the font ROM based
-on the three LSB's of the current column being displayed. This is again because
+on the three LSBs of the current column being displayed. This is again because
 each character is 8 pixels wide. The characters are displayed as WHITE foreground on
 DARK background. This all takes place in lines 185-214.
 
@@ -76,7 +76,7 @@ DARK background. This all takes place in lines 185-214.
 
 The top module top.vhd is greatly simplified and now consists only of the clock
 generation and instantiation of the VGA module.  For now, I've added another
-module debug.vhd whose only purpose is so make a counter to give something to
+module debug.vhd whose only purpose is to make a counter to give something to
 display. This is just for the satisfaction of seeing something work.  Later,
 we'll remove this debug module, as we then have other more interesting things
 to show on the VGA output.

@@ -4,39 +4,39 @@ use ieee.numeric_std_unsigned.all;
 
 -- This is a simple VGA controller generating
 -- pixel coordinates and synchronizarion signals
--- corresponding to a 640x480 screen resolution.
--- The input clock must be 25.175 MHz, but plain 25 MHz will work.
+-- corresponding to a 1280x1024 screen resolution.
+-- The input clock must be 108 MHz.
 entity vga is
    port (
-      clk_i   : in  std_logic;   -- 25 MHz
+      clk_i   : in  std_logic;   -- 108 MHz
 
       hs_o    : out std_logic;   -- Horizontal synchronization
       vs_o    : out std_logic;   -- Vertical synchronization
-      pix_x_o : out std_logic_vector(9 downto 0);  -- Pixel coordiante x
-      pix_y_o : out std_logic_vector(9 downto 0)   -- Pixel coordiante y
+      pix_x_o : out std_logic_vector(10 downto 0);  -- Pixel coordiante x
+      pix_y_o : out std_logic_vector(10 downto 0)   -- Pixel coordiante y
    );
 end vga;
 
 architecture structural of vga is
 
-   -- Define constants used for 640x480 @ 60 Hz.
-   -- Requires a clock of 25.175 MHz.
-   -- See page 17 in "VESA MONITOR TIMING STANDARD"
+   -- Define constants used for 1280x1024 @ 60 Hz.
+   -- Requires a clock of 108 MHz.
+   -- See the 1280x1024 @ 60 Hz entry in "VESA MONITOR TIMING STANDARD"
    -- http://caxapa.ru/thumbs/361638/DMTv1r11.pdf
-   constant H_PIXELS : integer := 640;
-   constant V_PIXELS : integer := 480;
+   constant H_PIXELS : integer := 1280;
+   constant V_PIXELS : integer := 1024;
    --
-   constant H_TOTAL  : integer := 800;
-   constant HS_START : integer := 656;
-   constant HS_TIME  : integer := 96;
+   constant H_TOTAL  : integer := 1688;
+   constant HS_START : integer := 1328;
+   constant HS_TIME  : integer := 112;
    --
-   constant V_TOTAL  : integer := 525;
-   constant VS_START : integer := 490;
-   constant VS_TIME  : integer := 2;
+   constant V_TOTAL  : integer := 1066;
+   constant VS_START : integer := 1025;
+   constant VS_TIME  : integer := 3;
 
    -- Pixel counters
-   signal pix_x_r : std_logic_vector(9 downto 0) := (others => '0');
-   signal pix_y_r : std_logic_vector(9 downto 0) := (others => '0');
+   signal pix_x_r : std_logic_vector(10 downto 0) := (others => '0');
+   signal pix_y_r : std_logic_vector(10 downto 0) := (others => '0');
 
 begin
 

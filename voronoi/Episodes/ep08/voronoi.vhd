@@ -23,18 +23,17 @@ end voronoi;
 
 architecture structural of voronoi is
 
-   constant H_PIXELS     : integer := 640;
-   constant V_PIXELS     : integer := 480;
+   constant H_PIXELS     : integer := 1280;
+   constant V_PIXELS     : integer := 1024;
    constant C_RESOLUTION : integer := 7;
 
-   -- Clock divider for VGA clock
-   signal vga_cnt_r : std_logic_vector(1 downto 0) := (others => '0');
+   -- VGA clock
    signal vga_clk_s : std_logic;
    signal vga_rst_s : std_logic;
 
    -- Output from VGA controller
-   signal pix_x_s   : std_logic_vector(9 downto 0) := (others => '0');
-   signal pix_y_s   : std_logic_vector(9 downto 0) := (others => '0');
+   signal pix_x_s   : std_logic_vector(10 downto 0) := (others => '0');
+   signal pix_y_s   : std_logic_vector(10 downto 0) := (others => '0');
    signal vga_hs_s  : std_logic;
    signal vga_vs_s  : std_logic;
 
@@ -42,9 +41,10 @@ architecture structural of voronoi is
    signal move_s  : std_logic;
 
    -- A vector of coordinates.
-   type t_coord_vector is array(natural range <>) of std_logic_vector(9+C_RESOLUTION downto 0);
+   type t_coord_vector is array(natural range <>) of std_logic_vector(10+C_RESOLUTION downto 0);
 
    constant C_NUM_POINTS : integer := 32;
+   constant C_NUM_LEVELS : integer := 5;     -- log2(C_NUM_POINTS)
 
    -- Position of Voronoi points.
    signal vx_r       : t_coord_vector(C_NUM_POINTS-1 downto 0);
@@ -53,19 +53,26 @@ architecture structural of voronoi is
    -- Distance from current pixel to each Voronoi point.
    signal dist_s     : t_coord_vector(C_NUM_POINTS-1 downto 0);
 
-   signal dist_r     : t_coord_vector(C_NUM_POINTS-1 downto 0);
-   signal pix_x_r    : std_logic_vector(9 downto 0) := (others => '0');
-   signal pix_y_r    : std_logic_vector(9 downto 0) := (others => '0');
-   signal vga_hs_r   : std_logic;
-   signal vga_vs_r   : std_logic;
+   -- A binary tree of comparisons. Level 0 contains all the distances,
+   -- and level C_NUM_LEVELS contains just the minimum distance.
+   type t_colour_vector is array(natural range <>) of std_logic_vector(2 downto 0);
+   type t_dist_tree     is array(0 to C_NUM_LEVELS) of t_coord_vector(0 to C_NUM_POINTS-1);
+   type t_colour_tree   is array(0 to C_NUM_LEVELS) of t_colour_vector(0 to C_NUM_POINTS-1);
+   signal dist_tree   : t_dist_tree;
+   signal colour_tree : t_colour_tree;
 
    -- Colour of current pixel.
-   signal mindist_d0 : std_logic_vector(9+C_RESOLUTION downto 0);
+   signal mindist_d0 : std_logic_vector(10+C_RESOLUTION downto 0);
    signal colour_d0  : std_logic_vector(2 downto 0);
-   signal pix_x_d0   : std_logic_vector(9 downto 0) := (others => '0');
-   signal pix_y_d0   : std_logic_vector(9 downto 0) := (others => '0');
-   signal vga_hs_d0  : std_logic;
-   signal vga_vs_d0  : std_logic;
+
+   -- Delay the pixel coordinates and synchronization signals, so they match
+   -- the latency of the dist module (4) and the p_mindist process (6).
+   constant C_LATENCY : integer := 10;
+   type t_pix_vector is array(natural range <>) of std_logic_vector(10 downto 0);
+   signal pix_x_d    : t_pix_vector(1 to C_LATENCY);
+   signal pix_y_d    : t_pix_vector(1 to C_LATENCY);
+   signal vga_hs_d   : std_logic_vector(1 to C_LATENCY);
+   signal vga_vs_d   : std_logic_vector(1 to C_LATENCY);
 
    -- Colour of current pixel.
    signal vga_hs_d1  : std_logic;
@@ -76,8 +83,8 @@ architecture structural of voronoi is
    signal sw_d       : std_logic_vector(15 downto 0) := (others => '1');
 
    type t_init is record
-      startx : std_logic_vector(9 downto 0);
-      starty : std_logic_vector(9 downto 0);
+      startx : std_logic_vector(10 downto 0);
+      starty : std_logic_vector(10 downto 0);
       velx   : std_logic_vector(3 downto 0);
       vely   : std_logic_vector(3 downto 0);
    end record t_init;
@@ -86,11 +93,11 @@ architecture structural of voronoi is
       variable res_v : t_init;
    begin
       -- Make sure the point is not too close to the border
-      res_v.startx := to_stdlogicvector(10 + ((i*23)    mod (H_PIXELS-20)), 10);
-      res_v.starty := to_stdlogicvector(10 + ((i*i*37)  mod (V_PIXELS-20)), 10);
+      res_v.startx := to_stdlogicvector(10 + ((i*46)    mod (H_PIXELS-20)), 11);
+      res_v.starty := to_stdlogicvector(10 + ((i*i*37)  mod (V_PIXELS-20)), 11);
       -- Make sure the initial velocity is not zero.
-      res_v.velx   := to_stdlogicvector( 1 + ((i*i*7)   mod 15),             4);
-      res_v.vely   := to_stdlogicvector( 1 + ((i*i*i*4) mod 15),             4);
+      res_v.velx   := to_stdlogicvector( 1 + ((i*i*2)   mod 15),             4);
+      res_v.vely   := to_stdlogicvector( 1 + ((i*i*i*3) mod 15),             4);
 
       return res_v;
    end function init;
@@ -98,18 +105,14 @@ architecture structural of voronoi is
 begin
 
    --------------------------------------------------
-   -- Divide input clock by 4, from 100 MHz to 25 MHz
-   -- This is close enough to 25.175 MHz.
+   -- Generate 108 MHz VGA clock from 100 MHz input clock
    --------------------------------------------------
 
-   p_vga_cnt : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         vga_cnt_r <= vga_cnt_r + 1;
-      end if;
-   end process p_vga_cnt;
-
-   vga_clk_s <= vga_cnt_r(1);
+   i_clk : entity work.clk
+      port map (
+         clk_i => clk_i,
+         clk_o => vga_clk_s
+      ); -- i_clk
 
 
    ------------------------------
@@ -153,7 +156,7 @@ begin
       -- This block moves around each Voronoi center.
       i_move : entity work.move
          generic map (
-            G_SIZE   => 10
+            G_SIZE   => 11
          )
          port map (
             clk_i    => vga_clk_s,
@@ -163,8 +166,8 @@ begin
             velx_i   => init(i).velx,
             vely_i   => init(i).vely,
             move_i   => move_s,
-            x_o      => vx_r(i)(9+C_RESOLUTION downto C_RESOLUTION),
-            y_o      => vy_r(i)(9+C_RESOLUTION downto C_RESOLUTION)
+            x_o      => vx_r(i)(10+C_RESOLUTION downto C_RESOLUTION),
+            y_o      => vy_r(i)(10+C_RESOLUTION downto C_RESOLUTION)
          ); -- i_move
 
       -- This is a small combinatorial block that computes the distance
@@ -172,11 +175,12 @@ begin
       i_dist : entity work.dist
          generic map (
             G_RESOLUTION => C_RESOLUTION,
-            G_SIZE       => 10
+            G_SIZE       => 11
          )
          port map (
-            x1_i   => vx_r(i)(9+C_RESOLUTION downto C_RESOLUTION),
-            y1_i   => vy_r(i)(9+C_RESOLUTION downto C_RESOLUTION),
+            clk_i  => vga_clk_s,
+            x1_i   => vx_r(i)(10+C_RESOLUTION downto C_RESOLUTION),
+            y1_i   => vy_r(i)(10+C_RESOLUTION downto C_RESOLUTION),
             x2_i   => pix_x_s,
             y2_i   => pix_y_s,
             dist_o => dist_s(i)
@@ -185,65 +189,54 @@ begin
 
  
    ------------------------------------------------
-   -- Add a line of registers to improve timing.
+   -- Delay the pixel coordinates and synchronization signals.
    ------------------------------------------------
 
-   p_dist : process (vga_clk_s)
+   p_delay : process (vga_clk_s)
    begin
       if rising_edge(vga_clk_s) then
-         dist_r   <= dist_s;
-         pix_x_r  <= pix_x_s;
-         pix_y_r  <= pix_y_s;
-         vga_hs_r <= vga_hs_s;
-         vga_vs_r <= vga_vs_s;
+         pix_x_d  <= pix_x_s  & pix_x_d(1 to C_LATENCY-1);
+         pix_y_d  <= pix_y_s  & pix_y_d(1 to C_LATENCY-1);
+         vga_hs_d <= vga_hs_s & vga_hs_d(1 to C_LATENCY-1);
+         vga_vs_d <= vga_vs_s & vga_vs_d(1 to C_LATENCY-1);
       end if;
-   end process p_dist;
+   end process p_delay;
 
 
    ------------------------------------------------
-   -- Determine which Voronoi point is the nearest
+   -- Determine which Voronoi point is the nearest.
+   -- This is done as a binary tree, where each level
+   -- halves the number of candidates. There is a register
+   -- after each level, so only a single comparison
+   -- is made in each clock cycle.
    ------------------------------------------------
 
    p_mindist : process (vga_clk_s)
-      variable mindist1_v : std_logic_vector(9+C_RESOLUTION downto 0);
-      variable colour1_v  : std_logic_vector(2 downto 0);
-      variable mindist2_v : std_logic_vector(9+C_RESOLUTION downto 0);
-      variable colour2_v  : std_logic_vector(2 downto 0);
    begin
       if rising_edge(vga_clk_s) then
-
-         -- Split the comparison in two, to get better timing.
-         colour1_v  := "000";
-         mindist1_v := dist_r(0);
-         for i in 1 to C_NUM_POINTS/2-1 loop
-            if dist_r(i) < mindist1_v then
-               mindist1_v := dist_r(i);
-               colour1_v  := to_stdlogicvector(i mod 7, 3);
-            end if;
+         -- Level 0 : Register the distances, and assign a colour to each point.
+         for i in 0 to C_NUM_POINTS-1 loop
+            dist_tree(0)(i)   <= dist_s(i);
+            colour_tree(0)(i) <= to_stdlogicvector(i mod 7, 3);
          end loop;
 
-         colour2_v  := to_stdlogicvector((C_NUM_POINTS/2) mod 7, 3);
-         mindist2_v := dist_r(C_NUM_POINTS/2);
-         for i in C_NUM_POINTS/2+1 to C_NUM_POINTS-1 loop
-            if dist_r(i) < mindist2_v then
-               mindist2_v := dist_r(i);
-               colour2_v  := to_stdlogicvector(i mod 7, 3);
-            end if;
+         -- Level l : Choose the nearest of each pair from the previous level.
+         for l in 1 to C_NUM_LEVELS loop
+            for i in 0 to C_NUM_POINTS/2**l-1 loop
+               if dist_tree(l-1)(2*i+1) < dist_tree(l-1)(2*i) then
+                  dist_tree(l)(i)   <= dist_tree(l-1)(2*i+1);
+                  colour_tree(l)(i) <= colour_tree(l-1)(2*i+1);
+               else
+                  dist_tree(l)(i)   <= dist_tree(l-1)(2*i);
+                  colour_tree(l)(i) <= colour_tree(l-1)(2*i);
+               end if;
+            end loop;
          end loop;
-
-         if mindist1_v < mindist2_v then
-            mindist_d0 <= mindist1_v;
-            colour_d0  <= colour1_v;
-         else
-            mindist_d0 <= mindist2_v;
-            colour_d0  <= colour2_v;
-         end if;
-         pix_x_d0   <= pix_x_r;
-         pix_y_d0   <= pix_y_r;
-         vga_hs_d0  <= vga_hs_r;
-         vga_vs_d0  <= vga_vs_r;
       end if;
    end process p_mindist;
+
+   mindist_d0 <= dist_tree(C_NUM_LEVELS)(0);
+   colour_d0  <= colour_tree(C_NUM_LEVELS)(0);
 
    
    --------------------------------------------------
@@ -254,7 +247,7 @@ begin
       variable brightness_v : std_logic_vector(3 downto 0);
    begin
       if rising_edge(vga_clk_s) then
-         brightness_v := not mindist_d0(C_RESOLUTION+6 downto C_RESOLUTION+3);
+         brightness_v := not mindist_d0(C_RESOLUTION+7 downto C_RESOLUTION+4);
          case colour_d0 is
             when "000" => vga_col_d1 <= brightness_v & brightness_v & brightness_v;
             when "001" => vga_col_d1 <= brightness_v & brightness_v &       "0000";
@@ -267,12 +260,12 @@ begin
          end case;
 
          -- Make sure colour is black outside the visible area.
-         if pix_x_d0 >= H_PIXELS or pix_y_d0 >= V_PIXELS then
+         if pix_x_d(C_LATENCY) >= H_PIXELS or pix_y_d(C_LATENCY) >= V_PIXELS then
             vga_col_d1 <= (others => '0'); -- Black colour.
          end if;
 
-         vga_hs_d1  <= vga_hs_d0;
-         vga_vs_d1  <= vga_vs_d0;
+         vga_hs_d1  <= vga_hs_d(C_LATENCY);
+         vga_vs_d1  <= vga_vs_d(C_LATENCY);
       end if;
    end process p_vga_col;
 
