@@ -19,10 +19,10 @@ use ieee.numeric_std_unsigned.all;
 -- at a time lets the dispatcher write more than one pixel per clock cycle.
 --
 -- The address of the pixel in column x and row y of the picture is
--- x*G_COL_STRIDE + y. When G_COL_STRIDE is a power of two, this is the column
--- followed by the row. Otherwise, e.g. for 800x600 pixels, where the column
--- and the row together need 20 bits, G_COL_STRIDE can be the number of rows,
--- so the picture fits in the 2^19 pixels of the display memory.
+-- x*G_COL_STRIDE + y, with G_ADDR_BITS bits. When G_COL_STRIDE is a power of
+-- two, this is the column followed by the row, e.g. 512 for 640x480 (19 bits)
+-- and 1024 for 1280x1024 (21 bits). Otherwise G_COL_STRIDE can be the number
+-- of rows, so that the picture takes fewer addresses.
 
 entity dispatcher is
    generic (
@@ -30,6 +30,7 @@ entity dispatcher is
       G_NUM_ROWS      : integer;
       G_NUM_COLS      : integer;
       G_COL_STRIDE    : integer;         -- Address distance between columns
+      G_ADDR_BITS     : integer := 19;   -- Bits of the address
       G_JOB_ROWS      : integer;         -- Rows in each job
       G_NUM_ITERATORS : integer;
       G_GROUP_SIZE    : integer := 16;
@@ -43,7 +44,7 @@ entity dispatcher is
       starty_i        : in  std_logic_vector(17 downto 0);
       stepx_i         : in  std_logic_vector(17 downto 0);
       stepy_i         : in  std_logic_vector(17 downto 0);
-      wr_addr_o       : out std_logic_vector(18 downto 0);
+      wr_addr_o       : out std_logic_vector(G_ADDR_BITS-1 downto 0);
       wr_data_o       : out std_logic_vector(9*G_PIXELS-1 downto 0);
       wr_en_o         : out std_logic;
       done_o          : out std_logic
@@ -62,7 +63,9 @@ architecture rtl of dispatcher is
       return r;
    end function log2;
 
-   -- The number of bits of the row in the picture
+   -- The number of bits of the column (at least one, also for a single
+   -- column) and of the row in the picture
+   constant C_COL_BITS   : integer := maximum(1, log2(G_NUM_COLS));
    constant C_ROW_BITS   : integer := log2(G_NUM_ROWS);
 
    -- The job (cx, starty, and stepy), the reset, and the index of the column
@@ -76,7 +79,7 @@ architecture rtl of dispatcher is
    constant C_NUM_BLOCKS : integer := G_NUM_ROWS / G_JOB_ROWS;
 
    type job_addr_vector is array (natural range <>) of
-      std_logic_vector(9 downto 0);
+      std_logic_vector(C_COL_BITS-1 downto 0);
    type res_addr_vector is array (natural range <>) of
       std_logic_vector(8 downto 0);
    type res_data_vector is array (natural range <>) of
@@ -109,7 +112,7 @@ architecture rtl of dispatcher is
    signal job_blk_r         : blk_vector(      G_NUM_ITERATORS-1 downto 0);
    -- The picture column and the block of the next job. All the jobs have
    -- been given out when cur_blk_r is C_NUM_BLOCKS.
-   signal cur_addr_r        : std_logic_vector(9 downto 0) := (others => '0');
+   signal cur_addr_r        : std_logic_vector(C_COL_BITS-1 downto 0) := (others => '0');
    signal cur_blk_r         : integer range 0 to C_NUM_BLOCKS := 0;
    --
    -- The job, delayed by one clock cycle, in each group of column modules
@@ -152,17 +155,17 @@ architecture rtl of dispatcher is
    signal res_busy_r        : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal res_ready_s       : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
 
-   signal wr_addr_r         : std_logic_vector(18 downto 0);
+   signal wr_addr_r         : std_logic_vector(G_ADDR_BITS-1 downto 0);
    signal wr_data_r         : std_logic_vector(9*G_PIXELS-1 downto 0);
    signal wr_en_r           : std_logic;
 
    -- The accepted result, delayed by one, two and three clock cycles: The
    -- picture column and the block of the job, the first row of the block, and
    -- then the address of the column and the row of the result.
-   signal acc_job_addr_r    : std_logic_vector(9 downto 0);
-   signal acc_job_addr_d    : std_logic_vector(9 downto 0);
+   signal acc_job_addr_r    : std_logic_vector(C_COL_BITS-1 downto 0);
+   signal acc_job_addr_d    : std_logic_vector(C_COL_BITS-1 downto 0);
    signal acc_blk_r         : integer range 0 to C_NUM_BLOCKS-1;
-   signal acc_col_dd        : std_logic_vector(18 downto 0);
+   signal acc_col_dd        : std_logic_vector(G_ADDR_BITS-1 downto 0);
    signal acc_row_d         : std_logic_vector(C_ROW_BITS-1 downto 0);
    signal acc_row_dd        : std_logic_vector(C_ROW_BITS-1 downto 0);
    signal acc_data_dd       : std_logic_vector(9*G_PIXELS-1 downto 0);
@@ -202,9 +205,9 @@ begin
       severity failure;
 
    -- The write address must be a multiple of G_PIXELS, see disp_mem.vhd
-   assert G_NUM_COLS <= 2**10 and G_COL_STRIDE >= G_NUM_ROWS and
+   assert G_COL_STRIDE >= G_NUM_ROWS and
           G_COL_STRIDE mod G_PIXELS = 0 and
-          (G_NUM_COLS-1)*G_COL_STRIDE + G_NUM_ROWS <= 2**19
+          (G_NUM_COLS-1)*G_COL_STRIDE + G_NUM_ROWS <= 2**G_ADDR_BITS
       report "The picture does not fit in the display memory"
       severity failure;
 
@@ -479,7 +482,7 @@ begin
    end generate gen_grp_res;
 
    p_wr : process (clk_i)
-      variable col_v : std_logic_vector(28 downto 0);
+      variable col_v : std_logic_vector(C_COL_BITS+G_ADDR_BITS-1 downto 0);
    begin
       if rising_edge(clk_i) then
          -- Step 2
@@ -492,8 +495,8 @@ begin
          -- multiplication is not in step 2, because acc_job_addr_r is read
          -- from a table, which may be a BRAM (job_addr_r). When G_COL_STRIDE
          -- is a power of two, the multiplication is only wires.
-         col_v        := acc_job_addr_d * to_slv(G_COL_STRIDE, 19);
-         acc_col_dd   <= col_v(18 downto 0);
+         col_v        := acc_job_addr_d * to_slv(G_COL_STRIDE, G_ADDR_BITS);
+         acc_col_dd   <= col_v(G_ADDR_BITS-1 downto 0);
          acc_row_dd   <= acc_row_d + resize(grp_res_addr_r(acc_grp_d), C_ROW_BITS);
          acc_data_dd  <= grp_res_data_r(acc_grp_d);
          acc_valid_dd <= acc_valid_d;

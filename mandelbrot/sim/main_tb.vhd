@@ -11,9 +11,10 @@ use std.textio.all;
 -- The testbench stops when a complete picture has been written.
 --
 -- The generics are the number of column modules, the number of pixels in each
--- write, the size of the picture, and the address distance between two
--- picture columns, by default as on the Nexys 4 DDR (nexys4ddr.vhd). They can
--- be set with GENERICS, e.g. as on the MEGA65 R6 (mega65_r6.vhd):
+-- write, the size of the picture, the address distance between two picture
+-- columns, and the bits of the address, by default as on the Nexys 4 DDR
+-- (nexys4ddr.vhd). They can be set with GENERICS, e.g. as on the MEGA65 R6
+-- (mega65_r6.vhd):
 --   GENERICS="G_NUM_ITERATORS=450 G_PIXELS=4 G_NUM_COLS=800 G_NUM_ROWS=600 G_COL_STRIDE=600"
 --
 -- The testbench is not self-checking. Instead the output is compared with the
@@ -29,7 +30,8 @@ entity main_tb is
       G_PIXELS        : integer := 1;
       G_NUM_COLS      : integer := 640;
       G_NUM_ROWS      : integer := 480;
-      G_COL_STRIDE    : integer := 512
+      G_COL_STRIDE    : integer := 512;
+      G_ADDR_BITS     : integer := 19
    );
 end entity main_tb;
 
@@ -40,7 +42,7 @@ architecture simulation of main_tb is
    signal clk     : std_logic;
    signal rst     : std_logic := '1';
 
-   signal wr_addr : std_logic_vector(18 downto 0);
+   signal wr_addr : std_logic_vector(G_ADDR_BITS-1 downto 0);
    signal wr_data : std_logic_vector(9*G_PIXELS-1 downto 0);
    signal wr_en   : std_logic;
 
@@ -77,7 +79,8 @@ begin
          G_PIXELS        => G_PIXELS,
          G_NUM_COLS      => G_NUM_COLS,
          G_NUM_ROWS      => G_NUM_ROWS,
-         G_COL_STRIDE    => G_COL_STRIDE
+         G_COL_STRIDE    => G_COL_STRIDE,
+         G_ADDR_BITS     => G_ADDR_BITS
       )
       port map (
          clk_i     => clk,

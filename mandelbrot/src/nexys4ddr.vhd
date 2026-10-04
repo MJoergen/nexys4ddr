@@ -88,17 +88,25 @@ architecture structural of nexys4ddr is
    -- followed by the row.
    constant C_COL_STRIDE    : integer := 512;
 
+   -- The display memory (see disp_mem.vhd): 2^19 pixels, i.e. 128 blocks
+   -- (BRAMs) of 4096 pixels, with 19 bits of address, and a register for the
+   -- write port of each block. The picture only uses the first 80 blocks (640
+   -- columns of 512 addresses).
+   constant C_ADDR_BITS     : integer := 19;
+   constant C_MEM_BLOCKS    : integer := 128;
+   constant C_BLOCK_REGS    : boolean := true;
+
    signal main_clk       : std_logic;
    signal main_rst       : std_logic;
 
    signal vga_clk        : std_logic;
    signal vga_rst        : std_logic;
 
-   signal wr_addr        : std_logic_vector(18 downto 0);
+   signal wr_addr        : std_logic_vector(C_ADDR_BITS-1 downto 0);
    signal wr_data        : std_logic_vector(9*C_PIXELS-1 downto 0);
    signal wr_en          : std_logic;
 
-   signal rd_addr        : std_logic_vector(18 downto 0);
+   signal rd_addr        : std_logic_vector(C_ADDR_BITS-1 downto 0);
    signal rd_data        : std_logic_vector( 8 downto 0);
 
    signal fps_digits     : std_logic_vector(31 downto 0);
@@ -151,7 +159,8 @@ begin
          G_PIXELS        => C_PIXELS,
          G_NUM_COLS      => C_VIDEO.h_visible,
          G_NUM_ROWS      => C_VIDEO.v_visible,
-         G_COL_STRIDE    => C_COL_STRIDE
+         G_COL_STRIDE    => C_COL_STRIDE,
+         G_ADDR_BITS     => C_ADDR_BITS
       )
       port map (
          clk_i     => main_clk,
@@ -175,7 +184,10 @@ begin
 
    i_disp_mem : entity work.disp_mem
       generic map (
-         G_PIXELS => C_PIXELS
+         G_ADDR_BITS  => C_ADDR_BITS,
+         G_NUM_BLOCKS => C_MEM_BLOCKS,
+         G_BLOCK_REGS => C_BLOCK_REGS,
+         G_PIXELS     => C_PIXELS
       )
       port map (
          wr_clk_i  => main_clk,
@@ -220,7 +232,8 @@ begin
    i_vga : entity work.vga
       generic map (
          G_MODE       => C_VIDEO,
-         G_COL_STRIDE => C_COL_STRIDE
+         G_COL_STRIDE => C_COL_STRIDE,
+         G_ADDR_BITS  => C_ADDR_BITS
       )
       port map (
          clk_i     => vga_clk,

@@ -25,7 +25,7 @@ use work.video_pkg.all;
 --   480, 10, 2 and 33, i.e. 525 in total for 640x480.
 --
 -- In the second phase, the display memory is replaced by a model with the read
--- latency of disp_mem.vhd (three clock cycles), which holds a different value
+-- latency of disp_mem.vhd (four clock cycles), which holds a different value
 -- for each pixel, (x + 3*y) mod 512, so all 512 values (including the set,
 -- 511) occur on each line. This also checks the address of each pixel. The
 -- palette is changed every 120 lines (it is selected by the asynchronous input
@@ -47,12 +47,13 @@ architecture simulation of vga_tb is
    type config_t is record
       mode       : video_mode_t;
       col_stride : integer;      -- Address distance between two columns
+      addr_bits  : integer;      -- Bits of the address
    end record config_t;
    type config_vector is array (natural range <>) of config_t;
 
    constant C_CONFIGS : config_vector := (
-      (mode => C_VIDEO_640X480, col_stride => 512),
-      (mode => C_VIDEO_800X600, col_stride => 600));
+      (mode => C_VIDEO_640X480, col_stride => 512, addr_bits => 19),
+      (mode => C_VIDEO_800X600, col_stride => 600, addr_bits => 19));
 
    constant C_COLOUR    : std_logic_vector(7 downto 0) := X"A5";
 
@@ -104,6 +105,9 @@ begin
    gen_config : for m in C_CONFIGS'range generate
       constant C_MODE      : video_mode_t := C_CONFIGS(m).mode;
       constant C_STRIDE    : integer := C_CONFIGS(m).col_stride;
+      constant C_ADDR_BITS : integer := C_CONFIGS(m).addr_bits;
+      -- The read latency of the display memory
+      constant C_LATENCY   : integer := 4;
 
       constant C_H_VISIBLE : integer := C_MODE.h_visible;
       constant C_H_FRONT   : integer := C_MODE.h_front;
@@ -117,7 +121,7 @@ begin
       constant C_V_BACK    : integer := C_MODE.v_back;
       constant C_V_TOTAL   : integer := C_V_VISIBLE + C_V_FRONT + C_V_SYNC + C_V_BACK;
 
-      signal rd_addr : std_logic_vector(18 downto 0);
+      signal rd_addr : std_logic_vector(C_ADDR_BITS-1 downto 0);
       signal vga_hs  : std_logic;
       signal vga_vs  : std_logic;
       signal vga_col : std_logic_vector(7 downto 0);
@@ -130,9 +134,9 @@ begin
       signal pattern : boolean := false;
       signal palette : std_logic_vector(1 downto 0) := "00";
       signal rd_data : std_logic_vector(8 downto 0);
-      signal mem_d1  : std_logic_vector(8 downto 0);
-      signal mem_d2  : std_logic_vector(8 downto 0);
-      signal mem_d3  : std_logic_vector(8 downto 0);
+      -- The value read, delayed by 1 to C_LATENCY clock cycles
+      type mem_vector is array (1 to C_LATENCY) of std_logic_vector(8 downto 0);
+      signal mem_d   : mem_vector;
 
    begin
 
@@ -143,14 +147,13 @@ begin
       p_mem : process (clk)
       begin
          if rising_edge(clk) then
-            mem_d1 <= pixel_value(to_integer(unsigned(rd_addr)) / C_STRIDE,
-                                  to_integer(unsigned(rd_addr)) mod C_STRIDE);
-            mem_d2 <= mem_d1;
-            mem_d3 <= mem_d2;
+            mem_d(1) <= pixel_value(to_integer(unsigned(rd_addr)) / C_STRIDE,
+                                    to_integer(unsigned(rd_addr)) mod C_STRIDE);
+            mem_d(2 to C_LATENCY) <= mem_d(1 to C_LATENCY-1);
          end if;
       end process p_mem;
 
-      rd_data <= mem_d3 when pattern else C_VALUE;
+      rd_data <= mem_d(C_LATENCY) when pattern else C_VALUE;
 
       hs_n <= vga_hs xor C_MODE.sync_active;
       vs_n <= vga_vs xor C_MODE.sync_active;
@@ -360,7 +363,8 @@ begin
       i_vga : entity work.vga
          generic map (
             G_MODE       => C_MODE,
-            G_COL_STRIDE => C_STRIDE
+            G_COL_STRIDE => C_STRIDE,
+            G_ADDR_BITS  => C_ADDR_BITS
          )
          port map (
             clk_i     => clk,

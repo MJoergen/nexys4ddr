@@ -33,12 +33,13 @@ entity main is
       -- dispatcher.vhd and disp_mem.vhd. A power of two, and the rows in a
       -- job (C_JOB_ROWS) must be a multiple of it.
       G_PIXELS        : integer;
-      -- The size of the picture, i.e. the resolution of the VGA output, and
-      -- the address distance between two picture columns in the display
-      -- memory, see dispatcher.vhd.
+      -- The size of the picture, i.e. the resolution of the VGA output, the
+      -- address distance between two picture columns in the display memory,
+      -- and the number of bits of the address, see dispatcher.vhd.
       G_NUM_COLS      : integer;
       G_NUM_ROWS      : integer;
-      G_COL_STRIDE    : integer
+      G_COL_STRIDE    : integer;
+      G_ADDR_BITS     : integer
    );
    port (
       clk_i     : in  std_logic;                      -- G_CLK_FREQ
@@ -55,7 +56,7 @@ entity main is
       fps_toggle_o : out std_logic;
 
       -- Write port of the display memory
-      wr_addr_o : out std_logic_vector(18 downto 0);
+      wr_addr_o : out std_logic_vector(G_ADDR_BITS-1 downto 0);
       wr_data_o : out std_logic_vector(9*G_PIXELS-1 downto 0);
       wr_en_o   : out std_logic
    );
@@ -86,7 +87,7 @@ architecture structural of main is
    signal done           : std_logic;
    signal pic_done       : std_logic;
 
-   signal wr_addr_s      : std_logic_vector(18 downto 0);
+   signal wr_addr_s      : std_logic_vector(G_ADDR_BITS-1 downto 0);
    signal wr_data_s      : std_logic_vector(9*G_PIXELS-1 downto 0);
    signal wr_en_s        : std_logic;
 
@@ -262,6 +263,7 @@ begin
          G_NUM_ROWS      => G_NUM_ROWS,
          G_NUM_COLS      => G_NUM_COLS,
          G_COL_STRIDE    => G_COL_STRIDE,
+         G_ADDR_BITS     => G_ADDR_BITS,
          G_JOB_ROWS      => C_JOB_ROWS,
          G_NUM_ITERATORS => G_NUM_ITERATORS,
          G_PIXELS        => G_PIXELS

@@ -11,7 +11,7 @@ use work.video_pkg.all;
 --
 -- The video mode is 640x480, with the column followed by the row in the
 -- address (as on the Nexys 4 DDR). The display memory is replaced by a model
--- with the read latency of disp_mem.vhd (three clock cycles), which holds a
+-- with the read latency of disp_mem.vhd (four clock cycles), which holds a
 -- different value for each pixel, (x + 3*y) mod 512, as in vga_tb.vhd. The first palette is used, so
 -- the colour is the lowest 8 bits of the value. The testbench checks that the
 -- colour of each pixel of three frames is either the colour of the picture,
@@ -63,8 +63,9 @@ architecture simulation of overlay_tb is
    signal rst        : std_logic := '1';
    signal rd_addr    : std_logic_vector(18 downto 0);
    signal rd_data    : std_logic_vector(8 downto 0) := (others => '0');
-   signal mem_d1     : std_logic_vector(8 downto 0) := (others => '0');
-   signal mem_d2     : std_logic_vector(8 downto 0) := (others => '0');
+   -- The value read, delayed by 1 to 3 clock cycles
+   type mem_vector is array (1 to 3) of std_logic_vector(8 downto 0);
+   signal mem_d      : mem_vector := (others => (others => '0'));
    signal vga_hs     : std_logic;
    signal vga_vs     : std_logic;
    signal vga_col    : std_logic_vector(7 downto 0);
@@ -132,10 +133,10 @@ begin
    p_mem : process (clk)
    begin
       if rising_edge(clk) then
-         mem_d1  <= pixel_value(to_integer(unsigned(rd_addr(18 downto 9))),
-                                to_integer(unsigned(rd_addr(8 downto 0))));
-         mem_d2  <= mem_d1;
-         rd_data <= mem_d2;
+         mem_d(1) <= pixel_value(to_integer(unsigned(rd_addr(18 downto 9))),
+                                 to_integer(unsigned(rd_addr(8 downto 0))));
+         mem_d(2 to 3) <= mem_d(1 to 2);
+         rd_data  <= mem_d(3);
       end if;
    end process p_mem;
 

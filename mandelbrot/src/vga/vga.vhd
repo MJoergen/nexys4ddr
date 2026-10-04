@@ -11,19 +11,24 @@ use work.video_pkg.all;
 -- is shown in the top right corner, see overlay.vhd.
 --
 -- The address of the pixel in column x and row y of the picture is
--- x*G_COL_STRIDE + y, the same as in dispatcher.vhd.
+-- x*G_COL_STRIDE + y, with G_ADDR_BITS bits, the same as in dispatcher.vhd.
+--
+-- The read latency of the display memory is four clock cycles (see
+-- disp_mem.vhd). disp.vhd and overlay.vhd expect three clock cycles, so they
+-- get the pixel counters delayed by one clock cycle.
 
 entity vga is
    generic (
       G_MODE       : video_mode_t;
-      G_COL_STRIDE : integer
+      G_COL_STRIDE : integer;
+      G_ADDR_BITS  : integer := 19
    );
    port (
       clk_i     : in  std_logic;                      -- The pixel clock
       rst_i     : in  std_logic;
 
       -- Read port of the display memory
-      rd_addr_o : out std_logic_vector(18 downto 0);
+      rd_addr_o : out std_logic_vector(G_ADDR_BITS-1 downto 0);
       rd_data_i : in  std_logic_vector( 8 downto 0);
 
       -- Selects the palette, see palette_pkg.vhd. This is asynchronous (from
@@ -59,8 +64,12 @@ architecture structural of vga is
    signal pix_x : std_logic_vector(10 downto 0);
    signal pix_y : std_logic_vector(10 downto 0);
 
+   -- The pixel counters for disp and overlay, delayed by one clock cycle
+   signal disp_x : std_logic_vector(10 downto 0);
+   signal disp_y : std_logic_vector(10 downto 0);
+
    -- The address of the pixel, and the address of its column. Only the lowest
-   -- 19 bits are used. The multiplication by the constant G_COL_STRIDE uses
+   -- G_ADDR_BITS bits are used. The multiplication by the constant G_COL_STRIDE uses
    -- LUTs, because the DSPs are for the iterators. When G_COL_STRIDE is
    -- 2**C_ROW_BITS (as on the Nexys 4 DDR), it is only wires.
    signal rd_addr : std_logic_vector(21 downto 0);
@@ -83,7 +92,7 @@ architecture structural of vga is
 begin
 
    assert G_COL_STRIDE >= G_MODE.v_visible and
-          (G_MODE.h_visible-1)*G_COL_STRIDE + G_MODE.v_visible <= 2**19
+          (G_MODE.h_visible-1)*G_COL_STRIDE + G_MODE.v_visible <= 2**G_ADDR_BITS
       report "The picture does not fit in the display memory"
       severity failure;
 
@@ -119,7 +128,15 @@ begin
    -- to C_ROW_BITS bits, and the address may wrap around.
    rd_col    <= pix_x * to_slv(G_COL_STRIDE, 11);
    rd_addr   <= rd_col + pix_y(C_ROW_BITS-1 downto 0);
-   rd_addr_o <= rd_addr(18 downto 0);
+   rd_addr_o <= rd_addr(G_ADDR_BITS-1 downto 0);
+
+   p_disp_delay : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         disp_x <= pix_x;
+         disp_y <= pix_y;
+      end if;
+   end process p_disp_delay;
 
 
    --------------------------------------------------
@@ -133,8 +150,8 @@ begin
       port map (
          vga_clk_i    => clk_i,
          vga_rst_i    => rst_i,
-         vga_pix_x_i  => pix_x,
-         vga_pix_y_i  => pix_y,
+         vga_pix_x_i  => disp_x,
+         vga_pix_y_i  => disp_y,
          vga_col_d3_i => rd_data_i,
          vga_palette_i=> palette_sync,
          vga_hs_o     => disp_hs,
@@ -156,8 +173,8 @@ begin
          vga_clk_i    => clk_i,
          fps_digits_i => fps_digits_i,
          fps_blank_i  => fps_blank_i,
-         vga_pix_x_i  => pix_x,
-         vga_pix_y_i  => pix_y,
+         vga_pix_x_i  => disp_x,
+         vga_pix_y_i  => disp_y,
          vga_hs_d4_i  => disp_hs,
          vga_vs_d4_i  => disp_vs,
          vga_col_d4_i => disp_col,

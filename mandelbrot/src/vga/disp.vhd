@@ -8,7 +8,9 @@ use work.video_pkg.all;
 -- This module generates the VGA output signals for the video mode G_MODE (see
 -- video_pkg.vhd) from the pixel counters. The value of the pixel at (vga_pix_x_i, vga_pix_y_i), i.e.
 -- its iteration count (9 bits), must be given on vga_col_d3_i three
--- clock cycles later, which is the read latency of the display memory. It is
+-- clock cycles later. This is the read latency of the display memory (four
+-- clock cycles) less one, because vga.vhd gives this module the pixel counters
+-- delayed by one clock cycle. It is
 -- converted to the colour by the palette selected by vga_palette_i (see
 -- palette_pkg.vhd). The colour is only output inside the visible area.
 
@@ -90,7 +92,7 @@ begin
 
    ------------------------------------------------------------------
    -- Add two more pipeline stages, so the total delay of three clock
-   -- cycles matches the read latency of the display memory
+   -- cycles matches the read latency of the display memory (see above)
    ------------------------------------------------------------------
 
    p_pipe : process (vga_clk_i)
