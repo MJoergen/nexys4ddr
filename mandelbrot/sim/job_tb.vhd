@@ -5,11 +5,11 @@ use ieee.math_real.all;
 
 use work.iterator_model_pkg.all;
 
--- This is a simple self-checking testbench for the column. It runs three jobs,
--- each of a few rows, and checks the following:
--- * The column is not busy, and gives no results, when idle.
--- * The column is busy from the start of a job until the last result has been
---   acknowledged.
+-- This is a simple self-checking testbench for the job module. It runs three
+-- jobs, each of a few rows, and checks the following:
+-- * The job module is not busy, and gives no results, when idle.
+-- * The job module is busy from the start of a job until the last result has
+--   been acknowledged.
 -- * The results come in order, one for each group of G_PIXELS rows, with the
 --   row number of the first row, and each result is given only once.
 -- * A result stays valid, and unchanged, until it is acknowledged. This is
@@ -22,10 +22,10 @@ use work.iterator_model_pkg.all;
 -- Only a few rows, and a low maximum count, are used to keep the simulation
 -- short.
 
-entity column_tb is
-end entity column_tb;
+entity job_tb is
+end entity job_tb;
 
-architecture simulation of column_tb is
+architecture simulation of job_tb is
 
    constant C_MAX_COUNT   : integer := 50;
    constant C_NUM_ROWS    : integer := 12;
@@ -69,7 +69,7 @@ begin
    p_finish : process
    begin
       wait until finished = (finished'range => '1');
-      report "column_tb: finished";
+      report "job_tb: finished";
       std.env.finish;
    end process p_finish;
 
@@ -152,7 +152,7 @@ begin
                   severity error;
 
                for i in 0 to C_PIX-1 loop
-                  -- The column module adds the step in 18 bits
+                  -- The job module adds the step in 18 bits
                   cy_i := wrap18(to_fixed(starty_r) + (row+i) * to_fixed(stepy_r));
                   exp  := iterator_count(to_fixed(cx_r), cy_i, C_MAX_COUNT);
                   act  := to_integer(unsigned(cap_data(9*i+8 downto 9*i)));
@@ -177,7 +177,7 @@ begin
                res_ack <= '0';
             end loop;
 
-            -- The column should now be idle
+            -- The job module should now be idle
             for t in 1 to 5 loop
                wait until rising_edge(clk);
                assert job_busy = '0' and res_valid = '0'
@@ -216,7 +216,7 @@ begin
       -- Instantiate DUT
       -------------------
 
-      i_column : entity work.column
+      i_job : entity work.job
          generic map (
             G_MAX_COUNT => C_MAX_COUNT,
             G_NUM_ROWS  => C_NUM_ROWS,
@@ -234,7 +234,7 @@ begin
             res_ack_i    => res_ack,
             res_data_o   => res_data,
             res_valid_o  => res_valid
-         ); -- i_column
+         ); -- i_job
 
    end generate gen_dut;
 

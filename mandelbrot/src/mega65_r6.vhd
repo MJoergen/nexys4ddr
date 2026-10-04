@@ -53,15 +53,15 @@ end mega65_r6;
 
 architecture structural of mega65_r6 is
 
-   -- The number of column modules. The XC7A200T has 740 DSPs, but the number
-   -- of column modules is limited by the slices: 240 column modules use 93% of
+   -- The number of job modules. The XC7A200T has 740 DSPs, but the number
+   -- of job modules is limited by the slices: 240 job modules use 93% of
    -- the slices of the XC7A100T, and the XC7A200T has 2.1 times as many.
    constant C_NUM_ITERATORS : integer := 450;
 
    -- The number of pixels in each write to the display memory. The dispatcher
    -- accepts at most one result per clock cycle, so with one pixel in each
    -- write the picture takes at least 800*600 clock cycles (2.55 ms), and
-   -- more column modules give little more. The model (sim/model.py) estimates
+   -- more job modules give little more. The model (sim/model.py) estimates
    -- 1.32 ms for the initial picture with four pixels in each write, against
    -- 2.72 ms with one.
    constant C_PIXELS        : integer := 4;

@@ -26,12 +26,12 @@ entity main is
       -- The frequency of the MAIN clock in Hz, used to calculate the frame
       -- rate. This depends on the board, so it is set by the top level module.
       G_CLK_FREQ      : natural;
-      -- The number of column modules, i.e. iterators and DSPs. This depends on
+      -- The number of job modules, i.e. iterators and DSPs. This depends on
       -- the size of the FPGA, so it is set by the top level module.
       G_NUM_ITERATORS : integer;
       -- The number of pixels in each write to the display memory, see
       -- dispatcher.vhd and disp_mem.vhd. A power of two, and the rows in a
-      -- job (C_JOB_ROWS) must be a multiple of it.
+      -- job (C_ROWS_IN_JOB) must be a multiple of it.
       G_PIXELS        : integer;
       -- The size of the picture, i.e. the resolution of the VGA output, and
       -- the address distance between two picture columns in the display
@@ -64,9 +64,9 @@ end main;
 architecture structural of main is
 
    constant C_MAX_COUNT     : integer := 511;
-   -- Rows in each job given to a column module, see dispatcher.vhd. The
+   -- Rows in each job given to a job module, see dispatcher.vhd. The
    -- number of rows of the picture must be a multiple of it.
-   constant C_JOB_ROWS      : integer := 120;
+   constant C_ROWS_IN_JOB   : integer := 120;
 
    -- The initial view. The size has the same aspect ratio (4:3) as the
    -- picture.
@@ -262,7 +262,7 @@ begin
          G_NUM_ROWS      => G_NUM_ROWS,
          G_NUM_COLS      => G_NUM_COLS,
          G_COL_STRIDE    => G_COL_STRIDE,
-         G_JOB_ROWS      => C_JOB_ROWS,
+         G_ROWS_IN_JOB   => C_ROWS_IN_JOB,
          G_NUM_ITERATORS => G_NUM_ITERATORS,
          G_PIXELS        => G_PIXELS
       )

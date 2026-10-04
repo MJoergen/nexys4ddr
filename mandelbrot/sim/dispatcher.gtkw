@@ -50,23 +50,23 @@ top.dispatcher_tb.i_dispatcher.idx_iterator_r
 @800200
 -column(0)
 @28
-top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.job_start_i
+top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.job_start_i
 @28
-top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.job_busy_o
+top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.job_busy_o
 @28
-top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.i_iterator.start_i
+top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.i_iterator.start_i
 @420
-top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.i_iterator.state_r
+top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.i_iterator.state_r
 @28
-top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.i_iterator.done_o
+top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.i_iterator.done_o
 @22
-#{top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.res_addr_o[8:0]} top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.res_addr_o[8] top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.res_addr_o[7] top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.res_addr_o[6] top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.res_addr_o[5] top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.res_addr_o[4] top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.res_addr_o[3] top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.res_addr_o[2] top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.res_addr_o[1] top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.res_addr_o[0]
+#{top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.res_addr_o[8:0]} top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.res_addr_o[8] top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.res_addr_o[7] top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.res_addr_o[6] top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.res_addr_o[5] top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.res_addr_o[4] top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.res_addr_o[3] top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.res_addr_o[2] top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.res_addr_o[1] top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.res_addr_o[0]
 @22
-#{top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.res_data_o[8:0]} top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.res_data_o[8] top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.res_data_o[7] top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.res_data_o[6] top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.res_data_o[5] top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.res_data_o[4] top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.res_data_o[3] top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.res_data_o[2] top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.res_data_o[1] top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.res_data_o[0]
+#{top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.res_data_o[8:0]} top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.res_data_o[8] top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.res_data_o[7] top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.res_data_o[6] top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.res_data_o[5] top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.res_data_o[4] top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.res_data_o[3] top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.res_data_o[2] top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.res_data_o[1] top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.res_data_o[0]
 @28
-top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.res_valid_o
+top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.res_valid_o
 @28
-top.dispatcher_tb.i_dispatcher.gen_column[0].i_column.res_ack_i
+top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.res_ack_i
 @1000200
 -column(0)
 @28

@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.math_real.all;
 
 -- This is a self-checking testbench for the result scheduler. Each process
--- behaves like a column module in the dispatcher: when it has a result, it is
+-- behaves like a job module in the dispatcher: when it has a result, it is
 -- ready until the result has been selected, and its ready flag goes low as
 -- late as allowed (two clock cycles after the selection, see
 -- res_scheduler.vhd). It then gets a new result after a random delay. It

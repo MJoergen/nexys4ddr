@@ -25,15 +25,15 @@ The numbers are 18-bit
 [fixed point](https://en.wikipedia.org/wiki/Fixed-point_arithmetic) (2 integer
 bits and 16 fractional bits), and each iteration needs only two real
 multiplications, using the identity $x^2 - y^2 = (x+y)(x-y)$. Each of the 240
-column modules contains an iterator with a single DSP multiplier, and the
+job modules contains an iterator with a single DSP multiplier, and the
 iterator calculates one iteration every three clock cycles. Most points in the
 set are found long before the maximum count, because the values of $z$ start
 to repeat exactly (periodicity detection). The picture is divided into jobs,
 each of 120 rows of a picture column, and the dispatcher gives the next job to
-a column module as soon as it is idle.
+a job module as soon as it is idle.
 
 [ALGORITHM.md](ALGORITHM.md) explains the design in detail: the number format,
-the multiplier, the iterator (including how overflow is detected), the columns,
+the multiplier, the iterator (including how overflow is detected), the jobs,
 the dispatcher, and the timing and resource usage.
 
 ## Implementation results
@@ -71,10 +71,10 @@ files that are in both clock domains are in [`src/`](src).
 | [`src/main/fps.vhd`](src/main/fps.vhd), [`src/main/seg.vhd`](src/main/seg.vhd) | Frame rate. `fps` divides the clock frequency by the time taken by a picture and converts the result to decimal, and `seg` multiplexes the digits on the 7-segment display.
 | [`src/vga/vga.vhd`](src/vga/vga.vhd) | Everything in the VGA clock domain: pixel counters, VGA output, and the frame rate overlay.
 | [`src/main/iterator.vhd`](src/main/iterator.vhd) | Iterates the Mandelbrot function for a single point, using one DSP.
-| [`src/main/column.vhd`](src/main/column.vhd) | A column module. Calculates one job (120 rows of a picture column) at a time, using one iterator.
-| [`src/main/dispatcher.vhd`](src/main/dispatcher.vhd) | Controls the calculation of the entire picture: hands out the jobs to the idle column modules, and collects the results. Instantiates the column modules.
-| [`src/main/scheduler.vhd`](src/main/scheduler.vhd) | Round-robin scheduler. Used by the dispatcher to give jobs to idle column modules.
-| [`src/main/res_scheduler.vhd`](src/main/res_scheduler.vhd) | Scheduler for the results. Used by the dispatcher to pick which column module's result to accept, from the column modules that have a result ready.
+| [`src/main/job.vhd`](src/main/job.vhd) | A job module. Calculates one job (120 rows of a picture column) at a time, using one iterator.
+| [`src/main/dispatcher.vhd`](src/main/dispatcher.vhd) | Controls the calculation of the entire picture: hands out the jobs to the idle job modules, and collects the results. Instantiates the job modules.
+| [`src/main/scheduler.vhd`](src/main/scheduler.vhd) | Round-robin scheduler. Used by the dispatcher to give jobs to idle job modules.
+| [`src/main/res_scheduler.vhd`](src/main/res_scheduler.vhd) | Scheduler for the results. Used by the dispatcher to pick which job module's result to accept, from the job modules that have a result ready.
 | [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture, in 128 blocks.
 | [`src/vga/pix.vhd`](src/vga/pix.vhd), [`src/vga/disp.vhd`](src/vga/disp.vhd) | VGA output. `pix` generates the pixel counters, and `disp` generates the sync signals and the pixel colour.
 | [`src/vga/video_pkg.vhd`](src/vga/video_pkg.vhd) | The video modes, i.e. the resolution and the timing of the VGA output: 640x480 (Nexys 4 DDR) and 800x600 (MEGA65), both at 60 Hz.
@@ -134,12 +134,12 @@ The VGA output is 800x600 at 60 Hz (with a pixel clock of 40 MHz) instead of
 with 56% more pixels. The display memory has room for 2^19 pixels, so each
 picture column of 600 rows uses 600 addresses instead of 512.
 
-The XC7A200T is larger, so the design uses 450 column modules (DSPs) instead
+The XC7A200T is larger, so the design uses 450 job modules (DSPs) instead
 of 240, and writes four pixels (consecutive rows of a picture column) to the
 display memory at a time instead of one, see
 [`src/mega65_r6.vhd`](src/mega65_r6.vhd). The display memory takes one write
 per clock cycle, so with one pixel in each write the picture would take at
-least 800x600 clock cycles (2.55 ms), whatever the number of column modules,
+least 800x600 clock cycles (2.55 ms), whatever the number of job modules,
 and the model gives 2.72 ms. With four pixels in each write the picture takes
 about 1.32 ms (estimated by the model), see
 [MEGA65 R6](ALGORITHM.md#mega65-r6).

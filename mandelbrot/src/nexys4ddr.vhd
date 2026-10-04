@@ -51,8 +51,8 @@ end nexys4ddr;
 
 architecture structural of nexys4ddr is
 
-   -- The number of column modules. The XC7A100T has 240 DSPs, one for each
-   -- column module.
+   -- The number of job modules. The XC7A100T has 240 DSPs, one for each
+   -- job module.
    constant C_NUM_ITERATORS : integer := 240;
 
    -- The number of pixels in each write to the display memory. Writing more

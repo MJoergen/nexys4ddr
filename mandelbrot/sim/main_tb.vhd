@@ -10,7 +10,7 @@ use std.textio.all;
 -- written to the file, as one line "address data" (all as decimal numbers).
 -- The testbench stops when a complete picture has been written.
 --
--- The generics are the number of column modules, the number of pixels in each
+-- The generics are the number of job modules, the number of pixels in each
 -- write, the size of the picture, and the address distance between two
 -- picture columns, by default as on the Nexys 4 DDR (nexys4ddr.vhd). They can
 -- be set with GENERICS, e.g. as on the MEGA65 R6 (mega65_r6.vhd):

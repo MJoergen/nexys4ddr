@@ -5,12 +5,12 @@
 #
 # hw_count() follows src/main/iterator.vhd (like iterator_model.py, but for many
 # points at once), and view() gives the values of c for each pixel, calculated
-# in the same way as src/main/main.vhd, src/main/dispatcher.vhd and src/main/column.vhd. This
+# in the same way as src/main/main.vhd, src/main/dispatcher.vhd and src/main/job.vhd. This
 # module is used by cmp_rtl.py to compare the simulated design with the model.
 #
 # Run as a script, it compares the model with the reference for the initial
 # view (640x480, as on the Nexys 4 DDR), and prints how many pixels differ. It also estimates the time
-# it takes the design to calculate the picture, and the time the column modules
+# it takes the design to calculate the picture, and the time the job modules
 # wait for their results to be accepted, see picture_cycles(). For
 # this, hw_stop() follows the periodicity detection of the iterator, which stops
 # the iteration early for most points in the set, and checks that it gives the
@@ -43,7 +43,7 @@ BoolArray = NDArray[np.bool_]
 MAX_COUNT = 511      # Must match C_MAX_COUNT in main.vhd
 NUM_COLS  = 640      # Must match C_VIDEO in nexys4ddr.vhd
 NUM_ROWS  = 480      # Must match C_VIDEO in nexys4ddr.vhd
-JOB_ROWS  = 120      # Must match C_JOB_ROWS in main.vhd
+ROWS_IN_JOB = 120    # Must match C_ROWS_IN_JOB in main.vhd
 NUM_ITERATORS = 240  # Must match C_NUM_ITERATORS in nexys4ddr.vhd
 PIXELS = 1           # Must match C_PIXELS in nexys4ddr.vhd
 GROUP_SIZE = 16      # Must match G_GROUP_SIZE in dispatcher.vhd
@@ -136,7 +136,7 @@ def view(startx: Optional[int] = None, starty: Optional[int] = None,
         stepx = int(round(2.6667 * 65536)) // cols
     if stepy is None:
         stepy = int(round(2.0 * 65536)) // rows
-    # The dispatcher and the column modules add the step in 18 bits, so the
+    # The dispatcher and the job modules add the step in 18 bits, so the
     # values wrap around.
     cx = wrap(startx + np.arange(cols) * stepx, 18)
     cy = wrap(starty + np.arange(rows) * stepy, 18)
@@ -200,23 +200,23 @@ def iterating_cycles(stop: ArrayLike) -> IntArray:
 
 
 def picture_cycles(stop: ArrayLike, num_iterators: int = NUM_ITERATORS,
-                   job_rows: int = JOB_ROWS,
+                   rows_in_job: int = ROWS_IN_JOB,
                    group_size: int = GROUP_SIZE,
                    pixels: int = PIXELS) -> Tuple[int, int]:
     """Estimate the number of clock cycles used to calculate the picture, by
     simulating the dispatcher one clock cycle at a time. stop is the number of
     iterations done by the iterator for each pixel (see hw_stop()), indexed by
     [row, column]. Returns the number of clock cycles, and the total number of
-    clock cycles the column modules wait for their results to be accepted.
+    clock cycles the job modules wait for their results to be accepted.
 
-    Each job is job_rows rows of a picture column, and the jobs are given in
+    Each job is rows_in_job rows of a picture column, and the jobs are given in
     the same order as by the dispatcher (all the picture columns of the top
     block of rows, then all the picture columns of the next block, and so
-    on). The scheduler for the jobs (i_scheduler) visits each column module
+    on). The scheduler for the jobs (i_scheduler) visits each job module
     once every num_iterators clock cycles, and gives it the next job if it is
     idle. The scheduler for the results (i_res_scheduler) visits one group of
-    group_size column modules in each clock cycle, and accepts the result of
-    one of the column modules of the group that had a result ready two clock
+    group_size job modules in each clock cycle, and accepts the result of
+    one of the job modules of the group that had a result ready two clock
     cycles before (the ready flags and the candidate of the group are
     registered), in round-robin order within the group. The next row starts
     when the result has been accepted, and its result is ready
@@ -225,7 +225,7 @@ def picture_cycles(stop: ArrayLike, num_iterators: int = NUM_ITERATORS,
     iterating_cycles() clock cycles after the job is given. The waiting time
     of a result is counted until the clock cycle before it is accepted.
 
-    Each result is pixels consecutive rows. The column module keeps the
+    Each result is pixels consecutive rows. The job module keeps the
     counts of the first pixels-1 rows of a result, and starts the next row
     four clock cycles before the iterator would be done with it after an
     acknowledge (the done flag of the iterator starts it directly), so a result
@@ -237,10 +237,10 @@ def picture_cycles(stop: ArrayLike, num_iterators: int = NUM_ITERATORS,
         row_cycles.reshape(rows // pixels, pixels, cols).sum(axis=1)
         - 4*(pixels - 1))
     rows //= pixels
-    job_rows //= pixels
+    rows_in_job //= pixels
     jobs: List[List[int]] = [
-        iter_cycles[b*job_rows:(b+1)*job_rows, c].tolist()
-        for b in range(rows // job_rows) for c in range(cols)]
+        iter_cycles[b*rows_in_job:(b+1)*rows_in_job, c].tolist()
+        for b in range(rows // rows_in_job) for c in range(cols)]
     num_groups = -(-num_iterators // group_size)
     period = max(num_groups, 5)
     job_latency = 5      # From the visit of i_scheduler to the start of the job
@@ -248,12 +248,12 @@ def picture_cycles(stop: ArrayLike, num_iterators: int = NUM_ITERATORS,
     next_job = 0
     job: List[List[int]] = [[] for _ in range(num_iterators)]
     row = [0] * num_iterators
-    # The clock cycle from which the result of each column module is ready,
+    # The clock cycle from which the result of each job module is ready,
     # or None when it has no job
     ready: List[Optional[int]] = [None] * num_iterators
     ptr = [0] * num_groups
-    # The clock cycles when idle column modules are given their next job, as
-    # (clock cycle, column module). i_scheduler visits column module i in the
+    # The clock cycles when idle job modules are given their next job, as
+    # (clock cycle, job module). i_scheduler visits job module i in the
     # clock cycles i, i+num_iterators, and so on.
     requests: List[Tuple[int, int]] = [
         (i + job_latency, i) for i in range(num_iterators)]
@@ -348,7 +348,7 @@ def main() -> None:
     cycles, waiting = picture_cycles(stop)
     iterating = iterating_cycles(stop).mean()
     print(f"Average count {hw.mean():.1f}. The iterator needs {iterating:.0f} "
-          f"clock cycles per pixel, and the column modules wait "
+          f"clock cycles per pixel, and the job modules wait "
           f"{waiting / hw.size:.0f} clock cycles per pixel on average for the "
           f"result to be accepted")
     print(f"Estimated time for the picture: {cycles} clock cycles, i.e. "
@@ -359,7 +359,7 @@ def main() -> None:
     cycles, waiting = picture_cycles(stop, MEGA65_NUM_ITERATORS,
                                      pixels=MEGA65_PIXELS)
     print(f"On the MEGA65 R6 ({MEGA65_NUM_COLS}x{MEGA65_NUM_ROWS}, "
-          f"{MEGA65_NUM_ITERATORS} column modules, {MEGA65_PIXELS} pixels in "
+          f"{MEGA65_NUM_ITERATORS} job modules, {MEGA65_PIXELS} pixels in "
           f"each write): {cycles} clock cycles, i.e. "
           f"{cycles / MEGA65_MAIN_CLOCK_KHZ:.2f} ms at "
           f"{MEGA65_MAIN_CLOCK_KHZ / 1000:.3f} MHz "

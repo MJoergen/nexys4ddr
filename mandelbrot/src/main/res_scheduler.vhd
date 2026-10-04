@@ -4,7 +4,7 @@ use ieee.numeric_std_unsigned.all;
 
 -- This module selects one of a number of processes that have a result ready,
 -- so the result can be accepted. It is used by the dispatcher to pick which
--- column module's result to accept.
+-- job module's result to accept.
 --
 -- The processes are divided into groups of G_GROUP_SIZE processes. Each group
 -- registers the ready flags of its processes (req_r), and then, in the next

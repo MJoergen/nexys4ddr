@@ -13,7 +13,7 @@ use ieee.numeric_std_unsigned.all;
 --
 -- The view is always kept inside the range of the 2.16 format, i.e. -2 to 2
 -- (not including 2), so that the values of cx and cy calculated by the
--- dispatcher and the column modules never wrap around. This means:
+-- dispatcher and the job modules never wrap around. This means:
 -- * The left (top) edge is never less than -2. Panning stops there.
 -- * The right (bottom) edge, i.e. the value of the last column (row), is never
 --   2 or more. Panning stops there.

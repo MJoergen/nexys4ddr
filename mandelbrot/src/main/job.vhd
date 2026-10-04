@@ -2,19 +2,19 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
--- This is a column module. It calculates (sequentially) G_NUM_ROWS rows of a
+-- This is a job module. It calculates (sequentially) G_NUM_ROWS rows of a
 -- picture column, using one iterator.
 --
 -- Each result is the counts of G_PIXELS consecutive rows (a word of the
 -- display memory), with the count of the first row in the lowest 9 bits. The
--- column module keeps the counts of the first G_PIXELS-1 rows of a result, and
+-- job module keeps the counts of the first G_PIXELS-1 rows of a result, and
 -- continues with the next row at once, so it only waits for the acknowledge
 -- after the last row of the result. The row number given with each result
 -- (res_addr_o) is that of the first row of the result, counted from the first
 -- row of the job. G_PIXELS must be a power of two, and G_NUM_ROWS a multiple of
 -- G_PIXELS.
 
-entity column is
+entity job is
    generic (
       G_MAX_COUNT : integer;
       G_NUM_ROWS  : integer;
@@ -33,9 +33,9 @@ entity column is
       res_data_o   : out std_logic_vector(9*G_PIXELS-1 downto 0);
       res_valid_o  : out std_logic
    );
-end entity column;
+end entity job;
 
-architecture rtl of column is
+architecture rtl of job is
 
    -- The number of bits needed for the values 0 to n-1
    function log2 (n : integer) return integer is
@@ -64,7 +64,7 @@ architecture rtl of column is
    -- for the last row is not in the paths to res_addr_r and res_cy_r.
    signal res_last_r   : std_logic;
    -- High when res_addr_r is not the last row of a result, so its count is
-   -- kept in the column module. Also a register, like res_last_r.
+   -- kept in the job module. Also a register, like res_last_r.
    signal res_hold_r   : std_logic;
    -- High when the count of the row is kept, and the next row is started
    signal res_keep_s   : std_logic;
