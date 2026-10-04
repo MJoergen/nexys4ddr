@@ -20,7 +20,7 @@ nexys4ddr                       src/nexys4ddr.vhd (top level)
  +- main                        src/main/main.vhd (everything in the MAIN clock domain)
  |   +- view                    src/main/view.vhd (view control from the buttons)
  |   +- dispatcher              src/main/dispatcher.vhd
- |   |   +- scheduler           (i_scheduler, selects the column module to receive a job)
+ |   |   +- job_scheduler       src/main/job_scheduler.vhd (selects the column module to receive a job)
  |   |   +- column  (x 240)     src/main/column.vhd (the column modules)
  |   |   |   +- iterator        src/main/iterator.vhd
  |   |   |       +- (DSP48E1)   (inferred in p_dsp, multiplier and adder)
@@ -449,15 +449,16 @@ less: other orders were tried in the model (e.g. column by column, or starting
 from the middle of the picture), and the best order depends on the view.
 
 A separate scheduler module is used to send jobs to the different column
-modules. Currently, the scheduler operates in a round-robin fashion. This
-potentially may give a delay up to 240 clock cycles before an idle column module
-is given a job, i.e. 1.6 us at 150 MHz. The column modules wait in
+modules. Currently, the scheduler for the jobs operates in a round-robin
+fashion over all the column modules, one per clock cycle. This potentially
+may give a delay up to 240 clock cycles before an idle column module is
+given a job, i.e. 1.6 us at 150 MHz. The column modules wait in
 parallel, and with 2560 jobs and 240 column modules, each column module gets
 about 11 jobs on average. So the delay adds at most about 18 microseconds (and
 half of that on average) to the time for a picture, which is about 2.31 ms.
 This delay is small.
 
-The scheduler ([`src/main/scheduler.vhd`](src/main/scheduler.vhd)) has a counter that
+The scheduler ([`src/main/job_scheduler.vhd`](src/main/job_scheduler.vhd)) has a counter that
 goes round all the column modules, one per clock cycle, and selects a column
 module when the counter reaches it and it is idle. Selecting the busy flag of
 one of the 240 column modules in a single clock cycle is too slow, so it is
@@ -499,7 +500,8 @@ that was accepted last time. The ready flags are registered first, so that the
 routes from the column modules and the round-robin selection are in separate
 clock cycles. A counter goes round the 15
 groups, one per clock cycle, and the candidate of the group of the counter is
-accepted, if the group has one. So a column module with a result waits until
+accepted, if the group has one. So, unlike an idle column module waiting for
+a job, a column module with a result waits until
 its group is visited, i.e. at most 15 clock cycles, plus 15 clock cycles for
 each column module of its group that is before it in the round-robin order.
 Earlier, the round-robin scheduler for the jobs was used for the results too,
@@ -543,7 +545,7 @@ a power of two (like 600 when the MEGA65 showed 800x600). The simulation takes a
 seconds.
 
 The scheduler has a small self-checking testbench
-([`sim/scheduler_tb.vhd`](sim/scheduler_tb.vhd)), with 21 processes, i.e. two
+([`sim/job_scheduler_tb.vhd`](sim/job_scheduler_tb.vhd)), with 21 processes, i.e. two
 groups, where the second one is smaller. It checks that nothing is started
 when the scheduler is not active or when everything is busy, that each idle
 process is started once per round and busy processes never, that the

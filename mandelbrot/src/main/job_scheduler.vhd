@@ -13,7 +13,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
-entity scheduler is
+entity job_scheduler is
    generic (
       G_SIZE : integer
    );
@@ -25,9 +25,9 @@ entity scheduler is
       job_idx_start_o : out integer range 0 to G_SIZE-1;
       job_busy_i      : in  std_logic_vector(G_SIZE-1 downto 0)
    );
-end entity scheduler;
+end entity job_scheduler;
 
-architecture rtl of scheduler is
+architecture rtl of job_scheduler is
 
    constant C_GROUP_SIZE  : integer := 16;
    constant C_NUM_GROUPS  : integer := (G_SIZE + C_GROUP_SIZE - 1) / C_GROUP_SIZE;

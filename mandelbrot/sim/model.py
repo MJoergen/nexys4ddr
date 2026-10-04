@@ -215,7 +215,7 @@ def picture_cycles(stop: ArrayLike, num_iterators: int = NUM_ITERATORS,
     Each job is job_rows rows of a picture column, and the jobs are given in
     the same order as by the dispatcher (all the picture columns of the top
     block of rows, then all the picture columns of the next block, and so
-    on). The scheduler for the jobs (i_scheduler) visits each column module
+    on). The scheduler for the jobs (i_job_scheduler) visits each column module
     once every num_iterators clock cycles, and gives it the next job if it is
     idle. The scheduler for the results (i_res_scheduler) visits one group of
     group_size column modules in each clock cycle, and accepts the result of
@@ -246,7 +246,7 @@ def picture_cycles(stop: ArrayLike, num_iterators: int = NUM_ITERATORS,
         for b in range(rows // job_rows) for c in range(cols)]
     num_groups = -(-num_iterators // group_size)
     period = max(num_groups, 5)
-    job_latency = 5      # From the visit of i_scheduler to the start of the job
+    job_latency = 5      # From the visit of i_job_scheduler to the start of the job
 
     next_job = 0
     job: List[List[int]] = [[] for _ in range(num_iterators)]
@@ -256,7 +256,7 @@ def picture_cycles(stop: ArrayLike, num_iterators: int = NUM_ITERATORS,
     ready: List[Optional[int]] = [None] * num_iterators
     ptr = [0] * num_groups
     # The clock cycles when idle column modules are given their next job, as
-    # (clock cycle, column module). i_scheduler visits column module i in the
+    # (clock cycle, column module). i_job_scheduler visits column module i in the
     # clock cycles i, i+num_iterators, and so on.
     requests: List[Tuple[int, int]] = [
         (i + job_latency, i) for i in range(num_iterators)]
