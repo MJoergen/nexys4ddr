@@ -148,7 +148,7 @@ and b\_r), the constant (c\_r), and the product are all registered, and Vivado
 moves these registers into the DSP (the registers A, B, C, and M). The sum is
 not registered (the register P is not used), so the product is ready one clock
 cycle after the inputs, and the sum in the same clock cycle. The "DSP Final
-Report" in `vivado.log` shows how the DSP is used (`C'+(A'*B')'`).
+Report" in `build/<board>/vivado.log` shows how the DSP is used (`C'+(A'*B')'`).
 
 ## Iterator
 This component ([`src/main/iterator.vhd`](src/main/iterator.vhd)) performs the main
@@ -1044,7 +1044,7 @@ Both boards are built with Vivado 2025.1, with the same script
   placement and after routing
 
 The resource numbers below are from `report_utilization` on the routed design
-(`nexys4ddr.dcp` or `mega65-r6.dcp`), and the slack is from
+(`build/nexys4ddr/nexys4ddr.dcp` or `build/mega65-r6/mega65-r6.dcp`), and the slack is from
 `report_timing_summary` on the same design, i.e. after the post-route
 `phys_opt_design`. The first two subsections give the current results for
 each board, and the last two describe how the design and the main clock got
@@ -1072,7 +1072,7 @@ main clock.
 The available numbers are the totals for the XC7A100T. Most of the slices are
 used, even though only 66% of the LUTs are used.
 
-The "Report Cell Usage" table in `vivado.log` gives the cell counts after
+The "Report Cell Usage" table in `build/nexys4ddr/vivado.log` gives the cell counts after
 synthesis instead: 55,903 LUT cells (LUT1 to LUT6) and 43,628 registers (FDRE
 and FDSE cells). The number of LUT cells is larger than the number of LUTs
 used, because two small LUT cells can share one LUT (the placer does this,

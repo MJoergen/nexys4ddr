@@ -133,14 +133,18 @@ for details.
 Type `make` to list the supported targets. The most important ones are:
 * `make nexys4ddr` synthesizes and implements the design using
   [Vivado](https://www.amd.com/en/products/software/adaptive-socs-and-fpgas/vivado.html),
-  and generates `nexys4ddr.bit`. It expects Vivado in
+  and generates `build/nexys4ddr/nexys4ddr.bit`. It expects Vivado in
   `/opt/Xilinx/2025.1/Vivado` (the variable `XILINX_DIR`). It takes about 6.5
-  minutes, and writes the log to `vivado.log`.
-* `make mega65-r6` does the same for the MEGA65 R6, and generates
-  `mega65-r6.bit`. It takes about 20 minutes, but this varies a lot, because
-  the routing is close to its limit (from 10 to 61 minutes for the routing
-  alone), see [MEGA65 R6](ALGORITHM.md#mega65-r6).
-* `make fpga` programs the Nexys 4 DDR board with `nexys4ddr.bit`, using `djtgcfg` from
+  minutes. Vivado is run in `build/nexys4ddr/`, so the log (`vivado.log`), the
+  routed checkpoint (`nexys4ddr.dcp`) and the other files from Vivado are
+  there too.
+* `make mega65-r6` does the same for the MEGA65 R6, in `build/mega65-r6/`, and
+  generates `build/mega65-r6/mega65-r6.bit`. It takes about 20 minutes, but
+  this varies a lot, because the routing is close to its limit (from 10 to 61
+  minutes for the routing alone), see [MEGA65 R6](ALGORITHM.md#mega65-r6).
+  Because each board has its own directory, both can be built at the same
+  time with `make -j2 nexys4ddr mega65-r6`.
+* `make fpga` programs the Nexys 4 DDR board with `build/nexys4ddr/nexys4ddr.bit`, using `djtgcfg` from
   Digilent Adept.
 * `make sim` runs all the testbenches in parallel, without opening the
   waveform viewer, see [below](#simulation). This requires
