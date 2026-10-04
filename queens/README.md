@@ -7,8 +7,8 @@ queens share a row, a column, or a diagonal. There are 92 solutions.
 
 The design searches through the board positions one step at a time, slowly
 enough that you can watch it. The current board is shown on the VGA output
-(640x480), and the 7-segment display shows either the number of solutions
-found so far or the number of positions visited so far.
+(640x480), and the eight digits of the 7-segment display show either the
+number of solutions found so far or the number of positions visited so far.
 
 ## The algorithm
 The board always has exactly one queen in each row, so it is stored as a
@@ -68,7 +68,7 @@ The sources are in the [src](src) directory:
 * [display.vhd](src/display.vhd),
   [display_int2seg.vhd](src/display_int2seg.vhd),
   [display_digit.vhd](src/display_digit.vhd) and
-  [display_seg.vhd](src/display_seg.vhd): Converts a number to four decimal
+  [display_seg.vhd](src/display_seg.vhd): Converts a number to eight decimal
   digits and drives the 7-segment display.
 * [queens_top.xdc](src/queens_top.xdc): Pin locations and the clock
   constraint.

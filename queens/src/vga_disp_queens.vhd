@@ -1,6 +1,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 use work.vga_bitmap_pkg.ALL;
 
@@ -45,8 +45,8 @@ begin
       variable bitmap : bitmap_t;
 
    begin
-      hcount := conv_integer(hcount_i);
-      vcount := conv_integer(vcount_i);
+      hcount := to_integer(unsigned(hcount_i));
+      vcount := to_integer(unsigned(vcount_i));
       col    := 0;
       row    := 0;
       xdiff  := 0;

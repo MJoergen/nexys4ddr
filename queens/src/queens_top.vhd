@@ -20,7 +20,7 @@ entity queens_top is
       -- Output segment display
       seg_ca_o        : out std_logic_vector(6 downto 0);
       seg_dp_o        : out std_logic;
-      seg_an_o        : out std_logic_vector(3 downto 0);
+      seg_an_o        : out std_logic_vector(7 downto 0);
 
       -- VGA port
       vga_hs_o        : out std_logic; 
@@ -33,14 +33,17 @@ end entity queens_top;
 
 architecture synthesis of queens_top is
 
+   -- Enough bits for the 8 digits of the 7-segment display
+   constant C_VALUE_BITS : integer := 27;
+
    signal queens_en     : std_logic;
 
-   signal vga_clk       : std_logic;   -- 108 MHz
+   signal vga_clk       : std_logic;   -- 25 MHz
    signal rst           : std_logic;
 
-   signal num_solutions : std_logic_vector(13 downto 0);
-   signal num_positions : std_logic_vector(13 downto 0);
-   signal value         : std_logic_vector(13 downto 0);
+   signal num_solutions : std_logic_vector(C_VALUE_BITS-1 downto 0);
+   signal num_positions : std_logic_vector(C_VALUE_BITS-1 downto 0);
+   signal value         : std_logic_vector(C_VALUE_BITS-1 downto 0);
    signal board         : std_logic_vector(G_NUM_QUEENS*G_NUM_QUEENS-1 downto 0);
    signal valid         : std_logic;
    signal done          : std_logic;
@@ -135,10 +138,12 @@ begin
             num_positions;
 
 
-   -- Displau current number of solutions on the 7-segment display
+   -- Display the number of solutions or positions on the 7-segment display
    i_display : entity work.display
       generic map (
-         G_FREQ => G_FREQ
+         G_FREQ   => G_FREQ,
+         G_DIGITS => 8,
+         G_BITS   => C_VALUE_BITS
       )
       port map (
          clk_i    => clk_i,
