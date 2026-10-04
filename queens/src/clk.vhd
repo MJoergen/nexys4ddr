@@ -7,8 +7,10 @@ use unisim.vcomponents.all;
 entity clk is
    port
    (
-      clk_i : in  std_logic;
-      clk_o : out std_logic
+      clk_i : in  std_logic;   -- 100 MHz
+      rst_i : in  std_logic;   -- Asynchronous, resets the PLL
+      clk_o : out std_logic;   -- 25 MHz
+      rst_o : out std_logic    -- Synchronous to clk_o
    );
 end entity clk;
 
@@ -16,10 +18,16 @@ architecture synthesis of clk is
 
   signal clkfbout : std_logic;
   signal clk_out0 : std_logic;
+  signal clk_bufg : std_logic;
+  signal locked   : std_logic;
+
+  -- Shift register that holds the reset until a few clock cycles after the
+  -- PLL has locked.
+  signal rst_sr   : std_logic_vector(3 downto 0) := (others => '1');
 
 begin
 
-   -- Instantiation of the MMCM PRIMITIVE
+   -- 100 MHz * 50 / 5 / 40 = 25 MHz
    i_plle2_adv : PLLE2_ADV
       generic map
       (
@@ -50,17 +58,32 @@ begin
          DO       => open,
          DRDY     => open,
          DWE      => '0',
-         LOCKED   => open,
+         LOCKED   => locked,
          PWRDWN   => '0',
-         RST      => '0'
+         RST      => rst_i
       ); -- i_plle2_adv
 
    i_bufg : BUFG
       port map
       (
          I => clk_out0,
-         O => clk_o
+         O => clk_bufg
       ); -- i_bufg
+
+   clk_o <= clk_bufg;
+
+   -- The reset is asserted asynchronously while the PLL is not locked, and
+   -- released synchronously to clk_bufg.
+   p_rst : process (clk_bufg, locked)
+   begin
+      if locked = '0' then
+         rst_sr <= (others => '1');
+      elsif rising_edge(clk_bufg) then
+         rst_sr <= rst_sr(rst_sr'left-1 downto 0) & '0';
+      end if;
+   end process p_rst;
+
+   rst_o <= rst_sr(rst_sr'left);
 
 end architecture synthesis;
 

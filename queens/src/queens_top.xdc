@@ -4,6 +4,7 @@
 
 ## Clock signal
 set_property LOC E3 [get_ports clk_i]
+set_property LOC C12 [get_ports rstn_i]
 
 ## Switches
 set_property LOC J15 [get_ports sw_i[0] ]
@@ -66,6 +67,7 @@ set_property LOC B12 [get_ports vga_vs_o ]
 
 # Clock signal
 set_property IOSTANDARD LVCMOS33 [get_ports clk_i ]
+set_property IOSTANDARD LVCMOS33 [get_ports rstn_i ]
 
 ## Switches
 set_property IOSTANDARD LVCMOS33 [get_ports sw_i[0] ]

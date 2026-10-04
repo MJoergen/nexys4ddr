@@ -12,6 +12,7 @@ architecture simulation of queens_top_tb is
 
     -- Clock
    signal clk   : std_logic;  -- 100 MHz
+   signal rstn  : std_logic;  -- Reset button, active low
 
     -- LED, buttom, and switches
    signal led       : std_logic_vector (7 downto 0);
@@ -27,7 +28,7 @@ architecture simulation of queens_top_tb is
     -- Output segment display
    signal seg_ca    : std_logic_vector (6 downto 0);
    signal seg_dp    : std_logic;
-   signal seg_an    : std_logic_vector (3 downto 0);
+   signal seg_an    : std_logic_vector (7 downto 0);
 
 begin
 
@@ -40,7 +41,8 @@ begin
 
    p_rst : process
    begin
-      sw(0) <= '1', '0' after 1000 ns;
+      rstn  <= '0', '1' after 1000 ns;
+      sw(0) <= '0';
       wait;
    end process p_rst;
 
@@ -54,6 +56,7 @@ begin
       )
       port map (
          clk_i       => clk,
+         rstn_i      => rstn,
          sw_i        => sw,
          led_o       => led,
          vga_hs_o    => vga_hs,

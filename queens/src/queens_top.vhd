@@ -11,6 +11,9 @@ entity queens_top is
       -- Clock
       clk_i           : in  std_logic;
 
+      -- Reset button (active low)
+      rstn_i          : in  std_logic;
+
       -- Input switches
       sw_i            : in  std_logic_vector(7 downto 0);
 
@@ -40,6 +43,7 @@ architecture synthesis of queens_top is
 
    signal vga_clk       : std_logic;   -- 25 MHz
    signal rst           : std_logic;
+   signal pll_rst       : std_logic;
 
    signal num_solutions : std_logic_vector(C_VALUE_BITS-1 downto 0);
    signal num_positions : std_logic_vector(C_VALUE_BITS-1 downto 0);
@@ -51,16 +55,19 @@ architecture synthesis of queens_top is
 begin
 
    -- Input / output signals
-   rst               <= sw_i(0);
+   pll_rst           <= not rstn_i;
    led_o(7 downto 0) <= sw_i(7 downto 0);
 
 
-   -- Generate VGA clock
+   -- Generate VGA clock and reset. The reset button resets the PLL, and rst
+   -- is held until the PLL has locked again.
    i_clk : entity work.clk
       port map
       (
          clk_i => clk_i,
-         clk_o => vga_clk
+         rst_i => pll_rst,
+         clk_o => vga_clk,
+         rst_o => rst
       ); -- i_clk
 
 
