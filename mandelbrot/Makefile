@@ -38,8 +38,9 @@ SRC += src/main/seg.vhd
 SRC += src/main/main.vhd
 SRC += src/clk_rst.vhd
 
-# Testbenches, i.e. sim/<name>_tb.vhd
-TBS = dispatcher column iterator scheduler res_scheduler view vga overlay disp_mem fps
+# Testbenches, i.e. sim/<name>_tb.vhd. The slowest are listed first, so that
+# they are started first by "make sim".
+TBS = vga overlay dispatcher disp_mem iterator view column scheduler res_scheduler fps
 
 # Testbench simulated by the "run" and "check" targets. Must be specified on
 # the command line, e.g. "make run TB=iterator".
@@ -61,7 +62,11 @@ TB_SRC = $(filter-out src/clk_rst.vhd,$(SRC)) sim/iterator_model_pkg.vhd sim/$(T
 WAVE = sim/$(TB).ghw
 SAVE = sim/$(TB).gtkw
 
-GHDL_OPTS = --std=08 -frelaxed-rules
+# Each testbench has its own GHDL work directory, so that several testbenches
+# can be analyzed and simulated at the same time (see "make sim").
+WORKDIR = build/$(TB)
+
+GHDL_OPTS = --std=08 -frelaxed-rules --workdir=$(WORKDIR)
 
 
 #####################################
@@ -77,7 +82,7 @@ help:
 	@echo "  nexys4ddr       Synthesize and implement the design for the Nexys 4 DDR using Vivado (nexys4ddr.bit)"
 	@echo "  mega65-r6       Synthesize and implement the design for the MEGA65 R6 using Vivado (mega65-r6.bit)"
 	@echo "  fpga            Program the Nexys 4 DDR board with nexys4ddr.bit"
-	@echo "  sim             Simulate all testbenches using ghdl"
+	@echo "  sim             Simulate all testbenches in parallel using ghdl (logs in build/)"
 	@echo "  run             Simulate a single testbench (TB=<name>) using ghdl, without gtkwave"
 	@echo "  check           Simulate a single testbench (TB=<name>) using ghdl and show waveform in gtkwave"
 	@echo "  clean           Remove generated files"
@@ -108,13 +113,46 @@ fpga: nexys4ddr.bit
 # Simulation
 #####################################
 
-# Simulate all testbenches (without opening the waveform viewer)
+# Simulate all testbenches (without opening the waveform viewer). The
+# testbenches are run in parallel, each by its own target sim-<name>, using
+# SIM_JOBS jobs (default: the number of CPUs). If make itself is run with -j,
+# that is used instead. The output of each testbench goes to
+# build/<name>.log, and a summary is shown at the end. The exit status is
+# non-zero if any testbench fails.
+SIM_JOBS ?= $(shell nproc 2>/dev/null || echo 1)
+SIM_TARGETS = $(addprefix sim-,$(TBS))
+
 .PHONY: sim
 sim:
-	@for tb in $(TBS); do \
-	   echo "=== Simulating $$tb ==="; \
-	   $(MAKE) --no-print-directory run TB=$$tb || exit 1; \
-	done
+	@rm -f $(addprefix build/,$(addsuffix .status,$(TBS)))
+	@$(MAKE) --no-print-directory -k $(if $(findstring jobserver,$(MAKEFLAGS)),,-j$(SIM_JOBS)) $(SIM_TARGETS) || true
+	@echo ""
+	@echo "=== Summary ==="
+	@fail=0; \
+	for tb in $(TBS); do \
+	   status=`cat build/$$tb.status 2>/dev/null || echo "FAIL (not run)"`; \
+	   printf "  %-15s %s\n" $$tb "$$status"; \
+	   case "$$status" in PASS*) ;; *) fail=1 ;; esac; \
+	done; \
+	if [ $$fail -ne 0 ]; then echo "Some testbenches FAILED"; exit 1; fi; \
+	echo "All testbenches passed"
+
+# Simulate a single testbench as part of "make sim", with the output going to
+# build/<name>.log.
+.PHONY: $(SIM_TARGETS)
+$(SIM_TARGETS): sim-%:
+	@mkdir -p build
+	@echo "=== Simulating $* ==="
+	@start=`date +%s`; \
+	if $(MAKE) --no-print-directory run TB=$* > build/$*.log 2>&1; then \
+	   result="PASS"; \
+	else \
+	   result="FAIL"; \
+	fi; \
+	secs=$$((`date +%s` - start)); \
+	echo "$$result ($${secs}s)" > build/$*.status; \
+	echo "=== $*: $$result ($${secs}s), log in build/$*.log ==="; \
+	[ $$result = PASS ]
 
 ifeq ($(TB),)
 
@@ -135,6 +173,7 @@ check: run
 
 .PHONY: run
 run: $(TB_SRC)
+	@mkdir -p $(WORKDIR)
 	ghdl -i $(GHDL_OPTS) --work=work $(TB_SRC)
 	ghdl -m $(GHDL_OPTS) $(TB_EXE)
 	ghdl -r $(GHDL_OPTS) $(TB_EXE) --assert-level=error --wave=$(WAVE) --stop-time=$(STOP_TIME) $(addprefix -g,$(GENERICS))
@@ -152,6 +191,7 @@ clean:
 	rm -rf .Xil
 	rm -rf .cache
 	rm -rf work-obj08.cf
+	rm -rf build
 	rm -rf $(addsuffix _tb,$(TBS))
 	rm -rf */*.ghw
 	rm -rf *.o

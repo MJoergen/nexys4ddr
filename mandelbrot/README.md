@@ -155,9 +155,12 @@ Type `make` to list the supported targets. The most important ones are:
   `mega65-r6.bit`.
 * `make fpga` programs the Nexys 4 DDR board with `nexys4ddr.bit`, using `djtgcfg` from
   Digilent Adept.
-* `make sim` runs all the testbenches one after another, without opening the
+* `make sim` runs all the testbenches in parallel, without opening the
   waveform viewer, see [below](#simulation). This requires
-  [GHDL](https://github.com/ghdl/ghdl). It takes about 4 minutes.
+  [GHDL](https://github.com/ghdl/ghdl). It uses one job per CPU (set
+  `SIM_JOBS` to change that), writes the output of each testbench to
+  `build/<name>.log`, and ends with a pass/fail summary. It takes about 3
+  minutes, most of which is the `vga` testbench.
 * `make run TB=iterator` runs a single testbench and writes the waveform to
   `sim/iterator.ghw`. Without `TB` it lists the available testbenches. It has
   the same requirements as `make sim`.
