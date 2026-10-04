@@ -16,18 +16,37 @@ SOURCES += src/display.vhd
 SOURCES += src/queens.vhd
 SOURCES += src/queens_top.vhd
 
-TB_SOURCES += src/queens_tb.vhd
-TB_SOURCES += src/queens_top_tb.vhd
+TB_SOURCES += sim/queens_tb.vhd
+TB_SOURCES += sim/queens_top_tb.vhd
 
+#####################################
+# Help (default target)
+#####################################
+
+.PHONY: help
+help:
+	@echo "Usage: make <target>"
+	@echo ""
+	@echo "Targets:"
+	@echo "  help            Show this help text (default)"
+	@echo "  sim             Simulate the queens module (queens_tb) using ghdl and show waveform in gtkwave"
+	@echo "  sim_top         Simulate the whole design (queens_top_tb) using ghdl and show waveform in gtkwave"
+	@echo "  synth           Synthesize and implement the design using yosys and nextpnr-xilinx ($(PRJNAME).bit)"
+	@echo "  clean           Remove generated files"
+	@echo ""
+	@echo "The synth target needs XRAY_DIR and NEXTPNR, e.g. 'make synth XRAY_DIR=~/prjxray NEXTPNR=~/nextpnr-xilinx'."
+
+
+.PHONY: sim sim_top synth clean
 sim: work-obj93.cf
 	ghdl -m queens_tb
-	ghdl -r queens_tb --wave=queens_tb.ghw --stop-time=2us
-	gtkwave queens_tb.ghw queens_tb.gtkw
+	ghdl -r queens_tb --wave=sim/queens_tb.ghw --stop-time=2us
+	gtkwave sim/queens_tb.ghw sim/queens_tb.gtkw
 
 sim_top: work-obj93.cf
 	ghdl -m -fexplicit -fsynopsys queens_top_tb
-	ghdl -r -fexplicit -fsynopsys queens_top_tb --wave=queens_top_tb.ghw --stop-time=7us
-	gtkwave queens_top_tb.ghw queens_top_tb.gtkw
+	ghdl -r -fexplicit -fsynopsys queens_top_tb --wave=sim/queens_top_tb.ghw --stop-time=7us
+	gtkwave sim/queens_top_tb.ghw sim/queens_top_tb.gtkw
 
 
 # Don't change anything below this line
@@ -56,8 +75,8 @@ work-obj93.cf: $(SOURCES) $(TB_SOURCES)
 	ghdl -a -fsynopsys $^
 
 clean:
-	rm -f queens_tb.ghw
-	rm -f queens_top_tb.ghw
+	rm -f sim/queens_tb.ghw
+	rm -f sim/queens_top_tb.ghw
 	rm -f work-obj93.cf
 	rm -f unisim-obj93.cf
 	rm -f $(PRJNAME).json
