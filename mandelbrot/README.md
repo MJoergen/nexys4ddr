@@ -49,6 +49,7 @@ results are:
 | Registers       | 45,018                   | 126,800   | 93,443                 | 269,200
 | Resolution      | 640x480                  |           | 800x600                |
 | Clock frequency | 188.24 MHz               |           | 188.24 MHz             |
+| Initial FPS     | 542 (estimated)          |           | 756 (estimated)        |
 | Setup slack     | +0.092 ns                |           | +0.186 ns              |
 | Hold slack      | +0.014 ns                |           | +0.013 ns              |
 
