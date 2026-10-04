@@ -156,7 +156,7 @@ calculated.
 
 The DSPs are not instantiated directly. They are inferred by Vivado from the
 process `p_dsp` in [`src/main/iterator.vhd`](src/main/iterator.vhd), so the
-simulation needs no model of the DSP. The "DSP Final Report" in `vivado.log`
+simulation needs no model of the DSP. The "DSP Final Report" in `build/<board>/vivado.log`
 shows how the DSPs are used (`(C'+A*B)'`, i.e. the registers C and P).
 
 ## Iterator
@@ -1147,7 +1147,7 @@ Both boards are built with Vivado 2025.1, with the same script
   placement and after routing
 
 The resource numbers below are from `report_utilization` on the routed design
-(`nexys4ddr.dcp` or `mega65-r6.dcp`), and the slack is from
+(`build/nexys4ddr/nexys4ddr.dcp` or `build/mega65-r6/mega65-r6.dcp`), and the slack is from
 `report_timing_summary` on the same design, i.e. after the post-route
 `phys_opt_design`. The first two subsections give the current results for
 each board, and the last two describe how the design and the main clock got
@@ -1176,7 +1176,7 @@ main clock.
 The available numbers are the totals for the XC7A100T. The 120 job modules
 use all the DSPs, but only about half of the slices.
 
-The "Report Cell Usage" table in `vivado.log` gives the cell counts after
+The "Report Cell Usage" table in `build/nexys4ddr/vivado.log` gives the cell counts after
 synthesis instead: 20,502 LUT cells (LUT1 to LUT6) and 26,435 registers (FDRE
 and FDSE cells). The number of LUT cells is larger than the number of LUTs
 used, because two small LUT cells can share one LUT (the placer does this,

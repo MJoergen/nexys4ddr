@@ -3,13 +3,6 @@ work-obj08.cf
 build/
 *_tb
 *.o
-*.bit
-*.dcp
-vivado*
-clockInfo.txt
-tight_setup_hold_pins.txt
-usage_statistics_webtalk.*
-.Xil/
 .cache/
 *.swp
 __pycache__/

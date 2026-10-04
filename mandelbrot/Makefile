@@ -5,8 +5,11 @@ NAME = mandelbrot
 
 # Target boards. Each board has its own FPGA part, top level module and
 # constraint file (<board>.xdc). The make target <board> generates the
-# bit-file <board>.bit.
+# bit-file build/<board>/<board>.bit. Vivado is run in build/<board>, so all
+# its files (logs, checkpoint, .Xil, etc.) go there, and the boards can be
+# built at the same time, e.g. "make -j2 nexys4ddr mega65-r6".
 BOARDS = nexys4ddr mega65-r6
+BITS   = $(foreach b,$(BOARDS),build/$(b)/$(b).bit)
 
 nexys4ddr_PART = xc7a100tcsg324-1
 nexys4ddr_TOP  = nexys4ddr
@@ -80,9 +83,9 @@ help:
 	@echo ""
 	@echo "Targets:"
 	@echo "  help            Show this help text (default)"
-	@echo "  nexys4ddr       Synthesize and implement the design for the Nexys 4 DDR using Vivado (nexys4ddr.bit)"
-	@echo "  mega65-r6       Synthesize and implement the design for the MEGA65 R6 using Vivado (mega65-r6.bit)"
-	@echo "  fpga            Program the Nexys 4 DDR board with nexys4ddr.bit"
+	@echo "  nexys4ddr       Synthesize and implement the design for the Nexys 4 DDR using Vivado (build/nexys4ddr/)"
+	@echo "  mega65-r6       Synthesize and implement the design for the MEGA65 R6 using Vivado (build/mega65-r6/)"
+	@echo "  fpga            Program the Nexys 4 DDR board with build/nexys4ddr/nexys4ddr.bit"
 	@echo "  sim             Simulate all testbenches in parallel using ghdl (logs in build/)"
 	@echo "  run             Simulate a single testbench (TB=<name>) using ghdl, without gtkwave"
 	@echo "  check           Simulate a single testbench (TB=<name>) using ghdl and show waveform in gtkwave"
@@ -96,17 +99,21 @@ help:
 # Generate bit-file and program FPGA
 #####################################
 
+.SECONDEXPANSION:
+
 .PHONY: $(BOARDS)
-$(BOARDS): %: %.bit
+$(BOARDS): %: build/$$*/$$*.bit
 
 # The arguments of the Vivado script are the board name, the FPGA part, the
-# top level module, and the source files.
-.SECONDEXPANSION:
-%.bit: $(NAME).tcl %.xdc $(SRC) $$($$*_SRC)
-	bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $< -tclargs $* $($*_PART) $($*_TOP) $(SRC) $($*_SRC)"
+# top level module, and the source files. The stem ($*) is <board>/<board>,
+# so the board name is $(notdir $*). The source files are given with absolute
+# paths, because Vivado is run in build/<board>.
+$(BITS): build/%.bit: $(NAME).tcl $$(notdir $$*).xdc $(SRC) $$($$(notdir $$*)_SRC)
+	@mkdir -p $(@D)
+	cd $(@D) && bash -c "source $(XILINX_DIR)/settings64.sh ; vivado -mode tcl -source $(abspath $<) -tclargs $(notdir $*) $($(notdir $*)_PART) $($(notdir $*)_TOP) $(abspath $(SRC) $($(notdir $*)_SRC))"
 
 .PHONY: fpga
-fpga: nexys4ddr.bit
+fpga: build/nexys4ddr/nexys4ddr.bit
 	djtgcfg prog -d Nexys4DDR -i 0 --file $<
 
 
@@ -183,19 +190,11 @@ endif
 
 .PHONY: clean
 clean:
-	rm -rf usage_statistics_webtalk.*
-	rm -rf vivado*
-	rm -rf clockInfo.txt
-	rm -rf tight_setup_hold_pins.txt
-	rm -rf $(addsuffix .bit,$(BOARDS))
-	rm -rf $(addsuffix .dcp,$(BOARDS))
-	rm -rf .Xil
 	rm -rf .cache
 	rm -rf work-obj08.cf
 	rm -rf build
 	rm -rf $(addsuffix _tb,$(TBS))
 	rm -rf */*.ghw
 	rm -rf *.o
-	rm -rf fsm_encoding.os
 	rm -rf sim/main_out.txt
 
