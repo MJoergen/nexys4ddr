@@ -5,8 +5,8 @@
 -- The view is controlled by the buttons and switches on the board:
 --   btn_i(4)         : Zoom in. If sw_i(2) is set then zoom out instead.
 --   btn_i(3 downto 0): Move the view left, right, up and down.
--- While a button is pressed, the view is updated every 2^23 clock cycles, i.e.
--- about 18 times per second (with the MAIN clock at about 150 MHz).
+-- While a button is pressed, the view is updated 18 times per second, i.e.
+-- every G_CLK_FREQ/18 clock cycles.
 -- The view is kept inside the range -2 to 2, see view.vhd.
 -- Switches 0 and 1 select the colour palette, but they are used in vga.vhd, not
 -- here. The other switches are not used.
@@ -26,8 +26,9 @@ entity main is
       -- The frequency of the MAIN clock in Hz, used to calculate the frame
       -- rate. This depends on the board, so it is set by the top level module.
       G_CLK_FREQ      : natural;
-      -- The number of job modules, i.e. iterators and DSPs. This depends on
-      -- the size of the FPGA, so it is set by the top level module.
+      -- The number of job modules, i.e. iterators (with two DSPs each). This
+      -- depends on the size of the FPGA, so it is set by the top level
+      -- module.
       G_NUM_ITERATORS : integer;
       -- The number of pixels in each write to the display memory, see
       -- dispatcher.vhd and disp_mem.vhd. A power of two, and the rows in a
@@ -102,8 +103,9 @@ architecture structural of main is
    signal fps_valid      : std_logic;
    signal fps_toggle     : std_logic := '0';
 
-   -- 23 bits = 8 million cycles, i.e. about 18 times per second at 150 MHz.
-   signal upd_cnt        : std_logic_vector(22 downto 0) := (others => '0');
+   -- The view is updated 18 times per second.
+   constant C_UPD_PERIOD : natural := G_CLK_FREQ / 18;
+   signal upd_cnt        : natural range 0 to C_UPD_PERIOD-1 := 0;
    signal upd            : std_logic;
    signal btn_r          : std_logic_vector(4 downto 0);
    signal sw_r           : std_logic_vector(7 downto 0);
@@ -113,11 +115,12 @@ begin
    p_upd : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         upd_cnt <= upd_cnt + 1;
-
          upd <= '0';
-         if upd_cnt = 0 then
-            upd <= '1';
+         if upd_cnt = C_UPD_PERIOD-1 then
+            upd_cnt <= 0;
+            upd     <= '1';
+         else
+            upd_cnt <= upd_cnt + 1;
          end if;
       end if;
    end process p_upd;
@@ -207,11 +210,11 @@ begin
    -- At the end of a picture, cnt is the time taken by the picture. The
    -- picture is recalculated continuously, so the frame rate is updated
    -- after every picture.
-   -- cnt wraps around after 2^27 clock cycles (0.89 s at 150 MHz), but a
+   -- cnt wraps around after 2^27 clock cycles (1.12 s at 120 MHz), but a
    -- picture takes far less: even if every pixel needed the maximum count,
-   -- the model (sim/model.py) gives about 2.0 million clock cycles (13.6 ms)
-   -- on the Nexys 4 DDR, i.e. a frame rate of about 73, and 7.9 million
-   -- (53 ms, a frame rate of about 18) on the MEGA65 R6.
+   -- the model (sim/model.py) gives about 1.4 million clock cycles (11.4 ms)
+   -- on the Nexys 4 DDR, i.e. a frame rate of about 87, and 1.9 million
+   -- (13.0 ms, a frame rate of about 76) on the MEGA65 R6.
    i_fps : entity work.fps
       generic map (
          G_CLK_FREQ  => G_CLK_FREQ,

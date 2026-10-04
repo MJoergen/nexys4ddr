@@ -8,12 +8,12 @@
 # the display memory. The size of the picture (columns and rows) gives the
 # initial view, the address is column*stride + row (see dispatcher.vhd), and
 # the data is the count.
-# A complete picture takes about 1.5 hours to simulate, so a partial picture
+# A complete picture takes about 40 minutes to simulate, so a partial picture
 # is fine too: All the pixels written so far are compared, and the last line is
 # ignored if it is incomplete.
 #
 # Usage (from the mandelbrot directory):
-#   make run TB=main STOP_TIME=700us
+#   make run TB=main STOP_TIME=200us
 #   sim/cmp_rtl.py [sim/main_out.txt]
 #
 # Requires numpy.

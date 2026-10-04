@@ -5,7 +5,7 @@
 -- value that fits (all nines) is shown instead.
 --
 -- A new value is calculated for each pulse on valid_i. The calculation takes
--- 2*C_BITS+2 clock cycles (58 for the MAIN clock), and pulses on valid_i
+-- 2*C_BITS+2 clock cycles (56 for the MAIN clock), and pulses on valid_i
 -- during a calculation are ignored. It is done one bit per clock cycle,
 -- because a single-cycle division is far too slow for the MAIN clock:
 -- * The division is a restoring division, which needs one subtraction (of

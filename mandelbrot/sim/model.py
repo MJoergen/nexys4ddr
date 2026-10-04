@@ -44,17 +44,17 @@ MAX_COUNT = 511      # Must match C_MAX_COUNT in main.vhd
 NUM_COLS  = 640      # Must match C_VIDEO in nexys4ddr.vhd
 NUM_ROWS  = 480      # Must match C_VIDEO in nexys4ddr.vhd
 ROWS_IN_JOB = 120    # Must match C_ROWS_IN_JOB in nexys4ddr.vhd
-NUM_ITERATORS = 240  # Must match C_NUM_ITERATORS in nexys4ddr.vhd
-PIXELS = 1           # Must match C_PIXELS in nexys4ddr.vhd
+NUM_ITERATORS = 120  # Must match C_NUM_ITERATORS in nexys4ddr.vhd
+PIXELS = 4           # Must match C_PIXELS in nexys4ddr.vhd
 GROUP_SIZE = 16      # Must match G_GROUP_SIZE in dispatcher.vhd
 # The same for the MEGA65 R6, see mega65_r6.vhd
 MEGA65_NUM_COLS = 1280
 MEGA65_NUM_ROWS = 1024
 MEGA65_ROWS_IN_JOB = 64
-MEGA65_NUM_ITERATORS = 256
+MEGA65_NUM_ITERATORS = 368
 MEGA65_PIXELS = 4
-MEGA65_MAIN_CLOCK_KHZ = 100e3 / 5 * 54 / 7.25
-MAIN_CLOCK_KHZ = 1200e3 / 8.0    # Must match C_MAIN_DIVIDE in nexys4ddr.vhd
+MEGA65_MAIN_CLOCK_KHZ = 100e3 / 5 * 54 / 7.5
+MAIN_CLOCK_KHZ = 1200e3 / 10.0   # Must match C_MAIN_DIVIDE in nexys4ddr.vhd
 
 
 def wrap(v: ArrayLike, bits: int) -> IntArray:
@@ -151,11 +151,10 @@ def hw_stop(cx: ArrayLike, cy: ArrayLike,
             max_count: int = MAX_COUNT) -> Tuple[IntArray, IntArray]:
     """Follow src/main/iterator.vhd including the periodicity detection. Returns
     the count (which must be the same as from hw_count()), and the number of
-    iterations done when the iterator stops, i.e. the value of cnt_r in the
-    last ADD_ST. x and y are saved after iterations 1, 2, 4, 8, ..., and
-    compared with the saved values in each iteration from iteration 2. A
-    match is registered, and stops the iteration one iteration later, with
-    the count max_count."""
+    iterations done when the iterator stops, i.e. the value of cnt_r when it
+    stops. x and y are saved after iterations 1, 2, 4, 8, ..., and compared
+    with the saved values in each iteration from iteration 2. A match stops
+    the iteration at once, with the count max_count."""
     cx_i: IntArray = np.asarray(cx, np.int64)
     cy_i: IntArray = np.asarray(cy, np.int64)
     x: IntArray = np.zeros_like(cx_i)
@@ -166,26 +165,23 @@ def hw_stop(cx: ArrayLike, cy: ArrayLike,
     stop: IntArray = np.zeros_like(cx_i)
     done: BoolArray = np.zeros(cx_i.shape, bool)
     ovf: BoolArray = np.zeros(cx_i.shape, bool)
-    match: BoolArray = np.zeros(cx_i.shape, bool)
     while True:
-        # ADD_ST, with x and y after cnt iterations
+        # p_ctrl, with x and y after cnt iterations, and ovf from the last
+        # iteration
         active = ~done
-        new_match = (cnt >= 2) & (x == sx) & (y == sy)
+        match = (cnt >= 2) & (x == sx) & (y == sy)
         save = active & (cnt != 0) & ((cnt & (cnt - 1)) == 0)
         stop = np.where(active, cnt, stop)
-        found = active & ~ovf & match
+        found = active & ~ovf & (match | (cnt == max_count - 1))
         cnt = np.where(found, max_count, cnt)
-        done |= active & (ovf | match)
-        active = ~done
-        cnt = np.where(active, cnt + 1, cnt)
-        done |= active & (cnt == max_count)
-        match = np.where(active, new_match, match)
+        done |= active & (ovf | found)
+        cnt = np.where(~done, cnt + 1, cnt)
         sx = np.where(save, x, sx)
         sy = np.where(save, y, sy)
         if done.all():
             return cnt, stop
 
-        # The iteration (MULT_ST and UPDATE_ST), as in hw_count()
+        # The iteration (the DSPs), as in hw_count()
         new_x_s = (x + y) * (x - y) + (cx_i << 16)
         new_y_half_s = x * y + (cy_i << 15)
         ovf_x = (new_x_s < -(1 << 33)) | (new_x_s >= (1 << 33))
@@ -196,10 +192,10 @@ def hw_stop(cx: ArrayLike, cy: ArrayLike,
 
 
 def iterating_cycles(stop: ArrayLike) -> IntArray:
-    """The number of clock cycles the iterator needs for each pixel: 3 clock
-    cycles per iteration, plus 7 to start and to deliver the result. stop is
+    """The number of clock cycles the iterator needs for each pixel: one clock
+    cycle per iteration, plus 7 to start and to deliver the result. stop is
     the number of iterations done when the iterator stops (see hw_stop())."""
-    return 3*np.asarray(stop, np.int64) + 7
+    return np.asarray(stop, np.int64) + 7
 
 
 def picture_cycles(stop: ArrayLike, num_iterators: int = NUM_ITERATORS,

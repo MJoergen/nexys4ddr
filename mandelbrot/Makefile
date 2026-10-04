@@ -47,7 +47,7 @@ TBS = vga overlay dispatcher disp_mem iterator view job job_scheduler res_schedu
 TB =
 
 # Generics of the testbench, as a list of <name>=<value>, e.g.
-# GENERICS="G_PIXELS=4". Only used by main_tb.
+# GENERICS="G_PIXELS=1". Only used by main_tb.
 GENERICS =
 
 # Maximum simulation time. This must be longer than the slowest testbench. The

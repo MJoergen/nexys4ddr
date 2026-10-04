@@ -8,10 +8,11 @@ buttons on the board. The same design also runs on the
 XC7A200T FPGA, and shows the picture in 1280x1024, see [MEGA65](#mega65).
 
 All 240 DSPs of the FPGA are used in parallel for the calculation, and the
-picture is stored in block RAM. Generating a complete picture takes about 2.31 ms
-(estimated by the model), with the main clock at 150 MHz. On the MEGA65, with
-the main clock at 148.97 MHz, it takes about 4.91 ms, with 4.3 times as many
-pixels.
+picture is stored in block RAM. Generating a complete picture takes about 1.2 ms
+(832 to 834 pictures per second, measured on the board), with the main clock
+at 120 MHz. On the MEGA65, with 736 DSPs and the main clock at 144 MHz, it
+takes about 2.49 ms (402 pictures per second, measured), with 4.3 times as
+many pixels.
 
 ## The algorithm
 For each pixel, which corresponds to a complex number $c$, we iterate
@@ -25,9 +26,10 @@ colour, and the other counts use the lower 8 bits of the count.
 The numbers are 18-bit
 [fixed point](https://en.wikipedia.org/wiki/Fixed-point_arithmetic) (2 integer
 bits and 16 fractional bits), and each iteration needs only two real
-multiplications, using the identity $x^2 - y^2 = (x+y)(x-y)$. Each of the 240
-job modules contains an iterator with a single DSP multiplier, and the
-iterator calculates one iteration every three clock cycles. Most points in the
+multiplications, using the identity $x^2 - y^2 = (x+y)(x-y)$. Each of the 120
+job modules contains an iterator with two DSP multipliers, one for each
+multiplication, and the iterator calculates one iteration in every clock
+cycle. Most points in the
 set are found long before the maximum count, because the values of $z$ start
 to repeat exactly (periodicity detection). The picture is divided into jobs,
 each of 120 rows of a picture column, and the dispatcher gives the next job to
@@ -87,20 +89,18 @@ BRAMs (of the 365 in the XC7A200T), with 21 bits of address (the column and
 the row). Most monitors accept 1280x1024; a widescreen monitor shows it with
 black bars or stretched.
 
-The XC7A200T is larger, so the design uses 256 job modules (DSPs) instead of
-240, and writes four pixels (consecutive rows of a picture column) to the
-display memory at a time instead of one, see
-[`src/mega65_r6.vhd`](src/mega65_r6.vhd). With 800x600 it used 450 job
-modules, but with the large display memory of 1280x1024 the routing did not
-finish with that many. The main clock is 148.97 MHz. The display memory takes
+The XC7A200T is larger, so the design uses 368 job modules (736 of the 740
+DSPs) instead of 120, see [`src/mega65_r6.vhd`](src/mega65_r6.vhd). The main
+clock is 144 MHz. Both boards write four pixels (consecutive rows of a
+picture column) to the display memory at a time. The display memory takes
 one write per clock cycle, so with one pixel in each write the picture would
-take at least 1280x1024 clock cycles (8.80 ms), whatever the number of job
-modules, and the model gives 9.76 ms. With four pixels in each write the
-picture takes about 4.91 ms (estimated by the model), i.e. 203 pictures per
-second. If every pixel needed the maximum count, it would take 53 ms (18
-pictures per second), below the 60 Hz of the VGA output, but the pictures
-that are worth looking at are much faster, see
-[MEGA65 R6](ALGORITHM.md#mega65-r6).
+take at least 1280x1024 clock cycles (9.10 ms), whatever the number of job
+modules. With four pixels in each write the picture takes about 2.49 ms,
+i.e. 402 pictures per second (measured on the board, the same as the model),
+close to the limit
+of the display memory (2.28 ms). If every pixel needed the maximum count, it
+would take 13 ms (76 pictures per second), still above the 60 Hz of the VGA
+output, see [MEGA65 R6](ALGORITHM.md#mega65-r6).
 
 ## Implementation results
 The design is built with Vivado 2025.1, and meets timing on both boards.
@@ -109,22 +109,22 @@ The resource usage is:
 
 | Resource           | Nexys 4 DDR (XC7A100T-1) | Available | MEGA65 R6 (XC7A200T-2) | Available
 | ------------------ | ------------------------ | --------- | ---------------------- | ---------
-| DSP48E1            | 240 (100%)               | 240       | 256 (35%)              | 740
-| Block RAM (RAMB36) | 129 (96%)                | 135       | 321 (88%)              | 365
-| Slices             | 14,407 (91%)             | 15,850    | 19,316 (57%)           | 33,650
-| LUTs               | 42,037 (66%)             | 63,400    | 49,253 (37%)           | 134,600
-| Registers          | 43,610 (34%)             | 126,800   | 52,144 (19%)           | 269,200
+| DSP48E1            | 240 (100%)               | 240       | 736 (99%)              | 740
+| Block RAM (RAMB36) | 128.5 (95%)              | 135       | 321 (88%)              | 365
+| Slices             | 9,193 (58%)              | 15,850    | 21,548 (64%)           | 33,650
+| LUTs               | 16,357 (26%)             | 63,400    | 46,792 (35%)           | 134,600
+| Registers          | 26,433 (21%)             | 126,800   | 58,421 (22%)           | 269,200
 
 The performance and timing are:
 
-|                    | Nexys 4 DDR     | MEGA65 R6
-| ------------------ | --------------- | ---------------
-| Resolution         | 640x480         | 1280x1024
-| Clock frequency    | 150.00 MHz      | 148.97 MHz
-| Initial FPS        | 432 (estimated) | 203 (estimated)
-| Worst-case FPS     | 73 (estimated)  | 18 (estimated)
-| Setup slack        | +0.345 ns       | +0.301 ns
-| Hold slack         | +0.017 ns       | +0.045 ns
+|                 | Nexys 4 DDR        | MEGA65 R6
+| --------------- | ------------------ | --------------
+| Resolution      | 640x480            | 1280x1024
+| Clock frequency | 120.00 MHz         | 144.00 MHz
+| Initial FPS     | 832-834 (measured) | 402 (measured)
+| Worst-case FPS  | 87 (estimated)     | 76 (estimated)
+| Setup slack     | +0.032 ns          | +0.002 ns
+| Hold slack      | +0.016 ns          | +0.024 ns
 
 See [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details.
@@ -134,12 +134,11 @@ Type `make` to list the supported targets. The most important ones are:
 * `make nexys4ddr` synthesizes and implements the design using
   [Vivado](https://www.amd.com/en/products/software/adaptive-socs-and-fpgas/vivado.html),
   and generates `nexys4ddr.bit`. It expects Vivado in
-  `/opt/Xilinx/2025.1/Vivado` (the variable `XILINX_DIR`). It takes about 6.5
+  `/opt/Xilinx/2025.1/Vivado` (the variable `XILINX_DIR`). It takes about 6
   minutes, and writes the log to `vivado.log`.
 * `make mega65-r6` does the same for the MEGA65 R6, and generates
-  `mega65-r6.bit`. It takes about 20 minutes, but this varies a lot, because
-  the routing is close to its limit (from 10 to 61 minutes for the routing
-  alone), see [MEGA65 R6](ALGORITHM.md#mega65-r6).
+  `mega65-r6.bit`. It takes about 13 minutes, see
+  [MEGA65 R6](ALGORITHM.md#mega65-r6).
 * `make fpga` programs the Nexys 4 DDR board with `nexys4ddr.bit`, using `djtgcfg` from
   Digilent Adept.
 * `make sim` runs all the testbenches in parallel, without opening the
@@ -165,16 +164,16 @@ They stop by themselves when they are finished.
 There is also a testbench for `main`, which is not part of `make sim`, because
 it is slow. It writes the calculated picture to a file, which is compared
 bit-accurately with a Python model of the design by the script `cmp_rtl.py`.
-This requires Python with numpy. A partial picture (more than 50000 pixels)
-takes about 13 minutes:
+This requires Python with numpy. A partial picture (about 50000 pixels)
+takes about 5 minutes:
 ```
-make run TB=main STOP_TIME=700us
+make run TB=main STOP_TIME=200us
 sim/cmp_rtl.py
 ```
 By default it simulates the design of the Nexys 4 DDR. The design of the
 MEGA65 is simulated with
 ```
-make run TB=main STOP_TIME=700us GENERICS="G_NUM_ITERATORS=256 G_PIXELS=4 G_ROWS_IN_JOB=64 G_NUM_COLS=1280 G_NUM_ROWS=1024 G_COL_STRIDE=1024 G_ADDR_BITS=21"
+make run TB=main STOP_TIME=200us GENERICS="G_NUM_ITERATORS=368 G_PIXELS=4 G_ROWS_IN_JOB=64 G_NUM_COLS=1280 G_NUM_ROWS=1024 G_COL_STRIDE=1024 G_ADDR_BITS=21"
 ```
 See [Iterator](ALGORITHM.md#iterator) for details.
 
@@ -200,7 +199,7 @@ files that are in both clock domains are in [`src/`](src).
 | [`src/main/view.vhd`](src/main/view.vhd) | View control. Pans and zooms the view, and keeps it inside the range of the number format.
 | [`src/main/fps.vhd`](src/main/fps.vhd), [`src/main/seg.vhd`](src/main/seg.vhd) | Frame rate. `fps` divides the clock frequency by the time taken by a picture and converts the result to decimal, and `seg` multiplexes the digits on the 7-segment display.
 | [`src/vga/vga.vhd`](src/vga/vga.vhd) | Everything in the VGA clock domain: pixel counters, VGA output, and the frame rate overlay.
-| [`src/main/iterator.vhd`](src/main/iterator.vhd) | Iterates the Mandelbrot function for a single point, using one DSP.
+| [`src/main/iterator.vhd`](src/main/iterator.vhd) | Iterates the Mandelbrot function for a single point, one iteration in each clock cycle, using two DSPs.
 | [`src/main/job.vhd`](src/main/job.vhd) | A job module. Calculates one job (120 rows of a picture column) at a time, using one iterator.
 | [`src/main/dispatcher.vhd`](src/main/dispatcher.vhd) | Controls the calculation of the entire picture: hands out the jobs to the idle job modules, and collects the results. Instantiates the job modules.
 | [`src/main/job_scheduler.vhd`](src/main/job_scheduler.vhd) | Round-robin scheduler. Used by the dispatcher to give jobs to idle job modules.
@@ -211,7 +210,7 @@ files that are in both clock domains are in [`src/`](src).
 | [`src/vga/palette_pkg.vhd`](src/vga/palette_pkg.vhd) | The four colour palettes, which convert the count of a pixel to its colour.
 | [`src/vga/overlay.vhd`](src/vga/overlay.vhd), [`src/vga/font_pkg.vhd`](src/vga/font_pkg.vhd) | Frame rate overlay. `overlay` shows the frame rate in the top right corner of the picture, with the digits of the font in `font_pkg`.
 | [`font/`](font) | The script that generates `font_pkg.vhd` from the [Spleen](https://github.com/fcambus/spleen) 16x32 font, and the license of the font (BSD 2-Clause, see [`font/LICENSE.spleen`](font/LICENSE.spleen)).
-| [`src/clk_rst.vhd`](src/clk_rst.vhd) | Clock and reset generation: the main clock for the calculation (150 MHz, or 148.97 MHz on the MEGA65) and the pixel clock for VGA (25 MHz for 640x480, 108 MHz for 1280x1024), each with a synchronous reset.
+| [`src/clk_rst.vhd`](src/clk_rst.vhd) | Clock and reset generation: the main clock for the calculation (120 MHz, or 144 MHz on the MEGA65) and the pixel clock for VGA (25 MHz for 640x480, 108 MHz for 1280x1024), each with a synchronous reset.
 | [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a Python model of the iterator count (`iterator_model.py`), a vectorized model of the complete picture (`model.py`), the same bit-accurate model in VHDL (`iterator_model_pkg.vhd`, used by the testbenches), and a script (`cmp_rtl.py`) that compares the output of the testbench `main_tb` with this model.
 | [`nexys4ddr.xdc`](nexys4ddr.xdc), [`mega65-r6.xdc`](mega65-r6.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints for each board, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make nexys4ddr`. The script gets the FPGA part, the top level and the list of source files from the Makefile, so it must be run through `make nexys4ddr` or `make mega65-r6`.
 | [`mandelbrot.xlsx`](mandelbrot.xlsx) | Spreadsheet used during the design. It iterates the example point -1+0.5i from [the iterator section](ALGORITHM.md#iterator) using real numbers.

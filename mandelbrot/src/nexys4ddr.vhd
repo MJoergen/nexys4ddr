@@ -51,17 +51,15 @@ end nexys4ddr;
 
 architecture structural of nexys4ddr is
 
-   -- The number of job modules. The XC7A100T has 240 DSPs, one for each
-   -- job module.
-   constant C_NUM_ITERATORS : integer := 240;
+   -- The number of job modules. The XC7A100T has 240 DSPs, two for each
+   -- job module (see iterator.vhd).
+   constant C_NUM_ITERATORS : integer := 120;
 
    -- The number of pixels in each write to the display memory. Writing more
    -- than one pixel at a time makes the picture faster (see mega65_r6.vhd).
-   -- With four pixels the model estimates 1.39 ms for the initial picture,
-   -- against 2.31 ms, but the design then uses 97.5% of the slices of the
-   -- XC7A100T, and had only +0.012 ns of setup slack at 188.24 MHz (see
-   -- ALGORITHM.md).
-   constant C_PIXELS        : integer := 1;
+   -- With four pixels the model estimates 1.19 ms for the initial picture,
+   -- against 2.72 ms with one.
+   constant C_PIXELS        : integer := 4;
 
    -- The VCO of the MMCM (see clk_rst.vhd): 100 MHz / 1 * 12 = 1200 MHz.
    constant C_VCO_DIVIDE    : integer := 1;
@@ -73,13 +71,13 @@ architecture structural of nexys4ddr is
    constant C_VGA_DIVIDE    : integer := 48;
 
    -- The divider of the MAIN clock (see clk_rst.vhd), and its frequency in Hz.
-   -- 1200 MHz / 8 = 150 MHz. The model (sim/model.py) estimates 2.04 million
+   -- 1200 MHz / 10 = 120 MHz. The longest path is in the iterators (see
+   -- iterator.vhd), which are slower in the speed grade -1 of the XC7A100T
+   -- than on the MEGA65. The model (sim/model.py) estimates 1.36 million
    -- clock cycles for the worst case picture (every pixel needs the maximum
-   -- count), i.e. 73 pictures per second, still well above the 60 Hz of the
-   -- VGA output. The lower clock frequency (it was 188.24 MHz) gives more
-   -- setup slack (+0.355 ns against +0.092 ns, see ALGORITHM.md), and so room
-   -- for more logic.
-   constant C_MAIN_DIVIDE   : real    := 8.0;
+   -- count), i.e. 87 pictures per second, still well above the 60 Hz of the
+   -- VGA output.
+   constant C_MAIN_DIVIDE   : real    := 10.0;
    constant C_MAIN_FREQ     : natural :=
       natural(100.0E6 / real(C_VCO_DIVIDE) * C_VCO_MULT / C_MAIN_DIVIDE);
 

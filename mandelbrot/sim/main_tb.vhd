@@ -10,13 +10,14 @@
 -- between two picture columns, and the bits of the address, by default as on
 -- the Nexys 4 DDR (nexys4ddr.vhd). They can be set with GENERICS, e.g. as on
 -- the MEGA65 R6 (mega65_r6.vhd):
---   GENERICS="G_NUM_ITERATORS=256 G_PIXELS=4 G_ROWS_IN_JOB=64 G_NUM_COLS=1280 G_NUM_ROWS=1024 G_COL_STRIDE=1024 G_ADDR_BITS=21"
+--   GENERICS="G_NUM_ITERATORS=368 G_PIXELS=4 G_ROWS_IN_JOB=64 G_NUM_COLS=1280 G_NUM_ROWS=1024 G_COL_STRIDE=1024 G_ADDR_BITS=21"
 --
 -- The testbench is not self-checking. Instead the output is compared with the
--- bit-accurate model using the script cmp_rtl.py. A complete picture takes
--- about 1.5 hours to simulate (with STOP_TIME=4ms), and writes a waveform of
--- about 5 GB, but a partial picture can be compared too, e.g.
---   make run TB=main STOP_TIME=700us
+-- bit-accurate model using the script cmp_rtl.py. A complete picture of the
+-- Nexys 4 DDR (1.44 ms of simulated time) takes about 40 minutes to simulate,
+-- and writes a waveform of a few GB, but a partial picture can be compared
+-- too, e.g.
+--   make run TB=main STOP_TIME=200us
 --   sim/cmp_rtl.py
 
 library ieee;
@@ -26,8 +27,8 @@ use std.textio.all;
 
 entity main_tb is
    generic (
-      G_NUM_ITERATORS : integer := 240;
-      G_PIXELS        : integer := 1;
+      G_NUM_ITERATORS : integer := 120;
+      G_PIXELS        : integer := 4;
       G_ROWS_IN_JOB   : integer := 120;
       G_NUM_COLS      : integer := 640;
       G_NUM_ROWS      : integer := 480;
