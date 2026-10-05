@@ -39,6 +39,9 @@ architecture synthesis of queens_top is
    -- Enough bits for the 8 digits of the 7-segment display
    constant C_VALUE_BITS : integer := 27;
 
+   -- The PLL in clk.vhd makes the 25 MHz VGA clock from the 100 MHz clk_i.
+   constant C_VGA_FREQ   : integer := G_FREQ/4;
+
    signal queens_en     : std_logic;
 
    signal vga_clk       : std_logic;   -- 25 MHz
@@ -72,9 +75,10 @@ begin
 
 
    -- Generate a single pulse for every time the board should be updated.
+   -- The counter runs on vga_clk, so this gives about speed steps per second.
    i_counter : entity work.counter
       generic map (
-         G_COUNTER => G_FREQ
+         G_COUNTER => C_VGA_FREQ
       )
       port map (
          clk_i  => vga_clk,
