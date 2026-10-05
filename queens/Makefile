@@ -32,12 +32,23 @@ help:
 	@echo "  sim             Simulate the queens module (queens_tb) using ghdl and show waveform in gtkwave"
 	@echo "  sim_top         Simulate the whole design (queens_top_tb) using ghdl and show waveform in gtkwave"
 	@echo "  synth           Synthesize and implement the design using yosys and nextpnr-xilinx ($(PRJNAME).bit)"
+	@echo "  vivado          Synthesize and implement the design using Vivado in batch mode ($(PRJNAME)_vivado.bit)"
 	@echo "  clean           Remove generated files"
 	@echo ""
 	@echo "The synth target needs XRAY_DIR and NEXTPNR, e.g. 'make synth XRAY_DIR=~/prjxray NEXTPNR=~/nextpnr-xilinx'."
+	@echo "The vivado target needs vivado in PATH, or VIVADO set, e.g. 'make vivado VIVADO=/path/to/Vivado/bin/vivado'."
 
 
-.PHONY: sim sim_top synth clean
+.PHONY: sim sim_top synth vivado clean
+
+# Vivado build, without the GUI
+VIVADO      ?= vivado
+VIVADO_JOBS ?= 4
+
+vivado:
+	$(VIVADO) -mode batch -notrace -source vivado/build.tcl \
+		-log vivado/build.log -journal vivado/build.jou -tclargs $(VIVADO_JOBS)
+
 sim: work-obj93.cf
 	ghdl -m queens_tb
 	ghdl -r queens_tb --wave=sim/queens_tb.ghw --stop-time=2us
@@ -84,7 +95,11 @@ clean:
 	rm -f $(PRJNAME).frames
 	rm -f $(PRJNAME).bit
 	rm -f $(PRJNAME).fasm
+	rm -f $(PRJNAME)_vivado.bit
+	rm -f vivado/build.log
+	rm -f vivado/build.jou
 	rm -rf vivado/vivado.cache/
+	rm -rf vivado/vivado.gen/
 	rm -rf vivado/vivado.hw/
 	rm -rf vivado/vivado.ip_user_files/
 	rm -rf vivado/vivado.runs/

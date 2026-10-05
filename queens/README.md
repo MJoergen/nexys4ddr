@@ -105,6 +105,11 @@ Running `make` with no target lists the targets:
   `XRAY_DIR` to point to Project X-Ray, and `NEXTPNR` to point to
   nextpnr-xilinx, for example
   `make synth XRAY_DIR=~/prjxray NEXTPNR=~/nextpnr-xilinx`.
+* `make vivado`: Builds the bit-file `queens_vivado.bit` from the Vivado
+  project, with Vivado in batch mode (no GUI). It uses `vivado` from your
+  `PATH`, or the variable `VIVADO`, and runs `VIVADO_JOBS` jobs (default 4),
+  for example `make vivado VIVADO=/path/to/Vivado/bin/vivado VIVADO_JOBS=8`.
+  The log is in `vivado/build.log`.
 * `make clean`: Deletes the generated files.
 
 You can then program the board with the bit-file, for example with
