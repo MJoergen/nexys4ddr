@@ -65,9 +65,9 @@ nexys4ddr                       src/nexys4ddr.vhd (top level)
  |   |   |       +- (DSP48E1)   (x 2, inferred in p_dsp, multiplier and adder)
  |   |   +- res_scheduler       src/main/res_scheduler.vhd (selects the job module whose result is accepted)
  |   +- fps                     src/main/fps.vhd (frame rate, calculated from the time for a picture)
- |   +- (p_fps_toggle)          (tells the VGA clock domain that the frame rate has changed)
  |   +- seg                     src/main/seg.vhd (7-segment display)
  +- disp_mem                    src/disp_mem.vhd (display memory, between the two clock domains)
+ +- (p_fps_toggle)              (tells the VGA clock domain that the frame rate has changed)
  +- (p_fps_cdc)                 (moves the frame rate to the VGA clock domain)
  +- vga                         src/vga/vga.vhd (everything in the VGA clock domain)
      +- pix                     src/vga/pix.vhd (pixel counters, for the video mode in src/vga/video_pkg.vhd)
@@ -853,10 +853,12 @@ leading zeros not shown (the picture is shown there instead). The digits are
 script [`font/gen_font_pkg.py`](font/gen_font_pkg.py) converts the font to the
 table in [`src/vga/font_pkg.vhd`](src/vga/font_pkg.vhd), 32 rows of 16 bits
 for each digit. The frame rate (32 bits of digits and 8 bits of blanking) is
-calculated in the MAIN clock domain, so it is moved to the VGA clock domain:
-`main` changes a toggle signal each time the frame rate changes. This is
-synchronized with two registers in the top level (`p_fps_cdc` in
-[`src/nexys4ddr.vhd`](src/nexys4ddr.vhd)), and when it changes, the frame
+calculated in the MAIN clock domain, so it is moved to the VGA clock domain
+in the top level ([`src/nexys4ddr.vhd`](src/nexys4ddr.vhd)), so `main` does
+not depend on the VGA clock. `main` sets `fps_valid_o` for one clock cycle
+each time the frame rate changes, and the top level then changes a toggle
+signal (`p_fps_toggle`). This is synchronized with two registers
+(`p_fps_cdc`), and when it changes, the frame
 rate is copied, so `overlay` only gets signals in the VGA clock domain. The
 frame rate changes only at the end of a picture, so it is constant for much
 longer than the synchronizer takes (a few VGA clock cycles), and it is never
