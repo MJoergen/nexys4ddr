@@ -1,6 +1,8 @@
 -- This is a self-checking testbench for the frame rate (fps.vhd) and the
--- 7-segment display (seg.vhd). It gives fps a number of picture times, and
--- for each one it checks:
+-- 7-segment display (seg.vhd). It has two instances of fps.
+--
+-- The first one does not average (G_AVG_SHIFT = 0), and drives the display.
+-- It gives it a number of picture times, and for each one it checks:
 -- * The digits and the blanking from fps are the expected frame rate, i.e.
 --   the clock frequency divided by the time, rounded down, with leading zeros
 --   blanked. Values that do not fit in 8 digits show 99999999.
@@ -10,7 +12,13 @@
 --   time.
 -- The times include the extremes (0, 1, and the largest time), the values
 -- around a change of the frame rate, and random values over the whole range.
--- It also checks that a pulse on valid_i during a calculation is ignored.
+-- It also checks that a pulse on valid_i during a calculation does not start
+-- a new calculation.
+--
+-- The second one averages (G_AVG_SHIFT = 3). It gives it random picture
+-- times, and checks the frame rate after each one against a model of the
+-- average: the first time sets it, and each later time adds 1/8 of the
+-- difference.
 --
 -- The refresh of the display is made much faster than on the board, so a
 -- full refresh cycle is 64 clock cycles.
@@ -33,6 +41,8 @@ architecture simulation of fps_tb is
    -- Longer than a calculation (58 clock cycles)
    constant C_CALC_CYCLES  : natural := 70;
 
+   constant C_AVG_SHIFT    : natural := 3;
+
    type seg_table_t is array (0 to 9) of std_logic_vector(6 downto 0);
    constant C_SEG_TABLE : seg_table_t := (
       "0111111", "0000110", "1011011", "1001111", "1100110",
@@ -44,6 +54,11 @@ architecture simulation of fps_tb is
    signal valid    : std_logic := '0';
    signal digits   : std_logic_vector(31 downto 0);
    signal blank    : std_logic_vector( 7 downto 0);
+   signal avg_time : std_logic_vector(C_TIME_BITS-1 downto 0) := (others => '0');
+   signal avg_vld  : std_logic := '0';
+   signal avg_dig  : std_logic_vector(31 downto 0);
+   signal avg_out  : std_logic;
+   signal test_done : boolean := false;
    signal seg_s    : std_logic_vector( 6 downto 0);
    signal seg_an   : std_logic_vector( 7 downto 0);
 
@@ -54,6 +69,16 @@ architecture simulation of fps_tb is
       end if;
       return C_CLK_FREQ / t;
    end function expected_fps;
+
+   -- The value of BCD digits
+   function bcd_value(d : std_logic_vector(31 downto 0)) return natural is
+      variable r : natural := 0;
+   begin
+      for i in 7 downto 0 loop
+         r := 10*r + to_integer(unsigned(d(4*i+3 downto 4*i)));
+      end loop;
+      return r;
+   end function bcd_value;
 
 begin
 
@@ -76,6 +101,7 @@ begin
       generic map (
          G_CLK_FREQ  => C_CLK_FREQ,
          G_TIME_BITS => C_TIME_BITS,
+         G_AVG_SHIFT => 0,
          G_DIGITS    => 8
       )
       port map (
@@ -86,6 +112,23 @@ begin
          digits_o => digits,
          blank_o  => blank
       ); -- i_fps
+
+   i_avg : entity work.fps
+      generic map (
+         G_CLK_FREQ  => C_CLK_FREQ,
+         G_TIME_BITS => C_TIME_BITS,
+         G_AVG_SHIFT => C_AVG_SHIFT,
+         G_DIGITS    => 8
+      )
+      port map (
+         clk_i    => clk,
+         rst_i    => rst,
+         time_i   => avg_time,
+         valid_i  => avg_vld,
+         digits_o => avg_dig,
+         blank_o  => open,
+         valid_o  => avg_out
+      ); -- i_avg
 
    i_seg : entity work.seg
       generic map (
@@ -211,7 +254,7 @@ begin
          test(C_TIMES(i));
       end loop;
 
-      -- A pulse on valid during a calculation is ignored
+      -- A pulse on valid during a calculation does not start a calculation
       start(941_176);
       for i in 1 to 10 loop
          wait until rising_edge(clk);
@@ -229,7 +272,73 @@ begin
       end loop;
 
       report "Test finished, " & integer'image(num_test) & " values checked";
-      std.env.stop;
+      test_done <= true;
+      wait;
    end process p_test;
+
+   -- Test of the average
+   p_avg : process
+      constant C_ONE  : natural := 2**C_AVG_SHIFT;
+      variable seed1  : positive := 3;
+      variable seed2  : positive := 4;
+      variable r      : real;
+      variable t      : natural;
+      variable avg    : natural;  -- With C_AVG_SHIFT fractional bits
+      variable diff   : integer;
+      variable seen_v : boolean;
+   begin
+      wait until rst = '0';
+      wait until rising_edge(clk);
+
+      for i in 0 to 999 loop
+         -- Around 100000 clock cycles, with some jumps
+         uniform(seed1, seed2, r);
+         if i mod 200 < 100 then
+            t := 100_000 + integer(r * 2000.0);
+         else
+            t := 30_000 + integer(r * 500.0);
+         end if;
+
+         -- The model of the average. The difference is divided by C_ONE,
+         -- rounded down (also when it is negative).
+         if i = 0 then
+            avg := t * C_ONE;
+         else
+            diff := t * C_ONE - avg;
+            if diff >= 0 then
+               avg := avg + diff / C_ONE;
+            else
+               avg := avg - (-diff + C_ONE - 1) / C_ONE;
+            end if;
+         end if;
+
+         avg_time <= std_logic_vector(to_unsigned(t, C_TIME_BITS));
+         avg_vld  <= '1';
+         wait until rising_edge(clk);
+         avg_vld  <= '0';
+         avg_time <= (others => 'X');
+
+         seen_v := false;
+         for c in 1 to C_CALC_CYCLES loop
+            wait until rising_edge(clk);
+            if avg_out = '1' then
+               seen_v := true;
+               assert bcd_value(avg_dig) = expected_fps(avg / C_ONE)
+                  report "Wrong average frame rate " &
+                         integer'image(bcd_value(avg_dig)) & " for time " &
+                         integer'image(t) & ", expected " &
+                         integer'image(expected_fps(avg / C_ONE))
+                  severity error;
+            end if;
+         end loop;
+         assert seen_v report "No frame rate for an average" severity error;
+      end loop;
+
+      report "Average test finished";
+      if not test_done then
+         wait until test_done;
+      end if;
+      std.env.stop;
+   end process p_avg;
 
 end architecture simulation;

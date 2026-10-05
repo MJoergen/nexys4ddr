@@ -802,12 +802,19 @@ elaborated: it must be inside the range too.
 number of pictures per second, rounded down to an integer, with the leading
 zeros blanked. A counter counts clock cycles while a picture is being
 calculated, and it is cleared when the next picture is started. At the end of
-a picture, the module [`src/main/fps.vhd`](src/main/fps.vhd) divides the clock frequency
-(the generic `G_CLK_FREQ` of `main`, set by the top level: 120,000,000 Hz, or
-144,000,000 Hz on the MEGA65) by the value of the counter, and converts the
-result to decimal. The picture is recalculated continuously, so the frame rate
-is updated after every picture (about 833 times per second for the initial
-view).
+a picture, the module [`src/main/fps.vhd`](src/main/fps.vhd) adds the value of the counter to
+an average, divides the clock frequency (the generic `G_CLK_FREQ` of `main`,
+set by the top level: 120,000,000 Hz, or 144,000,000 Hz on the MEGA65) by the
+average, and converts the result to decimal. The picture is recalculated
+continuously, so the frame rate is updated after every picture (about 833
+times per second for the initial view).
+The time of a picture varies a little, so without the average the last digits
+would change all the time. The average is an exponentially weighted moving
+average: for each picture, the difference between its time and the average is
+divided by 2^8 = 256 (`G_AVG_SHIFT`) and added to the average, so it follows
+about the last 256 pictures (0.3 s for the initial view, 0.6 s on the MEGA65).
+The average has 8 fractional bits, so it does not get stuck when the
+difference is small. The first picture after reset sets the average.
 A single-cycle division would be far too slow for the MAIN clock, so both
 steps are done one bit per clock cycle: a restoring division, with one
 subtraction for each of the 27 bits of the quotient (28 on the MEGA65), and
@@ -860,7 +867,10 @@ checks the digits and the blanking against the integer division, and that the
 display shows the same number: every digit that is not blanked is switched on
 with the right segments during a refresh cycle, the blanked digits are never
 switched on, and at most one digit is on at a time. It also checks that a new
-picture time during a calculation is ignored.
+picture time during a calculation does not start a new calculation. This
+instance of the module does not average (`G_AVG_SHIFT` is 0). A second
+instance averages (`G_AVG_SHIFT` is 3), and the testbench checks its frame
+rate after each of 1000 random picture times against a model of the average.
 
 The testbench [`sim/overlay_tb.vhd`](sim/overlay_tb.vhd) checks the colour of
 every pixel of three frames of the VGA output (with a different value for each

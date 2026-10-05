@@ -60,9 +60,9 @@ and the imaginary axis from -1 to 1 (-1.07 to 1.07 on the MEGA65). See
 [The top level](ALGORITHM.md#the-top-level) for details.
 
 The 7-segment display shows the frame rate, i.e. the number of pictures
-calculated per second, rounded down to an integer. It is calculated from the
-time taken by the most recently finished picture, and updated after every
-picture. The same frame rate is also shown in the top right corner of the VGA
+calculated per second, rounded down to an integer. It is calculated from a
+moving average of the time taken by the pictures (over about the last 256
+pictures), and updated after every picture. The same frame rate is also shown in the top right corner of the VGA
 output, in white on black.
 
 ### MEGA65
@@ -201,7 +201,7 @@ files that are in both clock domains are in [`src/`](src).
 | [`src/mega65_r6.vhd`](src/mega65_r6.vhd) | Top level for the MEGA65 R6. The same as `nexys4ddr.vhd`, but with the ports of the MEGA65, more job modules, a larger display memory, and a resolution of 1280x1024.
 | [`src/main/main.vhd`](src/main/main.vhd) | Everything in the MAIN clock domain: view control from buttons and switches, the dispatcher, and the frame rate (shown on the 7-segment display and on the VGA output).
 | [`src/main/view.vhd`](src/main/view.vhd) | View control. Pans and zooms the view, and keeps it inside the range of the number format.
-| [`src/main/fps.vhd`](src/main/fps.vhd), [`src/main/seg.vhd`](src/main/seg.vhd) | Frame rate. `fps` divides the clock frequency by the time taken by a picture and converts the result to decimal, and `seg` multiplexes the digits on the 7-segment display.
+| [`src/main/fps.vhd`](src/main/fps.vhd), [`src/main/seg.vhd`](src/main/seg.vhd) | Frame rate. `fps` averages the time taken by the pictures, divides the clock frequency by the average and converts the result to decimal, and `seg` multiplexes the digits on the 7-segment display.
 | [`src/vga/vga.vhd`](src/vga/vga.vhd) | Everything in the VGA clock domain: pixel counters, VGA output, and the frame rate overlay.
 | [`src/main/iterator.vhd`](src/main/iterator.vhd) | Iterates the Mandelbrot function for a single point, one iteration in each clock cycle, using two DSPs.
 | [`src/main/job.vhd`](src/main/job.vhd) | A job module. Calculates one job (120 rows of a picture column, or 64 on the MEGA65) at a time, using one iterator.
