@@ -151,11 +151,13 @@ Type `make` to list the supported targets. The most important ones are:
   `SIM_JOBS` to change that), writes the output of each testbench to
   `build/<name>.log`, and ends with a pass/fail summary. It takes about 9
   minutes, almost all of which is the `vga` testbench (because of 1280x1024).
-* `make run TB=iterator` runs a single testbench and writes the waveform to
-  `sim/iterator.ghw`. Without `TB` it lists the available testbenches. It has
-  the same requirements as `make sim`.
-* `make check TB=iterator` does the same as `make run`, and then shows the
-  waveform in [GTKWave](https://github.com/gtkwave/gtkwave).
+* `make run TB=iterator` runs a single testbench. It does not write a
+  waveform, because that makes the simulation much slower. Without `TB` it
+  lists the available testbenches. It has the same requirements as
+  `make sim`.
+* `make check TB=iterator` runs a single testbench like `make run`, but also
+  writes the waveform to `sim/iterator.ghw`, and then shows it in
+  [GTKWave](https://github.com/gtkwave/gtkwave).
 * `make clean` removes the generated files.
 
 ## Simulation

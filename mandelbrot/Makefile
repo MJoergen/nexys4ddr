@@ -87,8 +87,8 @@ help:
 	@echo "  mega65-r6       Synthesize and implement the design for the MEGA65 R6 using Vivado (build/mega65-r6/)"
 	@echo "  fpga            Program the Nexys 4 DDR board with build/nexys4ddr/nexys4ddr.bit"
 	@echo "  sim             Simulate all testbenches in parallel using ghdl (logs in build/)"
-	@echo "  run             Simulate a single testbench (TB=<name>) using ghdl, without gtkwave"
-	@echo "  check           Simulate a single testbench (TB=<name>) using ghdl and show waveform in gtkwave"
+	@echo "  run             Simulate a single testbench (TB=<name>) using ghdl, without writing a waveform"
+	@echo "  check           Simulate a single testbench (TB=<name>) using ghdl, write the waveform and show it in gtkwave"
 	@echo "  clean           Remove generated files"
 	@echo ""
 	@echo "Testbench is selected by TB=<name>, e.g. 'make check TB=iterator'."
@@ -173,18 +173,27 @@ run check:
 
 else
 
-# Simulate a single testbench (TB=<name>) and show the waveform. Not all
-# testbenches have a GTKWave save file (sim/<name>.gtkw).
-.PHONY: check
-check: run
-	gtkwave $(WAVE) $(wildcard $(SAVE))
+# Analyze, elaborate and simulate the testbench TB. The argument is extra
+# options to the simulation, e.g. --wave=<file>.
+define SIMULATE
+@mkdir -p $(WORKDIR)
+ghdl -i $(GHDL_OPTS) --work=work $(TB_SRC)
+ghdl -m $(GHDL_OPTS) $(TB_EXE)
+ghdl -r $(GHDL_OPTS) $(TB_EXE) --assert-level=error --stop-time=$(STOP_TIME) $(addprefix -g,$(GENERICS)) $(1)
+endef
 
+# Simulate a single testbench (TB=<name>) without writing a waveform, because
+# that slows down the simulation considerably.
 .PHONY: run
 run: $(TB_SRC)
-	@mkdir -p $(WORKDIR)
-	ghdl -i $(GHDL_OPTS) --work=work $(TB_SRC)
-	ghdl -m $(GHDL_OPTS) $(TB_EXE)
-	ghdl -r $(GHDL_OPTS) $(TB_EXE) --assert-level=error --wave=$(WAVE) --stop-time=$(STOP_TIME) $(addprefix -g,$(GENERICS))
+	$(call SIMULATE)
+
+# Simulate a single testbench (TB=<name>), write the waveform to sim/<name>.ghw
+# and show it. Not all testbenches have a GTKWave save file (sim/<name>.gtkw).
+.PHONY: check
+check: $(TB_SRC)
+	$(call SIMULATE,--wave=$(WAVE))
+	gtkwave $(WAVE) $(wildcard $(SAVE))
 
 endif
 
