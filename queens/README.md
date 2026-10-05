@@ -113,3 +113,4 @@ You can then program the board with the bit-file, for example with
 manager.
 
 There is also a Vivado project in [vivado/vivado.xpr](vivado/vivado.xpr).
+It includes both testbenches, and its simulation top is `queens_top_tb`.
