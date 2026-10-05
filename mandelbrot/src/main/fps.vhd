@@ -5,11 +5,13 @@
 -- value that fits (all nines) is shown instead.
 --
 -- A new value is calculated for each pulse on valid_i. The calculation takes
--- 2*C_BITS+2 clock cycles (56 for the MAIN clock), and pulses on valid_i
--- during a calculation are ignored. It is done one bit per clock cycle,
--- because a single-cycle division is far too slow for the MAIN clock:
+-- 2*C_BITS+2 clock cycles (56 for the MAIN clock of the Nexys 4 DDR, 58 on
+-- the MEGA65), and pulses on valid_i during a calculation are ignored. It is
+-- done one bit per clock cycle, because a single-cycle division is far too
+-- slow for the MAIN clock:
 -- * The division is a restoring division, which needs one subtraction (of
---   G_TIME_BITS+1 bits) for each bit of the quotient.
+--   G_TIME_BITS+2 bits, including the sign bit of the difference) for each
+--   bit of the quotient.
 -- * The quotient is converted to decimal (BCD) with the double dabble
 --   algorithm: For each bit, 3 is added to each digit which is 5 or more, and
 --   then the digits and the binary value are shifted left together by one bit.

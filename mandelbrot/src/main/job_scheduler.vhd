@@ -4,7 +4,7 @@
 -- A counter goes round all the processes, one per clock cycle, and an idle
 -- process is started when the counter reaches it. The busy flag of the
 -- process is selected in two steps, to keep the paths short: first, in each
--- group of 16 processes, the flag of the process at the position of the
+-- group of G_GROUP_SIZE processes, the flag of the process at the position of the
 -- counter in the group is registered (grp_busy_r), and then, in the next
 -- clock cycle, the flag of the group of the counter is used. So a process is
 -- started two clock cycles after its busy flag is sampled.
@@ -15,7 +15,8 @@ use ieee.numeric_std_unsigned.all;
 
 entity job_scheduler is
    generic (
-      G_SIZE : integer
+      G_SIZE       : integer;
+      G_GROUP_SIZE : integer
    );
    port (
       clk_i           : in  std_logic;
@@ -29,8 +30,7 @@ end entity job_scheduler;
 
 architecture rtl of job_scheduler is
 
-   constant C_GROUP_SIZE  : integer := 16;
-   constant C_NUM_GROUPS  : integer := (G_SIZE + C_GROUP_SIZE - 1) / C_GROUP_SIZE;
+   constant C_NUM_GROUPS  : integer := (G_SIZE + G_GROUP_SIZE - 1) / G_GROUP_SIZE;
 
    signal cnt_r           : integer range 0 to G_SIZE-1;
    signal cnt_d           : integer range 0 to G_SIZE-1;
@@ -64,7 +64,7 @@ begin
    begin
       if rising_edge(clk_i) then
          for g in 0 to C_NUM_GROUPS-1 loop
-            idx_v := g*C_GROUP_SIZE + cnt_r mod C_GROUP_SIZE;
+            idx_v := g*G_GROUP_SIZE + cnt_r mod G_GROUP_SIZE;
             grp_busy_r(g) <= '1';
             if idx_v < G_SIZE then
                grp_busy_r(g) <= job_busy_i(idx_v);
@@ -87,7 +87,7 @@ begin
          job_idx_valid_r <= '0';
 
          if active_d = '1' then
-            if grp_busy_r(cnt_d / C_GROUP_SIZE) = '0' then
+            if grp_busy_r(cnt_d / G_GROUP_SIZE) = '0' then
                job_idx_valid_r <= '1';
                job_idx_start_r <= cnt_d;
             end if;

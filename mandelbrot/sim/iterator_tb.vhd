@@ -131,7 +131,7 @@ begin
          start <= '0';
 
          -- Wait for the iterator to finish, but not forever
-         wait until done = '1' for (3*C_MAX_COUNT + 20) * 10 ns;
+         wait until done = '1' for (C_MAX_COUNT + 20) * 10 ns;
          assert done = '1'
             report "Timeout waiting for done for c = (" & real'image(cx_r) & ", " & real'image(cy_r) & ")"
             severity error;
@@ -175,7 +175,7 @@ begin
          start <= '1';
          wait until rising_edge(clk);
          start <= '0';
-         wait until done = '1' for (3*C_MAX_COUNT + 20) * 10 ns;
+         wait until done = '1' for (C_MAX_COUNT + 20) * 10 ns;
          wait for 1 ns;
          act := to_integer(unsigned(cnt));
          exp := iterator_count(cx_i, cy_i, C_MAX_COUNT);

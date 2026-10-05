@@ -9,12 +9,13 @@
 # module is used by cmp_rtl.py to compare the simulated design with the model.
 #
 # Run as a script, it compares the model with the reference for the initial
-# view (640x480, as on the Nexys 4 DDR), and prints how many pixels differ. It also estimates the time
-# it takes the design to calculate the picture, and the time the job modules
-# wait for their results to be accepted, see picture_cycles(). For
-# this, hw_stop() follows the periodicity detection of the iterator, which stops
-# the iteration early for most points in the set, and checks that it gives the
-# same count as hw_count().
+# view (640x480, as on the Nexys 4 DDR), and prints how many pixels differ. It
+# also estimates the time it takes the design to calculate the picture, and
+# the time the job modules wait for their results to be accepted, see
+# picture_cycles(), and the time for the initial view on the MEGA65 R6
+# (1280x1024). For the times, hw_stop() follows the periodicity detection of
+# the iterator, which stops the iteration early for most points in the set, and
+# checks that it gives the same count as hw_count().
 #
 # Usage:
 #   ./model.py           Compare the model with the reference.
@@ -78,7 +79,7 @@ def hw_count(cx: ArrayLike, cy: ArrayLike,
     done: BoolArray = np.zeros(cx_i.shape, bool)
     ovf: BoolArray = np.zeros(cx_i.shape, bool)
     while True:
-        # ADD_ST
+        # The count, and the end of the iteration
         done |= ovf
         active = ~done
         cnt = np.where(active, cnt + 1, cnt)
@@ -192,9 +193,12 @@ def hw_stop(cx: ArrayLike, cy: ArrayLike,
 
 
 def iterating_cycles(stop: ArrayLike) -> IntArray:
-    """The number of clock cycles the iterator needs for each pixel: one clock
-    cycle per iteration, plus 7 to start and to deliver the result. stop is
-    the number of iterations done when the iterator stops (see hw_stop())."""
+    """The number of clock cycles the job module needs for each pixel: one clock
+    cycle per iteration, plus 7 to start the iterator and to deliver the result
+    (from the clock cycle in which i_res_scheduler selects the previous result
+    of the job module, until the ready flag of this result is high, see
+    picture_cycles()). stop is the number of iterations done when the iterator
+    stops (see hw_stop())."""
     return np.asarray(stop, np.int64) + 7
 
 
@@ -211,18 +215,27 @@ def picture_cycles(stop: ArrayLike, num_iterators: int = NUM_ITERATORS,
     Each job is rows_in_job rows of a picture column, and the jobs are given in
     the same order as by the dispatcher (all the picture columns of the top
     block of rows, then all the picture columns of the next block, and so
-    on). The scheduler for the jobs (i_job_scheduler) visits each job module
-    once every num_iterators clock cycles, and gives it the next job if it is
-    idle. The scheduler for the results (i_res_scheduler) visits one group of
-    group_size job modules in each clock cycle, and accepts the result of
-    one of the job modules of the group that had a result ready two clock
-    cycles before (the ready flags and the candidate of the group are
-    registered), in round-robin order within the group. The next row starts
-    when the result has been accepted, and its result is ready
-    iterating_cycles() - 1 clock cycles after the clock cycle in which the
-    previous result was accepted. The first result of a job is ready
-    iterating_cycles() clock cycles after the job is given. The waiting time
-    of a result is counted until the clock cycle before it is accepted.
+    on). The clock cycles are counted as in src/main/dispatcher.vhd:
+    * The scheduler for the jobs (i_job_scheduler) visits each job module once
+      every num_iterators clock cycles, and gives it the next job if its busy
+      flag is low in the clock cycle of the visit. The job starts (job_start_i
+      of the job module is high) four clock cycles after the visit. The busy
+      flag is low from three clock cycles after the last result of the job is
+      selected.
+    * The ready flag of the first result of a job (res_ready_s) is high
+      iterating_cycles() - 2 clock cycles after the job starts.
+    * The scheduler for the results (i_res_scheduler) visits one group of
+      group_size job modules in each clock cycle, and selects one of the job
+      modules of the group whose ready flag was high three clock cycles
+      before (the ready flags and the candidate of the group are registered),
+      in round-robin order within the group.
+    * The ready flag of the next result is high iterating_cycles() clock
+      cycles after the previous result was selected (the acknowledge reaches
+      the job module two clock cycles after the selection, and the job module
+      starts the next row in the clock cycle after that).
+    The waiting time of a result is counted from the clock cycle in which it
+    could have been selected at the earliest (three clock cycles after its
+    ready flag is high), until the clock cycle in which it is selected.
 
     Each result is pixels consecutive rows. The job module keeps the
     counts of the first pixels-1 rows of a result, and starts the next row
@@ -242,16 +255,16 @@ def picture_cycles(stop: ArrayLike, num_iterators: int = NUM_ITERATORS,
         for b in range(rows // rows_in_job) for c in range(cols)]
     num_groups = -(-num_iterators // group_size)
     period = max(num_groups, 5)
-    job_latency = 5      # From the visit of i_job_scheduler to the start of the job
+    job_latency = 4      # From the visit of i_job_scheduler to the start of the job
 
     next_job = 0
     job: List[List[int]] = [[] for _ in range(num_iterators)]
     row = [0] * num_iterators
-    # The clock cycle from which the result of each job module is ready,
+    # The clock cycle from which the ready flag of each job module is high,
     # or None when it has no job
     ready: List[Optional[int]] = [None] * num_iterators
     ptr = [0] * num_groups
-    # The clock cycles when idle job modules are given their next job, as
+    # The clock cycles when idle job modules start their next job, as
     # (clock cycle, job module). i_job_scheduler visits job module i in the
     # clock cycles i, i+num_iterators, and so on.
     requests: List[Tuple[int, int]] = [
@@ -268,14 +281,14 @@ def picture_cycles(stop: ArrayLike, num_iterators: int = NUM_ITERATORS,
                 job[i] = jobs[next_job]
                 next_job += 1
                 row[i] = 0
-                ready[i] = t + job[i][0]
+                ready[i] = t + job[i][0] - 2
             else:
                 finished += 1
         if finished == num_iterators:
             return last, waiting
 
-        # The result accepted in clock cycle k, from the ready flags sampled
-        # in clock cycle k-2
+        # The result selected in clock cycle k, from the ready flags sampled
+        # in clock cycle k-3
         g = k % period
         if g < num_groups:
             first: Optional[int] = None
@@ -283,7 +296,7 @@ def picture_cycles(stop: ArrayLike, num_iterators: int = NUM_ITERATORS,
             since = [0] * group_size
             for j in range(min(group_size, num_iterators - g*group_size)):
                 r = ready[g*group_size + j]
-                if r is not None and r <= k-2:
+                if r is not None and r <= k-3:
                     since[j] = r
                     if first is None:
                         first = j
@@ -293,16 +306,17 @@ def picture_cycles(stop: ArrayLike, num_iterators: int = NUM_ITERATORS,
                 j = after if after is not None else first
                 ptr[g] = (j + 1) % group_size
                 i = g*group_size + j
-                waiting += k-1 - since[j]
+                waiting += k - (since[j] + 3)
                 last = k
                 row[i] += 1
                 if row[i] < len(job[i]):
-                    ready[i] = k-1 + job[i][row[i]]
+                    ready[i] = k + job[i][row[i]]
                 else:
+                    # The next visit with the busy flag low
                     ready[i] = None
-                    t = k-1 + job_latency
-                    t += (i - t) % num_iterators
-                    heapq.heappush(requests, (t, i))
+                    v = k + 3
+                    v += (i - v) % num_iterators
+                    heapq.heappush(requests, (v + job_latency, i))
         k += 1
 
 

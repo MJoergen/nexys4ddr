@@ -78,7 +78,7 @@ begin
       constant C_PIX : integer := C_PIXELS(n);
 
       -- Maximum number of clock cycles to wait for a single result
-      constant C_RES_TIMEOUT : integer := C_PIX*(3*C_MAX_COUNT + 30);
+      constant C_RES_TIMEOUT : integer := C_PIX*(C_MAX_COUNT + 30);
 
       signal job_start   : std_logic := '0';
       signal job_cx      : std_logic_vector(17 downto 0) := (others => '0');

@@ -235,7 +235,8 @@ begin
 
    i_job_scheduler : entity work.job_scheduler
       generic map (
-         G_SIZE => G_NUM_ITERATORS
+         G_SIZE       => G_NUM_ITERATORS,
+         G_GROUP_SIZE => G_GROUP_SIZE
       )
       port map (
          clk_i           => clk_i,

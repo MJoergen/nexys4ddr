@@ -8,8 +8,9 @@
 -- The frame rate is calculated in the MAIN clock domain (fps.vhd), and it is
 -- moved to the VGA clock domain in the top level module, so fps_digits_i and
 -- fps_blank_i are in the VGA clock domain. They may change at any time: the
--- value is copied before the first line of each frame, so a new value is shown
--- from the next frame on, and a frame never shows two different values.
+-- value is copied at the first pixel of each frame (pixel (0,0)), well before
+-- the rows of the overlay, so a new value is shown from the next frame on, and
+-- a frame never shows two different values.
 --
 -- The overlay is added to the output of disp.vhd, which is delayed by one
 -- clock cycle (all of vga_hs_o, vga_vs_o and vga_col_o). The pixel counters
@@ -87,7 +88,7 @@ architecture rtl of overlay is
 begin
 
    --------------------------------------------------
-   -- Change the value shown before the first line of a frame
+   -- Change the value shown at the start of a frame
    --------------------------------------------------
 
    p_value : process (vga_clk_i)

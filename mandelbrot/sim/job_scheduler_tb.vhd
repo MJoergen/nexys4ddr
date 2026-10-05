@@ -16,9 +16,10 @@ end entity job_scheduler_tb;
 architecture sim of job_scheduler_tb is
 
    -- Not a power of two, to test the wrap around of the counter, and more than
-   -- 16, so there are two groups of processes (see job_scheduler.vhd), and the
-   -- second group is smaller.
-   constant C_SIZE : integer := 21;
+   -- C_GROUP_SIZE, so there are two groups of processes (see
+   -- job_scheduler.vhd), and the second group is smaller.
+   constant C_SIZE       : integer := 21;
+   constant C_GROUP_SIZE : integer := 16;
 
    type count_t is array (0 to C_SIZE-1) of integer;
 
@@ -143,7 +144,6 @@ begin
          check_mask(mask, 3, "only process " & integer'image(k) & " idle");
       end loop;
 
-      -- Two idle processes
       -- Two idle processes, one in each group
       mask     := (others => '1');
       mask(1)  := '0';
@@ -166,7 +166,9 @@ begin
       assert valid = '0' and idx = 0
          report "Not cleared by reset"
          severity error;
-      -- The busy flag is sampled one clock cycle before the process is started
+      -- The counter is at process 0 in the first clock cycle after the reset,
+      -- and a process is started two clock cycles after its busy flag is
+      -- sampled (see job_scheduler.vhd)
       wait until rising_edge(clk);
       assert valid = '0' and idx = 0
          report "Started too early after reset"
@@ -191,7 +193,8 @@ begin
 
    i_job_scheduler : entity work.job_scheduler
       generic map (
-         G_SIZE => C_SIZE
+         G_SIZE       => C_SIZE,
+         G_GROUP_SIZE => C_GROUP_SIZE
       )
       port map (
          clk_i           => clk,

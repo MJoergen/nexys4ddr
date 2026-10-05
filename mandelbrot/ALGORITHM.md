@@ -287,7 +287,7 @@ of DSPs, see [Resources and timing closure](#resources-and-timing-closure).
 ### Periodicity detection
 Points in the Mandelbrot set never overflow, so they would take the maximum
 number of iterations (511). For the initial view, 28% of the pixels are in the
-set, and they need 95% of all the iterations. But for most of them the values
+set, and they need 96% of all the iterations. But for most of them the values
 of x and y start to repeat exactly after a while: x and y have only 18 bits
 each, so an orbit that converges to a fixed point or a cycle ends up in an
 exact cycle of values. Once the values after iteration n are equal to the
@@ -521,7 +521,7 @@ may give a delay up to 120 clock cycles before an idle job module is
 given a job, i.e. 1 us at 120 MHz. The job modules wait in
 parallel, and with 2560 jobs and 120 job modules, each job module gets
 about 21 jobs on average. So the delay adds at most about 21 microseconds (and
-half of that on average) to the time for a picture, which is about 1.19 ms.
+half of that on average) to the time for a picture, which is about 1.20 ms.
 This delay is small.
 
 The scheduler ([`src/main/job_scheduler.vhd`](src/main/job_scheduler.vhd)) has a counter that
@@ -536,7 +536,7 @@ The job modules are spread over the whole FPGA, so the signals that go from
 the dispatcher to all of them have long routes. To keep each route shorter,
 these signals go through an extra register in each group of 16 job modules
 (the generic G\_GROUP\_SIZE, so there are 8 groups, the last one with 8 job
-modules, or 23 on the MEGA65): the
+modules, or 23 full groups on the MEGA65): the
 job (cx, starty, and stepy), the start of the job, the reset, and the index of
 the job module whose result is accepted. The registers of the groups are
 identical, so they have the attribute `keep`, which prevents the synthesis
@@ -544,16 +544,18 @@ tool from merging them.
 Each job module registers the reset once more, so the reset register of a
 group drives only 16 registers.
 
-A result is accepted in three steps. First, the index of the job module
+A result is accepted in four steps. First, the index of the job module
 selected by i\_res\_scheduler goes to the register in each group. Then each
 group acknowledges the selected job module, if it is in the group, and
-selects its result. Finally, the result is selected from the group of the
-job module and written to the display memory. The job module keeps its
-result until it has seen the acknowledge, so the result is still there when
-its group selects it. Because of the extra registers, the scheduler for the
-jobs sees that a job module is busy five clock cycles after it has sampled
-its busy flag and selected it, so the dispatcher needs at least five job
-modules.
+selects its result. Then the result is selected from the group of the job
+module, and its row in the picture and the address of its column are
+calculated. Finally, the address is calculated from the column and the row
+(see above), and the result is written to the display memory. The job module
+keeps its result until it has seen the acknowledge, so the result is still
+there when its group selects it. Because of the extra registers, the
+scheduler for the jobs sees that a job module is busy five clock cycles after
+it has sampled its busy flag and selected it, so the dispatcher needs at
+least five job modules.
 
 The display memory can take one result (one word of `G_PIXELS` pixels) in each
 clock cycle, and the scheduler
@@ -804,7 +806,7 @@ a picture, the module [`src/main/fps.vhd`](src/main/fps.vhd) divides the clock f
 (the generic `G_CLK_FREQ` of `main`, set by the top level: 120,000,000 Hz, or
 144,000,000 Hz on the MEGA65) by the value of the counter, and converts the
 result to decimal. The picture is recalculated continuously, so the frame rate
-is updated after every picture (about 837 times per second for the initial
+is updated after every picture (about 833 times per second for the initial
 view).
 A single-cycle division would be far too slow for the MAIN clock, so both
 steps are done one bit per clock cycle: a restoring division, with one
@@ -878,7 +880,8 @@ other counts, the lower 8 bits of the count (the value) are converted to the
 colour by one of four palettes in [`src/vga/palette_pkg.vhd`](src/vga/palette_pkg.vhd),
 selected by switches 0 and 1 (switch 1 is the high bit):
 * 0: The value itself is the colour. Most of the pixels outside the set have
-  small counts (in the initial view, 72% of all pixels have a count below 16),
+  small counts (in the initial view, 92% of the pixels outside the set have a
+  count below 16),
   so only the blue and green bits are set, and red needs a count of at least
   32. The set is white (the same colour as the value 255).
 * 1: Rainbow. The hue goes once around the colour circle (red, yellow, green,
@@ -924,7 +927,7 @@ and the size of the picture to `main`, and sets the VCO and the divider of the
 VGA clock in `clk_rst` (1200 MHz divided by 48, or 1080 MHz divided by 10).
 The pixel counters have 11 bits, for up to 2048 pixels in a line. `vga` calculates the address of the pixel from
 the pixel counters (the column times `G_COL_STRIDE` plus the row, in LUTs),
-which is only wires on the Nexys 4 DDR.
+which is only wires on both boards (`G_COL_STRIDE` is 512 or 1024).
 
 ## Timing
 A counter measures the time it takes to generate the picture, which is shown
@@ -1013,9 +1016,12 @@ results now accepts a result from any job module of a group that has one
 ready, visiting one group in each clock cycle (see [Dispatcher](#dispatcher)).
 The time for a pixel then depends on the other job modules, so the model
 now simulates the dispatcher one clock cycle at a time (`picture_cycles()` in
-`sim/model.py`). It uses the time 3n+7 above for each pixel, from the clock
-cycle before the previous result was accepted, and it includes the round-robin
-scheduler for the jobs. For the initial view it gives
+`sim/model.py`). It used the time 3n+7 above for each pixel, and it includes
+the round-robin scheduler for the jobs. (At the time it counted the 3n+7 clock
+cycles from the clock cycle before the previous result was accepted, which is
+two clock cycles too short for each result, see the end of this section; the
+numbers in this and the next paragraphs are from that version.) For the
+initial view it gave
 347123 clock cycles for the picture, i.e. 1.84 ms at 188.24 MHz, the main
 clock at the time (see
 [History of the Nexys 4 DDR build](#history-of-the-nexys-4-ddr-build)).
@@ -1074,13 +1080,14 @@ gain is smaller: a view of Seahorse Valley (0.08 wide, centred near
 pixels in each write (with 450 job modules), 1.20 times faster.
 
 Four pixels in each write were first used on the MEGA65 (see
-[MEGA65 R6](#mega65-r6)), while the Nexys 4 DDR used one pixel in each write.
-A run of `make nexys4ddr` with four pixels in each write (and the iterator
-with a single DSP, see below) fitted and met timing at 188.24 MHz, but only
-just: it used 15,459 slices (97.5%), 44,737 LUTs and 55,538 registers, and had
-+0.012 ns of setup slack and +0.005 ns of hold slack (in an iterator). The
-model gave 209248 clock cycles for it (1.39 ms at 150 MHz, about 716 pictures
-per second). A simulation
+[MEGA65 R6](#mega65-r6)), while the Nexys 4 DDR used one pixel in each write
+until it got the iterator with two DSPs. Now both boards use four pixels in
+each write, see *One iteration in each clock cycle* below. With the iterator
+with a single DSP, a run of `make nexys4ddr` with four pixels in each write
+fitted and met timing at 188.24 MHz, but only just: it used 15,459 slices
+(97.5%), 44,737 LUTs and 55,538 registers, and had +0.012 ns of setup slack
+and +0.005 ns of hold slack (in an iterator). The model gave 209248 clock
+cycles for it (1.39 ms at 150 MHz, about 716 pictures per second). A simulation
 of a complete picture with `main_tb` and the design of the MEGA65 (then
 640x480) took 161878
 clock cycles from the start to the last write to the display memory, 0.02%
@@ -1100,20 +1107,20 @@ pixels in each write. For the initial view the model gives:
 | | Nexys 4 DDR (640x480) | MEGA65 R6 (1280x1024)
 | --- | --- | ---
 | Job modules, main clock | 120, 120 MHz | 368, 144 MHz
-| Clock cycles for the picture | 143399 (1.19 ms, 837 pictures per second) | 357858 (2.49 ms, 402 pictures per second)
-| The same, with one pixel in each write | 326301 | 1315644
+| Clock cycles for the picture | 143751 (1.20 ms, 835 pictures per second) | 357998 (2.49 ms, 402 pictures per second)
+| The same, with one pixel in each write | 327300 | 1315936
 | Limit of the display memory (four pixels in each write) | 76800 | 327680
-| Every pixel needs the maximum count | 1364897 (11.4 ms, 87 pictures per second) | 1875501 (13.0 ms, 76 pictures per second)
+| Every pixel needs the maximum count | 1364897 (11.4 ms, 87 pictures per second) | 1875525 (13.0 ms, 76 pictures per second)
 | Before (one DSP in each job module) | 240 job modules, 150 MHz, one pixel in each write: 347123 clock cycles (432 pictures per second) | 256 job modules, 148.97 MHz: 732009 clock cycles (203 pictures per second)
 
 On the Nexys 4 DDR the main clock is lower (120 MHz instead of 150 MHz), see
 [Nexys 4 DDR](#nexys-4-ddr), and with one pixel in each write the picture
-would be slower than before (2.72 ms), because the display memory would
-decide the time. With four pixels in each write it is 1.94 times as fast as
+would be slower than before (2.73 ms), because the display memory would
+decide the time. With four pixels in each write it is 1.93 times as fast as
 before. On the MEGA65 the initial view is 1.98 times as fast as before, and
 close to the limit of the display memory. Views that need more iterations
 gain more: for the view of Seahorse Valley above (0.08 wide, centred near
--0.75+0.15i) the model gives 805871 clock cycles on the MEGA65 (179 pictures
+-0.75+0.15i) the model gives 806213 clock cycles on the MEGA65 (179 pictures
 per second), against 3175765 clock cycles (47 pictures per second) before,
 3.8 times as fast, and the worst case (every pixel needs the maximum count)
 is 4.1 times as fast. Jobs of 32 to 128 rows give 402 to 406 pictures per
@@ -1121,19 +1128,34 @@ second on the MEGA65.
 
 A simulation of a complete picture with `main_tb` and the design of the
 Nexys 4 DDR wrote the last pixel after 144113 clock cycles (counted from the
-beginning of the reset), 0.5% more than the model, with all the pixels the
+beginning of the reset), 0.3% more than the model, with all the pixels the
 same as in the model. The simulation took 42 minutes (on a busy machine,
 without the waveform).
 
 Both boards were measured with the initial view. The MEGA65 R6 shows 402
 pictures per second, the same as the model. The Nexys 4 DDR shows 832 to 834
 pictures per second, i.e. 143,900 to 144,200 clock cycles for the picture,
-which agrees with the simulation above. The model gives 0.5% less, because
-it leaves out the few hundred clock cycles at the start and the end of the
-picture. The frame rate changes slightly from picture to picture, because the
+which agrees with the simulation above. The model gives 0.1% to 0.3% less,
+because it leaves out the clock cycles at the start and the end of the
+picture (e.g. the reset, and the writes after the last result has been
+selected). The frame rate changes slightly from picture to picture, because the
 counter of the scheduler for the jobs runs freely, so each picture starts at
 a different position of it, and the job modules get their first jobs in a
 different order.
+
+The model follows the timing of the dispatcher (see `picture_cycles()` in
+`sim/model.py`): the scheduler for the results selects a job module three
+clock cycles after its ready flag is high, and the ready flag of its next
+result is high n+7 clock cycles after the selection (for one pixel in each
+write). So with a single job module a result takes at least n+10 clock
+cycles, which was checked in simulation. An earlier version of the model
+selected a result two clock cycles after its ready flag was high, and gave
+the next result n+6 clock cycles after the selection, i.e. two clock cycles
+less for each result, and the first result of each job two clock cycles
+later. It gave 143399 clock cycles for the initial view on the Nexys 4 DDR
+(0.5% less than the simulation), and 357858 on the MEGA65. The numbers in
+the history sections, and the numbers before the iterator with two DSPs
+above, are from that version or earlier ones.
 
 ## Resources and timing closure
 Both boards are built with Vivado 2025.1, with the same script
@@ -1289,11 +1311,11 @@ columns. So the number of job modules is now limited by the number of DSPs,
 not by the routing.
 
 With 1280x1024 (1,310,720 pixels, 4.3 times as many as 640x480) and 368
-job modules, the model gives 357858 clock cycles for the initial view,
+job modules, the model gives 357998 clock cycles for the initial view,
 i.e. 2.49 ms at 144 MHz (about 402 pictures per second), see
-[Timing](#timing). With one pixel in each write it would be 1315644 clock
+[Timing](#timing). With one pixel in each write it would be 1315936 clock
 cycles (9.14 ms). Jobs of 32 to 128 rows give 402 to 406 pictures per second.
-If every pixel needed the maximum count, the picture would take 1875501 clock
+If every pixel needed the maximum count, the picture would take 1875525 clock
 cycles (13.0 ms, 76 pictures per second). A
 simulation of a partial picture with `main_tb` and the design of the MEGA65
 (200 us of simulated time: all 1280 columns, rows 0 to 87, 78,948 pixels,
@@ -1311,7 +1333,7 @@ in the dispatcher (`grp_cx_r`) to a job module (`res_cx_r`). The model gave
 With the iterator with two DSPs there are only 120 job modules, and the
 main clock is 120 MHz (the iterators are the longest paths, and they are
 slower in speed grade -1), but the job modules use only half of the slices,
-so there is room for four pixels in each write, and the picture is 1.94
+so there is room for four pixels in each write, and the picture is 1.93
 times as fast, see [Timing](#timing).
 
 **What the parts of the design cost.** Most parts of the design were added
@@ -1468,10 +1490,11 @@ worst path of the same kind, and the 40 paths from the MAIN clock to the VGA
 clock were all reported as safe by `report_cdc`. A later run with the same
 cell counts after synthesis gave the current results above (+0.345 ns).
 
-**Critical paths at higher frequencies.** At 188.24 MHz, the critical paths
-were in the iterators, and in the job modules around them:
-* From the output of the DSP (which is not registered, see
-  [Multiplier](#multiplier)) to the overflow flags.
+**Critical paths at higher frequencies.** With the iterator with a single
+DSP, at 188.24 MHz, the critical paths were in the iterators, and in the job
+modules around them (the registers named here are those of that iterator):
+* From the output of the DSP (which was not registered in that iterator) to
+  the overflow flags.
 * From x\_r and y\_r through the additions x+y and x-y and the selection of
   the inputs of the multiplier to the input registers of the DSP, with 6 or 7
   levels of logic.
@@ -1489,8 +1512,11 @@ were in the iterators, and in the job modules around them:
 * The next row in the job modules (to `res_cy_r`, whose clock enable
   depends on the result of the iterator).
 
-To go faster, the iterator would have to be changed, e.g. by registering the
-output of the DSP, which would change the three clock cycles of an iteration.
+To go faster, that iterator would have had to be changed, e.g. by
+registering the output of the DSP, which would have changed the three clock
+cycles of an iteration. The iterator with two DSPs registers the output of
+the DSPs (the P registers are x and y), but not their inputs, see
+[Iterator](#iterator).
 
 At 177.78 MHz, before the next row in the job modules, the schedulers and
 the done flag were pipelined (see [Dispatcher](#dispatcher)), these were the
@@ -1524,7 +1550,8 @@ same design (once only meeting timing after the post-route
 clock cycles for the initial view (4.91 ms, 203 pictures per second).
 
 The iterator with two DSPs was first built out of context (only the
-iterator), where it used 74 LUTs and 47 registers (against 129 and 87), and
+iterator), where its first version used 74 LUTs and 47 registers (against
+129 and 87; the current version uses 70 LUTs, see [Iterator](#iterator)), and
 its longest path needed 6.45 ns. In the whole design with 256 job modules
 the routing took a few minutes, but timing failed by 0.64 ns: the placer put
 the two DSPs of many iterators in different columns of DSPs, and the route

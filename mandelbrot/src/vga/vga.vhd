@@ -61,6 +61,10 @@ architecture structural of vga is
    -- The number of bits of the rows in the visible area
    constant C_ROW_BITS : integer := log2(G_MODE.v_visible);
 
+   -- The number of digits of the frame rate. The overlay is 8 pixels from the
+   -- right edge, and each digit is 16 pixels wide (see overlay.vhd).
+   constant C_DIGITS   : integer := fps_blank_i'length;
+
    signal pix_x : std_logic_vector(10 downto 0);
    signal pix_y : std_logic_vector(10 downto 0);
 
@@ -71,7 +75,7 @@ architecture structural of vga is
    -- The address of the pixel, and the address of its column. Only the lowest
    -- G_ADDR_BITS bits are used. The multiplication by the constant G_COL_STRIDE uses
    -- LUTs, because the DSPs are for the iterators. When G_COL_STRIDE is
-   -- 2**C_ROW_BITS (as on the Nexys 4 DDR), it is only wires.
+   -- 2**C_ROW_BITS (as on both boards), it is only wires.
    signal rd_addr : std_logic_vector(21 downto 0);
    signal rd_col  : std_logic_vector(21 downto 0);
 
@@ -166,8 +170,8 @@ begin
 
    i_overlay : entity work.overlay
       generic map (
-         G_DIGITS => 8,
-         G_X      => G_MODE.h_visible - 8 - 16*8
+         G_DIGITS => C_DIGITS,
+         G_X      => G_MODE.h_visible - 8 - 16*C_DIGITS
       )
       port map (
          vga_clk_i    => clk_i,

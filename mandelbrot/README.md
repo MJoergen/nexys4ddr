@@ -204,7 +204,7 @@ files that are in both clock domains are in [`src/`](src).
 | [`src/main/fps.vhd`](src/main/fps.vhd), [`src/main/seg.vhd`](src/main/seg.vhd) | Frame rate. `fps` divides the clock frequency by the time taken by a picture and converts the result to decimal, and `seg` multiplexes the digits on the 7-segment display.
 | [`src/vga/vga.vhd`](src/vga/vga.vhd) | Everything in the VGA clock domain: pixel counters, VGA output, and the frame rate overlay.
 | [`src/main/iterator.vhd`](src/main/iterator.vhd) | Iterates the Mandelbrot function for a single point, one iteration in each clock cycle, using two DSPs.
-| [`src/main/job.vhd`](src/main/job.vhd) | A job module. Calculates one job (120 rows of a picture column) at a time, using one iterator.
+| [`src/main/job.vhd`](src/main/job.vhd) | A job module. Calculates one job (120 rows of a picture column, or 64 on the MEGA65) at a time, using one iterator.
 | [`src/main/dispatcher.vhd`](src/main/dispatcher.vhd) | Controls the calculation of the entire picture: hands out the jobs to the idle job modules, and collects the results. Instantiates the job modules.
 | [`src/main/job_scheduler.vhd`](src/main/job_scheduler.vhd) | Round-robin scheduler. Used by the dispatcher to give jobs to idle job modules.
 | [`src/main/res_scheduler.vhd`](src/main/res_scheduler.vhd) | Scheduler for the results. Used by the dispatcher to pick which job module's result to accept, from the job modules that have a result ready.

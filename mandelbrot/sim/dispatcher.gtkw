@@ -55,8 +55,8 @@ top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.job_start_i
 top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.job_busy_o
 @28
 top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.i_iterator.start_i
-@420
-top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.i_iterator.state_r
+@28
+top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.i_iterator.busy_r
 @28
 top.dispatcher_tb.i_dispatcher.gen_job[0].i_job.i_iterator.done_o
 @22

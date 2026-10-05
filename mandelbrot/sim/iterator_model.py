@@ -12,7 +12,8 @@ See also model.py, which is a vectorized (numpy) version of the same model,
 used for comparing complete pictures.
 
 Usage:
-  ./iterator_model.py          Compare the points used in iterator_tb.vhd.
+  ./iterator_model.py          Compare the points used in iterator_tb.vhd (but
+                               not its grid of points).
   ./iterator_model.py --grid   Compare a grid of points over the default view.
   ./iterator_model.py CX CY    Show both counts for a single point.
 """
@@ -25,19 +26,36 @@ from typing import Tuple
 MAX_COUNT = 100      # Must match C_MAX_COUNT in iterator_tb.vhd
 TOLERANCE = 1        # Must match C_TOLERANCE in iterator_tb.vhd
 
-# The points used in iterator_tb.vhd
+# The points that iterator_tb.vhd compares with the real-number count
 TB_POINTS: List[Tuple[float, float]] = [
     ( 0.0,   0.0),
+    ( 0.5,   0.0),
     (-1.0,   0.0),
+    ( 0.0,   1.0),
+    (-1.0,   1.0),
+    ( 0.1,   0.1),
+    (-0.12,  0.75),
     ( 1.0,   1.0),
     (-2.0,   0.0),
-    ( 0.5,   0.0),
     (-1.0,   0.5),
     ( 0.3,   0.0),
     (-0.75,  0.1),
     (-0.1,   0.65),
     (-0.17,  1.09),
     ( 0.02, -1.01),
+]
+
+# The points that iterator_tb.vhd compares exactly with the model (cx and cy in
+# 2.16 fixed point, as integers), with the counts given in iterator_tb.vhd. For
+# these, x alone or y alone repeats an earlier saved value of the periodicity
+# detection.
+TB_EXACT_POINTS: List[Tuple[int, int, int]] = [
+    ( 31902,  31901,  5),
+    (-13844,  42971, 24),
+    (  2851, -42422, 69),
+    ( 27412, -14976, 16),
+    ( 25532,  16009, 18),
+    (-92498,     96, 44),
 ]
 
 
@@ -74,7 +92,7 @@ def iterator_count(cx: float, cy: float, max_count: int = MAX_COUNT) -> int:
     ovf_x = ovf_y = False
 
     while True:
-        # ADD_ST
+        # The count, and the end of the iteration
         if ovf_x or ovf_y:
             return cnt
         cnt += 1
@@ -88,7 +106,7 @@ def iterator_count(cx: float, cy: float, max_count: int = MAX_COUNT) -> int:
         else:
             a, b = signed(x - y, 19), signed(x + y, 18)
 
-        # MULT_ST / UPDATE_ST. The products are 4.32 (36 bits).
+        # The two DSPs. The products are 4.32 (36 bits).
         product    = a * b         # (x+y)*(x-y)
         product_xy = x * y
 
@@ -124,6 +142,21 @@ def compare(points: List[Tuple[float, float]]) -> int:
     return bad
 
 
+def compare_exact(points: List[Tuple[int, int, int]]) -> int:
+    """Print a table of the model's count and the count given in the testbench,
+    and return the number of points where they differ."""
+    bad = 0
+    print(f"{'cx':>10} {'cy':>10} {'tb':>6} {'iterator':>9}")
+    for cx_i, cy_i, expected in points:
+        m = iterator_count(cx_i / 65536, cy_i / 65536)
+        flag = ""
+        if m != expected:
+            bad += 1
+            flag = "  <-- differs"
+        print(f"{cx_i:10d} {cy_i:10d} {expected:6d} {m:9d}{flag}")
+    return bad
+
+
 def grid(n: int = 100) -> None:
     """Compare a grid of points over the default view."""
     hist: Dict[int, int] = {}
@@ -153,7 +186,10 @@ def main() -> None:
     elif len(args) == 2:
         sys.exit(1 if compare([(float(args[0]), float(args[1]))]) else 0)
     elif not args:
-        sys.exit(1 if compare(TB_POINTS) else 0)
+        bad = compare(TB_POINTS)
+        print()
+        bad += compare_exact(TB_EXACT_POINTS)
+        sys.exit(1 if bad else 0)
     else:
         print(__doc__)
         sys.exit(2)

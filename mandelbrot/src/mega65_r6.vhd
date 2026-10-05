@@ -59,7 +59,7 @@ architecture structural of mega65_r6 is
    -- The number of job modules. Each of them uses two DSPs (see
    -- iterator.vhd), and the XC7A200T has 740, so 368 job modules is the
    -- largest multiple of the group size (16, see dispatcher.vhd) that fits.
-   -- They use 66% of the slices.
+   -- They use 64% of the slices.
    constant C_NUM_ITERATORS : integer := 368;
 
    -- The number of pixels in each write to the display memory. The dispatcher

@@ -26,8 +26,12 @@ top.disp_mem_tb.gen_dut[1].i_disp_mem.grp_en_r[15:0]
 top.disp_mem_tb.gen_dut[1].i_disp_mem.rd_clk_i
 @22
 top.disp_mem_tb.gen_dut[1].i_disp_mem.rd_addr_i[18:0]
-@22
-top.disp_mem_tb.gen_dut[1].i_disp_mem.rd_sel_r[16:10]
+@24
+top.disp_mem_tb.gen_dut[1].i_disp_mem.rd_grp_sel_r
+@24
+top.disp_mem_tb.gen_dut[1].i_disp_mem.rd_blk_sel_r[0]
+@24
+top.disp_mem_tb.gen_dut[1].i_disp_mem.rd_sub_r[0]
 @22
 top.disp_mem_tb.gen_dut[1].i_disp_mem.rd_data_o[8:0]
 [pattern_trace] 1
