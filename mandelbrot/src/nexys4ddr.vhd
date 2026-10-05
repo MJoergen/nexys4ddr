@@ -20,8 +20,9 @@
 -- The frame rate is calculated in main.vhd, and also shown on the VGA output by
 -- vga.vhd. This is the only signal between the two clock domains, apart from
 -- the display memory. It is moved to the VGA clock domain here (p_fps_cdc):
--- main.vhd changes fps_toggle each time it changes fps_digits and fps_blank
--- (in the same clock cycle). fps_toggle is synchronized, and the frame rate is
+-- fps_toggle is changed (in the MAIN clock domain, p_fps_toggle) each time
+-- main.vhd changes fps_digits and fps_blank (fps_valid is high for one clock
+-- cycle). fps_toggle is synchronized, and the frame rate is
 -- copied when the change is seen. The frame rate is constant for much longer
 -- than the synchronizer takes, so it is never copied while it changes. The
 -- constraints for this are in nexys4ddr.xdc.
@@ -113,7 +114,8 @@ architecture structural of nexys4ddr is
 
    signal fps_digits     : std_logic_vector(31 downto 0);
    signal fps_blank      : std_logic_vector( 7 downto 0);
-   signal fps_toggle     : std_logic;
+   signal fps_valid      : std_logic;
+   signal fps_toggle     : std_logic := '0';
 
    -- The frame rate in the VGA clock domain. Nothing is shown (all digits are
    -- blanked) until the first frame rate is received.
@@ -174,7 +176,7 @@ begin
          seg_an_o  => seg_an_o,
          fps_digits_o => fps_digits,
          fps_blank_o  => fps_blank,
-         fps_toggle_o => fps_toggle,
+         fps_valid_o  => fps_valid,
          wr_addr_o => wr_addr,
          wr_data_o => wr_data,
          wr_en_o   => wr_en
@@ -212,6 +214,18 @@ begin
    --------------------------------------------------
    -- Move the frame rate to the VGA clock domain
    --------------------------------------------------
+
+   -- Tells the VGA clock domain that the frame rate has changed. The frame rate
+   -- is constant for much longer than the time it takes to move it to the VGA
+   -- clock domain.
+   p_fps_toggle : process (main_clk)
+   begin
+      if rising_edge(main_clk) then
+         if fps_valid = '1' then
+            fps_toggle <= not fps_toggle;
+         end if;
+      end if;
+   end process p_fps_toggle;
 
    p_fps_cdc : process (vga_clk)
    begin

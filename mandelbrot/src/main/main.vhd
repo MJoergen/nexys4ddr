@@ -14,8 +14,9 @@
 -- The 7-segment display shows the frame rate, i.e. the number of pictures per
 -- second, calculated from the average time taken by the pictures, see
 -- fps.vhd. The frame rate is also output (fps_*_o), and shown on the VGA output
--- by vga.vhd. fps_toggle_o is changed (in the same clock cycle) each time
--- fps_digits_o and fps_blank_o are changed.
+-- by vga.vhd. fps_valid_o is high for one clock cycle when fps_digits_o and
+-- fps_blank_o are changed. The top level module moves the frame rate to the
+-- VGA clock domain, so this module does not depend on the VGA clock.
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -57,7 +58,7 @@ entity main is
       -- The frame rate, see fps.vhd
       fps_digits_o : out std_logic_vector(31 downto 0);
       fps_blank_o  : out std_logic_vector( 7 downto 0);
-      fps_toggle_o : out std_logic;
+      fps_valid_o  : out std_logic;
 
       -- Write port of the display memory
       wr_addr_o : out std_logic_vector(G_ADDR_BITS-1 downto 0);
@@ -101,7 +102,6 @@ architecture structural of main is
    signal fps_digits     : std_logic_vector(31 downto 0);
    signal fps_blank      : std_logic_vector( 7 downto 0);
    signal fps_valid      : std_logic;
-   signal fps_toggle     : std_logic := '0';
 
    -- The view is updated 18 times per second.
    constant C_UPD_PERIOD : natural := G_CLK_FREQ / 18;
@@ -234,21 +234,9 @@ begin
          valid_o  => fps_valid
       ); -- i_fps
 
-   -- Tells the VGA clock domain that the frame rate has changed. The frame rate
-   -- is constant for much longer than the time it takes to move it to the VGA
-   -- clock domain, see nexys4ddr.vhd.
-   p_fps_toggle : process (clk_i)
-   begin
-      if rising_edge(clk_i) then
-         if fps_valid = '1' then
-            fps_toggle <= not fps_toggle;
-         end if;
-      end if;
-   end process p_fps_toggle;
-
    fps_digits_o <= fps_digits;
    fps_blank_o  <= fps_blank;
-   fps_toggle_o <= fps_toggle;
+   fps_valid_o  <= fps_valid;
 
    i_seg : entity work.seg
       port map (
