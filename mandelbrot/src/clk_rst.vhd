@@ -90,10 +90,10 @@ use unisim.vcomponents.all;
 
 entity clk_rst is
    generic (
-      G_VCO_DIVIDE  : integer;     -- The VCO is 100 MHz / G_VCO_DIVIDE * G_VCO_MULT
+      G_VCO_DIVIDE  : positive;     -- The VCO is 100 MHz / G_VCO_DIVIDE * G_VCO_MULT
       G_VCO_MULT    : real;
       G_MAIN_DIVIDE : real;        -- The main clock is VCO / G_MAIN_DIVIDE
-      G_VGA_DIVIDE  : integer      -- The VGA clock is VCO / G_VGA_DIVIDE
+      G_VGA_DIVIDE  : positive      -- The VGA clock is VCO / G_VGA_DIVIDE
    );
    port (
       clk_i      : in  std_logic;  -- 100 MHz

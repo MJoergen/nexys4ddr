@@ -13,7 +13,7 @@
 -- a frame never shows two different values.
 --
 -- The overlay is added to the output of disp.vhd, which is delayed by one
--- clock cycle (all of vga_hs_o, vga_vs_o and vga_col_o). The pixel counters
+-- clock cycle (all of vga_hs_o, vga_vs_o, and vga_col_o). The pixel counters
 -- (vga_pix_x_i and vga_pix_y_i) are those of the pixel, which is at the input
 -- (vga_col_d4_i) four clock cycles later.
 

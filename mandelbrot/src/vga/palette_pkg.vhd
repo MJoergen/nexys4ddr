@@ -34,7 +34,7 @@ package palette_pkg is
    constant C_PALETTES : palettes_t;
 
    -- The count of the points in the set
-   constant C_SET : integer := 511;
+   constant C_SET : positive := 511;
 
    -- The colour of the set in each palette
    type colours_t is array (0 to 3) of std_logic_vector(7 downto 0);

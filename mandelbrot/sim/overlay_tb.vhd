@@ -32,17 +32,17 @@ end entity overlay_tb;
 architecture simulation of overlay_tb is
 
    constant C_MODE      : video_mode_t := C_VIDEO_640X480;
-   constant C_H_VISIBLE : integer := C_MODE.h_visible;
-   constant C_H_TOTAL   : integer := h_total(C_MODE);
-   constant C_V_VISIBLE : integer := C_MODE.v_visible;
-   constant C_V_TOTAL   : integer := v_total(C_MODE);
+   constant C_H_VISIBLE : natural := C_MODE.h_visible;
+   constant C_H_TOTAL   : natural := h_total(C_MODE);
+   constant C_V_VISIBLE : natural := C_MODE.v_visible;
+   constant C_V_TOTAL   : natural := v_total(C_MODE);
 
    -- Position and size of the overlay, see overlay.vhd
-   constant C_DIGITS    : integer := 8;
-   constant C_X         : integer := C_H_VISIBLE - 8 - 16*C_DIGITS;
-   constant C_Y         : integer := 8;
-   constant C_WIDTH     : integer := 16;
-   constant C_HEIGHT    : integer := 32;
+   constant C_DIGITS    : natural := 8;
+   constant C_X         : natural := C_H_VISIBLE - 8 - 16*C_DIGITS;
+   constant C_Y         : natural := 8;
+   constant C_WIDTH     : natural := 16;
+   constant C_HEIGHT    : natural := 32;
 
    constant C_FG        : std_logic_vector(7 downto 0) := X"FF";
    constant C_BG        : std_logic_vector(7 downto 0) := X"00";
@@ -155,7 +155,7 @@ begin
       variable y       : integer;
       variable frame   : integer;
       variable exp     : std_logic_vector(7 downto 0);
-      variable errors  : integer := 0;
+      variable errors  : natural := 0;
       variable line    : string(1 to C_DIGITS*C_WIDTH);
    begin
       if rising_edge(clk) and rst = '0' then

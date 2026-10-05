@@ -18,10 +18,10 @@ architecture sim of job_scheduler_tb is
    -- Not a power of two, to test the wrap around of the counter, and more than
    -- C_GROUP_SIZE, so there are two groups of processes (see
    -- job_scheduler.vhd), and the second group is smaller.
-   constant C_SIZE       : integer := 21;
-   constant C_GROUP_SIZE : integer := 16;
+   constant C_SIZE       : positive := 21;
+   constant C_GROUP_SIZE : positive := 16;
 
-   type count_t is array (0 to C_SIZE-1) of integer;
+   type count_t is array (0 to C_SIZE-1) of natural;
 
    signal clk    : std_logic;
    signal rst      : std_logic;
@@ -30,7 +30,7 @@ architecture sim of job_scheduler_tb is
    signal active : std_logic := '0';
    signal busy   : std_logic_vector(C_SIZE-1 downto 0) := (others => '0');
    signal valid  : std_logic;
-   signal idx    : integer range 0 to C_SIZE-1;
+   signal idx    : natural range 0 to C_SIZE-1;
 
 begin
 
@@ -65,12 +65,12 @@ begin
       -- Count how many times each process is started, during the given number
       -- of clock cycles.
       procedure observe (
-         cycles : integer;
+         cycles : natural;
          name   : string;
          counts : out count_t
       ) is
          variable prev_valid : boolean := false;
-         variable prev_idx   : integer := 0;
+         variable prev_idx   : natural := 0;
       begin
          counts := (others => 0);
          for t in 1 to cycles loop
@@ -97,11 +97,11 @@ begin
       -- not started.
       procedure check_mask (
          mask   : std_logic_vector(C_SIZE-1 downto 0);
-         rounds : integer;
+         rounds : natural;
          name   : string
       ) is
          variable counts : count_t;
-         variable exp    : integer;
+         variable exp    : natural;
       begin
          busy <= mask;
          for t in 1 to C_SIZE + 4 loop    -- Wait for the change to take effect

@@ -12,7 +12,7 @@
 -- instantiates the clock and reset generation, the display memory, and the
 -- two modules above.
 --
--- The buttons, switches and the 7-segment display are handled by main.vhd,
+-- The buttons, switches, and the 7-segment display are handled by main.vhd,
 -- see the description there, except switches 0 and 1, which select the colour
 -- palette in vga.vhd (see palette_pkg.vhd). The decimal point of the 7-segment
 -- display is not used, so it is switched off here.
@@ -53,22 +53,22 @@ architecture structural of nexys4ddr is
 
    -- The number of job modules. The XC7A100T has 240 DSPs, two for each
    -- job module (see iterator.vhd).
-   constant C_NUM_ITERATORS : integer := 120;
+   constant C_NUM_ITERATORS : positive := 120;
 
    -- The number of pixels in each write to the display memory. Writing more
    -- than one pixel at a time makes the picture faster (see mega65_r6.vhd).
    -- With four pixels the model estimates 1.20 ms for the initial picture,
    -- against 2.73 ms with one.
-   constant C_PIXELS        : integer := 4;
+   constant C_PIXELS        : positive := 4;
 
    -- The VCO of the MMCM (see clk_rst.vhd): 100 MHz / 1 * 12 = 1200 MHz.
-   constant C_VCO_DIVIDE    : integer := 1;
+   constant C_VCO_DIVIDE    : positive := 1;
    constant C_VCO_MULT      : real    := 12.0;
 
    -- The video mode (see video_pkg.vhd), and the divider of the VGA clock,
    -- which gives the pixel clock (1200 MHz / 48 = 25 MHz, see clk_rst.vhd).
    constant C_VIDEO         : video_mode_t := C_VIDEO_640X480;
-   constant C_VGA_DIVIDE    : integer := 48;
+   constant C_VGA_DIVIDE    : positive := 48;
 
    -- The divider of the MAIN clock (see clk_rst.vhd), and its frequency in Hz.
    -- 1200 MHz / 10 = 120 MHz. The longest path is in the iterators (see
@@ -83,19 +83,19 @@ architecture structural of nexys4ddr is
 
    -- Rows in each job given to a job module, see dispatcher.vhd. The
    -- number of rows (480) must be a multiple of it.
-   constant C_ROWS_IN_JOB   : integer := 120;
+   constant C_ROWS_IN_JOB   : positive := 120;
 
    -- The address distance between two picture columns in the display memory,
    -- see dispatcher.vhd. 512 rows per column means the address is the column
    -- followed by the row.
-   constant C_COL_STRIDE    : integer := 512;
+   constant C_COL_STRIDE    : positive := 512;
 
    -- The display memory (see disp_mem.vhd): 2^19 pixels, i.e. 128 blocks
    -- (BRAMs) of 4096 pixels, with 19 bits of address, and a register for the
    -- write port of each block. The picture only uses the first 80 blocks (640
    -- columns of 512 addresses).
-   constant C_ADDR_BITS     : integer := 19;
-   constant C_MEM_BLOCKS    : integer := 128;
+   constant C_ADDR_BITS     : positive := 19;
+   constant C_MEM_BLOCKS    : positive := 128;
    constant C_BLOCK_REGS    : boolean := true;
 
    signal main_clk       : std_logic;

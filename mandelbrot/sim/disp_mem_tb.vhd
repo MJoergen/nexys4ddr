@@ -32,12 +32,12 @@ end entity disp_mem_tb;
 
 architecture sim of disp_mem_tb is
 
-   type int_vector is array (natural range <>) of integer;
+   type int_vector is array (natural range <>) of natural;
 
    type config_t is record
-      pixels    : integer;   -- Pixels in each word
-      blocks    : integer;   -- Blocks (BRAMs) in the memory
-      addr_bits : integer;   -- Bits of the address
+      pixels    : positive;   -- Pixels in each word
+      blocks    : positive;   -- Blocks (BRAMs) in the memory
+      addr_bits : positive;   -- Bits of the address
       blk_regs  : boolean;   -- A register for each block
       reset     : boolean;   -- Use the reset
    end record config_t;
@@ -58,7 +58,7 @@ architecture sim of disp_mem_tb is
 
    -- The value written to each pixel. It is different for each block, also
    -- at the same offset.
-   function value (addr : integer) return std_logic_vector is
+   function value (addr : natural) return std_logic_vector is
    begin
       return std_logic_vector(to_unsigned((addr*37 + (addr/2**12)*101 + 11) mod 512, 9));
    end function value;
@@ -90,20 +90,20 @@ begin
 
 
    gen_dut : for n in C_CONFIGS'range generate
-      constant C_PIX        : integer := C_CONFIGS(n).pixels;
-      constant C_NUM_BLOCKS : integer := C_CONFIGS(n).blocks;
-      constant C_ADDR_BITS  : integer := C_CONFIGS(n).addr_bits;
+      constant C_PIX        : natural := C_CONFIGS(n).pixels;
+      constant C_NUM_BLOCKS : natural := C_CONFIGS(n).blocks;
+      constant C_ADDR_BITS  : natural := C_CONFIGS(n).addr_bits;
       constant C_BLK_REGS   : boolean := C_CONFIGS(n).blk_regs;
       -- The read latency
-      constant C_LAT        : integer := 4;
+      constant C_LAT        : positive := 4;
       constant C_RESET      : boolean := C_CONFIGS(n).reset;
       -- Words in each block
-      constant C_WORDS      : integer := 2**12 / C_PIX;
+      constant C_WORDS      : natural := 2**12 / C_PIX;
       -- Word offsets in each block. The word at C_WORDS/2 is never written.
       constant C_OFFSETS    : int_vector := (0, 1, C_WORDS/3, 2*C_WORDS/3, C_WORDS-2, C_WORDS-1);
-      constant C_NUM_ADDR   : integer := C_NUM_BLOCKS * C_OFFSETS'length;
+      constant C_NUM_ADDR   : natural := C_NUM_BLOCKS * C_OFFSETS'length;
       -- The blocks outside the memory that the address allows
-      constant C_OUTSIDE    : integer := 2**(C_ADDR_BITS-12) - C_NUM_BLOCKS;
+      constant C_OUTSIDE    : natural := 2**(C_ADDR_BITS-12) - C_NUM_BLOCKS;
 
       signal wr_rst     : std_logic := '0';
       signal wr_addr    : std_logic_vector(C_ADDR_BITS-1 downto 0) := (others => '0');
@@ -116,18 +116,18 @@ begin
       -- The pixel address of the first pixel of the word used in the test
       -- number i. In the first order, consecutive words are in different
       -- blocks, and in the second order they are in the same block.
-      function addr_block_first (i : integer) return integer is
+      function addr_block_first (i : natural) return natural is
       begin
          return (i mod C_NUM_BLOCKS) * 2**12 + C_OFFSETS(i / C_NUM_BLOCKS) * C_PIX;
       end function addr_block_first;
 
-      function addr_offset_first (i : integer) return integer is
+      function addr_offset_first (i : natural) return natural is
       begin
          return (i / C_OFFSETS'length) * 2**12 + C_OFFSETS(i mod C_OFFSETS'length) * C_PIX;
       end function addr_offset_first;
 
       -- The values of the pixels of the word starting at addr
-      function word (addr : integer) return std_logic_vector is
+      function word (addr : natural) return std_logic_vector is
          variable res : std_logic_vector(9*C_PIX-1 downto 0);
       begin
          for i in 0 to C_PIX-1 loop
@@ -145,7 +145,7 @@ begin
       p_write : process
 
          procedure write (
-            addr : integer;
+            addr : natural;
             data : std_logic_vector(9*C_PIX-1 downto 0);
             en   : std_logic
          ) is
@@ -217,8 +217,8 @@ begin
       -- C_LAT clock cycles later. All the pixels of each word are read. After
       -- the reset, the pixels of a word that is never written are read too.
       p_read : process
-         variable exp_addr : integer;
-         variable addr     : integer;
+         variable exp_addr : natural;
+         variable addr     : natural;
       begin
          wait until write_done;
 

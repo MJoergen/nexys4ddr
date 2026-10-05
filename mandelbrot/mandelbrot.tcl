@@ -1,5 +1,5 @@
-# This is a tcl command script for the Vivado tool chain
-# The board name, the FPGA part, the top level module and the VHDL source
+# This is a tcl command script for the Vivado tool chain.
+# The board name, the FPGA part, the top level module, and the VHDL source
 # files are given as arguments (-tclargs), so this information is only in the
 # Makefile. Use "make nexys4ddr" or "make mega65-r6". The Makefile runs Vivado
 # in build/<board>, so the output files (<board>.dcp, <board>.bit, logs, etc.)

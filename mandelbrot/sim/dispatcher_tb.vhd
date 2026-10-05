@@ -34,34 +34,34 @@ end entity dispatcher_tb;
 
 architecture simulation of dispatcher_tb is
 
-   constant C_MAX_COUNT     : integer := 30;
-   constant C_NUM_ROWS      : integer := 16;
-   constant C_NUM_COLS      : integer := 64;
-   constant C_NUM_ITERATORS : integer := 16;
+   constant C_MAX_COUNT     : positive := 30;
+   constant C_NUM_ROWS      : positive := 16;
+   constant C_NUM_COLS      : positive := 64;
+   constant C_NUM_ITERATORS : positive := 16;
 
    -- Rows in each job, in the three instances
-   constant C_ROWS_IN_JOB   : integer := 4;
-   constant C_SMALL_ROWS    : integer := 1;
-   constant C_WIDE_ROWS     : integer := 8;
+   constant C_ROWS_IN_JOB   : positive := 4;
+   constant C_SMALL_ROWS    : positive := 1;
+   constant C_WIDE_ROWS     : positive := 8;
 
    -- Pixels in each write in the third instance
-   constant C_WIDE_PIXELS   : integer := 4;
+   constant C_WIDE_PIXELS   : positive := 4;
 
    -- Address distance between two picture columns, in the three instances
-   constant C_STRIDE        : integer := 512;
-   constant C_SMALL_STRIDE  : integer := C_NUM_ROWS;
-   constant C_WIDE_STRIDE   : integer := 20;
+   constant C_STRIDE        : positive := 512;
+   constant C_SMALL_STRIDE  : positive := C_NUM_ROWS;
+   constant C_WIDE_STRIDE   : positive := 20;
 
    -- Size of the groups of job modules in the first instance (see
    -- dispatcher.vhd). This gives four groups, and the last one is smaller.
-   constant C_GROUP_SIZE    : integer := 5;
+   constant C_GROUP_SIZE    : positive := 5;
 
    -- Number of picture columns in the second instance. This is less than the
    -- number of job modules.
-   constant C_SMALL_COLS    : integer := 1;
+   constant C_SMALL_COLS    : positive := 1;
 
    -- Maximum number of clock cycles to wait for a picture
-   constant C_TIMEOUT       : integer := 30000;
+   constant C_TIMEOUT       : positive := 30000;
 
    type pixel_t is array (0 to C_NUM_COLS-1, 0 to C_NUM_ROWS-1) of integer;
 
@@ -134,9 +134,9 @@ begin
       procedure run_picture (
          signal   dut_in   : out dut_in_t;
          signal   dut_out  : in  dut_out_t;
-         num_cols : integer;
-         stride   : integer;    -- Address distance between two columns
-         pixels   : integer;    -- Pixels in each write
+         num_cols : positive;
+         stride   : positive;    -- Address distance between two columns
+         pixels   : positive;    -- Pixels in each write
          startx_r : real;
          starty_r : real;
          width_r  : real;       -- Size of the picture
@@ -147,9 +147,9 @@ begin
          variable starty_i : integer := to_fixed(starty_r);
          variable stepx_i  : integer := to_fixed(width_r  / real(num_cols));
          variable stepy_i  : integer := to_fixed(height_r / real(C_NUM_ROWS));
-         variable col      : integer;
-         variable row      : integer;
-         variable total    : integer := 0;
+         variable col      : natural;
+         variable row      : natural;
+         variable total    : natural := 0;
          variable finished : boolean := false;
          variable seen_low : boolean := false;
          variable seen     : pixel_t := (others => (others => -1));

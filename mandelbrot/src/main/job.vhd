@@ -16,9 +16,9 @@ use ieee.numeric_std_unsigned.all;
 
 entity job is
    generic (
-      G_MAX_COUNT : integer;
-      G_NUM_ROWS  : integer;
-      G_PIXELS    : integer := 1   -- Rows in each result
+      G_MAX_COUNT : positive;
+      G_NUM_ROWS  : positive;
+      G_PIXELS    : positive := 1   -- Rows in each result
    );
    port (
       clk_i        : in  std_logic;
@@ -38,8 +38,8 @@ end entity job;
 architecture rtl of job is
 
    -- The number of bits needed for the values 0 to n-1
-   function log2 (n : integer) return integer is
-      variable r : integer := 0;
+   function log2 (n : natural) return natural is
+      variable r : natural := 0;
    begin
       while 2**r < n loop
          r := r + 1;
@@ -48,7 +48,7 @@ architecture rtl of job is
    end function log2;
 
    -- The number of bits of the row number
-   constant C_ADDR_BITS : integer := maximum(log2(G_NUM_ROWS), 1);
+   constant C_ADDR_BITS : natural := maximum(log2(G_NUM_ROWS), 1);
 
    -- The reset, registered locally, so the reset from the dispatcher only goes
    -- to this register.

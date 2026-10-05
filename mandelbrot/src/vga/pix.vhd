@@ -22,8 +22,8 @@ end pix;
 
 architecture structural of pix is
 
-   constant H_TOTAL : integer := h_total(G_MODE);
-   constant V_TOTAL : integer := v_total(G_MODE);
+   constant H_TOTAL : natural := h_total(G_MODE);
+   constant V_TOTAL : natural := v_total(G_MODE);
 
    -- Pixel counters
    signal pix_x : std_logic_vector(10 downto 0) := (others => '0');

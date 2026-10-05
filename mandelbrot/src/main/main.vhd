@@ -4,7 +4,7 @@
 --
 -- The view is controlled by the buttons and switches on the board:
 --   btn_i(4)         : Zoom in. If sw_i(2) is set then zoom out instead.
---   btn_i(3 downto 0): Move the view left, right, up and down.
+--   btn_i(3 downto 0): Move the view left, right, up, and down.
 -- While a button is pressed, the view is updated 18 times per second, i.e.
 -- every G_CLK_FREQ/18 clock cycles.
 -- The view is kept inside the range -2 to 2, see view.vhd.
@@ -29,21 +29,21 @@ entity main is
       -- The number of job modules, i.e. iterators (with two DSPs each). This
       -- depends on the size of the FPGA, so it is set by the top level
       -- module.
-      G_NUM_ITERATORS : integer;
+      G_NUM_ITERATORS : positive;
       -- The number of pixels in each write to the display memory, see
       -- dispatcher.vhd and disp_mem.vhd. A power of two, and the rows in a
       -- job (G_ROWS_IN_JOB) must be a multiple of it.
-      G_PIXELS        : integer;
+      G_PIXELS        : positive;
       -- Rows in each job given to a job module, see dispatcher.vhd. The
       -- number of rows of the picture must be a multiple of it.
-      G_ROWS_IN_JOB   : integer;
+      G_ROWS_IN_JOB   : positive;
       -- The size of the picture, i.e. the resolution of the VGA output, the
       -- address distance between two picture columns in the display memory,
       -- and the number of bits of the address, see dispatcher.vhd.
-      G_NUM_COLS      : integer;
-      G_NUM_ROWS      : integer;
-      G_COL_STRIDE    : integer;
-      G_ADDR_BITS     : integer
+      G_NUM_COLS      : positive;
+      G_NUM_ROWS      : positive;
+      G_COL_STRIDE    : positive;
+      G_ADDR_BITS     : positive
    );
    port (
       clk_i     : in  std_logic;                      -- G_CLK_FREQ
@@ -68,7 +68,7 @@ end main;
 
 architecture structural of main is
 
-   constant C_MAX_COUNT     : integer := 511;
+   constant C_MAX_COUNT     : positive := 511;
 
    -- The initial view. The real axis is from -1.6667 to 1.0, and the
    -- imaginary axis is centred on 0. The size has the same aspect ratio as

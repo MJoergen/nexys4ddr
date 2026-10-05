@@ -20,8 +20,8 @@ use work.video_pkg.all;
 entity vga is
    generic (
       G_MODE       : video_mode_t;
-      G_COL_STRIDE : integer;
-      G_ADDR_BITS  : integer := 19
+      G_COL_STRIDE : positive;
+      G_ADDR_BITS  : positive := 19
    );
    port (
       clk_i     : in  std_logic;                      -- The pixel clock
@@ -49,8 +49,8 @@ end vga;
 architecture structural of vga is
 
    -- The number of bits needed for the values 0 to n-1
-   function log2 (n : integer) return integer is
-      variable r : integer := 0;
+   function log2 (n : natural) return natural is
+      variable r : natural := 0;
    begin
       while 2**r < n loop
          r := r + 1;
@@ -59,11 +59,11 @@ architecture structural of vga is
    end function log2;
 
    -- The number of bits of the rows in the visible area
-   constant C_ROW_BITS : integer := log2(G_MODE.v_visible);
+   constant C_ROW_BITS : natural := log2(G_MODE.v_visible);
 
    -- The number of digits of the frame rate. The overlay is 8 pixels from the
    -- right edge, and each digit is 16 pixels wide (see overlay.vhd).
-   constant C_DIGITS   : integer := fps_blank_i'length;
+   constant C_DIGITS   : natural := fps_blank_i'length;
 
    signal pix_x : std_logic_vector(10 downto 0);
    signal pix_y : std_logic_vector(10 downto 0);

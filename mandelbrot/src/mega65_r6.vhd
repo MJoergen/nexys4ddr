@@ -2,7 +2,7 @@
 -- on this entity are mapped directly to pins on the FPGA, see mega65-r6.xdc.
 --
 -- It is the same design as nexys4ddr.vhd (the top level module for the
--- Nexys 4 DDR board), only the size of the design, the resolution and the
+-- Nexys 4 DDR board), only the size of the design, the resolution, and the
 -- ports are different:
 -- * The VGA output is 1280x1024 @ 60 Hz, with a pixel clock of 108 MHz,
 --   instead of 640x480. The display memory is 2.5 times as large.
@@ -60,7 +60,7 @@ architecture structural of mega65_r6 is
    -- iterator.vhd), and the XC7A200T has 740, so 368 job modules is the
    -- largest multiple of the group size (16, see dispatcher.vhd) that fits.
    -- They use 64% of the slices.
-   constant C_NUM_ITERATORS : integer := 368;
+   constant C_NUM_ITERATORS : positive := 368;
 
    -- The number of pixels in each write to the display memory. The dispatcher
    -- accepts at most one result per clock cycle, so with one pixel in each
@@ -68,17 +68,17 @@ architecture structural of mega65_r6 is
    -- more job modules give little more. The model (sim/model.py) estimates
    -- 2.49 ms for the initial picture with four pixels in each write, against
    -- 9.14 ms with one.
-   constant C_PIXELS        : integer := 4;
+   constant C_PIXELS        : positive := 4;
 
    -- The VCO of the MMCM (see clk_rst.vhd): 100 MHz / 5 * 54 = 1080 MHz. This
    -- is the only VCO frequency which gives the pixel clock of 108 MHz exactly.
-   constant C_VCO_DIVIDE    : integer := 5;
+   constant C_VCO_DIVIDE    : positive := 5;
    constant C_VCO_MULT      : real    := 54.0;
 
    -- The video mode (see video_pkg.vhd), and the divider of the VGA clock,
    -- which gives the pixel clock (1080 MHz / 10 = 108 MHz, see clk_rst.vhd).
    constant C_VIDEO         : video_mode_t := C_VIDEO_1280X1024;
-   constant C_VGA_DIVIDE    : integer := 10;
+   constant C_VGA_DIVIDE    : positive := 10;
 
    -- The divider of the MAIN clock (see clk_rst.vhd), and its frequency in Hz.
    -- 1080 MHz / 7.5 = 144 MHz. The longest path is in the iterators (see
@@ -93,12 +93,12 @@ architecture structural of mega65_r6 is
    -- Rows in each job given to a job module, see dispatcher.vhd. The
    -- number of rows (1024) must be a multiple of it, and of C_PIXELS. The
    -- model gives 402 to 406 pictures per second for 32 to 128 rows.
-   constant C_ROWS_IN_JOB   : integer := 64;
+   constant C_ROWS_IN_JOB   : positive := 64;
 
    -- The address distance between two picture columns in the display memory,
    -- see dispatcher.vhd. 1024 rows per column means the address is the column
    -- (11 bits) followed by the row (10 bits).
-   constant C_COL_STRIDE    : integer := 1024;
+   constant C_COL_STRIDE    : positive := 1024;
 
    -- The display memory (see disp_mem.vhd): 1280*1024 pixels, i.e. 320 blocks
    -- (BRAMs) of 4096 pixels, with 21 bits of address. The XC7A200T has 365
@@ -106,8 +106,8 @@ architecture structural of mega65_r6 is
    -- of each group of 8 blocks drives their BRAMs directly. This saves about
    -- 15,000 registers, which made the slices too full for the 450 job modules
    -- of an earlier version (92% used, and the MAIN clock failed timing).
-   constant C_ADDR_BITS     : integer := 21;
-   constant C_MEM_BLOCKS    : integer := 320;
+   constant C_ADDR_BITS     : positive := 21;
+   constant C_MEM_BLOCKS    : positive := 320;
    constant C_BLOCK_REGS    : boolean := false;
 
    signal rstn           : std_logic;

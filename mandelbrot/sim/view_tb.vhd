@@ -21,18 +21,18 @@ end entity view_tb;
 
 architecture simulation of view_tb is
 
-   constant C_NUM_COLS : integer := 640;
-   constant C_NUM_ROWS : integer := 480;
+   constant C_NUM_COLS : positive := 640;
+   constant C_NUM_ROWS : positive := 480;
 
    -- The column and row of the pixel that is kept fixed when zooming
-   constant C_CENTRE_X : integer := C_NUM_COLS/2;
-   constant C_CENTRE_Y : integer := C_NUM_ROWS/2;
+   constant C_CENTRE_X : natural := C_NUM_COLS/2;
+   constant C_CENTRE_Y : natural := C_NUM_ROWS/2;
 
    constant C_MIN      : integer := -2**17;    -- -2
    constant C_MAX      : integer :=  2**17-1;  --  2-2^-16
 
    -- The number of clock cycles to wait for an update to finish
-   constant C_UPD_CYCLES : integer := 32;
+   constant C_UPD_CYCLES : positive := 32;
 
    -- The view: the position of the first column and row (signed 2.16), and
    -- the size of a pixel

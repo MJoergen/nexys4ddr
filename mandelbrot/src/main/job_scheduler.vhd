@@ -15,28 +15,28 @@ use ieee.numeric_std_unsigned.all;
 
 entity job_scheduler is
    generic (
-      G_SIZE       : integer;
-      G_GROUP_SIZE : integer
+      G_SIZE       : positive;
+      G_GROUP_SIZE : positive
    );
    port (
       clk_i           : in  std_logic;
       rst_i           : in  std_logic;
       sched_active_i  : in  std_logic;
       job_idx_valid_o : out std_logic;
-      job_idx_start_o : out integer range 0 to G_SIZE-1;
+      job_idx_start_o : out natural range 0 to G_SIZE-1;
       job_busy_i      : in  std_logic_vector(G_SIZE-1 downto 0)
    );
 end entity job_scheduler;
 
 architecture rtl of job_scheduler is
 
-   constant C_NUM_GROUPS  : integer := (G_SIZE + G_GROUP_SIZE - 1) / G_GROUP_SIZE;
+   constant C_NUM_GROUPS  : natural := (G_SIZE + G_GROUP_SIZE - 1) / G_GROUP_SIZE;
 
-   signal cnt_r           : integer range 0 to G_SIZE-1;
-   signal cnt_d           : integer range 0 to G_SIZE-1;
+   signal cnt_r           : natural range 0 to G_SIZE-1;
+   signal cnt_d           : natural range 0 to G_SIZE-1;
    signal active_d        : std_logic;
    signal grp_busy_r      : std_logic_vector(C_NUM_GROUPS-1 downto 0);
-   signal job_idx_start_r : integer range 0 to G_SIZE-1;
+   signal job_idx_start_r : natural range 0 to G_SIZE-1;
    signal job_idx_valid_r : std_logic;
 
 begin
@@ -60,7 +60,7 @@ begin
    -- The busy flag of the process at the position of the counter in each
    -- group. Positions after the last process count as busy.
    p_grp_busy : process (clk_i)
-      variable idx_v : integer;
+      variable idx_v : natural;
    begin
       if rising_edge(clk_i) then
          for g in 0 to C_NUM_GROUPS-1 loop

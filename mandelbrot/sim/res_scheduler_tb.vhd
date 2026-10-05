@@ -25,8 +25,8 @@ end entity res_scheduler_tb;
 architecture sim of res_scheduler_tb is
 
    type config_t is record
-      size       : integer;
-      group_size : integer;
+      size       : positive;
+      group_size : positive;
    end record config_t;
    type config_vector is array (natural range <>) of config_t;
 
@@ -68,21 +68,21 @@ begin
 
 
    gen_config : for n in C_CONFIGS'range generate
-      constant C_SIZE       : integer := C_CONFIGS(n).size;
-      constant C_GROUP_SIZE : integer := C_CONFIGS(n).group_size;
-      constant C_NUM_GROUPS : integer := (C_SIZE + C_GROUP_SIZE - 1) / C_GROUP_SIZE;
-      constant C_PERIOD     : integer := maximum(C_NUM_GROUPS, 5);
+      constant C_SIZE       : natural := C_CONFIGS(n).size;
+      constant C_GROUP_SIZE : natural := C_CONFIGS(n).group_size;
+      constant C_NUM_GROUPS : natural := (C_SIZE + C_GROUP_SIZE - 1) / C_GROUP_SIZE;
+      constant C_PERIOD     : natural := maximum(C_NUM_GROUPS, 5);
       -- A ready process is selected within this number of clock cycles: its
       -- group is visited once every C_PERIOD clock cycles, and each other
       -- process of the group is selected at most once before it. The ready
       -- flag and the candidate are registered in the group, and the selection
       -- is registered.
-      constant C_MAX_WAIT   : integer := minimum(C_GROUP_SIZE, C_SIZE)*C_PERIOD + 3;
+      constant C_MAX_WAIT   : natural := minimum(C_GROUP_SIZE, C_SIZE)*C_PERIOD + 3;
 
       signal active : std_logic := '0';
       signal ready  : std_logic_vector(C_SIZE-1 downto 0) := (others => '0');
       signal valid  : std_logic;
-      signal idx    : integer range 0 to C_SIZE-1;
+      signal idx    : natural range 0 to C_SIZE-1;
 
    begin
 
@@ -105,21 +105,21 @@ begin
          variable seed1    : positive := 1 + n;
          variable seed2    : positive := 7;
          variable r        : real;
-         variable t        : integer := 0;      -- The current clock cycle
+         variable t        : natural := 0;      -- The current clock cycle
          variable has      : std_logic_vector(C_SIZE-1 downto 0) := (others => '0');
          variable sel      : int_vector := (others => -1);  -- Clock cycle of the selection
          variable since    : int_vector := (others => 0);   -- Ready since this clock cycle
          variable delay    : int_vector := (others => 0);   -- Until the next result
-         variable results  : integer := 0;
-         variable selected : integer := 0;
-         variable max_wait : integer := 0;
+         variable results  : natural := 0;
+         variable selected : natural := 0;
+         variable max_wait : natural := 0;
 
          -- Advance one clock cycle. The outputs of the scheduler are those of
          -- clock cycle t-1, and the ready flags are set for clock cycle t.
          -- New results come after max_delay clock cycles at most, or never
          -- when max_delay is negative.
          procedure step (max_delay : integer) is
-            variable i : integer;
+            variable i : natural;
          begin
             wait until rising_edge(clk);
             t := t + 1;

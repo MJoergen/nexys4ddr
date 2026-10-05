@@ -34,15 +34,15 @@ end entity disp;
 architecture rtl of disp is
 
    -- Define visible screen size
-   constant H_PIXELS : integer := G_MODE.h_visible;
-   constant V_PIXELS : integer := G_MODE.v_visible;
+   constant H_PIXELS : natural := G_MODE.h_visible;
+   constant V_PIXELS : natural := G_MODE.v_visible;
 
    -- Define VGA timing constants. The sync pulses are at the level
    -- G_MODE.sync_active, e.g. active low (negative polarity) for 640x480.
-   constant HS_START : integer := G_MODE.h_visible + G_MODE.h_front;
-   constant HS_TIME  : integer := G_MODE.h_sync;
-   constant VS_START : integer := G_MODE.v_visible + G_MODE.v_front;
-   constant VS_TIME  : integer := G_MODE.v_sync;
+   constant HS_START : natural := G_MODE.h_visible + G_MODE.h_front;
+   constant HS_TIME  : natural := G_MODE.h_sync;
+   constant VS_START : natural := G_MODE.v_visible + G_MODE.v_front;
+   constant VS_TIME  : natural := G_MODE.v_sync;
 
    signal vga_pix_x_d  : std_logic_vector(10 downto 0) := (others => '0');
    signal vga_pix_y_d  : std_logic_vector(10 downto 0) := (others => '0');

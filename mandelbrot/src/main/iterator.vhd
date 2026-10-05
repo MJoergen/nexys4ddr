@@ -4,7 +4,7 @@
 -- Separating real and imaginary parts this becomes the following
 -- set of equations:
 --    new_x = (x+y)*(x-y) + cx
---    new_y = 2*(x*y) + cy
+--    new_y = 2*(x*y + cy/2)
 -- Inputs to this block are: cx_i and cy_i as well as start_i.
 -- start_i should be pulsed for one clock cycle.
 -- cx_i and cy_i must remain constant until the iteration is finished.
@@ -91,7 +91,7 @@ use ieee.numeric_std.all;
 
 entity iterator is
    generic (
-      G_MAX_COUNT : integer
+      G_MAX_COUNT : positive
    );
    port (
       clk_i   : in  std_logic;

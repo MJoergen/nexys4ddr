@@ -48,10 +48,10 @@ use ieee.numeric_std_unsigned.all;
 
 entity disp_mem is
    generic (
-      G_ADDR_BITS  : integer := 19;     -- Bits of the pixel address
-      G_NUM_BLOCKS : integer := 128;    -- Blocks (BRAMs) of 4096 pixels
+      G_ADDR_BITS  : positive := 19;     -- Bits of the pixel address
+      G_NUM_BLOCKS : positive := 128;    -- Blocks (BRAMs) of 4096 pixels
       G_BLOCK_REGS : boolean := true;   -- A write register for each block
-      G_PIXELS     : integer := 1       -- Pixels in each word
+      G_PIXELS     : positive := 1       -- Pixels in each word
    );
    port (
       wr_clk_i    : in  std_logic;
@@ -70,8 +70,8 @@ end entity disp_mem;
 architecture rtl of disp_mem is
 
    -- The number of bits needed for the values 0 to n-1
-   function log2 (n : integer) return integer is
-      variable r : integer := 0;
+   function log2 (n : natural) return natural is
+      variable r : natural := 0;
    begin
       while 2**r < n loop
          r := r + 1;
@@ -81,15 +81,15 @@ architecture rtl of disp_mem is
 
    -- The addresses below are word addresses, i.e. without the lowest
    -- C_SUB_BITS bits of the pixel address (the position in the word).
-   constant C_SUB_BITS    : integer := log2(G_PIXELS);
-   constant C_WORD_BITS   : integer := G_ADDR_BITS - C_SUB_BITS;
-   constant C_GROUP_SIZE  : integer := 8;   -- Blocks in a group
-   constant C_NUM_BLOCKS  : integer := G_NUM_BLOCKS;
-   constant C_NUM_GROUPS  : integer := C_NUM_BLOCKS / C_GROUP_SIZE;
-   constant C_BLOCK_BITS  : integer := 12 - C_SUB_BITS;  -- Address bits in a block
-   constant C_GROUP_BITS  : integer := 15 - C_SUB_BITS;  -- Address bits in a group
+   constant C_SUB_BITS    : natural := log2(G_PIXELS);
+   constant C_WORD_BITS   : natural := G_ADDR_BITS - C_SUB_BITS;
+   constant C_GROUP_SIZE  : positive := 8;   -- Blocks in a group
+   constant C_NUM_BLOCKS  : natural := G_NUM_BLOCKS;
+   constant C_NUM_GROUPS  : natural := C_NUM_BLOCKS / C_GROUP_SIZE;
+   constant C_BLOCK_BITS  : natural := 12 - C_SUB_BITS;  -- Address bits in a block
+   constant C_GROUP_BITS  : natural := 15 - C_SUB_BITS;  -- Address bits in a group
    -- The number of words in the memory
-   constant C_NUM_WORDS   : integer := C_NUM_BLOCKS * 2**C_BLOCK_BITS;
+   constant C_NUM_WORDS   : natural := C_NUM_BLOCKS * 2**C_BLOCK_BITS;
 
    subtype word_t is std_logic_vector(9*G_PIXELS-1 downto 0);
    type mem_t is array (0 to 2**C_BLOCK_BITS-1) of word_t;
@@ -99,8 +99,8 @@ architecture rtl of disp_mem is
       std_logic_vector(C_BLOCK_BITS-1 downto 0);
    type word_vector is array (natural range <>) of word_t;
    type pixel_vector is array (natural range <>) of std_logic_vector(8 downto 0);
-   type blk_sel_vector is array (natural range <>) of integer range 0 to C_GROUP_SIZE-1;
-   type sub_vector is array (natural range <>) of integer range 0 to G_PIXELS-1;
+   type blk_sel_vector is array (natural range <>) of natural range 0 to C_GROUP_SIZE-1;
+   type sub_vector is array (natural range <>) of natural range 0 to G_PIXELS-1;
 
    signal wr_addr      : std_logic_vector(C_WORD_BITS-1 downto 0);
    signal wr_data      : word_t;
@@ -137,8 +137,8 @@ architecture rtl of disp_mem is
    signal rd_blk_sel_r : blk_sel_vector(C_NUM_GROUPS-1 downto 0) := (others => 0);
    signal rd_sub_r     : sub_vector(C_NUM_GROUPS-1 downto 0) := (others => 0);
    signal rd_grp_d     : pixel_vector(C_NUM_GROUPS-1 downto 0);
-   signal rd_grp_sel_r : integer range 0 to C_NUM_GROUPS-1 := 0;
-   signal rd_grp_sel_d : integer range 0 to C_NUM_GROUPS-1 := 0;
+   signal rd_grp_sel_r : natural range 0 to C_NUM_GROUPS-1 := 0;
+   signal rd_grp_sel_d : natural range 0 to C_NUM_GROUPS-1 := 0;
    signal rd_data_dd   : std_logic_vector(8 downto 0);
 
    attribute keep of rd_grp_addr  : signal is "true";
@@ -205,7 +205,7 @@ begin
    ------------------------------------------
 
    gen_blk : for b in 0 to C_NUM_BLOCKS-1 generate
-      constant C_GROUP : integer := b / C_GROUP_SIZE;
+      constant C_GROUP : natural := b / C_GROUP_SIZE;
       signal mem : mem_t;
       -- The write enable of the block, from the register of the group
       signal blk_en_s : std_logic;

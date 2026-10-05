@@ -27,19 +27,19 @@ use std.textio.all;
 
 entity main_tb is
    generic (
-      G_NUM_ITERATORS : integer := 120;
-      G_PIXELS        : integer := 4;
-      G_ROWS_IN_JOB   : integer := 120;
-      G_NUM_COLS      : integer := 640;
-      G_NUM_ROWS      : integer := 480;
-      G_COL_STRIDE    : integer := 512;
-      G_ADDR_BITS     : integer := 19
+      G_NUM_ITERATORS : positive := 120;
+      G_PIXELS        : positive := 4;
+      G_ROWS_IN_JOB   : positive := 120;
+      G_NUM_COLS      : positive := 640;
+      G_NUM_ROWS      : positive := 480;
+      G_COL_STRIDE    : positive := 512;
+      G_ADDR_BITS     : positive := 19
    );
 end entity main_tb;
 
 architecture simulation of main_tb is
 
-   constant C_NUM_PIXELS : integer := G_NUM_COLS*G_NUM_ROWS;
+   constant C_NUM_PIXELS : natural := G_NUM_COLS*G_NUM_ROWS;
 
    signal clk     : std_logic;
    signal rst     : std_logic := '1';
@@ -105,7 +105,7 @@ begin
    p_dump : process (clk)
       file     f : text open write_mode is "sim/main_out.txt";
       variable l : line;
-      variable n : integer := 0;
+      variable n : natural := 0;
       variable header : boolean := false;
    begin
       if not header then

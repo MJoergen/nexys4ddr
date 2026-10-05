@@ -10,7 +10,7 @@
 -- * The iteration count for each row is exactly the count calculated by the
 --   bit-accurate model in iterator_model_pkg.vhd, for the value of c of that
 --   row.
--- This is done for one, two and four pixels (rows) in each result.
+-- This is done for one, two, and four pixels (rows) in each result.
 --
 -- Only a few rows, and a low maximum count, are used to keep the simulation
 -- short.
@@ -27,8 +27,8 @@ end entity job_tb;
 
 architecture simulation of job_tb is
 
-   constant C_MAX_COUNT   : integer := 50;
-   constant C_NUM_ROWS    : integer := 12;
+   constant C_MAX_COUNT   : positive := 50;
+   constant C_NUM_ROWS    : positive := 12;
 
    -- Pixels in each result, in each instance
    type int_vector is array (natural range <>) of integer;
@@ -75,10 +75,10 @@ begin
 
 
    gen_dut : for n in C_PIXELS'range generate
-      constant C_PIX : integer := C_PIXELS(n);
+      constant C_PIX : positive := C_PIXELS(n);
 
       -- Maximum number of clock cycles to wait for a single result
-      constant C_RES_TIMEOUT : integer := C_PIX*(C_MAX_COUNT + 30);
+      constant C_RES_TIMEOUT : positive := C_PIX*(C_MAX_COUNT + 30);
 
       signal job_start   : std_logic := '0';
       signal job_cx      : std_logic_vector(17 downto 0) := (others => '0');

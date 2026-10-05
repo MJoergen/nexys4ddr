@@ -1,5 +1,5 @@
 -- This is a self-checking testbench for the VGA output (vga.vhd, i.e. pix.vhd,
--- disp.vhd and the palettes in palette_pkg.vhd). It is done for both video
+-- disp.vhd, and the palettes in palette_pkg.vhd). It is done for both video
 -- modes (see video_pkg.vhd), each with its own instance, and the address
 -- layout of the board that uses it: 640x480 with the column followed by the
 -- row in 19 bits (as on the Nexys 4 DDR), and 1280x1024 with the column
@@ -14,10 +14,10 @@
 -- * The polarity of the sync pulses: Both sync signals are inactive in the
 --   visible area, and active during the sync pulses (low for 640x480, high
 --   for 1280x1024).
--- * Horizontal: the visible pixels, front porch, sync pulse and back porch,
---   e.g. 640, 16, 96 and 48, i.e. 800 in total for 640x480.
--- * Vertical: the visible lines, front porch, sync pulse and back porch, e.g.
---   480, 10, 2 and 33, i.e. 525 in total for 640x480.
+-- * Horizontal: the visible pixels, front porch, sync pulse, and back porch,
+--   e.g. 640, 16, 96, and 48, i.e. 800 in total for 640x480.
+-- * Vertical: the visible lines, front porch, sync pulse, and back porch, e.g.
+--   480, 10, 2, and 33, i.e. 525 in total for 640x480.
 --
 -- In the second phase, the display memory is replaced by a model with the read
 -- latency of disp_mem.vhd (four clock cycles), which holds a different value
@@ -48,8 +48,8 @@ architecture simulation of vga_tb is
 
    type config_t is record
       mode       : video_mode_t;
-      col_stride : integer;      -- Address distance between two columns
-      addr_bits  : integer;      -- Bits of the address
+      col_stride : positive;      -- Address distance between two columns
+      addr_bits  : positive;      -- Bits of the address
    end record config_t;
    type config_vector is array (natural range <>) of config_t;
 
@@ -65,7 +65,7 @@ architecture simulation of vga_tb is
    constant C_VALUE     : std_logic_vector(8 downto 0) := "0" & C_COLOUR;
 
    -- The value of the pixel (x, y) in the display memory in the second phase
-   function pixel_value (x : integer; y : integer) return std_logic_vector is
+   function pixel_value (x : natural; y : natural) return std_logic_vector is
    begin
       return std_logic_vector(to_unsigned((x + 3*y) mod 512, 9));
    end function pixel_value;
@@ -107,22 +107,22 @@ begin
 
    gen_config : for m in C_CONFIGS'range generate
       constant C_MODE      : video_mode_t := C_CONFIGS(m).mode;
-      constant C_STRIDE    : integer := C_CONFIGS(m).col_stride;
-      constant C_ADDR_BITS : integer := C_CONFIGS(m).addr_bits;
+      constant C_STRIDE    : natural := C_CONFIGS(m).col_stride;
+      constant C_ADDR_BITS : natural := C_CONFIGS(m).addr_bits;
       -- The read latency of the display memory
-      constant C_LATENCY   : integer := 4;
+      constant C_LATENCY   : positive := 4;
 
-      constant C_H_VISIBLE : integer := C_MODE.h_visible;
-      constant C_H_FRONT   : integer := C_MODE.h_front;
-      constant C_H_SYNC    : integer := C_MODE.h_sync;
-      constant C_H_BACK    : integer := C_MODE.h_back;
-      constant C_H_TOTAL   : integer := C_H_VISIBLE + C_H_FRONT + C_H_SYNC + C_H_BACK;
+      constant C_H_VISIBLE : natural := C_MODE.h_visible;
+      constant C_H_FRONT   : natural := C_MODE.h_front;
+      constant C_H_SYNC    : natural := C_MODE.h_sync;
+      constant C_H_BACK    : natural := C_MODE.h_back;
+      constant C_H_TOTAL   : natural := C_H_VISIBLE + C_H_FRONT + C_H_SYNC + C_H_BACK;
 
-      constant C_V_VISIBLE : integer := C_MODE.v_visible;
-      constant C_V_FRONT   : integer := C_MODE.v_front;
-      constant C_V_SYNC    : integer := C_MODE.v_sync;
-      constant C_V_BACK    : integer := C_MODE.v_back;
-      constant C_V_TOTAL   : integer := C_V_VISIBLE + C_V_FRONT + C_V_SYNC + C_V_BACK;
+      constant C_V_VISIBLE : natural := C_MODE.v_visible;
+      constant C_V_FRONT   : natural := C_MODE.v_front;
+      constant C_V_SYNC    : natural := C_MODE.v_sync;
+      constant C_V_BACK    : natural := C_MODE.v_back;
+      constant C_V_TOTAL   : natural := C_V_VISIBLE + C_V_FRONT + C_V_SYNC + C_V_BACK;
 
       signal rd_addr : std_logic_vector(C_ADDR_BITS-1 downto 0);
       signal vga_hs  : std_logic;
@@ -172,7 +172,7 @@ begin
       -- simulation (with the pipeline not yet filled) is ignored.
       p_check : process (clk)
          variable started    : boolean := false;
-         variable t          : integer := 0;
+         variable t          : natural := 0;
          variable hs_d       : std_logic;
          variable vs_d       : std_logic;
          variable visible_d  : boolean;
@@ -184,17 +184,17 @@ begin
          variable vis_start  : integer := -1;   -- Start of the last visible line
          variable vis_end    : integer := -1;   -- End of the last visible line
          variable last_line  : integer := -1;   -- Start of the last visible line before vs_fall
-         variable lines      : integer := 0;    -- Visible lines in this frame
-         variable frames     : integer := 0;    -- Frames checked
+         variable lines      : natural := 0;    -- Visible lines in this frame
+         variable frames     : natural := 0;    -- Frames checked
          variable visible    : boolean;
 
          -- The second phase
-         variable t0         : integer;         -- Time of the falling edge of vs
-         variable n          : integer;         -- Pixel number from (0, 0)
-         variable x          : integer;
-         variable y          : integer;
+         variable t0         : natural;         -- Time of the falling edge of vs
+         variable n          : natural;         -- Pixel number from (0, 0)
+         variable x          : natural;
+         variable y          : natural;
          variable exp        : std_logic_vector(7 downto 0);
-         variable errors     : integer := 0;
+         variable errors     : natural := 0;
       begin
          if finished(m) = '1' then
             -- This instance is finished, and waits for the others

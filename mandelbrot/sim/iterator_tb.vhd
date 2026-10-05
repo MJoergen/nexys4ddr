@@ -36,7 +36,7 @@ end entity iterator_tb;
 
 architecture simulation of iterator_tb is
 
-   constant C_MAX_COUNT : integer := 100;
+   constant C_MAX_COUNT : positive := 100;
 
    -- The iterator uses fixed point numbers (with rounding errors), so the count
    -- may differ slightly from the one calculated using real numbers.

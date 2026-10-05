@@ -26,15 +26,15 @@ use ieee.numeric_std_unsigned.all;
 
 entity dispatcher is
    generic (
-      G_MAX_COUNT     : integer;
-      G_NUM_ROWS      : integer;
-      G_NUM_COLS      : integer;
-      G_COL_STRIDE    : integer;         -- Address distance between columns
-      G_ADDR_BITS     : integer := 19;   -- Bits of the address
-      G_ROWS_IN_JOB   : integer;         -- Rows in each job
-      G_NUM_ITERATORS : integer;
-      G_GROUP_SIZE    : integer := 16;
-      G_PIXELS        : integer := 1     -- Pixels in each write
+      G_MAX_COUNT     : positive;
+      G_NUM_ROWS      : positive;
+      G_NUM_COLS      : positive;
+      G_COL_STRIDE    : positive;         -- Address distance between columns
+      G_ADDR_BITS     : positive := 19;   -- Bits of the address
+      G_ROWS_IN_JOB   : positive;         -- Rows in each job
+      G_NUM_ITERATORS : positive;
+      G_GROUP_SIZE    : positive := 16;
+      G_PIXELS        : positive := 1     -- Pixels in each write
    );
    port (
       clk_i           : in  std_logic;
@@ -54,8 +54,8 @@ end entity dispatcher;
 architecture rtl of dispatcher is
 
    -- The number of bits needed for the values 0 to n-1
-   function log2 (n : integer) return integer is
-      variable r : integer := 0;
+   function log2 (n : natural) return natural is
+      variable r : natural := 0;
    begin
       while 2**r < n loop
          r := r + 1;
@@ -65,18 +65,18 @@ architecture rtl of dispatcher is
 
    -- The number of bits of the column (at least one, also for a single
    -- column) and of the row in the picture
-   constant C_COL_BITS   : integer := maximum(1, log2(G_NUM_COLS));
-   constant C_ROW_BITS   : integer := log2(G_NUM_ROWS);
+   constant C_COL_BITS   : natural := maximum(1, log2(G_NUM_COLS));
+   constant C_ROW_BITS   : natural := log2(G_NUM_ROWS);
 
    -- The job (cx, starty, and stepy), the reset, and the index of the job
    -- module whose result is accepted all go to all the job modules. To make
    -- the routing shorter, they go through an extra register in each group of
    -- G_GROUP_SIZE job modules. The registers in each group are identical,
    -- so the attribute keep prevents the synthesis tool from merging them.
-   constant C_NUM_GROUPS : integer := (G_NUM_ITERATORS + G_GROUP_SIZE - 1) / G_GROUP_SIZE;
+   constant C_NUM_GROUPS : natural := (G_NUM_ITERATORS + G_GROUP_SIZE - 1) / G_GROUP_SIZE;
 
    -- The number of blocks of rows
-   constant C_NUM_BLOCKS : integer := G_NUM_ROWS / G_ROWS_IN_JOB;
+   constant C_NUM_BLOCKS : natural := G_NUM_ROWS / G_ROWS_IN_JOB;
 
    type job_addr_vector is array (natural range <>) of
       std_logic_vector(C_COL_BITS-1 downto 0);
@@ -87,9 +87,9 @@ architecture rtl of dispatcher is
    type value_vector is array (natural range <>) of
       std_logic_vector(17 downto 0);
    type idx_vector is array (natural range <>) of
-      integer range 0 to G_NUM_ITERATORS-1;
+      natural range 0 to G_NUM_ITERATORS-1;
    type blk_vector is array (natural range <>) of
-      integer range 0 to C_NUM_BLOCKS-1;
+      natural range 0 to C_NUM_BLOCKS-1;
 
    signal sched_active_r    : std_logic;
    --
@@ -113,7 +113,7 @@ architecture rtl of dispatcher is
    -- The picture column and the block of the next job. All the jobs have
    -- been given out when cur_blk_r is C_NUM_BLOCKS.
    signal cur_addr_r        : std_logic_vector(C_COL_BITS-1 downto 0) := (others => '0');
-   signal cur_blk_r         : integer range 0 to C_NUM_BLOCKS := 0;
+   signal cur_blk_r         : natural range 0 to C_NUM_BLOCKS := 0;
    --
    -- The job, delayed by one clock cycle, in each group of job modules
    signal grp_cx_r          : value_vector(C_NUM_GROUPS-1 downto 0);
@@ -159,18 +159,18 @@ architecture rtl of dispatcher is
    signal wr_data_r         : std_logic_vector(9*G_PIXELS-1 downto 0);
    signal wr_en_r           : std_logic;
 
-   -- The accepted result, delayed by one, two and three clock cycles: The
+   -- The accepted result, delayed by one, two, and three clock cycles: The
    -- picture column and the block of the job, the first row of the block, and
    -- then the address of the column and the row of the result.
    signal acc_job_addr_r    : std_logic_vector(C_COL_BITS-1 downto 0);
    signal acc_job_addr_d    : std_logic_vector(C_COL_BITS-1 downto 0);
-   signal acc_blk_r         : integer range 0 to C_NUM_BLOCKS-1;
+   signal acc_blk_r         : natural range 0 to C_NUM_BLOCKS-1;
    signal acc_col_dd        : std_logic_vector(G_ADDR_BITS-1 downto 0);
    signal acc_row_d         : std_logic_vector(C_ROW_BITS-1 downto 0);
    signal acc_row_dd        : std_logic_vector(C_ROW_BITS-1 downto 0);
    signal acc_data_dd       : std_logic_vector(9*G_PIXELS-1 downto 0);
-   signal acc_grp_r         : integer range 0 to C_NUM_GROUPS-1;
-   signal acc_grp_d         : integer range 0 to C_NUM_GROUPS-1;
+   signal acc_grp_r         : natural range 0 to C_NUM_GROUPS-1;
+   signal acc_grp_d         : natural range 0 to C_NUM_GROUPS-1;
    signal acc_valid_r       : std_logic;
    signal acc_valid_d       : std_logic;
    signal acc_valid_dd      : std_logic;
@@ -181,10 +181,10 @@ architecture rtl of dispatcher is
 
    signal done_r            : std_logic;
 
-   signal idx_start_r       : integer range 0 to G_NUM_ITERATORS-1;
+   signal idx_start_r       : natural range 0 to G_NUM_ITERATORS-1;
    signal idx_start_valid_r : std_logic;
 
-   signal idx_iterator_r    : integer range 0 to G_NUM_ITERATORS-1;
+   signal idx_iterator_r    : natural range 0 to G_NUM_ITERATORS-1;
    signal idx_valid_r       : std_logic;
 
 begin
@@ -192,7 +192,7 @@ begin
    -- When the scheduler samples the busy flag of a job module and selects
    -- it, the new busy flag of that job module (job_busy_s) is sampled by
    -- the scheduler five clock cycles later at the earliest (the selection goes
-   -- through the scheduler, job_start_r and job_start_d). The scheduler
+   -- through the scheduler, job_start_r, and job_start_d). The scheduler
    -- samples the busy flag of the same job module again G_NUM_ITERATORS
    -- clock cycles later. With fewer than five job modules a job could
    -- therefore be started twice (and the first one would be lost).
@@ -531,7 +531,7 @@ begin
    -- The signal done_r stays high until the next start. It is cleared by the
    -- start, because otherwise the old value of done_r would stop the scheduler
    -- (see p_sched_active) just after the start. It is not set while a job has
-   -- just been started (job_started_r, job_started_d or job_started_dd),
+   -- just been started (job_started_r, job_started_d, or job_started_dd),
    -- because then the busy flag of the job module has not reached
    -- grp_job_busy_r yet.
    p_done : process (clk_i)

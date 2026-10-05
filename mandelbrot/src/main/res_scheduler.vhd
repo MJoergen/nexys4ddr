@@ -29,8 +29,8 @@ use ieee.numeric_std_unsigned.all;
 
 entity res_scheduler is
    generic (
-      G_SIZE       : integer;
-      G_GROUP_SIZE : integer
+      G_SIZE       : positive;
+      G_GROUP_SIZE : positive
    );
    port (
       clk_i       : in  std_logic;
@@ -38,17 +38,17 @@ entity res_scheduler is
       active_i    : in  std_logic;
       ready_i     : in  std_logic_vector(G_SIZE-1 downto 0);
       idx_valid_o : out std_logic;
-      idx_o       : out integer range 0 to G_SIZE-1
+      idx_o       : out natural range 0 to G_SIZE-1
    );
 end entity res_scheduler;
 
 architecture rtl of res_scheduler is
 
-   constant C_NUM_GROUPS : integer := (G_SIZE + G_GROUP_SIZE - 1) / G_GROUP_SIZE;
+   constant C_NUM_GROUPS : natural := (G_SIZE + G_GROUP_SIZE - 1) / G_GROUP_SIZE;
    -- The number of positions of the counter
-   constant C_PERIOD     : integer := maximum(C_NUM_GROUPS, 5);
+   constant C_PERIOD     : natural := maximum(C_NUM_GROUPS, 5);
 
-   subtype pos_t is integer range 0 to G_GROUP_SIZE-1;
+   subtype pos_t is natural range 0 to G_GROUP_SIZE-1;
    type pos_vector is array (natural range <>) of pos_t;
    type req_vector is array (natural range <>) of
       std_logic_vector(G_GROUP_SIZE-1 downto 0);
@@ -79,13 +79,13 @@ architecture rtl of res_scheduler is
       return lo_v;
    end function rr_pick;
 
-   signal cnt_r       : integer range 0 to C_PERIOD-1;
+   signal cnt_r       : natural range 0 to C_PERIOD-1;
    signal active_r    : std_logic;
    signal req_r       : req_vector(C_NUM_GROUPS-1 downto 0);
    signal ptr_r       : pos_vector(C_NUM_GROUPS-1 downto 0);
    signal cand_r      : pos_vector(C_NUM_GROUPS-1 downto 0);
    signal cand_ok_r   : std_logic_vector(C_NUM_GROUPS-1 downto 0);
-   signal idx_r       : integer range 0 to G_SIZE-1;
+   signal idx_r       : natural range 0 to G_SIZE-1;
    signal idx_valid_r : std_logic;
 
 begin
