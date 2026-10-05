@@ -183,19 +183,29 @@ calculation. The signal start\_i is pulsed high for a single clock cycle. The
 signal done\_o goes high when the calculation is finished, and stays high, with
 cnt\_o unchanged, until the next start\_i.
 
-Example: We start with the point -1+0.5i, i.e. cx = -1 and cy = 0.5. The
-expected sequence of points is then:
+Example: We start with the point -0.5+0.5i, i.e. cx = -0.5 and cy = 0.5. This
+point is in the Mandelbrot set, so the iteration continues until the maximum
+count. The expected sequence of points is then:
 ```
-cnt |   x           |   y
-----+---------------+---------------
- 0  |  0    (00000) |  0    (00000)
- 1  | -1    (30000) |  0.5  (08000)
- 2  | -0.25 (3C000) | -0.5  (38000)
- 3  | -1.19 (2D000) |  0.75 (0C000)
- 4  | -0.15 (3D900) | -1.28 (2B800)
+cnt |   x                |   y
+----+--------------------+--------------------
+ 0  |  0.00000 (00000)   |  0.00000 (00000)
+ 1  | -0.50000 (38000)   |  0.50000 (08000)
+ 2  | -0.50000 (38000)   |  0.00000 (00000)
+ 3  | -0.25000 (3C000)   |  0.50000 (08000)
+ 4  | -0.68750 (35000)   |  0.25000 (04000)
+ 5  | -0.08984 (3E900)   |  0.15625 (02800)
+ 6  | -0.51634 (37BD1)   |  0.47192 (078D0)
+ 7  | -0.45612 (38B3C)   |  0.01265 (0033D)
+ 8  | -0.29213 (3B537)   |  0.48845 (07D0B)
 ```
 The values in the parentheses are the (2.16 fixed point) hexadecimal
-representation of the real numbers.
+representation of the values, and the decimal numbers are these values rounded
+to five decimals. The values are calculated with the bit-accurate model (see
+below). Up to iteration 5 they are exact, but from iteration 6 the new values need
+more than 16 fraction bits, and the iterator truncates them (rounds towards
+minus infinity). So the values differ slightly from a calculation with real
+numbers, e.g. x is -0.45610 in iteration 7 with real numbers.
 
 ### Overflow
 The iteration stops when the new value of x or y is outside the range -2 to 2
