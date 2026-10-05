@@ -88,8 +88,12 @@ begin
          end loop;
 
          if rst /= '1' then
-            assert (valid = '0' or (rows_or = ROW_ONES));
-            assert (done = '0' or (count = 2));
+            assert (valid = '0' or (rows_or = ROW_ONES))
+               report "Solution does not have one queen in each column"
+               severity error;
+            assert (done = '0' or (count = 2))
+               report "Search done with " & integer'image(count) & " solutions, expected 2"
+               severity error;
          end if;
 
          if done = '1' then
