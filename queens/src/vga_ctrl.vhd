@@ -28,8 +28,9 @@ architecture synthesis of vga_ctrl is
    constant V_PW  : natural := 2;      --V sync pulse width (lines)
    constant V_MAX : natural := 525;    --V total period (lines)
 
-   constant H_POL : std_logic := '1';
-   constant V_POL : std_logic := '1';
+   -- The 640x480 @ 60 Hz mode uses negative sync pulses on both HS and VS.
+   constant H_POL : std_logic := '0';
+   constant V_POL : std_logic := '0';
 
    -------------------------------------------------------------------------
 

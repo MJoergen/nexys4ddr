@@ -44,9 +44,9 @@ solutions.
   display shows the number of positions visited (this keeps counting after
   the search is done).
 * Switches 2-7: The speed, as a 6-bit number (switch 2 is the least
-  significant bit). The board takes about speed/4 steps per second, so the
-  fastest speed (all six switches set) is about 16 steps per second, and the
-  whole search then takes about 15 minutes. When all six switches are clear,
+  significant bit). The board takes about speed steps per second, so the
+  fastest speed (all six switches set) is about 63 steps per second, and the
+  whole search then takes about 4 minutes. When all six switches are clear,
   the search is paused.
 
 The LEDs above the switches show the state of the switches.
@@ -113,3 +113,4 @@ You can then program the board with the bit-file, for example with
 manager.
 
 There is also a Vivado project in [vivado/vivado.xpr](vivado/vivado.xpr).
+It includes both testbenches, and its simulation top is `queens_top_tb`.
