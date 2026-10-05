@@ -55,7 +55,7 @@ The following terms are used in this document:
 The modules are instantiated as follows:
 ```
 nexys4ddr                       src/nexys4ddr.vhd (top level)
- +- clk_rst                     src/clk_rst.vhd (MMCM, clock buffers and resets)
+ +- clk_rst                     src/clk_rst.vhd (MMCM, clock buffers, and resets)
  +- main                        src/main/main.vhd (everything in the MAIN clock domain)
  |   +- view                    src/main/view.vhd (view control from the buttons)
  |   +- dispatcher              src/main/dispatcher.vhd
@@ -259,7 +259,7 @@ below), and stops when one of them is found, or after the maximum count. The
 DSPs go on calculating after that, but the values are not used.
 
 The path from the registers P, through the adder for x+y or x-y, the
-multiplier and the post-adder of the first DSP, and back to its register P,
+multiplier, and the post-adder of the first DSP, and back to its register P,
 is the longest path of the iterator, and it decides the clock frequency of
 the whole design. About half of it is in the DSP (from its input to its
 register P), and the rest is the adder and the routes from and to the DSPs.
@@ -447,7 +447,7 @@ the right row numbers, that a result stays unchanged until it is acknowledged
 (the acknowledge is delayed by a varying number of clock cycles), and that the
 count for each row is exactly the count calculated by the bit-accurate model
 (see [Iterator](#iterator)). The third job is near the top of the set, where
-x+y or x-y is often out of range. It does this for 1, 2 and 4 rows in each
+x+y or x-y is often out of range. It does this for 1, 2, and 4 rows in each
 result, with three instances of the job module.
 
 ## Dispatcher
@@ -716,7 +716,7 @@ written to the right block and address, and is in the right position in the
 word, that a second write overwrites the first, that nothing is written when
 the write enable is low, and that the read latency is exactly four clock
 cycles. It does this for 1 and 4 pixels in each word with 128 blocks, and
-for 4 pixels with 320 blocks, 21 bits of address and no registers for the
+for 4 pixels with 320 blocks, 21 bits of address, and no registers for the
 blocks, where it also checks that writes beyond the last block are
 ignored. On reset, the whole memory is filled
 with the value 0x055, which takes `G_NUM_BLOCKS`*4096/`G_PIXELS` clock
@@ -874,7 +874,7 @@ rate after each of 1000 random picture times against a model of the average.
 
 The testbench [`sim/overlay_tb.vhd`](sim/overlay_tb.vhd) checks the colour of
 every pixel of three frames of the VGA output (with a different value for each
-pixel), with no frame rate (the initial value), 4 digits and 8 digits. The
+pixel), with no frame rate (the initial value), 4 digits, and 8 digits. The
 frame rate is changed in the middle of the overlay, and the new value must
 only be shown in the next frame. It prints the overlay of the last frame.
 
@@ -927,7 +927,7 @@ two).
 **Video modes.** The resolution and the timing of the VGA output are given by
 a video mode, which is a record in
 [`src/vga/video_pkg.vhd`](src/vga/video_pkg.vhd): the number of visible
-pixels, the front porch, the sync pulse and the back porch, for each line and
+pixels, the front porch, the sync pulse, and the back porch, for each line and
 for each frame, and the polarity of the sync pulses, from the VESA standard.
 There are two: 640x480 at 60 Hz (pixel clock 25.175 MHz, which works fine with
 25 MHz, and negative sync pulses), used on the Nexys 4 DDR, and 1280x1024 at
@@ -1095,7 +1095,7 @@ until it got the iterator with two DSPs. Now both boards use four pixels in
 each write, see *One iteration in each clock cycle* below. With the iterator
 with a single DSP, a run of `make nexys4ddr` with four pixels in each write
 fitted and met timing at 188.24 MHz, but only just: it used 15,459 slices
-(97.5%), 44,737 LUTs and 55,538 registers, and had +0.012 ns of setup slack
+(97.5%), 44,737 LUTs, and 55,538 registers, and had +0.012 ns of setup slack
 and +0.005 ns of hold slack (in an iterator). The model gave 209248 clock
 cycles for it (1.39 ms at 150 MHz, about 716 pictures per second). A simulation
 of a complete picture with `main_tb` and the design of the MEGA65 (then
@@ -1335,7 +1335,7 @@ about 14 minutes) gave the same pixels as the model.
 **Two DSPs in each iterator.** Before the iterator with two DSPs (see
 [Iterator](#iterator)), the design had 240 job modules with one DSP each, one
 pixel in each write, and a 150 MHz main clock. A run of `make nexys4ddr`
-gave 14,407 slices (91%), 42,037 LUTs and 43,610 registers (55,903 LUT cells
+gave 14,407 slices (91%), 42,037 LUTs, and 43,610 registers (55,903 LUT cells
 and 43,628 registers after synthesis), +0.345 ns of setup slack and +0.017 ns
 of hold slack. The worst setup path was a route from the registers of a group
 in the dispatcher (`grp_cx_r`) to a job module (`res_cx_r`). The model gave
@@ -1362,7 +1362,7 @@ one at a time, and each was measured against the build before it:
   (see [Dispatcher](#dispatcher) and [The top level](#the-top-level)) use
   about 4,600 registers and 500 LUT cells. Before they were added, the setup
   slack was +0.104 ns.
-* Pipelining the next row in the job modules, the schedulers and the done
+* Pipelining the next row in the job modules, the schedulers, and the done
   flag (see [Dispatcher](#dispatcher)) costs about 700 LUT cells and 300
   registers.
 * The frame rate on the 7-segment display (see
@@ -1387,7 +1387,7 @@ one at a time, and each was measured against the build before it:
   module).
 * The registers of the read address in each group of 8 blocks of the display
   memory (see [The top level](#the-top-level)) use about 400 registers,
-  against the build before them (14,508 slices, 42,035 LUTs and 43,217
+  against the build before them (14,508 slices, 42,035 LUTs, and 43,217
   registers, with +0.355 ns of setup slack).
 
 **The main clock.** The main clock was originally 150 MHz. The design with
@@ -1432,7 +1432,7 @@ A later build had a setup slack of +0.229 ns at 174.55 MHz, instead of
 The main clock was raised to 177.78 MHz, which has about the same slack as
 174.55 MHz had before.
 
-Then the next row in the job modules, the schedulers and the done flag were
+Then the next row in the job modules, the schedulers, and the done flag were
 pipelined, and the frequency was tried again:
 
 | Main clock | Setup slack | Hold slack
@@ -1528,7 +1528,7 @@ cycles of an iteration. The iterator with two DSPs registers the output of
 the DSPs (the P registers are x and y), but not their inputs, see
 [Iterator](#iterator).
 
-At 177.78 MHz, before the next row in the job modules, the schedulers and
+At 177.78 MHz, before the next row in the job modules, the schedulers, and
 the done flag were pipelined (see [Dispatcher](#dispatcher)), these were the
 critical paths, with up to 22 levels of logic (the done flag).
 
@@ -1546,7 +1546,7 @@ with a single DSP, and then with two DSPs.
 
 **Two DSPs in each iterator.** With the iterator with a single DSP, the
 design had 256 job modules and a 148.97 MHz main clock. A run of
-`make mega65-r6` gave 19,316 slices (57%), 49,253 LUTs and 52,144 registers
+`make mega65-r6` gave 19,316 slices (57%), 49,253 LUTs, and 52,144 registers
 (78,846 LUT cells and 52,172 registers after synthesis), +0.301 ns of setup
 slack and +0.045 ns of hold slack. The worst paths were long routes with no
 logic: from the data register of a group of the display memory to one of its
@@ -1621,7 +1621,7 @@ The 800x600 picture costs about the same resources as 640x480 did (30,114
 slices, 81,630 LUTs, 93,491 registers, and +0.136 ns of setup slack). A run of
 `make nexys4ddr` with the same version (still 640x480) gave +0.009 ns of setup
 slack (in an iterator) and +0.021 ns of hold slack, with 14,790 slices, 42,131
-LUTs and 46,431 registers. Two earlier runs of it stopped with a segmentation
+LUTs, and 46,431 registers. Two earlier runs of it stopped with a segmentation
 fault in Vivado (in the routing and in the `phys_opt_design` after it), which
 also happened once before with `make mega65-r6`; running it again helped.
 

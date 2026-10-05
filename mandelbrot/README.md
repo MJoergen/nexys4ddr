@@ -47,9 +47,9 @@ the board. The switch numbers are the bit numbers of the switch input, i.e.
 
 | Control | Description
 | ------- | -----------
-| `BTNL`, `BTNR`, `BTNU`, `BTND` | Pan the picture left, right, up and down, by one pixel for each update. Panning stops at the edge of the number range (-2 to 2).
+| `BTNL`, `BTNR`, `BTNU`, `BTND` | Pan the picture left, right, up, and down, by one pixel for each update. Panning stops at the edge of the number range (-2 to 2).
 | `BTNC` | Zoom in. With switch 2 on, zoom out instead. The centre of the picture stays fixed, except when zooming out would move an edge of the view beyond -2 or 2; then the view is moved instead. Zooming stops at the smallest pixel size (2^-16), and when the view can not get larger.
-| Switches 0 and 1 | Select the colour palette (switch 1 is the high bit). 0 (both off): the lower 8 bits of the count are the colour (RRRGGGBB), mostly blue and green, and the set is white. 1: rainbow, the hue goes around the colour circle every 16 counts. 2: fire, black, red, orange, yellow and white, with the square root of the count. 3: blue, white, orange and dark brown, with the logarithm of the count. In the palettes 1 to 3 the set is black.
+| Switches 0 and 1 | Select the colour palette (switch 1 is the high bit). 0 (both off): the lower 8 bits of the count are the colour (RRRGGGBB), mostly blue and green, and the set is white. 1: rainbow, the hue goes around the colour circle every 16 counts. 2: fire, black, red, orange, yellow, and white, with the square root of the count. 3: blue, white, orange, and dark brown, with the logarithm of the count. In the palettes 1 to 3 the set is black.
 | Switches 3 to 7 | Not used.
 | `CPU RESET` | Resets the design and returns to the initial view.
 
@@ -66,14 +66,14 @@ pictures), and updated after every picture. The same frame rate is also shown in
 output, in white on black.
 
 ### MEGA65
-The MEGA65 has no buttons, switches or 7-segment display, so the view is
+The MEGA65 has no buttons, switches, or 7-segment display, so the view is
 controlled with a joystick in each port, see
 [`src/mega65_r6.vhd`](src/mega65_r6.vhd). The VGA output is on the VGA
 connector.
 
 | Control | Description
 | ------- | -----------
-| Joystick port 1: left, right, up, down | Pan the picture, like `BTNL`, `BTNR`, `BTNU` and `BTND`.
+| Joystick port 1: left, right, up, down | Pan the picture, like `BTNL`, `BTNR`, `BTNU`, and `BTND`.
 | Joystick port 1: fire | Zoom in, like `BTNC`.
 | Joystick port 2: fire | Zoom out, like `BTNC` with switch 2 on.
 | Reset button | Not used for now, because it is active low on the MEGA65 R3 and active high on the R6. The design is reset after power-on.
@@ -136,7 +136,7 @@ Type `make` to list the supported targets. The most important ones are:
   and generates `build/nexys4ddr/nexys4ddr.bit`. It expects Vivado in
   `/opt/Xilinx/2025.1/Vivado` (the variable `XILINX_DIR`). It takes about 6
   minutes. Vivado is run in `build/nexys4ddr/`, so the log (`vivado.log`), the
-  routed checkpoint (`nexys4ddr.dcp`) and the other files from Vivado are
+  routed checkpoint (`nexys4ddr.dcp`), and the other files from Vivado are
   there too.
 * `make mega65-r6` does the same for the MEGA65 R6, in `build/mega65-r6/`, and
   generates `build/mega65-r6/mega65-r6.bit`. It takes about 13 minutes, see
@@ -162,7 +162,7 @@ Type `make` to list the supported targets. The most important ones are:
 
 ## Simulation
 There are testbenches in [`sim/`](sim) for `dispatcher`, `job`, `iterator`,
-`job_scheduler`, `res_scheduler`, `view`, `vga`, `overlay`, `disp_mem` and
+`job_scheduler`, `res_scheduler`, `view`, `vga`, `overlay`, `disp_mem`, and
 `fps`.
 All of them are self-checking, and stop with an error if the result is wrong.
 They stop by themselves when they are finished.
@@ -203,7 +203,7 @@ files that are in both clock domains are in [`src/`](src).
 | [`src/mega65_r6.vhd`](src/mega65_r6.vhd) | Top level for the MEGA65 R6. The same as `nexys4ddr.vhd`, but with the ports of the MEGA65, more job modules, a larger display memory, and a resolution of 1280x1024.
 | [`src/main/main.vhd`](src/main/main.vhd) | Everything in the MAIN clock domain: view control from buttons and switches, the dispatcher, and the frame rate (shown on the 7-segment display and on the VGA output).
 | [`src/main/view.vhd`](src/main/view.vhd) | View control. Pans and zooms the view, and keeps it inside the range of the number format.
-| [`src/main/fps.vhd`](src/main/fps.vhd), [`src/main/seg.vhd`](src/main/seg.vhd) | Frame rate. `fps` averages the time taken by the pictures, divides the clock frequency by the average and converts the result to decimal, and `seg` multiplexes the digits on the 7-segment display.
+| [`src/main/fps.vhd`](src/main/fps.vhd), [`src/main/seg.vhd`](src/main/seg.vhd) | Frame rate. `fps` averages the time taken by the pictures, divides the clock frequency by the average, and converts the result to decimal, and `seg` multiplexes the digits on the 7-segment display.
 | [`src/vga/vga.vhd`](src/vga/vga.vhd) | Everything in the VGA clock domain: pixel counters, VGA output, and the frame rate overlay.
 | [`src/main/iterator.vhd`](src/main/iterator.vhd) | Iterates the Mandelbrot function for a single point, one iteration in each clock cycle, using two DSPs.
 | [`src/main/job.vhd`](src/main/job.vhd) | A job module. Calculates one job (120 rows of a picture column, or 64 on the MEGA65) at a time, using one iterator.
@@ -218,6 +218,6 @@ files that are in both clock domains are in [`src/`](src).
 | [`font/`](font) | The script that generates `font_pkg.vhd` from the [Spleen](https://github.com/fcambus/spleen) 16x32 font, and the license of the font (BSD 2-Clause, see [`font/LICENSE.spleen`](font/LICENSE.spleen)).
 | [`src/clk_rst.vhd`](src/clk_rst.vhd) | Clock and reset generation: the main clock for the calculation (120 MHz, or 144 MHz on the MEGA65) and the pixel clock for VGA (25 MHz for 640x480, 108 MHz for 1280x1024), each with a synchronous reset.
 | [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a Python model of the iterator count (`iterator_model.py`), a vectorized model of the complete picture (`model.py`), the same bit-accurate model in VHDL (`iterator_model_pkg.vhd`, used by the testbenches), and a script (`cmp_rtl.py`) that compares the output of the testbench `main_tb` with this model.
-| [`nexys4ddr.xdc`](nexys4ddr.xdc), [`mega65-r6.xdc`](mega65-r6.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints for each board, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make nexys4ddr`. The script gets the FPGA part, the top level and the list of source files from the Makefile, so it must be run through `make nexys4ddr` or `make mega65-r6`.
+| [`nexys4ddr.xdc`](nexys4ddr.xdc), [`mega65-r6.xdc`](mega65-r6.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints for each board, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make nexys4ddr`. The script gets the FPGA part, the top level, and the list of source files from the Makefile, so it must be run through `make nexys4ddr` or `make mega65-r6`.
 | [`mandelbrot.xlsx`](mandelbrot.xlsx) | Spreadsheet used during the design. It iterates the example point -1+0.5i from [the iterator section](ALGORITHM.md#iterator) using real numbers.
 | [`ALGORITHM.md`](ALGORITHM.md) | Detailed explanation of the algorithm and the design.

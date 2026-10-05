@@ -3,7 +3,7 @@ XILINX_DIR = /opt/Xilinx/2025.1/Vivado
 # Name of the design. Used for the Vivado script.
 NAME = mandelbrot
 
-# Target boards. Each board has its own FPGA part, top level module and
+# Target boards. Each board has its own FPGA part, top level module, and
 # constraint file (<board>.xdc). The make target <board> generates the
 # bit-file build/<board>/<board>.bit. Vivado is run in build/<board>, so all
 # its files (logs, checkpoint, .Xil, etc.) go there, and the boards can be
@@ -88,7 +88,7 @@ help:
 	@echo "  fpga            Program the Nexys 4 DDR board with build/nexys4ddr/nexys4ddr.bit"
 	@echo "  sim             Simulate all testbenches in parallel using ghdl (logs in build/)"
 	@echo "  run             Simulate a single testbench (TB=<name>) using ghdl, without writing a waveform"
-	@echo "  check           Simulate a single testbench (TB=<name>) using ghdl, write the waveform and show it in gtkwave"
+	@echo "  check           Simulate a single testbench (TB=<name>) using ghdl, write the waveform, and show it in gtkwave"
 	@echo "  clean           Remove generated files"
 	@echo ""
 	@echo "Testbench is selected by TB=<name>, e.g. 'make check TB=iterator'."
@@ -173,7 +173,7 @@ run check:
 
 else
 
-# Analyze, elaborate and simulate the testbench TB. The argument is extra
+# Analyze, elaborate, and simulate the testbench TB. The argument is extra
 # options to the simulation, e.g. --wave=<file>.
 define SIMULATE
 @mkdir -p $(WORKDIR)
