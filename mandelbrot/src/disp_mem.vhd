@@ -131,8 +131,8 @@ architecture rtl of disp_mem is
    -- selected in each group, and the group.
    -- The registers in each group are identical, so the attribute keep
    -- prevents the synthesis tool from merging them.
-   signal rd_addr      : std_logic_vector(G_ADDR_BITS-1 downto 0);
-   signal rd_grp_addr  : blk_addr_vector(C_NUM_GROUPS-1 downto 0);
+   signal rd_addr      : std_logic_vector(G_ADDR_BITS-1 downto 0) := (others => '0');
+   signal rd_grp_addr  : blk_addr_vector(C_NUM_GROUPS-1 downto 0) := (others => (others => '0'));
    signal rd_blk_r     : word_vector(C_NUM_BLOCKS-1 downto 0);
    signal rd_blk_sel_r : blk_sel_vector(C_NUM_GROUPS-1 downto 0) := (others => 0);
    signal rd_sub_r     : sub_vector(C_NUM_GROUPS-1 downto 0) := (others => 0);

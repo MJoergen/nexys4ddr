@@ -69,8 +69,8 @@ architecture structural of vga is
    signal pix_y : std_logic_vector(10 downto 0);
 
    -- The pixel counters for disp and overlay, delayed by one clock cycle
-   signal disp_x : std_logic_vector(10 downto 0);
-   signal disp_y : std_logic_vector(10 downto 0);
+   signal disp_x : std_logic_vector(10 downto 0) := (others => '0');
+   signal disp_y : std_logic_vector(10 downto 0) := (others => '0');
 
    -- The address of the pixel, and the address of its column. Only the lowest
    -- G_ADDR_BITS bits are used. The multiplication by the constant G_COL_STRIDE uses

@@ -132,7 +132,7 @@ architecture rtl of iterator is
    -- High while iterating. Then cnt_r is the number of iterations done, i.e.
    -- x_s and y_s are the values after cnt_r iterations.
    signal busy_r     : std_logic := '0';
-   signal cnt_r      : std_logic_vector( 8 downto 0);
+   signal cnt_r      : std_logic_vector( 8 downto 0) := (others => '0');
    signal done_r     : std_logic := '0';
 
    -- Periodicity detection
