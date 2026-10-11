@@ -19,10 +19,11 @@
 -- leaves saved values equal to their first values: c = 0 leaves 0, which is
 -- z0 of the next point, and c = i leaves -1+i, which is z1 for c = -1+i.
 --
--- Finally, a grid of points over the initial view is compared exactly with the
--- bit-accurate model in iterator_model_pkg.vhd. This checks that the
--- periodicity detection never changes the count, e.g. by stopping when only
--- some of the values repeat.
+-- Finally, some points are compared exactly with the bit-accurate model in
+-- iterator_model_pkg.vhd: six points that escape, but where x alone (or y
+-- alone) repeats an earlier saved value, and a grid of points over the initial
+-- view. This checks that the periodicity detection never changes the count,
+-- e.g. by stopping when only some of the values repeat.
 
 library ieee;
 use ieee.std_logic_1164.all;

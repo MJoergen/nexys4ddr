@@ -18,7 +18,9 @@
 -- The second one averages (G_AVG_SHIFT = 3). It gives it random picture
 -- times, and checks the frame rate after each one against a model of the
 -- average: the first time sets it, and each later time adds 1/8 of the
--- difference.
+-- difference. Every tenth time it also gives a second time during the
+-- calculation, which must be included in the average (i.e. in the next
+-- frame rate), but must not start a new calculation.
 --
 -- The refresh of the display is made much faster than on the board, so a
 -- full refresh cycle is 64 clock cycles.
@@ -38,7 +40,7 @@ architecture simulation of fps_tb is
    constant C_REFRESH_BITS : natural := 6;
    constant C_MAX          : natural := 99_999_999;
 
-   -- Longer than a calculation (58 clock cycles)
+   -- Longer than a calculation (59 clock cycles)
    constant C_CALC_CYCLES  : natural := 70;
 
    constant C_AVG_SHIFT    : natural := 3;
@@ -283,9 +285,23 @@ begin
       variable seed2  : positive := 4;
       variable r      : real;
       variable t      : natural;
+      variable t2     : natural;
       variable avg    : natural;  -- With C_AVG_SHIFT fractional bits
-      variable diff   : integer;
+      variable exp_v  : natural;
       variable seen_v : boolean;
+
+      -- The model of the average. The difference is divided by C_ONE,
+      -- rounded down (also when it is negative).
+      procedure add(t_new : natural) is
+         variable diff : integer;
+      begin
+         diff := t_new * C_ONE - avg;
+         if diff >= 0 then
+            avg := avg + diff / C_ONE;
+         else
+            avg := avg - (-diff + C_ONE - 1) / C_ONE;
+         end if;
+      end procedure add;
    begin
       wait until rst = '0';
       wait until rising_edge(clk);
@@ -299,18 +315,12 @@ begin
             t := 30_000 + integer(r * 500.0);
          end if;
 
-         -- The model of the average. The difference is divided by C_ONE,
-         -- rounded down (also when it is negative).
          if i = 0 then
             avg := t * C_ONE;
          else
-            diff := t * C_ONE - avg;
-            if diff >= 0 then
-               avg := avg + diff / C_ONE;
-            else
-               avg := avg - (-diff + C_ONE - 1) / C_ONE;
-            end if;
+            add(t);
          end if;
+         exp_v := expected_fps(avg / C_ONE);
 
          avg_time <= std_logic_vector(to_unsigned(t, C_TIME_BITS));
          avg_vld  <= '1';
@@ -320,14 +330,25 @@ begin
 
          seen_v := false;
          for c in 1 to C_CALC_CYCLES loop
+            -- A second time during the calculation
+            if i mod 10 = 9 and c = 10 then
+               t2 := 60_000 + integer(r * 1000.0);
+               add(t2);
+               avg_time <= std_logic_vector(to_unsigned(t2, C_TIME_BITS));
+               avg_vld  <= '1';
+            end if;
             wait until rising_edge(clk);
+            avg_vld  <= '0';
+            avg_time <= (others => 'X');
             if avg_out = '1' then
+               assert not seen_v
+                  report "Second frame rate for one calculation" severity error;
                seen_v := true;
-               assert bcd_value(avg_dig) = expected_fps(avg / C_ONE)
+               assert bcd_value(avg_dig) = exp_v
                   report "Wrong average frame rate " &
                          integer'image(bcd_value(avg_dig)) & " for time " &
                          integer'image(t) & ", expected " &
-                         integer'image(expected_fps(avg / C_ONE))
+                         integer'image(exp_v)
                   severity error;
             end if;
          end loop;

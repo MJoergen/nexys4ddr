@@ -14,9 +14,9 @@
 --
 -- The testbench is not self-checking. Instead the output is compared with the
 -- bit-accurate model using the script cmp_rtl.py. A complete picture of the
--- Nexys 4 DDR (1.44 ms of simulated time) takes about 40 minutes to simulate,
--- and writes a waveform of a few GB, but a partial picture can be compared
--- too, e.g.
+-- Nexys 4 DDR (1.44 ms of simulated time) takes about 40 minutes to simulate
+-- (and with make check TB=main writes a waveform of a few GB), but a partial
+-- picture can be compared too, e.g.
 --   make run TB=main STOP_TIME=200us
 --   sim/cmp_rtl.py
 

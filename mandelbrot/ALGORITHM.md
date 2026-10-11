@@ -248,9 +248,9 @@ can be compared too:
 make run TB=main STOP_TIME=200us
 sim/cmp_rtl.py
 ```
-The 200 us of simulated time (about 5 minutes, and a waveform file of about
-370 MB) gives about 50000 pixels, from all 120 job modules. This testbench is
-not part of `make sim`.
+The 200 us of simulated time (about 5 minutes) gives about 50000 pixels, from
+all 120 job modules. With `make check TB=main` it also writes a waveform file
+of about 370 MB. This testbench is not part of `make sim`.
 
 The iterator calculates one iteration in each clock cycle, using two DSPs
 (see [Multiplier](#multiplier)). The registers P of the two DSPs hold x and
@@ -847,8 +847,8 @@ steps are done one bit per clock cycle: a restoring division, with one
 subtraction for each of the 27 bits of the quotient (28 on the MEGA65), and
 then the double dabble algorithm to convert the quotient to 8 decimal digits
 (for each bit, 3 is added to each digit which is 5 or more, and then
-everything is shifted left by one bit). This takes 56 clock cycles (58 on the
-MEGA65), much less than a picture, and the
+everything is shifted left by one bit). Together with the update of the average
+this takes 57 clock cycles (59 on the MEGA65), much less than a picture, and the
 widest addition is 29 bits. A frame rate above 99999999 would show as
 99999999, but that would need a picture of fewer than 2 clock cycles. The
 counter is 27 bits wide, so it wraps around after 2^27 clock cycles (1.12 s
@@ -1137,7 +1137,8 @@ simulation took about an hour.
 with a single DSP, which took three clock cycles for each iteration. The
 current iterator uses two DSPs and takes one clock cycle for each iteration
 (see [Iterator](#iterator)), so a pixel takes n+7 clock cycles in the model
-instead of 3n+7, where n is the number of iterations done when the iterator
+(counted from the selection of the previous result, see the end of this
+section) instead of 3n+7, where n is the number of iterations done when the iterator
 stops. It uses about half the logic of the old one, so the job modules are
 now limited by the number of DSPs: 120 job modules on the Nexys 4 DDR (240
 DSPs), and 368 on the MEGA65 (736 of the 740 DSPs). Both boards use four

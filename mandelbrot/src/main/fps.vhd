@@ -14,9 +14,10 @@
 -- down to an integer. If it does not fit in G_DIGITS digits (or the average
 -- is zero), the largest value that fits (all nines) is shown instead.
 --
--- A new value is calculated after each pulse on valid_i. The calculation
--- takes 2*C_BITS+2 clock cycles (56 for the MAIN clock of the Nexys 4 DDR, 58
--- on the MEGA65). Pulses on valid_i during a calculation are included in the
+-- A new value is calculated after each pulse on valid_i. It takes 2*C_BITS+3
+-- clock cycles from valid_i to valid_o (57 for the MAIN clock of the Nexys 4
+-- DDR, 59 on the MEGA65): one to update the average, and 2*C_BITS+2 for the
+-- calculation. Pulses on valid_i during a calculation are included in the
 -- average, but do not start a new calculation. The calculation is done one bit
 -- per clock cycle, because a single-cycle division is far too slow for the
 -- MAIN clock:
