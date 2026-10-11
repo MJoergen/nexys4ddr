@@ -3,7 +3,7 @@
 -- modes (see video_pkg.vhd), each with its own instance, and the address
 -- layout of the board that uses it: 640x480 with the column followed by the
 -- row in 19 bits (as on the Nexys 4 DDR), and 1280x1024 with the column
--- followed by the row in 21 bits (as on the MEGA65 R6). A third instance
+-- followed by the row in 21 bits (as on the MEGA65). A third instance
 -- checks 640x480 with 480 addresses per column, i.e. an address distance
 -- between columns which is not a power of two. Each instance has two phases.
 --

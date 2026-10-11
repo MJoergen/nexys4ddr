@@ -1,6 +1,6 @@
 -- This package defines the VGA video modes, i.e. the screen resolution and the
 -- timing of the VGA output signals. Each board selects a video mode in its top
--- level module (nexys4ddr.vhd and mega65_r6.vhd), together with the matching
+-- level module (nexys4ddr.vhd and mega65.vhd), together with the matching
 -- VGA clock (see clk_rst.vhd).
 --
 -- The timing is from the "VESA MONITOR TIMING STANDARD" (DMT), version 1.0

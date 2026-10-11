@@ -1,11 +1,12 @@
 # This is a tcl command script for the Vivado tool chain.
 # The board name, the FPGA part, the top level module, and the VHDL source
 # files are given as arguments (-tclargs), so this information is only in the
-# Makefile. Use "make nexys4ddr" or "make mega65-r6". The Makefile runs Vivado
-# in build/<board>, so the output files (<board>.dcp, <board>.bit, logs, etc.)
-# are written there. The constraint file (<board>.xdc) is next to this script.
+# Makefile. Use "make nexys4ddr", "make mega65-r3", or "make mega65-r6". The
+# Makefile runs Vivado in build/<board>, so the output files (<board>.dcp,
+# <board>.bit, logs, etc.) are written there. The constraint file
+# (<board>.xdc) is next to this script.
 if {[llength $argv] < 4} {
-   puts "ERROR: No board and source files given. Use \"make nexys4ddr\" or \"make mega65-r6\"."
+   puts "ERROR: No board and source files given. Use \"make nexys4ddr\", \"make mega65-r3\", or \"make mega65-r6\"."
    exit 1
 }
 lassign $argv board part top

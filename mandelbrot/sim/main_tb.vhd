@@ -9,7 +9,7 @@
 -- write, the rows in a job, the size of the picture, the address distance
 -- between two picture columns, and the bits of the address, by default as on
 -- the Nexys 4 DDR (nexys4ddr.vhd). They can be set with GENERICS, e.g. as on
--- the MEGA65 R6 (mega65_r6.vhd):
+-- the MEGA65 (mega65.vhd):
 --   GENERICS="G_NUM_ITERATORS=368 G_PIXELS=4 G_ROWS_IN_JOB=64 G_NUM_COLS=1280 G_NUM_ROWS=1024 G_COL_STRIDE=1024 G_ADDR_BITS=21"
 --
 -- The testbench is not self-checking. Instead the output is compared with the

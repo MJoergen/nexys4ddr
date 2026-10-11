@@ -14,6 +14,21 @@ set_property -dict {PACKAGE_PIN F13  IOSTANDARD LVCMOS33} [get_ports {fa_right_n
 set_property -dict {PACKAGE_PIN C14  IOSTANDARD LVCMOS33} [get_ports {fa_up_n_i}];              # FA_UP
 set_property -dict {PACKAGE_PIN F15  IOSTANDARD LVCMOS33} [get_ports {fb_fire_n_i}];            # FB_FIRE
 
+# Joystick outputs, which pull the joystick lines low (not on the R3)
+set_property -dict {PACKAGE_PIN J17  IOSTANDARD LVCMOS33} [get_ports {fa_fire_n_o}];            # DBG0 = FA_FIRE_O
+set_property -dict {PACKAGE_PIN G16  IOSTANDARD LVCMOS33} [get_ports {fa_up_n_o}];              # DBG1 = FA_UP_O
+set_property -dict {PACKAGE_PIN K13  IOSTANDARD LVCMOS33} [get_ports {fa_left_n_o}];            # DBG2 = FA_LEFT_O
+set_property -dict {PACKAGE_PIN K14  IOSTANDARD LVCMOS33} [get_ports {fa_down_n_o}];            # DBG3 = FA_DOWN_O
+set_property -dict {PACKAGE_PIN N20  IOSTANDARD LVCMOS33} [get_ports {fb_up_n_o}];              # DBG4 = FB_UP_O
+set_property -dict {PACKAGE_PIN L16  IOSTANDARD LVCMOS33} [get_ports {fa_right_n_o}];           # DBG5 = FA_RIGHT_O
+set_property -dict {PACKAGE_PIN M18  IOSTANDARD LVCMOS33} [get_ports {fb_down_n_o}];            # DBG6 = FB_DOWN_O
+set_property -dict {PACKAGE_PIN N19  IOSTANDARD LVCMOS33} [get_ports {fb_fire_n_o}];            # DBG7 = FB_FIRE_O
+set_property -dict {PACKAGE_PIN E18  IOSTANDARD LVCMOS33} [get_ports {fb_right_n_o}];           # DBG8 = FB_RIGHT_O
+set_property -dict {PACKAGE_PIN M17  IOSTANDARD LVCMOS33} [get_ports {fb_left_n_o}];            # DBG9 = FB_LEFT_O
+
+# Joystick power supply (not on the R3)
+set_property -dict {PACKAGE_PIN D19  IOSTANDARD LVCMOS33} [get_ports {joystick_5v_disable_o}];  # EN_5V_JOY_N
+
 # VGA via VDAC. U3 = ADV7125BCPZ170
 set_property -dict {PACKAGE_PIN W11  IOSTANDARD LVCMOS33} [get_ports {vdac_blank_n_o}];         # VDAC_BLANK_N
 set_property -dict {PACKAGE_PIN AA9  IOSTANDARD LVCMOS33} [get_ports {vdac_clk_o}];             # VDAC_CLK
@@ -50,11 +65,11 @@ set_property -dict {PACKAGE_PIN V14  IOSTANDARD LVCMOS33} [get_ports {vga_vs_o}]
 create_clock -name sys_clk -period 10.00 [get_ports {clk_i}];                          # 100 MHz
 
 # The frame rate is moved from the MAIN clock domain to the VGA clock domain
-# with a toggle signal, which is synchronized, see mega65_r6.vhd. These are the
+# with a toggle signal, which is synchronized, see mega65.vhd. These are the
 # only paths from the MAIN clock to the VGA clock. Their delay only has to be
 # shorter than the synchronizer (two VGA clock cycles), so the relation between
 # the two clocks is ignored.
-set_max_delay -datapath_only -from [get_clocks -of_objects [get_pins i_clk_rst/mmcm_adv_inst/CLKOUT0]] -to [get_clocks -of_objects [get_pins i_clk_rst/mmcm_adv_inst/CLKOUT1]] 10.000
+set_max_delay -datapath_only -from [get_clocks -of_objects [get_pins i_mega65/i_clk_rst/mmcm_adv_inst/CLKOUT0]] -to [get_clocks -of_objects [get_pins i_mega65/i_clk_rst/mmcm_adv_inst/CLKOUT1]] 10.000
 
 # Configuration Bank Voltage Select
 set_property CFGBVS VCCO [current_design]

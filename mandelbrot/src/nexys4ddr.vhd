@@ -57,7 +57,7 @@ architecture structural of nexys4ddr is
    constant C_NUM_ITERATORS : positive := 120;
 
    -- The number of pixels in each write to the display memory. Writing more
-   -- than one pixel at a time makes the picture faster (see mega65_r6.vhd).
+   -- than one pixel at a time makes the picture faster (see mega65.vhd).
    -- With four pixels the model estimates 1.20 ms for the initial picture,
    -- against 2.73 ms with one.
    constant C_PIXELS        : positive := 4;

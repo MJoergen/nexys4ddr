@@ -3,25 +3,33 @@ XILINX_DIR = /opt/Xilinx/2025.1/Vivado
 # Name of the design. Used for the Vivado script.
 NAME = mandelbrot
 
-# Target boards. Each board has its own FPGA part, top level module, and
-# constraint file (<board>.xdc). The make target <board> generates the
-# bit-file build/<board>/<board>.bit. Vivado is run in build/<board>, so all
-# its files (logs, checkpoint, .Xil, etc.) go there, and the boards can be
-# built at the same time, e.g. "make -j2 nexys4ddr mega65-r6".
-BOARDS = nexys4ddr mega65-r6
+# Target boards. Each board has its own FPGA part, top level module, source
+# files, and constraint file (<board>.xdc). The make target <board> generates
+# the bit-file build/<board>/<board>.bit. Vivado is run in build/<board>, so
+# all its files (logs, checkpoint, .Xil, etc.) go there, and the boards can be
+# built at the same time, e.g. "make -j3 nexys4ddr mega65-r3 mega65-r6".
+BOARDS = nexys4ddr mega65-r3 mega65-r6
 BITS   = $(foreach b,$(BOARDS),build/$(b)/$(b).bit)
 
 nexys4ddr_PART = xc7a100tcsg324-1
 nexys4ddr_TOP  = nexys4ddr
 nexys4ddr_SRC  = src/nexys4ddr.vhd
 
+# The MEGA65 board revisions R3 and R6 have the same FPGA, and the same
+# design (src/mega65.vhd). Only the top level modules are different, because
+# some of the pins are different. The bit-file of one revision must not be
+# used on the other one.
+mega65-r3_PART = xc7a200tfbg484-2
+mega65-r3_TOP  = mega65_r3
+mega65-r3_SRC  = src/mega65.vhd src/mega65_r3.vhd
+
 mega65-r6_PART = xc7a200tfbg484-2
 mega65-r6_TOP  = mega65_r6
-mega65-r6_SRC  = src/mega65_r6.vhd
+mega65-r6_SRC  = src/mega65.vhd src/mega65_r6.vhd
 
 # List of source files common to all boards. This is the only list: it is
-# also given to the Vivado script (mandelbrot.tcl), followed by the top level
-# module of the board.
+# also given to the Vivado script (mandelbrot.tcl), followed by the source
+# files of the board.
 SRC  = src/main/iterator.vhd
 SRC += src/main/job.vhd
 SRC += src/main/job_scheduler.vhd
@@ -62,8 +70,8 @@ GENERICS =
 STOP_TIME = 6ms
 
 TB_EXE = $(TB)_tb
-# The clock module uses Xilinx primitives, and is not simulated. The top
-# levels (<board>_SRC) are not simulated either. The bit-accurate model of the
+# The clock module uses Xilinx primitives, and is not simulated. The source
+# files of the boards (<board>_SRC) are not simulated either. The bit-accurate model of the
 # iterator (iterator_model_pkg.vhd) is used by several testbenches.
 TB_SRC = $(filter-out src/clk_rst.vhd,$(SRC)) sim/iterator_model_pkg.vhd sim/$(TB)_tb.vhd
 WAVE = sim/$(TB).ghw
@@ -87,6 +95,7 @@ help:
 	@echo "Targets:"
 	@echo "  help            Show this help text (default)"
 	@echo "  nexys4ddr       Synthesize and implement the design for the Nexys 4 DDR using Vivado (build/nexys4ddr/)"
+	@echo "  mega65-r3       Synthesize and implement the design for the MEGA65 R3 using Vivado (build/mega65-r3/)"
 	@echo "  mega65-r6       Synthesize and implement the design for the MEGA65 R6 using Vivado (build/mega65-r6/)"
 	@echo "  fpga            Program the Nexys 4 DDR board with build/nexys4ddr/nexys4ddr.bit"
 	@echo "  sim             Simulate all testbenches in parallel using ghdl (logs in build/)"

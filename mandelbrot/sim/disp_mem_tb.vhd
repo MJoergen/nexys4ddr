@@ -17,7 +17,7 @@
 -- This is done for these configurations, each with its own instance:
 -- * 128 blocks (2^19 pixels, as on the Nexys 4 DDR), with one and four pixels
 --   in each word, and a register for each block.
--- * 320 blocks with 21 bits of address (as on the MEGA65 R6), with four
+-- * 320 blocks with 21 bits of address (as on the MEGA65), with four
 --   pixels in each word, and no register for each block.
 -- * 8 blocks with 21 bits of address, with four pixels in each word, no
 --   register for each block, and the reset. The reset takes G_NUM_BLOCKS*4096/G_PIXELS clock cycles, so it is

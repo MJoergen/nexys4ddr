@@ -4,8 +4,9 @@ in VHDL on the [Nexys 4 DDR](https://digilent.com/reference/programmable-logic/n
 board, which has a Xilinx Artix-7 XC7A100T FPGA. The
 picture (640x480) is shown on the VGA output, and you can pan and zoom using the
 buttons on the board. The same design also runs on the
-[MEGA65](https://mega65.org/) (board revision R6), which has a Xilinx Artix-7
-XC7A200T FPGA, and shows the picture in 1280x1024, see [MEGA65](#mega65).
+[MEGA65](https://mega65.org/) (board revisions R3 and R6), which has a Xilinx
+Artix-7 XC7A200T FPGA, and shows the picture in 1280x1024, see
+[MEGA65](#mega65).
 
 All 240 DSPs of the FPGA are used in parallel for the calculation, and the
 picture is stored in block RAM. Generating a complete picture takes about 1.2 ms
@@ -68,15 +69,24 @@ output, in white on black.
 ### MEGA65
 The MEGA65 has no buttons, switches, or 7-segment display, so the view is
 controlled with a joystick in each port, see
-[`src/mega65_r6.vhd`](src/mega65_r6.vhd). The VGA output is on the VGA
+[`src/mega65.vhd`](src/mega65.vhd). The VGA output is on the VGA
 connector.
+
+The board revisions R3 and R6 have the same FPGA, and the design is the
+same, but some of the pins are different, so each revision has its own top
+level module and bit-file (`make mega65-r3` and `make mega65-r6`), and the
+bit-file of one revision must not be used on the other one. The R6 can pull
+each joystick line low from the FPGA, and the design for the R6 must switch
+this off, otherwise the joystick lines can be read as pressed, see
+[`src/mega65_r6.vhd`](src/mega65_r6.vhd). The R3 does not have these
+outputs, and the pins are used for other things.
 
 | Control | Description
 | ------- | -----------
 | Joystick port 1: left, right, up, down | Pan the picture, like `BTNL`, `BTNR`, `BTNU`, and `BTND`.
 | Joystick port 1: fire | Zoom in, like `BTNC`.
 | Joystick port 2: fire | Zoom out, like `BTNC` with switch 2 on.
-| Reset button | Not used for now, because it is active low on the MEGA65 R3 and active high on the R6. The design is reset after power-on.
+| Reset button | Resets the design and returns to the initial view, like `CPU RESET`. Only on the R6: on the R3 the reset button is read by the MAX10 (a small FPGA on the board), not by the XC7A200T, so the design is only reset after power-on.
 
 The colour palette is always palette 0, and the frame rate is only shown on the
 VGA output.
@@ -90,43 +100,46 @@ the row). Most monitors accept 1280x1024; a widescreen monitor shows it with
 black bars or stretched.
 
 The XC7A200T is larger, so the design uses 368 job modules (736 of the 740
-DSPs) instead of 120, see [`src/mega65_r6.vhd`](src/mega65_r6.vhd). The main
+DSPs) instead of 120, see [`src/mega65.vhd`](src/mega65.vhd). The main
 clock is 144 MHz. Both boards write four pixels (consecutive rows of a
 picture column) to the display memory at a time. The display memory takes
 one write per clock cycle, so with one pixel in each write the picture would
 take at least 1280x1024 clock cycles (9.10 ms), whatever the number of job
 modules. With four pixels in each write the picture takes about 2.49 ms,
-i.e. 402 pictures per second (measured on the board, the same as the model),
+i.e. 402 pictures per second (measured on an R3, the same as the model),
 close to the limit
 of the display memory (2.28 ms). If every pixel needed the maximum count, it
 would take 13 ms (76 pictures per second), still above the 60 Hz of the VGA
-output, see [MEGA65 R6](ALGORITHM.md#mega65-r6).
+output, see [MEGA65](ALGORITHM.md#mega65).
 
 ## Implementation results
 The design is built with Vivado 2025.1, and meets timing on both boards.
 
 The resource usage is:
 
-| Resource           | Nexys 4 DDR (XC7A100T-1) | Available | MEGA65 R6 (XC7A200T-2) | Available
+| Resource           | Nexys 4 DDR (XC7A100T-1) | Available | MEGA65 (XC7A200T-2)    | Available
 | ------------------ | ------------------------ | --------- | ---------------------- | ---------
 | DSP48E1            | 240 (100%)               | 240       | 736 (99%)              | 740
 | Block RAM (RAMB36) | 128.5 (95%)              | 135       | 321 (88%)              | 365
-| Slices             | 9,193 (58%)              | 15,850    | 21,548 (64%)           | 33,650
-| LUTs               | 16,357 (26%)             | 63,400    | 46,792 (35%)           | 134,600
-| Registers          | 26,433 (21%)             | 126,800   | 58,421 (22%)           | 269,200
+| Slices             | 9,193 (58%)              | 15,850    | 21,703 (64%)           | 33,650
+| LUTs               | 16,357 (26%)             | 63,400    | 46,936 (35%)           | 134,600
+| Registers          | 26,433 (21%)             | 126,800   | 58,480 (22%)           | 269,200
 
 The performance and timing are:
 
-|                 | Nexys 4 DDR        | MEGA65 R6
+|                 | Nexys 4 DDR        | MEGA65
 | --------------- | ------------------ | --------------
 | Resolution      | 640x480            | 1280x1024
 | Clock frequency | 120.00 MHz         | 144.00 MHz
 | Initial FPS     | 832-834 (measured) | 402 (measured)
 | Worst-case FPS  | 87 (estimated)     | 76 (estimated)
-| Setup slack     | +0.032 ns          | +0.002 ns
-| Hold slack      | +0.016 ns          | +0.024 ns
+| Setup slack     | +0.032 ns          | +0.082 ns
+| Hold slack      | +0.016 ns          | +0.052 ns
 
-See [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
+The numbers for the MEGA65 are from the build for the R6. The build for the R3
+is almost the same (21,596 slices, +0.036 ns setup slack, and +0.024 ns hold
+slack). See
+[Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details.
 
 ## Running
@@ -138,11 +151,12 @@ Type `make` to list the supported targets. The most important ones are:
   minutes. Vivado is run in `build/nexys4ddr/`, so the log (`vivado.log`), the
   routed checkpoint (`nexys4ddr.dcp`), and the other files from Vivado are
   there too.
-* `make mega65-r6` does the same for the MEGA65 R6, in `build/mega65-r6/`, and
-  generates `build/mega65-r6/mega65-r6.bit`. It takes about 13 minutes, see
-  [MEGA65 R6](ALGORITHM.md#mega65-r6). Because each board has its own
-  directory, both can be built at the same time with
-  `make -j2 nexys4ddr mega65-r6`.
+* `make mega65-r3` and `make mega65-r6` do the same for the MEGA65 R3 and R6,
+  in `build/mega65-r3/` and `build/mega65-r6/`, and generate
+  `build/mega65-r3/mega65-r3.bit` and `build/mega65-r6/mega65-r6.bit`. Each
+  takes about 13 minutes, see [MEGA65](ALGORITHM.md#mega65). Because each
+  board has its own directory, they can all be built at the same time with
+  `make -j3 nexys4ddr mega65-r3 mega65-r6`.
 * `make fpga` programs the Nexys 4 DDR board with `build/nexys4ddr/nexys4ddr.bit`, using `djtgcfg` from
   Digilent Adept.
 * `make sim` runs all the testbenches in parallel, without opening the
@@ -193,10 +207,10 @@ The simulation does not need any Xilinx libraries. The DSPs in the iterators
 are inferred by Vivado from plain VHDL, see [Multiplier](ALGORITHM.md#multiplier).
 
 The clock and reset module (`src/clk_rst.vhd`) uses Xilinx primitives (the
-MMCM and the clock buffers), and so does the MEGA65 top level
-(`src/mega65_r6.vhd`, the clock of the video DAC). They are not simulated, and
-neither is the Nexys 4 DDR top level (`src/nexys4ddr.vhd`), which instantiates
-`clk_rst`.
+MMCM and the clock buffers), and so does the design of the MEGA65
+(`src/mega65.vhd`, the clock of the video DAC). They are not simulated, and
+neither are the top levels (`src/nexys4ddr.vhd`, `src/mega65_r3.vhd`, and
+`src/mega65_r6.vhd`), which instantiate them.
 
 ## Formal verification
 There are formal proofs in [`formal/`](formal) for `res_scheduler`,
@@ -248,7 +262,8 @@ files that are in both clock domains are in [`src/`](src).
 | File             | Description
 | ---------------- | -----------
 | [`src/nexys4ddr.vhd`](src/nexys4ddr.vhd) | Top level. The ports are mapped directly to pins on the FPGA. Instantiates the clock and reset generation, the display memory, and the two modules below, and moves the frame rate from the MAIN clock domain to the VGA clock domain.
-| [`src/mega65_r6.vhd`](src/mega65_r6.vhd) | Top level for the MEGA65 R6. The same as `nexys4ddr.vhd`, but with the ports of the MEGA65, more job modules, a larger display memory, and a resolution of 1280x1024.
+| [`src/mega65.vhd`](src/mega65.vhd) | The design for the MEGA65. The same as `nexys4ddr.vhd`, but with the ports of the MEGA65, more job modules, a larger display memory, and a resolution of 1280x1024. Used by the two top levels below.
+| [`src/mega65_r3.vhd`](src/mega65_r3.vhd), [`src/mega65_r6.vhd`](src/mega65_r6.vhd) | Top levels for the MEGA65 R3 and R6. They connect `mega65.vhd` to the pins of each board revision. The R6 also switches off the outputs that pull the joystick lines low, and switches on the power of the joysticks and of the video DAC.
 | [`src/main/main.vhd`](src/main/main.vhd) | Everything in the MAIN clock domain: view control from buttons and switches, the dispatcher, and the frame rate (shown on the 7-segment display and on the VGA output).
 | [`src/main/view.vhd`](src/main/view.vhd) | View control. Pans and zooms the view, and keeps it inside the range of the number format.
 | [`src/main/fps.vhd`](src/main/fps.vhd), [`src/main/seg.vhd`](src/main/seg.vhd) | Frame rate. `fps` averages the time taken by the pictures, divides the clock frequency by the average, and converts the result to decimal, and `seg` multiplexes the digits on the 7-segment display.
@@ -270,6 +285,6 @@ files that are in both clock domains are in [`src/`](src).
 | [`src/clk_rst.vhd`](src/clk_rst.vhd) | Clock and reset generation: the main clock for the calculation (120 MHz, or 144 MHz on the MEGA65) and the pixel clock for VGA (25 MHz for 640x480, 108 MHz for 1280x1024), each with a synchronous reset.
 | [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a Python model of the iterator count (`iterator_model.py`), a vectorized model of the complete picture (`model.py`), the same bit-accurate model in VHDL (`iterator_model_pkg.vhd`, used by the testbenches), and a script (`cmp_rtl.py`) that compares the output of the testbench `main_tb` with this model.
 | [`formal/`](formal) | Formal verification with [SymbiYosys](https://github.com/YosysHQ/sby): the properties of each module (`<name>.psl`), the tasks (`<name>.sby`), and the iterator stub used for `job`, see [Formal verification](#formal-verification).
-| [`nexys4ddr.xdc`](nexys4ddr.xdc), [`mega65-r6.xdc`](mega65-r6.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints for each board, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make nexys4ddr`. The script gets the FPGA part, the top level, and the list of source files from the Makefile, so it must be run through `make nexys4ddr` or `make mega65-r6`.
+| [`nexys4ddr.xdc`](nexys4ddr.xdc), [`mega65-r3.xdc`](mega65-r3.xdc), [`mega65-r6.xdc`](mega65-r6.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints for each board, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make nexys4ddr`. The script gets the FPGA part, the top level, and the list of source files from the Makefile, so it must be run through `make nexys4ddr`, `make mega65-r3`, or `make mega65-r6`.
 | [`mandelbrot.xlsx`](mandelbrot.xlsx) | Spreadsheet used during the design. It iterates the example point -1+0.5i from [the iterator section](ALGORITHM.md#iterator) using real numbers.
 | [`ALGORITHM.md`](ALGORITHM.md) | Detailed explanation of the algorithm and the design.

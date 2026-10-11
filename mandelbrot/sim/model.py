@@ -12,7 +12,7 @@
 # view (640x480, as on the Nexys 4 DDR), and prints how many pixels differ. It
 # also estimates the time it takes the design to calculate the picture, and
 # the time the job modules wait for their results to be accepted, see
-# picture_cycles(), and the time for the initial view on the MEGA65 R6
+# picture_cycles(), and the time for the initial view on the MEGA65
 # (1280x1024). For the times, hw_stop() follows the periodicity detection of
 # the iterator, which stops the iteration early for most points in the set, and
 # checks that it gives the same count as hw_count().
@@ -48,7 +48,7 @@ ROWS_IN_JOB = 120    # Must match C_ROWS_IN_JOB in nexys4ddr.vhd
 NUM_ITERATORS = 120  # Must match C_NUM_ITERATORS in nexys4ddr.vhd
 PIXELS = 4           # Must match C_PIXELS in nexys4ddr.vhd
 GROUP_SIZE = 16      # Must match G_GROUP_SIZE in dispatcher.vhd
-# The same for the MEGA65 R6, see mega65_r6.vhd
+# The same for the MEGA65, see mega65.vhd
 MEGA65_NUM_COLS = 1280
 MEGA65_NUM_ROWS = 1024
 MEGA65_ROWS_IN_JOB = 64
@@ -372,7 +372,7 @@ def main() -> None:
     cycles, waiting = picture_cycles(stop, MEGA65_NUM_ITERATORS,
                                      rows_in_job=MEGA65_ROWS_IN_JOB,
                                      pixels=MEGA65_PIXELS)
-    print(f"On the MEGA65 R6 ({MEGA65_NUM_COLS}x{MEGA65_NUM_ROWS}, "
+    print(f"On the MEGA65 ({MEGA65_NUM_COLS}x{MEGA65_NUM_ROWS}, "
           f"{MEGA65_NUM_ITERATORS} job modules, {MEGA65_PIXELS} pixels in "
           f"each write): {cycles} clock cycles, i.e. "
           f"{cycles / MEGA65_MAIN_CLOCK_KHZ:.2f} ms at "
