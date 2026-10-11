@@ -13,6 +13,8 @@
 -- * Writes to addresses outside the memory (when it has fewer blocks than the
 --   address allows) are ignored, i.e. they do not change any pixel.
 -- * The reset fills the whole memory with 0x055, and then writes work again.
+--   wr_busy_o is high for exactly the time this takes, and the writes start
+--   right after it goes low.
 --
 -- This is done for these configurations, each with its own instance:
 -- * 128 blocks (2^19 pixels, as on the Nexys 4 DDR), with one and four pixels
@@ -109,6 +111,7 @@ begin
       signal wr_addr    : std_logic_vector(C_ADDR_BITS-1 downto 0) := (others => '0');
       signal wr_data    : std_logic_vector(9*C_PIX-1 downto 0) := (others => '0');
       signal wr_en      : std_logic := '0';
+      signal wr_busy    : std_logic;
       signal rd_addr    : std_logic_vector(C_ADDR_BITS-1 downto 0) := (others => '0');
       signal rd_data    : std_logic_vector( 8 downto 0);
       signal write_done : boolean := false;
@@ -156,19 +159,31 @@ begin
             wr_en   <= en;
          end procedure write;
 
+         variable busy_cycles : natural;
+
       begin
          wait for 100 ns;
 
          -- The reset fills the memory. Writes are ignored while it is in
-         -- progress, so wait for it to finish.
+         -- progress, i.e. while wr_busy is high, so wait for that. It is high
+         -- from the rising edge where the reset is seen, for one clock cycle
+         -- for each word of the memory. The first write below comes in the
+         -- clock cycle after it goes low.
          if C_RESET then
             wait until rising_edge(wr_clk);
             wr_rst <= '1';
             wait until rising_edge(wr_clk);
             wr_rst <= '0';
-            for t in 1 to C_NUM_BLOCKS*C_WORDS + 5 loop
+            busy_cycles := 0;
+            loop
                wait until rising_edge(wr_clk);
+               exit when wr_busy = '0';
+               busy_cycles := busy_cycles + 1;
             end loop;
+            assert busy_cycles = C_NUM_BLOCKS*C_WORDS
+               report "wr_busy_o was high for " & integer'image(busy_cycles) &
+                      " clock cycles, expected " & integer'image(C_NUM_BLOCKS*C_WORDS)
+               severity error;
          end if;
 
          -- A wrong value, to be overwritten. Consecutive writes in the same
@@ -278,6 +293,7 @@ begin
             wr_addr_i => wr_addr,
             wr_data_i => wr_data,
             wr_en_i   => wr_en,
+            wr_busy_o => wr_busy,
             rd_clk_i  => rd_clk,
             rd_rst_i  => '0',
             rd_addr_i => rd_addr,

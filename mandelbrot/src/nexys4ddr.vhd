@@ -3,8 +3,9 @@
 --
 -- The design calculates the Mandelbrot set, and shows it on the VGA output
 -- (640x480 @ 60 Hz). The picture is calculated by the dispatcher and stored in
--- the display memory. As soon as one picture is finished, the calculation of
--- the next picture is started, so the picture is recalculated continuously.
+-- the display memory. A new picture is only calculated when the view changes
+-- (see main.vhd), so the design uses little power when the view is not
+-- changed.
 --
 -- The design is split into two modules, one for each clock domain: main.vhd
 -- (MAIN clock) and vga.vhd (VGA clock). The two domains communicate through
@@ -108,6 +109,7 @@ architecture structural of nexys4ddr is
    signal wr_addr        : std_logic_vector(C_ADDR_BITS-1 downto 0);
    signal wr_data        : std_logic_vector(9*C_PIXELS-1 downto 0);
    signal wr_en          : std_logic;
+   signal wr_busy        : std_logic;
 
    signal rd_addr        : std_logic_vector(C_ADDR_BITS-1 downto 0);
    signal rd_data        : std_logic_vector( 8 downto 0);
@@ -179,7 +181,8 @@ begin
          fps_valid_o  => fps_valid,
          wr_addr_o => wr_addr,
          wr_data_o => wr_data,
-         wr_en_o   => wr_en
+         wr_en_o   => wr_en,
+         wr_busy_i => wr_busy
       ); -- i_main
 
 
@@ -200,6 +203,7 @@ begin
          wr_addr_i => wr_addr,
          wr_data_i => wr_data,
          wr_en_i   => wr_en,
+         wr_busy_o => wr_busy,
          --
          rd_clk_i  => vga_clk,
          rd_rst_i  => vga_rst,

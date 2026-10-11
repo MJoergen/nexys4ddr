@@ -69,7 +69,7 @@
 -- * MEGA65: The VCO is 100 MHz / 5 * 54 = 1080 MHz (speed grade -2 allows up
 --   to 1440 MHz), the only VCO frequency which gives the 108 MHz pixel clock
 --   of 1280x1024 exactly. The VGA clock is 1080/10 = 108 MHz, and the main
---   clock is 1080/7.5 = 144 MHz.
+--   clock is 1080/7.625 = 141.64 MHz.
 -- The main clock uses CLKOUT0, because it is the only output with a
 -- fractional divider (in steps of 0.125).
 --

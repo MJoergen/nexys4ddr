@@ -31,7 +31,9 @@
 -- registers of the blocks. On reset (wr_rst_i), the
 -- entire memory is filled with the value 0x055, which takes
 -- G_NUM_BLOCKS*4096/G_PIXELS clock cycles. Writes on the write port are
--- ignored while this is in progress.
+-- ignored while this is in progress, and wr_busy_o is high. It goes high in
+-- the clock cycle after wr_rst_i, and writes are accepted again as soon as it
+-- is low.
 --
 -- The read port has four clock cycles of latency: The read address goes to a
 -- register in each group, which drives the 8 BRAMs of the group, then the
@@ -59,6 +61,7 @@ entity disp_mem is
       wr_addr_i   : in  std_logic_vector(G_ADDR_BITS-1 downto 0);
       wr_data_i   : in  std_logic_vector(9*G_PIXELS-1 downto 0);
       wr_en_i     : in  std_logic;
+      wr_busy_o   : out std_logic;   -- The memory is being filled
       --
       rd_clk_i    : in  std_logic;
       rd_rst_i    : in  std_logic;
@@ -184,6 +187,8 @@ begin
          end if;
       end if;
    end process p_write_ctrl;
+
+   wr_busy_o <= wr_rst;
 
    p_write_grp : process (wr_clk_i)
    begin

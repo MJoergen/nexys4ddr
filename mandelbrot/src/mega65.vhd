@@ -66,10 +66,10 @@ architecture structural of mega65 is
 
    -- The number of pixels in each write to the display memory. The dispatcher
    -- accepts at most one result per clock cycle, so with one pixel in each
-   -- write the picture takes at least 1280*1024 clock cycles (9.10 ms), and
+   -- write the picture takes at least 1280*1024 clock cycles (9.25 ms), and
    -- more job modules give little more. The model (sim/model.py) estimates
-   -- 2.49 ms for the initial picture with four pixels in each write, against
-   -- 9.14 ms with one.
+   -- 2.53 ms for the initial picture with four pixels in each write, against
+   -- 9.29 ms with one.
    constant C_PIXELS        : positive := 4;
 
    -- The VCO of the MMCM (see clk_rst.vhd): 100 MHz / 5 * 54 = 1080 MHz. This
@@ -83,18 +83,21 @@ architecture structural of mega65 is
    constant C_VGA_DIVIDE    : positive := 10;
 
    -- The divider of the MAIN clock (see clk_rst.vhd), and its frequency in Hz.
-   -- 1080 MHz / 7.5 = 144 MHz. The longest path is in the iterators (see
-   -- iterator.vhd), and 1080 MHz / 7.25 = 148.97 MHz failed timing by 0.12
-   -- to 0.24 ns. The model (sim/model.py) estimates 1.9 million clock cycles for
-   -- the worst case picture (every pixel needs the maximum count), i.e. 76
-   -- pictures per second, against 402 for the initial picture.
-   constant C_MAIN_DIVIDE   : real    := 7.5;
+   -- 1080 MHz / 7.625 = 141.64 MHz. The longest path is in the iterators (see
+   -- iterator.vhd). At 1080 MHz / 7.5 = 144 MHz its setup slack varied from
+   -- +0.091 to -0.076 ns between runs, and 141.64 MHz gives 0.116 ns more (a
+   -- period of 7.060 ns instead of 6.944 ns). 1080 MHz / 7.25 = 148.97 MHz
+   -- failed timing by 0.12 to 0.24 ns. The model (sim/model.py) estimates 1.9
+   -- million clock cycles for the worst case picture (every pixel needs the
+   -- maximum count), i.e. 75 pictures per second, against 396 for the initial
+   -- picture.
+   constant C_MAIN_DIVIDE   : real    := 7.625;
    constant C_MAIN_FREQ     : natural :=
       natural(100.0E6 / real(C_VCO_DIVIDE) * C_VCO_MULT / C_MAIN_DIVIDE);
 
    -- Rows in each job given to a job module, see dispatcher.vhd. The
    -- number of rows (1024) must be a multiple of it, and of C_PIXELS. The
-   -- model gives 402 to 406 pictures per second for 32 to 128 rows.
+   -- model gives 396 to 400 pictures per second for 32 to 128 rows.
    constant C_ROWS_IN_JOB   : positive := 64;
 
    -- The address distance between two picture columns in the display memory,
@@ -124,6 +127,7 @@ architecture structural of mega65 is
    signal wr_addr        : std_logic_vector(C_ADDR_BITS-1 downto 0);
    signal wr_data        : std_logic_vector(9*C_PIXELS-1 downto 0);
    signal wr_en          : std_logic;
+   signal wr_busy        : std_logic;
 
    signal rd_addr        : std_logic_vector(C_ADDR_BITS-1 downto 0);
    signal rd_data        : std_logic_vector( 8 downto 0);
@@ -231,7 +235,8 @@ begin
          fps_valid_o  => fps_valid,
          wr_addr_o => wr_addr,
          wr_data_o => wr_data,
-         wr_en_o   => wr_en
+         wr_en_o   => wr_en,
+         wr_busy_i => wr_busy
       ); -- i_main
 
 
@@ -252,6 +257,7 @@ begin
          wr_addr_i => wr_addr,
          wr_data_i => wr_data,
          wr_en_i   => wr_en,
+         wr_busy_o => wr_busy,
          --
          rd_clk_i  => vga_clk,
          rd_rst_i  => vga_rst,

@@ -11,12 +11,19 @@
 -- Switches 0 and 1 select the colour palette, but they are used in vga.vhd, not
 -- here. The other switches are not used.
 --
--- The 7-segment display shows the frame rate, i.e. the number of pictures per
--- second, calculated from the average time taken by the pictures, see
--- fps.vhd. The frame rate is also output (fps_*_o), and shown on the VGA output
--- by vga.vhd. fps_valid_o is high for one clock cycle when fps_digits_o and
--- fps_blank_o are changed. The top level module moves the frame rate to the
--- VGA clock domain, so this module does not depend on the VGA clock.
+-- A picture is only calculated when the view has changed, i.e. after reset,
+-- and when the view is changed by the buttons. In between, the dispatcher and
+-- the job modules are idle, and use much less power. After reset the display
+-- memory is filled with a constant, and it ignores writes until it is
+-- finished (wr_busy_i), so the first picture is started after that.
+--
+-- The 7-segment display shows the frame rate, i.e. the clock frequency divided
+-- by the time taken by the latest picture, see fps.vhd. This is the number of
+-- pictures per second if the picture was recalculated continuously. The frame
+-- rate is also output (fps_*_o), and shown on the VGA output by vga.vhd.
+-- fps_valid_o is high for one clock cycle when fps_digits_o and fps_blank_o
+-- are changed. The top level module moves the frame rate to the VGA clock
+-- domain, so this module does not depend on the VGA clock.
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -60,10 +67,12 @@ entity main is
       fps_blank_o  : out std_logic_vector( 7 downto 0);
       fps_valid_o  : out std_logic;
 
-      -- Write port of the display memory
+      -- Write port of the display memory. No picture is started while
+      -- wr_busy_i is high, because the display memory ignores the writes then.
       wr_addr_o : out std_logic_vector(G_ADDR_BITS-1 downto 0);
       wr_data_o : out std_logic_vector(9*G_PIXELS-1 downto 0);
-      wr_en_o   : out std_logic
+      wr_en_o   : out std_logic;
+      wr_busy_i : in  std_logic
    );
 end main;
 
@@ -90,6 +99,19 @@ architecture structural of main is
    signal active         : std_logic;
    signal done           : std_logic;
    signal pic_done       : std_logic;
+
+   -- The view of the latest picture, i.e. the one the dispatcher uses. first is
+   -- set after reset, until the first picture is started. view_new is set
+   -- when the view differs from the one of the latest picture (or after
+   -- reset), i.e. when a new picture must be calculated. The initial value of
+   -- first is the same as after reset, so the view is not compared before it
+   -- has a value (in simulation).
+   signal pic_startx     : std_logic_vector(17 downto 0);
+   signal pic_starty     : std_logic_vector(17 downto 0);
+   signal pic_stepx      : std_logic_vector(17 downto 0);
+   signal pic_stepy      : std_logic_vector(17 downto 0);
+   signal first          : std_logic := '1';
+   signal view_new       : std_logic;
 
    signal wr_addr_s      : std_logic_vector(G_ADDR_BITS-1 downto 0);
    signal wr_data_s      : std_logic_vector(9*G_PIXELS-1 downto 0);
@@ -167,22 +189,60 @@ begin
    -- generated. This is high for a single clock cycle for each picture.
    pic_done <= active and done and not start;
 
+   -- The view is compared with the view of the latest picture. The view is
+   -- updated 18 times per second, also when no button is held down, so the
+   -- picture is only recalculated when the update has changed something. The
+   -- result is registered, so the comparison of 72 bits has a clock cycle of
+   -- its own. view_new is therefore set one clock cycle after the view
+   -- changes, and cleared two clock cycles after the start. It is only used
+   -- when no picture is being calculated, and a picture takes far longer.
+   p_view_new : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         view_new <= '0';
+         if first = '1' or
+            startx /= pic_startx or starty /= pic_starty or
+            stepx  /= pic_stepx  or stepy  /= pic_stepy
+         then
+            view_new <= '1';
+         end if;
+      end if;
+   end process p_view_new;
+
    p_active : process (clk_i)
    begin
       if rising_edge(clk_i) then
          start <= '0';
 
-         -- Start a new picture, as soon as the previous one is finished.
+         -- Start a new picture when the previous one is finished, and the view
+         -- has changed since the previous one was started (or after reset).
+         -- After reset, the display memory ignores the writes until it has
+         -- been filled, so the first picture waits for that. Otherwise most of
+         -- it would be lost, and it is not calculated again until the view
+         -- changes.
          if active = '0' then
-            active <= '1';
-            start  <= '1';
+            if view_new = '1' and wr_busy_i = '0' then
+               active <= '1';
+               start  <= '1';
+            end if;
          elsif pic_done = '1' then
             active <= '0';
+         end if;
+
+         -- The dispatcher takes the view when it sees the start, so the view
+         -- of the picture is taken at the same time.
+         if start = '1' then
+            pic_startx <= startx;
+            pic_starty <= starty;
+            pic_stepx  <= stepx;
+            pic_stepy  <= stepy;
+            first      <= '0';
          end if;
 
          if rst_i = '1' then
             active <= '0';
             start  <= '0';
+            first  <= '1';
          end if;
       end if;
    end process p_active;
@@ -207,21 +267,22 @@ begin
    -- 7-segment display
    --------------------------------------------------
 
-   -- At the end of a picture, cnt is the time taken by the picture. The
-   -- picture is recalculated continuously, so the frame rate is updated
-   -- after every picture. The time is averaged over about 2^8 = 256
-   -- pictures (0.3 s for the initial view on the Nexys 4 DDR, 0.6 s on the
-   -- MEGA65 R6), so the number shown is stable.
+   -- At the end of a picture, cnt is the time taken by the picture, and the
+   -- frame rate is updated. The time is not averaged (G_AVG_SHIFT is 0), so
+   -- the frame rate is that of the latest picture, i.e. the one shown. A
+   -- picture is only calculated when the view changes, at most 18 times per
+   -- second, so an average over many pictures would take many seconds to
+   -- follow a change of the view.
    -- cnt wraps around after 2^27 clock cycles (1.12 s at 120 MHz), but a
    -- picture takes far less: even if every pixel needed the maximum count,
    -- the model (sim/model.py) gives about 1.4 million clock cycles (11.4 ms)
    -- on the Nexys 4 DDR, i.e. a frame rate of about 87, and 1.9 million
-   -- (13.0 ms, a frame rate of about 76) on the MEGA65 R6.
+   -- (13.2 ms, a frame rate of about 75) on the MEGA65.
    i_fps : entity work.fps
       generic map (
          G_CLK_FREQ  => G_CLK_FREQ,
          G_TIME_BITS => 27,
-         G_AVG_SHIFT => 8,
+         G_AVG_SHIFT => 0,
          G_DIGITS    => 8
       )
       port map (

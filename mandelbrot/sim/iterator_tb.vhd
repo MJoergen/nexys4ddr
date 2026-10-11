@@ -24,6 +24,12 @@
 -- alone) repeats an earlier saved value, and a grid of points over the initial
 -- view. This checks that the periodicity detection never changes the count,
 -- e.g. by stopping when only some of the values repeat.
+--
+-- While the iterator is idle (from done until the next start), the P registers
+-- of the DSPs (x and y) must not change, so the iterator does not use power
+-- (p_idle). The iterator is left idle for a while after a point in a cycle of
+-- period 2 and after a point that escapes, where the P registers would
+-- otherwise go on changing.
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -51,6 +57,10 @@ architecture simulation of iterator_tb is
    signal cy    : std_logic_vector(17 downto 0) := (others => '0');
    signal cnt   : std_logic_vector( 8 downto 0);
    signal done  : std_logic;
+
+   -- The number of clock cycles where p_idle has checked that the P registers
+   -- do not change
+   signal idle_cycles : natural := 0;
 
    -- Convert a real value to the 2.16 fixed point format
    function to_fixed (r : real) return std_logic_vector is
@@ -187,6 +197,14 @@ begin
             severity error;
       end procedure check_exact;
 
+      -- Leave the iterator idle for a number of clock cycles
+      procedure idle (cycles : positive) is
+      begin
+         for i in 1 to cycles loop
+            wait until rising_edge(clk);
+         end loop;
+      end procedure idle;
+
       variable grid_errors : integer;
 
    begin
@@ -196,7 +214,9 @@ begin
       -- detection, so they must finish well before the maximum count.
       check( 0.0,   0.0,  20);   -- Period 1 (z = 0 for ever)
       check( 0.5,   0.0);        -- Escapes, see below
+      idle(20);
       check(-1.0,   0.0,  30);   -- Period 2 (z = 0, -1, 0, -1, ...)
+      idle(20);
       check( 0.0,   1.0,  50);   -- Period 2 from z2 (z = 0, i, -1+i, -i, -1+i, ...)
       check(-1.0,   1.0);        -- Escapes, see below
       check( 0.1,   0.1, 150);   -- Inside the main cardioid, converges to a fixed point
@@ -229,6 +249,10 @@ begin
          end loop;
       end loop;
 
+      assert idle_cycles >= 40
+         report "Only " & integer'image(idle_cycles) & " idle clock cycles were checked"
+         severity error;
+
       report "iterator_tb: finished";
       std.env.finish;
    end process p_test;
@@ -251,5 +275,34 @@ begin
          cnt_o   => cnt,
          done_o  => done
       ); -- i_iterator
+
+
+   ----------------------------------------------
+   -- The P registers do not change while idle
+   ----------------------------------------------
+
+   -- At each rising edge the P registers keep their value if done was high and
+   -- start was low before the edge. The P registers are inside the iterator,
+   -- so they are read with external names, which must come after the
+   -- instantiation of the iterator.
+   p_idle : process (clk)
+      alias px_r is << signal .iterator_tb.i_iterator.px_r : std_logic_vector(35 downto 0) >>;
+      alias py_r is << signal .iterator_tb.i_iterator.py_r : std_logic_vector(35 downto 0) >>;
+      variable idle_v : boolean := false;
+      variable px_v   : std_logic_vector(35 downto 0);
+      variable py_v   : std_logic_vector(35 downto 0);
+   begin
+      if rising_edge(clk) then
+         if idle_v then
+            assert px_r = px_v and py_r = py_v
+               report "The P registers changed while the iterator was idle"
+               severity error;
+            idle_cycles <= idle_cycles + 1;
+         end if;
+         idle_v := done = '1' and start = '0' and rst = '0';
+         px_v   := px_r;
+         py_v   := py_r;
+      end if;
+   end process p_idle;
 
 end architecture simulation;

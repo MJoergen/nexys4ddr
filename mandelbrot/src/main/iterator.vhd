@@ -31,9 +31,12 @@
 -- other, see mandelbrot.tcl.
 --
 -- At the start, the P registers are cleared, i.e. x = y = 0. Then the next
--- value is calculated in every clock cycle, also after the iteration is
--- finished (the values are not used then). So a point with n iterations takes
--- n+1 clock cycles, from the start until done_o is high.
+-- value is calculated in every clock cycle, until the iteration is finished.
+-- So a point with n iterations takes n+1 clock cycles, from the start until
+-- done_o is high. After that the P registers keep their value (their clock
+-- enable is low), so the DSPs and the adders do not toggle while the iterator
+-- is idle. Otherwise they would go on iterating, and use as much power as
+-- when they calculate.
 --
 -- Points in the Mandelbrot set never overflow, so without help they take the
 -- maximum number of iterations. But most of them end up in a cycle: since x
@@ -176,9 +179,11 @@ begin
    -- top bit of the 5.32 product is not needed. The sum with the constant (cx
    -- or cy/2, which are between -2 and 2) is between -6 and 6, so the
    -- addition can not overflow the 4.32 format. The P registers are cleared
-   -- at the start (the synchronous reset of the DSP), i.e. x = y = 0. The
-   -- constants are registered (in the C registers) in every clock cycle, so
-   -- they are used from the first iteration after the start.
+   -- at the start (the synchronous reset of the DSP), i.e. x = y = 0, and
+   -- are only updated while iterating (the clock enable of the DSP). The
+   -- reset of the DSP has priority over the clock enable. The constants are
+   -- registered (in the C registers) in every clock cycle, so they are used
+   -- from the first iteration after the start.
    p_dsp : process (clk_i)
       variable px_v : std_logic_vector(36 downto 0);
       variable py_v : std_logic_vector(35 downto 0);
@@ -186,8 +191,10 @@ begin
       if rising_edge(clk_i) then
          px_v := std_logic_vector(signed(a_s) * signed(b_s));
          py_v := std_logic_vector(signed(x_s) * signed(y_s));
-         px_r <= px_v(35 downto 0) + cx_r;
-         py_r <= py_v + cy_div_2_r;
+         if busy_r = '1' then
+            px_r <= px_v(35 downto 0) + cx_r;
+            py_r <= py_v + cy_div_2_r;
+         end if;
          cx_r       <= cx_s;
          cy_div_2_r <= cy_div_2_s;
 
