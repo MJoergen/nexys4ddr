@@ -1,0 +1,43 @@
+## Formal verification of job.vhd, with the iterator replaced by a stub
+## (iterator_stub.vhd). The handshake of the iterator is given by assumptions
+## in job.psl.
+##
+## Task naming:  <mode>_<G_NUM_ROWS>_<G_PIXELS>
+##
+##   3_1 - One row in each result. Three rows, so the row number has a value
+##         that is not used.
+##   4_2 - Two rows in each result.
+##   8_4 - Four rows in each result, as on the boards.
+##
+## G_MAX_COUNT is not used by the stub.
+##
+## Run one task:   sby --yosys "yosys -m ghdl" -f job.sby prove_4_2
+## Run everything: sby --yosys "yosys -m ghdl" -f job.sby
+
+[tasks]
+cover_3_1  cover  p3_1
+prove_3_1  prove  p3_1
+cover_4_2  cover  p4_2
+prove_4_2  prove  p4_2
+cover_8_4  cover  p8_4
+prove_8_4  prove  p8_4
+
+[options]
+cover: mode cover
+cover: depth 40
+prove: mode prove
+prove: depth 10
+
+[engines]
+smtbmc
+
+[script]
+p3_1: ghdl --std=08 -gG_MAX_COUNT=511 -gG_NUM_ROWS=3 -gG_PIXELS=1 iterator_stub.vhd job.vhd job.psl -e job
+p4_2: ghdl --std=08 -gG_MAX_COUNT=511 -gG_NUM_ROWS=4 -gG_PIXELS=2 iterator_stub.vhd job.vhd job.psl -e job
+p8_4: ghdl --std=08 -gG_MAX_COUNT=511 -gG_NUM_ROWS=8 -gG_PIXELS=4 iterator_stub.vhd job.vhd job.psl -e job
+prep -top job
+
+[files]
+job.psl
+iterator_stub.vhd
+../src/main/job.vhd

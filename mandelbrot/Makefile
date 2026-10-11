@@ -89,6 +89,7 @@ help:
 	@echo "  sim             Simulate all testbenches in parallel using ghdl (logs in build/)"
 	@echo "  run             Simulate a single testbench (TB=<name>) using ghdl, without writing a waveform"
 	@echo "  check           Simulate a single testbench (TB=<name>) using ghdl, write the waveform, and show it in gtkwave"
+	@echo "  formal          Run the formal verification using SymbiYosys (in formal/)"
 	@echo "  clean           Remove generated files"
 	@echo ""
 	@echo "Testbench is selected by TB=<name>, e.g. 'make check TB=iterator'."
@@ -197,6 +198,15 @@ check: $(TB_SRC)
 
 endif
 
+
+#####################################
+# Formal verification
+#####################################
+
+.PHONY: formal
+formal:
+	$(MAKE) -C formal
+
 .PHONY: clean
 clean:
 	rm -rf .cache
@@ -206,4 +216,5 @@ clean:
 	rm -rf */*.ghw
 	rm -rf *.o
 	rm -rf sim/main_out.txt
+	$(MAKE) -C formal clean
 

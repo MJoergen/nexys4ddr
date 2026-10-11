@@ -158,6 +158,12 @@ Type `make` to list the supported targets. The most important ones are:
 * `make check TB=iterator` runs a single testbench like `make run`, but also
   writes the waveform to `sim/iterator.ghw`, and then shows it in
   [GTKWave](https://github.com/gtkwave/gtkwave).
+* `make formal` runs the formal verification, see
+  [below](#formal-verification). This requires
+  [SymbiYosys](https://github.com/YosysHQ/sby), Yosys with the
+  [GHDL plugin](https://github.com/ghdl/ghdl-yosys-plugin), and an SMT solver
+  (Yices), e.g. from the [OSS CAD Suite](https://github.com/YosysHQ/oss-cad-suite-build).
+  It takes about 10 seconds.
 * `make clean` removes the generated files.
 
 ## Simulation
@@ -192,6 +198,37 @@ MMCM and the clock buffers), and so does the MEGA65 top level
 neither is the Nexys 4 DDR top level (`src/nexys4ddr.vhd`), which instantiates
 `clk_rst`.
 
+## Formal verification
+There are formal proofs in [`formal/`](formal) for `res_scheduler`,
+`job_scheduler`, and `job`. The properties of each module are in a PSL file
+(`<name>.psl`), which is bound to the module, so the modules themselves are not
+changed. Each module is proved for a few sets of generics (see `<name>.sby`),
+with k-induction, and cover statements check that the interesting cases are
+reachable. The properties are:
+* `res_scheduler`: Only a process that is ready is selected, and only while
+  the scheduler is active. Each result is selected only once. A process that
+  stays ready is selected within a bounded time, also when all the processes
+  are ready (the order is fair), and the bound is reached.
+* `job_scheduler`: Only an idle process is started, and only while the
+  scheduler is active. The processes are visited in order, and an idle
+  process is always started when it is visited, so it is started within
+  `G_SIZE`+1 clock cycles.
+* `job`: The job module is busy from the start of a job until its last result
+  is acknowledged. The results come in order, one for each group of
+  `G_PIXELS` rows, with the row number of the first row. A result stays
+  unchanged until it is acknowledged, and is then removed. Each result has the
+  counts of its rows from the iterator. The iterator is started once for each
+  row, with the value of c of that row, and c does not change while it
+  iterates.
+
+For `job`, the iterator is replaced by a stub
+([`formal/iterator_stub.vhd`](formal/iterator_stub.vhd)) whose outputs are
+chosen freely by the solver. Its handshake (done goes low after a start, goes
+high after any number of clock cycles, and then stays high with an unchanged
+count until the next start) is given by assumptions in `job.psl`. So the count
+of each row can be any value, and the iteration can take any number of clock
+cycles. The iterator itself is checked by simulation, see above.
+
 ## Files
 The files used only in the MAIN clock domain are in [`src/main/`](src/main),
 and those used only in the VGA clock domain are in [`src/vga/`](src/vga). The
@@ -218,6 +255,7 @@ files that are in both clock domains are in [`src/`](src).
 | [`font/`](font) | The script that generates `font_pkg.vhd` from the [Spleen](https://github.com/fcambus/spleen) 16x32 font, and the license of the font (BSD 2-Clause, see [`font/LICENSE.spleen`](font/LICENSE.spleen)).
 | [`src/clk_rst.vhd`](src/clk_rst.vhd) | Clock and reset generation: the main clock for the calculation (120 MHz, or 144 MHz on the MEGA65) and the pixel clock for VGA (25 MHz for 640x480, 108 MHz for 1280x1024), each with a synchronous reset.
 | [`sim/`](sim) | Testbenches and [GTKWave](https://github.com/gtkwave/gtkwave) setups, a Python model of the iterator count (`iterator_model.py`), a vectorized model of the complete picture (`model.py`), the same bit-accurate model in VHDL (`iterator_model_pkg.vhd`, used by the testbenches), and a script (`cmp_rtl.py`) that compares the output of the testbench `main_tb` with this model.
+| [`formal/`](formal) | Formal verification with [SymbiYosys](https://github.com/YosysHQ/sby): the properties of each module (`<name>.psl`), the tasks (`<name>.sby`), and the iterator stub used for `job`, see [Formal verification](#formal-verification).
 | [`nexys4ddr.xdc`](nexys4ddr.xdc), [`mega65-r6.xdc`](mega65-r6.xdc), [`mandelbrot.tcl`](mandelbrot.tcl) | Pin and timing constraints for each board, and script for synthesis and implementation with Vivado (including the optimization directives needed to meet timing), see `make nexys4ddr`. The script gets the FPGA part, the top level, and the list of source files from the Makefile, so it must be run through `make nexys4ddr` or `make mega65-r6`.
 | [`mandelbrot.xlsx`](mandelbrot.xlsx) | Spreadsheet used during the design. It iterates the example point -1+0.5i from [the iterator section](ALGORITHM.md#iterator) using real numbers.
 | [`ALGORITHM.md`](ALGORITHM.md) | Detailed explanation of the algorithm and the design.

@@ -1,0 +1,151 @@
+vunit i_job_scheduler(job_scheduler(rtl))
+{
+   subtype f_procs_t is std_logic_vector(G_SIZE-1 downto 0);
+   type f_procs_vector is array (natural range <>) of f_procs_t;
+
+   -- The longest time an idle process waits to be started, see f_wait_a below
+   constant C_MAX_WAIT : natural := G_SIZE + 1;
+
+   -- The process started in this clock cycle, as a one-hot vector. It is zero
+   -- when no process is started, and also when job_idx_start_o is not a
+   -- process.
+   signal f_start     : f_procs_t;
+
+   -- The busy flags of the last two clock cycles
+   signal f_busy_d    : f_procs_vector(1 to 2);
+
+   -- The input sched_active_i of the last two clock cycles
+   signal f_active_d  : std_logic_vector(1 to 2);
+
+   -- The process that the counter visits, i.e. whose busy flag is sampled, in
+   -- this clock cycle, and in the last two clock cycles. The counter starts at
+   -- 0 after a reset, and then goes round all the processes.
+   signal f_visit     : natural range 0 to G_SIZE-1;
+   signal f_visit_d   : natural range 0 to G_SIZE-1;
+   signal f_visit_dd  : natural range 0 to G_SIZE-1;
+
+   -- For each process, the number of clock cycles it has been idle (and the
+   -- scheduler active) without being started
+   type f_wait_vector is array (natural range <>) of natural range 0 to C_MAX_WAIT+1;
+   signal f_wait      : f_wait_vector(G_SIZE-1 downto 0);
+
+   -- The started process was busy two clock cycles before
+   signal f_was_busy  : f_procs_t;
+
+
+   -- set all declarations to run on clk_i
+   default clock is rising_edge(clk_i);
+
+
+   f_start_gen : for i in 0 to G_SIZE-1 generate
+      f_start(i) <= '1' when job_idx_valid_o = '1' and job_idx_start_o = i else '0';
+   end generate f_start_gen;
+
+   f_was_busy <= f_start and f_busy_d(2);
+
+   p_delay : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         f_busy_d   <= job_busy_i & f_busy_d(1);
+         f_active_d <= sched_active_i & f_active_d(1);
+
+         if f_visit < G_SIZE-1 then
+            f_visit <= f_visit + 1;
+         else
+            f_visit <= 0;
+         end if;
+         f_visit_d  <= f_visit;
+         f_visit_dd <= f_visit_d;
+
+         if rst_i = '1' then
+            f_visit <= 0;
+         end if;
+      end if;
+   end process p_delay;
+
+   p_wait : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         for i in 0 to G_SIZE-1 loop
+            if job_busy_i(i) = '1' or sched_active_i = '0' or f_start(i) = '1' then
+               f_wait(i) <= 0;
+            elsif f_wait(i) <= C_MAX_WAIT then
+               f_wait(i) <= f_wait(i) + 1;
+            end if;
+         end loop;
+
+         if rst_i = '1' then
+            f_wait <= (others => 0);
+         end if;
+      end if;
+   end process p_wait;
+
+
+   -----------------------------
+   -- ASSERTIONS ABOUT OUTPUTS
+   -----------------------------
+
+   -- Nothing is started right after reset
+   f_after_reset : assert always {rst_i} |=> {not job_idx_valid_o};
+
+   -- The started index is a process
+   f_idx_range : assert always {job_idx_valid_o and not rst_i} |-> {f_start /= 0};
+
+   -- Nothing is started when the scheduler was not active, two clock cycles
+   -- before (it is registered in active_d first)
+   f_active : assert always {not f_active_d(2) and not rst_i} |-> {not job_idx_valid_o};
+
+   -- A process is only started if it was idle two clock cycles before, i.e.
+   -- when its busy flag was sampled
+   f_idle : assert always {not rst_i} |-> {f_was_busy = 0};
+
+   -- The processes are visited in order, one per clock cycle, and a process
+   -- is started two clock cycles after it is visited. So each process is
+   -- visited once every G_SIZE clock cycles.
+   f_order : assert always {job_idx_valid_o and not rst_i} |-> {job_idx_start_o = f_visit_dd};
+
+   -- A process that is visited while the scheduler is active, and is idle,
+   -- is started
+   f_started : assert always {not f_busy_d(2)(f_visit_dd) and f_active_d(2) and
+                              not rst_i and not prev(rst_i) and not prev(rst_i, 2)} |->
+                             {job_idx_valid_o};
+
+   -- So a process that stays idle, while the scheduler is active, is started
+   -- within C_MAX_WAIT clock cycles: It is visited within G_SIZE clock
+   -- cycles, and started two clock cycles later. The bound is reached, see
+   -- f_max_wait.
+   f_wait_gen : for i in 0 to G_SIZE-1 generate
+      f_wait_a : assert always {not rst_i} |-> {f_wait(i) <= C_MAX_WAIT};
+   end generate f_wait_gen;
+
+
+   -----------------------------
+   -- ASSERTIONS ABOUT INTERNAL STATE
+   -----------------------------
+
+   -- The counter is the process visited. This is needed for the induction.
+   f_cnt : assert always {not rst_i} |-> {cnt_r = f_visit};
+
+
+   -----------------------------
+   -- ASSUMPTIONS ABOUT INPUTS
+   -----------------------------
+
+   -- Require reset at startup.
+   f_reset : assume {rst_i};
+
+
+   --------------------------------------------
+   -- COVER STATEMENTS TO VERIFY REACHABILITY
+   --------------------------------------------
+
+   -- The last process is started
+   f_last : cover {f_start(G_SIZE-1) and not rst_i};
+
+   -- Processes are started in two consecutive clock cycles
+   f_consecutive : cover {job_idx_valid_o and prev(job_idx_valid_o) and not rst_i};
+
+   -- A process waits the longest time allowed by f_wait_a
+   f_max_wait : cover {f_wait(0) = C_MAX_WAIT and rst_i = '0'};
+
+} -- vunit i_job_scheduler(job_scheduler(rtl))

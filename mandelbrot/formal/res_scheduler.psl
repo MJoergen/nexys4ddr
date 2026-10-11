@@ -1,0 +1,145 @@
+vunit i_res_scheduler(res_scheduler(rtl))
+{
+   subtype f_procs_t is std_logic_vector(G_SIZE-1 downto 0);
+   type f_procs_vector is array (natural range <>) of f_procs_t;
+
+   -- The longest time a process waits to be selected, see f_wait_a below
+   constant C_MAX_WAIT : natural := minimum(G_SIZE, G_GROUP_SIZE)*C_PERIOD + 2;
+
+   -- The process selected in this clock cycle, as a one-hot vector. It is
+   -- zero when no process is selected, and also when idx_o is not a process.
+   signal f_sel       : f_procs_t;
+
+   -- The processes selected in each of the last four clock cycles, cleared by
+   -- a reset
+   signal f_sel_d     : f_procs_vector(1 to 4);
+
+   -- The ready flags of the last three clock cycles
+   signal f_ready_d   : f_procs_vector(1 to 3);
+
+   -- The input active_i of the last two clock cycles
+   signal f_active_d  : std_logic_vector(1 to 2);
+
+   -- For each process, the number of clock cycles it has been ready (and the
+   -- scheduler active) without being selected
+   type f_wait_vector is array (natural range <>) of natural range 0 to C_MAX_WAIT+1;
+   signal f_wait      : f_wait_vector(G_SIZE-1 downto 0);
+
+   -- The selected process was not ready three clock cycles before
+   signal f_not_ready : f_procs_t;
+   -- The selected process was also selected in the last four clock cycles
+   signal f_again     : f_procs_t;
+
+
+   -- set all declarations to run on clk_i
+   default clock is rising_edge(clk_i);
+
+
+   f_sel_gen : for i in 0 to G_SIZE-1 generate
+      f_sel(i) <= '1' when idx_valid_o = '1' and idx_o = i else '0';
+   end generate f_sel_gen;
+
+   f_not_ready <= f_sel and not f_ready_d(3);
+   f_again     <= f_sel and (f_sel_d(1) or f_sel_d(2) or f_sel_d(3) or f_sel_d(4));
+
+   p_delay : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         f_sel_d    <= f_sel & f_sel_d(1 to 3);
+         f_ready_d  <= ready_i & f_ready_d(1 to 2);
+         f_active_d <= active_i & f_active_d(1);
+
+         if rst_i = '1' then
+            f_sel_d <= (others => (others => '0'));
+         end if;
+      end if;
+   end process p_delay;
+
+   p_wait : process (clk_i)
+   begin
+      if rising_edge(clk_i) then
+         for i in 0 to G_SIZE-1 loop
+            if ready_i(i) = '0' or active_i = '0' or f_sel(i) = '1' then
+               f_wait(i) <= 0;
+            elsif f_wait(i) <= C_MAX_WAIT then
+               f_wait(i) <= f_wait(i) + 1;
+            end if;
+         end loop;
+
+         if rst_i = '1' then
+            f_wait <= (others => 0);
+         end if;
+      end if;
+   end process p_wait;
+
+
+   -----------------------------
+   -- ASSERTIONS ABOUT OUTPUTS
+   -----------------------------
+
+   -- Nothing is selected right after reset
+   f_after_reset : assert always {rst_i} |=> {not idx_valid_o};
+
+   -- The selected index is a process
+   f_idx_range : assert always {idx_valid_o and not rst_i} |-> {f_sel /= 0};
+
+   -- Nothing is selected when the scheduler was not active, two clock cycles
+   -- before (it is registered in active_r first)
+   f_active : assert always {not f_active_d(2) and not rst_i} |-> {not idx_valid_o};
+
+   -- A process is only selected if it was ready three clock cycles before
+   f_ready : assert always {not rst_i} |-> {f_not_ready = 0};
+
+   -- A result is only selected once: The ready flag of a selected process
+   -- must be low two clock cycles after the selection (see res_scheduler.vhd),
+   -- so a ready flag sampled after that is for a new result. A process
+   -- selected again in the next four clock cycles would be from a ready flag
+   -- sampled before that, i.e. from the same result.
+   f_once : assert always {not rst_i} |-> {f_again = 0};
+
+   -- The order is fair: A process that stays ready, while the scheduler is
+   -- active, is selected within C_MAX_WAIT clock cycles, even when all the
+   -- other processes are ready too. The ready flag is sampled within C_PERIOD
+   -- clock cycles by its group, and it is then selected after at most as many
+   -- rounds of the counter as there are processes in the group, and three
+   -- clock cycles after it was sampled. The bound is reached, see f_max_wait.
+   f_wait_gen : for i in 0 to G_SIZE-1 generate
+      f_wait_a : assert always {not rst_i} |-> {f_wait(i) <= C_MAX_WAIT};
+   end generate f_wait_gen;
+
+
+   -----------------------------
+   -- ASSERTIONS ABOUT INTERNAL STATE
+   -----------------------------
+
+   -- The counter only takes the values of its range. It has more bits than
+   -- that when C_PERIOD is not a power of two.
+   f_cnt_range : assert always {not rst_i} |-> {cnt_r < C_PERIOD};
+
+
+   -----------------------------
+   -- ASSUMPTIONS ABOUT INPUTS
+   -----------------------------
+
+   -- Require reset at startup.
+   f_reset : assume {rst_i};
+
+
+   --------------------------------------------
+   -- COVER STATEMENTS TO VERIFY REACHABILITY
+   --------------------------------------------
+
+   -- The last process is selected
+   f_last : cover {f_sel(G_SIZE-1) and not rst_i};
+
+   -- Processes are selected in two consecutive clock cycles. This needs more
+   -- than one group, because each group is visited at most once every
+   -- C_PERIOD clock cycles.
+   f_consecutive_gen : if C_NUM_GROUPS > 1 generate
+      f_consecutive : cover {f_sel_d(1) /= 0 and f_sel /= 0 and rst_i = '0'};
+   end generate f_consecutive_gen;
+
+   -- A process waits the longest time allowed by f_wait_a
+   f_max_wait : cover {f_wait(0) = C_MAX_WAIT and rst_i = '0'};
+
+} -- vunit i_res_scheduler(res_scheduler(rtl))
