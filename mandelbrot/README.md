@@ -207,9 +207,12 @@ files that are in both clock domains are in [`src/`](src).
 | [`src/vga/vga.vhd`](src/vga/vga.vhd) | Everything in the VGA clock domain: pixel counters, VGA output, and the frame rate overlay.
 | [`src/main/iterator.vhd`](src/main/iterator.vhd) | Iterates the Mandelbrot function for a single point, one iteration in each clock cycle, using two DSPs.
 | [`src/main/job.vhd`](src/main/job.vhd) | A job module. Calculates one job (120 rows of a picture column, or 64 on the MEGA65) at a time, using one iterator.
-| [`src/main/dispatcher.vhd`](src/main/dispatcher.vhd) | Controls the calculation of the entire picture: hands out the jobs to the idle job modules, and collects the results. Instantiates the job modules.
-| [`src/main/job_scheduler.vhd`](src/main/job_scheduler.vhd) | Round-robin scheduler. Used by the dispatcher to give jobs to idle job modules.
-| [`src/main/res_scheduler.vhd`](src/main/res_scheduler.vhd) | Scheduler for the results. Used by the dispatcher to pick which job module's result to accept, from the job modules that have a result ready.
+| [`src/main/dispatcher.vhd`](src/main/dispatcher.vhd) | Controls the calculation of the entire picture: hands out the jobs to the idle job modules, and collects the results. Instantiates the job modules, between its two parts below.
+| [`src/main/dispatcher_jobs.vhd`](src/main/dispatcher_jobs.vhd) | First part of the dispatcher: hands out the jobs to the idle job modules, and finds out when the picture is done.
+| [`src/main/dispatcher_results.vhd`](src/main/dispatcher_results.vhd) | Second part of the dispatcher: collects the results, and writes them to the display memory.
+| [`src/main/dispatcher_pkg.vhd`](src/main/dispatcher_pkg.vhd) | Types used in the ports of the two parts of the dispatcher.
+| [`src/main/job_scheduler.vhd`](src/main/job_scheduler.vhd) | Round-robin scheduler. Used by dispatcher\_jobs to give jobs to idle job modules.
+| [`src/main/res_scheduler.vhd`](src/main/res_scheduler.vhd) | Scheduler for the results. Used by dispatcher\_results to pick which job module's result to accept, from the job modules that have a result ready.
 | [`src/disp_mem.vhd`](src/disp_mem.vhd) | Display memory, holding the picture, in blocks of 4096 pixels (one BRAM each): 128 on the Nexys 4 DDR, and 320 on the MEGA65.
 | [`src/vga/pix.vhd`](src/vga/pix.vhd), [`src/vga/disp.vhd`](src/vga/disp.vhd) | VGA output. `pix` generates the pixel counters, and `disp` generates the sync signals and the pixel colour.
 | [`src/vga/video_pkg.vhd`](src/vga/video_pkg.vhd) | The video modes, i.e. the resolution and the timing of the VGA output: 640x480 (Nexys 4 DDR) and 1280x1024 (MEGA65), both at 60 Hz.

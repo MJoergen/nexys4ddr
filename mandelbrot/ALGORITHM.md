@@ -58,12 +58,14 @@ nexys4ddr                       src/nexys4ddr.vhd (top level)
  +- clk_rst                     src/clk_rst.vhd (MMCM, clock buffers, and resets)
  +- main                        src/main/main.vhd (everything in the MAIN clock domain)
  |   +- view                    src/main/view.vhd (view control from the buttons)
- |   +- dispatcher              src/main/dispatcher.vhd
- |   |   +- job_scheduler       src/main/job_scheduler.vhd (selects the job module to receive a job)
+ |   +- dispatcher              src/main/dispatcher.vhd (types in src/main/dispatcher_pkg.vhd)
+ |   |   +- dispatcher_jobs     src/main/dispatcher_jobs.vhd (gives out the jobs, and the done flag)
+ |   |   |   +- job_scheduler   src/main/job_scheduler.vhd (selects the job module to receive a job)
  |   |   +- job     (x 120)     src/main/job.vhd (the job modules)
  |   |   |   +- iterator        src/main/iterator.vhd
  |   |   |       +- (DSP48E1)   (x 2, inferred in p_dsp, multiplier and adder)
- |   |   +- res_scheduler       src/main/res_scheduler.vhd (selects the job module whose result is accepted)
+ |   |   +- dispatcher_results  src/main/dispatcher_results.vhd (collects the results and writes them)
+ |   |       +- res_scheduler   src/main/res_scheduler.vhd (selects the job module whose result is accepted)
  |   +- fps                     src/main/fps.vhd (frame rate, calculated from the time for a picture)
  |   +- seg                     src/main/seg.vhd (7-segment display)
  +- disp_mem                    src/disp_mem.vhd (display memory, between the two clock domains)
@@ -493,6 +495,21 @@ This module instantiates a configurable number of job modules (120 on the
 Nexys 4 DDR, one for each two DSPs, and 368 on the MEGA65). It keeps track of
 which job modules are currently calculating, and whenever a job module
 is idle, the next job is sent to it.
+
+The dispatcher has two parts, with the job modules between them:
+[`src/main/dispatcher_jobs.vhd`](src/main/dispatcher_jobs.vhd) gives out
+the jobs (with i\_job\_scheduler) and sets the done flag, and
+[`src/main/dispatcher_results.vhd`](src/main/dispatcher_results.vhd)
+accepts the results (with i\_res\_scheduler) and writes them to the display
+memory. Only two things go from the first part to the second: the active
+flag of the schedulers, and, for each job that is started, the index of the
+job module, the picture column, and the block of the job. The second part
+writes these to its tables (`job_addr_r` and `job_blk_r`) one clock cycle
+after the job is started, long before the job module has a result. The
+tables are written and read in the same module, so that they can still be a
+RAM: the hierarchy is not flattened in synthesis (`-flatten_hierarchy none`
+in `mandelbrot.tcl`), and every signal between the parts comes from a
+register.
 
 The jobs are given out one block at a time: first all the picture columns
 (640 on the Nexys 4 DDR) of the top 120 rows, then all the picture columns of
@@ -1228,7 +1245,7 @@ used, because two small LUT cells can share one LUT (the placer does this,
 
 The display memory has 2^19 pixels of 9 bits (the count), i.e. 128 blocks of
 36 kbit BRAM, each used as 1024 entries of 36 bits (four pixels, with the
-parity bits), as expected. The RAMB18 is used by the dispatcher, for the
+parity bits), as expected. The RAMB18 is used by the dispatcher (dispatcher\_results), for the
 tables `job_addr_r` and `job_blk_r` that hold the picture column and the
 block of the job of each job module.
 
