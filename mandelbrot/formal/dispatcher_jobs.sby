@@ -1,0 +1,60 @@
+## Formal verification of dispatcher_jobs.vhd, which includes job_scheduler.vhd.
+## The job modules are not included. Their busy flags are given by assumptions
+## in dispatcher_jobs.psl.
+##
+## Task naming:  <mode>_<G_NUM_ITERATORS>_<G_GROUP_SIZE>
+##
+##   5_2  - Five job modules (the least the dispatcher allows) in three
+##          groups, where the last one has a single job module. Three picture
+##          columns (not a power of two) and two blocks, i.e. six jobs.
+##   6_16 - Six job modules in a single group. Two picture columns and four
+##          blocks, i.e. eight jobs.
+##   7_3  - Seven job modules in three groups. A single picture column and
+##          eight blocks, i.e. eight jobs.
+##
+## In each case there are more jobs than job modules, so some job modules get
+## more than one job in a picture.
+##
+## A picture takes about 20 clock cycles, which is more than the depth of the
+## prove tasks, so their base case does not reach the end of a picture. The
+## proof is complete anyway (the induction covers the rest), but the bmc tasks
+## run a whole picture, and the start of the next, so that a broken property
+## gives a counterexample, rather than only a failed induction. There is no
+## bmc task for 7_3, because it takes about 30 seconds, more than all the
+## other tasks together.
+##
+## Run one task:   sby --yosys "yosys -m ghdl" -f dispatcher_jobs.sby prove_5_2
+## Run everything: sby --yosys "yosys -m ghdl" -f dispatcher_jobs.sby
+
+[tasks]
+cover_5_2   cover  d5_2
+bmc_5_2     bmc    d5_2
+prove_5_2   prove  d5_2
+cover_6_16  cover  d6_16
+bmc_6_16    bmc    d6_16
+prove_6_16  prove  d6_16
+cover_7_3   cover  d7_3
+prove_7_3   prove  d7_3
+
+[options]
+cover: mode cover
+cover: depth 40
+bmc: mode bmc
+bmc: depth 24
+prove: mode prove
+prove: depth 16
+
+[engines]
+smtbmc
+
+[script]
+d5_2:  ghdl --std=08 -gG_NUM_ITERATORS=5 -gG_GROUP_SIZE=2  -gG_NUM_COLS=3 -gG_NUM_ROWS=4  -gG_ROWS_IN_JOB=2 dispatcher_pkg.vhd job_scheduler.vhd dispatcher_jobs.vhd dispatcher_jobs.psl -e dispatcher_jobs
+d6_16: ghdl --std=08 -gG_NUM_ITERATORS=6 -gG_GROUP_SIZE=16 -gG_NUM_COLS=2 -gG_NUM_ROWS=8  -gG_ROWS_IN_JOB=2 dispatcher_pkg.vhd job_scheduler.vhd dispatcher_jobs.vhd dispatcher_jobs.psl -e dispatcher_jobs
+d7_3:  ghdl --std=08 -gG_NUM_ITERATORS=7 -gG_GROUP_SIZE=3  -gG_NUM_COLS=1 -gG_NUM_ROWS=16 -gG_ROWS_IN_JOB=2 dispatcher_pkg.vhd job_scheduler.vhd dispatcher_jobs.vhd dispatcher_jobs.psl -e dispatcher_jobs
+prep -top dispatcher_jobs
+
+[files]
+dispatcher_jobs.psl
+../src/main/dispatcher_pkg.vhd
+../src/main/job_scheduler.vhd
+../src/main/dispatcher_jobs.vhd

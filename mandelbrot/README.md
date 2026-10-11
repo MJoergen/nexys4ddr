@@ -163,7 +163,7 @@ Type `make` to list the supported targets. The most important ones are:
   [SymbiYosys](https://github.com/YosysHQ/sby), Yosys with the
   [GHDL plugin](https://github.com/ghdl/ghdl-yosys-plugin), and an SMT solver
   (Yices), e.g. from the [OSS CAD Suite](https://github.com/YosysHQ/oss-cad-suite-build).
-  It takes about 10 seconds.
+  It takes about 20 seconds.
 * `make clean` removes the generated files.
 
 ## Simulation
@@ -200,7 +200,7 @@ neither is the Nexys 4 DDR top level (`src/nexys4ddr.vhd`), which instantiates
 
 ## Formal verification
 There are formal proofs in [`formal/`](formal) for `res_scheduler`,
-`job_scheduler`, and `job`. The properties of each module are in a PSL file
+`job_scheduler`, `job`, and `dispatcher_jobs`. The properties of each module are in a PSL file
 (`<name>.psl`), which is bound to the module, so the modules themselves are not
 changed. Each module is proved for a few sets of generics (see `<name>.sby`),
 with k-induction, and cover statements check that the interesting cases are
@@ -220,6 +220,17 @@ reachable. The properties are:
   counts of its rows from the iterator. The iterator is started once for each
   row, with the value of c of that row, and c does not change while it
   iterates.
+* `dispatcher_jobs` (with `job_scheduler`): The jobs of a picture are given
+  out in order, one block at a time, each once. The job module given a job is
+  started in the next clock cycle, with the value of c of the first row of
+  the job. The picture is done only when all its jobs have been given out and
+  all the job modules are idle, and then within two clock cycles. It also
+  meets the assumptions about the inputs of the job module in `job.psl`: a job
+  module is only started when it is idle (this needs at least five job
+  modules; with four, a job is started twice), not right after its reset, and
+  the step in cy does not change while it is busy. The job modules are not
+  included; their busy flags are given by assumptions. A new picture must
+  only be started when the previous one is done, as `main` does.
 
 For `job`, the iterator is replaced by a stub
 ([`formal/iterator_stub.vhd`](formal/iterator_stub.vhd)) whose outputs are

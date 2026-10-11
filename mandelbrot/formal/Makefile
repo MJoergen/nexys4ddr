@@ -3,6 +3,7 @@
 DUTS  = res_scheduler
 DUTS += job_scheduler
 DUTS += job
+DUTS += dispatcher_jobs
 
 # One stamp file per DUT, touched only when sby exits successfully.
 STAMPS = $(addsuffix .stamp,$(DUTS))
@@ -24,6 +25,6 @@ $(foreach d,$(DUTS),$(eval $(d).stamp: $(d).sby $(call sby_files,$(d))))
 
 clean:
 	rm -rf $(STAMPS)
-	rm -rf $(foreach d,$(DUTS),$(d) $(d)_cover* $(d)_prove*)
+	rm -rf $(foreach d,$(DUTS),$(d) $(d)_bmc* $(d)_cover* $(d)_prove*)
 
 .PHONY: all clean
