@@ -845,10 +845,12 @@ down:
   the centre of the screen) shows the same point before and after the zoom
   (except at the edge of the range, see below). On the MEGA65 these are 640
   and 512.
-* `BTNL`, `BTNR`: startx is decreased or increased by stepx (`BTNR` has
-  priority if both are held down).
-* `BTNU`, `BTND`: starty is decreased or increased by stepy (`BTND` has
-  priority if both are held down).
+* `BTNL`, `BTNR`: startx is decreased or increased by stepx times the pan
+  step (`BTNR` has priority if both are held down). The pan step is 1/320 of
+  the number of columns, i.e. 2 pixels (4 on the MEGA65), so panning takes the
+  same time on both boards.
+* `BTNU`, `BTND`: starty is decreased or increased by stepy times the pan step
+  (`BTND` has priority if both are held down).
 
 The view is always kept inside the range of the 2.16 number format, i.e. -2 to
 2 (not including 2). Otherwise the values of cx and cy, which the dispatcher and
@@ -871,7 +873,8 @@ The check that the zoomed view fits is a comparison of the new size of a pixel
 with a constant, the largest size for which the view fits. The position of the
 right (bottom) edge needs the size of a pixel multiplied by the number of
 columns (rows) minus one, and keeping the centre fixed needs the change of the
-size multiplied by 320 (240). These multiplications are done serially with
+size multiplied by 320 (240), and the pan step needs the size of a pixel
+multiplied by 2 (4 on the MEGA65). These multiplications are done serially with
 shifts and additions or subtractions, one bit of the constant per clock cycle,
 so no DSP is used. Doing all of the update in a single clock cycle would be far
 too slow for the MAIN clock, so the update is done in small steps over 17 clock

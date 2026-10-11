@@ -49,14 +49,14 @@ the switch input, i.e. `SW0` to `SW7` on the board.
 
 | Control | Description
 | ------- | -----------
-| `BTNL`, `BTNR`, `BTNU`, `BTND` | Pan the picture left, right, up, and down, by one pixel for each update. Panning stops at the edge of the number range (-2 to 2).
+| `BTNL`, `BTNR`, `BTNU`, `BTND` | Pan the picture left, right, up, and down, by 1/320 of the width of the picture for each update (2 pixels, or 4 on the MEGA65). Panning stops at the edge of the number range (-2 to 2).
 | `BTNC` | Zoom in. With switch 2 on, zoom out instead. The centre of the picture stays fixed, except when zooming out would move an edge of the view beyond -2 or 2; then the view is moved instead. Zooming stops at the smallest pixel size (2^-16), and when the view can not get larger.
 | Switches 0 and 1 | Select the colour palette (switch 1 is the high bit). 0 (both off): the lower 8 bits of the count are the colour (RRRGGGBB), mostly blue and green, and the set is white. 1: rainbow, the hue goes around the colour circle every 16 counts. 2: fire, black, red, orange, yellow, and white, with the square root of the count. 3: blue, white, orange, and dark brown, with the logarithm of the count. In the palettes 1 to 3 the set is black.
 | Switches 3 to 7 | Not used.
 | `CPU RESET` | Resets the design and returns to the initial view.
 
 While a button is held down, the view is updated about 18 times per second.
-Each update pans by one pixel, or changes the size of a pixel by about 1.6%
+Each update pans by 1/320 of the width (about 5.6% per second), or changes the size of a pixel by about 1.6%
 (roughly 33% per second). The initial view shows the real axis from -1.67 to 1
 and the imaginary axis from -1 to 1 (-1.07 to 1.07 on the MEGA65). See
 [The top level](ALGORITHM.md#the-top-level) for details.

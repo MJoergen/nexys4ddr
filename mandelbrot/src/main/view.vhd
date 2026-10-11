@@ -4,8 +4,12 @@
 -- pulse on upd_i:
 --   btn_i(4)         : Zoom in, or zoom out if zoom_out_i is set. The size of
 --                      a pixel changes by 1/64 of its value plus one LSB.
---   btn_i(3 downto 2): Pan left and right by one pixel.
---   btn_i(1 downto 0): Pan up and down by one pixel.
+--   btn_i(3 downto 2): Pan left and right by C_PAN_PIXELS pixels.
+--   btn_i(1 downto 0): Pan up and down by C_PAN_PIXELS pixels.
+-- The pan step is a constant fraction (1/C_PAN_FRACTION) of the width of the
+-- picture, i.e. 2 pixels for 640 columns and 4 pixels for 1280 columns, so
+-- panning takes the same time on every board. Panning up and down uses the
+-- same number of pixels as left and right.
 --
 -- The view is always kept inside the range of the 2.16 format, i.e. -2 to 2
 -- (not including 2), so that the values of cx and cy calculated by the
@@ -68,6 +72,10 @@ architecture rtl of view is
    -- last column (row), i.e. step*(num-1), is at most C_MAX_POS.
    constant C_MAX_STEPX : natural := C_MAX_POS / (G_NUM_COLS-1);
    constant C_MAX_STEPY : natural := C_MAX_POS / (G_NUM_ROWS-1);
+
+   -- The pan step in pixels, a fraction of the number of columns
+   constant C_PAN_FRACTION : positive := 320;
+   constant C_PAN_PIXELS   : positive := maximum(1, G_NUM_COLS / C_PAN_FRACTION);
 
    -- The column and row of the pixel that is kept fixed when zooming
    constant C_CENTRE_X  : natural := G_NUM_COLS/2;
@@ -141,6 +149,16 @@ architecture rtl of view is
    signal kcy      : std_logic_vector(10 downto 0);
    signal offx     : std_logic_vector(18 downto 0);
    signal offy     : std_logic_vector(18 downto 0);
+
+   -- Serial multiplication of the size of a pixel (dx) by C_PAN_PIXELS, at the
+   -- same time as the ones above, and using the same shifted multiplicand
+   -- (multx). This gives the pan step. It is small: dx is at most
+   -- C_MAX_STEPX, and C_PAN_PIXELS is less than G_NUM_COLS-1, so panx is less
+   -- than 2^18. Only the lower 19 bits of multx are used, which is enough,
+   -- because when multx is added it is at most the final value of panx.
+   signal kp       : std_logic_vector(10 downto 0);
+   signal panx     : std_logic_vector(18 downto 0);
+   signal pany     : std_logic_vector(18 downto 0);
 
 begin
 
@@ -222,6 +240,9 @@ begin
                kcy    <= to_std_logic_vector(C_CENTRE_Y, 11);
                offx   <= (others => '0');
                offy   <= (others => '0');
+               kp     <= to_std_logic_vector(C_PAN_PIXELS, 11);
+               panx   <= (others => '0');
+               pany   <= (others => '0');
                state  <= MULT_ST;
 
             when MULT_ST =>
@@ -251,7 +272,14 @@ begin
                kcx    <= "0" & kcx(10 downto 1);
                kcy    <= "0" & kcy(10 downto 1);
 
-               if kx = 0 and ky = 0 and kcx = 0 and kcy = 0 then
+               -- Calculate panx = dx*C_PAN_PIXELS, and the same for y
+               if kp(0) = '1' then
+                  panx <= panx + multx(18 downto 0);
+                  pany <= pany + multy(18 downto 0);
+               end if;
+               kp <= "0" & kp(10 downto 1);
+
+               if kx = 0 and ky = 0 and kcx = 0 and kcy = 0 and kp = 0 then
                   state <= CENTRE_ST;
                end if;
 
@@ -284,20 +312,20 @@ begin
                -- Pan. The right button has priority over the left button, and
                -- the down button over the up button.
                if btn(2) = '1' then
-                  posx <= posx + dx;
+                  posx <= posx + panx;
                elsif btn(3) = '1' then
-                  if posx >= dx then
-                     posx <= posx - dx;
+                  if posx >= panx then
+                     posx <= posx - panx;
                   else
                      posx <= (others => '0');
                   end if;
                end if;
 
                if btn(0) = '1' then
-                  posy <= posy + dy;
+                  posy <= posy + pany;
                elsif btn(1) = '1' then
-                  if posy >= dy then
-                     posy <= posy - dy;
+                  if posy >= pany then
+                     posy <= posy - pany;
                   else
                      posy <= (others => '0');
                   end if;

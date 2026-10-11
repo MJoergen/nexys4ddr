@@ -24,6 +24,9 @@ architecture simulation of view_tb is
    constant C_NUM_COLS : positive := 640;
    constant C_NUM_ROWS : positive := 480;
 
+   -- The pan step in pixels, 1/320 of the number of columns (see view.vhd)
+   constant C_PAN_PIXELS : positive := C_NUM_COLS/320;
+
    -- The column and row of the pixel that is kept fixed when zooming
    constant C_CENTRE_X : natural := C_NUM_COLS/2;
    constant C_CENTRE_Y : natural := C_NUM_ROWS/2;
@@ -135,14 +138,15 @@ begin
       -- The expected new position in one direction. The arguments are the
       -- position, the (new) size of a pixel, the number of pixels, and whether
       -- to pan towards larger or smaller values. The values are signed 2.16.
+      -- The view moves by C_PAN_PIXELS pixels.
       function pan (pos : integer; step : integer; num : integer;
                     plus : boolean; minus : boolean) return integer is
          variable res : integer := pos;
       begin
          if plus then
-            res := pos + step;
+            res := pos + C_PAN_PIXELS*step;
          elsif minus then
-            res := maximum(pos - step, C_MIN);
+            res := maximum(pos - C_PAN_PIXELS*step, C_MIN);
          end if;
          return minimum(res, C_MAX - (num-1)*step);
       end function pan;
@@ -359,7 +363,7 @@ begin
       cx0 := sx;
       cy0 := sy;
       hold(C_BTN_R or C_BTN_D, '0', 200);
-      assert sx = cx0 + 200 and sy = cy0 + 200
+      assert sx = cx0 + 200*C_PAN_PIXELS and sy = cy0 + 200*C_PAN_PIXELS
          report "Wrong pan at maximum zoom" severity error;
 
       -- Zoom out a little, and pan all the way to the right and bottom, both at
