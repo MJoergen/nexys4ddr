@@ -30,6 +30,11 @@ entity mega65_r6 is
       fa_fire_n_i           : in  std_logic;
       fb_fire_n_i           : in  std_logic;
 
+      -- MEGA65 keyboard
+      kb_io0_o              : out std_logic;
+      kb_io1_o              : out std_logic;
+      kb_io2_i              : in  std_logic;
+
       -- Joystick outputs. Low pulls the joystick line low, high leaves it
       -- floating.
       fa_up_n_o             : out std_logic;
@@ -77,6 +82,9 @@ begin
          fa_right_n_i   => fa_right_n_i,
          fa_fire_n_i    => fa_fire_n_i,
          fb_fire_n_i    => fb_fire_n_i,
+         kb_io0_o       => kb_io0_o,
+         kb_io1_o       => kb_io1_o,
+         kb_io2_i       => kb_io2_i,
          vga_red_o      => vga_red_o,
          vga_green_o    => vga_green_o,
          vga_blue_o     => vga_blue_o,

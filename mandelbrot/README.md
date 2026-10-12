@@ -69,7 +69,7 @@ also shown in the top right corner of the VGA output, in white on black.
 
 ### MEGA65
 The MEGA65 has no buttons, switches, or 7-segment display, so the view is
-controlled with a joystick in each port, see
+controlled with a joystick in each port, or with the keyboard, see
 [`src/mega65.vhd`](src/mega65.vhd). The VGA output is on the VGA
 connector.
 
@@ -84,9 +84,9 @@ outputs, and the pins are used for other things.
 
 | Control | Description
 | ------- | -----------
-| Joystick port 1: left, right, up, down | Pan the picture, like `BTNL`, `BTNR`, `BTNU`, and `BTND`.
-| Joystick port 1: fire | Zoom in, like `BTNC`.
-| Joystick port 2: fire | Zoom out, like `BTNC` with switch 2 on.
+| Joystick port 1: left, right, up, down, or the cursor keys | Pan the picture, like `BTNL`, `BTNR`, `BTNU`, and `BTND`.
+| Joystick port 1: fire, or the `+` key | Zoom in, like `BTNC`.
+| Joystick port 2: fire, or the `-` key | Zoom out, like `BTNC` with switch 2 on.
 | Reset button | Resets the design and returns to the initial view, like `CPU RESET`. Only on the R6: on the R3 the reset button is read by the MAX10 (a small FPGA on the board), not by the XC7A200T, so the design is only reset after power-on.
 
 The colour palette is always palette 0, and the frame rate is only shown on the
@@ -271,6 +271,7 @@ files that are in both clock domains are in [`src/`](src).
 | [`src/nexys4ddr.vhd`](src/nexys4ddr.vhd) | Top level. The ports are mapped directly to pins on the FPGA. Instantiates the clock and reset generation, the display memory, and the two modules below, and moves the frame rate from the MAIN clock domain to the VGA clock domain.
 | [`src/mega65.vhd`](src/mega65.vhd) | The design for the MEGA65. The same as `nexys4ddr.vhd`, but with the ports of the MEGA65, more job modules, a larger display memory, and a resolution of 1280x1024. Used by the two top levels below.
 | [`src/mega65_r3.vhd`](src/mega65_r3.vhd), [`src/mega65_r6.vhd`](src/mega65_r6.vhd) | Top levels for the MEGA65 R3 and R6. They connect `mega65.vhd` to the pins of each board revision. The R6 also switches off the outputs that pull the joystick lines low, and switches on the power of the joysticks and of the video DAC.
+| [`src/keyboard/`](src/keyboard) | MEGA65 keyboard driver, from the [MiSTer2MEGA65](https://github.com/sy2002/MiSTer2MEGA65) framework (via [C64MEGA65](https://github.com/MJoergen/C64MEGA65), GPL v3). `m2m_keyb` reads the keyboard, and cycles through the keys, showing whether each of them is pressed. Only used by `mega65.vhd`.
 | [`src/main/main.vhd`](src/main/main.vhd) | Everything in the MAIN clock domain: view control from buttons and switches, the dispatcher, and the frame rate (shown on the 7-segment display and on the VGA output).
 | [`src/main/view.vhd`](src/main/view.vhd) | View control. Pans and zooms the view, and keeps it inside the range of the number format.
 | [`src/main/fps.vhd`](src/main/fps.vhd), [`src/main/seg.vhd`](src/main/seg.vhd) | Frame rate. `fps` divides the clock frequency by the time taken by the latest picture (it can also average the time, but `main` does not use that), and converts the result to decimal, and `seg` multiplexes the digits on the 7-segment display.

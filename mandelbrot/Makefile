@@ -19,13 +19,19 @@ nexys4ddr_SRC  = src/nexys4ddr.vhd
 # design (src/mega65.vhd). Only the top level modules are different, because
 # some of the pins are different. The bit-file of one revision must not be
 # used on the other one.
+MEGA65_SRC  = src/keyboard/kb_matrix_ram.vhd
+MEGA65_SRC += src/keyboard/mega65kbd_to_matrix.vhd
+MEGA65_SRC += src/keyboard/matrix_to_keynum.vhd
+MEGA65_SRC += src/keyboard/m2m_keyb.vhd
+MEGA65_SRC += src/mega65.vhd
+
 mega65-r3_PART = xc7a200tfbg484-2
 mega65-r3_TOP  = mega65_r3
-mega65-r3_SRC  = src/mega65.vhd src/mega65_r3.vhd
+mega65-r3_SRC  = $(MEGA65_SRC) src/mega65_r3.vhd
 
 mega65-r6_PART = xc7a200tfbg484-2
 mega65-r6_TOP  = mega65_r6
-mega65-r6_SRC  = src/mega65.vhd src/mega65_r6.vhd
+mega65-r6_SRC  = $(MEGA65_SRC) src/mega65_r6.vhd
 
 # List of source files common to all boards. This is the only list: it is
 # also given to the Vivado script (mandelbrot.tcl), followed by the source

@@ -29,6 +29,11 @@ set_property -dict {PACKAGE_PIN M17  IOSTANDARD LVCMOS33} [get_ports {fb_left_n_
 # Joystick power supply (not on the R3)
 set_property -dict {PACKAGE_PIN D19  IOSTANDARD LVCMOS33} [get_ports {joystick_5v_disable_o}];  # EN_5V_JOY_N
 
+# MEGA65 Keyboard
+set_property -dict {PACKAGE_PIN A14  IOSTANDARD LVCMOS33} [get_ports {kb_io0_o}];               # KB_IO1
+set_property -dict {PACKAGE_PIN A13  IOSTANDARD LVCMOS33} [get_ports {kb_io1_o}];               # KB_IO2
+set_property -dict {PACKAGE_PIN C13  IOSTANDARD LVCMOS33} [get_ports {kb_io2_i}];               # KB_IO3
+
 # VGA via VDAC. U3 = ADV7125BCPZ170
 set_property -dict {PACKAGE_PIN W11  IOSTANDARD LVCMOS33} [get_ports {vdac_blank_n_o}];         # VDAC_BLANK_N
 set_property -dict {PACKAGE_PIN AA9  IOSTANDARD LVCMOS33} [get_ports {vdac_clk_o}];             # VDAC_CLK

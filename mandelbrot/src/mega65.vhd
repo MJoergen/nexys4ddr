@@ -10,9 +10,12 @@
 -- * The VGA output is 1280x1024 @ 60 Hz, with a pixel clock of 108 MHz,
 --   instead of 640x480. The display memory is 2.5 times as large.
 -- * There are no buttons and switches. Instead, the view is controlled by the
---   joysticks: The directions of joystick port 1 (fa_*) pan the view, and the
---   fire button of port 1 zooms in. The fire button of port 2 (fb_*) zooms
---   out.
+--   joysticks and the keyboard: The directions of joystick port 1 (fa_*) and
+--   the cursor keys pan the view. The fire button of port 1 and the "+" key
+--   zoom in, and the fire button of port 2 (fb_*) and the "-" key zoom out.
+--   The keyboard is read by the MiSTer2MEGA65 keyboard driver (m2m_keyb.vhd,
+--   in src/keyboard/), in the MAIN clock domain. It also turns on the power
+--   LED of the keyboard (green).
 -- * The palette can not be selected, so palette 0 is always used.
 -- * There is no 7-segment display, so the frame rate is only shown on the VGA
 --   output.
@@ -43,6 +46,11 @@ entity mega65 is
       fa_right_n_i   : in  std_logic;
       fa_fire_n_i    : in  std_logic;
       fb_fire_n_i    : in  std_logic;
+
+      -- MEGA65 keyboard
+      kb_io0_o       : out std_logic;                      -- Clock to keyboard
+      kb_io1_o       : out std_logic;                      -- Data to keyboard
+      kb_io2_i       : in  std_logic;                      -- Data from keyboard
 
       -- VGA via the video DAC
       vga_red_o      : out std_logic_vector(7 downto 0);
@@ -121,6 +129,18 @@ architecture structural of mega65 is
    signal main_clk       : std_logic;
    signal main_rst       : std_logic;
 
+   -- The keyboard driver cycles through all the keys (key_num), and shows
+   -- whether each of them is pressed (key_pressed_n, active low). The keys
+   -- used are stored here (active high).
+   signal key_num        : natural range 0 to 79;
+   signal key_pressed_n  : std_logic;
+   signal key_up         : std_logic := '0';
+   signal key_down       : std_logic := '0';
+   signal key_left       : std_logic := '0';
+   signal key_right      : std_logic := '0';
+   signal key_plus       : std_logic := '0';
+   signal key_minus      : std_logic := '0';
+
    signal vga_clk        : std_logic;
    signal vga_rst        : std_logic;
 
@@ -178,13 +198,57 @@ architecture structural of mega65 is
 begin
 
    --------------------------------------------------
-   -- Map the joysticks to the buttons and switches
+   -- Instantiate the keyboard driver
    --------------------------------------------------
 
-   -- Both fire buttons zoom, switch 2 selects zoom out.
-   btn <= not (fa_fire_n_i and fb_fire_n_i) & not fa_left_n_i & not fa_right_n_i &
-          not fa_up_n_i & not fa_down_n_i;
-   sw  <= "00000" & not fb_fire_n_i & "00";
+   i_m2m_keyb : entity work.m2m_keyb
+      port map (
+         clk_main_i       => main_clk,
+         clk_main_speed_i => C_MAIN_FREQ,
+         kio8_o           => kb_io0_o,
+         kio9_o           => kb_io1_o,
+         kio10_i          => kb_io2_i,
+         enable_core_i    => '1',
+         key_num_o        => key_num,
+         key_pressed_n_o  => key_pressed_n,
+         power_led_i      => '1',
+         power_led_col_i  => X"00FF00",         -- Green
+         drive_led_i      => '0',
+         drive_led_col_i  => X"000000",
+         qnice_keys_n_o   => open
+      ); -- i_m2m_keyb
+
+   -- The key numbers are the same as in the MiSTer2MEGA65 framework, see e.g.
+   -- matrix_to_keynum.vhd. The MEGA65 has separate keys for cursor up and left
+   -- (73 and 74), unlike the C64, where they are SHIFT with cursor down and
+   -- right (7 and 2).
+   p_keys : process (main_clk)
+   begin
+      if rising_edge(main_clk) then
+         case key_num is
+            when 73     => key_up    <= not key_pressed_n;
+            when 7      => key_down  <= not key_pressed_n;
+            when 74     => key_left  <= not key_pressed_n;
+            when 2      => key_right <= not key_pressed_n;
+            when 40     => key_plus  <= not key_pressed_n;
+            when 43     => key_minus <= not key_pressed_n;
+            when others => null;
+         end case;
+      end if;
+   end process p_keys;
+
+
+   --------------------------------------------------
+   -- Map the joysticks and keys to the buttons and switches
+   --------------------------------------------------
+
+   -- Both fire buttons and both "+" and "-" zoom, switch 2 selects zoom out.
+   btn(4) <= not (fa_fire_n_i and fb_fire_n_i) or key_plus or key_minus;
+   btn(3) <= not fa_left_n_i  or key_left;
+   btn(2) <= not fa_right_n_i or key_right;
+   btn(1) <= not fa_up_n_i    or key_up;
+   btn(0) <= not fa_down_n_i  or key_down;
+   sw     <= "00000" & (not fb_fire_n_i or key_minus) & "00";
 
 
    --------------------------------------------------
