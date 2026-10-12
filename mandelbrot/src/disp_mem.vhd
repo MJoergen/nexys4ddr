@@ -43,6 +43,17 @@
 -- FPGA: with 320 blocks this took 8.2 ns of the 9.26 ns at 108 MHz. Selecting
 -- the pixel from all the blocks in one clock cycle would be too slow too. The
 -- read reset (rd_rst_i) is not used.
+--
+-- Only the BRAM that holds the pixel is read, i.e. the read enables of all
+-- the other BRAMs are low. Reading all the BRAMs in every clock cycle used
+-- most of the power while the job modules were idle (Vivado estimated 0.71 W
+-- for the 320 BRAMs of the MEGA65 at 108 MHz). The number of the block of the
+-- read address goes to a register in each group too, like the address of the
+-- word in the block, and the read enable of each BRAM is decoded from the
+-- register of its group. So the decoder is on the short paths from the
+-- register of a group to its BRAMs, and not on the long paths from the read
+-- address to the registers of all the groups. In the next clock cycle the
+-- block in the group is taken from the same register, to select the word.
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -100,6 +111,10 @@ architecture rtl of disp_mem is
       std_logic_vector(C_GROUP_BITS-1 downto 0);
    type blk_addr_vector is array (natural range <>) of
       std_logic_vector(C_BLOCK_BITS-1 downto 0);
+   -- The number of a block, i.e. the bits of the word address above the
+   -- address in the block
+   type blk_num_vector is array (natural range <>) of
+      natural range 0 to 2**(C_WORD_BITS-C_BLOCK_BITS)-1;
    type word_vector is array (natural range <>) of word_t;
    type pixel_vector is array (natural range <>) of std_logic_vector(8 downto 0);
    type blk_sel_vector is array (natural range <>) of natural range 0 to C_GROUP_SIZE-1;
@@ -128,14 +143,17 @@ architecture rtl of disp_mem is
    attribute keep of blk_addr_r : signal is "true";
    attribute keep of blk_data_r : signal is "true";
 
-   -- The read port: The read address, and the address of the word in the
-   -- block in each group, the words read from the blocks, the block in its
-   -- group and the position of the pixel in the word in each group, the pixel
-   -- selected in each group, and the group.
+   -- The read port: The read address, the address of the word in the block
+   -- and the number of the block in each group, the read enable of each
+   -- block, the words read from the blocks, the block in its group and the
+   -- position of the pixel in the word in each group, the pixel selected in
+   -- each group, and the group.
    -- The registers in each group are identical, so the attribute keep
    -- prevents the synthesis tool from merging them.
    signal rd_addr      : std_logic_vector(G_ADDR_BITS-1 downto 0) := (others => '0');
    signal rd_grp_addr  : blk_addr_vector(C_NUM_GROUPS-1 downto 0) := (others => (others => '0'));
+   signal rd_grp_blk   : blk_num_vector(C_NUM_GROUPS-1 downto 0) := (others => 0);
+   signal rd_blk_en    : std_logic_vector(C_NUM_BLOCKS-1 downto 0);
    signal rd_blk_r     : word_vector(C_NUM_BLOCKS-1 downto 0);
    signal rd_blk_sel_r : blk_sel_vector(C_NUM_GROUPS-1 downto 0) := (others => 0);
    signal rd_sub_r     : sub_vector(C_NUM_GROUPS-1 downto 0) := (others => 0);
@@ -145,6 +163,7 @@ architecture rtl of disp_mem is
    signal rd_data_dd   : std_logic_vector(8 downto 0);
 
    attribute keep of rd_grp_addr  : signal is "true";
+   attribute keep of rd_grp_blk   : signal is "true";
    attribute keep of rd_blk_sel_r : signal is "true";
    attribute keep of rd_sub_r     : signal is "true";
 
@@ -244,28 +263,37 @@ begin
          end if;
       end process p_write;
 
+      -- The block is only read when it holds the pixel, to save power
+      rd_blk_en(b) <= '1' when rd_grp_blk(C_GROUP) = b else
+                      '0';
+
       p_read : process (rd_clk_i)
       begin
          if rising_edge(rd_clk_i) then
-            rd_blk_r(b) <= mem(to_integer(rd_grp_addr(C_GROUP)));
+            if rd_blk_en(b) = '1' then
+               rd_blk_r(b) <= mem(to_integer(rd_grp_addr(C_GROUP)));
+            end if;
          end if;
       end process p_read;
    end generate gen_blk;
 
-   -- The read address, and the address of the word in the block for the
-   -- blocks of each group
+   -- The read address, and the address of the word in the block and the
+   -- number of the block for the blocks of each group
    p_rd_addr : process (rd_clk_i)
    begin
       if rising_edge(rd_clk_i) then
          rd_addr <= rd_addr_i;
          for g in 0 to C_NUM_GROUPS-1 loop
             rd_grp_addr(g) <= rd_addr_i(C_BLOCK_BITS+C_SUB_BITS-1 downto C_SUB_BITS);
+            rd_grp_blk(g)  <= to_integer(rd_addr_i(G_ADDR_BITS-1 downto C_BLOCK_BITS+C_SUB_BITS));
          end loop;
       end if;
    end process p_rd_addr;
 
    -- The address is split into the group, the block in the group, the word in
-   -- the block, and the position of the pixel in the word.
+   -- the block, and the position of the pixel in the word. The block in the
+   -- group comes from the number of the block in the register of the group
+   -- (rd_grp_blk), which is a short path.
    p_read_sel : process (rd_clk_i)
    begin
       if rising_edge(rd_clk_i) then
@@ -276,7 +304,7 @@ begin
             rd_grp_sel_r <= to_integer(rd_addr(G_ADDR_BITS-1 downto C_GROUP_BITS+C_SUB_BITS));
          end if;
          for g in 0 to C_NUM_GROUPS-1 loop
-            rd_blk_sel_r(g) <= to_integer(rd_addr(C_GROUP_BITS+C_SUB_BITS-1 downto C_BLOCK_BITS+C_SUB_BITS));
+            rd_blk_sel_r(g) <= rd_grp_blk(g) mod C_GROUP_SIZE;
             rd_sub_r(g)     <= to_integer(rd_addr) mod G_PIXELS;
          end loop;
          rd_grp_sel_d <= rd_grp_sel_r;

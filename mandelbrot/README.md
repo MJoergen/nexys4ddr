@@ -124,9 +124,9 @@ The resource usage is:
 | ------------------ | ------------------------ | --------- | ---------------------- | ---------
 | DSP48E1            | 240 (100%)               | 240       | 736 (99%)              | 740
 | Block RAM (RAMB36) | 128.5 (95%)              | 135       | 321 (88%)              | 365
-| Slices             | 9,186 (58%)              | 15,850    | 21,665 (64%)           | 33,650
-| LUTs               | 16,420 (26%)             | 63,400    | 46,903 (35%)           | 134,600
-| Registers          | 26,555 (21%)             | 126,800   | 58,546 (22%)           | 269,200
+| Slices             | 9,225 (58%)              | 15,850    | 21,954 (65%)           | 33,650
+| LUTs               | 16,539 (26%)             | 63,400    | 47,950 (36%)           | 134,600
+| Registers          | 26,702 (21%)             | 126,800   | 60,308 (22%)           | 269,200
 
 The performance and timing are:
 
@@ -136,15 +136,15 @@ The performance and timing are:
 | Clock frequency | 120.00 MHz         | 141.64 MHz
 | Initial FPS     | 832-834 (measured) | 396 (estimated; 402 measured at 144 MHz)
 | Worst-case FPS  | 87 (estimated)     | 75 (estimated)
-| Setup slack     | -0.001 ns          | +0.021 ns (at 144 MHz)
-| Hold slack      | +0.050 ns          | +0.025 ns (at 144 MHz)
+| Setup slack     | +0.015 ns          | +0.043 ns
+| Hold slack      | +0.008 ns          | +0.025 ns
 
-The numbers for the MEGA65 are from the build for the R6, with the main
-clock at 144 MHz. The build for the R3 at 144 MHz failed timing by 0.076 ns
-(21,723 slices, +0.022 ns hold slack), so the main clock has since been
-reduced to 141.64 MHz, which gives 0.116 ns more setup slack, but this has
-not been built yet. The last build for the Nexys 4 DDR failed timing by
-0.001 ns, and the one before met it with +0.026 ns. See
+The numbers for the MEGA65 are from the build for the R6. The build for the
+R3 met timing with +0.090 ns (22,023 slices, +0.026 ns hold slack). At
+144 MHz the R3 had failed timing by 0.076 ns, so the main clock was reduced
+to 141.64 MHz, which gives 0.116 ns more setup slack. The previous build
+for the Nexys 4 DDR failed timing by 0.001 ns, and the one before met it
+with +0.026 ns. See
 [Resources and timing closure](ALGORITHM.md#resources-and-timing-closure)
 for details.
 

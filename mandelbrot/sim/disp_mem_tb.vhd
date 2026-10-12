@@ -10,6 +10,9 @@
 -- * Nothing is written when wr_en_i is low.
 -- * The read port has a latency of exactly four clock cycles, also for
 --   back-to-back reads from different blocks.
+-- * In each clock cycle of the read port, only the block of the read address
+--   is read, i.e. only its read enable is high, to save power, and no block
+--   for an address beyond the last block.
 -- * Writes to addresses outside the memory (when it has fewer blocks than the
 --   address allows) are ignored, i.e. they do not change any pixel.
 -- * The reset fills the whole memory with 0x055, and then writes work again.
@@ -271,6 +274,15 @@ begin
             end if;
          end loop;
 
+         -- An address beyond the last block, which reads no block (checked by
+         -- p_read_en). Its value is not used.
+         if C_OUTSIDE > 0 then
+            rd_addr <= std_logic_vector(to_unsigned(C_NUM_BLOCKS * 2**12, C_ADDR_BITS));
+            for t in 1 to 2 loop
+               wait until rising_edge(rd_clk);
+            end loop;
+         end if;
+
          finished(n) <= '1';
          wait;
       end process p_read;
@@ -299,6 +311,34 @@ begin
             rd_addr_i => rd_addr,
             rd_data_o => rd_data
          ); -- i_disp_mem
+
+
+      -------------------------------------
+      -- Only the block of the pixel is read
+      -------------------------------------
+
+      -- The read enables (one for each block) between two rising edges belong
+      -- to the read address at the first of them: the block of the address is
+      -- read at the second edge. Addresses beyond the last block read no
+      -- block. The read enables are inside the memory, so they are read with
+      -- an external name, which must come after the instantiation of the
+      -- memory.
+      p_read_en : process (rd_clk)
+         alias rd_blk_en is << signal i_disp_mem.rd_blk_en : std_logic_vector(C_NUM_BLOCKS-1 downto 0) >>;
+         variable blk_v  : natural := 0;    -- The block of the previous address
+         variable exp_v  : std_logic_vector(C_NUM_BLOCKS-1 downto 0);
+      begin
+         if rising_edge(rd_clk) then
+            exp_v := (others => '0');
+            if blk_v < C_NUM_BLOCKS then
+               exp_v(blk_v) := '1';
+            end if;
+            assert rd_blk_en = exp_v
+               report "Wrong read enables for block " & integer'image(blk_v)
+               severity error;
+            blk_v := to_integer(unsigned(rd_addr)) / 2**12;
+         end if;
+      end process p_read_en;
 
    end generate gen_dut;
 
