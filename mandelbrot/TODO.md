@@ -25,3 +25,16 @@
   enable must be registered for each group of BRAMs, like the read address
   (`rd_grp_addr`), so it does not make the paths of the VGA clock (108 MHz on
   the MEGA65) longer.
+
+* Display current centre coordinate and zoom level as decimal values at top
+  of screen
+
+* Use keyboard (on MEGA65) to change palette
+
+* Offset palette at a certain depth, i.e. set color = depth - offset. And have
+  the offset value change slowly with time. This gives a feeling of "moving".
+
+* Move this folder to a separate repo on GitHub, and make the MEGA65 boards
+  the "first citizen", and the Nexys board an added feature (currently it's the
+  other way around).
+
