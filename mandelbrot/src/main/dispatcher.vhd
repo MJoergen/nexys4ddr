@@ -42,17 +42,17 @@ entity dispatcher is
       G_PIXELS        : positive := 1     -- Pixels in each write
    );
    port (
-      clk_i           : in  std_logic;
-      rst_i           : in  std_logic;
-      start_i         : in  std_logic;
-      startx_i        : in  std_logic_vector(17 downto 0);
-      starty_i        : in  std_logic_vector(17 downto 0);
-      stepx_i         : in  std_logic_vector(17 downto 0);
-      stepy_i         : in  std_logic_vector(17 downto 0);
-      wr_addr_o       : out std_logic_vector(G_ADDR_BITS-1 downto 0);
-      wr_data_o       : out std_logic_vector(9*G_PIXELS-1 downto 0);
-      wr_en_o         : out std_logic;
-      done_o          : out std_logic
+      clk_i     : in  std_logic;
+      rst_i     : in  std_logic;
+      start_i   : in  std_logic;
+      startx_i  : in  std_logic_vector(17 downto 0);
+      starty_i  : in  std_logic_vector(17 downto 0);
+      stepx_i   : in  std_logic_vector(17 downto 0);
+      stepy_i   : in  std_logic_vector(17 downto 0);
+      wr_addr_o : out std_logic_vector(G_ADDR_BITS-1 downto 0);
+      wr_data_o : out std_logic_vector(9*G_PIXELS-1 downto 0);
+      wr_en_o   : out std_logic;
+      done_o    : out std_logic
    );
 end entity dispatcher;
 
@@ -97,25 +97,25 @@ begin
          G_GROUP_SIZE    => G_GROUP_SIZE
       )
       port map (
-         clk_i           => clk_i,
-         rst_i           => rst_i,
-         start_i         => start_i,
-         startx_i        => startx_i,
-         starty_i        => starty_i,
-         stepx_i         => stepx_i,
-         stepy_i         => stepy_i,
-         sched_active_o  => sched_active_s,
-         done_o          => done_o,
-         job_rst_o       => job_rst_s,
-         job_cx_o        => job_cx_s,
-         job_starty_o    => job_starty_s,
-         job_stepy_o     => job_stepy_s,
-         job_start_o     => job_start_s,
-         job_busy_i      => job_busy_s,
-         tbl_valid_o     => tbl_valid_s,
-         tbl_idx_o       => tbl_idx_s,
-         tbl_col_o       => tbl_col_s,
-         tbl_blk_o       => tbl_blk_s
+         clk_i          => clk_i,
+         rst_i          => rst_i,
+         start_i        => start_i,
+         startx_i       => startx_i,
+         starty_i       => starty_i,
+         stepx_i        => stepx_i,
+         stepy_i        => stepy_i,
+         sched_active_o => sched_active_s,
+         done_o         => done_o,
+         job_rst_o      => job_rst_s,
+         job_cx_o       => job_cx_s,
+         job_starty_o   => job_starty_s,
+         job_stepy_o    => job_stepy_s,
+         job_start_o    => job_start_s,
+         job_busy_i     => job_busy_s,
+         tbl_valid_o    => tbl_valid_s,
+         tbl_idx_o      => tbl_idx_s,
+         tbl_col_o      => tbl_col_s,
+         tbl_blk_o      => tbl_blk_s
       ); -- i_dispatcher_jobs
 
 
@@ -143,7 +143,7 @@ begin
             res_valid_o  => res_valid_s(i),
             res_ack_i    => res_ack_s(i)
          ); -- i_job
-      end generate gen_job;
+   end generate gen_job;
 
 
    ----------------------------------------
@@ -162,20 +162,20 @@ begin
          G_PIXELS        => G_PIXELS
       )
       port map (
-         clk_i           => clk_i,
-         rst_i           => rst_i,
-         sched_active_i  => sched_active_s,
-         tbl_valid_i     => tbl_valid_s,
-         tbl_idx_i       => tbl_idx_s,
-         tbl_col_i       => tbl_col_s,
-         tbl_blk_i       => tbl_blk_s,
-         res_addr_i      => res_addr_s,
-         res_data_i      => res_data_s,
-         res_valid_i     => res_valid_s,
-         res_ack_o       => res_ack_s,
-         wr_addr_o       => wr_addr_o,
-         wr_data_o       => wr_data_o,
-         wr_en_o         => wr_en_o
+         clk_i          => clk_i,
+         rst_i          => rst_i,
+         sched_active_i => sched_active_s,
+         tbl_valid_i    => tbl_valid_s,
+         tbl_idx_i      => tbl_idx_s,
+         tbl_col_i      => tbl_col_s,
+         tbl_blk_i      => tbl_blk_s,
+         res_addr_i     => res_addr_s,
+         res_data_i     => res_data_s,
+         res_valid_i    => res_valid_s,
+         res_ack_o      => res_ack_s,
+         wr_addr_o      => wr_addr_o,
+         wr_data_o      => wr_data_o,
+         wr_en_o        => wr_en_o
       ); -- i_dispatcher_results
 
 end architecture rtl;

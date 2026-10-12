@@ -66,7 +66,7 @@ architecture simulation of redraw_tb is
    constant C_UPD_CYCLES    : positive := 32;
 
    -- The view, i.e. startx, starty, stepx, and stepy
-   subtype t_view is std_logic_vector(71 downto 0);
+   subtype view_t is std_logic_vector(71 downto 0);
 
    signal clk       : std_logic;
    signal rst       : std_logic := '1';
@@ -83,8 +83,8 @@ architecture simulation of redraw_tb is
    signal rd_data   : std_logic_vector(8 downto 0);
 
    -- The latest value written by main to each pixel of the picture
-   type t_pixels is array (0 to C_NUM_COLS*C_COL_STRIDE-1) of std_logic_vector(8 downto 0);
-   signal written   : t_pixels;
+   type pixels_t is array (0 to C_NUM_COLS*C_COL_STRIDE-1) of std_logic_vector(8 downto 0);
+   signal written   : pixels_t;
 
    -- Counted by p_check: the pictures started, the pictures finished (all
    -- their words written), the words written, the updates of the frame rate,
@@ -159,60 +159,62 @@ begin
          G_PIXELS     => C_PIXELS
       )
       port map (
-         wr_clk_i     => clk,
-         wr_rst_i     => rst,
-         wr_addr_i    => wr_addr,
-         wr_data_i    => wr_data,
-         wr_en_i      => wr_en,
-         wr_busy_o    => wr_busy,
-         rd_clk_i     => clk,
-         rd_rst_i     => '0',
-         rd_addr_i    => rd_addr,
-         rd_data_o    => rd_data
+         wr_clk_i  => clk,
+         wr_rst_i  => rst,
+         wr_addr_i => wr_addr,
+         wr_data_i => wr_data,
+         wr_en_i   => wr_en,
+         wr_busy_o => wr_busy,
+         rd_clk_i  => clk,
+         rd_rst_i  => '0',
+         rd_addr_i => rd_addr,
+         rd_data_o => rd_data
       ); -- i_disp_mem
 
 
    -- The external names must come after the instantiation of main
-   b_test : block
-      alias upd    is << signal .redraw_tb.i_main.upd    : std_logic >>;
-      alias start  is << signal .redraw_tb.i_main.start  : std_logic >>;
+   b_test : block is
+
+      alias upd    is << signal .redraw_tb.i_main.upd : std_logic >>;
+      alias start  is << signal .redraw_tb.i_main.start : std_logic >>;
       alias startx is << signal .redraw_tb.i_main.startx : std_logic_vector(17 downto 0) >>;
       alias starty is << signal .redraw_tb.i_main.starty : std_logic_vector(17 downto 0) >>;
-      alias stepx  is << signal .redraw_tb.i_main.stepx  : std_logic_vector(17 downto 0) >>;
-      alias stepy  is << signal .redraw_tb.i_main.stepy  : std_logic_vector(17 downto 0) >>;
+      alias stepx  is << signal .redraw_tb.i_main.stepx : std_logic_vector(17 downto 0) >>;
+      alias stepy  is << signal .redraw_tb.i_main.stepy : std_logic_vector(17 downto 0) >>;
 
-      signal view  : t_view;
+      signal view_s : view_t;
+
    begin
 
-      view <= startx & starty & stepx & stepy;
+      view_s <= startx & starty & stepx & stepy;
 
       -------------------------------------------
       -- Check the pictures, at each rising edge
       -------------------------------------------
 
       p_check : process (clk)
-         variable pic_view  : t_view;    -- The view of the latest picture
-         variable pic_words : natural;   -- Words written by the latest picture
-         variable pic_time  : natural;   -- Clock cycles since the start
+         variable pic_view_v  : view_t;    -- The view of the latest picture
+         variable pic_words_v : natural;   -- Words written by the latest picture
+         variable pic_time_v  : natural;   -- Clock cycles since the start
       begin
          if rising_edge(clk) and rst = '0' then
-            pic_time := pic_time + 1;
+            pic_time_v := pic_time_v + 1;
             if wr_en = '1' then
-               assert pictures > 0 and pic_words < C_WORDS
+               assert pictures > 0 and pic_words_v < C_WORDS
                   report "A word was written, but no picture is being calculated"
                   severity error;
-               assert to_integer(wr_addr) + C_PIXELS <= t_pixels'length
+               assert to_integer(wr_addr) + C_PIXELS <= pixels_t'length
                   report "A word was written outside the picture"
                   severity failure;
                for i in 0 to C_PIXELS-1 loop
                   written(to_integer(wr_addr) + i) <= wr_data(9*i+8 downto 9*i);
                end loop;
-               pic_words := pic_words + 1;
-               writes    <= writes + 1;
-               if pic_words = C_WORDS then
+               pic_words_v := pic_words_v + 1;
+               writes      <= writes + 1;
+               if pic_words_v = C_WORDS then
                   finished <= finished + 1;
-                  if pic_time > max_time then
-                     max_time <= pic_time;
+                  if pic_time_v > max_time then
+                     max_time <= pic_time_v;
                   end if;
                end if;
             end if;
@@ -228,28 +230,29 @@ begin
                   report "A picture was started while the display memory was being filled"
                   severity error;
                if pictures > 0 then
-                  assert pic_words = C_WORDS
+                  assert pic_words_v = C_WORDS
                      report "A picture was started before the previous one was finished"
                      severity error;
-                  assert view /= pic_view
+                  assert view_s /= pic_view_v
                      report "A picture was started, but the view has not changed"
                      severity error;
                end if;
-               pic_view  := view;
-               pic_words := 0;
-               pic_time  := 0;
-               pictures  <= pictures + 1;
+               pic_view_v  := view_s;
+               pic_words_v := 0;
+               pic_time_v  := 0;
+               pictures    <= pictures + 1;
             end if;
 
-            -- The view module sees the update at this rising edge, so view is
-            -- the view before the update. The first picture is started after
-            -- the display memory has been filled, which takes several updates,
-            -- so this is only checked from the first finished picture.
+            -- The viewport module sees the update at this rising edge, so
+            -- view_s is the view before the update. The first picture is
+            -- started after the display memory has been filled, which takes
+            -- several updates, so this is only checked from the first finished
+            -- picture.
             if upd = '1' and finished > 0 then
-               assert pictures > 0 and pic_words = C_WORDS
+               assert pictures > 0 and pic_words_v = C_WORDS
                   report "The picture is not finished at the next update"
                   severity error;
-               assert view = pic_view
+               assert view_s = pic_view_v
                   report "The view has changed, but no picture was calculated"
                   severity error;
             end if;
@@ -263,31 +266,31 @@ begin
 
       p_test : process
          -- The number of updates that changed the view
-         variable changes : natural := 0;
-         variable changed : boolean;
+         variable changes_v : natural := 0;
+         variable changed_v : boolean;
 
          -- Hold the buttons down (and switch 2, zoom out) for exactly one
          -- update. They are set long before the update (at least two clock
          -- cycles, because main.vhd registers them), and released after it.
-         -- changed is set if the update changed the view.
+         -- changed_v is set if the update changed the view.
          procedure do_update (
             b        : std_logic_vector(4 downto 0);
             zoom_out : std_logic := '0'
          ) is
-            variable old_v : t_view;
+            variable old_v : view_t;
          begin
             btn   <= b;
             sw(2) <= zoom_out;
             wait until rising_edge(clk) and upd = '1';
-            old_v := view;
+            old_v := view_s;
             for i in 1 to C_UPD_CYCLES loop
                wait until rising_edge(clk);
             end loop;
             btn   <= "00000";
             sw(2) <= '0';
-            changed := view /= old_v;
-            if changed then
-               changes := changes + 1;
+            changed_v := view_s /= old_v;
+            if changed_v then
+               changes_v := changes_v + 1;
             end if;
          end procedure do_update;
 
@@ -295,37 +298,37 @@ begin
          -- compare it with the value written by main. The address is held for
          -- longer than the read latency.
          procedure check_memory (name : string) is
-            variable addr   : natural;
-            variable errors : natural := 0;
+            variable addr_v   : natural;
+            variable errors_v : natural := 0;
          begin
             for col in 0 to C_NUM_COLS-1 loop
                for row in 0 to C_NUM_ROWS-1 loop
-                  addr    := col*C_COL_STRIDE + row;
-                  rd_addr <= to_slv(addr, C_ADDR_BITS);
+                  addr_v  := col*C_COL_STRIDE + row;
+                  rd_addr <= to_slv(addr_v, C_ADDR_BITS);
                   for i in 1 to C_RD_LAT+2 loop
                      wait until rising_edge(clk);
                   end loop;
-                  if rd_data /= written(addr) then
-                     if errors < 5 then
+                  if rd_data /= written(addr_v) then
+                     if errors_v < 5 then
                         report "Display memory, " & name & ": pixel in column " &
                                integer'image(col) & ", row " & integer'image(row) &
                                " is " & integer'image(to_integer(rd_data)) &
-                               ", but main wrote " & integer'image(to_integer(written(addr)))
+                               ", but main wrote " & integer'image(to_integer(written(addr_v)))
                            severity error;
                      end if;
-                     errors := errors + 1;
+                     errors_v := errors_v + 1;
                   end if;
                end loop;
             end loop;
-            assert errors = 0
-               report "Display memory, " & name & ": " & integer'image(errors) &
+            assert errors_v = 0
+               report "Display memory, " & name & ": " & integer'image(errors_v) &
                       " of " & integer'image(C_NUM_COLS*C_NUM_ROWS) & " pixels are wrong"
                severity error;
          end procedure check_memory;
 
          variable pictures_v : natural;
          variable writes_v   : natural;
-         variable stopped    : boolean;
+         variable stopped_v  : boolean;
 
       begin
          wait until rst = '0';
@@ -346,7 +349,7 @@ begin
          -- Without buttons the view does not change, and nothing is written
          for i in 1 to 3 loop
             do_update("00000");
-            assert not changed
+            assert not changed_v
                report "The view changed without buttons"
                severity error;
          end loop;
@@ -356,40 +359,47 @@ begin
 
          -- Pan right, zoom in, and zoom out. Each must change the view.
          do_update("00100");
-         assert changed report "Pan right did not change the view" severity error;
+         assert changed_v
+            report "Pan right did not change the view"
+            severity error;
          do_update("10000");
-         assert changed report "Zoom in did not change the view" severity error;
+         assert changed_v
+            report "Zoom in did not change the view"
+            severity error;
          do_update("10000", '1');
-         assert changed report "Zoom out did not change the view" severity error;
+         assert changed_v
+            report "Zoom out did not change the view"
+            severity error;
 
          -- Pan left until the left edge of the view is at -2. After that the
          -- view does not change, so no pictures are calculated, although the
          -- button is held down. The update just after the last change checks
          -- the last picture.
-         stopped := false;
+         stopped_v := false;
          for i in 1 to 10 loop
             do_update("01000");
-            if not changed and not stopped then
-               stopped    := true;
+            if not changed_v and not stopped_v then
+               stopped_v  := true;
                pictures_v := pictures;
                writes_v   := writes;
             end if;
-            assert changed or not stopped or (pictures = pictures_v and writes = writes_v)
+            assert changed_v or not stopped_v or (pictures = pictures_v and writes = writes_v)
                report "A picture was calculated at the left edge"
                severity error;
          end loop;
-         assert stopped
+         assert stopped_v
             report "Pan left did not reach the left edge"
             severity error;
 
          -- The update after the last change checks its picture
          do_update("00000");
-         assert not changed severity error;
+         assert not changed_v
+            severity error;
          check_memory("last picture");
 
-         assert pictures = 1 + changes
+         assert pictures = 1 + changes_v
             report "Pictures: " & integer'image(pictures) & ", expected " &
-                   integer'image(1 + changes) & " (one after reset, and one for each change of the view)"
+                   integer'image(1 + changes_v) & " (one after reset, and one for each change of the view)"
             severity error;
          assert writes = pictures * C_WORDS
             report "Words written: " & integer'image(writes) & ", expected " &
@@ -401,7 +411,7 @@ begin
             severity error;
 
          report "redraw_tb: finished, " & integer'image(pictures) & " pictures for " &
-                integer'image(changes) & " changes of the view, the longest took " &
+                integer'image(changes_v) & " changes of the view, the longest took " &
                 integer'image(max_time) & " clock cycles";
          std.env.finish;
       end process p_test;

@@ -60,15 +60,15 @@ architecture rtl of res_scheduler is
       req : std_logic_vector(G_GROUP_SIZE-1 downto 0);
       ptr : pos_t
    ) return pos_t is
-      variable lo_v : pos_t := 0;
-      variable hi_v : pos_t := 0;
+      variable lo_v       : pos_t := 0;
+      variable hi_v       : pos_t := 0;
       variable hi_found_v : boolean := false;
    begin
       for i in G_GROUP_SIZE-1 downto 0 loop
          if req(i) = '1' then
             lo_v := i;
             if i >= ptr then
-               hi_v := i;
+               hi_v       := i;
                hi_found_v := true;
             end if;
          end if;

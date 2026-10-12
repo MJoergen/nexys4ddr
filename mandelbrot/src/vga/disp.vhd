@@ -17,34 +17,34 @@ use work.video_pkg.all;
 
 entity disp is
    generic (
-      G_MODE       : video_mode_t
+      G_MODE : video_mode_t
    );
    port (
-      vga_clk_i    : in  std_logic;
-      vga_rst_i    : in  std_logic;
-      vga_pix_x_i  : in  std_logic_vector(10 downto 0);
-      vga_pix_y_i  : in  std_logic_vector(10 downto 0);
-      vga_col_d3_i : in  std_logic_vector(8 downto 0);
-      vga_palette_i: in  std_logic_vector(1 downto 0);
-      vga_hs_o     : out std_logic;
-      vga_vs_o     : out std_logic;
-      vga_de_o     : out std_logic;
-      vga_col_o    : out std_logic_vector(7 downto 0)
+      vga_clk_i     : in  std_logic;
+      vga_rst_i     : in  std_logic;
+      vga_pix_x_i   : in  std_logic_vector(10 downto 0);
+      vga_pix_y_i   : in  std_logic_vector(10 downto 0);
+      vga_col_d3_i  : in  std_logic_vector(8 downto 0);
+      vga_palette_i : in  std_logic_vector(1 downto 0);
+      vga_hs_o      : out std_logic;
+      vga_vs_o      : out std_logic;
+      vga_de_o      : out std_logic;
+      vga_col_o     : out std_logic_vector(7 downto 0)
    );
 end entity disp;
 
 architecture rtl of disp is
 
    -- Define visible screen size
-   constant H_PIXELS : natural := G_MODE.h_visible;
-   constant V_PIXELS : natural := G_MODE.v_visible;
+   constant C_H_PIXELS : natural := G_MODE.h_visible;
+   constant C_V_PIXELS : natural := G_MODE.v_visible;
 
    -- Define VGA timing constants. The sync pulses are at the level
    -- G_MODE.sync_active, e.g. active low (negative polarity) for 640x480.
-   constant HS_START : natural := G_MODE.h_visible + G_MODE.h_front;
-   constant HS_TIME  : natural := G_MODE.h_sync;
-   constant VS_START : natural := G_MODE.v_visible + G_MODE.v_front;
-   constant VS_TIME  : natural := G_MODE.v_sync;
+   constant C_HS_START : natural := G_MODE.h_visible + G_MODE.h_front;
+   constant C_HS_TIME  : natural := G_MODE.h_sync;
+   constant C_VS_START : natural := G_MODE.v_visible + G_MODE.v_front;
+   constant C_VS_TIME  : natural := G_MODE.v_sync;
 
    signal vga_pix_x_d  : std_logic_vector(10 downto 0) := (others => '0');
    signal vga_pix_y_d  : std_logic_vector(10 downto 0) := (others => '0');
@@ -79,11 +79,11 @@ begin
          vga_hs_d <= not G_MODE.sync_active;
          vga_vs_d <= not G_MODE.sync_active;
 
-         if vga_pix_x_i >= HS_START and vga_pix_x_i < HS_START+HS_TIME then
+         if vga_pix_x_i >= C_HS_START and vga_pix_x_i < C_HS_START+C_HS_TIME then
             vga_hs_d   <= G_MODE.sync_active;
          end if;
 
-         if vga_pix_y_i >= VS_START and vga_pix_y_i < VS_START+VS_TIME then
+         if vga_pix_y_i >= C_VS_START and vga_pix_y_i < C_VS_START+C_VS_TIME then
             vga_vs_d   <= G_MODE.sync_active;
          end if;
 
@@ -125,7 +125,7 @@ begin
          vga_de_d4  <= '0';
 
          -- Only set colour output inside visible area
-         if vga_pix_x_d3 < H_PIXELS and vga_pix_y_d3 < V_PIXELS then
+         if vga_pix_x_d3 < C_H_PIXELS and vga_pix_y_d3 < C_V_PIXELS then
             vga_col_d4 <= palette_colour(vga_palette_i, vga_col_d3_i);
             vga_de_d4  <= '1';
          end if;

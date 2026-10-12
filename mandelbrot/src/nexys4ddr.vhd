@@ -49,7 +49,7 @@ entity nexys4ddr is
       vga_vs_o  : out std_logic;
       vga_col_o : out std_logic_vector( 7 downto 0)    -- RRRGGGBB
    );
-end nexys4ddr;
+end entity nexys4ddr;
 
 architecture structural of nexys4ddr is
 
@@ -170,19 +170,19 @@ begin
          G_ADDR_BITS     => C_ADDR_BITS
       )
       port map (
-         clk_i     => main_clk,
-         rst_i     => main_rst,
-         btn_i     => btn_i,
-         sw_i      => sw_i,
-         seg_o     => seg_o,
-         seg_an_o  => seg_an_o,
+         clk_i        => main_clk,
+         rst_i        => main_rst,
+         btn_i        => btn_i,
+         sw_i         => sw_i,
+         seg_o        => seg_o,
+         seg_an_o     => seg_an_o,
          fps_digits_o => fps_digits,
          fps_blank_o  => fps_blank,
          fps_valid_o  => fps_valid,
-         wr_addr_o => wr_addr,
-         wr_data_o => wr_data,
-         wr_en_o   => wr_en,
-         wr_busy_i => wr_busy
+         wr_addr_o    => wr_addr,
+         wr_data_o    => wr_data,
+         wr_en_o      => wr_en,
+         wr_busy_i    => wr_busy
       ); -- i_main
 
 
@@ -257,16 +257,16 @@ begin
          G_ADDR_BITS  => C_ADDR_BITS
       )
       port map (
-         clk_i     => vga_clk,
-         rst_i     => vga_rst,
-         rd_addr_o => rd_addr,
-         rd_data_i => rd_data,
-         palette_i => sw_i(1 downto 0),
+         clk_i        => vga_clk,
+         rst_i        => vga_rst,
+         rd_addr_o    => rd_addr,
+         rd_data_i    => rd_data,
+         palette_i    => sw_i(1 downto 0),
          fps_digits_i => vga_fps_digits,
          fps_blank_i  => vga_fps_blank,
-         vga_hs_o  => vga_hs_o,
-         vga_vs_o  => vga_vs_o,
-         vga_col_o => vga_col_o
+         vga_hs_o     => vga_hs_o,
+         vga_vs_o     => vga_vs_o,
+         vga_col_o    => vga_col_o
       ); -- i_vga
 
 end architecture structural;

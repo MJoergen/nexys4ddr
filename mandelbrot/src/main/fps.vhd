@@ -63,14 +63,14 @@ architecture rtl of fps is
 
    -- The number of bits needed for the value n
    function num_bits(n : natural) return natural is
-      variable v : natural := n;
-      variable r : natural := 0;
+      variable val_v : natural := n;
+      variable r_v   : natural := 0;
    begin
-      while v > 0 loop
-         v := v / 2;
-         r := r + 1;
+      while val_v > 0 loop
+         val_v := val_v / 2;
+         r_v   := r_v + 1;
       end loop;
-      return r;
+      return r_v;
    end function num_bits;
 
    -- The width of the quotient, which is at most G_CLK_FREQ
@@ -78,15 +78,15 @@ architecture rtl of fps is
 
    -- The largest value shown, i.e. all nines, but at most 2^31-1
    function max_value return natural is
-      variable r : natural := 0;
+      variable r_v : natural := 0;
    begin
       for i in 1 to G_DIGITS loop
-         if r > (natural'high - 9) / 10 then
+         if r_v > (natural'high - 9) / 10 then
             return natural'high;
          end if;
-         r := 10*r + 9;
+         r_v := 10*r_v + 9;
       end loop;
-      return r;
+      return r_v;
    end function max_value;
 
    constant C_MAX   : natural := max_value;
@@ -95,9 +95,9 @@ architecture rtl of fps is
    -- until the first time after reset, and avg_valid is set for one clock
    -- cycle after avg is updated.
    constant C_AVG_BITS : natural := G_TIME_BITS + G_AVG_SHIFT;
-   signal avg       : std_logic_vector(C_AVG_BITS-1 downto 0) := (others => '0');
-   signal avg_first : std_logic := '1';
-   signal avg_valid : std_logic := '0';
+   signal avg          : std_logic_vector(C_AVG_BITS-1 downto 0) := (others => '0');
+   signal avg_first    : std_logic := '1';
+   signal avg_valid    : std_logic := '0';
 
    type state_t is (IDLE_ST, DIV_ST, SAT_ST, BCD_ST, OUT_ST);
    signal state     : state_t := IDLE_ST;
@@ -215,7 +215,7 @@ begin
                end loop;
                blank_o(0) <= '0';
                valid_o    <= '1';
-               state <= IDLE_ST;
+               state      <= IDLE_ST;
          end case;
 
          if rst_i = '1' then

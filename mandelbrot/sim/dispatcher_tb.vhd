@@ -81,9 +81,9 @@ architecture simulation of dispatcher_tb is
       done    : std_logic;
    end record dut_out_t;
 
-   constant C_IN_INIT : dut_in_t :=
-      (start => '0', startx => (others => '0'), starty => (others => '0'),
-       stepx => (others => '0'), stepy => (others => '0'));
+   constant C_IN_INIT : dut_in_t := (
+      start => '0', startx => (others => '0'), starty => (others => '0'),
+      stepx => (others => '0'), stepy => (others => '0'));
 
    signal clk      : std_logic;
    signal rst      : std_logic;
@@ -139,31 +139,31 @@ begin
          pixels   : positive;    -- Pixels in each write
          startx_r : real;
          starty_r : real;
-         width_r  : real;       -- Size of the picture
+         width_r  : real;        -- Size of the picture
          height_r : real;
          name     : string
       ) is
-         variable startx_i : integer := to_fixed(startx_r);
-         variable starty_i : integer := to_fixed(starty_r);
-         variable stepx_i  : integer := to_fixed(width_r  / real(num_cols));
-         variable stepy_i  : integer := to_fixed(height_r / real(C_NUM_ROWS));
-         variable col      : natural;
-         variable row      : natural;
-         variable total    : natural := 0;
-         variable finished : boolean := false;
-         variable seen_low : boolean := false;
-         variable seen     : pixel_t := (others => (others => -1));
-         variable exp      : integer;
-         variable cx_i     : integer;
-         variable cy_i     : integer;
+         variable startx_v   : integer := to_fixed(startx_r);
+         variable starty_v   : integer := to_fixed(starty_r);
+         variable stepx_v    : integer := to_fixed(width_r  / real(num_cols));
+         variable stepy_v    : integer := to_fixed(height_r / real(C_NUM_ROWS));
+         variable col_v      : natural;
+         variable row_v      : natural;
+         variable total_v    : natural := 0;
+         variable finished_v : boolean := false;
+         variable seen_low_v : boolean := false;
+         variable seen_v     : pixel_t := (others => (others => -1));
+         variable exp_v      : integer;
+         variable cx_v       : integer;
+         variable cy_v       : integer;
       begin
          report "Starting picture " & name;
 
          wait until rising_edge(clk);
-         dut_in.startx <= std_logic_vector(to_signed(startx_i, 18));
-         dut_in.starty <= std_logic_vector(to_signed(starty_i, 18));
-         dut_in.stepx  <= std_logic_vector(to_signed(stepx_i,  18));
-         dut_in.stepy  <= std_logic_vector(to_signed(stepy_i,  18));
+         dut_in.startx <= std_logic_vector(to_signed(startx_v, 18));
+         dut_in.starty <= std_logic_vector(to_signed(starty_v, 18));
+         dut_in.stepx  <= std_logic_vector(to_signed(stepx_v,  18));
+         dut_in.stepy  <= std_logic_vector(to_signed(stepy_v,  18));
          dut_in.start  <= '1';
          wait until rising_edge(clk);
          dut_in.start  <= '0';
@@ -176,10 +176,10 @@ begin
                report name & ": Pixel written too early"
                severity error;
             if dut_out.done = '0' then
-               seen_low := true;
+               seen_low_v := true;
             end if;
          end loop;
-         assert seen_low
+         assert seen_low_v
             report name & ": Done did not go low after start"
             severity error;
 
@@ -188,36 +188,36 @@ begin
             wait until rising_edge(clk);
 
             if dut_out.wr_en = '1' then
-               col := to_integer(unsigned(dut_out.wr_addr)) / stride;
-               row := to_integer(unsigned(dut_out.wr_addr)) mod stride;
-               if col < num_cols and row <= C_NUM_ROWS - pixels and row mod pixels = 0 then
+               col_v := to_integer(unsigned(dut_out.wr_addr)) / stride;
+               row_v := to_integer(unsigned(dut_out.wr_addr)) mod stride;
+               if col_v < num_cols and row_v <= C_NUM_ROWS - pixels and row_v mod pixels = 0 then
                   for i in 0 to pixels-1 loop
-                     assert seen(col, row+i) = -1
-                        report name & ": Pixel (" & integer'image(col) & "," & integer'image(row+i) &
+                     assert seen_v(col_v, row_v+i) = -1
+                        report name & ": Pixel (" & integer'image(col_v) & "," & integer'image(row_v+i) &
                                ") written more than once"
                         severity error;
-                     seen(col, row+i) := to_integer(unsigned(dut_out.wr_data(9*i+8 downto 9*i)));
-                     total := total + 1;
+                     seen_v(col_v, row_v+i) := to_integer(unsigned(dut_out.wr_data(9*i+8 downto 9*i)));
+                     total_v                := total_v + 1;
                   end loop;
                else
-                  report name & ": Pixel outside the picture: (" & integer'image(col) & "," &
-                         integer'image(row) & ")"
+                  report name & ": Pixel outside the picture: (" & integer'image(col_v) & "," &
+                         integer'image(row_v) & ")"
                      severity error;
                end if;
             end if;
 
             if dut_out.done = '1' then
-               finished := true;
+               finished_v := true;
                exit;
             end if;
          end loop;
 
-         assert finished
-            report name & ": Timeout waiting for done. Pixels written: " & integer'image(total)
+         assert finished_v
+            report name & ": Timeout waiting for done. Pixels written: " & integer'image(total_v)
             severity failure;
 
-         assert total = num_cols * C_NUM_ROWS
-            report name & ": Wrong number of pixels written when done: " & integer'image(total) &
+         assert total_v = num_cols * C_NUM_ROWS
+            report name & ": Wrong number of pixels written when done: " & integer'image(total_v) &
                    ", expected " & integer'image(num_cols * C_NUM_ROWS)
             severity error;
 
@@ -232,16 +232,16 @@ begin
          -- Check the value of each pixel
          for c in 0 to num_cols-1 loop
             for r in 0 to C_NUM_ROWS-1 loop
-               if seen(c, r) /= -1 then
+               if seen_v(c, r) /= -1 then
                   -- The dispatcher and the job modules add the steps in 18
                   -- bits
-                  cx_i := wrap18(startx_i + c * stepx_i);
-                  cy_i := wrap18(starty_i + r * stepy_i);
-                  exp  := iterator_count(cx_i, cy_i, C_MAX_COUNT);
-                  assert seen(c, r) = exp
+                  cx_v  := wrap18(startx_v + c * stepx_v);
+                  cy_v  := wrap18(starty_v + r * stepy_v);
+                  exp_v := iterator_count(cx_v, cy_v, C_MAX_COUNT);
+                  assert seen_v(c, r) = exp_v
                      report name & ": Wrong count for pixel (" & integer'image(c) & "," &
-                            integer'image(r) & "): got " & integer'image(seen(c, r)) &
-                            ", expected " & integer'image(exp)
+                            integer'image(r) & "): got " & integer'image(seen_v(c, r)) &
+                            ", expected " & integer'image(exp_v)
                      severity error;
                else
                   report name & ": Pixel (" & integer'image(c) & "," & integer'image(r) &
@@ -299,17 +299,17 @@ begin
          G_GROUP_SIZE    => C_GROUP_SIZE
       )
       port map (
-         clk_i          => clk,
-         rst_i          => rst,
-         start_i        => dut1_in.start,
-         startx_i       => dut1_in.startx,
-         starty_i       => dut1_in.starty,
-         stepx_i        => dut1_in.stepx,
-         stepy_i        => dut1_in.stepy,
-         wr_addr_o      => dut1_out.wr_addr,
-         wr_data_o      => dut1_out.wr_data(8 downto 0),
-         wr_en_o        => dut1_out.wr_en,
-         done_o         => dut1_out.done
+         clk_i     => clk,
+         rst_i     => rst,
+         start_i   => dut1_in.start,
+         startx_i  => dut1_in.startx,
+         starty_i  => dut1_in.starty,
+         stepx_i   => dut1_in.stepx,
+         stepy_i   => dut1_in.stepy,
+         wr_addr_o => dut1_out.wr_addr,
+         wr_data_o => dut1_out.wr_data(8 downto 0),
+         wr_en_o   => dut1_out.wr_en,
+         done_o    => dut1_out.done
       ); -- i_dispatcher
 
    i_dispatcher_small : entity work.dispatcher
@@ -322,17 +322,17 @@ begin
          G_NUM_ITERATORS => C_NUM_ITERATORS
       )
       port map (
-         clk_i          => clk,
-         rst_i          => rst,
-         start_i        => dut2_in.start,
-         startx_i       => dut2_in.startx,
-         starty_i       => dut2_in.starty,
-         stepx_i        => dut2_in.stepx,
-         stepy_i        => dut2_in.stepy,
-         wr_addr_o      => dut2_out.wr_addr,
-         wr_data_o      => dut2_out.wr_data(8 downto 0),
-         wr_en_o        => dut2_out.wr_en,
-         done_o         => dut2_out.done
+         clk_i     => clk,
+         rst_i     => rst,
+         start_i   => dut2_in.start,
+         startx_i  => dut2_in.startx,
+         starty_i  => dut2_in.starty,
+         stepx_i   => dut2_in.stepx,
+         stepy_i   => dut2_in.stepy,
+         wr_addr_o => dut2_out.wr_addr,
+         wr_data_o => dut2_out.wr_data(8 downto 0),
+         wr_en_o   => dut2_out.wr_en,
+         done_o    => dut2_out.done
       ); -- i_dispatcher_small
 
    i_dispatcher_wide : entity work.dispatcher
@@ -347,17 +347,17 @@ begin
          G_PIXELS        => C_WIDE_PIXELS
       )
       port map (
-         clk_i          => clk,
-         rst_i          => rst,
-         start_i        => dut3_in.start,
-         startx_i       => dut3_in.startx,
-         starty_i       => dut3_in.starty,
-         stepx_i        => dut3_in.stepx,
-         stepy_i        => dut3_in.stepy,
-         wr_addr_o      => dut3_out.wr_addr,
-         wr_data_o      => dut3_out.wr_data,
-         wr_en_o        => dut3_out.wr_en,
-         done_o         => dut3_out.done
+         clk_i     => clk,
+         rst_i     => rst,
+         start_i   => dut3_in.start,
+         startx_i  => dut3_in.startx,
+         starty_i  => dut3_in.starty,
+         stepx_i   => dut3_in.stepx,
+         stepy_i   => dut3_in.stepy,
+         wr_addr_o => dut3_out.wr_addr,
+         wr_data_o => dut3_out.wr_data,
+         wr_en_o   => dut3_out.wr_en,
+         done_o    => dut3_out.done
       ); -- i_dispatcher_wide
 
 end architecture simulation;

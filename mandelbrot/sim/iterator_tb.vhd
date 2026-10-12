@@ -78,15 +78,15 @@ architecture simulation of iterator_tb is
    -- the behaviour of the iterator: Count the iterations until x or y is out
    -- of range, or until the maximum count is reached.
    function expected_count (cx_r : real; cy_r : real) return integer is
-      variable x : real := 0.0;
-      variable y : real := 0.0;
-      variable t : real;
+      variable x_v : real := 0.0;
+      variable y_v : real := 0.0;
+      variable t_v : real;
    begin
       for n in 1 to C_MAX_COUNT-1 loop
-         t := x*x - y*y + cx_r;
-         y := 2.0*x*y + cy_r;
-         x := t;
-         if x < -2.0 or x >= 2.0 or y < -2.0 or y >= 2.0 then
+         t_v := x_v*x_v - y_v*y_v + cx_r;
+         y_v := 2.0*x_v*y_v + cy_r;
+         x_v := t_v;
+         if x_v < -2.0 or x_v >= 2.0 or y_v < -2.0 or y_v >= 2.0 then
             return n;
          end if;
       end loop;
@@ -128,16 +128,16 @@ begin
          cy_r       : real;
          max_cycles : integer := integer'high  -- Maximum clock cycles until done
       ) is
-         variable exp     : integer;
-         variable act     : integer;
-         variable t_start : time;
-         variable cycles  : integer;
+         variable exp_v     : integer;
+         variable act_v     : integer;
+         variable t_start_v : time;
+         variable cycles_v  : integer;
       begin
          wait until rising_edge(clk);
          cx    <= to_fixed(cx_r);
          cy    <= to_fixed(cy_r);
          start <= '1';
-         t_start := now;
+         t_start_v := now;
          wait until rising_edge(clk);
          start <= '0';
 
@@ -147,27 +147,27 @@ begin
             report "Timeout waiting for done for c = (" & real'image(cx_r) & ", " & real'image(cy_r) & ")"
             severity error;
 
-         cycles := (now - t_start) / (10 ns);
+         cycles_v := (now - t_start_v) / (10 ns);
          wait for 1 ns;
-         act := to_integer(unsigned(cnt));
+         act_v := to_integer(unsigned(cnt));
 
          -- Use the rounded input values, so the iterator and the model
          -- calculate with the same value of c.
-         exp := expected_count(to_real(to_fixed(cx_r)), to_real(to_fixed(cy_r)));
+         exp_v := expected_count(to_real(to_fixed(cx_r)), to_real(to_fixed(cy_r)));
 
          report "c = (" & real'image(cx_r) & ", " & real'image(cy_r) & "): " &
-                "count = " & integer'image(act) & ", expected = " & integer'image(exp) &
-                ", " & integer'image(cycles) & " clock cycles";
+                "count = " & integer'image(act_v) & ", expected = " & integer'image(exp_v) &
+                ", " & integer'image(cycles_v) & " clock cycles";
 
-         assert cycles <= max_cycles
+         assert cycles_v <= max_cycles
             report "Too slow for c = (" & real'image(cx_r) & ", " & real'image(cy_r) & "): " &
-                   integer'image(cycles) & " clock cycles, expected at most " &
+                   integer'image(cycles_v) & " clock cycles, expected at most " &
                    integer'image(max_cycles)
             severity error;
 
-         assert abs(act - exp) <= C_TOLERANCE
+         assert abs(act_v - exp_v) <= C_TOLERANCE
             report "Wrong count for c = (" & real'image(cx_r) & ", " & real'image(cy_r) & "): " &
-                   "got " & integer'image(act) & ", expected " & integer'image(exp)
+                   "got " & integer'image(act_v) & ", expected " & integer'image(exp_v)
             severity error;
       end procedure check;
 
@@ -177,8 +177,8 @@ begin
          cx_i : integer;
          cy_i : integer
       ) is
-         variable exp : integer;
-         variable act : integer;
+         variable exp_v : integer;
+         variable act_v : integer;
       begin
          wait until rising_edge(clk);
          cx    <= std_logic_vector(to_signed(cx_i, 18));
@@ -188,12 +188,12 @@ begin
          start <= '0';
          wait until done = '1' for (C_MAX_COUNT + 20) * 10 ns;
          wait for 1 ns;
-         act := to_integer(unsigned(cnt));
-         exp := iterator_count(cx_i, cy_i, C_MAX_COUNT);
-         assert done = '1' and act = exp
+         act_v := to_integer(unsigned(cnt));
+         exp_v := iterator_count(cx_i, cy_i, C_MAX_COUNT);
+         assert done = '1' and act_v = exp_v
             report "Count differs from the model for c = (" & integer'image(cx_i) &
-                   ", " & integer'image(cy_i) & ") / 2^16: got " & integer'image(act) &
-                   ", expected " & integer'image(exp)
+                   ", " & integer'image(cy_i) & ") / 2^16: got " & integer'image(act_v) &
+                   ", expected " & integer'image(exp_v)
             severity error;
       end procedure check_exact;
 
@@ -205,7 +205,7 @@ begin
          end loop;
       end procedure idle;
 
-      variable grid_errors : integer;
+      variable grid_errors_v : integer;
 
    begin
       wait until rst = '0';
@@ -221,15 +221,15 @@ begin
       check(-1.0,   1.0);        -- Escapes, see below
       check( 0.1,   0.1, 150);   -- Inside the main cardioid, converges to a fixed point
       check(-0.12,  0.75, 150);  -- Inside the period 3 bulb
-      check( 1.0,   1.0);    -- Escapes immediately
-      check(-2.0,   0.0);    -- In the set, but z = 2 is out of range (see ALGORITHM.md)
-      check( 0.5,   0.0);    -- Escapes quickly
-      check(-1.0,   0.5);    -- Escapes quickly (example from iterator.vhd)
-      check( 0.3,   0.0);    -- Escapes slowly, near the edge of the set
-      check(-0.75,  0.1);    -- Escapes slowly, near the edge of the set
-      check(-0.1,   0.65);   -- Escapes slowly, near the edge of the set
-      check(-0.17,  1.09);   -- x+y is out of range (-2 to 2) during the iteration
-      check( 0.02, -1.01);   -- x-y is out of range (-2 to 2) during the iteration
+      check( 1.0,   1.0);        -- Escapes immediately
+      check(-2.0,   0.0);        -- In the set, but z = 2 is out of range (see ALGORITHM.md)
+      check( 0.5,   0.0);        -- Escapes quickly
+      check(-1.0,   0.5);        -- Escapes quickly (example from iterator.vhd)
+      check( 0.3,   0.0);        -- Escapes slowly, near the edge of the set
+      check(-0.75,  0.1);        -- Escapes slowly, near the edge of the set
+      check(-0.1,   0.65);       -- Escapes slowly, near the edge of the set
+      check(-0.17,  1.09);       -- x+y is out of range (-2 to 2) during the iteration
+      check( 0.02, -1.01);       -- x-y is out of range (-2 to 2) during the iteration
 
       -- Points that escape, but where x alone (or y alone) repeats an earlier
       -- saved value. The periodicity detection must compare both x and y.
@@ -286,8 +286,8 @@ begin
    -- so they are read with external names, which must come after the
    -- instantiation of the iterator.
    p_idle : process (clk)
-      alias px_r is << signal .iterator_tb.i_iterator.px_r : std_logic_vector(35 downto 0) >>;
-      alias py_r is << signal .iterator_tb.i_iterator.py_r : std_logic_vector(35 downto 0) >>;
+      alias px_r      is << signal .iterator_tb.i_iterator.px_r : std_logic_vector(35 downto 0) >>;
+      alias py_r      is << signal .iterator_tb.i_iterator.py_r : std_logic_vector(35 downto 0) >>;
       variable idle_v : boolean := false;
       variable px_v   : std_logic_vector(35 downto 0);
       variable py_v   : std_logic_vector(35 downto 0);

@@ -82,17 +82,17 @@ architecture simulation of overlay_tb is
    -- The expected colour of the pixel (x, y) in the visible area, when the
    -- value v is shown
    function expected (x : integer; y : integer; v : value_t) return std_logic_vector is
-      variable pos   : integer;
-      variable digit : integer;
-      variable row   : std_logic_vector(C_WIDTH-1 downto 0);
+      variable pos_v   : integer;
+      variable digit_v : integer;
+      variable row_v   : std_logic_vector(C_WIDTH-1 downto 0);
    begin
       if x >= C_X and x < C_X + C_DIGITS*C_WIDTH and y >= C_Y and y < C_Y + C_HEIGHT then
-         -- pos is the position of the digit, 0 is the least significant one
-         pos := C_DIGITS-1 - (x - C_X) / C_WIDTH;
-         if v.blank(pos) = '0' then
-            digit := to_integer(unsigned(v.digits(4*pos+3 downto 4*pos)));
-            row   := C_FONT(32*digit + y - C_Y);
-            if row(C_WIDTH-1 - (x - C_X) mod C_WIDTH) = '1' then
+         -- pos_v is the position of the digit, 0 is the least significant one
+         pos_v := C_DIGITS-1 - (x - C_X) / C_WIDTH;
+         if v.blank(pos_v) = '0' then
+            digit_v := to_integer(unsigned(v.digits(4*pos_v+3 downto 4*pos_v)));
+            row_v   := C_FONT(32*digit_v + y - C_Y);
+            if row_v(C_WIDTH-1 - (x - C_X) mod C_WIDTH) = '1' then
                return C_FG;
             else
                return C_BG;
@@ -133,10 +133,10 @@ begin
    p_mem : process (clk)
    begin
       if rising_edge(clk) then
-         mem_d(1) <= pixel_value(to_integer(unsigned(rd_addr(18 downto 9))),
-                                 to_integer(unsigned(rd_addr(8 downto 0))));
+         mem_d(1)      <= pixel_value(to_integer(unsigned(rd_addr(18 downto 9))),
+                                      to_integer(unsigned(rd_addr(8 downto 0))));
          mem_d(2 to 3) <= mem_d(1 to 2);
-         rd_data  <= mem_d(3);
+         rd_data       <= mem_d(3);
       end if;
    end process p_mem;
 
@@ -148,66 +148,67 @@ begin
    -- The checks start at the first falling edge of vs. The output at this
    -- time is the pixel (0, 490), see vga_tb.vhd.
    p_check : process (clk)
-      variable started : boolean := false;
-      variable vs_d    : std_logic := '1';
-      variable n       : integer;          -- Pixel number from (0, 0) of frame 0
-      variable x       : integer;
-      variable y       : integer;
-      variable frame   : integer;
-      variable exp     : std_logic_vector(7 downto 0);
-      variable errors  : natural := 0;
-      variable line    : string(1 to C_DIGITS*C_WIDTH);
+      variable started_v : boolean := false;
+      variable vs_d_v    : std_logic := '1';
+      variable n_v       : integer;          -- Pixel number from (0, 0) of frame 0
+      variable x_v       : integer;
+      variable y_v       : integer;
+      variable frame_v   : integer;
+      variable exp_v     : std_logic_vector(7 downto 0);
+      variable errors_v  : natural := 0;
+      variable line_v    : string(1 to C_DIGITS*C_WIDTH);
    begin
       if rising_edge(clk) and rst = '0' then
-         if not started then
-            if vs_d = '1' and vga_vs = '0' then
-               started := true;
-               n := 490*C_H_TOTAL - C_V_TOTAL*C_H_TOTAL;
+         if not started_v then
+            if vs_d_v = '1' and vga_vs = '0' then
+               started_v := true;
+               n_v       := 490*C_H_TOTAL - C_V_TOTAL*C_H_TOTAL;
             end if;
-            vs_d := vga_vs;
+            vs_d_v := vga_vs;
          else
-            n := n + 1;
+            n_v := n_v + 1;
          end if;
 
-         if started and n >= 0 then
-            x     := n mod C_H_TOTAL;
-            y     := (n / C_H_TOTAL) mod C_V_TOTAL;
-            frame := n / (C_H_TOTAL*C_V_TOTAL);
+         if started_v and n_v >= 0 then
+            x_v     := n_v mod C_H_TOTAL;
+            y_v     := (n_v / C_H_TOTAL) mod C_V_TOTAL;
+            frame_v := n_v / (C_H_TOTAL*C_V_TOTAL);
 
-            exp := (others => '0');
-            if x < C_H_VISIBLE and y < C_V_VISIBLE then
-               exp := expected(x, y, C_VALUES(frame));
+            exp_v := (others => '0');
+            if x_v < C_H_VISIBLE and y_v < C_V_VISIBLE then
+               exp_v := expected(x_v, y_v, C_VALUES(frame_v));
             end if;
-            if vga_col /= exp then
-               if errors < 10 then
-                  report "Wrong colour in frame " & integer'image(frame) &
-                         " at (" & integer'image(x) & ", " & integer'image(y) &
+            if vga_col /= exp_v then
+               if errors_v < 10 then
+                  report "Wrong colour in frame " & integer'image(frame_v) &
+                         " at (" & integer'image(x_v) & ", " & integer'image(y_v) &
                          "): got " & integer'image(to_integer(unsigned(vga_col))) &
-                         ", expected " & integer'image(to_integer(unsigned(exp)))
+                         ", expected " & integer'image(to_integer(unsigned(exp_v)))
                      severity error;
                end if;
-               errors := errors + 1;
+               errors_v := errors_v + 1;
             end if;
 
             -- Print the overlay of the last frame
-            if frame = 2 and y >= C_Y and y < C_Y + C_HEIGHT and
-               x >= C_X and x < C_X + C_DIGITS*C_WIDTH then
+            if frame_v = 2 and y_v >= C_Y and y_v < C_Y + C_HEIGHT and
+               x_v >= C_X and x_v < C_X + C_DIGITS*C_WIDTH
+            then
                if vga_col = C_FG then
-                  line(x - C_X + 1) := '#';
+                  line_v(x_v - C_X + 1) := '#';
                elsif vga_col = C_BG then
-                  line(x - C_X + 1) := '.';
+                  line_v(x_v - C_X + 1) := '.';
                else
-                  line(x - C_X + 1) := ' ';
+                  line_v(x_v - C_X + 1) := ' ';
                end if;
-               if x = C_X + C_DIGITS*C_WIDTH - 1 then
-                  report line;
+               if x_v = C_X + C_DIGITS*C_WIDTH - 1 then
+                  report line_v;
                end if;
             end if;
 
             -- Stop after the last visible line of frame 2
-            if frame = 2 and x = C_H_VISIBLE and y = C_V_VISIBLE-1 then
-               assert errors = 0
-                  report integer'image(errors) & " pixels with the wrong colour"
+            if frame_v = 2 and x_v = C_H_VISIBLE and y_v = C_V_VISIBLE-1 then
+               assert errors_v = 0
+                  report integer'image(errors_v) & " pixels with the wrong colour"
                   severity error;
                report "overlay_tb: finished";
                std.env.finish;

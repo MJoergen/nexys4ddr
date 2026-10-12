@@ -13,9 +13,9 @@
 -- a frame never shows two different values.
 --
 -- The overlay is added to the output of disp.vhd, which is delayed by one
--- clock cycle (all of vga_hs_o, vga_vs_o, vga_de_o, and vga_col_o). The pixel counters
--- (vga_pix_x_i and vga_pix_y_i) are those of the pixel, which is at the input
--- (vga_col_d4_i) four clock cycles later.
+-- clock cycle (all of vga_hs_o, vga_vs_o, vga_de_o, and vga_col_o). The pixel
+-- counters (vga_pix_x_i and vga_pix_y_i) are those of the pixel, which is at
+-- the input (vga_col_d4_i) four clock cycles later.
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -30,29 +30,29 @@ entity overlay is
       G_Y      : natural := 8                 -- Top edge of the overlay
    );
    port (
-      vga_clk_i     : in  std_logic;
+      vga_clk_i    : in  std_logic;
 
       -- The frame rate (in the VGA clock domain), see fps.vhd
-      fps_digits_i  : in  std_logic_vector(4*G_DIGITS-1 downto 0);
-      fps_blank_i   : in  std_logic_vector(G_DIGITS-1 downto 0);
+      fps_digits_i : in  std_logic_vector(4*G_DIGITS-1 downto 0);
+      fps_blank_i  : in  std_logic_vector(G_DIGITS-1 downto 0);
 
-      vga_pix_x_i   : in  std_logic_vector(10 downto 0);
-      vga_pix_y_i   : in  std_logic_vector(10 downto 0);
-      vga_hs_d4_i   : in  std_logic;
-      vga_vs_d4_i   : in  std_logic;
-      vga_de_d4_i   : in  std_logic;
-      vga_col_d4_i  : in  std_logic_vector(7 downto 0);
+      vga_pix_x_i  : in  std_logic_vector(10 downto 0);
+      vga_pix_y_i  : in  std_logic_vector(10 downto 0);
+      vga_hs_d4_i  : in  std_logic;
+      vga_vs_d4_i  : in  std_logic;
+      vga_de_d4_i  : in  std_logic;
+      vga_col_d4_i : in  std_logic_vector(7 downto 0);
 
-      vga_hs_o      : out std_logic;
-      vga_vs_o      : out std_logic;
-      vga_de_o      : out std_logic;
-      vga_col_o     : out std_logic_vector(7 downto 0)
+      vga_hs_o     : out std_logic;
+      vga_vs_o     : out std_logic;
+      vga_de_o     : out std_logic;
+      vga_col_o    : out std_logic_vector(7 downto 0)
    );
 end entity overlay;
 
 architecture rtl of overlay is
 
-   constant C_WIDTH   : natural := 16;           -- Size of a digit in pixels
+   constant C_WIDTH   : natural := 16;                          -- Size of a digit in pixels
    constant C_HEIGHT  : natural := 32;
    constant C_FG      : std_logic_vector(7 downto 0) := X"FF";  -- White
    constant C_BG      : std_logic_vector(7 downto 0) := X"00";  -- Black
@@ -119,7 +119,8 @@ begin
          y_v := vga_pix_y_i - G_Y;
          show_d1 <= '0';
          if vga_pix_x_i >= G_X and vga_pix_x_i < G_X + C_WIDTH*G_DIGITS and
-            vga_pix_y_i >= G_Y and vga_pix_y_i < G_Y + C_HEIGHT then
+            vga_pix_y_i >= G_Y and vga_pix_y_i < G_Y + C_HEIGHT
+         then
             show_d1 <= '1';
          end if;
          pos_d1 <= to_integer(x_v(10 downto 4)) mod G_DIGITS;

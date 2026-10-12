@@ -52,21 +52,21 @@ entity disp_mem is
    generic (
       G_ADDR_BITS  : positive := 19;     -- Bits of the pixel address
       G_NUM_BLOCKS : positive := 128;    -- Blocks (BRAMs) of 4096 pixels
-      G_BLOCK_REGS : boolean := true;   -- A write register for each block
+      G_BLOCK_REGS : boolean := true;    -- A write register for each block
       G_PIXELS     : positive := 1       -- Pixels in each word
    );
    port (
-      wr_clk_i    : in  std_logic;
-      wr_rst_i    : in  std_logic;
-      wr_addr_i   : in  std_logic_vector(G_ADDR_BITS-1 downto 0);
-      wr_data_i   : in  std_logic_vector(9*G_PIXELS-1 downto 0);
-      wr_en_i     : in  std_logic;
-      wr_busy_o   : out std_logic;   -- The memory is being filled
+      wr_clk_i  : in  std_logic;
+      wr_rst_i  : in  std_logic;
+      wr_addr_i : in  std_logic_vector(G_ADDR_BITS-1 downto 0);
+      wr_data_i : in  std_logic_vector(9*G_PIXELS-1 downto 0);
+      wr_en_i   : in  std_logic;
+      wr_busy_o : out std_logic;   -- The memory is being filled
       --
-      rd_clk_i    : in  std_logic;
-      rd_rst_i    : in  std_logic;
-      rd_addr_i   : in  std_logic_vector(G_ADDR_BITS-1 downto 0);
-      rd_data_o   : out std_logic_vector( 8 downto 0)
+      rd_clk_i  : in  std_logic;
+      rd_rst_i  : in  std_logic;
+      rd_addr_i : in  std_logic_vector(G_ADDR_BITS-1 downto 0);
+      rd_data_o : out std_logic_vector( 8 downto 0)
    );
 end entity disp_mem;
 
@@ -74,19 +74,19 @@ architecture rtl of disp_mem is
 
    -- The number of bits needed for the values 0 to n-1
    function log2 (n : natural) return natural is
-      variable r : natural := 0;
+      variable r_v : natural := 0;
    begin
-      while 2**r < n loop
-         r := r + 1;
+      while 2**r_v < n loop
+         r_v := r_v + 1;
       end loop;
-      return r;
+      return r_v;
    end function log2;
 
    -- The addresses below are word addresses, i.e. without the lowest
    -- C_SUB_BITS bits of the pixel address (the position in the word).
    constant C_SUB_BITS    : natural := log2(G_PIXELS);
    constant C_WORD_BITS   : natural := G_ADDR_BITS - C_SUB_BITS;
-   constant C_GROUP_SIZE  : positive := 8;   -- Blocks in a group
+   constant C_GROUP_SIZE  : positive := 8;               -- Blocks in a group
    constant C_NUM_BLOCKS  : natural := G_NUM_BLOCKS;
    constant C_NUM_GROUPS  : natural := C_NUM_BLOCKS / C_GROUP_SIZE;
    constant C_BLOCK_BITS  : natural := 12 - C_SUB_BITS;  -- Address bits in a block
@@ -211,13 +211,14 @@ begin
 
    gen_blk : for b in 0 to C_NUM_BLOCKS-1 generate
       constant C_GROUP : natural := b / C_GROUP_SIZE;
-      signal mem : mem_t;
+      signal mem       : mem_t;
       -- The write enable of the block, from the register of the group
       signal blk_en_s : std_logic;
    begin
       blk_en_s <= '1' when grp_en_r(C_GROUP) = '1' and
-                           to_integer(grp_addr_r(C_GROUP)(C_GROUP_BITS-1 downto C_BLOCK_BITS)) = b mod C_GROUP_SIZE
-                  else '0';
+                           to_integer(grp_addr_r(C_GROUP)(C_GROUP_BITS-1 downto C_BLOCK_BITS)) =
+                           b mod C_GROUP_SIZE else
+                  '0';
 
       gen_blk_regs : if G_BLOCK_REGS generate
          p_write_blk : process (wr_clk_i)

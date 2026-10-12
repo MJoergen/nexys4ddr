@@ -32,7 +32,7 @@ use ieee.numeric_std.all;
 entity disp_mem_tb is
 end entity disp_mem_tb;
 
-architecture sim of disp_mem_tb is
+architecture simulation of disp_mem_tb is
 
    type int_vector is array (natural range <>) of natural;
 
@@ -40,8 +40,8 @@ architecture sim of disp_mem_tb is
       pixels    : positive;   -- Pixels in each word
       blocks    : positive;   -- Blocks (BRAMs) in the memory
       addr_bits : positive;   -- Bits of the address
-      blk_regs  : boolean;   -- A register for each block
-      reset     : boolean;   -- Use the reset
+      blk_regs  : boolean;    -- A register for each block
+      reset     : boolean;    -- Use the reset
    end record config_t;
    type config_vector is array (natural range <>) of config_t;
 
@@ -131,12 +131,12 @@ begin
 
       -- The values of the pixels of the word starting at addr
       function word (addr : natural) return std_logic_vector is
-         variable res : std_logic_vector(9*C_PIX-1 downto 0);
+         variable res_v : std_logic_vector(9*C_PIX-1 downto 0);
       begin
          for i in 0 to C_PIX-1 loop
-            res(9*i+8 downto 9*i) := value(addr+i);
+            res_v(9*i+8 downto 9*i) := value(addr+i);
          end loop;
-         return res;
+         return res_v;
       end function word;
 
    begin
@@ -159,7 +159,7 @@ begin
             wr_en   <= en;
          end procedure write;
 
-         variable busy_cycles : natural;
+         variable busy_cycles_v : natural;
 
       begin
          wait for 100 ns;
@@ -174,14 +174,14 @@ begin
             wr_rst <= '1';
             wait until rising_edge(wr_clk);
             wr_rst <= '0';
-            busy_cycles := 0;
+            busy_cycles_v := 0;
             loop
                wait until rising_edge(wr_clk);
                exit when wr_busy = '0';
-               busy_cycles := busy_cycles + 1;
+               busy_cycles_v := busy_cycles_v + 1;
             end loop;
-            assert busy_cycles = C_NUM_BLOCKS*C_WORDS
-               report "wr_busy_o was high for " & integer'image(busy_cycles) &
+            assert busy_cycles_v = C_NUM_BLOCKS*C_WORDS
+               report "wr_busy_o was high for " & integer'image(busy_cycles_v) &
                       " clock cycles, expected " & integer'image(C_NUM_BLOCKS*C_WORDS)
                severity error;
          end if;
@@ -232,8 +232,8 @@ begin
       -- C_LAT clock cycles later. All the pixels of each word are read. After
       -- the reset, the pixels of a word that is never written are read too.
       p_read : process
-         variable exp_addr : natural;
-         variable addr     : natural;
+         variable exp_addr_v : natural;
+         variable addr_v     : natural;
       begin
          wait until write_done;
 
@@ -248,8 +248,8 @@ begin
                      severity error;
                end if;
                if i < C_NUM_BLOCKS then
-                  addr := i * 2**12 + (C_WORDS/2) * C_PIX + i mod C_PIX;
-                  rd_addr <= std_logic_vector(to_unsigned(addr, C_ADDR_BITS));
+                  addr_v := i * 2**12 + (C_WORDS/2) * C_PIX + i mod C_PIX;
+                  rd_addr <= std_logic_vector(to_unsigned(addr_v, C_ADDR_BITS));
                end if;
             end loop;
          end if;
@@ -258,12 +258,12 @@ begin
             wait until rising_edge(rd_clk);
             wait for 1 ns;
             if i >= C_LAT then
-               exp_addr := addr_block_first((i-C_LAT) / C_PIX) + (i-C_LAT) mod C_PIX;
-               assert rd_data = value(exp_addr)
-                  report "Wrong value read at address " & integer'image(exp_addr) &
+               exp_addr_v := addr_block_first((i-C_LAT) / C_PIX) + (i-C_LAT) mod C_PIX;
+               assert rd_data = value(exp_addr_v)
+                  report "Wrong value read at address " & integer'image(exp_addr_v) &
                          " with " & integer'image(C_PIX) & " pixels in each word: got " &
                          integer'image(to_integer(unsigned(rd_data))) &
-                         ", expected " & integer'image(to_integer(unsigned(value(exp_addr))))
+                         ", expected " & integer'image(to_integer(unsigned(value(exp_addr_v))))
                   severity error;
             end if;
             if i < C_NUM_ADDR*C_PIX then
@@ -302,4 +302,4 @@ begin
 
    end generate gen_dut;
 
-end architecture sim;
+end architecture simulation;

@@ -50,19 +50,19 @@ architecture simulation of fps_tb is
       "0111111", "0000110", "1011011", "1001111", "1100110",
       "1101101", "1111101", "0000111", "1111111", "1101111");
 
-   signal clk      : std_logic;
-   signal rst      : std_logic := '1';
-   signal time_s   : std_logic_vector(C_TIME_BITS-1 downto 0) := (others => '0');
-   signal valid    : std_logic := '0';
-   signal digits   : std_logic_vector(31 downto 0);
-   signal blank    : std_logic_vector( 7 downto 0);
-   signal avg_time : std_logic_vector(C_TIME_BITS-1 downto 0) := (others => '0');
-   signal avg_vld  : std_logic := '0';
-   signal avg_dig  : std_logic_vector(31 downto 0);
-   signal avg_out  : std_logic;
+   signal clk       : std_logic;
+   signal rst       : std_logic := '1';
+   signal time_s    : std_logic_vector(C_TIME_BITS-1 downto 0) := (others => '0');
+   signal valid     : std_logic := '0';
+   signal digits    : std_logic_vector(31 downto 0);
+   signal blank     : std_logic_vector( 7 downto 0);
+   signal avg_time  : std_logic_vector(C_TIME_BITS-1 downto 0) := (others => '0');
+   signal avg_vld   : std_logic := '0';
+   signal avg_dig   : std_logic_vector(31 downto 0);
+   signal avg_out   : std_logic;
    signal test_done : boolean := false;
-   signal seg_s    : std_logic_vector( 6 downto 0);
-   signal seg_an   : std_logic_vector( 7 downto 0);
+   signal seg_s     : std_logic_vector( 6 downto 0);
+   signal seg_an    : std_logic_vector( 7 downto 0);
 
    function expected_fps(t : natural) return natural is
    begin
@@ -74,12 +74,12 @@ architecture simulation of fps_tb is
 
    -- The value of BCD digits
    function bcd_value(d : std_logic_vector(31 downto 0)) return natural is
-      variable r : natural := 0;
+      variable r_v : natural := 0;
    begin
       for i in 7 downto 0 loop
-         r := 10*r + to_integer(unsigned(d(4*i+3 downto 4*i)));
+         r_v := 10*r_v + to_integer(unsigned(d(4*i+3 downto 4*i)));
       end loop;
-      return r;
+      return r_v;
    end function bcd_value;
 
 begin
@@ -150,10 +150,10 @@ begin
    ----------------------------
 
    p_test : process
-      variable seed1    : positive := 1;
-      variable seed2    : positive := 2;
-      variable r        : real;
-      variable num_test : natural := 0;
+      variable seed1_v    : positive := 1;
+      variable seed2_v    : positive := 2;
+      variable r_v        : real;
+      variable num_test_v : natural := 0;
 
       procedure start(t : natural) is
       begin
@@ -166,25 +166,25 @@ begin
 
       -- Check that the outputs of fps and the display show the value v
       procedure check(v : natural; t : natural) is
-         variable d_v       : natural;
-         variable lead_v    : boolean;
-         variable exp_blank : std_logic_vector(7 downto 0);
-         variable seen_v    : std_logic_vector(7 downto 0);
-         variable digit_v   : natural;
-         variable ones_v    : natural;
+         variable d_v         : natural;
+         variable lead_v      : boolean;
+         variable exp_blank_v : std_logic_vector(7 downto 0);
+         variable seen_v      : std_logic_vector(7 downto 0);
+         variable digit_v     : natural;
+         variable ones_v      : natural;
       begin
          -- Expected digits and blanking
          lead_v := true;
          for i in 7 downto 0 loop
-            d_v := (v / 10**i) mod 10;
-            lead_v := lead_v and d_v = 0 and i > 0;
-            exp_blank(i) := '1' when lead_v else '0';
+            d_v            := (v / 10**i) mod 10;
+            lead_v         := lead_v and d_v = 0 and i > 0;
+            exp_blank_v(i) := '1' when lead_v else '0';
             assert digits(4*i+3 downto 4*i) = std_logic_vector(to_unsigned(d_v, 4))
                report "Wrong digit " & integer'image(i) & " for time " &
                       integer'image(t) & ", expected " & integer'image(v)
                severity error;
          end loop;
-         assert blank = exp_blank
+         assert blank = exp_blank_v
             report "Wrong blanking for time " & integer'image(t) &
                    ", expected " & integer'image(v)
             severity error;
@@ -196,9 +196,9 @@ begin
             ones_v := 0;
             for i in 0 to 7 loop
                if seg_an(i) = '0' then
-                  ones_v := ones_v + 1;
+                  ones_v    := ones_v + 1;
                   seen_v(i) := '1';
-                  assert exp_blank(i) = '0'
+                  assert exp_blank_v(i) = '0'
                      report "Blanked digit " & integer'image(i) &
                             " switched on for value " & integer'image(v)
                      severity error;
@@ -210,12 +210,13 @@ begin
                end if;
             end loop;
             assert ones_v <= 1
-               report "More than one digit switched on" severity error;
+               report "More than one digit switched on"
+               severity error;
          end loop;
-         assert seen_v = not exp_blank
+         assert seen_v = not exp_blank_v
             report "Not all digits shown for value " & integer'image(v)
             severity error;
-         num_test := num_test + 1;
+         num_test_v := num_test_v + 1;
       end procedure check;
 
       procedure test(t : natural) is
@@ -269,37 +270,37 @@ begin
 
       -- Random times, spread evenly over the number of bits
       for i in 1 to 300 loop
-         uniform(seed1, seed2, r);
-         test(integer(trunc(2.0 ** (r * real(C_TIME_BITS)))) mod 2**C_TIME_BITS);
+         uniform(seed1_v, seed2_v, r_v);
+         test(integer(trunc(2.0 ** (r_v * real(C_TIME_BITS)))) mod 2**C_TIME_BITS);
       end loop;
 
-      report "Test finished, " & integer'image(num_test) & " values checked";
+      report "Test finished, " & integer'image(num_test_v) & " values checked";
       test_done <= true;
       wait;
    end process p_test;
 
    -- Test of the average
    p_avg : process
-      constant C_ONE  : natural := 2**C_AVG_SHIFT;
-      variable seed1  : positive := 3;
-      variable seed2  : positive := 4;
-      variable r      : real;
-      variable t      : natural;
-      variable t2     : natural;
-      variable avg    : natural;  -- With C_AVG_SHIFT fractional bits
-      variable exp_v  : natural;
-      variable seen_v : boolean;
+      constant C_ONE    : natural := 2**C_AVG_SHIFT;
+      variable seed1_v  : positive := 3;
+      variable seed2_v  : positive := 4;
+      variable r_v      : real;
+      variable t_v      : natural;
+      variable t2_v     : natural;
+      variable avg_v    : natural;  -- With C_AVG_SHIFT fractional bits
+      variable exp_v    : natural;
+      variable seen_v   : boolean;
 
       -- The model of the average. The difference is divided by C_ONE,
       -- rounded down (also when it is negative).
       procedure add(t_new : natural) is
-         variable diff : integer;
+         variable diff_v : integer;
       begin
-         diff := t_new * C_ONE - avg;
-         if diff >= 0 then
-            avg := avg + diff / C_ONE;
+         diff_v := t_new * C_ONE - avg_v;
+         if diff_v >= 0 then
+            avg_v := avg_v + diff_v / C_ONE;
          else
-            avg := avg - (-diff + C_ONE - 1) / C_ONE;
+            avg_v := avg_v - (-diff_v + C_ONE - 1) / C_ONE;
          end if;
       end procedure add;
    begin
@@ -308,21 +309,21 @@ begin
 
       for i in 0 to 999 loop
          -- Around 100000 clock cycles, with some jumps
-         uniform(seed1, seed2, r);
+         uniform(seed1_v, seed2_v, r_v);
          if i mod 200 < 100 then
-            t := 100_000 + integer(r * 2000.0);
+            t_v := 100_000 + integer(r_v * 2000.0);
          else
-            t := 30_000 + integer(r * 500.0);
+            t_v := 30_000 + integer(r_v * 500.0);
          end if;
 
          if i = 0 then
-            avg := t * C_ONE;
+            avg_v := t_v * C_ONE;
          else
-            add(t);
+            add(t_v);
          end if;
-         exp_v := expected_fps(avg / C_ONE);
+         exp_v := expected_fps(avg_v / C_ONE);
 
-         avg_time <= std_logic_vector(to_unsigned(t, C_TIME_BITS));
+         avg_time <= std_logic_vector(to_unsigned(t_v, C_TIME_BITS));
          avg_vld  <= '1';
          wait until rising_edge(clk);
          avg_vld  <= '0';
@@ -332,9 +333,9 @@ begin
          for c in 1 to C_CALC_CYCLES loop
             -- A second time during the calculation
             if i mod 10 = 9 and c = 10 then
-               t2 := 60_000 + integer(r * 1000.0);
-               add(t2);
-               avg_time <= std_logic_vector(to_unsigned(t2, C_TIME_BITS));
+               t2_v := 60_000 + integer(r_v * 1000.0);
+               add(t2_v);
+               avg_time <= std_logic_vector(to_unsigned(t2_v, C_TIME_BITS));
                avg_vld  <= '1';
             end if;
             wait until rising_edge(clk);
@@ -342,17 +343,20 @@ begin
             avg_time <= (others => 'X');
             if avg_out = '1' then
                assert not seen_v
-                  report "Second frame rate for one calculation" severity error;
+                  report "Second frame rate for one calculation"
+                  severity error;
                seen_v := true;
                assert bcd_value(avg_dig) = exp_v
                   report "Wrong average frame rate " &
                          integer'image(bcd_value(avg_dig)) & " for time " &
-                         integer'image(t) & ", expected " &
+                         integer'image(t_v) & ", expected " &
                          integer'image(exp_v)
                   severity error;
             end if;
          end loop;
-         assert seen_v report "No frame rate for an average" severity error;
+         assert seen_v
+            report "No frame rate for an average"
+            severity error;
       end loop;
 
       report "Average test finished";

@@ -81,76 +81,76 @@ package body palette_pkg is
 
    -- 0: The count itself
    function make_count return palette_t is
-      variable res : palette_t;
+      variable res_v : palette_t;
    begin
       for i in 0 to 255 loop
-         res(i) := std_logic_vector(to_unsigned(i, 8));
+         res_v(i) := std_logic_vector(to_unsigned(i, 8));
       end loop;
-      return res;
+      return res_v;
    end function make_count;
 
    -- 1: Rainbow, i.e. the hue of a fully saturated colour, period 16
    function make_rainbow return palette_t is
-      variable res : palette_t;
-      variable h   : real;     -- Hue times 6, between 0 and 6
-      variable f   : real;
+      variable res_v : palette_t;
+      variable h_v   : real;     -- Hue times 6, between 0 and 6
+      variable f_v   : real;
    begin
       for i in 0 to 255 loop
-         h := real(i mod 16) / 16.0 * 6.0;
-         f := frac(h);
-         case integer(floor(h)) is
-            when 0      => res(i) := to_332(1.0,     f,       0.0);
-            when 1      => res(i) := to_332(1.0 - f, 1.0,     0.0);
-            when 2      => res(i) := to_332(0.0,     1.0,     f);
-            when 3      => res(i) := to_332(0.0,     1.0 - f, 1.0);
-            when 4      => res(i) := to_332(f,       0.0,     1.0);
-            when others => res(i) := to_332(1.0,     0.0,     1.0 - f);
+         h_v := real(i mod 16) / 16.0 * 6.0;
+         f_v := frac(h_v);
+         case integer(floor(h_v)) is
+            when 0      => res_v(i) := to_332(1.0,       f_v,       0.0);
+            when 1      => res_v(i) := to_332(1.0 - f_v, 1.0,       0.0);
+            when 2      => res_v(i) := to_332(0.0,       1.0,       f_v);
+            when 3      => res_v(i) := to_332(0.0,       1.0 - f_v, 1.0);
+            when 4      => res_v(i) := to_332(f_v,       0.0,       1.0);
+            when others => res_v(i) := to_332(1.0,       0.0,       1.0 - f_v);
          end case;
       end loop;
-      return res;
+      return res_v;
    end function make_rainbow;
 
    -- 2: Fire, with the square root of the count
    function make_fire return palette_t is
-      variable res : palette_t;
-      variable t   : real;
+      variable res_v : palette_t;
+      variable t_v   : real;
    begin
       for i in 0 to 255 loop
-         t := frac(sqrt(real(i)) / 8.0);
-         res(i) := to_332(clamp(3.0*t), clamp(3.0*t - 1.0), clamp(3.0*t - 2.0));
+         t_v      := frac(sqrt(real(i)) / 8.0);
+         res_v(i) := to_332(clamp(3.0*t_v), clamp(3.0*t_v - 1.0), clamp(3.0*t_v - 2.0));
       end loop;
-      return res;
+      return res_v;
    end function make_fire;
 
    -- 3: Blue, white, orange, and dark brown, with the logarithm of the count
    function make_blue_orange return palette_t is
       type stops_t is array (0 to 5) of real;
       -- The colour at the positions t (0.0 to 1.0) of the gradient
-      constant C_T : stops_t := (0.0,  0.16, 0.42, 0.64, 0.86, 1.0);
-      constant C_R : stops_t := (0.0,  0.13, 0.93, 1.0,  0.0,  0.0);
-      constant C_G : stops_t := (0.03, 0.42, 1.0,  0.67, 0.01, 0.03);
-      constant C_B : stops_t := (0.4,  0.8,  1.0,  0.0,  0.0,  0.4);
-      variable res : palette_t;
-      variable t   : real;
-      variable f   : real;
+      constant C_T   : stops_t := (0.0,  0.16, 0.42, 0.64, 0.86, 1.0);
+      constant C_R   : stops_t := (0.0,  0.13, 0.93, 1.0,  0.0,  0.0);
+      constant C_G   : stops_t := (0.03, 0.42, 1.0,  0.67, 0.01, 0.03);
+      constant C_B   : stops_t := (0.4,  0.8,  1.0,  0.0,  0.0,  0.4);
+      variable res_v : palette_t;
+      variable t_v   : real;
+      variable f_v   : real;
    begin
       for i in 0 to 255 loop
-         t := frac(log2(real(i + 1)) / 3.0);
+         t_v := frac(log2(real(i + 1)) / 3.0);
          for s in 0 to 4 loop
-            if t >= C_T(s) and t <= C_T(s+1) then
-               f := (t - C_T(s)) / (C_T(s+1) - C_T(s));
-               res(i) := to_332(C_R(s) + (C_R(s+1) - C_R(s))*f,
-                                C_G(s) + (C_G(s+1) - C_G(s))*f,
-                                C_B(s) + (C_B(s+1) - C_B(s))*f);
+            if t_v >= C_T(s) and t_v <= C_T(s+1) then
+               f_v      := (t_v - C_T(s)) / (C_T(s+1) - C_T(s));
+               res_v(i) := to_332(C_R(s) + (C_R(s+1) - C_R(s))*f_v,
+                                  C_G(s) + (C_G(s+1) - C_G(s))*f_v,
+                                  C_B(s) + (C_B(s+1) - C_B(s))*f_v);
                exit;
             end if;
          end loop;
       end loop;
-      return res;
+      return res_v;
    end function make_blue_orange;
 
-   constant C_PALETTES : palettes_t :=
-      (make_count, make_rainbow, make_fire, make_blue_orange);
+   constant C_PALETTES : palettes_t := (
+      make_count, make_rainbow, make_fire, make_blue_orange);
 
    function palette_colour (sel : std_logic_vector(1 downto 0);
                             cnt : std_logic_vector(8 downto 0))

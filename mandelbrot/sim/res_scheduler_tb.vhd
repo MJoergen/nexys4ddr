@@ -22,7 +22,7 @@ use ieee.math_real.all;
 entity res_scheduler_tb is
 end entity res_scheduler_tb;
 
-architecture sim of res_scheduler_tb is
+architecture simulation of res_scheduler_tb is
 
    type config_t is record
       size       : positive;
@@ -102,64 +102,65 @@ begin
 
       p_test : process
          type int_vector is array (0 to C_SIZE-1) of integer;
-         variable seed1    : positive := 1 + n;
-         variable seed2    : positive := 7;
-         variable r        : real;
-         variable t        : natural := 0;      -- The current clock cycle
-         variable has      : std_logic_vector(C_SIZE-1 downto 0) := (others => '0');
-         variable sel      : int_vector := (others => -1);  -- Clock cycle of the selection
-         variable since    : int_vector := (others => 0);   -- Ready since this clock cycle
-         variable delay    : int_vector := (others => 0);   -- Until the next result
-         variable results  : natural := 0;
-         variable selected : natural := 0;
-         variable max_wait : natural := 0;
+         variable seed1_v    : positive := 1 + n;
+         variable seed2_v    : positive := 7;
+         variable r_v        : real;
+         variable t_v        : natural := 0;                  -- The current clock cycle
+         variable has_v      : std_logic_vector(C_SIZE-1 downto 0) := (others => '0');
+         variable sel_v      : int_vector := (others => -1);  -- Clock cycle of the selection
+         variable since_v    : int_vector := (others => 0);   -- Ready since this clock cycle
+         variable delay_v    : int_vector := (others => 0);   -- Until the next result
+         variable results_v  : natural := 0;
+         variable selected_v : natural := 0;
+         variable max_wait_v : natural := 0;
 
          -- Advance one clock cycle. The outputs of the scheduler are those of
-         -- clock cycle t-1, and the ready flags are set for clock cycle t.
+         -- clock cycle t_v-1, and the ready flags are set for clock cycle t_v.
          -- New results come after max_delay clock cycles at most, or never
          -- when max_delay is negative.
          procedure step (max_delay : integer) is
-            variable i : natural;
+            variable i_v : natural;
          begin
             wait until rising_edge(clk);
-            t := t + 1;
+            t_v := t_v + 1;
 
             if valid = '1' then
-               i := idx;
+               i_v := idx;
                assert active = '1'
-                  report "Selected when not active" severity error;
-               assert has(i) = '1' and sel(i) = -1
-                  report "Process " & integer'image(i) & " selected when it has no result"
+                  report "Selected when not active"
                   severity error;
-               sel(i)   := t-1;
-               selected := selected + 1;
-               assert t-1 - since(i) <= C_MAX_WAIT
-                  report "Process " & integer'image(i) & " waited " &
-                         integer'image(t-1 - since(i)) & " clock cycles"
+               assert has_v(i_v) = '1' and sel_v(i_v) = -1
+                  report "Process " & integer'image(i_v) & " selected when it has no result"
                   severity error;
-               if t-1 - since(i) > max_wait then
-                  max_wait := t-1 - since(i);
+               sel_v(i_v) := t_v-1;
+               selected_v := selected_v + 1;
+               assert t_v-1 - since_v(i_v) <= C_MAX_WAIT
+                  report "Process " & integer'image(i_v) & " waited " &
+                         integer'image(t_v-1 - since_v(i_v)) & " clock cycles"
+                  severity error;
+               if t_v-1 - since_v(i_v) > max_wait_v then
+                  max_wait_v := t_v-1 - since_v(i_v);
                end if;
             end if;
 
             for p in 0 to C_SIZE-1 loop
                -- The ready flag goes low two clock cycles after the selection
-               if sel(p) /= -1 and t = sel(p) + 2 then
-                  has(p) := '0';
-                  sel(p) := -1;
-                  uniform(seed1, seed2, r);
-                  delay(p) := integer(trunc(r * real(max_delay + 1)));
-               elsif has(p) = '0' and max_delay >= 0 then
-                  if delay(p) = 0 then
-                     has(p)   := '1';
-                     since(p) := t;
-                     results  := results + 1;
+               if sel_v(p) /= -1 and t_v = sel_v(p) + 2 then
+                  has_v(p) := '0';
+                  sel_v(p) := -1;
+                  uniform(seed1_v, seed2_v, r_v);
+                  delay_v(p) := integer(trunc(r_v * real(max_delay + 1)));
+               elsif has_v(p) = '0' and max_delay >= 0 then
+                  if delay_v(p) = 0 then
+                     has_v(p)   := '1';
+                     since_v(p) := t_v;
+                     results_v  := results_v + 1;
                   else
-                     delay(p) := delay(p) - 1;
+                     delay_v(p) := delay_v(p) - 1;
                   end if;
                end if;
             end loop;
-            ready <= has;
+            ready <= has_v;
          end procedure step;
 
       begin
@@ -171,7 +172,7 @@ begin
          end loop;
          -- The processes have been ready while not active, so they wait from
          -- now on.
-         since  := (others => t);
+         since_v  := (others => t_v);
          active <= '1';
 
          -- All processes ready all the time
@@ -194,9 +195,9 @@ begin
          for i in 1 to 4*C_MAX_WAIT loop
             step(-1);
          end loop;
-         assert has = (has'range => '0') and selected = results
-            report "Not all results selected: " & integer'image(selected) &
-                   " of " & integer'image(results)
+         assert has_v = (has_v'range => '0') and selected_v = results_v
+            report "Not all results selected: " & integer'image(selected_v) &
+                   " of " & integer'image(results_v)
             severity error;
 
          -- Nothing is ready: nothing is selected (checked in step)
@@ -205,8 +206,8 @@ begin
          end loop;
 
          report "Size " & integer'image(C_SIZE) & ", group size " &
-                integer'image(C_GROUP_SIZE) & ": " & integer'image(selected) &
-                " results selected, maximum wait " & integer'image(max_wait) &
+                integer'image(C_GROUP_SIZE) & ": " & integer'image(selected_v) &
+                " results selected, maximum wait " & integer'image(max_wait_v) &
                 " clock cycles (limit " & integer'image(C_MAX_WAIT) & ")";
          finished(n) <= '1';
          wait;
@@ -214,4 +215,4 @@ begin
 
    end generate gen_config;
 
-end architecture sim;
+end architecture simulation;

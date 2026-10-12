@@ -69,7 +69,7 @@ create_clock -name sys_clk -period 10.00 [get_ports {clk_i}];                   
 # only paths from the MAIN clock to the VGA clock. Their delay only has to be
 # shorter than the synchronizer (two VGA clock cycles), so the relation between
 # the two clocks is ignored.
-set_max_delay -datapath_only -from [get_clocks -of_objects [get_pins i_mega65/i_clk_rst/mmcm_adv_inst/CLKOUT0]] -to [get_clocks -of_objects [get_pins i_mega65/i_clk_rst/mmcm_adv_inst/CLKOUT1]] 10.000
+set_max_delay -datapath_only -from [get_clocks -of_objects [get_pins i_mega65/i_clk_rst/i_mmcm_adv/CLKOUT0]] -to [get_clocks -of_objects [get_pins i_mega65/i_clk_rst/i_mmcm_adv/CLKOUT1]] 10.000
 
 # Configuration Bank Voltage Select
 set_property CFGBVS VCCO [current_design]

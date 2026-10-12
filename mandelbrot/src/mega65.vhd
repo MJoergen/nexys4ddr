@@ -74,7 +74,7 @@ entity mega65 is
       tmds_clk_p_o   : out std_logic;
       tmds_clk_n_o   : out std_logic
    );
-end mega65;
+end entity mega65;
 
 architecture structural of mega65 is
 
@@ -321,19 +321,19 @@ begin
          G_ADDR_BITS     => C_ADDR_BITS
       )
       port map (
-         clk_i     => main_clk,
-         rst_i     => main_rst,
-         btn_i     => btn,
-         sw_i      => sw,
-         seg_o     => open,
-         seg_an_o  => open,
+         clk_i        => main_clk,
+         rst_i        => main_rst,
+         btn_i        => btn,
+         sw_i         => sw,
+         seg_o        => open,
+         seg_an_o     => open,
          fps_digits_o => fps_digits,
          fps_blank_o  => fps_blank,
          fps_valid_o  => fps_valid,
-         wr_addr_o => wr_addr,
-         wr_data_o => wr_data,
-         wr_en_o   => wr_en,
-         wr_busy_i => wr_busy
+         wr_addr_o    => wr_addr,
+         wr_data_o    => wr_data,
+         wr_en_o      => wr_en,
+         wr_busy_i    => wr_busy
       ); -- i_main
 
 
@@ -406,17 +406,17 @@ begin
          G_ADDR_BITS  => C_ADDR_BITS
       )
       port map (
-         clk_i     => vga_clk,
-         rst_i     => vga_rst,
-         rd_addr_o => rd_addr,
-         rd_data_i => rd_data,
-         palette_i => sw(1 downto 0),
+         clk_i        => vga_clk,
+         rst_i        => vga_rst,
+         rd_addr_o    => rd_addr,
+         rd_data_i    => rd_data,
+         palette_i    => sw(1 downto 0),
          fps_digits_i => vga_fps_digits,
          fps_blank_i  => vga_fps_blank,
-         vga_hs_o  => vga_hs,
-         vga_vs_o  => vga_vs,
-         vga_de_o  => vga_de,
-         vga_col_o => vga_col
+         vga_hs_o     => vga_hs,
+         vga_vs_o     => vga_vs,
+         vga_de_o     => vga_de,
+         vga_col_o    => vga_col
       ); -- i_vga
 
 
@@ -488,8 +488,8 @@ begin
       port map (
          select_44100 => '0',
          dvi          => '1',
-         vic          => X"00",  -- Not a CEA-861 video mode
-         aspect       => "00",   -- No data
+         vic          => X"00", -- Not a CEA-861 video mode
+         aspect       => "00",  -- No data
          pix_rep      => '0',
          vs_pol       => C_VIDEO.sync_active,
          hs_pol       => C_VIDEO.sync_active,

@@ -104,32 +104,32 @@ begin
    ----------------------------------
 
    p_dump : process (clk)
-      file     f : text open write_mode is "sim/main_out.txt";
-      variable l : line;
-      variable n : natural := 0;
-      variable header : boolean := false;
+      file     f        : text open write_mode is "sim/main_out.txt";
+      variable l_v      : line;
+      variable n_v      : natural := 0;
+      variable header_v : boolean := false;
    begin
-      if not header then
-         write(l, G_NUM_COLS);
-         write(l, string'(" "));
-         write(l, G_NUM_ROWS);
-         write(l, string'(" "));
-         write(l, G_COL_STRIDE);
-         writeline(f, l);
-         header := true;
+      if not header_v then
+         write(l_v, G_NUM_COLS);
+         write(l_v, string'(" "));
+         write(l_v, G_NUM_ROWS);
+         write(l_v, string'(" "));
+         write(l_v, G_COL_STRIDE);
+         writeline(f, l_v);
+         header_v := true;
       end if;
 
       if rising_edge(clk) then
          if wr_en = '1' and rst = '0' then
             -- The pixels of a write are consecutive rows
             for i in 0 to G_PIXELS-1 loop
-               write(l, to_integer(wr_addr) + i);
-               write(l, string'(" "));
-               write(l, to_integer(wr_data(9*i+8 downto 9*i)));
-               writeline(f, l);
+               write(l_v, to_integer(wr_addr) + i);
+               write(l_v, string'(" "));
+               write(l_v, to_integer(wr_data(9*i+8 downto 9*i)));
+               writeline(f, l_v);
             end loop;
-            n := n + G_PIXELS;
-            if n = C_NUM_PIXELS then
+            n_v := n_v + G_PIXELS;
+            if n_v = C_NUM_PIXELS then
                report "main_tb: complete picture written";
                std.env.finish;
             end if;

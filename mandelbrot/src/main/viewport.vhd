@@ -38,7 +38,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std_unsigned.all;
 
-entity view is
+entity viewport is
    generic (
       G_NUM_COLS : integer;
       G_NUM_ROWS : integer;
@@ -58,9 +58,9 @@ entity view is
       stepx_o    : out std_logic_vector(17 downto 0);
       stepy_o    : out std_logic_vector(17 downto 0)
    );
-end entity view;
+end entity viewport;
 
-architecture rtl of view is
+architecture rtl of viewport is
 
    -- The largest position, i.e. 2-2^-16, in offset binary
    constant C_MAX_POS   : natural := 2**18-1;
@@ -102,9 +102,9 @@ architecture rtl of view is
    constant C_INIT_STEPY  : std_logic_vector(17 downto 0) :=
       to_std_logic_vector(maximum(0, minimum(C_INIT_DY, 2**18-1)), 18);
 
-   type t_state is (IDLE_ST, ZOOM_ST, STEP_ST, PREP_ST, MULT_ST, CENTRE_ST,
+   type state_t is (IDLE_ST, ZOOM_ST, STEP_ST, PREP_ST, MULT_ST, CENTRE_ST,
                     PAN_ST, CLAMP_ST);
-   signal state  : t_state := IDLE_ST;
+   signal state  : state_t := IDLE_ST;
 
    -- The outputs
    signal startx : std_logic_vector(17 downto 0);

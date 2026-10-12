@@ -1,12 +1,12 @@
 -- file: clk_rst.vhd (originally clk_wiz_0_clk_wiz.vhd)
--- 
+--
 -- (c) Copyright 2008 - 2013 Xilinx, Inc. All rights reserved.
--- 
+--
 -- This file contains confidential and proprietary information
 -- of Xilinx, Inc. and is protected under U.S. and
 -- international copyright and other intellectual property
 -- laws.
--- 
+--
 -- DISCLAIMER
 -- This disclaimer is not a license and does not grant any
 -- rights to the materials distributed herewith. Except as
@@ -28,7 +28,7 @@
 -- by a third party) even if such damage or loss was
 -- reasonably foreseeable or Xilinx had been advised of the
 -- possibility of the same.
--- 
+--
 -- CRITICAL APPLICATIONS
 -- Xilinx products are not designed or intended to be fail-
 -- safe, or for use in any application requiring fail-safe
@@ -42,10 +42,10 @@
 -- liability of any use of Xilinx products in Critical
 -- Applications, subject only to applicable laws and
 -- regulations governing limitations on product liability.
--- 
+--
 -- THIS COPYRIGHT NOTICE AND DISCLAIMER MUST BE RETAINED AS
 -- PART OF THIS FILE AT ALL TIMES.
--- 
+--
 ------------------------------------------------------------------------------
 -- Comments
 ------------------------------------------------------------------------------
@@ -97,7 +97,7 @@ entity clk_rst is
    generic (
       G_VCO_DIVIDE  : positive;     -- The VCO is 100 MHz / G_VCO_DIVIDE * G_VCO_MULT
       G_VCO_MULT    : real;
-      G_MAIN_DIVIDE : real;        -- The main clock is VCO / G_MAIN_DIVIDE
+      G_MAIN_DIVIDE : real;         -- The main clock is VCO / G_MAIN_DIVIDE
       G_VGA_DIVIDE  : positive;     -- The VGA clock is VCO / G_VGA_DIVIDE
       G_TMDS_DIVIDE : positive := 2 -- The TMDS clock is VCO / G_TMDS_DIVIDE
    );
@@ -113,9 +113,9 @@ entity clk_rst is
 
       tmds_clk_o : out std_logic   -- VCO / G_TMDS_DIVIDE
    );
-end clk_rst;
+end entity clk_rst;
 
-architecture xilinx of clk_rst is
+architecture structural of clk_rst is
 
    signal clkfb_mmcm     : std_logic;
    signal clkfb          : std_logic;
@@ -134,9 +134,9 @@ architecture xilinx of clk_rst is
    signal vga_rst_delay  : std_logic_vector(7 downto 0) := X"FF";
 
    -- The registers of the reset synchronizers
-   attribute ASYNC_REG : string;
-   attribute ASYNC_REG of main_rstn_sync : signal is "TRUE";
-   attribute ASYNC_REG of vga_rstn_sync  : signal is "TRUE";
+   attribute async_reg : string;
+   attribute async_reg of main_rstn_sync : signal is "true";
+   attribute async_reg of vga_rstn_sync  : signal is "true";
 
 begin
 
@@ -145,7 +145,7 @@ begin
    --------------------------------------------------
 
    -- Unused outputs are left unconnected, and unused inputs are tied off.
-   mmcm_adv_inst : MMCME2_ADV
+   i_mmcm_adv : MMCME2_ADV
       generic map (
          BANDWIDTH            => "OPTIMIZED",
          CLKOUT4_CASCADE      => FALSE,
@@ -178,7 +178,7 @@ begin
          CLKFBIN  => clkfb,
          CLKIN1   => clk_i,
          CLKIN2   => '0',
-         CLKINSEL => '1',               -- Select CLKIN1
+         CLKINSEL => '1', -- Select CLKIN1
          DADDR    => (others => '0'),
          DCLK     => '0',
          DEN      => '0',
@@ -190,31 +190,31 @@ begin
          LOCKED   => locked,
          PWRDWN   => '0',
          RST      => '0'
-      ); -- mmcm_adv_inst
+      ); -- i_mmcm_adv
 
-   clkfb_buf : BUFG
+   i_clkfb_buf : BUFG
       port map (
          I => clkfb_mmcm,
          O => clkfb
-      ); -- clkfb_buf
+      ); -- i_clkfb_buf
 
-   main_clk_buf : BUFG
+   i_main_clk_buf : BUFG
       port map (
          I => main_clk_mmcm,
          O => main_clk
-      ); -- main_clk_buf
+      ); -- i_main_clk_buf
 
-   vga_clk_buf : BUFG
+   i_vga_clk_buf : BUFG
       port map (
          I => vga_clk_mmcm,
          O => vga_clk
-      ); -- vga_clk_buf
+      ); -- i_vga_clk_buf
 
-   tmds_clk_buf : BUFG
+   i_tmds_clk_buf : BUFG
       port map (
          I => tmds_clk_mmcm,
          O => tmds_clk_o
-      ); -- tmds_clk_buf
+      ); -- i_tmds_clk_buf
 
 
    --------------------------------------------------
@@ -233,7 +233,7 @@ begin
          main_rstn_sync <= main_rstn_sync(0) & rstn;
 
          main_rst_delay <= main_rst_delay(6 downto 0) & "0";
-         main_rst_o <= main_rst_delay(7);
+         main_rst_o     <= main_rst_delay(7);
 
          if main_rstn_sync(1) = '0' then
             main_rst_delay <= X"FF";
@@ -247,7 +247,7 @@ begin
          vga_rstn_sync <= vga_rstn_sync(0) & rstn;
 
          vga_rst_delay <= vga_rst_delay(6 downto 0) & "0";
-         vga_rst_o <= vga_rst_delay(7);
+         vga_rst_o     <= vga_rst_delay(7);
 
          if vga_rstn_sync(1) = '0' then
             vga_rst_delay <= X"FF";
@@ -258,4 +258,4 @@ begin
    main_clk_o <= main_clk;
    vga_clk_o  <= vga_clk;
 
-end xilinx;
+end architecture structural;

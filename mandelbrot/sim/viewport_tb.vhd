@@ -16,15 +16,15 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity view_tb is
-end entity view_tb;
+entity viewport_tb is
+end entity viewport_tb;
 
-architecture simulation of view_tb is
+architecture simulation of viewport_tb is
 
    constant C_NUM_COLS : positive := 640;
    constant C_NUM_ROWS : positive := 480;
 
-   -- The pan step in pixels, 1/320 of the number of columns (see view.vhd)
+   -- The pan step in pixels, 1/320 of the number of columns (see viewport.vhd)
    constant C_PAN_PIXELS : positive := C_NUM_COLS/320;
 
    -- The column and row of the pixel that is kept fixed when zooming
@@ -39,12 +39,12 @@ architecture simulation of view_tb is
 
    -- The view: the position of the first column and row (signed 2.16), and
    -- the size of a pixel
-   type t_view is record
+   type view_t is record
       sx : integer;
       sy : integer;
       dx : integer;
       dy : integer;
-   end record t_view;
+   end record view_t;
 
    signal clk      : std_logic;
    signal rst      : std_logic := '1';
@@ -84,7 +84,7 @@ begin
    p_test : process
 
       -- The current view (the outputs of the DUT)
-      impure function cur_view return t_view is
+      impure function cur_view return view_t is
       begin
          return (sx => to_integer(signed(startx)),
                  sy => to_integer(signed(starty)),
@@ -95,31 +95,31 @@ begin
       impure function sx return integer is
       begin
          return cur_view.sx;
-      end function;
+      end function sx;
       impure function sy return integer is
       begin
          return cur_view.sy;
-      end function;
+      end function sy;
       impure function dx return integer is
       begin
          return cur_view.dx;
-      end function;
+      end function dx;
       impure function dy return integer is
       begin
          return cur_view.dy;
-      end function;
+      end function dy;
 
       -- The position of the pixel that is kept fixed when zooming
       impure function centre_x return integer is
       begin
          return sx + C_CENTRE_X*dx;
-      end function;
+      end function centre_x;
       impure function centre_y return integer is
       begin
          return sy + C_CENTRE_Y*dy;
-      end function;
+      end function centre_y;
 
-      function image (v : t_view) return string is
+      function image (v : view_t) return string is
       begin
          return "(" & integer'image(v.sx) & ", " & integer'image(v.sy) & ", " &
                 integer'image(v.dx) & ", " & integer'image(v.dy) & ")";
@@ -141,37 +141,37 @@ begin
       -- The view moves by C_PAN_PIXELS pixels.
       function pan (pos : integer; step : integer; num : integer;
                     plus : boolean; minus : boolean) return integer is
-         variable res : integer := pos;
+         variable res_v : integer := pos;
       begin
          if plus then
-            res := pos + C_PAN_PIXELS*step;
+            res_v := pos + C_PAN_PIXELS*step;
          elsif minus then
-            res := maximum(pos - C_PAN_PIXELS*step, C_MIN);
+            res_v := maximum(pos - C_PAN_PIXELS*step, C_MIN);
          end if;
-         return minimum(res, C_MAX - (num-1)*step);
+         return minimum(res_v, C_MAX - (num-1)*step);
       end function pan;
 
       -- The expected view after one update, with the buttons b
-      function next_view (v : t_view; b : std_logic_vector(4 downto 0);
-                          out_v : std_logic) return t_view is
-         variable res : t_view := v;
+      function next_view (v : view_t; b : std_logic_vector(4 downto 0);
+                          out_v : std_logic) return view_t is
+         variable res_v : view_t := v;
       begin
          if b(4) = '1' then
             if zoom(v.dx, out_v) >= 1 and zoom(v.dy, out_v) >= 1 and
                zoom(v.dx, out_v)*(C_NUM_COLS-1) <= C_MAX - C_MIN and
                zoom(v.dy, out_v)*(C_NUM_ROWS-1) <= C_MAX - C_MIN
             then
-               res.dx := zoom(v.dx, out_v);
-               res.dy := zoom(v.dy, out_v);
+               res_v.dx := zoom(v.dx, out_v);
+               res_v.dy := zoom(v.dy, out_v);
 
                -- Keep the centre fixed, but not before the start of the range
-               res.sx := maximum(v.sx + (v.dx - res.dx)*C_CENTRE_X, C_MIN);
-               res.sy := maximum(v.sy + (v.dy - res.dy)*C_CENTRE_Y, C_MIN);
+               res_v.sx := maximum(v.sx + (v.dx - res_v.dx)*C_CENTRE_X, C_MIN);
+               res_v.sy := maximum(v.sy + (v.dy - res_v.dy)*C_CENTRE_Y, C_MIN);
             end if;
          end if;
-         res.sx := pan(res.sx, res.dx, C_NUM_COLS, b(2) = '1', b(3) = '1');
-         res.sy := pan(res.sy, res.dy, C_NUM_ROWS, b(0) = '1', b(1) = '1');
-         return res;
+         res_v.sx := pan(res_v.sx, res_v.dx, C_NUM_COLS, b(2) = '1', b(3) = '1');
+         res_v.sy := pan(res_v.sy, res_v.dy, C_NUM_ROWS, b(0) = '1', b(1) = '1');
+         return res_v;
       end function next_view;
 
       -- Check that the view is in range
@@ -208,12 +208,12 @@ begin
       procedure run_update (second  : in  integer;
                             changes : out integer;
                             last    : out integer) is
-         variable prev : t_view;
-         variable v    : t_view;
+         variable prev_v : view_t;
+         variable view_v : view_t;
       begin
          changes := 0;
          last    := -1;
-         prev    := cur_view;
+         prev_v  := cur_view;
          upd     <= '1';
          for i in 0 to second + C_UPD_CYCLES loop
             clk_cycle;    -- The DUT samples upd in this clock cycle
@@ -222,12 +222,12 @@ begin
                upd <= '1';
             end if;
 
-            v := cur_view;
-            if v /= prev then
+            view_v := cur_view;
+            if view_v /= prev_v then
                changes := changes + 1;
                last    := i;
             end if;
-            prev := v;
+            prev_v := view_v;
          end loop;
       end procedure run_update;
 
@@ -235,26 +235,26 @@ begin
       -- after each update.
       procedure hold (b : std_logic_vector(4 downto 0); out_v : std_logic;
                       num : integer) is
-         variable expected : t_view;
-         variable changes  : integer;
-         variable last     : integer;
+         variable expected_v : view_t;
+         variable changes_v  : integer;
+         variable last_v     : integer;
       begin
          btn      <= b;
          zoom_out <= out_v;
          clk_cycle;
          for i in 1 to num loop
-            expected := next_view(cur_view, b, out_v);
-            run_update(0, changes, last);
+            expected_v := next_view(cur_view, b, out_v);
+            run_update(0, changes_v, last_v);
 
             check_range;
 
-            assert cur_view = expected
+            assert cur_view = expected_v
                report "Wrong view after update " & integer'image(i) &
-                      ": got " & image(cur_view) & ", expected " & image(expected)
+                      ": got " & image(cur_view) & ", expected " & image(expected_v)
                severity error;
 
-            assert changes <= 1
-               report "The outputs changed in " & integer'image(changes) &
+            assert changes_v <= 1
+               report "The outputs changed in " & integer'image(changes_v) &
                       " different clock cycles during an update"
                severity error;
          end loop;
@@ -265,10 +265,10 @@ begin
       -- one just after the update is not. The view is panned to the right, so
       -- that it changes in every update.
       procedure test_second_pulse is
-         variable expected : t_view;
-         variable changes  : integer;
-         variable len      : integer;
-         variable last     : integer;
+         variable expected_v : view_t;
+         variable changes_v  : integer;
+         variable len_v      : integer;
+         variable last_v     : integer;
       begin
          btn      <= C_BTN_R;
          zoom_out <= '0';
@@ -276,28 +276,29 @@ begin
 
          -- The clock cycle (counted from the pulse) in which the outputs
          -- change, i.e. the length of an update
-         expected := next_view(cur_view, C_BTN_R, '0');
-         run_update(0, changes, len);
-         assert changes = 1 and cur_view = expected
-            report "Wrong view after a single update" severity error;
-         report "An update takes " & integer'image(len) & " clock cycles";
+         expected_v := next_view(cur_view, C_BTN_R, '0');
+         run_update(0, changes_v, len_v);
+         assert changes_v = 1 and cur_view = expected_v
+            report "Wrong view after a single update"
+            severity error;
+         report "An update takes " & integer'image(len_v) & " clock cycles";
 
-         for k in 1 to len+1 loop
-            if k <= len then
+         for k in 1 to len_v+1 loop
+            if k <= len_v then
                -- The second pulse is during the update, and is ignored
-               expected := next_view(cur_view, C_BTN_R, '0');
+               expected_v := next_view(cur_view, C_BTN_R, '0');
             else
                -- The second pulse is just after the update, so there are two
                -- updates
-               expected := next_view(next_view(cur_view, C_BTN_R, '0'), C_BTN_R, '0');
+               expected_v := next_view(next_view(cur_view, C_BTN_R, '0'), C_BTN_R, '0');
             end if;
 
-            run_update(k, changes, last);
+            run_update(k, changes_v, last_v);
 
-            assert cur_view = expected
+            assert cur_view = expected_v
                report "Wrong view with a second pulse after " & integer'image(k) &
                       " clock cycles: got " & image(cur_view) &
-                      ", expected " & image(expected)
+                      ", expected " & image(expected_v)
                severity error;
          end loop;
          btn <= C_NONE;
@@ -312,15 +313,16 @@ begin
          wait until rising_edge(clk);
       end procedure do_reset;
 
-      variable cx0 : integer;
-      variable cy0 : integer;
+      variable cx0_v : integer;
+      variable cy0_v : integer;
 
    begin
       do_reset;
 
       -- The initial view, as in main.vhd
       assert sx = -109229 and sy = -65536 and dx = 273 and dy = 273
-         report "Wrong initial view" severity error;
+         report "Wrong initial view"
+         severity error;
       check_range;
 
       -- Without buttons nothing changes
@@ -330,54 +332,66 @@ begin
       test_second_pulse;
 
       -- Zoom in. The centre stays fixed.
-      cx0 := centre_x;
-      cy0 := centre_y;
+      cx0_v := centre_x;
+      cy0_v := centre_y;
       hold(C_BTN_C, '0', 100);
-      assert centre_x = cx0 and centre_y = cy0 and dx < 273
-         report "Zoom in did not keep the centre fixed" severity error;
+      assert centre_x = cx0_v and centre_y = cy0_v and dx < 273
+         report "Zoom in did not keep the centre fixed"
+         severity error;
 
       -- Zoom out until the view can not get larger. The centre is fixed until
       -- the left edge reaches the start of the range, and then the view moves
       -- right.
       hold(C_BTN_C, '1', 200);
       assert sx = C_MIN and zoom(dx, '1')*(C_NUM_COLS-1) > C_MAX - C_MIN
-         report "Zoom out did not reach the full range in x" severity error;
+         report "Zoom out did not reach the full range in x"
+         severity error;
 
       -- Pan in all directions to the ends of the range
       hold(C_BTN_D, '0', 300);
-      assert sy + (C_NUM_ROWS-1)*dy = C_MAX report "Pan down did not stop at the end" severity error;
+      assert sy + (C_NUM_ROWS-1)*dy = C_MAX
+         report "Pan down did not stop at the end"
+         severity error;
       hold(C_BTN_U, '0', 300);
-      assert sy = C_MIN report "Pan up did not stop at the end" severity error;
+      assert sy = C_MIN
+         report "Pan up did not stop at the end"
+         severity error;
       hold(C_BTN_R, '0', 10);
       hold(C_BTN_L, '0', 20);
-      assert sx = C_MIN report "Pan left did not stop at the end" severity error;
+      assert sx = C_MIN
+         report "Pan left did not stop at the end"
+         severity error;
 
       -- Zoom in until the size of a pixel is one LSB. The centre stays fixed.
-      cx0 := centre_x;
-      cy0 := centre_y;
+      cx0_v := centre_x;
+      cy0_v := centre_y;
       hold(C_BTN_C, '0', 400);
-      assert dx = 1 and dy = 1 and centre_x = cx0 and centre_y = cy0
-         report "Zoom in did not stop at one LSB, with the centre fixed" severity error;
+      assert dx = 1 and dy = 1 and centre_x = cx0_v and centre_y = cy0_v
+         report "Zoom in did not stop at one LSB, with the centre fixed"
+         severity error;
 
       -- Pan at maximum zoom, right and down at the same time
-      cx0 := sx;
-      cy0 := sy;
+      cx0_v := sx;
+      cy0_v := sy;
       hold(C_BTN_R or C_BTN_D, '0', 200);
-      assert sx = cx0 + 200*C_PAN_PIXELS and sy = cy0 + 200*C_PAN_PIXELS
-         report "Wrong pan at maximum zoom" severity error;
+      assert sx = cx0_v + 200*C_PAN_PIXELS and sy = cy0_v + 200*C_PAN_PIXELS
+         report "Wrong pan at maximum zoom"
+         severity error;
 
       -- Zoom out a little, and pan all the way to the right and bottom, both at
       -- the same time
       hold(C_BTN_C, '1', 60);
       hold(C_BTN_R or C_BTN_D, '0', 6000);
       assert sx + (C_NUM_COLS-1)*dx = C_MAX and sy + (C_NUM_ROWS-1)*dy = C_MAX
-         report "Pan right and down did not stop at the end" severity error;
+         report "Pan right and down did not stop at the end"
+         severity error;
 
       -- Zoom out from the bottom right corner. The view moves left and up, so
       -- the right and bottom edges stay in range.
       hold(C_BTN_C, '1', 400);
       assert zoom(dx, '1')*(C_NUM_COLS-1) > C_MAX - C_MIN
-         report "Zoom out from the right edge did not reach the full range" severity error;
+         report "Zoom out from the right edge did not reach the full range"
+         severity error;
 
       -- Zoom in and pan at the same time, with both left and right (right has
       -- priority) and both up and down (down has priority)
@@ -386,9 +400,10 @@ begin
       -- Reset returns to the initial view
       do_reset;
       assert sx = -109229 and sy = -65536 and dx = 273 and dy = 273
-         report "Wrong view after reset" severity error;
+         report "Wrong view after reset"
+         severity error;
 
-      report "view_tb: finished";
+      report "viewport_tb: finished";
       std.env.finish;
    end process p_test;
 
@@ -397,7 +412,7 @@ begin
    -- Instantiate DUT
    -------------------
 
-   i_view : entity work.view
+   i_viewport : entity work.viewport
       generic map (
          G_NUM_COLS => C_NUM_COLS,
          G_NUM_ROWS => C_NUM_ROWS,
@@ -416,6 +431,6 @@ begin
          starty_o   => starty,
          stepx_o    => stepx,
          stepy_o    => stepy
-      ); -- i_view
+      ); -- i_viewport
 
 end architecture simulation;

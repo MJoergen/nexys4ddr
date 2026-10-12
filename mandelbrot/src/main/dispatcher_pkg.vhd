@@ -22,12 +22,12 @@ end package dispatcher_pkg;
 package body dispatcher_pkg is
 
    function log2 (n : natural) return natural is
-      variable r : natural := 0;
+      variable r_v : natural := 0;
    begin
-      while 2**r < n loop
-         r := r + 1;
+      while 2**r_v < n loop
+         r_v := r_v + 1;
       end loop;
-      return r;
+      return r_v;
    end function log2;
 
 end package body dispatcher_pkg;

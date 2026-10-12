@@ -53,7 +53,7 @@ entity mega65_r3 is
       hdmi_ct_hpd_o  : out std_logic;
       hdmi_ls_oe_o   : out std_logic
    );
-end mega65_r3;
+end entity mega65_r3;
 
 architecture structural of mega65_r3 is
 

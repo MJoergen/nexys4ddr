@@ -150,8 +150,8 @@ begin
       p_mem : process (clk)
       begin
          if rising_edge(clk) then
-            mem_d(1) <= pixel_value(to_integer(unsigned(rd_addr)) / C_STRIDE,
-                                    to_integer(unsigned(rd_addr)) mod C_STRIDE);
+            mem_d(1)              <= pixel_value(to_integer(unsigned(rd_addr)) / C_STRIDE,
+                                                 to_integer(unsigned(rd_addr)) mod C_STRIDE);
             mem_d(2 to C_LATENCY) <= mem_d(1 to C_LATENCY-1);
          end if;
       end process p_mem;
@@ -171,82 +171,82 @@ begin
       -- signal (the first falling edge of hs_n and vs_n), so the start of the
       -- simulation (with the pipeline not yet filled) is ignored.
       p_check : process (clk)
-         variable started    : boolean := false;
-         variable t          : natural := 0;
-         variable hs_d       : std_logic;
-         variable vs_d       : std_logic;
-         variable visible_d  : boolean;
+         variable started_v    : boolean := false;
+         variable t_v          : natural := 0;
+         variable hs_d_v       : std_logic;
+         variable vs_d_v       : std_logic;
+         variable visible_d_v  : boolean;
 
-         variable hs_fall    : integer := -1;   -- Time of the last falling edge
-         variable hs_rise    : integer := -1;   -- Time of the last rising edge
-         variable vs_fall    : integer := -1;
-         variable vs_rise    : integer := -1;
-         variable vis_start  : integer := -1;   -- Start of the last visible line
-         variable vis_end    : integer := -1;   -- End of the last visible line
-         variable last_line  : integer := -1;   -- Start of the last visible line before vs_fall
-         variable lines      : natural := 0;    -- Visible lines in this frame
-         variable frames     : natural := 0;    -- Frames checked
-         variable visible    : boolean;
+         variable hs_fall_v    : integer := -1;   -- Time of the last falling edge
+         variable hs_rise_v    : integer := -1;   -- Time of the last rising edge
+         variable vs_fall_v    : integer := -1;
+         variable vs_rise_v    : integer := -1;
+         variable vis_start_v  : integer := -1;   -- Start of the last visible line
+         variable vis_end_v    : integer := -1;   -- End of the last visible line
+         variable last_line_v  : integer := -1;   -- Start of the last visible line before vs_fall_v
+         variable lines_v      : natural := 0;    -- Visible lines in this frame
+         variable frames_v     : natural := 0;    -- Frames checked
+         variable visible_v    : boolean;
 
          -- The second phase
-         variable t0         : natural;         -- Time of the falling edge of vs
-         variable n          : natural;         -- Pixel number from (0, 0)
-         variable x          : natural;
-         variable y          : natural;
-         variable exp        : std_logic_vector(7 downto 0);
-         variable errors     : natural := 0;
+         variable t0_v         : natural;         -- Time of the falling edge of vs
+         variable n_v          : natural;         -- Pixel number from (0, 0)
+         variable x_v          : natural;
+         variable y_v          : natural;
+         variable exp_v        : std_logic_vector(7 downto 0);
+         variable errors_v     : natural := 0;
       begin
          if finished(m) = '1' then
             -- This instance is finished, and waits for the others
             null;
 
-         elsif rising_edge(clk) and rst = '0' and not started then
+         elsif rising_edge(clk) and rst = '0' and not started_v then
             -- The first values, so that no edges are detected in the first clock
             -- cycle
-            started   := true;
-            hs_d      := hs_n;
-            vs_d      := vs_n;
-            visible_d := vga_col /= X"00";
+            started_v   := true;
+            hs_d_v      := hs_n;
+            vs_d_v      := vs_n;
+            visible_d_v := vga_col /= X"00";
 
          elsif rising_edge(clk) and rst = '0' and pattern then
             -- The second phase. The output at the start of the vertical sync
             -- pulse is the pixel (0, C_V_VISIBLE + C_V_FRONT), see the first
             -- phase.
-            t := t + 1;
-            n := t - t0 + (C_V_VISIBLE + C_V_FRONT)*C_H_TOTAL;
-            x := n mod C_H_TOTAL;
-            y := (n / C_H_TOTAL) mod C_V_TOTAL;
+            t_v := t_v + 1;
+            n_v := t_v - t0_v + (C_V_VISIBLE + C_V_FRONT)*C_H_TOTAL;
+            x_v := n_v mod C_H_TOTAL;
+            y_v := (n_v / C_H_TOTAL) mod C_V_TOTAL;
 
-            exp := (others => '0');
-            if x < C_H_VISIBLE and y < C_V_VISIBLE then
-               exp := palette_colour(std_logic_vector(to_unsigned((y / 120) mod 4, 2)),
-                                     pixel_value(x, y));
+            exp_v := (others => '0');
+            if x_v < C_H_VISIBLE and y_v < C_V_VISIBLE then
+               exp_v := palette_colour(std_logic_vector(to_unsigned((y_v / 120) mod 4, 2)),
+                                       pixel_value(x_v, y_v));
             end if;
-            if vga_col /= exp then
-               if errors < 10 then
-                  report "Wrong colour at (" & integer'image(x) & ", " &
-                         integer'image(y) & "): got " &
+            if vga_col /= exp_v then
+               if errors_v < 10 then
+                  report "Wrong colour at (" & integer'image(x_v) & ", " &
+                         integer'image(y_v) & "): got " &
                          integer'image(to_integer(unsigned(vga_col))) &
-                         ", expected " & integer'image(to_integer(unsigned(exp)))
+                         ", expected " & integer'image(to_integer(unsigned(exp_v)))
                      severity error;
                end if;
-               errors := errors + 1;
+               errors_v := errors_v + 1;
             end if;
 
             -- Change the palette between the lines 119 and 120, 239 and 240, and
             -- so on (after the visible part of the line), and back to the first
             -- palette after the last visible line
-            if x = C_H_VISIBLE + 60 and y < C_V_VISIBLE and y mod 120 = 119 then
-               palette <= std_logic_vector(to_unsigned((y / 120 + 1) mod 4, 2));
-               if y = C_V_VISIBLE-1 then
+            if x_v = C_H_VISIBLE + 60 and y_v < C_V_VISIBLE and y_v mod 120 = 119 then
+               palette <= std_logic_vector(to_unsigned((y_v / 120 + 1) mod 4, 2));
+               if y_v = C_V_VISIBLE-1 then
                   palette <= "00";
                end if;
             end if;
 
             -- Stop after the last visible line of the next frame
-            if n = (C_V_TOTAL + C_V_VISIBLE)*C_H_TOTAL then
-               assert errors = 0
-                  report integer'image(errors) & " pixels with the wrong colour"
+            if n_v = (C_V_TOTAL + C_V_VISIBLE)*C_H_TOTAL then
+               assert errors_v = 0
+                  report integer'image(errors_v) & " pixels with the wrong colour"
                   severity error;
                report integer'image(C_H_VISIBLE) & "x" & integer'image(C_V_VISIBLE) &
                       ": finished";
@@ -254,106 +254,119 @@ begin
             end if;
 
          elsif rising_edge(clk) and rst = '0' then
-            t := t + 1;
-            visible := vga_col /= X"00";
+            t_v       := t_v + 1;
+            visible_v := vga_col /= X"00";
 
-            if visible then
+            if visible_v then
                assert vga_col = C_COLOUR
-                  report "Wrong colour in the visible area" severity error;
+                  report "Wrong colour in the visible area"
+                  severity error;
 
                -- Both sync signals are inactive here
                assert hs_n = '1' and vs_n = '1'
                   report "Sync signal active in the visible area (wrong " &
-                         "polarity of the sync pulses)" severity error;
+                         "polarity of the sync pulses)"
+                  severity error;
             end if;
 
             -- Horizontal sync
-            if hs_d = '1' and hs_n = '0' then
-               if hs_fall >= 0 then
-                  assert t - hs_fall = C_H_TOTAL
+            if hs_d_v = '1' and hs_n = '0' then
+               if hs_fall_v >= 0 then
+                  assert t_v - hs_fall_v = C_H_TOTAL
                      report "Wrong time between horizontal sync pulses: " &
-                            integer'image(t - hs_fall) severity error;
+                            integer'image(t_v - hs_fall_v)
+                     severity error;
                end if;
-               if vis_end >= 0 and vis_end > hs_rise then
-                  assert t - vis_end = C_H_FRONT
+               if vis_end_v >= 0 and vis_end_v > hs_rise_v then
+                  assert t_v - vis_end_v = C_H_FRONT
                      report "Wrong horizontal front porch: " &
-                            integer'image(t - vis_end) severity error;
+                            integer'image(t_v - vis_end_v)
+                     severity error;
                end if;
-               hs_fall := t;
+               hs_fall_v := t_v;
             end if;
-            if hs_d = '0' and hs_n = '1' and hs_fall >= 0 then
-               assert t - hs_fall = C_H_SYNC
+            if hs_d_v = '0' and hs_n = '1' and hs_fall_v >= 0 then
+               assert t_v - hs_fall_v = C_H_SYNC
                   report "Wrong horizontal sync pulse: " &
-                         integer'image(t - hs_fall) severity error;
-               hs_rise := t;
+                         integer'image(t_v - hs_fall_v)
+                  severity error;
+               hs_rise_v := t_v;
             end if;
 
             -- Visible area
-            if visible and not visible_d then
-               if hs_rise >= 0 and hs_rise > vis_end then
-                  assert t - hs_rise = C_H_BACK
+            if visible_v and not visible_d_v then
+               if hs_rise_v >= 0 and hs_rise_v > vis_end_v then
+                  assert t_v - hs_rise_v = C_H_BACK
                      report "Wrong horizontal back porch: " &
-                            integer'image(t - hs_rise) severity error;
+                            integer'image(t_v - hs_rise_v)
+                     severity error;
                end if;
-               if vs_rise >= 0 and vs_rise > last_line then
-                  assert t - vs_rise = C_V_BACK*C_H_TOTAL
+               if vs_rise_v >= 0 and vs_rise_v > last_line_v then
+                  assert t_v - vs_rise_v = C_V_BACK*C_H_TOTAL
                      report "Wrong vertical back porch: " &
-                            integer'image(t - vs_rise) & " clock cycles" severity error;
+                            integer'image(t_v - vs_rise_v) & " clock cycles"
+                     severity error;
                end if;
                -- The first line may have started before the checks
-               if hs_fall >= 0 then
-                  vis_start := t;
+               if hs_fall_v >= 0 then
+                  vis_start_v := t_v;
                else
-                  vis_start := -1;
+                  vis_start_v := -1;
                end if;
-               last_line := t;
-               lines     := lines + 1;
+               last_line_v := t_v;
+               lines_v     := lines_v + 1;
             end if;
-            if visible_d and not visible then
-               if vis_start >= 0 then
-                  assert t - vis_start = C_H_VISIBLE
+            if visible_d_v and not visible_v then
+               if vis_start_v >= 0 then
+                  assert t_v - vis_start_v = C_H_VISIBLE
                      report "Wrong number of visible pixels: " &
-                            integer'image(t - vis_start) severity error;
+                            integer'image(t_v - vis_start_v)
+                     severity error;
                end if;
-               vis_end := t;
+               vis_end_v := t_v;
             end if;
 
             -- Vertical sync
-            if vs_d = '1' and vs_n = '0' then
-               if vs_fall >= 0 then
-                  assert t - vs_fall = C_V_TOTAL*C_H_TOTAL
+            if vs_d_v = '1' and vs_n = '0' then
+               if vs_fall_v >= 0 then
+                  assert t_v - vs_fall_v = C_V_TOTAL*C_H_TOTAL
                      report "Wrong time between vertical sync pulses: " &
-                            integer'image(t - vs_fall) severity error;
-                  assert lines = C_V_VISIBLE
+                            integer'image(t_v - vs_fall_v)
+                     severity error;
+                  assert lines_v = C_V_VISIBLE
                      report "Wrong number of visible lines: " &
-                            integer'image(lines) severity error;
-                  assert t - last_line = (C_V_FRONT+1)*C_H_TOTAL
+                            integer'image(lines_v)
+                     severity error;
+                  assert t_v - last_line_v = (C_V_FRONT+1)*C_H_TOTAL
                      report "Wrong vertical front porch: " &
-                            integer'image(t - last_line) & " clock cycles" severity error;
-                  frames := frames + 1;
+                            integer'image(t_v - last_line_v) & " clock cycles"
+                     severity error;
+                  frames_v := frames_v + 1;
                end if;
-               vs_fall := t;
-               lines   := 0;
+               vs_fall_v := t_v;
+               lines_v   := 0;
             end if;
-            if vs_d = '0' and vs_n = '1' and vs_fall >= 0 then
-               assert t - vs_fall = C_V_SYNC*C_H_TOTAL
+            if vs_d_v = '0' and vs_n = '1' and vs_fall_v >= 0 then
+               assert t_v - vs_fall_v = C_V_SYNC*C_H_TOTAL
                   report "Wrong vertical sync pulse: " &
-                         integer'image(t - vs_fall) & " clock cycles" severity error;
-               vs_rise := t;
+                         integer'image(t_v - vs_fall_v) & " clock cycles"
+                  severity error;
+               vs_rise_v := t_v;
             end if;
 
-            hs_d      := hs_n;
-            vs_d      := vs_n;
-            visible_d := visible;
+            hs_d_v      := hs_n;
+            vs_d_v      := vs_n;
+            visible_d_v := visible_v;
 
-            if frames = 1 then
-               assert vs_rise > 0 and hs_rise > 0
-                  report "Sync pulses not seen" severity error;
+            if frames_v = 1 then
+               assert vs_rise_v > 0 and hs_rise_v > 0
+                  report "Sync pulses not seen"
+                  severity error;
 
                -- Start the second phase, at the falling edge of vs
                pattern <= true;
                palette <= "00";
-               t0      := t;
+               t0_v      := t_v;
             end if;
          end if;
       end process p_check;
@@ -370,16 +383,16 @@ begin
             G_ADDR_BITS  => C_ADDR_BITS
          )
          port map (
-            clk_i     => clk,
-            rst_i     => rst,
-            rd_addr_o => rd_addr,
-            rd_data_i => rd_data,
-            palette_i => palette,
+            clk_i        => clk,
+            rst_i        => rst,
+            rd_addr_o    => rd_addr,
+            rd_data_i    => rd_data,
+            palette_i    => palette,
             fps_digits_i => (others => '0'),
             fps_blank_i  => (others => '1'),
-            vga_hs_o  => vga_hs,
-            vga_vs_o  => vga_vs,
-            vga_col_o => vga_col
+            vga_hs_o     => vga_hs,
+            vga_vs_o     => vga_vs,
+            vga_col_o    => vga_col
          ); -- i_vga
 
    end generate gen_config;

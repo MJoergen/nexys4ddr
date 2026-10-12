@@ -26,32 +26,32 @@ entity dispatcher_jobs is
       G_GROUP_SIZE    : positive
    );
    port (
-      clk_i           : in  std_logic;
-      rst_i           : in  std_logic;
-      start_i         : in  std_logic;
-      startx_i        : in  std_logic_vector(17 downto 0);
-      starty_i        : in  std_logic_vector(17 downto 0);
-      stepx_i         : in  std_logic_vector(17 downto 0);
-      stepy_i         : in  std_logic_vector(17 downto 0);
+      clk_i          : in  std_logic;
+      rst_i          : in  std_logic;
+      start_i        : in  std_logic;
+      startx_i       : in  std_logic_vector(17 downto 0);
+      starty_i       : in  std_logic_vector(17 downto 0);
+      stepx_i        : in  std_logic_vector(17 downto 0);
+      stepy_i        : in  std_logic_vector(17 downto 0);
       -- High while the picture is being calculated
-      sched_active_o  : out std_logic;
-      done_o          : out std_logic;
+      sched_active_o : out std_logic;
+      done_o         : out std_logic;
 
       -- To and from the job modules. All but job_busy_i are one for each
       -- group of G_GROUP_SIZE job modules.
-      job_rst_o       : out std_logic_vector((G_NUM_ITERATORS+G_GROUP_SIZE-1)/G_GROUP_SIZE-1 downto 0);
-      job_cx_o        : out value_vector((G_NUM_ITERATORS+G_GROUP_SIZE-1)/G_GROUP_SIZE-1 downto 0);
-      job_starty_o    : out value_vector((G_NUM_ITERATORS+G_GROUP_SIZE-1)/G_GROUP_SIZE-1 downto 0);
-      job_stepy_o     : out value_vector((G_NUM_ITERATORS+G_GROUP_SIZE-1)/G_GROUP_SIZE-1 downto 0);
-      job_start_o     : out std_logic_vector(G_NUM_ITERATORS-1 downto 0);
-      job_busy_i      : in  std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+      job_rst_o      : out std_logic_vector((G_NUM_ITERATORS+G_GROUP_SIZE-1)/G_GROUP_SIZE-1 downto 0);
+      job_cx_o       : out value_vector((G_NUM_ITERATORS+G_GROUP_SIZE-1)/G_GROUP_SIZE-1 downto 0);
+      job_starty_o   : out value_vector((G_NUM_ITERATORS+G_GROUP_SIZE-1)/G_GROUP_SIZE-1 downto 0);
+      job_stepy_o    : out value_vector((G_NUM_ITERATORS+G_GROUP_SIZE-1)/G_GROUP_SIZE-1 downto 0);
+      job_start_o    : out std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+      job_busy_i     : in  std_logic_vector(G_NUM_ITERATORS-1 downto 0);
 
       -- To dispatcher_results: The index of the job module, the picture
       -- column, and the block of each job, when tbl_valid_o is high
-      tbl_valid_o     : out std_logic;
-      tbl_idx_o       : out natural range 0 to G_NUM_ITERATORS-1;
-      tbl_col_o       : out std_logic_vector(maximum(1, log2(G_NUM_COLS))-1 downto 0);
-      tbl_blk_o       : out natural range 0 to G_NUM_ROWS/G_ROWS_IN_JOB-1
+      tbl_valid_o    : out std_logic;
+      tbl_idx_o      : out natural range 0 to G_NUM_ITERATORS-1;
+      tbl_col_o      : out std_logic_vector(maximum(1, log2(G_NUM_COLS))-1 downto 0);
+      tbl_blk_o      : out natural range 0 to G_NUM_ROWS/G_ROWS_IN_JOB-1
    );
 end entity dispatcher_jobs;
 

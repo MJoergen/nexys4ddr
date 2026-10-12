@@ -13,7 +13,7 @@ use ieee.std_logic_1164.all;
 entity job_scheduler_tb is
 end entity job_scheduler_tb;
 
-architecture sim of job_scheduler_tb is
+architecture simulation of job_scheduler_tb is
 
    -- Not a power of two, to test the wrap around of the counter, and more than
    -- C_GROUP_SIZE, so there are two groups of processes (see
@@ -23,14 +23,14 @@ architecture sim of job_scheduler_tb is
 
    type count_t is array (0 to C_SIZE-1) of natural;
 
-   signal clk    : std_logic;
+   signal clk      : std_logic;
    signal rst      : std_logic;
    signal rst_gen  : std_logic;
    signal rst_test : std_logic := '0';   -- Used to test the reset
-   signal active : std_logic := '0';
-   signal busy   : std_logic_vector(C_SIZE-1 downto 0) := (others => '0');
-   signal valid  : std_logic;
-   signal idx    : natural range 0 to C_SIZE-1;
+   signal active   : std_logic := '0';
+   signal busy     : std_logic_vector(C_SIZE-1 downto 0) := (others => '0');
+   signal valid    : std_logic;
+   signal idx      : natural range 0 to C_SIZE-1;
 
 begin
 
@@ -69,8 +69,8 @@ begin
          name   : string;
          counts : out count_t
       ) is
-         variable prev_valid : boolean := false;
-         variable prev_idx   : natural := 0;
+         variable prev_valid_v : boolean := false;
+         variable prev_idx_v   : natural := 0;
       begin
          counts := (others => 0);
          for t in 1 to cycles loop
@@ -80,15 +80,15 @@ begin
 
                -- Round-robin: If started in two consecutive clock cycles, then
                -- the second process is the one after the first.
-               if prev_valid then
-                  assert idx = (prev_idx + 1) mod C_SIZE
-                     report name & ": Not round-robin: " & integer'image(prev_idx) &
+               if prev_valid_v then
+                  assert idx = (prev_idx_v + 1) mod C_SIZE
+                     report name & ": Not round-robin: " & integer'image(prev_idx_v) &
                             " followed by " & integer'image(idx)
                      severity error;
                end if;
             end if;
-            prev_valid := (valid = '1');
-            prev_idx   := idx;
+            prev_valid_v := (valid = '1');
+            prev_idx_v   := idx;
          end loop;
       end procedure observe;
 
@@ -100,31 +100,31 @@ begin
          rounds : natural;
          name   : string
       ) is
-         variable counts : count_t;
-         variable exp    : natural;
+         variable counts_v : count_t;
+         variable exp_v    : natural;
       begin
          busy <= mask;
          for t in 1 to C_SIZE + 4 loop    -- Wait for the change to take effect
             wait until rising_edge(clk);
          end loop;
 
-         observe(rounds * C_SIZE, name, counts);
+         observe(rounds * C_SIZE, name, counts_v);
 
          for i in 0 to C_SIZE-1 loop
             if mask(i) = '0' and active = '1' then
-               exp := rounds;
+               exp_v := rounds;
             else
-               exp := 0;
+               exp_v := 0;
             end if;
-            assert counts(i) = exp
+            assert counts_v(i) = exp_v
                report name & ": Process " & integer'image(i) & " was started " &
-                      integer'image(counts(i)) & " times, expected " & integer'image(exp)
+                      integer'image(counts_v(i)) & " times, expected " & integer'image(exp_v)
                severity error;
          end loop;
       end procedure check_mask;
 
-      variable counts : count_t;
-      variable mask   : std_logic_vector(C_SIZE-1 downto 0);
+      variable counts_v : count_t;
+      variable mask_v   : std_logic_vector(C_SIZE-1 downto 0);
 
    begin
       wait until rst_gen = '0';
@@ -139,16 +139,16 @@ begin
 
       -- Active, and only a single process idle
       for k in 0 to C_SIZE-1 loop
-         mask    := (others => '1');
-         mask(k) := '0';
-         check_mask(mask, 3, "only process " & integer'image(k) & " idle");
+         mask_v    := (others => '1');
+         mask_v(k) := '0';
+         check_mask(mask_v, 3, "only process " & integer'image(k) & " idle");
       end loop;
 
       -- Two idle processes, one in each group
-      mask     := (others => '1');
-      mask(1)  := '0';
-      mask(17) := '0';
-      check_mask(mask, 3, "processes 1 and 17 idle");
+      mask_v     := (others => '1');
+      mask_v(1)  := '0';
+      mask_v(17) := '0';
+      check_mask(mask_v, 3, "processes 1 and 17 idle");
 
       -- All processes busy
       check_mask((C_SIZE-1 downto 0 => '1'), 3, "all busy");
@@ -205,4 +205,4 @@ begin
          job_busy_i      => busy
       ); -- i_job_scheduler
 
-end architecture sim;
+end architecture simulation;

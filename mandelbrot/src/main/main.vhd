@@ -7,7 +7,7 @@
 --   btn_i(3 downto 0): Move the view left, right, up, and down.
 -- While a button is pressed, the view is updated 18 times per second, i.e.
 -- every G_CLK_FREQ/18 clock cycles.
--- The view is kept inside the range -2 to 2, see view.vhd.
+-- The view is kept inside the range -2 to 2, see viewport.vhd.
 -- Switches 0 and 1 select the colour palette, but they are used in vga.vhd, not
 -- here. The other switches are not used.
 --
@@ -54,13 +54,13 @@ entity main is
       G_ADDR_BITS     : positive
    );
    port (
-      clk_i     : in  std_logic;                      -- G_CLK_FREQ
-      rst_i     : in  std_logic;
+      clk_i        : in  std_logic;                      -- G_CLK_FREQ
+      rst_i        : in  std_logic;
 
-      btn_i     : in  std_logic_vector( 4 downto 0);  -- "CLRUD"
-      sw_i      : in  std_logic_vector( 7 downto 0);
-      seg_o     : out std_logic_vector( 6 downto 0);  -- "GFEDCBA"
-      seg_an_o  : out std_logic_vector( 7 downto 0);
+      btn_i        : in  std_logic_vector( 4 downto 0);  -- "CLRUD"
+      sw_i         : in  std_logic_vector( 7 downto 0);
+      seg_o        : out std_logic_vector( 6 downto 0);  -- "GFEDCBA"
+      seg_an_o     : out std_logic_vector( 7 downto 0);
 
       -- The frame rate, see fps.vhd
       fps_digits_o : out std_logic_vector(31 downto 0);
@@ -69,12 +69,12 @@ entity main is
 
       -- Write port of the display memory. No picture is started while
       -- wr_busy_i is high, because the display memory ignores the writes then.
-      wr_addr_o : out std_logic_vector(G_ADDR_BITS-1 downto 0);
-      wr_data_o : out std_logic_vector(9*G_PIXELS-1 downto 0);
-      wr_en_o   : out std_logic;
-      wr_busy_i : in  std_logic
+      wr_addr_o    : out std_logic_vector(G_ADDR_BITS-1 downto 0);
+      wr_data_o    : out std_logic_vector(9*G_PIXELS-1 downto 0);
+      wr_en_o      : out std_logic;
+      wr_busy_i    : in  std_logic
    );
-end main;
+end entity main;
 
 architecture structural of main is
 
@@ -161,7 +161,7 @@ begin
    -- Instantiate view control
    --------------------------------------------------
 
-   i_view : entity work.view
+   i_viewport : entity work.viewport
       generic map (
          G_NUM_COLS => G_NUM_COLS,
          G_NUM_ROWS => G_NUM_ROWS,
@@ -180,7 +180,7 @@ begin
          starty_o   => starty,
          stepx_o    => stepx,
          stepy_o    => stepy
-      ); -- i_view
+      ); -- i_viewport
 
 
    -- The current picture is finished. The signal done stays high until the
@@ -202,7 +202,7 @@ begin
          view_new <= '0';
          if first = '1' or
             startx /= pic_startx or starty /= pic_starty or
-            stepx  /= pic_stepx  or stepy  /= pic_stepy
+            stepx /= pic_stepx or stepy /= pic_stepy
          then
             view_new <= '1';
          end if;
@@ -325,17 +325,17 @@ begin
          G_PIXELS        => G_PIXELS
       )
       port map (
-         clk_i           => clk_i,
-         rst_i           => rst_i,
-         start_i         => start,
-         startx_i        => startx,
-         starty_i        => starty,
-         stepx_i         => stepx,
-         stepy_i         => stepy,
-         wr_addr_o       => wr_addr_s,
-         wr_data_o       => wr_data_s,
-         wr_en_o         => wr_en_s,
-         done_o          => done
+         clk_i     => clk_i,
+         rst_i     => rst_i,
+         start_i   => start,
+         startx_i  => startx,
+         starty_i  => starty,
+         stepx_i   => stepx,
+         stepy_i   => stepy,
+         wr_addr_o => wr_addr_s,
+         wr_data_o => wr_data_s,
+         wr_en_o   => wr_en_s,
+         done_o    => done
       ); -- i_dispatcher
 
 

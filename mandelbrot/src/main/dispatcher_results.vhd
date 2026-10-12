@@ -28,28 +28,28 @@ entity dispatcher_results is
       G_PIXELS        : positive          -- Pixels in each write
    );
    port (
-      clk_i           : in  std_logic;
-      rst_i           : in  std_logic;
+      clk_i          : in  std_logic;
+      rst_i          : in  std_logic;
       -- High while the picture is being calculated
-      sched_active_i  : in  std_logic;
+      sched_active_i : in  std_logic;
 
       -- From dispatcher_jobs: The index of the job module, the picture
       -- column, and the block of each job, when tbl_valid_i is high
-      tbl_valid_i     : in  std_logic;
-      tbl_idx_i       : in  natural range 0 to G_NUM_ITERATORS-1;
-      tbl_col_i       : in  std_logic_vector(maximum(1, log2(G_NUM_COLS))-1 downto 0);
-      tbl_blk_i       : in  natural range 0 to G_NUM_ROWS/G_ROWS_IN_JOB-1;
+      tbl_valid_i    : in  std_logic;
+      tbl_idx_i      : in  natural range 0 to G_NUM_ITERATORS-1;
+      tbl_col_i      : in  std_logic_vector(maximum(1, log2(G_NUM_COLS))-1 downto 0);
+      tbl_blk_i      : in  natural range 0 to G_NUM_ROWS/G_ROWS_IN_JOB-1;
 
       -- From and to the job modules
-      res_addr_i      : in  res_addr_vector(G_NUM_ITERATORS-1 downto 0);
-      res_data_i      : in  std_logic_vector(G_NUM_ITERATORS*9*G_PIXELS-1 downto 0);
-      res_valid_i     : in  std_logic_vector(G_NUM_ITERATORS-1 downto 0);
-      res_ack_o       : out std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+      res_addr_i     : in  res_addr_vector(G_NUM_ITERATORS-1 downto 0);
+      res_data_i     : in  std_logic_vector(G_NUM_ITERATORS*9*G_PIXELS-1 downto 0);
+      res_valid_i    : in  std_logic_vector(G_NUM_ITERATORS-1 downto 0);
+      res_ack_o      : out std_logic_vector(G_NUM_ITERATORS-1 downto 0);
 
       -- To the display memory
-      wr_addr_o       : out std_logic_vector(G_ADDR_BITS-1 downto 0);
-      wr_data_o       : out std_logic_vector(9*G_PIXELS-1 downto 0);
-      wr_en_o         : out std_logic
+      wr_addr_o      : out std_logic_vector(G_ADDR_BITS-1 downto 0);
+      wr_data_o      : out std_logic_vector(9*G_PIXELS-1 downto 0);
+      wr_en_o        : out std_logic
    );
 end entity dispatcher_results;
 
@@ -92,8 +92,8 @@ architecture rtl of dispatcher_results is
    signal grp_res_data_r    : res_data_vector(C_NUM_GROUPS-1 downto 0);
 
    attribute keep : string;
-   attribute keep of grp_idx_r    : signal is "true";
-   attribute keep of grp_valid_r  : signal is "true";
+   attribute keep of grp_idx_r   : signal is "true";
+   attribute keep of grp_valid_r : signal is "true";
    --
    signal res_ack_r         : std_logic_vector(G_NUM_ITERATORS-1 downto 0);
    signal res_busy_r        : std_logic_vector(G_NUM_ITERATORS-1 downto 0);

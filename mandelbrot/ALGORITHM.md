@@ -58,7 +58,7 @@ The modules are instantiated as follows:
 nexys4ddr                       src/nexys4ddr.vhd (top level)
  +- clk_rst                     src/clk_rst.vhd (MMCM, clock buffers, and resets)
  +- main                        src/main/main.vhd (everything in the MAIN clock domain)
- |   +- view                    src/main/view.vhd (view control from the buttons)
+ |   +- viewport                src/main/viewport.vhd (view control from the buttons)
  |   +- dispatcher              src/main/dispatcher.vhd (types in src/main/dispatcher_pkg.vhd)
  |   |   +- dispatcher_jobs     src/main/dispatcher_jobs.vhd (gives out the jobs, and the done flag)
  |   |   |   +- job_scheduler   src/main/job_scheduler.vhd (selects the job module to receive a job)
@@ -831,7 +831,7 @@ square: from -1.0 to 1.0 for 640x480 (4:3), and from -1.0667 to 1.0667 for
 1280x1024 (5:4) on the MEGA65. The pixel size is the size of the view divided
 by the number of columns and rows.
 
-The view is controlled by the module [`src/main/view.vhd`](src/main/view.vhd). It is
+The view is controlled by the module [`src/main/viewport.vhd`](src/main/viewport.vhd). It is
 updated at a fixed rate, 18 times per second (every 56 ms), which is given by
 a counter in `main.vhd` that counts `G_CLK_FREQ`/18 clock cycles. At
 each update, the following happens, depending on the buttons that are held
@@ -884,7 +884,7 @@ changed at the end of the update. The new view is used when the next picture is
 started.
 
 The view control has a self-checking testbench
-([`sim/view_tb.vhd`](sim/view_tb.vhd)). It holds the buttons down for many
+([`sim/viewport_tb.vhd`](sim/viewport_tb.vhd)). It holds the buttons down for many
 updates, and checks after every update that the view is inside the range, that
 the size of a pixel is at least one LSB, that the view is the one expected
 from a simple model, and that the outputs all change in the same clock cycle.
@@ -1661,7 +1661,7 @@ The next builds at 188.24 MHz had these setup slacks:
 * With the jobs of 120 rows: +0.103 ns.
 * With the scheduler for the results: +0.037 ns.
 * With the frame rate overlay on the VGA output: +0.006 ns. The worst path is
-  in `view` (from `zoomx` to the clock enable of `dy`), which the overlay does
+  in `viewport` (from `zoomx` to the clock enable of `dy`), which the overlay does
   not change, so this is the variation from one run to the next. The 40 paths
   from the MAIN clock to the VGA clock had +8.19 ns of slack against the
   maximum delay of 10 ns, and `report_cdc` reports all of them as safe.

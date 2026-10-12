@@ -73,7 +73,7 @@ entity mega65_r6 is
       hdmi_hiz_en_o         : out std_logic;
       hdmi_ls_oe_n_o        : out std_logic
    );
-end mega65_r6;
+end entity mega65_r6;
 
 architecture structural of mega65_r6 is
 

@@ -9,7 +9,7 @@ use work.video_pkg.all;
 
 entity pix is
    generic (
-      G_MODE  : video_mode_t
+      G_MODE : video_mode_t
    );
    port (
       clk_i   : in  std_logic;
@@ -18,12 +18,12 @@ entity pix is
       pix_x_o : out std_logic_vector(10 downto 0);
       pix_y_o : out std_logic_vector(10 downto 0)
    );
-end pix;
+end entity pix;
 
 architecture structural of pix is
 
-   constant H_TOTAL : natural := h_total(G_MODE);
-   constant V_TOTAL : natural := v_total(G_MODE);
+   constant C_H_TOTAL : natural := h_total(G_MODE);
+   constant C_V_TOTAL : natural := v_total(G_MODE);
 
    -- Pixel counters
    signal pix_x : std_logic_vector(10 downto 0) := (others => '0');
@@ -31,7 +31,7 @@ architecture structural of pix is
 
 begin
 
-   assert H_TOTAL <= 2**11 and V_TOTAL <= 2**11
+   assert C_H_TOTAL <= 2**11 and C_V_TOTAL <= 2**11
       report "The pixel counters only support up to 2048 pixels and lines"
       severity failure;
 
@@ -39,29 +39,29 @@ begin
    -- Generate horizontal and vertical pixel counters
    --------------------------------------------------
 
-   pix_x_proc : process (clk_i)
+   p_pix_x : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if pix_x = H_TOTAL-1 then
+         if pix_x = C_H_TOTAL-1 then
             pix_x <= (others => '0');
          else
             pix_x <= pix_x + 1;
          end if;
       end if;
-   end process pix_x_proc;
+   end process p_pix_x;
 
-   pix_y_proc : process (clk_i)
+   p_pix_y : process (clk_i)
    begin
       if rising_edge(clk_i) then
-         if pix_x = H_TOTAL-1  then
-            if pix_y = V_TOTAL-1 then
+         if pix_x = C_H_TOTAL-1 then
+            if pix_y = C_V_TOTAL-1 then
                pix_y <= (others => '0');
             else
                pix_y <= pix_y + 1;
             end if;
          end if;
       end if;
-   end process pix_y_proc;
+   end process p_pix_y;
 
 
    ------------------------

@@ -44,35 +44,35 @@ package body iterator_model_pkg is
 
    function iterator_count (cx : integer; cy : integer; max_count : integer)
       return integer is
-      variable cx_s       : signed(37 downto 0);  -- 6.32
-      variable cy_div_2_s : signed(36 downto 0);  -- 5.32, this is cy/2
-      variable x          : signed(17 downto 0);  -- 2.16
-      variable y          : signed(17 downto 0);  -- 2.16
-      variable new_x      : signed(37 downto 0);  -- 6.32
-      variable new_y_half : signed(36 downto 0);  -- 5.32, this is new y/2
+      variable cx_v         : signed(37 downto 0);  -- 6.32
+      variable cy_div_2_v   : signed(36 downto 0);  -- 5.32, this is cy/2
+      variable x_v          : signed(17 downto 0);  -- 2.16
+      variable y_v          : signed(17 downto 0);  -- 2.16
+      variable new_x_v      : signed(37 downto 0);  -- 6.32
+      variable new_y_half_v : signed(36 downto 0);  -- 5.32, this is new y/2
    begin
-      cx_s       := shift_left(resize(to_signed(cx, 18), 38), 16);
-      cy_div_2_s := shift_left(resize(to_signed(cy, 18), 37), 15);
-      x          := (others => '0');
-      y          := (others => '0');
+      cx_v       := shift_left(resize(to_signed(cx, 18), 38), 16);
+      cy_div_2_v := shift_left(resize(to_signed(cy, 18), 37), 15);
+      x_v        := (others => '0');
+      y_v        := (others => '0');
 
       for n in 1 to max_count-1 loop
          -- new_x = (x+y)*(x-y) + cx, with x+y and x-y in 19 bits, so they
          -- do not wrap around
-         new_x := (resize(x, 19) + resize(y, 19)) * (resize(x, 19) - resize(y, 19)) + cx_s;
+         new_x_v := (resize(x_v, 19) + resize(y_v, 19)) * (resize(x_v, 19) - resize(y_v, 19)) + cx_v;
 
          -- new_y/2 = x*y + cy/2
-         new_y_half := resize(x * y, 37) + cy_div_2_s;
+         new_y_half_v := resize(x_v * y_v, 37) + cy_div_2_v;
 
          -- The new x is in range (-2 <= x < 2) if it fits in 34 bits (2.32),
          -- and the new y/2 is in range (-1 <= y/2 < 1) if it fits in 33 bits
          -- (1.32).
-         if not top_bits_equal(new_x, 33) or not top_bits_equal(new_y_half, 32) then
+         if not top_bits_equal(new_x_v, 33) or not top_bits_equal(new_y_half_v, 32) then
             return n;
          end if;
 
-         x := new_x(33 downto 16);
-         y := new_y_half(32 downto 15);
+         x_v := new_x_v(33 downto 16);
+         y_v := new_y_half_v(32 downto 15);
       end loop;
 
       return max_count;

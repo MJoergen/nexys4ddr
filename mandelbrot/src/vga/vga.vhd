@@ -24,39 +24,39 @@ entity vga is
       G_ADDR_BITS  : positive := 19
    );
    port (
-      clk_i     : in  std_logic;                      -- The pixel clock
-      rst_i     : in  std_logic;
+      clk_i        : in  std_logic;                      -- The pixel clock
+      rst_i        : in  std_logic;
 
       -- Read port of the display memory
-      rd_addr_o : out std_logic_vector(G_ADDR_BITS-1 downto 0);
-      rd_data_i : in  std_logic_vector( 8 downto 0);
+      rd_addr_o    : out std_logic_vector(G_ADDR_BITS-1 downto 0);
+      rd_data_i    : in  std_logic_vector( 8 downto 0);
 
       -- Selects the palette, see palette_pkg.vhd. This is asynchronous (from
       -- the switches), and it is synchronized here.
-      palette_i : in  std_logic_vector( 1 downto 0);
+      palette_i    : in  std_logic_vector( 1 downto 0);
 
       -- The frame rate, moved from the MAIN clock domain in the top level
       -- (nexys4ddr.vhd or mega65.vhd), see overlay.vhd
       fps_digits_i : in  std_logic_vector(31 downto 0);
       fps_blank_i  : in  std_logic_vector( 7 downto 0);
 
-      vga_hs_o  : out std_logic;
-      vga_vs_o  : out std_logic;
-      vga_de_o  : out std_logic;                      -- Visible area
-      vga_col_o : out std_logic_vector( 7 downto 0)    -- RRRGGGBB
+      vga_hs_o     : out std_logic;
+      vga_vs_o     : out std_logic;
+      vga_de_o     : out std_logic;                       -- Visible area
+      vga_col_o    : out std_logic_vector( 7 downto 0)    -- RRRGGGBB
    );
-end vga;
+end entity vga;
 
 architecture structural of vga is
 
    -- The number of bits needed for the values 0 to n-1
    function log2 (n : natural) return natural is
-      variable r : natural := 0;
+      variable r_v : natural := 0;
    begin
-      while 2**r < n loop
-         r := r + 1;
+      while 2**r_v < n loop
+         r_v := r_v + 1;
       end loop;
-      return r;
+      return r_v;
    end function log2;
 
    -- The number of bits of the rows in the visible area
@@ -121,12 +121,12 @@ begin
 
    i_pix : entity work.pix
       generic map (
-         G_MODE    => G_MODE
+         G_MODE => G_MODE
       )
       port map (
-         clk_i     => clk_i,
-         pix_x_o   => pix_x,
-         pix_y_o   => pix_y
+         clk_i   => clk_i,
+         pix_x_o => pix_x,
+         pix_y_o => pix_y
       ); -- i_pix
 
 
@@ -151,19 +151,19 @@ begin
 
    i_disp : entity work.disp
       generic map (
-         G_MODE       => G_MODE
+         G_MODE => G_MODE
       )
       port map (
-         vga_clk_i    => clk_i,
-         vga_rst_i    => rst_i,
-         vga_pix_x_i  => disp_x,
-         vga_pix_y_i  => disp_y,
-         vga_col_d3_i => rd_data_i,
-         vga_palette_i=> palette_sync,
-         vga_hs_o     => disp_hs,
-         vga_vs_o     => disp_vs,
-         vga_de_o     => disp_de,
-         vga_col_o    => disp_col
+         vga_clk_i     => clk_i,
+         vga_rst_i     => rst_i,
+         vga_pix_x_i   => disp_x,
+         vga_pix_y_i   => disp_y,
+         vga_col_d3_i  => rd_data_i,
+         vga_palette_i => palette_sync,
+         vga_hs_o      => disp_hs,
+         vga_vs_o      => disp_vs,
+         vga_de_o      => disp_de,
+         vga_col_o     => disp_col
       ); -- i_disp
 
 

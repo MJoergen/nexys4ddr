@@ -106,13 +106,13 @@ begin
             stepy_r  : real;
             name     : string
          ) is
-            variable cy_i     : integer;
-            variable exp      : integer;
-            variable act      : integer;
-            variable seen     : boolean;
-            variable cap_addr : std_logic_vector(8 downto 0);
-            variable cap_data : std_logic_vector(9*C_PIX-1 downto 0);
-            variable row      : integer;
+            variable cy_v       : integer;
+            variable exp_v      : integer;
+            variable act_v      : integer;
+            variable seen_v     : boolean;
+            variable cap_addr_v : std_logic_vector(8 downto 0);
+            variable cap_data_v : std_logic_vector(9*C_PIX-1 downto 0);
+            variable row_v      : integer;
          begin
             report "Starting job " & name & " with " & integer'image(C_PIX) & " pixels in each result";
 
@@ -126,49 +126,49 @@ begin
 
             for res in 0 to C_NUM_ROWS/C_PIX-1 loop
                -- Wait for the result of these rows
-               row  := res*C_PIX;
-               seen := false;
+               row_v  := res*C_PIX;
+               seen_v := false;
                for t in 1 to C_RES_TIMEOUT loop
                   wait until rising_edge(clk);
                   assert job_busy = '1'
                      report name & ": Not busy during the job"
                      severity error;
                   if res_valid = '1' then
-                     seen := true;
+                     seen_v := true;
                      exit;
                   end if;
                end loop;
-               assert seen
-                  report name & ": Timeout waiting for the result of row " & integer'image(row)
+               assert seen_v
+                  report name & ": Timeout waiting for the result of row " & integer'image(row_v)
                   severity failure;
 
-               cap_addr := res_addr;
-               cap_data := res_data;
+               cap_addr_v := res_addr;
+               cap_data_v := res_data;
 
                -- Check the row number and the count
-               assert to_integer(unsigned(cap_addr)) = row
-                  report name & ": Wrong row number: got " & integer'image(to_integer(unsigned(cap_addr))) &
-                         ", expected " & integer'image(row)
+               assert to_integer(unsigned(cap_addr_v)) = row_v
+                  report name & ": Wrong row number: got " & integer'image(to_integer(unsigned(cap_addr_v))) &
+                         ", expected " & integer'image(row_v)
                   severity error;
 
                for i in 0 to C_PIX-1 loop
                   -- The job module adds the step in 18 bits
-                  cy_i := wrap18(to_fixed(starty_r) + (row+i) * to_fixed(stepy_r));
-                  exp  := iterator_count(to_fixed(cx_r), cy_i, C_MAX_COUNT);
-                  act  := to_integer(unsigned(cap_data(9*i+8 downto 9*i)));
-                  report name & ": row " & integer'image(row+i) & ": count = " & integer'image(act) &
-                         ", expected = " & integer'image(exp);
-                  assert act = exp
-                     report name & ": Wrong count for row " & integer'image(row+i) & ": got " &
-                            integer'image(act) & ", expected " & integer'image(exp)
+                  cy_v  := wrap18(to_fixed(starty_r) + (row_v+i) * to_fixed(stepy_r));
+                  exp_v := iterator_count(to_fixed(cx_r), cy_v, C_MAX_COUNT);
+                  act_v := to_integer(unsigned(cap_data_v(9*i+8 downto 9*i)));
+                  report name & ": row " & integer'image(row_v+i) & ": count = " & integer'image(act_v) &
+                         ", expected = " & integer'image(exp_v);
+                  assert act_v = exp_v
+                     report name & ": Wrong count for row " & integer'image(row_v+i) & ": got " &
+                            integer'image(act_v) & ", expected " & integer'image(exp_v)
                      severity error;
                end loop;
 
                -- Delay the acknowledge. The result must remain valid and unchanged.
                for t in 1 to (res mod 3) * 3 loop
                   wait until rising_edge(clk);
-                  assert res_valid = '1' and res_addr = cap_addr and res_data = cap_data
-                     report name & ": Result changed before it was acknowledged, row " & integer'image(row)
+                  assert res_valid = '1' and res_addr = cap_addr_v and res_data = cap_data_v
+                     report name & ": Result changed before it was acknowledged, row " & integer'image(row_v)
                      severity error;
                end loop;
 
