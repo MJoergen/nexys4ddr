@@ -13,7 +13,7 @@
 -- a frame never shows two different values.
 --
 -- The overlay is added to the output of disp.vhd, which is delayed by one
--- clock cycle (all of vga_hs_o, vga_vs_o, and vga_col_o). The pixel counters
+-- clock cycle (all of vga_hs_o, vga_vs_o, vga_de_o, and vga_col_o). The pixel counters
 -- (vga_pix_x_i and vga_pix_y_i) are those of the pixel, which is at the input
 -- (vga_col_d4_i) four clock cycles later.
 
@@ -40,10 +40,12 @@ entity overlay is
       vga_pix_y_i   : in  std_logic_vector(10 downto 0);
       vga_hs_d4_i   : in  std_logic;
       vga_vs_d4_i   : in  std_logic;
+      vga_de_d4_i   : in  std_logic;
       vga_col_d4_i  : in  std_logic_vector(7 downto 0);
 
       vga_hs_o      : out std_logic;
       vga_vs_o      : out std_logic;
+      vga_de_o      : out std_logic;
       vga_col_o     : out std_logic_vector(7 downto 0)
    );
 end entity overlay;
@@ -83,6 +85,7 @@ architecture rtl of overlay is
    -- Stage 5: Output
    signal vga_hs_d5   : std_logic;
    signal vga_vs_d5   : std_logic;
+   signal vga_de_d5   : std_logic;
    signal vga_col_d5  : std_logic_vector(7 downto 0);
 
 begin
@@ -145,6 +148,7 @@ begin
          end if;
          vga_hs_d5 <= vga_hs_d4_i;
          vga_vs_d5 <= vga_vs_d4_i;
+         vga_de_d5 <= vga_de_d4_i;
       end if;
    end process p_overlay;
 
@@ -155,6 +159,7 @@ begin
 
    vga_hs_o  <= vga_hs_d5;
    vga_vs_o  <= vga_vs_d5;
+   vga_de_o  <= vga_de_d5;
    vga_col_o <= vga_col_d5;
 
 end architecture rtl;

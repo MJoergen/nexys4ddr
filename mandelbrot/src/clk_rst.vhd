@@ -61,6 +61,7 @@
 --   Output clock   Output    Divider         Freq (MHz)
 --   vga_clk        CLKOUT1   G_VGA_DIVIDE    VCO/G_VGA_DIVIDE
 --   main_clk       CLKOUT0   G_MAIN_DIVIDE   VCO/G_MAIN_DIVIDE
+--   tmds_clk       CLKOUT2   G_TMDS_DIVIDE   VCO/G_TMDS_DIVIDE
 --
 -- All of these are set by the top level module:
 -- * Nexys 4 DDR: The VCO is 100 MHz * 12 = 1200 MHz (the maximum for speed
@@ -69,7 +70,11 @@
 -- * MEGA65: The VCO is 100 MHz / 5 * 54 = 1080 MHz (speed grade -2 allows up
 --   to 1440 MHz), the only VCO frequency which gives the 108 MHz pixel clock
 --   of 1280x1024 exactly. The VGA clock is 1080/10 = 108 MHz, and the main
---   clock is 1080/7.625 = 141.64 MHz.
+--   clock is 1080/7.625 = 141.64 MHz. The TMDS clock of the HDMI output is
+--   1080/2 = 540 MHz, i.e. five times the VGA clock, because the HDMI
+--   serialisers output ten bits in each VGA clock cycle on both edges of the
+--   TMDS clock (see serialiser_10to1_selectio.vhd).
+-- The Nexys 4 DDR has no HDMI output, so the TMDS clock is not used there.
 -- The main clock uses CLKOUT0, because it is the only output with a
 -- fractional divider (in steps of 0.125).
 --
@@ -93,7 +98,8 @@ entity clk_rst is
       G_VCO_DIVIDE  : positive;     -- The VCO is 100 MHz / G_VCO_DIVIDE * G_VCO_MULT
       G_VCO_MULT    : real;
       G_MAIN_DIVIDE : real;        -- The main clock is VCO / G_MAIN_DIVIDE
-      G_VGA_DIVIDE  : positive      -- The VGA clock is VCO / G_VGA_DIVIDE
+      G_VGA_DIVIDE  : positive;     -- The VGA clock is VCO / G_VGA_DIVIDE
+      G_TMDS_DIVIDE : positive := 2 -- The TMDS clock is VCO / G_TMDS_DIVIDE
    );
    port (
       clk_i      : in  std_logic;  -- 100 MHz
@@ -103,7 +109,9 @@ entity clk_rst is
       main_rst_o : out std_logic;  -- Synchronous to main_clk_o
 
       vga_clk_o  : out std_logic;  -- VCO / G_VGA_DIVIDE
-      vga_rst_o  : out std_logic   -- Synchronous to vga_clk_o
+      vga_rst_o  : out std_logic;  -- Synchronous to vga_clk_o
+
+      tmds_clk_o : out std_logic   -- VCO / G_TMDS_DIVIDE
    );
 end clk_rst;
 
@@ -113,6 +121,7 @@ architecture xilinx of clk_rst is
    signal clkfb          : std_logic;
    signal main_clk_mmcm  : std_logic;
    signal vga_clk_mmcm   : std_logic;
+   signal tmds_clk_mmcm  : std_logic;
    signal locked         : std_logic;
    signal rstn           : std_logic;
 
@@ -154,6 +163,10 @@ begin
          CLKOUT1_PHASE        => 0.000,
          CLKOUT1_DUTY_CYCLE   => 0.500,
          CLKOUT1_USE_FINE_PS  => FALSE,
+         CLKOUT2_DIVIDE       => G_TMDS_DIVIDE, -- TMDS
+         CLKOUT2_PHASE        => 0.000,
+         CLKOUT2_DUTY_CYCLE   => 0.500,
+         CLKOUT2_USE_FINE_PS  => FALSE,
          CLKIN1_PERIOD        => 10.0,
          REF_JITTER1          => 0.010
       )
@@ -161,6 +174,7 @@ begin
          CLKFBOUT => clkfb_mmcm,
          CLKOUT0  => main_clk_mmcm,
          CLKOUT1  => vga_clk_mmcm,
+         CLKOUT2  => tmds_clk_mmcm,
          CLKFBIN  => clkfb,
          CLKIN1   => clk_i,
          CLKIN2   => '0',
@@ -195,6 +209,12 @@ begin
          I => vga_clk_mmcm,
          O => vga_clk
       ); -- vga_clk_buf
+
+   tmds_clk_buf : BUFG
+      port map (
+         I => tmds_clk_mmcm,
+         O => tmds_clk_o
+      ); -- tmds_clk_buf
 
 
    --------------------------------------------------

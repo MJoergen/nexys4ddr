@@ -42,6 +42,7 @@ entity vga is
 
       vga_hs_o  : out std_logic;
       vga_vs_o  : out std_logic;
+      vga_de_o  : out std_logic;                      -- Visible area
       vga_col_o : out std_logic_vector( 7 downto 0)    -- RRRGGGBB
    );
 end vga;
@@ -84,6 +85,7 @@ architecture structural of vga is
 
    signal disp_hs  : std_logic;
    signal disp_vs  : std_logic;
+   signal disp_de  : std_logic;
    signal disp_col : std_logic_vector(7 downto 0);
 
    signal palette_meta : std_logic_vector(1 downto 0) := "00";
@@ -160,6 +162,7 @@ begin
          vga_palette_i=> palette_sync,
          vga_hs_o     => disp_hs,
          vga_vs_o     => disp_vs,
+         vga_de_o     => disp_de,
          vga_col_o    => disp_col
       ); -- i_disp
 
@@ -181,9 +184,11 @@ begin
          vga_pix_y_i  => disp_y,
          vga_hs_d4_i  => disp_hs,
          vga_vs_d4_i  => disp_vs,
+         vga_de_d4_i  => disp_de,
          vga_col_d4_i => disp_col,
          vga_hs_o     => vga_hs_o,
          vga_vs_o     => vga_vs_o,
+         vga_de_o     => vga_de_o,
          vga_col_o    => vga_col_o
       ); -- i_overlay
 

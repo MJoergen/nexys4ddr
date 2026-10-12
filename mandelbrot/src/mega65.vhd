@@ -24,6 +24,11 @@
 --   pixel colour in the middle of each pixel. The colour and the sync signals
 --   are registered in the IOBs, so they all change at the same time, half a
 --   clock cycle (4.6 ns) before the DAC samples them.
+-- * The same picture is also output on the HDMI connector, in DVI mode (i.e.
+--   without audio and InfoFrames), because 1280x1024 is not a CEA-861 video
+--   mode. vga_to_hdmi.vhd encodes the picture to TMDS symbols, and the
+--   serialisers output them with the TMDS clock (5 * 108 = 540 MHz, on both
+--   edges).
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -33,6 +38,7 @@ library unisim;
 use unisim.vcomponents.all;
 
 use work.video_pkg.all;
+use work.types_pkg.all;
 
 entity mega65 is
    port (
@@ -60,7 +66,13 @@ entity mega65 is
       vga_vs_o       : out std_logic;
       vdac_clk_o     : out std_logic;
       vdac_sync_n_o  : out std_logic;
-      vdac_blank_n_o : out std_logic
+      vdac_blank_n_o : out std_logic;
+
+      -- HDMI
+      tmds_data_p_o  : out std_logic_vector(2 downto 0);
+      tmds_data_n_o  : out std_logic_vector(2 downto 0);
+      tmds_clk_p_o   : out std_logic;
+      tmds_clk_n_o   : out std_logic
    );
 end mega65;
 
@@ -89,6 +101,10 @@ architecture structural of mega65 is
    -- which gives the pixel clock (1080 MHz / 10 = 108 MHz, see clk_rst.vhd).
    constant C_VIDEO         : video_mode_t := C_VIDEO_1280X1024;
    constant C_VGA_DIVIDE    : positive := 10;
+
+   -- The divider of the TMDS clock of the HDMI output, which must be five
+   -- times the pixel clock (1080 MHz / 2 = 540 MHz, see clk_rst.vhd).
+   constant C_TMDS_DIVIDE   : positive := C_VGA_DIVIDE / 5;
 
    -- The divider of the MAIN clock (see clk_rst.vhd), and its frequency in Hz.
    -- 1080 MHz / 7.625 = 141.64 MHz. The longest path is in the iterators (see
@@ -144,6 +160,8 @@ architecture structural of mega65 is
    signal vga_clk        : std_logic;
    signal vga_rst        : std_logic;
 
+   signal tmds_clk       : std_logic;
+
    signal wr_addr        : std_logic_vector(C_ADDR_BITS-1 downto 0);
    signal wr_data        : std_logic_vector(9*C_PIXELS-1 downto 0);
    signal wr_en          : std_logic;
@@ -171,7 +189,20 @@ architecture structural of mega65 is
 
    signal vga_hs         : std_logic;
    signal vga_vs         : std_logic;
+   signal vga_de         : std_logic;
    signal vga_col        : std_logic_vector( 7 downto 0);  -- RRRGGGBB
+
+   -- The colour expanded to 8 bits per colour, for the DAC and for HDMI
+   signal vga_red        : std_logic_vector( 7 downto 0);
+   signal vga_green      : std_logic_vector( 7 downto 0);
+   signal vga_blue       : std_logic_vector( 7 downto 0);
+
+   -- The sync signals, active high, for vga_to_hdmi
+   signal hdmi_hs        : std_logic;
+   signal hdmi_vs        : std_logic;
+
+   -- The TMDS symbols of the three HDMI data channels
+   signal hdmi_tmds      : slv_9_0_t(0 to 2);
 
    -- The registers of the outputs to the DAC and the VGA connector. Several of
    -- the colour registers are identical, so the attribute keep prevents the
@@ -260,7 +291,8 @@ begin
          G_VCO_DIVIDE  => C_VCO_DIVIDE,
          G_VCO_MULT    => C_VCO_MULT,
          G_MAIN_DIVIDE => C_MAIN_DIVIDE,
-         G_VGA_DIVIDE  => C_VGA_DIVIDE
+         G_VGA_DIVIDE  => C_VGA_DIVIDE,
+         G_TMDS_DIVIDE => C_TMDS_DIVIDE
       )
       port map (
          clk_i      => clk_i,
@@ -268,7 +300,8 @@ begin
          main_clk_o => main_clk,
          main_rst_o => main_rst,
          vga_clk_o  => vga_clk,
-         vga_rst_o  => vga_rst
+         vga_rst_o  => vga_rst,
+         tmds_clk_o => tmds_clk
       ); -- i_clk_rst
 
 
@@ -382,6 +415,7 @@ begin
          fps_blank_i  => vga_fps_blank,
          vga_hs_o  => vga_hs,
          vga_vs_o  => vga_vs,
+         vga_de_o  => vga_de,
          vga_col_o => vga_col
       ); -- i_vga
 
@@ -391,15 +425,19 @@ begin
    --------------------------------------------------
 
    -- Expand each colour to 8 bits by repeating the bits, so that the full
-   -- range is used (e.g. "111" becomes "11111111"). The outputs are
-   -- registered, with one register in the IOB of each output, so that they
-   -- all change at the same time.
+   -- range is used (e.g. "111" becomes "11111111").
+   vga_red   <= vga_col(7 downto 5) & vga_col(7 downto 5) & vga_col(7 downto 6);
+   vga_green <= vga_col(4 downto 2) & vga_col(4 downto 2) & vga_col(4 downto 3);
+   vga_blue  <= vga_col(1 downto 0) & vga_col(1 downto 0) & vga_col(1 downto 0) & vga_col(1 downto 0);
+
+   -- The outputs are registered, with one register in the IOB of each output,
+   -- so that they all change at the same time.
    p_vdac : process (vga_clk)
    begin
       if rising_edge(vga_clk) then
-         vdac_red_r   <= vga_col(7 downto 5) & vga_col(7 downto 5) & vga_col(7 downto 6);
-         vdac_green_r <= vga_col(4 downto 2) & vga_col(4 downto 2) & vga_col(4 downto 3);
-         vdac_blue_r  <= vga_col(1 downto 0) & vga_col(1 downto 0) & vga_col(1 downto 0) & vga_col(1 downto 0);
+         vdac_red_r   <= vga_red;
+         vdac_green_r <= vga_green;
+         vdac_blue_r  <= vga_blue;
          vdac_hs_r    <= vga_hs;
          vdac_vs_r    <= vga_vs;
       end if;
@@ -432,5 +470,71 @@ begin
 
    vdac_sync_n_o  <= '0';  -- No sync on green
    vdac_blank_n_o <= '1';  -- The colour is black outside the visible area
+
+
+   --------------------------------------------------
+   -- HDMI
+   --------------------------------------------------
+
+   -- vga_to_hdmi expects active high sync signals, and outputs them with the
+   -- polarity given by hs_pol and vs_pol.
+   hdmi_hs <= vga_hs xnor C_VIDEO.sync_active;
+   hdmi_vs <= vga_vs xnor C_VIDEO.sync_active;
+
+   -- Encode the picture to TMDS symbols. DVI mode is used, so there are no
+   -- data islands (audio and InfoFrames), and the VIC, the aspect ratio, the
+   -- pixel repetition, and the audio inputs are not used.
+   i_vga_to_hdmi : entity work.vga_to_hdmi
+      port map (
+         select_44100 => '0',
+         dvi          => '1',
+         vic          => X"00",  -- Not a CEA-861 video mode
+         aspect       => "00",   -- No data
+         pix_rep      => '0',
+         vs_pol       => C_VIDEO.sync_active,
+         hs_pol       => C_VIDEO.sync_active,
+         vga_rst      => vga_rst,
+         vga_clk      => vga_clk,
+         vga_vs       => hdmi_vs,
+         vga_hs       => hdmi_hs,
+         vga_de       => vga_de,
+         vga_r        => vga_red,
+         vga_g        => vga_green,
+         vga_b        => vga_blue,
+         pcm_rst      => vga_rst,
+         pcm_clk      => vga_clk,
+         pcm_clken    => '0',
+         pcm_l        => (others => '0'),
+         pcm_r        => (others => '0'),
+         pcm_acr      => '0',
+         pcm_n        => (others => '0'),
+         pcm_cts      => (others => '0'),
+         tmds         => hdmi_tmds
+      ); -- i_vga_to_hdmi
+
+   -- Serialise the three data channels, ten bits in each VGA clock cycle
+   gen_hdmi_data : for i in 0 to 2 generate
+      i_hdmi_data : entity work.serialiser_10to1_selectio
+         port map (
+            rst    => vga_rst,
+            clk    => vga_clk,
+            clk_x5 => tmds_clk,
+            d      => hdmi_tmds(i),
+            out_p  => tmds_data_p_o(i),
+            out_n  => tmds_data_n_o(i)
+         ); -- i_hdmi_data
+   end generate gen_hdmi_data;
+
+   -- The HDMI clock is the VGA clock, i.e. five ones and five zeros in each
+   -- VGA clock cycle.
+   i_hdmi_clk : entity work.serialiser_10to1_selectio
+      port map (
+         rst    => vga_rst,
+         clk    => vga_clk,
+         clk_x5 => tmds_clk,
+         d      => "0000011111",
+         out_p  => tmds_clk_p_o,
+         out_n  => tmds_clk_n_o
+      ); -- i_hdmi_clk
 
 end architecture structural;

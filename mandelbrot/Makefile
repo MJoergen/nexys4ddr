@@ -18,11 +18,17 @@ nexys4ddr_SRC  = src/nexys4ddr.vhd
 # The MEGA65 board revisions R3 and R6 have the same FPGA, and the same
 # design (src/mega65.vhd). Only the top level modules are different, because
 # some of the pins are different. The bit-file of one revision must not be
-# used on the other one.
+# used on the other one. The keyboard driver and the HDMI output (both from
+# the C64MEGA65 core) are only on the MEGA65.
 MEGA65_SRC  = src/keyboard/kb_matrix_ram.vhd
 MEGA65_SRC += src/keyboard/mega65kbd_to_matrix.vhd
 MEGA65_SRC += src/keyboard/matrix_to_keynum.vhd
 MEGA65_SRC += src/keyboard/m2m_keyb.vhd
+MEGA65_SRC += src/hdmi/types_pkg.vhd
+MEGA65_SRC += src/hdmi/sync_reg.vhd
+MEGA65_SRC += src/hdmi/hdmi_tx_encoder.vhd
+MEGA65_SRC += src/hdmi/vga_to_hdmi.vhd
+MEGA65_SRC += src/hdmi/serialiser_10to1_selectio.vhd
 MEGA65_SRC += src/mega65.vhd
 
 mega65-r3_PART = xc7a200tfbg484-2

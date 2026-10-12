@@ -5,7 +5,8 @@
 -- clock cycles) less one, because vga.vhd gives this module the pixel counters
 -- delayed by one clock cycle. It is
 -- converted to the colour by the palette selected by vga_palette_i (see
--- palette_pkg.vhd). The colour is only output inside the visible area.
+-- palette_pkg.vhd). The colour is only output inside the visible area, which
+-- is also shown by vga_de_o (data enable, used by the HDMI output).
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -27,6 +28,7 @@ entity disp is
       vga_palette_i: in  std_logic_vector(1 downto 0);
       vga_hs_o     : out std_logic;
       vga_vs_o     : out std_logic;
+      vga_de_o     : out std_logic;
       vga_col_o    : out std_logic_vector(7 downto 0)
    );
 end entity disp;
@@ -61,6 +63,7 @@ architecture rtl of disp is
 
    signal vga_hs_d4    : std_logic;
    signal vga_vs_d4    : std_logic;
+   signal vga_de_d4    : std_logic;
    signal vga_col_d4   : std_logic_vector(7 downto 0);
 
 begin
@@ -119,10 +122,12 @@ begin
    begin
       if rising_edge(vga_clk_i) then
          vga_col_d4 <= (others => '0');
+         vga_de_d4  <= '0';
 
          -- Only set colour output inside visible area
          if vga_pix_x_d3 < H_PIXELS and vga_pix_y_d3 < V_PIXELS then
             vga_col_d4 <= palette_colour(vga_palette_i, vga_col_d3_i);
+            vga_de_d4  <= '1';
          end if;
 
          vga_hs_d4 <= vga_hs_d3;
@@ -137,6 +142,7 @@ begin
 
    vga_hs_o  <= vga_hs_d4;
    vga_vs_o  <= vga_vs_d4;
+   vga_de_o  <= vga_de_d4;
    vga_col_o <= vga_col_d4;
 
 end architecture rtl;
